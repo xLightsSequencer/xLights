@@ -49,6 +49,7 @@ class VendorMusicDialog: public wxDialog
 
 		//(*Declarations(VendorMusicDialog)
 		wxButton* Button_Download;
+		wxButton* Button_Search;
 		wxHyperlinkCtrl* HyperlinkCtrl_Facebook;
 		wxHyperlinkCtrl* HyperlinkCtrl_MusicLink;
 		wxHyperlinkCtrl* HyperlinkCtrl_VideoLink;
@@ -67,6 +68,7 @@ class VendorMusicDialog: public wxDialog
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_ModelDetails;
+		wxTextCtrl* TextCtrl_Search;
 		wxTextCtrl* TextCtrl_VendorDetails;
 		wxTreeCtrl* TreeCtrl_Navigator;
 		//*)
@@ -75,6 +77,8 @@ class VendorMusicDialog: public wxDialog
 
 		//(*Identifiers(VendorMusicDialog)
 		static const long ID_TREECTRL1;
+		static const long ID_TEXTCTRL3;
+		static const long ID_BUTTON2;
 		static const long ID_PANEL3;
 		static const long ID_STATICBITMAP1;
 		static const long ID_TEXTCTRL1;
@@ -112,6 +116,8 @@ class VendorMusicDialog: public wxDialog
 		void OnHyperlinkCtrl_MusicLinkClick(wxCommandEvent& event);
 		void OnHyperlinkCtrl_VideoLinkClick(wxCommandEvent& event);
 		void OnInit(wxInitDialogEvent& event);
+		void OnTextCtrl_SearchText(wxCommandEvent& event);
+		void OnButton_SearchClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

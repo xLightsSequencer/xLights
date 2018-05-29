@@ -2559,7 +2559,7 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
                              effectDB_Node);
             }
 
-            int num_strands = me->GetSubModelCount();
+            int num_strands = me->GetSubModelAndStrandCount();
             for (int strand = 0; strand < num_strands; strand++) {
                 SubModelElement *se = me->GetSubModel(strand);
                 num_layers = se->GetEffectLayerCount();
@@ -2759,7 +2759,7 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
                         }
                     }
                 }
-                for (int s = 0; s < me->GetSubModelCount(); s++) {
+                for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
                     SubModelElement *se = me->GetSubModel(s);
                     for (int j = 0; j < se->GetEffectLayerCount(); j++) {
                         EffectLayer* layer = se->GetEffectLayer(j);
@@ -2810,7 +2810,6 @@ wxString xLightsXmlFile::InsertMissing(wxString str,wxString missing_array,bool 
     }
     return str;
 }
-
 
 // file should be full path
 void xLightsXmlFile::FixVersionDifferences(const wxString& filename)

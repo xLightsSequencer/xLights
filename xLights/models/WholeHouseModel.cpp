@@ -5,6 +5,13 @@
 #include "WholeHouseModel.h"
 #include "ModelScreenLocation.h"
 
+
+/*
+ The WholeHouseModel is an ancient and long since deprecated class to represent a group of models.  There
+ is currently no way to create one of these.  The class is only here to allow loading of older setups that
+ have one
+ */
+
 WholeHouseModel::WholeHouseModel(wxXmlNode *node, const ModelManager &manager, bool zb) : ModelWithScreenLocation(manager)
 {
     SetFromXml(node, zb);
@@ -24,6 +31,32 @@ void WholeHouseModel::InitModel() {
     std::string WholeHouseData = ModelXml->GetAttribute("WholeHouseData").ToStdString();
     InitWholeHouse(WholeHouseData);
     CopyBufCoord2ScreenCoord();
+}
+
+NodeBaseClass* WholeHouseModel::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const
+{
+    NodeBaseClass *ret;
+    if (StringType=="Single Color Red" || StringType == "R") {
+        ret = new NodeClassRed(ns, NodesPerString);
+    } else if (StringType=="Single Color Green" || StringType == "G") {
+        ret = new NodeClassGreen(ns, NodesPerString);
+    } else if (StringType=="Single Color Blue" || StringType == "B") {
+        ret = new NodeClassBlue(ns, NodesPerString);
+    } else if (StringType=="Single Color White" || StringType == "W") {
+        ret = new NodeClassWhite(ns, NodesPerString);
+    } else if (StringType[0] == '#') {
+        ret = new NodeClassCustom(ns, NodesPerString, xlColor(StringType));
+    } else if (StringType=="Strobes White 3fps" || StringType=="Strobes") {
+        ret = new NodeClassWhite(ns, NodesPerString);
+    } else if (StringType=="4 Channel RGBW" || StringType == "RGBW") {
+        ret = new NodeClassRGBW(ns, NodesPerString, "RGB", true, 0);
+    } else if (StringType=="4 Channel WRGB" || StringType == "WRGB") {
+        ret = new NodeClassRGBW(ns, NodesPerString, "RGB", false, 0);
+    } else {
+        ret = new NodeBaseClass(ns, 1, rgbOrder);
+    }
+    ret->model = this;
+    return ret;
 }
 
 void WholeHouseModel::InitWholeHouse(const std::string &WholeHouseData) {

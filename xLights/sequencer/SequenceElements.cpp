@@ -168,7 +168,7 @@ std::vector < Element*> SequenceElements::SearchForElements(const std::string &r
                 ModelElement* mel = dynamic_cast<ModelElement*>(el);
                 if (mel != nullptr)
                 {
-                    for (int x = 0; x < mel->GetSubModelCount(); ++x)
+                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x)
                     {
                         SubModelElement* sme = mel->GetSubModel(x);
                         if (sme != nullptr)
@@ -283,7 +283,7 @@ void SequenceElements::RenameTimingTrack(std::string oldname, std::string newnam
                     }
                 }
             }
-            for (int j = 0; j < elem->GetSubModelCount(); j++) {
+            for (int j = 0; j < elem->GetSubModelAndStrandCount(); j++) {
                 SubModelElement *se = elem->GetSubModel(j);
                 for (int l = 0; l < se->GetEffectLayerCount(); l++) {
                     EffectLayer* layer = se->GetEffectLayer(l);
@@ -401,7 +401,7 @@ Element* SequenceElements::GetElement(const std::string &name) const
             ModelElement* mel = dynamic_cast<ModelElement*>(el);
             if (mel != nullptr)
             {
-                for (int x = 0; x < mel->GetSubModelCount(); ++x) {
+                for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x) {
                     SubModelElement* sme = mel->GetSubModel(x);
                     if (sme != nullptr)
                     {
@@ -565,14 +565,14 @@ Row_Information_Struct* SequenceElements::GetVisibleRowInformation(size_t index)
 
 Row_Information_Struct* SequenceElements::GetVisibleRowInformationFromRow(int row_number)
 {
-    for(size_t i=0;i<mVisibleRowInformation.size();i++)
+    for (size_t i = 0; i < mVisibleRowInformation.size(); i++)
     {
-        if(row_number == mVisibleRowInformation[i].RowNumber)
+        if (row_number == mVisibleRowInformation[i].RowNumber)
         {
             return &mVisibleRowInformation[i];
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 size_t SequenceElements::GetVisibleRowInformationSize()
@@ -627,8 +627,8 @@ int SequenceElements::GetRowInformationSize()
 
 void SequenceElements::SortElements()
 {
-    if (mAllViews[mCurrentView].size()>1) {
-        std::sort(mAllViews[mCurrentView].begin(),mAllViews[mCurrentView].end(),SortElementsByIndex);
+    if (mAllViews[mCurrentView].size() > 1) {
+        std::sort(mAllViews[mCurrentView].begin(), mAllViews[mCurrentView].end(), SortElementsByIndex);
     }
     if (mCurrentView == MASTER_VIEW) {
         mMasterViewChangeCount++;
@@ -1127,15 +1127,14 @@ int SequenceElements::GetSelectedTimingRow()
 }
 
 wxXmlNode *GetModelNode(wxXmlNode *root, const std::string & name) {
-    wxXmlNode* e;
-    for(e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
+    for (wxXmlNode * e = root->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "model")
         {
             if (name == e->GetAttribute(STR_NAME)) return e;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void addSubModelElement(SubModelElement *elem,
@@ -1170,6 +1169,7 @@ void addSubModelElement(SubModelElement *elem,
         mRowInformation.push_back(ri);
     }
 }
+
 void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mRowInformation,
                      int &rowIndex, xLightsFrame *xframe,
                      std::vector <Element*> &elements,
@@ -1208,7 +1208,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
     elem->Init(*cls);
     if (cls->GetDisplayAs() == "ModelGroup" && elem->ShowStrands()) {
         ModelGroup *grp = dynamic_cast<ModelGroup*>(cls);
-        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); it++) {
+        for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
             std::string modelName = *it;
             std::string subModel = "";
             int slsh = modelName.find('/');
@@ -1229,7 +1229,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
             }
         }
     } else if (elem->ShowStrands()) {
-        for (size_t s = 0; s < elem->GetSubModelCount(); s++) {
+        for (size_t s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
             SubModelElement *se = elem->GetSubModel(s);
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {
@@ -1319,36 +1319,36 @@ void SequenceElements::addTimingElement(TimingElement *elem, std::vector<Row_Inf
 
 void SequenceElements::PopulateRowInformation()
 {
-    int rowIndex=0;
-    int timingColorIndex=0;
+    int rowIndex = 0;
+    int timingColorIndex = 0;
     mSelectedTimingRow = -1;
     mRowInformation.clear();
     mTimingRowCount = 0;
 
-    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
     {
         Element* elem = mAllViews[MASTER_VIEW][i];
-		if (elem != nullptr)
-		{
-			if (elem->GetType() == ELEMENT_TYPE_TIMING)
-			{
+        if (elem != nullptr)
+        {
+            if (elem->GetType() == ELEMENT_TYPE_TIMING)
+            {
                 if (mCurrentView == MASTER_VIEW || TimingIsPartOfView(dynamic_cast<TimingElement*>(elem), mCurrentView))
-				{
-					addTimingElement(dynamic_cast<TimingElement*>(elem), mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
-				}
-			}
-		}
+                {
+                    addTimingElement(dynamic_cast<TimingElement*>(elem), mRowInformation, rowIndex, mSelectedTimingRow, mTimingRowCount, timingColorIndex);
+                }
+            }
+        }
     }
 
-    for(size_t i=0;i<mAllViews[mCurrentView].size();i++)
+    for (size_t i = 0; i < mAllViews[mCurrentView].size(); i++)
     {
         Element* elem = mAllViews[mCurrentView][i];
-		if (elem != nullptr)
-		{
+        if (elem != nullptr)
+        {
             if (elem->GetVisible() && elem->GetType() == ELEMENT_TYPE_MODEL) {
                 addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, xframe, mAllViews[MASTER_VIEW], false);
-			}
-		}
+            }
+        }
     }
     PopulateVisibleRowInformation();
 }

@@ -1,6 +1,8 @@
 #include "PlayListItemText.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
 #include "PlayListItemTextPanel.h"
 #include <log4cpp/Category.hh>
 #include <wx/font.h>
@@ -240,6 +242,11 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
         tt += "        %CDD_DAYS%, %CDD_HOURS%, %CDD_MINS%, %CDD_SECS%, %CDD_MS%\n";
         tt += "        %CDD_TSECS% -total seconds until countdown date\n\n";
     }
+    else if (type == "File Read")
+    {
+        tt += "    File Read Data\n";
+        tt += "        %FILE_DATA% - Text File Data\n\n";
+    }
 
     tt += "    Time until playlist item end\n";
     tt += "        %CD_DAYS%, %CD_HOURS%, %CD_MINS%, %CD_SECS%, %CD_MS%\n";
@@ -293,6 +300,18 @@ std::string PlayListItemText::GetText(size_t ms)
         {
             countdown = wxTimeSpan(0);
         }
+    }
+    else if (_type == "File Read")
+    {
+        wxFileInputStream input(_text);
+        wxTextInputStream text(input);
+        wxString fileData;
+        while (input.IsOk() && !input.Eof())
+        {
+            fileData += text.ReadLine();
+        }
+        fileData = fileData.Trim().Trim(false);
+        working.Replace("%FILE_DATA%", fileData);
     }
 
     working.Replace("%TEXT%", _text);

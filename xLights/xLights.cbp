@@ -41,7 +41,6 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
-					<Add directory="xLights/support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -106,7 +105,6 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
-					<Add directory="xLights/support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -169,7 +167,6 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
-					<Add directory="xLights/support" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -213,7 +210,6 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
-					<Add directory="xLights/support" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -261,7 +257,6 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
-					<Add directory="xLights/support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -324,7 +319,6 @@
 					<Add directory="../include" />
 					<Add directory="support" />
 					<Add directory="outputs" />
-					<Add directory="xLights/support" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -600,6 +594,8 @@
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
+		<Unit filename="VideoRenderCacher.cpp" />
+		<Unit filename="VideoRenderCacher.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />
@@ -951,6 +947,10 @@
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="64bit MinGW_Release" />
+			<Option target="64bit MinGW_Debug" />
 		</Unit>
 		<Unit filename="sequencer/DragEffectBitmapButton.cpp" />
 		<Unit filename="sequencer/DragEffectBitmapButton.h" />

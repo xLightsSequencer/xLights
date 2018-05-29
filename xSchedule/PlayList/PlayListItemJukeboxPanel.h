@@ -1,0 +1,58 @@
+#ifndef PLAYLISTITEMJUKEBOXPANEL_H
+#define PLAYLISTITEMJUKEBOXPANEL_H
+
+//(*Headers(PlayListItemJukeboxPanel)
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+//*)
+
+class PlayListItemJukebox;
+
+class PlayListItemJukeboxPanel: public wxPanel
+{
+    PlayListItemJukebox* _jukebox;
+    void ValidateWindow();
+
+	public:
+
+		PlayListItemJukeboxPanel(wxWindow* parent, PlayListItemJukebox* jukebox, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+		virtual ~PlayListItemJukeboxPanel();
+
+		//(*Declarations(PlayListItemJukeboxPanel)
+		wxSpinCtrl* SpinCtrl_Button;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_JukeboxName;
+		wxTextCtrl* TextCtrl_Sequence;
+		//*)
+
+	protected:
+
+		//(*Identifiers(PlayListItemJukeboxPanel)
+		static const long ID_STATICTEXT3;
+		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT4;
+		static const long ID_TEXTCTRL1;
+		static const long ID_STATICTEXT1;
+		static const long ID_SPINCTRL1;
+		static const long ID_STATICTEXT2;
+		static const long ID_TEXTCTRL2;
+		//*)
+
+	private:
+
+		//(*Handlers(PlayListItemJukeboxPanel)
+		void OnTextCtrl_DelayText(wxCommandEvent& event);
+		void OnTextCtrl_JukeboxNameText(wxCommandEvent& event);
+		//*)
+
+		DECLARE_EVENT_TABLE()
+};
+
+#endif

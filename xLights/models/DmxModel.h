@@ -34,6 +34,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetRedChannel() {return red_channel;}
         int GetGreenChannel() {return green_channel;}
         int GetBlueChannel() {return blue_channel;}
+        int GetWhiteChannel() {return white_channel;}
         int GetPanChannel() {return pan_channel;}
         int GetPanMinLimit() {return pan_min_limit;}
         int GetPanMaxLimit() {return pan_max_limit;}
@@ -90,6 +91,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int red_channel;
         int green_channel;
         int blue_channel;
+        int white_channel;
         int pan_orient;
         int pan_deg_of_rot;
         int tilt_orient;

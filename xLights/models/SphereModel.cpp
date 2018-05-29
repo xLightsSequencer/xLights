@@ -33,7 +33,7 @@ void SphereModel::InitSphere() {
     double pct=isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
     double pctIncr=1.0 / (double)numlights;     // this is cw
     if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
-    int ChanIncr=SingleChannel ?  1 : 3;
+    int ChanIncr = GetNodeChannelCount(StringType);
     size_t NodeCount=GetNodeCount();
 
     /*

@@ -342,6 +342,7 @@
     <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
+    <ClCompile Include="VideoRenderCacher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -678,6 +679,8 @@
     <ClInclude Include="VendorMusicHelpers.h" />
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
+    <ClInclude Include="RenderUtils.h" />
+    <ClInclude Include="VideoRenderCacher.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

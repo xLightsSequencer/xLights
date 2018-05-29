@@ -58,6 +58,7 @@ wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_DOACTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
@@ -191,6 +192,7 @@ public:
         void RunAction(wxCommandEvent& event);
         void ScheduleChange(wxCommandEvent& event);
         void DoCheckSchedule(wxCommandEvent& event);
+        void DoAction(wxCommandEvent& event);
         void DoXyzzy(wxCommandEvent& event);
         void DoXyzzyEvent(wxCommandEvent& event);
         void CorrectTimer(int rate);

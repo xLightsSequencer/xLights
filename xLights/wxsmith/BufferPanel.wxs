@@ -51,7 +51,7 @@
 															</content>
 															<selection>0</selection>
 														</object>
-														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>
@@ -89,7 +89,7 @@
 															<selection>0</selection>
 															<handler function="OnBufferTransformSelect" entry="EVT_CHOICE" />
 														</object>
-														<flag>wxALL</flag>
+														<flag>wxALL|wxEXPAND</flag>
 														<border>2</border>
 														<option>1</option>
 													</object>

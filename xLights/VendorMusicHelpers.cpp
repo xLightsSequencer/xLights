@@ -36,7 +36,7 @@ MSLSequenceLyric::MSLSequenceLyric(wxXmlNode* n, MSLVendor* vendor)
 		}
 		else if (nn == "artist")
 		{
-			_creator = l->GetNodeContent().ToStdString();
+			_artist = l->GetNodeContent().ToStdString();
 		}
 		else if (nn == "notes")
 		{
@@ -113,6 +113,14 @@ std::string MSLSequenceLyric::GetDescription() const
 	{
 		desc += "\n" + _notes + "\n";
 	}
+
+    std::string find = "\\n";
+    std::string replace = "\n";
+    for (std::string::size_type i = 0; (i = desc.find(find, i)) != std::string::npos;)
+    {
+        desc.replace(i, find.length(), replace);
+        i += replace.length();
+    }
 
 	return desc;
 }
@@ -200,6 +208,14 @@ std::string MSLVendor::GetDescription() const
 	{
 		desc += "\n" + _notes + "\n";
 	}
+
+    std::string find = "\\n";
+    std::string replace = "\n";
+    for (std::string::size_type i = 0; (i = desc.find(find, i)) != std::string::npos;)
+    {
+        desc.replace(i, find.length(), replace);
+        i += replace.length();
+    }
 
 	return desc;
 }

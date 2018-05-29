@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+﻿xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -11,6 +11,28 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Big speedup for Canvas mode
+2018.14 May 23, 2018
+   -- enh (keith)  Add select/copy/paste all effects on a model
+   -- enh (keith)  Add windows check for newer version
+   -- enh (keith)  Add search to sequences/lyrics download
+   -- enh (keith)  Add CSV format to Glediator effect. Each line is a frame, each column is a channel.
+   -- bug (keith)  Fix image model does not work in a group correctly
+   -- enh (keith)  Add ability to syncronise shape effects
+   -- bug (keith)  Add fixes to keep available render buffers correct
+   -- enh (keith)  Add white channel support to the DMX model
+   -- enh (keith)  Add video render caching to eliminate the need to continually shrink large videos
+   -- enh (keith)  Add support for sunrise and sunset to schedule
+   -- bug (keith)  Fix some anomalies with resetting schedules
+   -- bug (scott)  Fix for new sequence files saving in the FSEQ folder not the show folder
+   -- enh (scott)  Added File Read option to Text Playlist Item in xSchedule
+2018.13 May 12, 2018
+   -- bug (scott)  Fix an issue with xml/fseq saving
+   -- bug (keith)  Fix music download doesnt show artist tag
+   -- enh (keith)  Add ability to periodically schedule a playlist within a time interval - hourly, half hourly, etc
+2018.12 May 11, 2018 - withdrawn
+   -- enh (dkulp)  Support for 4 channel pixel strings (RGBW variants)
+   -- enh (dkulp)  Allow specifying how to handle mapping of RGB -> RGBW
    -- bug (dkulp)  Hostnames were not usable in several places, had to use IP addresses
    -- enh (dkulp)  FPP Connect - upload output settings for DDP outputs
    -- bug (dkulp)  Fix crash if uploading zig zag settings to FPP controller
@@ -35,6 +57,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                    number of missed pixels and the ability to process poor video
    -- enh (keith)  Add jukebox
    -- enh (keith)  Add lyric track and sequence download   
+   -- enh (keith)  Add random value curve setting. Convert to custom once you are happy with your curve or it will 
+				   keep changing every time the effect is rendered.
 2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
    -- enh (dkulp)  Update FPP to support v2 channel input and output configs

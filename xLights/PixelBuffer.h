@@ -266,7 +266,7 @@ public:
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
 
-    void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers);
+    void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers, int saveLayer = 0);
     void SetColors(int layer, const unsigned char *fdata);    
     void GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange);
 };

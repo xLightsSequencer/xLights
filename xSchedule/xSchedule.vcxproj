@@ -210,6 +210,7 @@
     <ClCompile Include="BackgroundPlaylistDialog.cpp" />
     <ClCompile Include="Blend.cpp" />
     <ClCompile Include="ButtonDetailsDialog.cpp" />
+    <ClCompile Include="City.cpp" />
     <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
@@ -273,6 +274,8 @@
     <ClCompile Include="PlayList\PlayListItemFilePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFPPEvent.cpp" />
     <ClCompile Include="PlayList\PlayListItemFPPEventPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemJukebox.cpp" />
+    <ClCompile Include="PlayList\PlayListItemJukeboxPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSC.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemProjector.cpp" />
@@ -389,6 +392,7 @@
     <ClInclude Include="BackgroundPlaylistDialog.h" />
     <ClInclude Include="Blend.h" />
     <ClInclude Include="ButtonDetailsDialog.h" />
+    <ClInclude Include="City.h" />
     <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="CommandManager.h" />
     <ClInclude Include="ConfigureOSC.h" />
@@ -454,6 +458,8 @@
     <ClInclude Include="PlayList\PlayListItemFilePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFPPEvent.h" />
     <ClInclude Include="PlayList\PlayListItemFPPEventPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemJukebox.h" />
+    <ClInclude Include="PlayList\PlayListItemJukeboxPanel.h" />
     <ClInclude Include="PlayList\PlayListItemOSC.h" />
     <ClInclude Include="PlayList\PlayListItemOSCPanel.h" />
     <ClInclude Include="PlayList\PlayListItemProjector.h" />

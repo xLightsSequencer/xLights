@@ -2,8 +2,10 @@
 #include "ScheduleDialog.h"
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
+#include "City.h"
 
 int __scheduleid = 0;
+std::string Schedule::__city = "";
 
 Schedule::Schedule(wxXmlNode* node)
 {
@@ -22,8 +24,26 @@ void Schedule::Load(wxXmlNode* node)
     _dow = node->GetAttribute("DOW", "MonTueWedThuFriSatSun");
     _startDate.ParseDate(node->GetAttribute("StartDate", "01/01/2017"));
     _endDate.ParseDate(node->GetAttribute("EndDate", "01/01/2099"));
-    _startTime.ParseTime(node->GetAttribute("StartTime", "19:00"));
-    _endTime.ParseTime(node->GetAttribute("EndTime", "22:00"));
+    _startTimeString = node->GetAttribute("StartTime", "19:00").Lower();
+    if (_startTimeString == "sunrise" || _startTimeString == "sunset")
+    {
+        _startTime.ParseTime("0:00");
+    }
+    else
+    {
+        _startTime.ParseTime(_startTimeString);
+        _startTimeString = "";
+    }
+    _endTimeString = node->GetAttribute("EndTime", "22:00").Lower();
+    if (_endTimeString == "sunrise" || _endTimeString == "sunset")
+    {
+        _endTime.ParseTime("0:00");
+    }
+    else
+    {
+        _endTime.ParseTime(_endTimeString);
+        _endTimeString = "";
+    }
     _loop = node->GetAttribute("Loop", "FALSE") == "TRUE";
     _random = node->GetAttribute("Random", "FALSE") == "TRUE";
     _everyYear = node->GetAttribute("EveryYear", "FALSE") == "TRUE";
@@ -32,6 +52,7 @@ void Schedule::Load(wxXmlNode* node)
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
     _nthDay = wxAtoi(node->GetAttribute("NthDay", "1"));
     _nthDayOffset = wxAtoi(node->GetAttribute("NthDayOffset", "0"));
+    _fireFrequency = node->GetAttribute("FireFrequency", "Fire once");
 }
 
 wxXmlNode* Schedule::Save()
@@ -42,11 +63,12 @@ wxXmlNode* Schedule::Save()
     node->AddAttribute("DOW", _dow);
     node->AddAttribute("StartDate", _startDate.Format("%Y-%m-%d"));
     node->AddAttribute("EndDate", _endDate.Format("%Y-%m-%d"));
-    node->AddAttribute("StartTime", _startTime.FormatTime());
-    node->AddAttribute("EndTime", _endTime.FormatTime());
+    node->AddAttribute("StartTime", GetStartTimeAsString());
+    node->AddAttribute("EndTime", GetEndTimeAsString());
     node->AddAttribute("Priority", wxString::Format(wxT("%i"), _priority));
     node->AddAttribute("NthDay", wxString::Format(wxT("%i"), _nthDay));
     node->AddAttribute("NthDayOffset", wxString::Format(wxT("%i"), _nthDayOffset));
+    node->AddAttribute("FireFrequency", _fireFrequency);
     if (_loop)
     {
         node->AddAttribute("Loop", "TRUE");
@@ -75,11 +97,13 @@ Schedule::Schedule()
     _id = __scheduleid++;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
-    _loop = false;
+    _loop = true;
     _endDate.ParseDate("2099-01-01");
     _startDate.ParseDate("2017-01-01");
     _startTime.ParseTime("19:00");
     _endTime.ParseTime("22:00");
+    _startTimeString = "";
+    _endTimeString = "";
     _name = "<unnamed>";
     _random = false;
     _loops = 0;
@@ -88,6 +112,7 @@ Schedule::Schedule()
     _dow = "MonTueWedThuFriSatSun";
     _nthDay = 1;
     _nthDayOffset = 0;
+    _fireFrequency = "Fire once";
 }
 
 std::string Schedule::GetJSON(const std::string& reference)
@@ -129,8 +154,10 @@ Schedule::Schedule(const Schedule& schedule, bool newid)
     _loop = schedule._loop;
     _endDate = schedule._endDate;
     _startDate = schedule._startDate;
+    _startTimeString = schedule._startTimeString;
     _startTime = schedule._startTime;
     _endTime = schedule._endTime;
+    _endTimeString = schedule._endTimeString;
     _name = schedule._name;
     _random = schedule._random;
     _loops = schedule._loops;
@@ -139,6 +166,7 @@ Schedule::Schedule(const Schedule& schedule, bool newid)
     _dow = schedule._dow;
     _nthDay = schedule._nthDay;
     _nthDayOffset = schedule._nthDayOffset;
+    _fireFrequency = schedule._fireFrequency;
 }
 
 Schedule* Schedule::Configure(wxWindow* parent)
@@ -168,6 +196,29 @@ void Schedule::SetDOW(bool mon, bool tue, bool wed, bool thu, bool fri, bool sat
     if (fri) _dow += "Fri";
     if (sat) _dow += "Sat";
     if (sun) _dow += "Sun";
+}
+
+void Schedule::SetTime(wxDateTime& toset, std::string city, wxDateTime time, std::string timeString) const
+{
+    if (timeString == "sunrise")
+    {
+        City* c = City::GetCity(city);
+        wxDateTime sunrise = c->GetSunrise(toset);
+        toset.SetHour(sunrise.GetHour());
+        toset.SetMinute(sunrise.GetMinute());
+    }
+    else if (timeString == "sunset")
+    {
+        City* c = City::GetCity(city);
+        wxDateTime sunset = c->GetSunset(toset);
+        toset.SetHour(sunset.GetHour());
+        toset.SetMinute(sunset.GetMinute());
+    }
+    else
+    {
+        toset.SetHour(time.GetHour());
+        toset.SetMinute(time.GetMinute());
+    }
 }
 
 void Schedule::Test()
@@ -235,6 +286,39 @@ bool Schedule::CheckActive()
     return CheckActiveAt(wxDateTime::Now());
 }
 
+bool Schedule::ShouldFire() const
+{
+    int minute = wxDateTime::Now().GetMinute();
+
+    if (_fireFrequency == "Fire every hour")
+    {
+        if (minute == 0) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 30 minutes")
+    {
+        if (minute == 0 || minute == 30) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 20 minutes")
+    {
+        if (minute == 0 || minute == 20 || minute == 40) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 15 minutes")
+    {
+        if (minute == 0 || minute == 15 || minute == 30 || minute == 45) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 10 minutes")
+    {
+        if (minute == 0 || minute == 10 || minute == 20 || minute == 30 || minute == 40 || minute == 50) return true;
+        return false;
+    }
+
+    return true;
+}
+
 //#define LOGCALCNEXTTRIGGERTIME
 
 bool Schedule::IsOkNthDay(const wxDateTime& date)
@@ -242,12 +326,48 @@ bool Schedule::IsOkNthDay(const wxDateTime& date)
     return ((date.GetDayOfYear() % _nthDay) - _nthDayOffset == 0);
 }
 
+void Schedule::SetStartTime(const std::string& start)
+{
+    wxString s = start;
+    s = s.Lower();
+
+    if (s != GetStartTimeAsString())
+    {
+        if (s == "sunrise" || s == "sunset")
+        {
+            _startTimeString = s;
+        }
+        else
+        {
+            _startTimeString = "";
+            _startTime.ParseTime(s);
+        }
+        _changeCount++;
+    }
+}
+
+void Schedule::SetEndTime(const std::string& end)
+{
+    wxString e = end;
+    e = e.Lower();
+
+    if (e != GetEndTimeAsString())
+    {
+        if (e == "sunrise" || e == "sunset")
+        {
+            _endTimeString = e;
+        }
+        else
+        {
+            _endTimeString = "";
+            _endTime.ParseTime(e);
+        }
+        _changeCount++;
+    }
+}
+
 bool Schedule::CheckActiveAt(const wxDateTime& now)
 {
-#ifdef LOGCALCNEXTTRIGGERTIME
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#endif
-
 #ifdef LOGCALCNEXTTRIGGERTIME
     logger_base.debug("   Checking %s.", (const char *)now.Format("%Y-%m-%d %H:%M").c_str());
 #endif
@@ -287,18 +407,28 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         }
     }
 
-    start.SetHour(_startTime.GetHour());
-    start.SetMinute(_startTime.GetMinute());
-    end.SetHour(_endTime.GetHour());
-    end.SetMinute(_endTime.GetMinute());
+    wxDateTime s = now;
+    wxDateTime e = now;
 
-    if (_endTime < _startTime)
+    SetTime(s, __city, _startTime, _startTimeString);
+    SetTime(e, __city, _endTime, _endTimeString);
+
+    start.SetHour(s.GetHour());
+    start.SetMinute(s.GetMinute());
+    end.SetHour(e.GetHour());
+    end.SetMinute(e.GetMinute());
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+    logger_base.debug("       Now %s. Start %s. End %s", (const char *)now.Format("%Y-%m-%d %H:%M").c_str(), (const char *)start.Format("%Y-%m-%d %H:%M").c_str(), (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+
+    if (e < s)
     {
         end.Add(wxTimeSpan(24));
     }
 
     // handle the 24 hours a day case
-    if (_startTime == _endTime)
+    if (s == e)
     {
         _active = now >= start && now <= end;
 
@@ -315,15 +445,15 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
         start.SetYear(now.GetYear());
         start.SetMonth(now.GetMonth());
         start.SetDay(now.GetDay());
-        end = start;
-        end.SetHour(_endTime.GetHour());
-        end.SetMinute(_endTime.GetMinute());
+        end.SetYear(now.GetYear());
+        end.SetMonth(now.GetMonth());
+        end.SetDay(now.GetDay());
 
-        if (_endTime < _startTime && now.FormatISOTime() < end.FormatISOTime())
+        if (e < s && now.FormatISOTime() < end.FormatISOTime())
         {
             start.Add(wxTimeSpan(-24));
         }
-        else if (_endTime < _startTime)
+        else if (e < s)
         {
             end.Add(wxTimeSpan(24));
         }
@@ -360,9 +490,8 @@ wxDateTime Schedule::GetNextTriggerDateTime()
     {
         // some time in the future
         wxDateTime next = _startDate;
-        next.SetHour(_startTime.GetHour());
-        next.SetMinute(_startTime.GetMinute());
 
+        SetTime(next, __city, _startTime, _startTimeString);
         if (next > wxDateTime::Now() && CheckActiveAt(next))
         {
             return next;
@@ -384,8 +513,8 @@ wxDateTime Schedule::GetNextTriggerDateTime()
 
     // check if the right answer is the starttime today
     wxDateTime next = wxDateTime::Now();
-    next.SetHour(_startTime.GetHour());
-    next.SetMinute(_startTime.GetMinute());
+
+    SetTime(next, __city, _startTime, _startTimeString);
     next.SetSecond(0);
     if (next > wxDateTime::Now() && CheckActiveAt(next))
     {
@@ -439,8 +568,8 @@ std::string Schedule::GetNextTriggerTime()
     {
         // some time in the future
         wxDateTime next = _startDate;
-        next.SetHour(_startTime.GetHour());
-        next.SetMinute(_startTime.GetMinute());
+
+        SetTime(next, __city, _startTime, _startTimeString);
 
 #ifdef LOGCALCNEXTTRIGGERTIME
         logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
@@ -470,8 +599,9 @@ std::string Schedule::GetNextTriggerTime()
 
     // check if the right answer is the starttime today
     wxDateTime next = wxDateTime::Now();
-    next.SetHour(_startTime.GetHour());
-    next.SetMinute(_startTime.GetMinute());
+
+    SetTime(next, __city, _startTime, _startTimeString);
+
     next.SetSecond(0);
 #ifdef LOGCALCNEXTTRIGGERTIME
     logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
@@ -481,12 +611,14 @@ std::string Schedule::GetNextTriggerTime()
         return next.Format("%Y-%m-%d %H:%M").ToStdString();
     }
 
-    for (int i =0; i < 7; i++)
+    for (int i = 0; i < 7; i++)
     {
         next += wxTimeSpan(24);
+        SetTime(next, __city, _startTime, _startTimeString);
 #ifdef LOGCALCNEXTTRIGGERTIME
         logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
+
         if (next > wxDateTime::Now() && CheckActiveAt(next))
         {
             return next.Format("%Y-%m-%d %H:%M").ToStdString();
@@ -497,8 +629,8 @@ std::string Schedule::GetNextTriggerTime()
     {
         next = _startDate;
         next.SetYear(wxDateTime::Now().GetYear());
-        next.SetHour(_startTime.GetHour());
-        next.SetMinute(_startTime.GetMinute());
+
+        SetTime(next, __city, _startTime, _startTimeString);
 
         if (next < wxDateTime::Now())
         {
@@ -533,12 +665,17 @@ std::string Schedule::GetNextEndTime()
 {
     if (!_active) return "N/A";
 
+    wxDateTime e1 = wxDateTime::Now();
+    SetTime(e1, __city, _endTime, _endTimeString);
+    wxDateTime s1 = wxDateTime::Now();
+    SetTime(s1, __city, _startTime, _startTimeString);
+
     // when end and start are the same we play 24 hours a day
-    if (_startTime == _endTime)
+    if (s1 == e1)
     {
         wxDateTime end = _endDate;
-        end.SetHour(_endTime.GetHour());
-        end.SetMinute(_endTime.GetMinute());
+
+        SetTime(end, __city, _endTime, _endTimeString);
         end.SetSecond(0);
 
         return end.Format("%Y-%m-%d %H:%M").ToStdString();
@@ -546,14 +683,16 @@ std::string Schedule::GetNextEndTime()
     else
     {
         wxDateTime end = wxDateTime::Now();
+        SetTime(end, __city, _endTime, _endTimeString);
+        wxDateTime start = wxDateTime::Now();
+        SetTime(start, __city, _startTime, _startTimeString);
 
-        if (_endTime < _startTime)
+        if (end < start)
         {
             end += wxTimeSpan(24);
         }
 
-        end.SetHour(_endTime.GetHour());
-        end.SetMinute(_endTime.GetMinute());
+        SetTime(end, __city, _endTime, _endTimeString);
         end.SetSecond(0);
 
         return end.Format("%Y-%m-%d %H:%M").ToStdString();

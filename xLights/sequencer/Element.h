@@ -224,11 +224,13 @@ class ModelElement : public Element
 
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
+        int GetSubModelAndStrandCount() const;
         int GetSubModelCount() const;
         SubModelElement *GetSubModel(int i);
         SubModelElement *GetSubModel(const std::string &name, bool create = false);
         void RemoveSubModel(const std::string &name);
-    
+        void RemoveAllSubModels();
+        void AddSubModel(SubModelElement* sme);
     
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}

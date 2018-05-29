@@ -41,6 +41,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
+    _city = node->GetAttribute("City");
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
@@ -140,6 +141,7 @@ ScheduleOptions::ScheduleOptions()
     _artNetTimeCodeFormat = 1;
     _oscOptions = new OSCOptions();
     _password = "";
+    _city = "Sydney";
     _passwordTimeout = 30;
     _wwwRoot = "xScheduleWeb";
     _audioDevice = "";
@@ -174,6 +176,7 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("AudioDevice", _audioDevice);
     res->AddAttribute("WWWRoot", _wwwRoot);
     res->AddAttribute("Password", _password);
+    res->AddAttribute("City", _city);
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");

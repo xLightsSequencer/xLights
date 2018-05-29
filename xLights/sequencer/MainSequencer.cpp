@@ -607,6 +607,7 @@ void MainSequencer::OnKeyDown(wxKeyEvent& event)
     //printf("OnKeyDown %d   %c\n", uc, uc);
     event.Skip();
 }
+
 void MainSequencer::OnChar(wxKeyEvent& event)
 {
     wxChar uc = event.GetUnicodeKey();

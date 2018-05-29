@@ -446,6 +446,13 @@
     <ClCompile Include="PlayList\PlayListItemProjectorPanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="City.cpp" />
+    <ClCompile Include="PlayList\PlayListItemJukeboxPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemJukebox.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -868,6 +875,13 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="ProjectorCodes.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="City.h" />
+    <ClInclude Include="PlayList\PlayListItemJukeboxPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemJukebox.h">
       <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>

@@ -39,6 +39,8 @@ const long ScheduleDialog::ID_STATICTEXT12 = wxNewId();
 const long ScheduleDialog::ID_TEXTCTRL2 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT11 = wxNewId();
 const long ScheduleDialog::ID_TEXTCTRL1 = wxNewId();
+const long ScheduleDialog::ID_STATICTEXT19 = wxNewId();
+const long ScheduleDialog::ID_CHOICE1 = wxNewId();
 const long ScheduleDialog::ID_CHECKBOX9 = wxNewId();
 const long ScheduleDialog::ID_STATICTEXT13 = wxNewId();
 const long ScheduleDialog::ID_SPINCTRL1 = wxNewId();
@@ -149,6 +151,16 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	FlexGridSizer1->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_OffTime = new wxTextCtrl(this, ID_TEXTCTRL1, _("22:00"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_OffTime, 1, wxALL|wxEXPAND, 5);
+	StaticText18 = new wxStaticText(this, ID_STATICTEXT19, _("Refire frequency:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT19"));
+	FlexGridSizer1->Add(StaticText18, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_FireFrequency = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_FireFrequency->SetSelection( Choice_FireFrequency->Append(_("Fire once")) );
+	Choice_FireFrequency->Append(_("Fire every hour"));
+	Choice_FireFrequency->Append(_("Fire every 30 minutes"));
+	Choice_FireFrequency->Append(_("Fire every 20 minutes"));
+	Choice_FireFrequency->Append(_("Fire every 15 minutes"));
+	Choice_FireFrequency->Append(_("Fire every 10 minutes"));
+	FlexGridSizer1->Add(Choice_FireFrequency, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Loop = new wxCheckBox(this, ID_CHECKBOX9, _("Loop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
 	CheckBox_Loop->SetValue(false);
@@ -193,6 +205,7 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	Connect(ID_SPINCTRL4,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&ScheduleDialog::OnSpinCtrl_NthDayOffsetChange);
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ScheduleDialog::OnTextCtrl_OnTimeText);
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ScheduleDialog::OnTextCtrl_OffTimeText);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ScheduleDialog::OnChoice_FireFrequencySelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnButton_CancelClick);
 	//*)
@@ -217,6 +230,9 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     CheckBox_Enabled->SetValue(schedule->GetEnabled());
     SpinCtrl_NthDay->SetValue(schedule->GetNthDay());
     SpinCtrl_NthDayOffset->SetValue(schedule->GetNthDayOffset());
+    Choice_FireFrequency->SetStringSelection(schedule->GetFireFrequency());
+
+    Choice_FireFrequency->SetToolTip("Times are not relative to schedule start time ... but relative to the top of the hour");
 
     SetEscapeId(Button_Cancel->GetId());
 
@@ -247,10 +263,24 @@ ScheduleDialog::~ScheduleDialog()
         CheckBox_Sat->GetValue(),
         CheckBox_Sun->GetValue());
     _schedule->SetEnabled(CheckBox_Enabled->GetValue());
+    _schedule->SetFireFrequency(Choice_FireFrequency->GetStringSelection());
 }
 
 void ScheduleDialog::ValidateWindow()
 {
+    if (Choice_FireFrequency->GetStringSelection() == "Fire once")
+    {
+        SpinCtrl_MaxLoops->Enable();
+        CheckBox_Loop->Enable();
+    }
+    else
+    {
+        SpinCtrl_MaxLoops->SetValue(0);
+        CheckBox_Loop->SetValue(false);
+        SpinCtrl_MaxLoops->Disable();
+        CheckBox_Loop->Disable();
+    }
+
     if (TextCtrl_Name->GetValue() != "" &&
         DatePickerCtrl_Start->GetValue() <= DatePickerCtrl_End->GetValue() &&
         (CheckBox_Mon->GetValue() ||
@@ -324,6 +354,11 @@ void ScheduleDialog::OnSpinCtrl_NthDayChange(wxSpinEvent& event)
 }
 
 void ScheduleDialog::OnSpinCtrl_NthDayOffsetChange(wxSpinEvent& event)
+{
+    ValidateWindow();
+}
+
+void ScheduleDialog::OnChoice_FireFrequencySelect(wxCommandEvent& event)
 {
     ValidateWindow();
 }

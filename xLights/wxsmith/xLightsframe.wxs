@@ -864,7 +864,7 @@
 						<label>Layout</label>
 					</object>
 					<object class="AuiNotebookPage">
-						<object class="wxPanel" name="ID_PANEL7" variable="PanelSequencer" member="yes">
+						<object class="wxPanel" name="XLIGHTS_SEQUENCER_TAB" variable="PanelSequencer" member="yes">
 							<style>wxTAB_TRAVERSAL|wxWANTS_CHARS</style>
 							<handler function="OnPanelSequencerPaint" entry="EVT_PAINT" />
 							<object class="wxAuiManager" variable="m_mgr" member="yes">

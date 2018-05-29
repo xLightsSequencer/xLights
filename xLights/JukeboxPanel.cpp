@@ -25,7 +25,7 @@ ButtonControl::ButtonControl(int i)
 ButtonControl::ButtonControl(int i, std::string description, std::string tooltip)
 {
     _element = "";
-    _tooltip = "";
+    _tooltip = tooltip;
     _layer = -1;
     _time = -1;
     _number = i;
@@ -62,7 +62,7 @@ ButtonControl::ButtonControl(wxXmlNode* n)
         _number = wxAtoi(n->GetAttribute("Number", "-1"));
         _description = n->GetAttribute("Description", "").ToStdString();
         _tooltip = n->GetAttribute("Tooltip", "").ToStdString();
-        _type = n->GetAttribute("Type", "") == "Description" ? LOOKUPTYPE::LTDESCRIPTION : LOOKUPTYPE::LTMLT;
+        _type = n->GetAttribute("Type", "") == "DESCRIPTION" ? LOOKUPTYPE::LTDESCRIPTION : LOOKUPTYPE::LTMLT;
     }
 }
 
@@ -118,7 +118,7 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
     for (int i = 0; i < JUKEBOXBUTTONS; i++)
     {
         wxButton* button = new wxButton(this, wxID_ANY, wxString::Format("%d", i + 1), wxDefaultPosition, wxSize(BUTTONWIDTH, BUTTONHEIGHT),
-            0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB"));
+            0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         GridSizer1->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, i);
@@ -127,6 +127,9 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
         if (i == 0)
             _defaultColour = button->GetBackgroundColour();
     }
+
+    // This is used by xSchedule
+    SetLabel("XLIGHTS_JUKEBOX");
 
     wxSizeEvent evt;
     OnResize(evt);

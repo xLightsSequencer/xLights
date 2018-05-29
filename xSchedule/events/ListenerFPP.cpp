@@ -107,55 +107,62 @@ void ListenerFPP::Poll()
         if (_stop) return;
         //logger_base.debug(" Read done. %ldms", sw.Time());
 
-        if (IsValidHeader(buffer))
+        if (_socket->GetLastIOReadSize() == 0)
         {
-            ControlPkt* cp = (ControlPkt*)&buffer[0];
-            if (cp->pktType == CTRL_PKT_SYNC)
+            _socket->WaitForRead(0, 500);
+        }
+        else
+        {
+            if (IsValidHeader(buffer))
             {
-                SyncPkt* sp = (SyncPkt*)(&buffer[0] + sizeof(ControlPkt));
-
-                if (sp->fileType == SYNC_FILE_SEQ)
+                ControlPkt* cp = (ControlPkt*)&buffer[0];
+                if (cp->pktType == CTRL_PKT_SYNC)
                 {
-                    uint8_t packetType = sp->pktType;
-                    std::string fileName = std::string(sp->filename);
-                    uint32_t frameNumber = sp->frameNumber;
-                    long ms = frameNumber * _frameMS;
+                    SyncPkt* sp = (SyncPkt*)(&buffer[0] + sizeof(ControlPkt));
 
-                    if (packetType != -1)
+                    if (sp->fileType == SYNC_FILE_SEQ)
                     {
-                        switch (packetType)
-                        {
-                        case SYNC_PKT_START:
-                        {
-                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
+                        uint8_t packetType = sp->pktType;
+                        std::string fileName = std::string(sp->filename);
+                        uint32_t frameNumber = sp->frameNumber;
+                        long ms = frameNumber * _frameMS;
 
-                            _frameMS = _listenerManager->Sync(fileName, 0, GetType());
-                        }
-                        break;
-                        case SYNC_PKT_STOP:
+                        if (packetType != -1)
                         {
-                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char *)fileName.c_str());
-                            _listenerManager->Sync(fileName, 0xFFFFFFFF, GetType());
-                        }
-                        break;
-                        case SYNC_PKT_SYNC:
-                        {
-                            _listenerManager->Sync(fileName, ms, GetType());
-                        }
-                        break;
-                        default:
+                            switch (packetType)
+                            {
+                            case SYNC_PKT_START:
+                            {
+                                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
+
+                                _frameMS = _listenerManager->Sync(fileName, 0, GetType());
+                            }
                             break;
+                            case SYNC_PKT_STOP:
+                            {
+                                logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char *)fileName.c_str());
+                                _listenerManager->Sync(fileName, 0xFFFFFFFF, GetType());
+                            }
+                            break;
+                            case SYNC_PKT_SYNC:
+                            {
+                                _listenerManager->Sync(fileName, ms, GetType());
+                            }
+                            break;
+                            default:
+                                break;
+                            }
                         }
-                    }
-                    else
-                    {
-                        // media file ... not sure what to do with this ... so ignoring it
+                        else
+                        {
+                            // media file ... not sure what to do with this ... so ignoring it
+                        }
                     }
                 }
-            }
-            else if (cp->pktType == CTRL_PKT_EVENT)
-            {
-                _listenerManager->ProcessPacket(GetType(), std::string((char*)(buffer + sizeof(ControlPkt))));
+                else if (cp->pktType == CTRL_PKT_EVENT)
+                {
+                    _listenerManager->ProcessPacket(GetType(), std::string((char*)(buffer + sizeof(ControlPkt))));
+                }
             }
         }
     }

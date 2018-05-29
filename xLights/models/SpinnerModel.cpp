@@ -180,6 +180,7 @@ void SpinnerModel::InitModel() {
         }
     }
     else {
+        int chanPerNode = GetNodeChannelCount(StringType);
         SetBufferSize(nodesperarm, armcount);
         for (size_t x = 0; x < armcount; x++) {
             int stringnum = x / armsperstring;
@@ -187,7 +188,7 @@ void SpinnerModel::InitModel() {
             for (size_t y = 0; y < nodesperarm; y++)
             {
                 size_t idx = x * nodesperarm + y;
-                Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * nodesperarm * 3 + y * 3;
+                Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * nodesperarm * chanPerNode + y * chanPerNode;
                 Nodes[idx]->Coords[0].bufX = IsLtoR ? x : armcount - x - 1;
                 if (!zigzag)
                 {

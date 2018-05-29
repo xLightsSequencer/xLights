@@ -338,7 +338,7 @@ void PolyLineModel::InitModel() {
     SetBufferSize(1, (SingleNode?1:numLights));
     int chan = 0;
     int LastStringNum=-1;
-    int ChanIncr=SingleChannel ?  1 : 3;
+    int ChanIncr = GetNodeChannelCount(StringType);
     for(idx=0; idx<(SingleNode?1:numLights); idx++) {
         if (Nodes[idx]->StringNum != LastStringNum) {
             LastStringNum=Nodes[idx]->StringNum;

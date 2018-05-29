@@ -87,7 +87,7 @@ void ListenerOSC::StopProcess()
 
 void ListenerOSC::Poll()
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_socket != nullptr)
     {
@@ -97,29 +97,42 @@ void ListenerOSC::Poll()
         //wxStopWatch sw;
         //logger_base.debug("Trying to read OSC packet.");
         _socket->Read(&buffer[0], sizeof(buffer));
+
         if (_stop) return;
         //logger_base.debug(" Read done. %ldms", sw.Time());
 
-        OSCPacket packet(buffer, sizeof(buffer), _listenerManager->GetScheduleManager()->GetOptions()->GetOSCOptions(), _frameMS);
-
-        if (packet.IsSync())
+        if (_socket->GetLastIOReadSize() == 0)
         {
-            std::string stepname = packet.GetStepName();
-            std::string timingname = packet.GetTimingName();
-            long ms = packet.GetMS(_frameMS);
-
-            if (stepname != "")
-            {
-                _frameMS = _listenerManager->Sync(stepname, ms, GetType());
-            }
-            else if (timingname != "")
-            {
-                _frameMS = _listenerManager->Sync(timingname, ms, GetType());
-            }
+            _socket->WaitForRead(0, 500);
         }
-        else if (packet.IsOk())
+        else
         {
-            _listenerManager->ProcessPacket(GetType(), packet.GetPath(), packet.GetP1(), packet.GetP2(), packet.GetP3());
+            OSCPacket packet(buffer, sizeof(buffer), _listenerManager->GetScheduleManager()->GetOptions()->GetOSCOptions(), _frameMS);
+
+            if (packet.IsSync())
+            {
+                std::string stepname = packet.GetStepName();
+                std::string timingname = packet.GetTimingName();
+                long ms = packet.GetMS(_frameMS);
+
+                if (stepname != "")
+                {
+                    _frameMS = _listenerManager->Sync(stepname, ms, GetType());
+                }
+                else if (timingname != "")
+                {
+                    _frameMS = _listenerManager->Sync(timingname, ms, GetType());
+                }
+            }
+            else if (packet.IsOk())
+            {
+                logger_base.debug("OSC Path: %s.", (const char*)packet.GetPath().c_str());
+                _listenerManager->ProcessPacket(GetType(), packet.GetPath(), packet.GetP1(), packet.GetP2(), packet.GetP3());
+            }
+            else
+            {
+                logger_base.debug("Invalid OSC Packet.");
+            }
         }
     }
 }

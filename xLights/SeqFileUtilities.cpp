@@ -181,6 +181,11 @@ static wxFileName mapFileName(const wxFileName &orig) {
     return orig;
 }
 
+void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
+{
+    PanelSequencer->SetLabel("XLIGHTS_SEQUENCER_TAB:" + sequence);
+}
+
 void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog* plog)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -245,7 +250,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         wxStopWatch sw; // start a stopwatch timer
 
         wxFileName selected_file(filename);
-        
+
+        SetPanelSequencerLabel(selected_file.GetName().ToStdString());
+
         wxFileName xml_file = selected_file;
         xml_file.SetExt("xml");
         wxFileName media_file;
@@ -280,10 +287,11 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             }
         }
 
-        // load the fseq data file if it exists        
+        xlightsFilename = fseq_file.GetFullPath(); //this need to be set , as it is checked when saving is triggered
+
+        // load the fseq data file if it exists
         if( fseq_file.FileExists() && fseqFound)
         {
-            xlightsFilename = fseq_file.GetFullPath();
             if (plog != nullptr)
             {
                 plog->Show(true);
@@ -517,7 +525,8 @@ bool xLightsFrame::CloseSequence()
         wxConfigBase* config = wxConfigBase::Get();
         wxString machinePerspective = m_mgr->SavePerspective();
         config->Write("xLightsMachinePerspective", machinePerspective);
-        logger_base.debug("Save perspective: %s", (const char *)machinePerspective.c_str());
+        logger_base.debug("AutoSave perspective");
+        LogPerspective(machinePerspective);
     }
 
     if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() && !_renderMode)
@@ -582,6 +591,8 @@ bool xLightsFrame::CloseSequence()
     mSequenceElements.Clear();
     mSavedChangeCount = mSequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
+
+    SetPanelSequencerLabel("");
 
     mainSequencer->PanelWaveForm->CloseMedia();
     SeqData.init(0,0,50);
@@ -1155,7 +1166,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
             }
             elementMap[el->GetName()] = el;
             int s = 0;
-            for (size_t sm = 0; sm < el->GetSubModelCount(); ++sm) {
+            for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); ++sm) {
                 SubModelElement *sme = el->GetSubModel(sm);
 
                 StrandElement *ste = dynamic_cast<StrandElement *>(sme);
@@ -2074,7 +2085,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
             dlg.ChoiceSuperStarImportModel->Append(mSequenceElements.GetElement(i)->GetName());
 
             ModelElement *model = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
-            for (int x = 0; x < model->GetSubModelCount(); x++) {
+            for (int x = 0; x < model->GetSubModelAndStrandCount(); x++) {
                 std::string fname = model->GetSubModel(x)->GetFullName();
                 const std::string &name = model->GetSubModel(x)->GetName();
                 if (name != "") {
@@ -2123,7 +2134,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
                 break;
             } else {
                 ModelElement *modelEl = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(i));
-                for (int x = 0; x < modelEl->GetSubModelCount(); x++) {
+                for (int x = 0; x < modelEl->GetSubModelAndStrandCount(); x++) {
                     std::string name = modelEl->GetSubModel(x)->GetFullName();
                     if (name == model_name) {
                         model = modelEl->GetSubModel(x);

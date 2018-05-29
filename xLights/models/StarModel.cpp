@@ -204,7 +204,7 @@ void StarModel::InitModel() {
         double pct=isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
         double pctIncr=1.0 / (double)numlights;     // this is cw
         if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
-        int ChanIncr=SingleChannel ?  1 : 3;
+        int ChanIncr = GetNodeChannelCount(StringType);
         for (size_t cnt2 = 0; cnt2 < numlights; cnt2++) {
             int n;
             if (!SingleNode) {

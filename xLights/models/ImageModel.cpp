@@ -40,14 +40,29 @@ void ImageModel::GetBufferSize(const std::string &type, const std::string &trans
 }
 
 void ImageModel::InitRenderBufferNodes(const std::string &type, const std::string &transform,
-                                     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
+    std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     BufferHi = 1;
     BufferWi = 1;
 
-	newNodes.push_back(NodeBaseClassPtr(Nodes[0]->clone()));
-	newNodes[0]->Coords[0].bufX=0;
-    newNodes[0]->Coords[0].bufY=0;
-    newNodes[0]->Coords[0].bufZ=0;
+    //newNodes.push_back(NodeBaseClassPtr(Nodes[0]->clone()));
+    NodeBaseClass* node = Nodes[0]->clone();
+
+    // remove one of the coordinates
+    node->Coords.erase(node->Coords.begin());
+
+    // set it to zero zero
+    node->Coords[0].bufX = 0;
+    node->Coords[0].bufY = 0;
+    node->Coords[0].bufZ = 0;
+    float x = 0.0;
+    float y = 0.0;
+    float z = 0.0;
+    GetModelScreenLocation().TranslatePoint(x, y, z);
+    node->Coords[0].screenX = x;
+    node->Coords[0].screenY = y;
+    node->Coords[0].screenZ = z;
+
+    newNodes.push_back(NodeBaseClassPtr(node));
 }
 
 void ImageModel::AddTypeProperties(wxPropertyGridInterface *grid) {

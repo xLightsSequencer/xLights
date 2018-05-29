@@ -102,7 +102,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
 
-    Create(parent, id, _("Value Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER | wxCLOSE_BOX, _T("id"));
+    Create(parent, id, _("Value Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
     SetClientSize(wxDefaultSize);
     Move(wxDefaultPosition);
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -114,21 +114,21 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     FlexGridSizer5 = new wxFlexGridSizer(3, 1, 0, 0);
     FlexGridSizer5->AddGrowableRow(1);
     StaticText_TopValue = new wxStaticText(this, ID_STATICTEXT3, _("100"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, _T("ID_STATICTEXT3"));
-    FlexGridSizer5->Add(StaticText_TopValue, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer5->Add(0, 0, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(StaticText_TopValue, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_BottomValue = new wxStaticText(this, ID_STATICTEXT4, _("0"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, _T("ID_STATICTEXT4"));
-    FlexGridSizer5->Add(StaticText_BottomValue, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer6->Add(FlexGridSizer5, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer5->Add(StaticText_BottomValue, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer6->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(0);
     FlexGridSizer4->AddGrowableRow(0);
-    FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer2->AddGrowableCol(1);
-    FlexGridSizer2->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice1 = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    Choice1->SetSelection(Choice1->Append(_("Flat")));
+    Choice1->SetSelection( Choice1->Append(_("Flat")) );
     Choice1->Append(_("Ramp"));
     Choice1->Append(_("Ramp Up/Down"));
     Choice1->Append(_("Ramp Up/Down Hold"));
@@ -143,85 +143,86 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Choice1->Append(_("Abs Sine"));
     Choice1->Append(_("Decaying Sine"));
     Choice1->Append(_("Square"));
+    Choice1->Append(_("Random"));
     Choice1->Append(_("Custom"));
-    FlexGridSizer2->Add(Choice1, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer2->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_P1 = new wxStaticText(this, ID_STATICTEXT1, _("XXXXXXXXXXXXXXX"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer2->Add(StaticText_P1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(StaticText_P1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter1 = new wxSlider(this, ID_SLIDER_Parameter1, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter1"));
-    FlexGridSizer2->Add(Slider_Parameter1, 1, wxALL | wxEXPAND, 2);
-    TextCtrl_Parameter1 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter1, _("0"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(25, -1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter1"));
+    FlexGridSizer2->Add(Slider_Parameter1, 1, wxALL|wxEXPAND, 2);
+    TextCtrl_Parameter1 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter1, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter1"));
     TextCtrl_Parameter1->SetMaxLength(5);
-    FlexGridSizer2->Add(TextCtrl_Parameter1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(TextCtrl_Parameter1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P2 = new wxStaticText(this, ID_STATICTEXT2, _("Parameter 2"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText_P2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(StaticText_P2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter2 = new wxSlider(this, ID_SLIDER_Parameter2, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter2"));
-    FlexGridSizer2->Add(Slider_Parameter2, 1, wxALL | wxEXPAND, 2);
-    TextCtrl_Parameter2 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter2, _("0"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(25, -1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter2"));
+    FlexGridSizer2->Add(Slider_Parameter2, 1, wxALL|wxEXPAND, 2);
+    TextCtrl_Parameter2 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter2, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter2"));
     TextCtrl_Parameter2->SetMaxLength(5);
-    FlexGridSizer2->Add(TextCtrl_Parameter2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(TextCtrl_Parameter2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     StaticText_P3 = new wxStaticText(this, ID_STATICTEXT5, _("Parameter 3"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer2->Add(StaticText_P3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(StaticText_P3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter3 = new wxSlider(this, ID_SLIDER_Parameter3, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter3"));
-    FlexGridSizer2->Add(Slider_Parameter3, 1, wxALL | wxEXPAND, 2);
-    TextCtrl_Parameter3 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter3, _("0"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(25, -1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter3"));
+    FlexGridSizer2->Add(Slider_Parameter3, 1, wxALL|wxEXPAND, 2);
+    TextCtrl_Parameter3 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter3, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter3"));
     TextCtrl_Parameter3->SetMaxLength(5);
-    FlexGridSizer2->Add(TextCtrl_Parameter3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    StaticText_P4 = new wxStaticText(this, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxSize(121, 16), 0, _T("ID_STATICTEXT6"));
-    FlexGridSizer2->Add(StaticText_P4, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(TextCtrl_Parameter3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    StaticText_P4 = new wxStaticText(this, ID_STATICTEXT6, _("Label"), wxDefaultPosition, wxSize(121,16), 0, _T("ID_STATICTEXT6"));
+    FlexGridSizer2->Add(StaticText_P4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     Slider_Parameter4 = new wxSlider(this, ID_SLIDER_Parameter4, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Parameter4"));
-    FlexGridSizer2->Add(Slider_Parameter4, 1, wxALL | wxEXPAND, 2);
-    TextCtrl_Parameter4 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter4, _("0"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(25, -1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter4"));
+    FlexGridSizer2->Add(Slider_Parameter4, 1, wxALL|wxEXPAND, 2);
+    TextCtrl_Parameter4 = new wxTextCtrl(this, IDD_TEXTCTRL_Parameter4, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Parameter4"));
     TextCtrl_Parameter4->SetMaxLength(5);
-    FlexGridSizer2->Add(TextCtrl_Parameter4, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer2->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(TextCtrl_Parameter4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_WrapValues = new wxCheckBox(this, ID_CHECKBOX_WrapValues, _("Wrap Values"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_WrapValues"));
     CheckBox_WrapValues->SetValue(false);
-    FlexGridSizer2->Add(CheckBox_WrapValues, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer2->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(CheckBox_WrapValues, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Reverse = new wxButton(this, ID_BUTTON5, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer2->Add(Button_Reverse, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer2->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer2->Add(Button_Reverse, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer7->AddGrowableCol(0);
     FlexGridSizer7->AddGrowableRow(0);
     PresetSizer = new wxFlexGridSizer(0, 5, 0, 0);
-    FlexGridSizer7->Add(PresetSizer, 1, wxALL | wxEXPAND, 2);
+    FlexGridSizer7->Add(PresetSizer, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
     ButtonLoad = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    FlexGridSizer8->Add(ButtonLoad, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(ButtonLoad, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonExport = new wxButton(this, ID_BUTTON4, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer8->Add(ButtonExport, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer7->Add(FlexGridSizer8, 1, wxALL | wxEXPAND, 2);
-    FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL | wxEXPAND, 1);
+    FlexGridSizer8->Add(ButtonExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 1);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer3->Add(Button_Ok, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer3->Add(Button_Cancel, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ValueCurveDialog::OnChoice1Select);
-    Connect(ID_SLIDER_Parameter1, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated);
-    Connect(IDD_TEXTCTRL_Parameter1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter1Text);
-    Connect(ID_SLIDER_Parameter2, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated);
-    Connect(IDD_TEXTCTRL_Parameter2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter2Text);
-    Connect(ID_SLIDER_Parameter3, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated);
-    Connect(IDD_TEXTCTRL_Parameter3, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter3Text);
-    Connect(ID_SLIDER_Parameter4, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated);
-    Connect(IDD_TEXTCTRL_Parameter4, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
-    Connect(ID_CHECKBOX_WrapValues, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
-    Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButton_ReverseClick);
-    Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonLoadClick);
-    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonExportClick);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
-    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
-    Connect(wxEVT_SIZE, (wxObjectEventFunction)&ValueCurveDialog::OnResize);
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ValueCurveDialog::OnChoice1Select);
+    Connect(ID_SLIDER_Parameter1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated);
+    Connect(IDD_TEXTCTRL_Parameter1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter1Text);
+    Connect(ID_SLIDER_Parameter2,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated);
+    Connect(IDD_TEXTCTRL_Parameter2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter2Text);
+    Connect(ID_SLIDER_Parameter3,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated);
+    Connect(IDD_TEXTCTRL_Parameter3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter3Text);
+    Connect(ID_SLIDER_Parameter4,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated);
+    Connect(IDD_TEXTCTRL_Parameter4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
+    Connect(ID_CHECKBOX_WrapValues,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_ReverseClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonLoadClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonExportClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_OkClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_CancelClick);
+    Connect(wxEVT_SIZE,(wxObjectEventFunction)&ValueCurveDialog::OnResize);
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)nullptr, this);
@@ -477,6 +478,13 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter(2, 100);
         SetParameter(3, 10);
         SetParameter(4, 50);
+    }
+    else if (type == "Random")
+    {
+        SetParameter(1, 0);
+        SetParameter(2, 100);
+        SetParameter(3, 5);
+        SetParameter(4, 0);
     }
     else if (type == "Abs Sine")
     {
@@ -997,7 +1005,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square")
+    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1121,6 +1129,14 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
+        _vc->SetParameter4(0);
+    }
+    else if (type == "Random")
+    {
+        StaticText_P1->SetLabel("Minimum");
+        StaticText_P2->SetLabel("Maximum");
+        StaticText_P3->SetLabel("Points");
+        StaticText_P4->SetLabel("N/A");
     }
     else if (type == "Abs Sine")
     {
@@ -1155,6 +1171,7 @@ void ValueCurveDialog::ValidateWindow()
         type == "Parabolic Down" ||
         type == "Parabolic Up" || 
         type == "Decaying Sine" ||
+        type == "Random" ||
         type == "Logarithmic Up" ||
         type == "Logarithmic Down" ||
         type == "Exponential Up" ||

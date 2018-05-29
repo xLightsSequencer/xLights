@@ -113,13 +113,20 @@ void ListenerE131::Poll()
         if (_stop) return;
         //logger_base.debug(" Read done. %ldms", sw.Time());
 
-        if (IsValidHeader(buffer))
+        if (_socket->GetLastIOReadSize() == 0)
         {
-            int size = ((buffer[16] << 8) + buffer[17]) & 0x0FFF;
-            int universe = (buffer[113] << 8) + buffer[114];
-            //logger_base.debug("Processing packet.");
-            _listenerManager->ProcessPacket(GetType(), universe, &buffer[126], size - 126);
-            //logger_base.debug("Processing packet done.");
+            _socket->WaitForRead(0, 500);
+        }
+        else
+        {
+            if (IsValidHeader(buffer))
+            {
+                int size = ((buffer[16] << 8) + buffer[17]) & 0x0FFF;
+                int universe = (buffer[113] << 8) + buffer[114];
+                //logger_base.debug("Processing packet.");
+                _listenerManager->ProcessPacket(GetType(), universe, &buffer[126], size - 126);
+                //logger_base.debug("Processing packet done.");
+            }
         }
     }
 }

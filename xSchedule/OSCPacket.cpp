@@ -39,7 +39,7 @@ std::string OSCPacket::GetP(int p) const
 
     uint8_t* pcur = _buffer + pathsize + parmsize;
 
-    for (int i = 0; i < p; p++)
+    for (int i = 0; i < p; i++)
     {
         char type = *(_buffer + pathsize + i + 1);
 

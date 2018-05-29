@@ -101,6 +101,7 @@ class ScheduleOptions
     OSCOptions* _oscOptions;
     std::list<EventBase*> _events;
     int _artNetTimeCodeFormat;
+    std::string _city;
 
     public:
 
@@ -141,10 +142,12 @@ class ScheduleOptions
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color);
         bool GetAPIOnly() const { return _webAPIOnly; }
         std::string GetPassword() const { return _password; }
+        std::string GetCity() const { return _city; }
         int GetPasswordTimeout() const { return _passwordTimeout; }
         void SetAPIOnly(bool apiOnly) { if (_webAPIOnly != apiOnly) { _webAPIOnly = apiOnly; _changeCount++; } }
         void SetPasswordTimeout(int passwordTimeout) { if (_passwordTimeout != passwordTimeout) { _passwordTimeout = passwordTimeout; _changeCount++; } }
         void SetPassword(const std::string& password) { if (_password != password) { _password = password; _changeCount++; } }
+        void SetCity(const std::string& city) { if (_city != city) { _city = city; _changeCount++; } }
         OSCOptions* GetOSCOptions() const { return _oscOptions; }
 };
 

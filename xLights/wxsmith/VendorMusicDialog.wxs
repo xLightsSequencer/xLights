@@ -40,6 +40,32 @@
 								<border>5</border>
 								<option>1</option>
 							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+									<cols>2</cols>
+									<growablecols>0</growablecols>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Search" member="yes">
+											<handler function="OnTextCtrl_SearchText" entry="EVT_TEXT" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON2" variable="Button_Search" member="yes">
+											<label>Search</label>
+											<handler function="OnButton_SearchClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
 						</object>
 					</object>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">

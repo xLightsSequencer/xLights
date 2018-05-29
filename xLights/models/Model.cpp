@@ -51,7 +51,7 @@ const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIE
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
     StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
-    splitRGB(false)
+    splitRGB(false), rgbwHandlingType(0)
 {
     // These member vars were not initialised so give them some defaults.
     BufferHt = 0;
@@ -355,6 +355,7 @@ protected:
 };
 
 static wxArrayString NODE_TYPES;
+static wxArrayString RGBW_HANDLING;
 static wxArrayString PIXEL_STYLES;
 static wxArrayString LAYOUT_GROUPS;
 
@@ -435,12 +436,32 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("GRB Nodes");
         NODE_TYPES.push_back("BRG Nodes");
         NODE_TYPES.push_back("BGR Nodes");
+        
+        NODE_TYPES.push_back("WRGB Nodes");
+        NODE_TYPES.push_back("WRBG Nodes");
+        NODE_TYPES.push_back("WGBR Nodes");
+        NODE_TYPES.push_back("WGRB Nodes");
+        NODE_TYPES.push_back("WBRG Nodes");
+        NODE_TYPES.push_back("WBGR Nodes");
+
+        NODE_TYPES.push_back("RGBW Nodes");
+        NODE_TYPES.push_back("RBGW Nodes");
+        NODE_TYPES.push_back("GBRW Nodes");
+        NODE_TYPES.push_back("GRBW Nodes");
+        NODE_TYPES.push_back("BRGW Nodes");
+        NODE_TYPES.push_back("BGRW Nodes");
+
         NODE_TYPES.push_back("3 Channel RGB");
         NODE_TYPES.push_back("4 Channel RGBW");
         NODE_TYPES.push_back("4 Channel WRGB");
         NODE_TYPES.push_back("Strobes");
         NODE_TYPES.push_back("Single Color");
         NODE_TYPES.push_back("Single Color Intensity");
+        
+        
+        RGBW_HANDLING.push_back("R=G=B -> W");
+        RGBW_HANDLING.push_back("RGB Only");
+        RGBW_HANDLING.push_back("White Only");
     }
 
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
@@ -534,7 +555,11 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         sp = grid->AppendIn(p, new wxColourProperty("Color", "ModelStringColor", *wxRED));
         sp->Enable(false);
     }
-
+    sp = grid->AppendIn(p, new wxEnumProperty("RGBW Color Handling", "ModelRGBWHandling", RGBW_HANDLING, wxArrayInt(), rgbwHandlingType));
+    if (HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4) {
+        sp->Enable(false);
+    }
+    
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
     p->GetCell(0).SetFgCol(*wxBLACK);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
@@ -660,10 +685,12 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         IncrementChangeCount();
         return 2;
     } else if (event.GetPropertyName() == "ModelStringColor"
-               || event.GetPropertyName() == "ModelStringType") {
+               || event.GetPropertyName() == "ModelStringType"
+               || event.GetPropertyName() == "ModelRGBWHandling") {
         wxPGProperty *p2 = grid->GetPropertyByName("ModelStringType");
         int i = p2->GetValue().GetLong();
         ModelXml->DeleteAttribute("StringType");
+        ModelXml->DeleteAttribute("RGBWHandling");
         if (i == NODE_TYPES.size() - 1 || i == NODE_TYPES.size() - 2) {
             wxPGProperty *p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
@@ -681,6 +708,10 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         } else {
             ModelXml->AddAttribute("StringType", NODE_TYPES[i]);
             grid->GetPropertyByName("ModelStringColor")->Enable(false);
+        }
+        if (GetNodeChannelCount(ModelXml->GetAttribute("StringType")) == 4) {
+            p2 = grid->GetPropertyByName("ModelRGBWHandling");
+            ModelXml->AddAttribute("RGBWHandling", RGBW_HANDLING[p2->GetValue().GetLong()]);
         }
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
@@ -1273,8 +1304,23 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     _pixelType = ModelNode->GetAttribute("PixelType", "").ToStdString();
     _pixelSpacing = ModelNode->GetAttribute("PixelSpacing", "").ToStdString();
     SingleNode=HasSingleNode(StringType);
-    SingleChannel=HasSingleChannel(StringType);
-    rgbOrder = SingleNode ? "RGB" : StringType.substr(0, 3);
+    int ncc = GetNodeChannelCount(StringType);
+    SingleChannel = (ncc == 1);
+    if (SingleNode) {
+        rgbOrder = "RGB";
+    } else if (ncc == 4 && StringType[0] == 'W') {
+        rgbOrder = StringType.substr(1, 4);
+    } else {
+        rgbOrder = StringType.substr(0, 3);
+    }
+    if (ncc == 4) {
+        std::string s = ModelNode->GetAttribute("RGBWHandling").ToStdString();
+        for (int x = 0; x < RGBW_HANDLING.size(); x++) {
+            if (RGBW_HANDLING[x] == s) {
+                rgbwHandlingType = x;
+            }
+        }
+    }
     description = UnXmlSafe(ModelNode->GetAttribute("Description"));
 
     tempstr=ModelNode->GetAttribute("parm1");
@@ -1743,32 +1789,6 @@ const std::string &Model::NodeType(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): NodeBaseClass::RGB; //avoid memory access error if no nods -DJ
 }
 
-NodeBaseClass* Model::createNode(int ns, const std::string &StringType, size_t NodesPerString, const std::string &rgbOrder) const
-{
-    NodeBaseClass *ret;
-    if (StringType=="Single Color Red" || StringType == "R") {
-        ret = new NodeClassRed(ns, NodesPerString);
-    } else if (StringType=="Single Color Green" || StringType == "G") {
-        ret = new NodeClassGreen(ns,NodesPerString);
-    } else if (StringType=="Single Color Blue" || StringType == "B") {
-        ret = new NodeClassBlue(ns,NodesPerString);
-    } else if (StringType=="Single Color White" || StringType == "W") {
-        ret = new NodeClassWhite(ns,NodesPerString);
-    } else if (StringType[0] == '#') {
-        ret = new NodeClassCustom(ns,NodesPerString, xlColor(StringType));
-    } else if (StringType=="Strobes White 3fps" || StringType=="Strobes") {
-        ret = new NodeClassWhite(ns,NodesPerString);
-    } else if (StringType=="4 Channel RGBW" || StringType == "RGBW") {
-        ret = new NodeClassRGBW(ns,NodesPerString);
-    } else if (StringType=="4 Channel WRGB" || StringType == "WRGB") {
-        ret = new NodeClassWRGB(ns,NodesPerString);
-    } else {
-        ret = new NodeBaseClass(ns,1,rgbOrder);
-    }
-    ret->model = this;
-    return ret;
-}
-
 void Model::GetBufferSize(const std::string &type, const std::string &transform, int &bufferWi, int &bufferHi) const {
     if (type == DEFAULT) {
         bufferHi = this->BufferHt;
@@ -2089,65 +2109,72 @@ void Model::SetNodeCount(size_t NumStrings, size_t NodesPerString, const std::st
     size_t n;
     if (SingleNode) {
         if (StringType=="Single Color Red") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n,NodesPerString, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRed(n, NodesPerString, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Single Color Green") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n,NodesPerString, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassGreen(n, NodesPerString, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Single Color Blue") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n,NodesPerString, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassBlue(n, NodesPerString, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Single Color White") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n, NodesPerString, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Strobes White 3fps" || StringType=="Strobes") {
             StrobeRate=7;  // 1 out of every 7 frames
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n,NodesPerString, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassWhite(n, NodesPerString, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Single Color Custom") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassCustom(n,NodesPerString, customColor, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassCustom(n, NodesPerString, customColor, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="Single Color Intensity") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassIntensity(n,NodesPerString, customColor, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassIntensity(n, NodesPerString, customColor, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="4 Channel RGBW") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n,NodesPerString, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n, NodesPerString, "RGB", true, rgbwHandlingType, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else if (StringType=="4 Channel WRGB") {
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeClassWRGB(n,NodesPerString, GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n, NodesPerString, "RGB", true, rgbwHandlingType, GetNextName())));
                 Nodes.back()->model = this;
             }
         } else {
             // 3 Channel RGB
-            for(n=0; n<NumStrings; n++) {
-                Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n,NodesPerString, "RGB", GetNextName())));
+            for(n = 0; n < NumStrings; n++) {
+                Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n, NodesPerString, "RGB", GetNextName())));
                 Nodes.back()->model = this;
             }
         }
     } else if (NodesPerString == 0) {
         Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(0, 0, rgbOrder, GetNextName())));
         Nodes.back()->model = this;
-    } else {
-        size_t numnodes=NumStrings*NodesPerString;
-        for(n=0; n<numnodes; n++) {
+    } else if (StringType[3] == ' ') {
+        size_t numnodes = NumStrings * NodesPerString;
+        for(n = 0; n < numnodes; n++) {
             Nodes.push_back(NodeBaseClassPtr(new NodeBaseClass(n/NodesPerString, 1, rgbOrder, GetNextName())));
+            Nodes.back()->model = this;
+        }
+    } else {
+        bool wLast = StringType[3] == 'W';
+        size_t numnodes = NumStrings * NodesPerString;
+        for(n = 0; n < numnodes; n++) {
+            Nodes.push_back(NodeBaseClassPtr(new NodeClassRGBW(n/NodesPerString, 1, rgbOrder, wLast, rgbwHandlingType, GetNextName())));
             Nodes.back()->model = this;
         }
     }
@@ -2163,6 +2190,9 @@ int Model::GetNodeChannelCount(const std::string & nodeType) {
     } else if (nodeType == "4 Channel RGBW") {
         return 4;
     } else if (nodeType == "4 Channel WRGB") {
+        return 4;
+    } else if (nodeType[0] == 'W' || nodeType [3] == 'W') {
+        //various WRGB and RGBW types
         return 4;
     }
     return 3;

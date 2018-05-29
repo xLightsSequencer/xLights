@@ -136,10 +136,11 @@ const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
 
 class ModelTreeData : public wxTreeItemData {
 public:
-    ModelTreeData(Model *m) :wxTreeItemData(), model(m) {
+    ModelTreeData(Model *m, int NativeOrder) :wxTreeItemData(), model(m) {
         //a SetFromXML call on the parent (example: recalc start channels) will cause
         //submodel pointers to be deleted.  Need to not save them, but instead, use the parent
         //and query by name
+        nativeOrder = NativeOrder;
         SubModel *s = dynamic_cast<SubModel*>(m);
         if (s != nullptr) {
             model = s->GetParent();
@@ -160,6 +161,7 @@ public:
 
     int startingChannel;
     int endingChannel;
+    int nativeOrder;
 private:
     Model *model;
     std::string subModel;
@@ -688,6 +690,13 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                        (const char *)event.GetPropertyName().c_str(),
                        (const char *)event.GetValue().GetString().c_str());
             }
+
+            if ("SubModels" == name) {
+                // if the sequencer is open we need to force a refresh to make sure submodel names are right
+                wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+                wxPostEvent(xlights, eventForceRefresh);
+                CallAfter(&LayoutPanel::ReloadModelList);
+            }
         }
     }
     updatingProperty = false;
@@ -703,6 +712,10 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 CreateUndoPoint("ModelName", selectedModel->name, safename);
                 event.Veto();
             }
+            // todo do I need to do anything special here
+        //} else if ("SubModels" == name) {
+            // ignore the submodel changes for now.
+        //    int a = 0;
         } else {
             CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
             selectedModel->OnPropertyGridChanging(propertyEditor, event);
@@ -890,7 +903,7 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
     return 0;
 }
 
-int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullName) {
+int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int width = 0;
 
@@ -899,10 +912,12 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
         logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
     }
 
+    logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
+
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, fullName ? model->GetFullName() : model->name,
                                                          GetModelTreeIcon(model, false),
                                                          GetModelTreeIcon(model, true),
-                                                         new ModelTreeData(model));
+                                                         new ModelTreeData(model, nativeOrder));
     if( model->GetDisplayAs() != "ModelGroup" ) {
         wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager(), nullptr);
         wxString startStr = model->GetStartChannelInDisplayFormat();
@@ -919,10 +934,11 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
     }
 
     for (int x = 0; x < model->GetNumSubModels(); x++) {
-        AddModelToTree(model->GetSubModel(x), &item);
+        AddModelToTree(model->GetSubModel(x), &item, false, x);
     }
     if( model->GetDisplayAs() == "ModelGroup" ) {
         ModelGroup *grp = (ModelGroup*)model;
+        int i = 0;
         for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
             Model *m = xlights->AllModels[*it];
 
@@ -937,12 +953,19 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool fullN
             }
             else
             {
-                AddModelToTree(m, &item, true);
+                AddModelToTree(m, &item, false, i, true);
+                i++;
             }
         }
     }
 
+    if (expanded) TreeListViewModels->Expand(item);
+
     return width;
+}
+
+void LayoutPanel::ReloadModelList() {
+    UpdateModelList(true);
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh) {
@@ -975,16 +998,22 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
         UpdateModelsForPreview(currentLayoutGroup, nullptr, models, true);
     }
+
     if (full_refresh) {
         int width = 0;
-        TreeListViewModels->Freeze();
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
         //delete all items will atempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
         TreeListViewModels->SetItemComparator(nullptr);
         wxTreeListItem child = TreeListViewModels->GetFirstItem();
+        std::list<std::string> expanded;
         while (child.IsOk()) {
+            if (TreeListViewModels->IsExpanded(child))
+            {
+                ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(child));
+                expanded.push_back(TreeListViewModels->GetItemText(child));
+            }
             TreeListViewModels->DeleteItem(child);
             child = TreeListViewModels->GetFirstItem();
         }
@@ -998,7 +1027,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             if (model->GetDisplayAs() == "ModelGroup") {
                 if (currentLayoutGroup == "All Models" || model->GetLayoutGroup() == currentLayoutGroup
                     || (model->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) {
-                    AddModelToTree(model, &root);
+                    bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
+                    width = std::max(width, AddModelToTree(model, &root, expand, 0));
                 }
             }
         }
@@ -1007,7 +1037,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         for (auto it = models.begin(); it != models.end(); ++it) {
             Model *model = *it;
             if (model->GetDisplayAs() != "ModelGroup" && model->GetDisplayAs() != "SubModel") {
-                width = std::max(width, AddModelToTree(model, &root));
+                bool expand = (std::find(expanded.begin(), expanded.end(), model->GetName()) != expanded.end());
+                width = std::max(width, AddModelToTree(model, &root, expand, 0));
             }
         }
 
@@ -1021,10 +1052,10 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
 
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-        TreeListViewModels->Thaw();
 
         // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
         int i = TreeListViewModels->GetColumnWidth(0);
+
 #ifdef LINUX // Calculate size on linux as GTK doesn't size the window in time
 
         i = TreeListViewModels->GetSize().GetWidth() - (width * 2);
@@ -1641,6 +1672,9 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
 
 int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
 {
+    unsigned col;
+    bool ascending;
+    treelist->GetSortColumn(&col, &ascending);
 
     ModelTreeData *data1 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item1));
     ModelTreeData *data2 = dynamic_cast<ModelTreeData*>(treelist->GetItemData(item2));
@@ -1648,18 +1682,26 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     Model* a = data1->GetModel();
     Model* b = data2->GetModel();
 
-    if( a == nullptr || b == nullptr ) {
+    if (a == nullptr || b == nullptr) {
         return 0;
     }
 
-    if( a->GetDisplayAs() == "ModelGroup" ) {
-        if( b->GetDisplayAs() == "ModelGroup" ) {
+    if (a->GetDisplayAs() == "ModelGroup") {
+        if (b->GetDisplayAs() == "ModelGroup") {
             return NumberAwareStringCompare(a->name, b->name);
-        } else {
-            return -1;
         }
-    } else if( b->GetDisplayAs() == "ModelGroup" ) {
-        return 1;
+        else {
+            if (ascending)
+                return -1;
+            else
+                return 1;
+        }
+    }
+    else if (b->GetDisplayAs() == "ModelGroup") {
+        if (ascending)
+            return 1;
+        else
+            return -1;
     }
 
     if (sortColumn == 1) {
@@ -1670,7 +1712,8 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         if (ia < ib)
             return -1;
         return NumberAwareStringCompare(a->name, b->name);
-    } else if (sortColumn == 2) {
+    }
+    else if (sortColumn == 2) {
         int ia = data1->endingChannel;
         int ib = data2->endingChannel;
         if (ia > ib)
@@ -1679,6 +1722,35 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
     return -1;
         return NumberAwareStringCompare(a->name, b->name);
     }
+
+    // Dont sort things with parents
+    auto parent1 = treelist->GetItemParent(item1);
+    auto parent2 = treelist->GetItemParent(item2);
+    auto root = treelist->GetRootItem();
+    if ((parent1 != root || parent2 != root) && parent1 == parent2)
+    {
+        int ia = data1->nativeOrder;
+        int ib = data2->nativeOrder;
+        if (ia > ib)
+            if (ascending)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
+        if (ia < ib)
+            if (ascending)
+            {
+                return -1;
+            }
+            else
+            {
+                return 1;
+            }
+    }
+
     return NumberAwareStringCompare(a->name, b->name);
 }
 
@@ -4458,6 +4530,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                     TreeListViewModels->DeleteItem(child);
                     child = TreeListViewModels->GetFirstChild(item);
                 }
+                int i = 0;
                 for (auto it = grp->ModelNames().begin(); it != grp->ModelNames().end(); ++it) {
                     Model *m = xlights->AllModels[*it];
                     if (m != nullptr)
@@ -4466,12 +4539,13 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                             m->GetLayoutGroup() == currentLayoutGroup ||
                             (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) 
                         {
-                            AddModelToTree(m, &item, true);
+                            AddModelToTree(m, &item, false, i, true);
                         }
                         if (m->DisplayAs == "SubModel"
                             && std::find(modelsToAdd.begin(), modelsToAdd.end(), m) != modelsToAdd.end()) {
                             modelsToAdd.erase(std::find(modelsToAdd.begin(), modelsToAdd.end(), m));
                         }
+                        i++;
                     }
                 }
                 if (expanded) {
@@ -4500,7 +4574,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
 
     for (auto a = modelsToAdd.begin(); a != modelsToAdd.end(); ++a) {
         TreeListViewModels->GetRootItem();
-        AddModelToTree(*a, &root);
+        AddModelToTree(*a, &root, false, 0);
     }
 
     TreeListViewModels->Thaw();

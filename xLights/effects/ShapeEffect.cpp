@@ -134,6 +134,7 @@ void ShapeEffect::SetDefaultParameters(Model *cls) {
     SetCheckBoxValue(sp->CheckBox_Shape_FadeAway, true);
     SetCheckBoxValue(sp->CheckBox_Shape_UseMusic, false);
     SetCheckBoxValue(sp->CheckBox_Shape_FireTiming, false);
+    SetCheckBoxValue(sp->CheckBox_Shape_RandomInitial, true);
 }
 
 struct ShapeData
@@ -275,6 +276,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     int points = SettingsMap.GetInt("SLIDER_Shape_Points", 5);
     bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", true);
     bool fadeAway = SettingsMap.GetBool("CHECKBOX_Shape_FadeAway", true);
+    bool startRandomly = SettingsMap.GetBool("CHECKBOX_Shape_RandomInitial", true);
     int xc = GetValueCurveInt("Shape_CentreX", 50, SettingsMap, oset, SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX) * buffer.BufferWi / 100;
     int yc = GetValueCurveInt("Shape_CentreY", 50, SettingsMap, oset, SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX) * buffer.BufferHt / 100;
     int lifetime = GetValueCurveInt("Shape_Lifetime", 5, SettingsMap, oset, SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX);
@@ -322,6 +324,8 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     {
         buffer.needToInit = false;
 
+        _sinceLastTriggered = 0;
+
         if (Object_To_Draw == RENDER_SHAPE_EMOJI)
         {
             wxFont ff(font);
@@ -358,7 +362,11 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     _lastColorIdx = 0;
                 }
 
-                int os = rand01() * lifetimeFrames;
+                int os = 0;
+                if (startRandomly)
+                {
+                    os = rand01() * lifetimeFrames;
+                }
 
                 cache->AddShape(pt, startSize + os * growthPerFrame, buffer.palette.GetColor(_lastColorIdx), os, Object_To_Draw);
             }

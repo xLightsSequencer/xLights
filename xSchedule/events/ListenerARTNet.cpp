@@ -108,59 +108,66 @@ void ListenerARTNet::Poll()
         if (_stop) return;
         //logger_base.debug(" Read done. %ldms", sw.Time());
 
-        if (IsValidHeader(buffer))
+        if (_socket->GetLastIOReadSize() == 0)
         {
-            int size = ((buffer[16] << 8) + buffer[17]) & 0x0FFF;
-            //logger_base.debug("Processing packet.");
-            if (buffer[9] == 0x50)
+            _socket->WaitForRead(0, 500);
+        }
+        else
+        {
+            if (IsValidHeader(buffer))
             {
-                // ARTNet data packet
-                int universe = (buffer[13] << 8) + buffer[14];
-                _listenerManager->ProcessPacket(GetType(), universe, &buffer[ARTNET_PACKET_HEADERLEN], size);
-            }
-            else if (buffer[9] == 0x99)
-            {
-                // Trigger data packet
-                wxByte key = buffer[14];
-                wxByte subkey = buffer[15];
-                // TODO add event using ARTNet trigger packets
-                //_listenerManager->ProcessPacket(GetType() + " Trigger", (key << 8) + subkey, &buffer[16], size);
-            }
-            else if (buffer[9] == 0x97)
-            {
-                // Timecode data packet
-                wxByte frames = buffer[14];
-                wxByte secs = buffer[15];
-                wxByte mins = buffer[16];
-                wxByte hours = buffer[17];
-                wxByte mode = buffer[18];
-
-                long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
-                switch (mode)
+                int size = ((buffer[16] << 8) + buffer[17]) & 0x0FFF;
+                //logger_base.debug("Processing packet.");
+                if (buffer[9] == 0x50)
                 {
-                case 0:
-                    //24 fps
-                    ms += frames * 1000 / 24;
-                    break;
-                case 1:
-                    //25 fps
-                    ms += frames * 1000 / 25;
-                    break;
-                case 2:
-                    //29.97 fps
-                    ms += frames * 100000 / 2997;
-                    break;
-                case 3:
-                    //30 fps
-                    ms += frames * 1000 / 30;
-                    break;
-                default:
-                    break;
+                    // ARTNet data packet
+                    int universe = (buffer[13] << 8) + buffer[14];
+                    _listenerManager->ProcessPacket(GetType(), universe, &buffer[ARTNET_PACKET_HEADERLEN], size);
                 }
-                // TODO add sync using ARTNet timecode packets
-                _listenerManager->Sync("", ms, GetType());
+                else if (buffer[9] == 0x99)
+                {
+                    // Trigger data packet
+                    wxByte key = buffer[14];
+                    wxByte subkey = buffer[15];
+                    // TODO add event using ARTNet trigger packets
+                    //_listenerManager->ProcessPacket(GetType() + " Trigger", (key << 8) + subkey, &buffer[16], size);
+                }
+                else if (buffer[9] == 0x97)
+                {
+                    // Timecode data packet
+                    wxByte frames = buffer[14];
+                    wxByte secs = buffer[15];
+                    wxByte mins = buffer[16];
+                    wxByte hours = buffer[17];
+                    wxByte mode = buffer[18];
+
+                    long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
+                    switch (mode)
+                    {
+                    case 0:
+                        //24 fps
+                        ms += frames * 1000 / 24;
+                        break;
+                    case 1:
+                        //25 fps
+                        ms += frames * 1000 / 25;
+                        break;
+                    case 2:
+                        //29.97 fps
+                        ms += frames * 100000 / 2997;
+                        break;
+                    case 3:
+                        //30 fps
+                        ms += frames * 1000 / 30;
+                        break;
+                    default:
+                        break;
+                    }
+                    // TODO add sync using ARTNet timecode packets
+                    _listenerManager->Sync("", ms, GetType());
+                }
+                //logger_base.debug("Processing packet done.");
             }
-            //logger_base.debug("Processing packet done.");
         }
     }
 }

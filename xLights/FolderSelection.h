@@ -42,8 +42,6 @@ class FolderSelection: public wxDialog
         wxString BackupDirectory;
         wxString AltBackupDirectory;
         long LinkMediaDir;
-        long LinkFSEQDir;
-        long LinkBackupDir;
 
 	protected:
 

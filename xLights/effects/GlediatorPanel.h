@@ -3,10 +3,10 @@
 
 //(*Headers(GlediatorPanel)
 #include <wx/panel.h>
-class wxFilePickerCtrl;
-class wxStaticText;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFilePickerCtrl;
+class wxFlexGridSizer;
+class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
@@ -19,10 +19,10 @@ class GlediatorPanel: public wxPanel
 		virtual ~GlediatorPanel();
 
 		//(*Declarations(GlediatorPanel)
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText1;
 		BulkEditChoice* Choice_Glediator_DurationTreatment;
 		wxFilePickerCtrl* FilePickerCtrl_Glediator_Filename;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		//*)
     
         wxString defaultDir;

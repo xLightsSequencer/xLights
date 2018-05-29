@@ -177,26 +177,38 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             if( model_info->GetDisplayAs() == "DMX" ) {
                 xlColor c;
                 DmxModel* dmx = (DmxModel*)model_info;
-                int red_channel = dmx->GetRedChannel();
-                int grn_channel = dmx->GetGreenChannel();
-                int blu_channel = dmx->GetBlueChannel();
-                if( red_channel != 0 ) {
+
+                int white_channel = dmx->GetWhiteChannel();
+                if (white_channel > 0 && color.red == color.green && color.red == color.blue)
+                {
                     c.red = color.red;
                     c.green = color.red;
                     c.blue = color.red;
-                    buffer.SetPixel(red_channel-1, 0, c);
+                    buffer.SetPixel(white_channel - 1, 0, c);
                 }
-                if( grn_channel != 0 ) {
-                    c.red = color.green;
-                    c.green = color.green;
-                    c.blue = color.green;
-                    buffer.SetPixel(grn_channel-1, 0, c);
-                }
-                if( blu_channel != 0 ) {
-                    c.red = color.blue;
-                    c.green = color.blue;
-                    c.blue = color.blue;
-                    buffer.SetPixel(blu_channel-1, 0, c);
+                else
+                {
+                    int red_channel = dmx->GetRedChannel();
+                    int grn_channel = dmx->GetGreenChannel();
+                    int blu_channel = dmx->GetBlueChannel();
+                    if (red_channel != 0) {
+                        c.red = color.red;
+                        c.green = color.red;
+                        c.blue = color.red;
+                        buffer.SetPixel(red_channel - 1, 0, c);
+                    }
+                    if (grn_channel != 0) {
+                        c.red = color.green;
+                        c.green = color.green;
+                        c.blue = color.green;
+                        buffer.SetPixel(grn_channel - 1, 0, c);
+                    }
+                    if (blu_channel != 0) {
+                        c.red = color.blue;
+                        c.green = color.blue;
+                        c.blue = color.blue;
+                        buffer.SetPixel(blu_channel - 1, 0, c);
+                    }
                 }
                 return;
             }

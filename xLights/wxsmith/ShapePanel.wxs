@@ -236,6 +236,24 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Shape_RandomInitial" subclass="BulkEditCheckBox" variable="CheckBox_Shape_RandomInitial" member="yes">
+					<label>Random initial shape sizes</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Shape_Lifetime" variable="StaticText2" member="yes">
 					<label>Lifetime</label>

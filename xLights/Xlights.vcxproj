@@ -485,6 +485,7 @@
     <ClCompile Include="VideoExporter.cpp" />
     <ClCompile Include="VendorModelDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
+    <ClCompile Include="VideoRenderCacher.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
@@ -746,6 +747,7 @@
     <ClInclude Include="RenderBuffer.h" />
     <ClInclude Include="RenderCommandEvent.h" />
     <ClInclude Include="RenderProgressDialog.h" />
+    <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="ResizeImageDialog.h" />
     <ClInclude Include="SaveChangesDialog.h" />
     <ClInclude Include="SelectPanel.h" />
@@ -819,6 +821,7 @@
     <ClInclude Include="VideoExporter.h" />
     <ClInclude Include="VendorModelDialog.h" />
     <ClInclude Include="VideoReader.h" />
+    <ClInclude Include="VideoRenderCacher.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />

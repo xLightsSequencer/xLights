@@ -2,14 +2,18 @@
 #define EFFECT_H
 
 #include "wx/wx.h"
+
 #include <vector>
-#include "../UtilClasses.h"
-#include "../Color.h"
-#include "../DrawGLUtils.h"
 #include <string>
 #include <mutex>
 
+#include "ColorCurve.h"
+#include "../UtilClasses.h"
+#include "../DrawGLUtils.h"
+#include "../Color.h"
+
 class EffectLayer;
+class ValueCurve;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -18,117 +22,105 @@ class EffectLayer;
 
 wxDECLARE_EVENT(EVT_SETTIMINGTRACKS, wxCommandEvent);
 
-class ValueCurve;
-
+// An effect represents a generic effect
 class Effect
 {
-    private:
-        Effect();  //don't allow default or copy constructor
-        Effect(const Effect &e);
-    public:
+    int mID;
+    short mEffectIndex;
+    std::string *mName;
+    int mStartTime;
+    int mEndTime;
+    int mSelected;
+    bool mTagged;
+    bool mProtected;
+    EffectLayer* mParentLayer;
+    xlColor mColorMask;
+    mutable std::mutex settingsLock;
+    SettingsMap mSettings;
+    SettingsMap mPaletteMap;
+    xlColorVector mColors;
+    xlColorCurveVector mCC;
+    DrawGLUtils::xlDisplayList background;
+
+    Effect() {}  //don't allow default or copy constructor
+    Effect(const Effect &e) {}
+    static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC);
+
+public:
     Effect(EffectLayer* parent, int id, const std::string & name, const std::string &settings, const std::string &palette,
-               int startTimeMS, int endTimeMS, int Selected, bool Protected);
-        virtual ~Effect();
+        int startTimeMS, int endTimeMS, int Selected, bool Protected);
+    virtual ~Effect();
 
-        int GetID() const;
-        void SetID(int i);
+    int GetID() const { return mID; }
+    void SetID(int i) { mID = i; }
 
-        int GetEffectIndex() const;
-        void SetEffectIndex(int effectIndex);
+    int GetEffectIndex() const { return mEffectIndex; }
+    void SetEffectIndex(int effectIndex);
 
-        const std::string &GetEffectName() const;
-        const std::string &GetEffectName(int index) const;
-        void SetEffectName(const std::string & name);
+    const std::string &GetEffectName() const;
+    const std::string &GetEffectName(int index) const;
+    void SetEffectName(const std::string & name);
 
-        wxString GetDescription() const;
-        int GetStartTimeMS() const;
-        void SetStartTimeMS(int startTimeMS);
-        bool OverlapsWith(int startTimeMS, int EndTimeMS);
+    wxString GetDescription() const;
 
-        int GetEndTimeMS() const;
-        void SetEndTimeMS(int endTimeMS);
+    int GetStartTimeMS() const { return mStartTime; }
+    void SetStartTimeMS(int startTimeMS);
+    int GetEndTimeMS() const { return mEndTime; }
+    void SetEndTimeMS(int endTimeMS);
+    bool OverlapsWith(int startTimeMS, int EndTimeMS);
 
-        int GetSelected() const;
-        void SetSelected(int selected);
+    int GetSelected() const { return mSelected; }
+    void SetSelected(int selected) { mSelected = selected; }
 
-        bool GetTagged() const;
-        void SetTagged(bool tagged);  // used to tag effects to aid in making sure they don't get processed twice for some actions
+    // used to tag effects to aid in making sure they don't get processed twice for some actions
+    bool GetTagged() const { return mTagged; }
+    void SetTagged(bool tagged) { mTagged = tagged; }
 
-        bool GetProtected() const;
-        void SetProtected(bool Protected);
-        bool IsLocked() const;
-        void SetLocked(bool lock);
+    bool GetProtected() const { return mProtected; }
+    void SetProtected(bool Protected) { mProtected = Protected; }
 
-        EffectLayer* GetParentEffectLayer() const;
-        void SetParentEffectLayer(EffectLayer* parent);
+    bool IsLocked() const;
+    void SetLocked(bool lock);
 
-        void IncrementChangeCount();
+    EffectLayer* GetParentEffectLayer() const { return mParentLayer; }
+    void SetParentEffectLayer(EffectLayer* parent) { mParentLayer = parent; }
 
-        std::string GetSettingsAsString() const;
-        void SetSettings(const std::string &settings, bool keepxsettings);
-        void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
+    void IncrementChangeCount();
 
-        const SettingsMap &GetSettings() const { return mSettings;}
-        const xlColorVector &GetPalette() const { return mColors;}
-        int GetPaletteSize() const { return mColors.size(); }
-        const SettingsMap &GetPaletteMap() const { return mPaletteMap;}
+    std::string GetSettingsAsString() const;
+    void SetSettings(const std::string &settings, bool keepxsettings);
+    void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
+    const SettingsMap &GetSettings() const { return mSettings; }
+    void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
 
-        /* Do NOT call these on any thread other than the main thread */
-        SettingsMap &GetSettings() { return mSettings;}
-        xlColorVector &GetPalette() { return mColors;}
-        SettingsMap &GetPaletteMap() { return mPaletteMap;}
-        void PaletteMapUpdated();
+    const xlColorVector &GetPalette() const { return mColors; }
+    int GetPaletteSize() const { return mColors.size(); }
+    const SettingsMap &GetPaletteMap() const { return mPaletteMap; }
+    std::string GetPaletteAsString() const;
+    void SetPalette(const std::string& i);
+    void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
 
-        void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
-        void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
+    /* Do NOT call these on any thread other than the main thread */
+    SettingsMap &GetSettings() { return mSettings; }
+    xlColorVector &GetPalette() { return mColors; }
+    SettingsMap &GetPaletteMap() { return mPaletteMap; }
+    void PaletteMapUpdated();
 
-        std::string GetPaletteAsString() const;
-        void SetPalette(const std::string& i);
+    DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() { return background; }
+    const DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() const { return background; }
+    bool HasBackgroundDisplayList() const {
+        std::lock_guard<std::recursive_mutex>(background.lock);
+        return !background.empty();
+    }
 
-        DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() {
-            return background;
-        }
-        const DrawGLUtils::xlDisplayList &GetBackgroundDisplayList() const {
-            return background;
-        }
-        xlColor* GetColorMask() { 
-            if (mColorMask.IsNilColor())
-            {
-                return nullptr;
-            }
-            else
-            {
-                return &mColorMask;
-            }
-        }
-        void SetColorMask(xlColor colorMask)
+    xlColor* GetColorMask() {
+        if (mColorMask.IsNilColor())
         {
-            mColorMask = colorMask;
+            return nullptr;
         }
-        bool HasBackgroundDisplayList() const {
-            std::lock_guard<std::recursive_mutex> (background.lock);
-            return !background.empty();
-        }
-    protected:
-    private:
-        int mStartTime;
-        int mEndTime;
-        int mSelected;
-        bool mTagged;
-        int mID;
-        std::string *mName;
-        short mEffectIndex;
-        bool mProtected;
-        EffectLayer* mParentLayer;
-        xlColor mColorMask;
-
-        mutable std::mutex settingsLock;
-        SettingsMap mSettings;
-        SettingsMap mPaletteMap;
-        xlColorVector mColors;
-        xlColorCurveVector mCC;
-
-        DrawGLUtils::xlDisplayList background;
+        return &mColorMask;
+    }
+    void SetColorMask(xlColor colorMask) { mColorMask = colorMask; }
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

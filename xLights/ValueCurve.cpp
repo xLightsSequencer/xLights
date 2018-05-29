@@ -109,6 +109,11 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
         low = MINVOID;
         high = MAXVOID;
     }
+    else if (type == "Random")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
     else if (type == "Ramp")
     {
         low = MINVOID;
@@ -153,6 +158,9 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
     {
     }
     else if (type == "Sine")
+    {
+    }
+    else if (type == "Decaying Sine")
     {
     }
     else if (type == "Abs Sine")
@@ -171,6 +179,11 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
     else if (type == "Flat")
     {
     }
+    else if (type == "Random")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
     else if (type == "Ramp")
     {
         low = MINVOID;
@@ -227,6 +240,11 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
         high = MAXVOID;
     }
     else if (type == "Sine")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Decaying Sine")
     {
         low = MINVOID;
         high = MAXVOID;
@@ -257,6 +275,11 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
         low = MINVOID;
         high = MAXVOID;
     }
+    else if (type == "Random")
+    {
+        low = 1;
+        high = VC_X_POINTS;
+    }
     else if (type == "Ramp Up/Down Hold")
     {
     }
@@ -287,6 +310,9 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
     else if (type == "Sine")
     {
     }
+    else if (type == "Decaying Sine")
+    {
+    }
     else if (type == "Abs Sine")
     {
     }
@@ -304,6 +330,9 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     {
     }
     else if (type == "Ramp")
+    {
+    }
+    else if (type == "Random")
     {
     }
     else if (type == "Ramp Up/Down")
@@ -337,6 +366,11 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     {
     }
     else if (type == "Sine")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Decaying Sine")
     {
         low = MINVOID;
         high = MAXVOID;
@@ -917,6 +951,40 @@ void ValueCurve::RenderType()
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
             _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+        }
+    }
+    else if (_type == "Random")
+    {
+        // p1 - minimum
+        // p2 - maximum
+        // p3 - points
+        float min = parameter1 / 100.0;
+        float max = parameter2 / 100.0;
+        int points = std::round(Denormalise(3, parameter3));
+
+        if (points == 1)
+        {
+            float value = rand01() * (max - min) + min;
+            _values.push_back(vcSortablePoint(0.0f, value, false));
+            _values.push_back(vcSortablePoint(1.0f, value, false));
+        }
+        else
+        {
+            float value = rand01() * (max - min) + min;
+            _values.push_back(vcSortablePoint(0.0f, value, false));
+            value = rand01() * (max - min) + min;
+            _values.push_back(vcSortablePoint(1.0f, value, false));
+
+            for (int i = 2; i < points; i++)
+            {
+                float x = vcSortablePoint::Normalise(rand01());
+                while (IsSetPoint(x))
+                {
+                    x = vcSortablePoint::Normalise(rand01());
+                }
+                value = rand01() * (max - min) + min;
+                _values.push_back(vcSortablePoint(x, value, false));
+            }
         }
     }
     else if (_type == "Abs Sine")

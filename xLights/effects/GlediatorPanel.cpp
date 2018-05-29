@@ -4,11 +4,11 @@
 #include "wx/filedlg.h"
 
 //(*InternalHeaders(GlediatorPanel)
+#include <wx/choice.h>
+#include <wx/filepicker.h>
+#include <wx/intl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/filepicker.h>
-#include <wx/choice.h>
-#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -33,7 +33,7 @@ GlediatorPanel::GlediatorPanel(wxWindow* parent)
 	FlexGridSizer53 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Glediator File:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer53->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FilePickerCtrl_Glediator_Filename = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL_Glediator_Filename, wxEmptyString, _("Select a glediator file"), _T("Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Glediator_Filename"));
+	FilePickerCtrl_Glediator_Filename = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL_Glediator_Filename, wxEmptyString, _("Select a glediator file"), _T("Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out|CSV files (*.csv)|*.csv"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Glediator_Filename"));
 	FlexGridSizer53->Add(FilePickerCtrl_Glediator_Filename, 1, wxALL|wxEXPAND, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Glediator_DurationTreatment, _("Duration Treatment:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Glediator_DurationTreatment"));
 	FlexGridSizer53->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

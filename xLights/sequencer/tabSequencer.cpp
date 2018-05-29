@@ -202,17 +202,17 @@ void xLightsFrame::InitSequencer()
         }
     }
 
-    if(EffectsPanel1 == nullptr || timingPanel == nullptr)
+    if (EffectsPanel1 == nullptr || timingPanel == nullptr)
     {
         return;
     }
 
-    if(mSequencerInitialize)
+    if (mSequencerInitialize)
     {
         return;
     }
 
-    if(mCurrentPerpective!=nullptr)
+    if (mCurrentPerpective != nullptr)
     {
         DoLoadPerspective(mCurrentPerpective);
     }
@@ -225,7 +225,8 @@ void xLightsFrame::InitSequencer()
         if (machinePerspective != "")
         {
             m_mgr->LoadPerspective(machinePerspective);
-            logger_base.debug("Loaded machine perspective.");
+            logger_base.debug("Loaded AutoSave perspective.");
+            LogPerspective(machinePerspective);
         }
     }
 
@@ -250,6 +251,8 @@ bool xLightsFrame::InitPixelBuffer(const std::string &modelName, PixelBufferClas
 
 void xLightsFrame::CheckForAndCreateDefaultPerpective()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxXmlNode* prospectives = PerspectivesNode->GetChildren();
     mCurrentPerpective = nullptr;
     if (prospectives==nullptr)
@@ -261,7 +264,11 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         PerspectivesNode->AddAttribute("current", "Default Perspective");
         wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", "Default Perspective");
-        p->AddAttribute("settings", m_mgr->SavePerspective());
+        wxString perspective = m_mgr->SavePerspective();
+        p->AddAttribute("settings", perspective);
+        logger_base.debug("Saved perspective.");
+        LogPerspective(perspective);
+
         p->AddAttribute("version", "2.0");
         PerspectivesNode->AddChild(p);
         mCurrentPerpective = p;
@@ -318,10 +325,21 @@ static void HandleChoices(xLightsFrame *frame,
         if (dlg.ShowModal() == wxID_OK) {
             switch (dlg.GetSelection()) {
                 case 0: {
+                    // Rename Model
                     wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
                                                  "Select Model", ToArrayString(ModelNames));
                     if (namedlg.ShowModal() == wxID_OK) {
                         std::string newName = namedlg.GetStringSelection().ToStdString();
+
+                        // remove the existing element before we rename
+                        if (dynamic_cast<SubModelElement*>(element) != nullptr) {
+                            SubModelElement *sme = dynamic_cast<SubModelElement*>(element);
+                            sme->GetModelElement()->RemoveSubModel(newName);
+                        }
+                        else {
+                            frame->GetSequenceElements().DeleteElement(newName);
+                        }
+
                         element->SetName(newName);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
@@ -331,6 +349,7 @@ static void HandleChoices(xLightsFrame *frame,
                 }
                     break;
                 case 1:
+                    // Delete the model
                     if (dynamic_cast<SubModelElement*>(element) != nullptr) {
                         SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
                         sme->GetModelElement()->RemoveSubModel(sme->GetName());
@@ -339,15 +358,12 @@ static void HandleChoices(xLightsFrame *frame,
                     }
                     break;
                 case 2:
-                    if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                        SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
-                        toMap.push_back(sme->GetModelElement());
-                    } else {
-                        toMap.push_back(element);
-                    }
+                    // Map effects
+                    toMap.push_back(element);
                     //relo
                     break;
                 case 3:
+                    // Handle later
                     ignore.push_back(element);
                     break;
                 default:
@@ -361,7 +377,7 @@ static bool HasEffects(ModelElement *el) {
     if (el->HasEffects()) {
         return true;
     }
-    for (size_t sm = 0; sm < el->GetSubModelCount(); sm++) {
+    for (size_t sm = 0; sm < el->GetSubModelAndStrandCount(); sm++) {
         SubModelElement *sme = el->GetSubModel(sm);
 
         if (sme->HasEffects()) {
@@ -394,7 +410,7 @@ void xLightsFrame::CheckForValidModels()
         }
     }
 
-    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+    for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
         if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
             std::string name = mSequenceElements.GetElement(x)->GetModelName();
             //remove the current models from the list so we don't end up with the same model represented twice
@@ -405,13 +421,22 @@ void xLightsFrame::CheckForValidModels()
 
     std::vector<Element*> mapLater;
     SeqElementMismatchDialog dialog(this);
-    for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+
+    // Check each model element in the sequence
+    // We do this because we can just rename them so it is easy
+    // Strands, nodes and submodels are not so easy ... we have to delete them or map them
+    for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
         if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+
+            // Find the model/model group for the element
             ModelElement *me = static_cast<ModelElement*>(mSequenceElements.GetElement(x));
             std::string name = me->GetModelName();
             Model *m = AllModels[name];
+
+            // If model is not found we need to remap
             if (m == nullptr) {
-                dialog.StaticTextMessage->SetLabel("Model '"+name+"'\ndoes not exist in your list of models");
+
+                dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
                 dialog.ChoiceModels->Set(ToArrayString(AllNames));
                 dialog.Fit();
 
@@ -421,11 +446,17 @@ void xLightsFrame::CheckForValidModels()
                 }
 
                 if (cancelled || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
+                    // Just delete the element from the sequence we are opening
                     mSequenceElements.DeleteElement(name);
-                } else if (dialog.RadioButtonMap->GetValue()) {
+                }
+                else if (dialog.RadioButtonMap->GetValue()) {
+                    // add it to the list of things we will map later
                     mapLater.push_back(me);
-                } else {
+                }
+                else {
+                    // change the name of the element to the new name
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
+                    mSequenceElements.DeleteElement(newName); // delete the existing element
                     mSequenceElements.GetElement(x)->SetName(newName);
                     Remove(AllNames, newName);
                     Remove(ModelNames, newName);
@@ -433,32 +464,78 @@ void xLightsFrame::CheckForValidModels()
             }
         }
     }
+
     std::vector<Element*> toMap;
     std::vector<Element*> ignore;
+
+    // build the list of models to map
+    for (auto a = mapLater.begin(); a != mapLater.end(); ++a) {
+        toMap.push_back(*a);
+    }
+    mapLater.clear();
+
     do {
+        // If we have something to map ask the user to do so
         if (!toMap.empty()) {
-            ImportXLights(mSequenceElements, toMap, wxFileName(), true, true);
+
+            // we only map at the model level so we need to build a list of them only
+            std::vector<Element*> modelElements;
+            for (auto it = toMap.begin(); it != toMap.end(); ++it)
+            {
+                Element* me = *it;
+                if ((*it)->GetType() == ELEMENT_TYPE_SUBMODEL)
+                {
+                    me = dynamic_cast<SubModelElement*>(*it)->GetModelElement();
+                }
+
+                if (std::find(modelElements.begin(), modelElements.end(), me) == modelElements.end())
+                {
+                    modelElements.push_back(me);
+                }
+            }
+
+            ImportXLights(mSequenceElements, modelElements, wxFileName(), true, true);
+
+            for (auto it = toMap.begin(); it != toMap.end(); ++it)
+            {
+                if ((*it)->GetType() == ELEMENT_TYPE_MODEL)
+                {
+                    mSequenceElements.DeleteElement((*it)->GetName());
+                }
+                else if ((*it)->GetType() == ELEMENT_TYPE_SUBMODEL)
+                {
+                    SubModelElement* sme = dynamic_cast<SubModelElement*>(*it);
+                    sme->GetModelElement()->RemoveSubModel(sme->GetName());
+                }
+            }
         }
+
         toMap.clear();
-        for (auto a = mapLater.begin(); a != mapLater.end(); ++a) {
-            toMap.push_back(*a);
-        }
-        mapLater.clear();
-        for (int x = mSequenceElements.GetElementCount()-1; x >= 0; x--) {
+
+        // Now we go through everything again ... but we also look at strands and submodels and nodes
+        for (int x = mSequenceElements.GetElementCount() - 1; x >= 0; x--) {
+
             if (ELEMENT_TYPE_MODEL == mSequenceElements.GetElement(x)->GetType()) {
+
                 std::string name = mSequenceElements.GetElement(x)->GetModelName();
                 ModelElement * el = dynamic_cast<ModelElement*>(mSequenceElements.GetElement(x));
                 Model *m = AllModels[name];
+
+                // model still doesnt exist
                 if (m == nullptr) {
+                    // If we have effects at any level
                     if (HasEffects(el)) {
                         HandleChoices(this, AllNames, ModelNames, el,
-                                      "Model " + name + " does not exist in your layout.\n"
-                                      + "How should we handle this?",
-                                      toMap, ignore);
-                    } else {
+                            "Model " + name + " does not exist in your layout.\n"
+                            + "How should we handle this?",
+                            toMap, ignore);
+                    }
+                    else {
+                        // no effects at any level so just remove it
                         mSequenceElements.DeleteElement(name);
                     }
-                } else if (m->GetDisplayAs() == "ModelGroup") {
+                }
+                else if (m->GetDisplayAs() == "ModelGroup") {
                     bool hasStrandEffects = false;
                     bool hasNodeEffects = false;
                     for (int l = 0; l < el->GetStrandCount(); l++) {
@@ -482,12 +559,13 @@ void xLightsFrame::CheckForValidModels()
                     }
                     if (hasNodeEffects || hasStrandEffects) {
                         HandleChoices(this, AllNames, ModelNames, el,
-                                      "Model " + name + " is a Model Group but has Node/Strand effects.\n"
-                                      + "How should we handle this?",
-                                      toMap, ignore);
+                            "Model " + name + " is a Model Group but has Node/Strand effects.\n"
+                            + "How should we handle this?",
+                            toMap, ignore);
                     }
-                } else {
-                    for (int x1 = 0; x1 < el->GetSubModelCount(); x1++) {
+                }
+                else {
+                    for (int x1 = 0; x1 < el->GetSubModelAndStrandCount(); x1++) {
                         SubModelElement *sme = el->GetSubModel(x1);
                         if (dynamic_cast<StrandElement*>(sme) == nullptr
                             && m->GetSubModel(sme->GetName()) == nullptr) {
@@ -497,14 +575,10 @@ void xLightsFrame::CheckForValidModels()
                                 AllSMNames.push_back(m->GetSubModel(z)->GetName());
                                 ModelSMNames.push_back(m->GetSubModel(z)->GetName());
                             }
-                            for (int z = 0; z < el->GetSubModelCount(); z++) {
-                                Remove(AllSMNames, el->GetSubModel(z)->GetName());
-                                Remove(ModelSMNames, el->GetSubModel(z)->GetName());
-                            }
-                            HandleChoices(this, AllSMNames, ModelSMNames, el,
-                                          "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
-                                          + "How should we handle this?",
-                                          toMap, ignore);
+                            HandleChoices(this, AllSMNames, ModelSMNames, sme,
+                                "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
+                                + "How should we handle this?",
+                                toMap, ignore);
                         }
                     }
                 }
@@ -824,6 +898,14 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
+    // prevent re-entry notification of effect selected changed
+    static bool reentry = false;
+    if (reentry)
+    {
+        return;
+    }
+    reentry = true;
+
     bool OnlyChoiceBookPage = event.effect==nullptr?true:false;
     Effect* effect = nullptr;
     if(OnlyChoiceBookPage)
@@ -895,6 +977,8 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         }
         mainSequencer->PanelEffectGrid->SetFocus();
     }
+
+    reentry = false;
 }
 
 void xLightsFrame::SelectedRowChanged(wxCommandEvent& event)
@@ -935,6 +1019,9 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
         mSequenceElements.get_undo_mgr().CaptureAddedEffect( el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID() );
 
         mainSequencer->PanelEffectGrid->ProcessDroppedEffect(effect);
+
+        // need to do this otherwise they dont update when we drop the model
+        bufferPanel->UpdateBufferStyles(AllModels[el->GetParentElement()->GetModelName()]);
 
         if (playType == PLAY_TYPE_MODEL_PAUSED) {
             DoStopSequence();
@@ -1086,12 +1173,12 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
 
 void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
 {
-    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt());
+    mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString() == "All");
 }
 
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
 {
-    mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt());
+    mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt(), event.GetString() == "All");
 }
 
 void xLightsFrame::ModelSelected(wxCommandEvent& event)
@@ -2250,7 +2337,7 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
     if (name != PerspectivesNode->GetAttribute("current")) {
         PerspectivesNode->DeleteAttribute("current");
         PerspectivesNode->AddAttribute("current", name);
-        UnsavedRgbEffectsChanges=true;
+        UnsavedRgbEffectsChanges = true;
         mCurrentPerpective = perspective;
     }
     if (settings.size() == 0)
@@ -2259,9 +2346,14 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         mCurrentPerpective->DeleteAttribute("settings");
         mCurrentPerpective->AddAttribute("settings", settings);
         mCurrentPerpective->AddAttribute("version", "2.0");
+        logger_base.debug("Saved perspective.");
+        LogPerspective(settings);
     }
 
-    m_mgr->LoadPerspective(settings,true);
+    m_mgr->LoadPerspective(settings, true);
+    logger_base.debug("Loaded perspective");
+    LogPerspective(settings);
+
     if (perspective->GetAttribute("version", "1.0") == "1.0") {
         //title on Layer Timing panel changed
         m_mgr->GetPane("LayerTiming").Caption("Layer Blending");
@@ -2276,33 +2368,36 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
         perspective->DeleteAttribute("settings");
         perspective->DeleteAttribute("version");
         perspective->AddAttribute("version", "2.0");
-        perspective->AddAttribute("settings", m_mgr->SavePerspective());
-    } else {
+        wxString p = m_mgr->SavePerspective();
+        perspective->AddAttribute("settings", p);
+        logger_base.debug("Saved perspective.");
+        LogPerspective(p);
+    }
+    else {
         _modelPreviewPanel->Refresh(false);
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
     }
 
-    if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF )
+    if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF)
     {
         SetEffectAssistWindowState(false);
     }
-    else if( mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON )
+    else if (mEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON)
     {
         bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-        if( !visible )
+        if (!visible)
         {
             mEffectAssistMode = EFFECT_ASSIST_NOT_IN_PERSPECTIVE;
             MenuItemEffectAssistAlwaysOn->Check(false);
         }
     }
 
-    for (int i=0; i<10; i++) {
+    for (int i = 0; i < 10; i++) {
         if (perspectives[i].p == perspective) {
             MenuItemPerspectives->Check(perspectives[i].id, true);
         }
     }
-
 }
 
 void xLightsFrame::LoadPerspective(wxCommandEvent& event)
@@ -2314,18 +2409,23 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
-    if(mCurrentPerpective != nullptr)
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mCurrentPerpective != nullptr)
     {
-        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES|wxNO);
+        wxMessageDialog confirm(this, _("Are you sure you want to save the current view as perpective \"") + mCurrentPerpective->GetAttribute("name") + "\"?", _("Confirm"), wxYES | wxNO);
         if (confirm.ShowModal() == wxID_YES)
         {
-            if(mCurrentPerpective->HasAttribute("settings"))
+            if (mCurrentPerpective->HasAttribute("settings"))
             {
                 mCurrentPerpective->DeleteAttribute("settings");
             }
-            mCurrentPerpective->AddAttribute("settings",m_mgr->SavePerspective());
+            wxString p = m_mgr->SavePerspective();
+            mCurrentPerpective->AddAttribute("settings", p);
             mCurrentPerpective->DeleteAttribute("version");
             mCurrentPerpective->AddAttribute("version", "2.0");
+            logger_base.debug("Saved perspective.");
+            LogPerspective(p);
             SaveEffectsFile();
         }
     }
@@ -2333,16 +2433,16 @@ void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event)
 {
-    wxString name = wxGetTextFromUser("Enter name of perspective","Perspective Name");
-    if(name.size()>0) {
-        for(wxXmlNode* p=PerspectivesNode->GetChildren(); p!=nullptr; p=p->GetNext() )
+    wxString name = wxGetTextFromUser("Enter name of perspective", "Perspective Name");
+    if (name.size() > 0) {
+        for (wxXmlNode* p = PerspectivesNode->GetChildren(); p != nullptr; p = p->GetNext())
         {
             if (p->GetName() == "perspective")
             {
-                wxString check_name=p->GetAttribute("name");
+                wxString check_name = p->GetAttribute("name");
                 if (check_name == name)
                 {
-                    int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO );
+                    int answer = wxMessageBox("Enter new name?", "Duplicate Name", wxYES_NO);
                     if (answer == wxYES) {
                         OnMenuItemViewSaveAsPerspectiveSelected(event);
                     }
@@ -2351,11 +2451,11 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
             }
         }
 
-        wxXmlNode* p=new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
+        wxXmlNode* p = new wxXmlNode(wxXML_ELEMENT_NODE, "perspective");
         p->AddAttribute("name", name);
-        p->AddAttribute("settings","");
+        p->AddAttribute("settings", "");
         PerspectivesNode->AddChild(p);
-        mCurrentPerpective=p;
+        mCurrentPerpective = p;
         OnMenuItemViewSavePerspectiveSelected(event);
         PerspectivesChanged(event);
         DoLoadPerspective(mCurrentPerpective);

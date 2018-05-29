@@ -195,6 +195,9 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    // Just in case it has changed
+    _videoRenderCacher.SetShowFolder(xLightsFrame::CurrentDir.ToStdString());
+
     if (cropLeft > cropRight)
     {
         auto temp = cropLeft;
@@ -330,77 +333,91 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
 	if (_videoreader != nullptr && _videoreader->GetLengthMS() > 0)
 	{
-        long frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+        VideoRenderCacheItem* rci = _videoRenderCacher.Get(filename, _frameMS, buffer.frameTimeInMs, cropLeft, cropRight, cropTop, cropBottom, starttime * 1000, starttime * 1000 + (buffer.curEffEndPer - buffer.curEffStartPer) * buffer.frameTimeInMs, aspectratio, buffer.BufferWi, buffer.BufferHt);
 
-	    // get the image for the current frame
-        AVFrame* image = _videoreader->GetNextFrame(frame);
-		
-		// if we have reached the end and we are to loop
-		if (_videoreader->AtEnd() && durationTreatment == "Loop")
-		{
-            // jump back to start and try to read frame again
-            _loops++;
-            frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
-            if (frame < 0)
+        if (rci->WasCreated())
+        {
+            long frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+
+            // get the image for the current frame
+            AVFrame* image = _videoreader->GetNextFrame(frame);
+
+            // if we have reached the end and we are to loop
+            if (_videoreader->AtEnd() && durationTreatment == "Loop")
             {
-                frame = 0;
+                // jump back to start and try to read frame again
+                _loops++;
+                frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+                if (frame < 0)
+                {
+                    frame = 0;
+                }
+                logger_base.debug("Video effect loop #%d at frame %d to video frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer, frame);
+
+                _videoreader->Seek(0);
+                image = _videoreader->GetNextFrame(frame);
             }
-            logger_base.debug("Video effect loop #%d at frame %d to video frame %d.", _loops, buffer.curPeriod - buffer.curEffStartPer, frame);
 
-            _videoreader->Seek(0);
-			image = _videoreader->GetNextFrame(frame);
-		}
+            int xoffset = cropLeft * _videoreader->GetWidth() / 100;
+            int yoffset = cropBottom * _videoreader->GetHeight() / 100;
+            int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
+            int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
+            int startx = (buffer.BufferWi - _videoreader->GetWidth() * (cropRight - cropLeft) / 100) / 2;
+            int starty = (buffer.BufferHt - _videoreader->GetHeight() * (cropTop - cropBottom) / 100) / 2;
 
-        int xoffset = cropLeft * _videoreader->GetWidth() / 100;
-        int yoffset = cropBottom * _videoreader->GetHeight() / 100;
-        int xtail = (100 - cropRight) * _videoreader->GetWidth() / 100;
-        int ytail = (100 - cropTop) * _videoreader->GetHeight() / 100;
-        int startx = (buffer.BufferWi - _videoreader->GetWidth() * (cropRight - cropLeft) / 100) / 2;
-		int starty = (buffer.BufferHt - _videoreader->GetHeight() * (cropTop - cropBottom) / 100) / 2;
+            //wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
+            //wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
-        //wxASSERT(xoffset + xtail + buffer.BufferWi == _videoreader->GetWidth());
-        //wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
+            // check it looks valid
+            if (image != nullptr)
+            {
+                // draw the image
+                xlColor c;
+                for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++)
+                {
+                    uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * 3 + xoffset * 3;
 
-		// check it looks valid
-		if (image != nullptr)
-		{
-			// draw the image
-			xlColor c;
-			for (int y = 0; y < _videoreader->GetHeight() - yoffset - ytail; y++)
-			{
-                uint8_t* ptr = image->data[0] + (_videoreader->GetHeight() - 1 - y - yoffset) * _videoreader->GetWidth() * 3 + xoffset * 3;
+                    for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++)
+                    {
+                        try
+                        {
+                            c.Set(*(ptr),
+                                *(ptr + 1),
+                                *(ptr + 2), 255);
+                        }
+                        catch (...)
+                        {
+                            // this shouldnt happen so make it stand out
+                            c = xlRED;
+                        }
+                        buffer.SetPixel(x + startx, y + starty, c);
 
-				for (int x = 0; x < _videoreader->GetWidth() - xoffset - xtail; x++)
-				{
-					try
-					{
-						c.Set(*(ptr),
-							  *(ptr + 1),
-							  *(ptr + 2), 255);
-					}
-					catch (...)
-					{
-						// this shouldnt happen so make it stand out
-						c = xlRED;
-					}
-					buffer.SetPixel(x + startx, y + starty, c);
-
-                    ptr += 3;
-				}
-			}
-            //logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
+                        ptr += 3;
+                    }
+                }
+                //logger_base.debug("Video render %s frame %d timestamp %ldms took %ldms.", (const char *)filename.c_str(), buffer.curPeriod, frame, sw.Time());
+            }
+            else
+            {
+                // display a blue background to show we have gone past end of video
+                for (int y = 0; y < buffer.BufferHt; y++)
+                {
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                    {
+                        buffer.SetPixel(x, y, xlBLUE);
+                    }
+                }
+            }
+            rci->AddFrame(buffer.curPeriod - buffer.curEffStartPer, buffer);
+            if (buffer.curPeriod == buffer.curEffEndPer)
+            {
+                rci->Finished();
+            }
         }
-		else
-		{
-			// display a blue background to show we have gone past end of video
-			for (int y = 0; y < buffer.BufferHt; y++)
-			{
-				for (int x = 0; x < buffer.BufferWi; x++)
-				{
-					buffer.SetPixel(x, y, xlBLUE);
-				}
-			}
-		}
+        else
+        {
+            rci->GetFrame(buffer.curPeriod - buffer.curEffStartPer, buffer);
+        }
 	}
     else
     {

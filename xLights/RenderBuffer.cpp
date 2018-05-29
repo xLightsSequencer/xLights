@@ -845,6 +845,22 @@ void RenderBuffer::SetNodePixel(int nodeNum, const xlColor &color) {
     }
 }
 
+void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
+    xlColor c;
+    for (auto &node : Nodes) {
+        node->GetColor(c);
+        for (auto &a : node->Coords) {
+            int x = a.bufX;
+            int y = a.bufY;
+            if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+                pixels[y*BufferWi+x] = c;
+                done[y*BufferWi+x] = true;
+            }
+        }
+    }
+}
+
+
 //copy src to dest: -DJ
 void RenderBuffer::CopyPixel(int srcx, int srcy, int destx, int desty)
 {

@@ -178,7 +178,7 @@ const long xLightsFrame::ID_BITMAPBUTTON2 = wxNewId();
 const long xLightsFrame::ID_LISTCTRL_NETWORKS = wxNewId();
 const long xLightsFrame::ID_PANEL_SETUP = wxNewId();
 const long xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
-const long xLightsFrame::ID_PANEL7 = wxNewId();
+const long xLightsFrame::XLIGHTS_SEQUENCER_TAB = wxNewId();
 const long xLightsFrame::ID_NOTEBOOK1 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT6 = wxNewId();
 const long xLightsFrame::ID_GAUGE1 = wxNewId();
@@ -717,7 +717,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     PanelPreview->SetSizer(FlexGridSizerPreview);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
-    PanelSequencer = new wxPanel(Notebook1, ID_PANEL7, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("ID_PANEL7"));
+    PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT);
     Notebook1->AddPage(PanelSetup, _("Setup"), true);
     Notebook1->AddPage(PanelPreview, _("Layout"));
@@ -1331,6 +1331,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(wxID_COPY, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_PASTE, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
 
+    SetPanelSequencerLabel("");
+
 	mRendering = false;
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
@@ -1592,30 +1594,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
 
-    if (!xLightsApp::fseqDir.IsNull())
-    {
-        fseqDirectory = xLightsApp::fseqDir;
-    }
-    else if (ok && !config->Read(_("FSEQDir"), &fseqDirectory))
-    {
-        fseqDirectory = dir;
-    }
-    ObtainAccessToURL(fseqDirectory.ToStdString());
-
-    logger_base.debug("FSEQ directory %s.", (const char *)fseqDirectory.c_str());
-
-    if (!xLightsApp::backupDir.IsNull())
-    {
-        backupDirectory = xLightsApp::backupDir;
-    }
-    else if (ok && !config->Read(_("BackupDir"), &backupDirectory))
-    {
-        backupDirectory = dir;
-    }
-    ObtainAccessToURL(backupDirectory.ToStdString());
-
-    logger_base.debug("Backup directory %s.", (const char *)backupDirectory.c_str());
-
     wxString tbData = config->Read("ToolbarLocations");
     if (tbData.StartsWith(TOOLBAR_SAVE_VERSION))
     {
@@ -1841,6 +1819,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     MixTypeChanged=true;
 
+    // This is used by xSchedule
+    Notebook1->SetLabel("XLIGHTS_NOTEBOOK");
+
     Notebook1->ChangeSelection(SETUPTAB);
     EnableNetworkChanges();
 
@@ -2061,6 +2042,15 @@ void xLightsFrame::InitEffectsPanel(EffectsPanel* panel)
     panel->CurrentDir = &CurrentDir;
 }
 
+void xLightsFrame::LogPerspective(const wxString & perspective) const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxArrayString entries = wxSplit(perspective, '|');
+    for (auto it = entries.begin(); it != entries.end(); ++it)
+    {
+        logger_base.debug("    %s", (const char *)it->c_str());
+    }
+}
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
@@ -2478,13 +2468,6 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     //  first make sure there is a Backup sub directory
 
     wxString newDirBackup = backupDirectory + wxFileName::GetPathSeparator() + "Backup";
-
-	if (wxFileName(backupDirectory) != wxFileName(showDirectory)) {
-		//If not using the Show Folder, Create a Subfolder called "'Show Folder'_Backup" to prevent confusion for ppl who change show folders alot
-		wxFileName showDir(CurrentDir);
-		newDirBackup = wxString::Format( "%s%c%s_Backup",
-			backupDirectory, wxFileName::GetPathSeparator(), showDir.GetName());
-	}
 
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
@@ -4036,7 +4019,7 @@ void xLightsFrame::ExportModels(wxString filename)
     long minchannel = 99999999;
     long maxchannel = -1;
 
-    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
+    f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
 
     for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
     {
@@ -4056,13 +4039,16 @@ void xLightsFrame::ExportModels(wxString filename)
                     models += ", " + *it;
                 }
             }
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%s,,,,,,,,\n",
+            int w, h;
+            model->GetBufferSize("Default", "None", w, h);
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
                 model->GetChanCount(),
                 model->NodeStartChannel(0) + 1,
                 model->NodeStartChannel(0) + 1 + model->GetChanCount() - 1,
+                w, h,
                 model->GetLayoutGroup()
             ));
         }
@@ -4098,7 +4084,10 @@ void xLightsFrame::ExportModels(wxString filename)
                 current = wxString::Format("%0.2f", (float)lightcount * 0.06).ToStdString();
             }
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
+            int w, h;
+            model->GetBufferSize("Default", "None", w, h);
+
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
@@ -4112,6 +4101,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 stch,
                 ch,
                 model->GetLastChannel() + 1,
+                w, h,
                 model->GetLayoutGroup(),
                 model->GetControllerConnection(),
                 type,
@@ -5312,7 +5302,7 @@ void xLightsFrame::CheckSequence(bool display)
                             }
                         }
                     }
-                    for (int j = 0; j < me->GetSubModelCount(); ++j)
+                    for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j)
                     {
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
@@ -5787,7 +5777,7 @@ void xLightsFrame::ExportEffects(wxString filename)
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 effects += ExportElement(f, se, effectfrequency, effecttotaltime, files);
             }
@@ -5867,7 +5857,7 @@ void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
                         }
                     }
                 }
-                for (int i = 0; i < me->GetSubModelCount(); ++i)
+                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i)
                 {
                     Element* se = me->GetSubModel(i);
                     for(int layer=0;layer<se->GetEffectLayerCount();layer++) {
@@ -6200,7 +6190,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
-            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelCount(); s++) {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
                 effectfiles.merge(se->GetFileReferences(effectManager));
             }
@@ -7361,37 +7351,43 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 
 bool xLightsFrame::CheckForUpdate(bool force)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool found_update = false;
-    wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
-    #ifdef LINUX
-      wxString hostname =  wxT("www.adebenham.com");
-      wxString path = wxT("/wp-content/uploads/xlights/latest.php");
-      wxString downloadUrl = wxT("https://www.adebenham.com/xlights-linux");
-      MenuItem_Update->Enable(true);
-    #else
-      #ifdef  __WXOSX_MAC__
-        wxString hostname = _T("dankulp.com");
-        wxString path = _T("/xLightsLatest.php");
-        wxString downloadUrl =  wxT("http://dankulp.com/xlights/");
-        MenuItem_Update->Enable(true);
-      #else
-        wxString hostname = _T("xlights.org");
-        wxString path = _T("/xLightsLatest.php");
-        wxString downloadUrl = wxT("https://xlights.org/releases/");
-        MenuItem_Update->Enable(false);
-        return false; // No checking on windows yet
-      #endif
-    #endif
+#ifdef LINUX
+    wxString hostname = wxT("www.adebenham.com");
+    wxString path = wxT("/wp-content/uploads/xlights/latest.php");
+    wxString downloadUrl = wxT("https://www.adebenham.com/xlights-linux");
+    MenuItem_Update->Enable(true);
+#else
+#ifdef  __WXOSX_MAC__
+    wxString hostname = _T("dankulp.com");
+    wxString path = _T("/xLightsLatest.php");
+    wxString downloadUrl = wxT("http://dankulp.com/xlights/");
+    MenuItem_Update->Enable(true);
+#else
+    wxString hostname = _T("xlights.org");
+    wxString path = _T("/downloads/");
+    wxString downloadUrl = wxT("http://xlights.org/downloads/");
+    MenuItem_Update->Enable(true);
+    //return false; // No checking on windows yet
+#endif
+#endif
 
     wxHTTP get;
     get.SetTimeout(5); // 5 seconds of timeout instead of 10 minutes ...
+    get.SetHeader("Cache-Control", "no-cache");
 
     if (force) {
         while (!get.Connect(hostname))  // only the server, no pages here yet ...
             wxSleep(5);
-    } else {
+    }
+    else {
         if (!get.Connect(hostname))
+        {
+            logger_base.debug("Version update check failed. Unable to connect.");
             return true;
+        }
     }
 
     wxInputStream *httpStream = get.GetInputStream(path);
@@ -7400,27 +7396,67 @@ bool xLightsFrame::CheckForUpdate(bool force)
         wxString configver = wxT("");
         wxStringOutputStream out_stream(&res);
         httpStream->Read(out_stream);
+
+#ifdef __WXMSW__
+        wxString page = wxString(out_stream.GetString());
+
+        //logger_base.debug("    Download page: %s",
+        //    (const char *)page.c_str());
+
+        // find the highest version number in the file
+        wxString urlVersion = xlights_version_string;
+
+        wxRegEx reVersion("xLights[0-9][0-9]_(2[0-9][0-9][0-9]_[0-9][0-9])\\.exe", wxRE_ADVANCED | wxRE_NEWLINE);
+        while (reVersion.Matches(page))
+        {
+            auto v = reVersion.GetMatch(page, 1);
+            size_t start = -1;
+            size_t len = -1;
+            reVersion.GetMatch(&start, &len, 1);
+            v.Replace("_", ".");
+
+            //logger_base.debug("    Found Version: %s",
+            //    (const char *)v.c_str());
+
+            if (IsVersionOlder(v, urlVersion))
+            {
+                urlVersion = v;
+            }
+            page = page.Mid(start + len);
+        }
+#else
+        wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
         wxString urlVersion = wxString(out_stream.GetString());
-        reVersion.Replace(&urlVersion,"\\1",1);
+        reVersion.Replace(&urlVersion, "\\1", 1);
+#endif
+
+        logger_base.debug("Current Version: %s. Latest Available %s. Skip Version %s.",
+            (const char *)xlights_version_string.c_str(),
+            (const char *)urlVersion.c_str(),
+            (const char *)configver.c_str());
+
         wxConfigBase* config = wxConfigBase::Get();
         if (!force && (config != nullptr))
         {
-            config->Read("SkipVersion",&configver);
+            config->Read("SkipVersion", &configver);
         }
+
         if ((!urlVersion.Matches(configver))
-             && (!urlVersion.Matches(xlights_version_string))) {
-            found_update=true;
+            && (!urlVersion.Matches(xlights_version_string))) {
+            found_update = true;
             UpdaterDialog *dialog = new UpdaterDialog(this);
-            dialog->urlVersion=urlVersion;
-            dialog->force=force;
-            dialog->downloadUrl=downloadUrl;
+            dialog->urlVersion = urlVersion;
+            dialog->force = force;
+            dialog->downloadUrl = downloadUrl;
             dialog->StaticTextUpdateLabel->SetLabel(wxT("You are currently running xLights "
-                                                       + xlights_version_string + "\n"
-                                                       + "Whereas the current release is " + urlVersion));
+                + xlights_version_string + "\n"
+                + "Whereas the current release is " + urlVersion));
             dialog->Show();
         }
-    } else {
-        wxMessageBox(_T("Unable to connect!"));
+    }
+    else {
+        logger_base.debug("Version update check failed. Unable to read available versions.");
+        //wxMessageBox(_T("Unable to connect!"));
     }
 
     wxDELETE(httpStream);
@@ -7542,20 +7578,25 @@ void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 
 void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, backupDirectory, mAltBackupDir);
 
     int res = dlg.ShowModal();
 
     if (res == wxID_OK) {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         wxConfigBase* config = wxConfigBase::Get();
         config->Write(_("MediaDir"), dlg.MediaDirectory);
         config->Write(_("LinkFlag"), dlg.LinkMediaDir);
-        config->Write(_("FSEQDir"), dlg.FseqDirectory);
-        config->Write(_("FSEQLinkFlag"), dlg.LinkFSEQDir);
-        config->Write(_("BackupDir"), dlg.BackupDirectory);
-        config->Write(_("BackupLinkFlag"), dlg.LinkBackupDir);
         config->Write(_("xLightsAltBackupDir"), dlg.AltBackupDirectory);
+
+        //Always set values in xgb effects setting just in case
+        //if(mediaDirectory != dlg.MediaDirectory || backupDirectory != dlg.BackupDirectory)
+        {
+            SetXmlSetting("fseqDir", dlg.FseqDirectory);
+            SetXmlSetting("backupDir", dlg.BackupDirectory);
+            UnsavedRgbEffectsChanges = true;
+        }
 
         mediaDirectory = dlg.MediaDirectory;
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());

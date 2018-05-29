@@ -2065,7 +2065,7 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     if (layers[layer]->buffer.BufferHt == 0) layers[layer]->buffer.BufferHt = 1;
 }
 
-void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers)
+void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers, int saveLayer)
 {
     xlColor color;
     int curStep;
@@ -2141,10 +2141,10 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
     size_t NodeCount = layers[0]->buffer.Nodes.size();
     for(size_t i = 0; i < NodeCount; i++)
     {
-        if (!layers[0]->buffer.Nodes[i]->IsVisible())
+        if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible())
         {
             // unmapped pixel - set to black
-            layers[0]->buffer.Nodes[i]->SetColor(xlBLACK);
+            layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
         }
         else
         {
@@ -2155,7 +2155,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
 
             // set color for physical output
-            layers[0]->buffer.Nodes[i]->SetColor(color);
+            layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
         }
     }
 }

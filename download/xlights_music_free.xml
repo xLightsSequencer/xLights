@@ -18,27 +18,200 @@
 			<id>Halloween</id>
 			<name>Halloween</name>
 		</category>
+		<category>
+			<id>Other</id>
+			<name>Other</name>
+		</category>
 	</categories>
 	<music>
 		<song>
-		   <hash>d678989f4b4ffb0df3476b5b22e879f6</hash>
-		   <categoryid>Christmas</categoryid>
-		   <title>Christmas Every Day</title>
-		   <artist>Simple Plan</artist>
-		   <lyric/>
-		   <download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3c2FmRzRwVWZxNkk&authuser=0&export=download]]></download>
-		   <music><![CDATA[https://www.amazon.com/Christmas-Every-Day/dp/B01MYNSHTJ/ref=sr_1_1?ie=UTF8&qid=1525533227&sr=8-1&keywords=simple+plan+christmas+everyday]]></music>
-		   <creator>Bill Porter</creator>
+			<hash>d678989f4b4ffb0df3476b5b22e879f6</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Christmas Every Day</title>
+			<artist>Simple Plan</artist>
+			<creator>Bill Porter</creator>
+			<lyric>Yes</lyric>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3c2FmRzRwVWZxNkk&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/Christmas-Every-Day/dp/B01MYNSHTJ/ref=sr_1_1?ie=UTF8&amp;qid=1525533227&amp;sr=8-1&amp;keywords=simple+plan+christmas+everyday]]></music>
 		</song>
 		<song>
-		   <hash>435e12b2ca865106be18ae82f2713a01</hash>
-		   <categoryid>Disney</categoryid>
-		   <title>You're Welcome</title>
-		   <artist>Dwayne Johnson</artist>
-		   <sequence/>
-		   <download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3ZTRDYm9sQTVueUk&authuser=0&export=download]]></download>
-		   <music><![CDATA[https://www.amazon.com/Original-Motion-Picture-Soundtrack-Deluxe/dp/B01M5GYB5N/ref=sr_1_3?ie=UTF8&qid=1525584402&sr=8-3&keywords=you%27re+welcome+dwayne+johnson]]></music>
-		   <creator>Johnathan Landingham</creator>
+			<hash>435e12b2ca865106be18ae82f2713a01</hash>
+			<categoryid>Disney</categoryid>
+			<title>You're Welcome</title>
+			<artist>Dwayne Johnson</artist>
+			<creator>Johnathan Landingham</creator>
+			<sequence>Yes</sequence>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3ZTRDYm9sQTVueUk&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/Original-Motion-Picture-Soundtrack-Deluxe/dp/B01M5GYB5N/ref=sr_1_3?ie=UTF8&amp;qid=1525584402&amp;sr=8-3&amp;keywords=you%27re+welcome+dwayne+johnson]]></music>
+		</song>
+		<song>
+			<hash>temporaryhashforsong1</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Star to Follow</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Bill Porter</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3bmZ1UVNLX3pjOUU&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong2</hash>
+			<categoryid>Other</categoryid>
+			<title>Can't Stop the Feeling! (Film Version)</title>
+			<artist>Timberlake, Justin</artist>
+			<creator>Logan Carpenter/Brent Yakymyk</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=1s24nsYB_MwAD6V6jJMfY8RbcNFL_WnGH&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong3</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Christmas Eve/Sarajevo 12/24</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Bill Porter</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3bjVGSEJPMWo5d1U&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong4</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Merry Christmas</title>
+			<artist>Smashing Pumpkins</artist>
+			<creator>Nick Cosper</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=18JA0M53vVYAiv4xZY4XNlz11r8tlHyzh&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong5</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Holly Jolly Christmas</title>
+			<artist>Buble, Michael </artist>
+			<creator>Nick Cosper</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B8gSdh1p0Ru6Qm5BSVRneVh2SDQ&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong6</hash>
+			<categoryid>Other</categoryid>
+			<title>Believer</title>
+			<artist>Imagine Dragons</artist>
+			<creator>Daniel Kulp</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B4MAfoe7gdL7MDhweERnSVdhWjQ&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong7</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Purge-Ghostbusters Mix</title>
+			<artist>Various</artist>
+			<creator>Ryan Kasper-Cook</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3WTNRdlJWd2gtc1E&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong8</hash>
+			<categoryid>Other</categoryid>
+			<title>Jump In The Line - Saw It Coming Mix</title>
+			<artist>Various</artist>
+			<creator>Ryan Kasper-Cook</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3eHd4SzF5YXBxZXM&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong9</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Light Of Christmas </title>
+			<artist>TobyMac</artist>
+			<creator>Mike Behnke</creator>
+			<sequence>Yes</sequence>
+			<notes>No Music link given, therefore assumed.</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=1GGSWulYnDqQcocl0hl1aAgaez-4J_AKF]]></download>
+			<music><![CDATA[https://www.amazon.com/dp/B076VZ5N7M/ref=dm_ws_tlw_trk2&authuser=0&export=download]]></music>
+		</song>
+		<song>
+			<hash>temporaryhashforsong10</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Oogie Boogie's Song</title>
+			<artist>Unknown</artist>
+			<creator>Bill Porter</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3OWhXN0JOcUYtVVk&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong11</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Santa Claus is Coming to Town -  Dance Of The Sugar Plum Fairy Mix</title>
+			<artist>Skeewiff</artist>
+			<creator>Jason Rasmussen</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=1m7Lz6U8PYEWL_m0rrRPpDRURTzJXhdSK&authuser=0&export=download]]></download>
+			<video><![CDATA[https://vimeo.com/242877481]]></video>
+		</song>
+		<song>
+			<hash>temporaryhashforsong12</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Spooky Scary Skeletons</title>
+			<artist>Unknown</artist>
+			<creator>Bill Porter</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3LWlpMGNLcS1aQ2M&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong13</hash>
+			<categoryid>Halloween</categoryid>
+			<title>This Is Halloween (The Nightmare Before Christmas)</title>
+			<artist>Elfman, Danny </artist>
+			<creator>Bill Porter</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3VUZYWGFaMm1idkE&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong14</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Wish Liszt (Toy Shop Madness) [Instrumental]</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Ed Buechner</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0BwDgEpqsgNhfeFJLTk5OdjRPZFk&authuser=0&export=download]]></download>
+		</song>
+		<song>
+			<hash>temporaryhashforsong15</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Wonderful Christmastime (Edited Version)</title>
+			<artist>McCartney, Paul</artist>
+			<creator>Nick Cosper</creator>
+			<sequence>Yes</sequence>
+			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
+			<download><![CDATA[https://drive.google.com/uc?id=0B8gSdh1p0Ru6X2dHeU9Va0RqUW8&authuser=0&export=download]]></download>
 		</song>
 	</music>
 </musicinventory>
