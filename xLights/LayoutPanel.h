@@ -349,6 +349,7 @@ class LayoutPanel: public wxPanel
         bool is_3d;
         bool m_mouse_down;
         int last_selection;
+        int last_highlight;
         int m_last_mouse_x, m_last_mouse_y;
         bool creating_model;
 

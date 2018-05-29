@@ -791,8 +791,10 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
             // Work out where the zero point is for this model
             ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
             // FIXME:  Models are no longer fixed percentages on the screen
-            int x = ((float)width * msl.GetHcenterPos());
-            int y = ((float)height * (1.0 - msl.GetVcenterPos()));
+            //         We can use msl.GetScreenOffset(preview) but it needs a pointer to the ModelPreview that contains the model to be rendered.
+            int x = 0, y = 0;
+            //int x = ((float)width * msl.GetHcenterOffset());
+            //int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
 
             RenderModelOnImage(image, *m, framedata, start, x, y);
         }

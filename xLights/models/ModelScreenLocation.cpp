@@ -549,9 +549,9 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
             scalex = previewW / RenderWi * previewScaleX;
             scaley = previewH / RenderHt * previewScaleY;
             scalez = scaley;
-            rotatex = 0.0f;
-            rotatey = 0.0f;
-            rotatez = wxAtof(node->GetAttribute("PreviewRotation", "0"));
+            rotatex = 0;
+            rotatey = 0;
+            rotatez = wxAtoi(node->GetAttribute("PreviewRotation", "0"));
             node->DeleteAttribute("offsetXpct");
             node->DeleteAttribute("offsetYpct");
             node->DeleteAttribute("PreviewScaleX");
@@ -563,9 +563,9 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
             node->AddAttribute("ScaleX", wxString::Format("%6.4f", scalex));
             node->AddAttribute("ScaleY", wxString::Format("%6.4f", scaley));
             node->AddAttribute("ScaleZ", wxString::Format("%6.4f", scalez));
-            node->AddAttribute("RotateX", wxString::Format("%6.4f", rotatex));
-            node->AddAttribute("RotateY", wxString::Format("%6.4f", rotatey));
-            node->AddAttribute("RotateZ", wxString::Format("%6.4f", rotatez));
+            node->AddAttribute("RotateX", wxString::Format("%d", rotatex));
+            node->AddAttribute("RotateY", wxString::Format("%d", rotatey));
+            node->AddAttribute("RotateZ", wxString::Format("%d", rotatez));
             node->DeleteAttribute("versionNumber");
             node->AddAttribute("versionNumber", "3");
         }
@@ -1446,6 +1446,20 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
     return 0;
 }
 
+glm::vec2 BoxedScreenLocation::GetScreenOffset(ModelPreview* preview)
+{
+    glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
+                                                    preview->getHeight(),
+                                                    GetWorldPosition(),              // X,Y,Z coords of the position when not transformed at all.
+                                                    preview->GetProjViewMatrix(),    // Projection / View matrix
+                                                    Identity                         // Transformation applied to the position
+    );
+
+    position.x = position.x / (float)preview->getWidth();
+    position.y = position.y / (float)preview->getHeight();
+    return position;
+}
+
 float BoxedScreenLocation::GetTop() const {
     return worldPos_y+(RenderHt*scaley/2);
 }
@@ -2306,6 +2320,20 @@ void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPt
 {
     aabb_min = glm::vec3(0.0f, -BB_OFF, -BB_OFF);
     aabb_max = glm::vec3(RenderWi * scalex, BB_OFF, BB_OFF);
+}
+
+glm::vec2 TwoPointScreenLocation::GetScreenOffset(ModelPreview* preview)
+{
+    glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
+        preview->getHeight(),
+        center,                          // X,Y,Z coords of the position when not transformed at all.
+        preview->GetProjViewMatrix(),    // Projection / View matrix
+        Identity                         // Transformation applied to the position
+    );
+
+    position.x = position.x / (float)preview->getWidth();
+    position.y = position.y / (float)preview->getHeight();
+    return position;
 }
 
 float TwoPointScreenLocation::GetHcenterPos() const {
@@ -3542,7 +3570,7 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
     float distance = 1000000000.0f;
     bool ret_value = false;
 
-    // FIXME: Speed up by having initial check for overall boundaries
+    // FIXME: Speed up by having initial check for overall boundaries?
 
     selected_segment = -1;
     for (int i = 0; i < num_points - 1; ++i) {
@@ -3667,7 +3695,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
     if (handle == NO_HANDLE) {
         float distance = 1000000000.0f;
         float intersection_distance = 1000000000.0f;
-        // FIXME: Speed up by having initial check for overall boundaries
+        // FIXME: Speed up by having initial check for overall boundaries?
 
         for (int i = 0; i < num_points - 1; ++i) {
             if (mPos[i].has_curve) {
@@ -4832,6 +4860,24 @@ void PolyPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassP
             seg_aabb_max[i] = glm::vec3(RenderWi * mPos[i].seg_scale, BB_OFF, BB_OFF);
         }
     }
+}
+
+glm::vec2 PolyPointScreenLocation::GetScreenOffset(ModelPreview* preview)
+{
+    float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
+    float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;
+    float cz = (maxZ + minZ) * scalez / 2.0f + worldPos_z;
+
+    glm::vec2 position = VectorMath::GetScreenCoord(preview->getWidth(),
+        preview->getHeight(),
+        glm::vec3(cx, cy, cz),           // X,Y,Z coords of the position when not transformed at all.
+        preview->GetProjViewMatrix(),    // Projection / View matrix
+        Identity                         // Transformation applied to the position
+    );
+
+    position.x = position.x / (float)preview->getWidth();
+    position.y = position.y / (float)preview->getHeight();
+    return position;
 }
 
 float PolyPointScreenLocation::GetHcenterPos() const {

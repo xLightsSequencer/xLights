@@ -203,6 +203,21 @@ bool VectorMath::TestVolumeOBBIntersection(
     return (min_pos.x >= mouseX1 && max_pos.x <= mouseX2 && min_pos.y >= mouseY1 && max_pos.y <= mouseY2);
 }
 
+glm::vec2 VectorMath::GetScreenCoord(
+    int screenWidth, int screenHeight,  // Window size, in pixels
+    glm::vec3 position,          // X,Y,Z coords of the position when not transformed at all.
+    glm::mat4 ProjViewMatrix,    // Projection / View matrix
+    glm::mat4 ModelMatrix        // Transformation applied to the position
+) {
+    glm::mat4 MVP = ProjViewMatrix * ModelMatrix;
+    glm::vec4 clipSpacePos = MVP * glm::vec4(position, 1.0);
+    if (clipSpacePos.w == 0.0f) return glm::vec2(0.0f);
+    glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos.x / clipSpacePos.w, clipSpacePos.y / clipSpacePos.w, clipSpacePos.z / clipSpacePos.w);
+    glm::vec2 screen_position(((ndcSpacePos.x + 1.0) / 2.0) * screenWidth, ((1.0 - ndcSpacePos.y) / 2.0) * screenHeight);
+    return screen_position;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // find the intersect point
 // substitute a point on the line to the plane equation, then solve for alpha

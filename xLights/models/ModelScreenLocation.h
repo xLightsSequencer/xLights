@@ -92,6 +92,7 @@ public:
     virtual void SetPosition(float posx, float posy) = 0;
     virtual void AddOffset(float deltax, float deltay, float deltaz);
 
+    virtual glm::vec2 GetScreenOffset(ModelPreview* preview) = 0;
     virtual float GetHcenterPos() const = 0;
     virtual float GetVcenterPos() const = 0;
     virtual void SetHcenterPos(float f) = 0;
@@ -232,6 +233,8 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual bool IsCenterBased() const override {return true;};
 
+    virtual glm::vec2 GetScreenOffset(ModelPreview* preview) override;
+
     virtual float GetHcenterPos() const override {
         return (float)worldPos_x;
     }
@@ -332,6 +335,7 @@ public:
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+    virtual glm::vec2 GetScreenOffset(ModelPreview* preview) override;
     virtual float GetHcenterPos() const override;
     virtual float GetVcenterPos() const override;
     virtual void SetHcenterPos(float f) override;
@@ -487,6 +491,7 @@ public:
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+    virtual glm::vec2 GetScreenOffset(ModelPreview* preview) override;
     virtual float GetHcenterPos() const override;
     virtual float GetVcenterPos() const override;
     virtual void SetHcenterPos(float f) override;

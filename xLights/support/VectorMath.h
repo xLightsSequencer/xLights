@@ -40,6 +40,13 @@ namespace VectorMath
         glm::mat4 ModelMatrix        // Transformation applied to the mesh (which will thus be also applied to its bounding box)
     );
 
+    glm::vec2 GetScreenCoord(
+        int screenWidth, int screenHeight,  // Window size, in pixels
+        glm::vec3 position,          // X,Y,Z coords of the position when not transformed at all.
+        glm::mat4 ProjViewMatrix,    // Projection / View matrix
+        glm::mat4 ModelMatrix        // Transformation applied to the position
+    );
+
     bool GetPlaneIntersect(
         glm::vec3 p,                 // Point origin  (x0, y0, z0)
         glm::vec3 v,                 // Ray direction (x,  y,  z)

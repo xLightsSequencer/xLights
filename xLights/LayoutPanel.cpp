@@ -209,7 +209,7 @@ private:
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
     m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr), highlightedModel(nullptr),
-    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(-1),
+    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(-1), last_highlight(-1),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
     ModelGroupWindow(nullptr), m_mouse_down(false), m_wheel_down(false), selectionLatched(false), over_handle(-1), creating_model(false)
@@ -1769,7 +1769,8 @@ void LayoutPanel::HighlightAllInBoundingRect()
         {
             modelPreview->GetModels()[i]->Highlighted = true;
         }
-        else {
+        else if(!modelPreview->GetModels()[i]->Selected &&
+               !modelPreview->GetModels()[i]->GroupSelected){
             modelPreview->GetModels()[i]->Highlighted = false;
         }
     }
@@ -1791,17 +1792,24 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         if(modelPreview->GetModels()[found[0]]->Selected)
         {
             modelPreview->GetModels()[found[0]]->Selected = false;
+            modelPreview->GetModels()[found[0]]->Highlighted = false;
             modelPreview->GetModels()[found[0]]->GroupSelected = false;
+            modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+            modelPreview->GetModels()[found[0]]->GetModelScreenLocation().SetActiveHandle(-1);
         }
         else if (modelPreview->GetModels()[found[0]]->GroupSelected)
         {
             SetSelectedModelToGroupSelected();
             modelPreview->GetModels()[found[0]]->Selected = true;
+            modelPreview->GetModels()[found[0]]->Highlighted = true;
             SelectModel(modelPreview->GetModels()[found[0]]);
+            modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+            modelPreview->GetModels()[found[0]]->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
         }
         else
         {
             modelPreview->GetModels()[found[0]]->GroupSelected = true;
+            modelPreview->GetModels()[found[0]]->Highlighted = true;
         }
         UpdatePreview();
         return true;
@@ -1951,15 +1959,47 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             }
             if (which_model != -1)
             {
-                if (modelPreview->GetModels()[which_model]->Highlighted && 
-                    !modelPreview->GetModels()[which_model]->GroupSelected) {
-                    modelPreview->GetModels()[which_model]->Highlighted = true;
-                    modelPreview->GetModels()[which_model]->GroupSelected = true;
+                if (modelPreview->GetModels()[which_model]->Highlighted) {
+                    if (!modelPreview->GetModels()[which_model]->GroupSelected &&
+                        !modelPreview->GetModels()[which_model]->Selected) {
+                        modelPreview->GetModels()[which_model]->GroupSelected = true;
+                    }
+                    else if (modelPreview->GetModels()[which_model]->GroupSelected) {
+                        modelPreview->GetModels()[which_model]->GroupSelected = false;
+                        modelPreview->GetModels()[which_model]->Selected = true;
+                        if (selectedModel != nullptr) {
+                            selectedModel->GroupSelected = true;
+                            selectedModel->Selected = false;
+                            selectedModel->SelectHandle(-1);
+                            selectedModel->GetModelScreenLocation().SetActiveHandle(-1);
+                        }
+                        selectedModel = modelPreview->GetModels()[which_model];
+                        highlightedModel = selectedModel;
+                        selectedModel->SelectHandle(-1);
+                        selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    }
+                    else if (modelPreview->GetModels()[which_model]->Selected) {
+                        modelPreview->GetModels()[which_model]->Selected = false;
+                        modelPreview->GetModels()[which_model]->Highlighted = false;
+                        modelPreview->GetModels()[which_model]->SelectHandle(-1);
+                        modelPreview->GetModels()[which_model]->GetModelScreenLocation().SetActiveHandle(-1);
+                        selectedModel = nullptr;
+                        // select first model we find
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected) {
+                                selectedModel = modelPreview->GetModels()[i];
+                                selectedModel->GroupSelected = false;
+                                selectedModel->Selected = true;
+                                selectedModel->SelectHandle(-1);
+                                selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                                break;
+                            }
+                        }
+                        highlightedModel = selectedModel;
+                    }
+                    UpdatePreview();
                 }
-                else {
-                    modelPreview->GetModels()[which_model]->GroupSelected = false;
-                }
-                UpdatePreview();
             }
         }
     }
@@ -2002,10 +2042,9 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         return;
     }
 
-    int y = event.GetY();
     if (event.ControlDown())
     {
-        SelectMultipleModels(event.GetX(), y);
+        SelectMultipleModels(event.GetX(), event.GetY());
         m_dragging = true;
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
@@ -2083,7 +2122,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModels();
         }
 
-        if (SelectSingleModel(event.GetX(), y))
+        if (SelectSingleModel(event.GetX(), event.GetY()))
         {
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
@@ -2361,47 +2400,48 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 // check for mouse over handle and if so highlight it
-                int handle = -1;
                 modelPreview->SetCursor(selectedModel->GetModelScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle));
                 if (m_over_handle != over_handle) {
                     selectedModel->GetModelScreenLocation().MouseOverHandle(m_over_handle);
                     over_handle = m_over_handle;
                     UpdatePreview();
                 }
-                else {
-                    // otherwise see if hovering over a model and if so highlight it or remove highlight as you leave it if it wasn't selected
+                else if( event.ControlDown() ) {
+                    // For now require control to be active before we start highlighting other models while a model is selected otherwise
+                    // it gets hard to work on selected model with everything else highlighting.
+                    // See if hovering over a model and if so highlight it or remove highlight as you leave it if it wasn't selected.
                     int which_model = -1;
                     float distance = 1000000000.0f;
                     float intersection_distance = 1000000000.0f;
                     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
                     {
-                        if (modelPreview->GetModels()[i]->GetModelScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
-                            if (intersection_distance < distance) {
-                                distance = intersection_distance;
-                                which_model = i;
+                        if (modelPreview->GetModels()[i] != selectedModel) {
+                            if (modelPreview->GetModels()[i]->GetModelScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                                if (intersection_distance < distance) {
+                                    distance = intersection_distance;
+                                    which_model = i;
+                                }
                             }
                         }
                     }
                     if (which_model != -1)
                     {
-                        if (last_selection != which_model) {
+                        if (last_highlight != which_model) {
                             if (!modelPreview->GetModels()[which_model]->Highlighted) {
                                 modelPreview->GetModels()[which_model]->Highlighted = true;
                             }
                             UpdatePreview();
                         }
                     }
-                    else {
-                        if (last_selection != -1) {
-                            if (modelPreview->GetModels()[last_selection]->Highlighted &&
-                                !(modelPreview->GetModels()[last_selection]->Selected ||
-                                    modelPreview->GetModels()[last_selection]->GroupSelected)) {
-                                modelPreview->GetModels()[last_selection]->Highlighted = false;
-                                UpdatePreview();
-                            }
+                    if (last_highlight != -1 && last_highlight != which_model) {
+                        if (modelPreview->GetModels()[last_highlight]->Highlighted &&
+                            !(modelPreview->GetModels()[last_highlight]->Selected ||
+                                modelPreview->GetModels()[last_highlight]->GroupSelected)) {
+                            modelPreview->GetModels()[last_highlight]->Highlighted = false;
+                            UpdatePreview();
                         }
                     }
-                    last_selection = which_model;
+                    last_highlight = which_model;
                 }
             }
         }
@@ -3034,7 +3074,7 @@ void LayoutPanel::PreviewModelHDistribute()
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         Model* m = modelPreview->GetModels()[i];
-        if (m->GroupSelected)
+        if (m->GroupSelected || m->Selected)
         {
             count++;
             float x = m->GetHcenterPos();
@@ -3084,7 +3124,7 @@ void LayoutPanel::PreviewModelVDistribute()
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         Model* m = modelPreview->GetModels()[i];
-        if (m->GroupSelected)
+        if (m->GroupSelected || m->Selected)
         {
             count++;
             float y = m->GetVcenterPos();
