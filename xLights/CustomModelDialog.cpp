@@ -239,11 +239,14 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	GridCustom->CreateGrid(1,1);
 	GridCustom->EnableEditing(true);
 	GridCustom->EnableGridLines(true);
-	GridCustom->SetColLabelSize(20);
+    GridCustom->EnableDragGridSize(false);
+    GridCustom->EnableDragRowSize(false);
+    GridCustom->EnableDragColSize(false);
+    GridCustom->SetColLabelSize(20);
 	GridCustom->SetRowLabelSize(30);
 	GridCustom->SetDefaultColSize(30, true);
-	GridCustom->SetDefaultCellFont( GridCustom->GetFont() );
-	GridCustom->SetDefaultCellTextColour( GridCustom->GetForegroundColour() );
+	GridCustom->SetDefaultCellFont(GridCustom->GetFont());
+	GridCustom->SetDefaultCellTextColour(GridCustom->GetForegroundColour());
 	Sizer1->Add(GridCustom, 0, wxEXPAND, 0);
 	SetSizer(Sizer1);
 	SetSizer(Sizer1);
