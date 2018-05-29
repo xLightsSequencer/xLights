@@ -649,6 +649,7 @@
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
 		67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */; };
+		67FF749E20BD8462000EA3A3 /* VectorMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF749C20BD845F000EA3A3 /* VectorMath.cpp */; };
 		67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */; };
 		67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */; };
 /* End PBXBuildFile section */
@@ -1769,6 +1770,8 @@
 		67FF39901D57F5D000290DB4 /* MusicXML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MusicXML.h; sourceTree = "<group>"; };
 		67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoteImportDialog.cpp; sourceTree = "<group>"; };
 		67FF39921D57F5D000290DB4 /* NoteImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteImportDialog.h; sourceTree = "<group>"; };
+		67FF749C20BD845F000EA3A3 /* VectorMath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VectorMath.cpp; path = support/VectorMath.cpp; sourceTree = "<group>"; };
+		67FF749D20BD845F000EA3A3 /* VectorMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VectorMath.h; path = support/VectorMath.h; sourceTree = "<group>"; };
 		67FFB8171FA3F65D007F9FBB /* Control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Control.h; sourceTree = "<group>"; };
 		67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessDeadChannel.cpp; sourceTree = "<group>"; };
 		67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeadChannelDialog.h; sourceTree = "<group>"; };
@@ -1865,14 +1868,12 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				67BD732B200D0C000074208A /* ImageModel.cpp */,
-				67BD732C200D0C000074208A /* ImageModel.h */,
-				673F03661F322A9B0052A793 /* ChannelBlockModel.h */,
-				673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */,
 				670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */,
 				670C827E1C45C48B000AA5D8 /* ArchesModel.h */,
 				676C5EAD1C99D8AF0031A033 /* CandyCaneModel.cpp */,
 				676C5EAE1C99D8AF0031A033 /* CandyCaneModel.h */,
+				673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */,
+				673F03661F322A9B0052A793 /* ChannelBlockModel.h */,
 				670E47411C62F4AD008F4C60 /* CircleModel.cpp */,
 				670E47401C62F4AD008F4C60 /* CircleModel.h */,
 				67ACBAB11C63D84500BFA7D6 /* CustomModel.cpp */,
@@ -1881,6 +1882,8 @@
 				67EB24AF1D2F399200C7C4A1 /* DmxModel.h */,
 				67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */,
 				67BE75121CAC2EB200D7BA82 /* IciclesModel.h */,
+				67BD732B200D0C000074208A /* ImageModel.cpp */,
+				67BD732C200D0C000074208A /* ImageModel.h */,
 				67C0EEE21C755ABE002FE25E /* MatrixModel.cpp */,
 				67C0EEE11C755ABE002FE25E /* MatrixModel.h */,
 				670C82851C45C48B000AA5D8 /* Model.cpp */,
@@ -1928,6 +1931,8 @@
 				671130B81E4EB29B00AF09A7 /* FastComboEditor.h */,
 				671130B91E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp */,
 				671130BA1E4EB29B00AF09A7 /* GridCellChoiceRenderer.h */,
+				67FF749C20BD845F000EA3A3 /* VectorMath.cpp */,
+				67FF749D20BD845F000EA3A3 /* VectorMath.h */,
 			);
 			name = support;
 			sourceTree = "<group>";
@@ -3555,6 +3560,7 @@
 				67B2CFDF1C3A186A003C17CA /* SingleStrandEffect.cpp in Sources */,
 				6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */,
 				67B7971B1A5AE343008D5921 /* TimingPanel.cpp in Sources */,
+				67FF749E20BD8462000EA3A3 /* VectorMath.cpp in Sources */,
 				67278C831CF87537000DCFFB /* ModelGroupPanel.cpp in Sources */,
 				67B2CFDA1C3A186A003C17CA /* StrobeEffect.cpp in Sources */,
 				67B2CFE21C3A186A003C17CA /* RippleEffect.cpp in Sources */,
