@@ -1012,7 +1012,7 @@ private:
     void DoBackupPurge();
     void DoAltBackup(bool prompt = true);
     void SetPlayMode(play_modes newmode);
-    bool EnableOutputs();
+    bool EnableOutputs(bool ignoreCheck = false);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
     void LogPerspective(const wxString& perspective) const;
