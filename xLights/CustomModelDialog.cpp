@@ -241,7 +241,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	GridCustom->EnableGridLines(true);
     GridCustom->EnableDragGridSize(false);
     GridCustom->EnableDragRowSize(false);
-    GridCustom->EnableDragColSize(false);
+    //GridCustom->EnableDragColSize(false);
     GridCustom->SetColLabelSize(20);
 	GridCustom->SetRowLabelSize(30);
 	GridCustom->SetDefaultColSize(30, true);

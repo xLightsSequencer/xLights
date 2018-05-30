@@ -1100,8 +1100,10 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
     {
         _showDir = DirDialog1->GetPath().ToStdString();
         SaveShowDir();
-        LoadSchedule();
         _timerSchedule.Stop();
+        _timer.Stop();
+        LoadSchedule();
+        _timer.Start(50 / 2, false);
         _timerSchedule.Start(50, true);
     }
     ValidateWindow();
