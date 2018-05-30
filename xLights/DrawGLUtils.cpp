@@ -411,8 +411,6 @@ void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int
     xlSetRetinaCanvasViewport(win, x,y,x2,y2);
     LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
     currentCache->Ortho(topleft_x, topleft_y, bottomright_x, bottomright_y);
-    LOG_GL_ERRORV(glClearColor(0, 0, 0, 0));   // background color
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
 void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
