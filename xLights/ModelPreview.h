@@ -100,9 +100,9 @@ protected:
     virtual bool UsesVertexColorAccumulator() override {return false;}
     virtual bool UsesVertexAccumulator() override {return false;}
     virtual bool UsesAddVertex() override {return true;}
-    virtual bool UsesVertex3Accumulator() {return true;}
+    virtual bool UsesVertex3Accumulator() override {return true;}
     virtual bool UsesVertex3TextureAccumulator() override { return true; }
-    virtual bool UsesVertex3ColorAccumulator() {return true;}
+    virtual bool UsesVertex3ColorAccumulator() override {return true;}
 
 private:
 	void render(wxPaintEvent& event);

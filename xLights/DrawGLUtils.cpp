@@ -181,7 +181,7 @@ public:
             if (it->textureId != -1) {
                 LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
                 if (!textsBound) {
-                    LOG_GL_ERRORV(glTexCoordPointer(3, GL_FLOAT, 0, va.tvertices));
+                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
                     textsBound = true;
                 }
                 LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
@@ -251,7 +251,7 @@ public:
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
-    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability)  override {
+    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;
         }
@@ -283,8 +283,6 @@ public:
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
             LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         }
-
-
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -329,7 +327,7 @@ public:
         LOG_GL_ERRORV(glLoadIdentity());
     }
 
-    virtual void SetCamera(glm::mat4& view_matrix) {
+    virtual void SetCamera(glm::mat4& view_matrix) override {
         // we want the inverse of the camera location to be on the matrix stack
         glm::mat4 InverseViewMatrix = glm::inverse(view_matrix);
         LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(InverseViewMatrix)));
@@ -685,39 +683,41 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
     }
 }
 
-void DrawGLUtils::xl3Accumulator::Finish(int type, int enableCapability, float extra) {
-    if (!types.empty()
-        && types.back().textureId == -1
-        && types.back().type == type
-        && types.back().enableCapability == enableCapability && types.back().extra == extra) {
-        //same params, just extent the previous
-        types.back().count += count - start;
-        start = count;
-        return;
-    }
-    if (count != start) {
-        types.push_back(BufferRangeType(start, count - start, type, enableCapability, extra));
-        start = count;
-    }
-}
-
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
     PreAlloc(va.count);
-    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+    if (va.coordsPerVertex == coordsPerVertex) {
+        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
+    } else {
+        for (int x = 0; x < va.count; x++) {
+            int cur = (count + x) * coordsPerVertex;
+            int curva = x * va.coordsPerVertex;
+            vertices[cur++] = va.vertices[curva++];
+            vertices[cur++] = va.vertices[curva++];
+            if (coordsPerVertex == 3) {
+                vertices[cur] = 0.0f;
+            }
+        }
+    }
     memcpy(&colors[count*4], va.colors, va.count*4);
     count += va.count;
 }
 
-void DrawGLUtils::xl3Accumulator::Load(const DrawGLUtils::xlVertex3ColorAccumulator& va) {
-    PreAlloc(va.count);
-    memcpy(&vertices[count*3], va.vertices, sizeof(float)*va.count*3);
-    memcpy(&colors[count*4], va.colors, va.count*4);
-    count += va.count;
-}
 
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va, const xlColor &c) {
     PreAlloc(va.count);
-    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+    if (va.coordsPerVertex == coordsPerVertex) {
+        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
+    } else  {
+        for (int x = 0; x < va.count; x++) {
+            int cur = (count + x) * coordsPerVertex;
+            int curva = x * va.coordsPerVertex;
+            vertices[cur++] = va.vertices[curva++];
+            vertices[cur++] = va.vertices[curva++];
+            if (coordsPerVertex == 3) {
+                vertices[cur] = 0.0f;
+            }
+        }
+    }
     int i = count * 4;
     for (int x = 0; x < va.count; x++) {
         colors[i++] = c.Red();
@@ -728,23 +728,23 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
     count += va.count;
 }
 
-void DrawGLUtils::xl3Accumulator::Load(const DrawGLUtils::xlVertex3Accumulator& va, const xlColor &c) {
-    PreAlloc(va.count);
-    memcpy(&vertices[count*3], va.vertices, sizeof(float)*va.count*3);
-    int i = count * 4;
-    for (int x = 0; x < va.count; x++) {
-        colors[i++] = c.Red();
-        colors[i++] = c.Green();
-        colors[i++] = c.Blue();
-        colors[i++] = c.Alpha();
-    }
-    count += va.count;
-}
 
 void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int type, int enableCapability) {
     PreAllocTexture(va.count);
-    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
-    memcpy(&tvertices[count*2], va.tvertices, sizeof(float)*va.count*2);
+    if (va.coordsPerVertex == coordsPerVertex) {
+        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
+    } else {
+        for (int x = 0; x < va.count; x++) {
+            int cur = (count + x) * coordsPerVertex;
+            int curva = x * va.coordsPerVertex;
+            vertices[cur++] = va.vertices[curva++];
+            vertices[cur++] = va.vertices[curva++];
+            if (coordsPerVertex == 3) {
+                vertices[cur] = 0.0f;
+            }
+        }
+    }
+    memcpy(&tvertices[count*coordsPerVertex], va.tvertices, sizeof(float)*va.count*2);
     count += va.count;
     FinishTextures(type, va.id, va.alpha, enableCapability);
 }
@@ -756,13 +756,6 @@ void DrawGLUtils::xlAccumulator::DoRealloc(int newMax) {
     }
 }
 
-void DrawGLUtils::xl3Accumulator::DoRealloc(int newMax) {
-    DrawGLUtils::xlVertex3ColorAccumulator::DoRealloc(newMax);
-    if (tvertices != nullptr) {
-        tvertices = (float*)realloc(tvertices, sizeof(float)*newMax*3);
-    }
-}
-
 void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
     PreAlloc(i);
     if (tvertices == nullptr) {
@@ -770,34 +763,17 @@ void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
     }
 }
 
-void DrawGLUtils::xl3Accumulator::PreAllocTexture(int i) {
-    PreAlloc(i);
-    if (tvertices == nullptr) {
-        tvertices = (float*)malloc(sizeof(float)*max * 2);
+void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float z, float tx, float ty) {
+    PreAllocTexture(1);
+
+    int i = count * coordsPerVertex;
+    vertices[i] = x;
+    i++;
+    vertices[i] = y;
+    if (coordsPerVertex == 3) {
+        i++;
+        vertices[i] = z;
     }
-}
-
-void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
-    PreAllocTexture(1);
-
-    int i = count * 2;
-    vertices[i] = x;
-    tvertices[i] = tx;
-    i++;
-    vertices[i] = y;
-    tvertices[i] = ty;
-    count++;
-}
-
-void DrawGLUtils::xl3Accumulator::AddTextureVertex(float x, float y, float z, float tx, float ty) {
-    PreAllocTexture(1);
-
-    int i = count * 3;
-    vertices[i] = x;
-    i++;
-    vertices[i] = y;
-    i++;
-    vertices[i] = z;
     i = count * 2;
     tvertices[i] = tx;
     i++;
@@ -806,11 +782,6 @@ void DrawGLUtils::xl3Accumulator::AddTextureVertex(float x, float y, float z, fl
 }
 
 void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
-    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
-    start = count;
-}
-
-void DrawGLUtils::xl3Accumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
     types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
     start = count;
 }
@@ -838,7 +809,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y
     }
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor &color) {
+void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor &color) {
     // Line 1
     float xs = x1<x2?x1:x2;
     float xf = x1>x2?x1:x2;
@@ -890,35 +861,6 @@ void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColorVe
     }
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddHBlendedRectangle(const xlColorVector &colors, float x1, float y1,float x2, float y2, xlColor* colorMask, int offset) {
-    xlColor start;
-    xlColor end;
-    int cnt = colors.size();
-    if (cnt == 0) {
-        return;
-    }
-    start = colors[0 + offset];
-    start.ApplyMask(colorMask);
-    if (cnt == 1) {
-        AddHBlendedRectangle(start, start, x1, y1, x2, y2);
-        return;
-    }
-    int xl = x1;
-    start = colors[0+offset];
-    start.ApplyMask(colorMask);
-    for (int x = 1+offset; x < cnt; x++) {
-        end =  colors[x];
-        end.ApplyMask(colorMask);
-        int xr = x1 + (x2 - x1) * x / (cnt  - 1);
-        if (x == (cnt - 1)) {
-            xr = x2;
-        }
-        AddHBlendedRectangle(start, end, xl, y1, xr, y2);
-        start = end;
-        xl = xr;
-    }
-}
-
 void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2) {
     AddVertex(x1, y1, left);
     AddVertex(x1, y2, left);
@@ -928,20 +870,11 @@ void DrawGLUtils::xlVertexColorAccumulator::AddHBlendedRectangle(const xlColor &
     AddVertex(x1, y1, left);
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddHBlendedRectangle(const xlColor &left, const xlColor &right, float x1, float y1, float x2, float y2) {
-    AddVertex(x1, y1, 0, left);
-    AddVertex(x1, y2, 0, left);
-    AddVertex(x2, y2, 0, right);
-    AddVertex(x2, y2, 0, right);
-    AddVertex(x2, y1, 0, right);
-    AddVertex(x1, y1, 0, left);
-}
-
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float radius, const xlColor &color) {
     AddTrianglesCircle(x, y, radius, color, color);
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &color) {
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &color) {
     AddTrianglesCircle(x, y, z, radius, color, color);
 }
 
@@ -976,7 +909,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
     }
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
     int num_segments = radius;
     if (num_segments < 16) {
         num_segments = 16;
@@ -1007,7 +940,7 @@ void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesCircle(float cx, float 
     }
 }
 
-void DrawGLUtils::xlVertex3ColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
 {
     int num_segments = radius;
     if (num_segments < 16) {

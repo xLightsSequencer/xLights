@@ -211,11 +211,11 @@ public:
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
-    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
+    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
     virtual int GetNumHandles() override {return -1;}
@@ -289,8 +289,8 @@ public:
     float GetScaleX() { return scalex; }
     float GetScaleY() { return scaley; }
 
-    virtual int GetDefaultHandle() { return CENTER_HANDLE; }
-    virtual int GetDefaultTool() { return TOOL_SCALE; }
+    virtual int GetDefaultHandle() override { return CENTER_HANDLE; }
+    virtual int GetDefaultTool() override { return TOOL_SCALE; }
 
 private:
     float perspective;
@@ -314,11 +314,11 @@ public:
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
-    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
+    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual void SelectHandle(int handle) override {}
     virtual int GetSelectedHandle() override {return -1;}
     virtual int GetNumHandles() override {return -1;}
@@ -363,12 +363,12 @@ public:
 
     virtual float GetYShear() const {return 0.0;}
 
-    virtual int GetDefaultHandle() { return END_HANDLE; }
-    virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
+    virtual int GetDefaultHandle() override { return END_HANDLE; }
+    virtual int GetDefaultTool() override { return TOOL_TRANSLATE; }
 
-    virtual void SetActiveHandle(int handle);
-    virtual void AdvanceAxisTool();
-    virtual void SetAxisTool(int mode);
+    virtual void SetActiveHandle(int handle) override;
+    virtual void AdvanceAxisTool() override;
+    virtual void SetAxisTool(int mode) override;
 
 protected:
     float x2, y2, z2;
@@ -403,7 +403,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual float GetVScaleFactor() const override;
     virtual float GetYShear() const override;
 
@@ -433,14 +433,14 @@ public:
         return angle;
     }
 
-    virtual int GetDefaultHandle() { return END_HANDLE; }
-    virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
+    virtual int GetDefaultHandle() override { return END_HANDLE; }
+    virtual int GetDefaultTool() override { return TOOL_TRANSLATE; }
 
-    virtual void SetActiveHandle(int handle);
-    virtual void AdvanceAxisTool();
-    virtual void SetAxisTool(int mode);
-    virtual void SetActiveAxis(int axis);
-    virtual bool IsXYTransHandle() const { return active_handle == SHEAR_HANDLE; }
+    virtual void SetActiveHandle(int handle) override;
+    virtual void AdvanceAxisTool() override;
+    virtual void SetAxisTool(int mode) override;
+    virtual void SetActiveAxis(int axis) override;
+    virtual bool IsXYTransHandle() const override { return active_handle == SHEAR_HANDLE; }
 
 private:
     bool modelHandlesHeight;
@@ -467,14 +467,14 @@ public:
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
-    virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const;
-    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const;
-    virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const;
+    virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const override;
+    virtual wxCursor CheckIfOverHandles(ModelPreview* preview, int &handle, int x, int y) const override;
+    virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
     virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual void SelectHandle(int handle) override;
     virtual int GetSelectedHandle() override {return selected_handle;}
     virtual int GetNumHandles() override {return num_points;}
@@ -517,13 +517,13 @@ public:
     virtual float GetMWidth() const override;
     virtual float GetMHeight() const override;
 
-    virtual int GetDefaultHandle() { return END_HANDLE; }
-    virtual int GetDefaultTool() { return TOOL_XY_TRANS; }
+    virtual int GetDefaultHandle() override { return END_HANDLE; }
+    virtual int GetDefaultTool() override { return TOOL_XY_TRANS; }
     virtual float GetYShear() const {return 0.0;}
-    virtual void SetActiveHandle(int handle);
-    virtual void AdvanceAxisTool();
-    virtual void SetAxisTool(int mode);
-    virtual void SetActiveAxis(int axis);
+    virtual void SetActiveHandle(int handle) override;
+    virtual void AdvanceAxisTool() override;
+    virtual void SetAxisTool(int mode) override;
+    virtual void SetActiveAxis(int axis) override;
 
 protected:
     struct xlPolyPoint {

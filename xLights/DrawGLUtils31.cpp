@@ -929,7 +929,7 @@ public:
         matrix = new glm::mat4(m);
     }
 
-    virtual void SetCamera(glm::mat4& view_matrix) {
+    virtual void SetCamera(glm::mat4& view_matrix) override {
         *matrix = *matrix * view_matrix;
     }
 

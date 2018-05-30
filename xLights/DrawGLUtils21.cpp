@@ -74,7 +74,6 @@ public:
     OpenGL21Cache() : matrix(nullptr) {
         LOG_GL_ERRORV(glEnable(GL_COLOR_MATERIAL));
         LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
-
         GLuint VertexShaderIDc = CompileShader(GL_VERTEX_SHADER,
             "#version 120\n"
             "attribute vec2 vertexPosition_modelspace;\n"
@@ -85,6 +84,16 @@ public:
             "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
             "    fragmentColor = vertexColor;\n"
             "}\n");
+        GLuint VertexShader3DIDc = CompileShader(GL_VERTEX_SHADER,
+            "#version 120\n"
+            "attribute vec3 vertexPosition_modelspace;\n"
+            "attribute vec4 vertexColor;\n"
+            "varying vec4 fragmentColor;\n"
+            "uniform mat4 MVP;\n"
+            "void main(){\n"
+            "    gl_Position = MVP * vec4(vertexPosition_modelspace,1);\n"
+            "    fragmentColor = vertexColor;\n"
+            "}\n");
         GLuint VertexShaderIDsc = CompileShader(GL_VERTEX_SHADER,
            "#version 120\n"
            "attribute vec2 vertexPosition_modelspace;\n"
@@ -93,6 +102,16 @@ public:
            "uniform mat4 MVP;\n"
            "void main(){\n"
            "    gl_Position = MVP * vec4(vertexPosition_modelspace,0,1);\n"
+           "    fragmentColor = color;\n"
+           "}\n");
+        GLuint VertexShader3DIDsc = CompileShader(GL_VERTEX_SHADER,
+           "#version 120\n"
+           "attribute vec3 vertexPosition_modelspace;\n"
+           "varying vec4 fragmentColor;\n"
+           "uniform vec4 color;\n"
+           "uniform mat4 MVP;\n"
+           "void main(){\n"
+           "    gl_Position = MVP * vec4(vertexPosition_modelspace,1);\n"
            "    fragmentColor = color;\n"
            "}\n");
         GLuint FragmentShaderID = CompileShader(GL_FRAGMENT_SHADER,
@@ -115,6 +134,8 @@ public:
 
         ProgramIDcolors = LinkProgram(VertexShaderIDc, FragmentShaderID);
         ProgramIDstaticColor = LinkProgram(VertexShaderIDsc, FragmentShaderID);
+        ProgramID3Dcolors = LinkProgram(VertexShader3DIDc, FragmentShaderID);
+        ProgramID3DstaticColor = LinkProgram(VertexShader3DIDsc, FragmentShaderID);
 
         GLuint VertexShaderIDtx = CompileShader(GL_VERTEX_SHADER,
             "#version 120\n"
@@ -141,13 +162,17 @@ public:
         LOG_GL_ERRORV(glDeleteShader(FragmentShaderIDtxt));
         LOG_GL_ERRORV(glDeleteShader(VertexShaderIDc));
         LOG_GL_ERRORV(glDeleteShader(VertexShaderIDsc));
+        LOG_GL_ERRORV(glDeleteShader(VertexShader3DIDc));
+        LOG_GL_ERRORV(glDeleteShader(VertexShader3DIDsc));
         LOG_GL_ERRORV(glDeleteShader(FragmentShaderID));
 
 
         LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
         LOG_GL_ERRORV(MatrixIDc = glGetUniformLocation(ProgramIDcolors, "MVP"));
         LOG_GL_ERRORV(MatrixIDsc = glGetUniformLocation(ProgramIDstaticColor, "MVP"));
-        LOG_GL_ERRORV(MatrixIDt = glGetUniformLocation(ProgramIDcolors, "MVP"));
+        LOG_GL_ERRORV(MatrixID3Dc = glGetUniformLocation(ProgramID3Dcolors, "MVP"));
+        LOG_GL_ERRORV(MatrixID3Dsc = glGetUniformLocation(ProgramID3DstaticColor, "MVP"));
+        LOG_GL_ERRORV(MatrixIDt = glGetUniformLocation(ProgramIDtexture, "MVP"));
 
 
         isIntel = wxString(glGetString(GL_VENDOR)).Contains("Intel");
@@ -219,6 +244,12 @@ public:
         if (ProgramIDstaticColor != 0) {
             LOG_GL_ERRORV(glDeleteProgram(ProgramIDstaticColor));
         }
+        if (ProgramID3Dcolors != 0) {
+            LOG_GL_ERRORV(glDeleteProgram(ProgramID3Dcolors));
+        }
+        if (ProgramID3DstaticColor != 0) {
+            LOG_GL_ERRORV(glDeleteProgram(ProgramID3DstaticColor));
+        }
         if (ProgramIDtexture != 0) {
             LOG_GL_ERRORV(glDeleteProgram(ProgramIDtexture));
         }
@@ -255,13 +286,13 @@ public:
 		if (va.count == 0) {
 			return;
 		}
-		LOG_GL_ERRORV(glUseProgram(ProgramIDstaticColor));
-		SetMVP(ProgramIDstaticColor);
+		LOG_GL_ERRORV(glUseProgram(ProgramID3DstaticColor));
+		SetMVP(ProgramID3DstaticColor);
 
-		GLuint vattrib = glGetAttribLocation(ProgramIDstaticColor, "vertexPosition_modelspace");
+		GLuint vattrib = glGetAttribLocation(ProgramID3DstaticColor, "vertexPosition_modelspace");
 		LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
 		LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 3, GL_FLOAT, false, 0, &va.vertices[0]));
-		GLuint cid = glGetUniformLocation(ProgramIDstaticColor, "color");
+		GLuint cid = glGetUniformLocation(ProgramID3DstaticColor, "color");
 		glUniform4f(cid,
 			((float)color.Red()) / 255.0,
 			((float)color.Green()) / 255.0,
@@ -278,7 +309,7 @@ public:
 		}
 		LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
 	}
-	void CalcSmoothPointParams(float ps) {
+	void CalcSmoothPointParams(GLuint pid, float ps) {
         glPointSize(ps+1);
         float delta = 1.0 / (ps+1);
         float mid = 0.35 + 0.15 * ((ps - 1.0f)/25.0f);
@@ -288,13 +319,13 @@ public:
 
         float min = std::max(0.0f, mid - delta);
         float max = std::min(1.0f, mid + delta);
-        glUniform1f(glGetUniformLocation(ProgramIDcolors, "PointSmoothMin"), min);
-        glUniform1f(glGetUniformLocation(ProgramIDcolors, "PointSmoothMax"), max);
+        glUniform1f(glGetUniformLocation(pid, "PointSmoothMin"), min);
+        glUniform1f(glGetUniformLocation(pid, "PointSmoothMax"), max);
     }
-    float CalcSmoothPointParams() {
+    float CalcSmoothPointParams(GLuint pid) {
         float ps;
         glGetFloatv(GL_POINT_SIZE, &ps);
-        CalcSmoothPointParams(ps);
+        CalcSmoothPointParams(pid, ps);
         return ps;
     }
 
@@ -386,7 +417,7 @@ public:
                         //LOG_GL_ERRORV(glEnable(enableCapability));
                         GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
                         glUniform1i(cid, 1);
-                        ps = CalcSmoothPointParams();
+                        ps = CalcSmoothPointParams(ProgramIDcolors);
                         LOG_GL_ERRORV(glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                         LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
                         LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
@@ -432,14 +463,14 @@ public:
             return;
         }
         bool intelMapped = false;
-        LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
+        LOG_GL_ERRORV(glUseProgram(ProgramID3Dcolors));
         SetMVP(ProgramIDcolors);
 
-        GLuint vattrib = glGetAttribLocation( ProgramIDcolors, "vertexPosition_modelspace" );
+        GLuint vattrib = glGetAttribLocation( ProgramID3Dcolors, "vertexPosition_modelspace" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 3, GL_FLOAT, false, 0, &va.vertices[0]));
 
-        GLuint cattrib = glGetAttribLocation( ProgramIDcolors, "vertexColor" );
+        GLuint cattrib = glGetAttribLocation( ProgramID3Dcolors, "vertexColor" );
         LOG_GL_ERRORV(glEnableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glVertexAttribPointer(cattrib, 4, GL_UNSIGNED_BYTE, true, 0, &va.colors[0]));
 
@@ -472,7 +503,7 @@ public:
                 LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(*matrix)));
                 LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
                 LOG_GL_ERRORV(glPopMatrix());
-                LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
+                LOG_GL_ERRORV(glUseProgram(ProgramID3Dcolors));
                 LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
                 LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
 
@@ -501,7 +532,7 @@ public:
                     }
                     LOG_GL_ERRORV(glEnableVertexAttribArray(tattrib));
                     if (tattrib == cattrib || tattrib == vattrib) {
-                        LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 3, GL_FLOAT, true, 0, va.tvertices));
+                        LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 2, GL_FLOAT, true, 0, va.tvertices));
                     }
                     GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
                     glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0);
@@ -512,9 +543,9 @@ public:
                 if (enableCapability != 0) {
                     if (enableCapability == GL_POINT_SMOOTH) {
                         //LOG_GL_ERRORV(glEnable(enableCapability));
-                        GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                        GLuint cid = glGetUniformLocation(ProgramID3Dcolors, "RenderType");
                         glUniform1i(cid, 1);
-                        ps = CalcSmoothPointParams();
+                        ps = CalcSmoothPointParams(ProgramID3Dcolors);
                         LOG_GL_ERRORV(glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                         LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
                         LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
@@ -527,7 +558,7 @@ public:
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
                     LOG_GL_ERRORV(glDisableVertexAttribArray(tattrib));
                     LOG_GL_ERRORV(glDisableVertexAttribArray(tvattrib));
-                    LOG_GL_ERRORV(glUseProgram(ProgramIDcolors));
+                    LOG_GL_ERRORV(glUseProgram(ProgramID3Dcolors));
                     LOG_GL_ERRORV(glEnableVertexAttribArray(vattrib));
                     if (tvattrib != vattrib) {
                         LOG_GL_ERRORV(glVertexAttribPointer(vattrib, 3, GL_FLOAT, false, 0, &va.vertices[0]));
@@ -539,7 +570,7 @@ public:
                 }
                 if (enableCapability > 0) {
                     if (enableCapability == GL_POINT_SMOOTH || enableCapability == GL_POINT_SPRITE) {
-                        GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
+                        GLuint cid = glGetUniformLocation(ProgramID3Dcolors, "RenderType");
                         glUniform1i(cid, 0);
                         LOG_GL_ERRORV(glPointSize(ps));
                         LOG_GL_ERRORV(glDisable(GL_POINT_SPRITE));
@@ -596,7 +627,7 @@ public:
                 //LOG_GL_ERRORV(glEnable(enableCapability));
                 GLuint cid = glGetUniformLocation(ProgramIDcolors, "RenderType");
                 glUniform1i(cid, 1);
-                ps = CalcSmoothPointParams();
+                ps = CalcSmoothPointParams(ProgramIDcolors);
                 LOG_GL_ERRORV(glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
                 LOG_GL_ERRORV(glEnable(GL_POINT_SPRITE));
                 LOG_GL_ERRORV(glTexEnvi(GL_POINT_SPRITE_ARB,GL_COORD_REPLACE_ARB ,GL_FALSE));
@@ -707,7 +738,7 @@ public:
         matrix = new glm::mat4(m);
     }
 
-    virtual void SetCamera(glm::mat4& view_matrix) {
+    virtual void SetCamera(glm::mat4& view_matrix) override {
         *matrix = *matrix * view_matrix;
     }
 
@@ -763,10 +794,14 @@ protected:
 
     GLuint ProgramIDcolors;
     GLuint ProgramIDstaticColor;
+    GLuint ProgramID3Dcolors;
+    GLuint ProgramID3DstaticColor;
     GLuint ProgramIDtexture;
 
     GLuint MatrixIDc;
     GLuint MatrixIDsc;
+    GLuint MatrixID3Dc;
+    GLuint MatrixID3Dsc;
     GLuint MatrixIDt;
 
     std::stack<glm::mat4*> matrixStack;
