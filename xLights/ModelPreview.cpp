@@ -268,6 +268,12 @@ ModelPreview::ModelPreview(wxPanel* parent)
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
+    is_3d = false;
+    zoom2D = 1.0f;
+    panx2D = 0.0f;
+    pany2D = 0.0f;
+    zoom_corrx2D = 0.0f;
+    zoom_corry2D = 0.0f;
     image = nullptr;
     sprite = nullptr;
     xlights = nullptr;
