@@ -2464,6 +2464,17 @@ void xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected(wxCommandEvent& event
     }
 }
 
+void xLightsFrame::TurnOnOutputToLights(wxCommandEvent& event)
+{
+    CheckBoxLightOutput->SetValue(true);
+    EnableOutputs(true);
+}
+
+void xLightsFrame::PlayJukeboxItem(wxCommandEvent& event)
+{
+    jukeboxPanel->PlayItem(event.GetInt());
+}
+
 void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
 {
     LoadPerspectivesMenu(PerspectivesNode);

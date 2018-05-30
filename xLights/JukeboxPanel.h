@@ -52,6 +52,7 @@ class JukeboxPanel: public wxPanel
 		virtual ~JukeboxPanel();
         wxXmlNode* Save();
         void Load(wxXmlNode* node);
+        void PlayItem(int item);
 
 		//(*Declarations(JukeboxPanel)
 		wxGridSizer* GridSizer1;

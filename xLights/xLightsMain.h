@@ -157,6 +157,8 @@ wxDECLARE_EVENT(EVT_CONVERT_DATA_TO_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PROMOTE_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_APPLYLAST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TURNONOUTPUTTOLIGHTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
 
@@ -1379,6 +1381,8 @@ private:
     void ForceSequencerRefresh(wxCommandEvent& event);
     void LoadPerspective(wxCommandEvent& event);
     void PerspectivesChanged(wxCommandEvent& event);
+    void TurnOnOutputToLights(wxCommandEvent& event);
+    void PlayJukeboxItem(wxCommandEvent& event);
     void PlayModel(wxCommandEvent& event);
     void CopyModelEffects(wxCommandEvent& event);
     void PasteModelEffects(wxCommandEvent& event);

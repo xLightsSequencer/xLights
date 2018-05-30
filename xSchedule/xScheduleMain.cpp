@@ -719,6 +719,7 @@ void xScheduleFrame::LoadSchedule()
 
     if (_pinger != nullptr)
     {
+        __schedule->SetPinger(nullptr);
         delete _pinger;
         _pinger = nullptr;
     }
