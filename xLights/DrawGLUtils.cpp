@@ -126,56 +126,7 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
 
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
-
-        for (auto it = va.types.begin(); it != va.types.end(); it++) {
-            if (it->textureId != -1) {
-                LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-                if (!textsBound) {
-                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
-                    textsBound = true;
-                }
-                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
-                LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
-                float trans = it->textureAlpha;
-                trans /= 255.0f;
-                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, trans));
-            }
-            if (it->type == GL_POINTS) {
-                LOG_GL_ERRORV(glPointSize(it->extra));
-            } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
-                DrawGLUtils::SetLineWidth(it->extra);
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glEnable(it->enableCapability));
-            }
-            LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
-            if (it->textureId != -1) {
-                LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-                LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-                LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glDisable(it->enableCapability));
-            }
-        }
-
-        LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
-        LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
-    }
-
-    void Draw(DrawGLUtils::xl3Accumulator &va) override {
-        if (va.count == 0) {
-            return;
-        }
-        bool textsBound = false;
-        LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
-        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-
-        LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-        LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
 
         for (auto it = va.types.begin(); it != va.types.end(); it++) {
             if (it->textureId != -1) {
@@ -224,13 +175,14 @@ public:
         }
         LOG_GL_ERRORV(glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha()));
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
         LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         if (enableCapability != 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
+
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;
@@ -242,7 +194,7 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
 
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
         LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
@@ -266,7 +218,7 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
         LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, va.vertices));
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, va.vertices));
 
         if (va.alpha != 255) {
             float intensity = va.alpha;
@@ -292,23 +244,6 @@ public:
         LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     }
 
-	void Draw(DrawGLUtils::xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) override {
-		if (va.count == 0) {
-			return;
-		}
-		if (enableCapability != 0) {
-			LOG_GL_ERRORV(glEnable(enableCapability));
-		}
-		LOG_GL_ERRORV(glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha()));
-		LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
-		LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &va.vertices[0]));
-		LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
-		LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
-		if (enableCapability != 0) {
-			LOG_GL_ERRORV(glDisable(enableCapability));
-		}
-	}
-
     virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
@@ -321,16 +256,15 @@ public:
     virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), 1.0f, 10000.0f);
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(m)));
 
-        LOG_GL_ERRORV(glFrustum((float)topleft_x, (float)bottomright_x, (float)topleft_y, (float)bottomright_y, 1.0f, 10000.0f));
         LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
         LOG_GL_ERRORV(glLoadIdentity());
     }
 
     virtual void SetCamera(glm::mat4& view_matrix) override {
-        // we want the inverse of the camera location to be on the matrix stack
-        glm::mat4 InverseViewMatrix = glm::inverse(view_matrix);
-        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(InverseViewMatrix)));
+        LOG_GL_ERRORV(glMultMatrixf(glm::value_ptr(view_matrix)));
     }
 
     void PushMatrix() override {

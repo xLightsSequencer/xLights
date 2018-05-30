@@ -388,8 +388,6 @@ namespace DrawGLUtils
 		virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlAccumulator &va) = 0;
-        virtual void Draw(xl3Accumulator &va) = 0;
-		virtual void Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
 
         virtual void addVertex(float x, float y, const xlColor &c) = 0;
         virtual unsigned int vertexCount() = 0;

@@ -594,12 +594,18 @@ public:
         if (va.count == 0) {
             return;
         }
-        singleColorProgram.UseProgram();
-        singleColorProgram.SetMatrix(*matrix);
-        int offset0 = singleColorProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat)) / (2*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        
+        ShaderProgram *program = &singleColorProgram;
+        if (va.coordsPerVertex == 3) {
+            program = &singleColor3Program;
+        }
 
-        LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor"));
+        program->UseProgram();
+        program->SetMatrix(*matrix);
+        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat)) / (va.coordsPerVertex*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+
+        LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(program->ProgramID, "inColor"));
         LOG_GL_ERRORV(glUniform4f(cid,
                     ((float)color.Red())/255.0,
                     ((float)color.Green())/255.0,
@@ -609,32 +615,40 @@ public:
         float ps = 0;
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             //POINT_SMOOTH, removed in OpenGL3.x
-            singleColorProgram.SetRenderType(1);
-            ps = singleColorProgram.CalcSmoothPointParams();
+            program->SetRenderType(1);
+            ps = program->CalcSmoothPointParams();
         } else if (enableCapability > 0) {
             LOG_GL_ERRORV(glEnable(enableCapability));
         }
         LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
-            singleColorProgram.SetRenderType(0);
+            program->SetRenderType(0);
             LOG_GL_ERRORV(glPointSize(ps));
         } else if (enableCapability > 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
-        singleColorProgram.UnbindBuffer(0);
+        program->UnbindBuffer(0);
     }
+
     void Draw(DrawGLUtils::xlAccumulator &va) override {
         if (va.count == 0) {
             return;
         }
-        normalProgram.UseProgram();
-        normalProgram.SetMatrix(*matrix);
-        normalProgram.SetRenderType(0);
+        ShaderProgram *program = &normalProgram;
+        ShaderProgram *texturep = &textureProgram;
+        if (va.coordsPerVertex == 3) {
+            program = &normal3Program;
+            texturep = &texture3Program;
+        }
+        
+        program->UseProgram();
+        program->SetMatrix(*matrix);
+        program->SetRenderType(0);
 
-        int offset0 = normalProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat))/ (2*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
+        program->BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
         bool tverticesBound = false;
         for (auto it = va.types.begin(); it != va.types.end(); it++) {
@@ -642,10 +656,10 @@ public:
             int enableCapability = it->enableCapability;
 
             if (it->textureId != -1) {
-                textureProgram.UseProgram();
+                texturep->UseProgram();
                 if (!tverticesBound) {
-                    textureProgram.SetMatrix(*matrix);
-                    textureProgram.BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
+                    texturep->SetMatrix(*matrix);
+                    texturep->BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
                     LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
                     tverticesBound = true;
                 } else {
@@ -654,25 +668,25 @@ public:
                 LOG_GL_ERRORV(glDisableVertexAttribArray(1));
                 LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                 LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
-                LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
+                LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(texturep->ProgramID, "tex"), 0));
 
-                GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
+                GLuint cid = glGetUniformLocation(texturep->ProgramID, "inColor");
                 LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
             } else if (type == GL_POINTS && enableCapability == 0x0B10) {
                 //POINT_SMOOTH, removed in OpenGL3.x
-                normalProgram.SetRenderType(1);
-                normalProgram.CalcSmoothPointParams(it->extra);
+                program->SetRenderType(1);
+                program->CalcSmoothPointParams(it->extra);
             } else {
                 if (it->type == GL_POINTS) {
                     LOG_GL_ERRORV(glPointSize(it->extra));
                 }
                 if (enableCapability > 0) {
-                    normalProgram.SetRenderType(0);
+                    program->SetRenderType(0);
                     LOG_GL_ERRORV(glEnable(enableCapability));
                 } else if (enableCapability != 0) {
-                    normalProgram.SetRenderType(enableCapability);
+                    program->SetRenderType(enableCapability);
                 } else {
-                    normalProgram.SetRenderType(0);
+                    program->SetRenderType(0);
                 }
             }
             LOG_GL_ERRORV(glDrawArrays(type, offset0 + it->start, it->count));
@@ -682,141 +696,83 @@ public:
             if (it->textureId != -1) {
                 LOG_GL_ERRORV(glEnableVertexAttribArray(1));
                 LOG_GL_ERRORV(glDisableVertexAttribArray(2));
-                normalProgram.UseProgram();
+                program->UseProgram();
             }
         }
-        normalProgram.SetRenderType(0);
-        normalProgram.UnbindBuffer(0);
-        normalProgram.UnbindBuffer(1);
+        program->SetRenderType(0);
+        program->UnbindBuffer(0);
+        program->UnbindBuffer(1);
         if (tverticesBound) {
-            textureProgram.UnbindBuffer(2);
-        }
-    }
-    void Draw(DrawGLUtils::xl3Accumulator &va) override {
-        if (va.count == 0) {
-            return;
-        }
-        normal3Program.UseProgram();
-		normal3Program.SetMatrix(*matrix);
-		normal3Program.SetRenderType(0);
-
-        int offset0 = normal3Program.BindBuffer(0, &va.vertices[0], va.count*3*sizeof(GLfloat))/ (3*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
-
-		normal3Program.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
-        LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
-        bool tverticesBound = false;
-        for (auto it = va.types.begin(); it != va.types.end(); it++) {
-            int type = it->type;
-            int enableCapability = it->enableCapability;
-
-            if (it->textureId != -1) {
-                texture3Program.UseProgram();
-                if (!tverticesBound) {
-                    texture3Program.SetMatrix(*matrix);
-                    texture3Program.BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
-                    LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
-                    tverticesBound = true;
-                } else {
-                    LOG_GL_ERRORV(glEnableVertexAttribArray(2));
-                }
-                LOG_GL_ERRORV(glDisableVertexAttribArray(1));
-                LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
-                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
-                LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(texture3Program.ProgramID, "tex"), 0));
-
-                GLuint cid = glGetUniformLocation(texture3Program.ProgramID, "inColor");
-                LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
-            } else if (type == GL_POINTS && enableCapability == 0x0B10) {
-                //POINT_SMOOTH, removed in OpenGL3.x
-				normal3Program.SetRenderType(1);
-				normal3Program.CalcSmoothPointParams(it->extra);
-            } else {
-                if (it->type == GL_POINTS) {
-                    LOG_GL_ERRORV(glPointSize(it->extra));
-                }
-                if (enableCapability > 0) {
-					normal3Program.SetRenderType(0);
-                    LOG_GL_ERRORV(glEnable(enableCapability));
-                } else if (enableCapability != 0) {
-					normal3Program.SetRenderType(enableCapability);
-                } else {
-					normal3Program.SetRenderType(0);
-                }
-            }
-            LOG_GL_ERRORV(glDrawArrays(type, offset0 + it->start, it->count));
-            if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
-                LOG_GL_ERRORV(glDisable(enableCapability));
-            }
-            if (it->textureId != -1) {
-                LOG_GL_ERRORV(glEnableVertexAttribArray(1));
-                LOG_GL_ERRORV(glDisableVertexAttribArray(2));
-				normal3Program.UseProgram();
-            }
-        }
-		normal3Program.SetRenderType(0);
-		normal3Program.UnbindBuffer(0);
-		normal3Program.UnbindBuffer(1);
-        if (tverticesBound) {
-            texture3Program.UnbindBuffer(2);
+            texturep->UnbindBuffer(2);
         }
     }
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;
         }
-        normalProgram.UseProgram();
-        normalProgram.SetMatrix(*matrix);
+        
+        ShaderProgram *program = &normalProgram;
+        if (va.coordsPerVertex == 3) {
+            program = &normal3Program;
+        }
+        
+        program->UseProgram();
+        program->SetMatrix(*matrix);
 
-        int offset0 = normalProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat))/ (2*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
-        normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
+        program->BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
 
         float ps = 2.0;
         if (type == GL_POINTS && enableCapability == 0x0B10) {
             //POINT_SMOOTH, removed in OpenGL3.x
-            normalProgram.SetRenderType(1);
-            ps = normalProgram.CalcSmoothPointParams();
+            program->SetRenderType(1);
+            ps = program->CalcSmoothPointParams();
         } else {
             if (enableCapability > 0) {
                 LOG_GL_ERRORV(glEnable(enableCapability));
             } else if (enableCapability != 0) {
-                normalProgram.SetRenderType(enableCapability);
+                program->SetRenderType(enableCapability);
             }
         }
         LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
         if (type == GL_POINTS && enableCapability == 0x0B10) {
-            normalProgram.SetRenderType(0);
+            program->SetRenderType(0);
             LOG_GL_ERRORV(glPointSize(ps));
         } else if (enableCapability > 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         } else if (enableCapability != 0) {
-            normalProgram.SetRenderType(0);
+            program->SetRenderType(0);
         }
 
-        normalProgram.UnbindBuffer(0);
-        normalProgram.UnbindBuffer(1);
+        program->UnbindBuffer(0);
+        program->UnbindBuffer(1);
     }
     void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;
         }
-        textureProgram.UseProgram();
-        textureProgram.SetMatrix(*matrix);
+        ShaderProgram *program = &textureProgram;
+        if (va.coordsPerVertex == 3) {
+            program = &texture3Program;
+        }
+        
+        program->UseProgram();
+        program->SetMatrix(*matrix);
 
-        int offset0 = textureProgram.BindBuffer(0, &va.vertices[0], va.count*2*sizeof(GLfloat)) / (2*sizeof(GLfloat));
-        LOG_GL_ERRORV(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int offset0 = textureProgram.BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat)) / (va.coordsPerVertex*sizeof(GLfloat));
+        LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         textureProgram.BindBuffer(2, va.tvertices, va.count*2*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
 
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, va.id));
-        LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
+        LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(program->ProgramID, "tex"), 0));
 
-        GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
+        GLuint cid = glGetUniformLocation(program->ProgramID, "inColor");
         LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0));
 
         if (enableCapability > 0) {
@@ -829,45 +785,10 @@ public:
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
 
-        textureProgram.UnbindBuffer(0);
-        textureProgram.UnbindBuffer(1);
+        program->UnbindBuffer(0);
+        program->UnbindBuffer(1);
     }
 
-	void Draw(DrawGLUtils::xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) override {
-		if (va.count == 0) {
-			return;
-		}
-		singleColor3Program.UseProgram();
-		singleColor3Program.SetMatrix(*matrix);
-		int offset0 = singleColor3Program.BindBuffer(0, &va.vertices[0], va.count * 3 * sizeof(GLfloat)) / (3 * sizeof(GLfloat));
-		LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-
-		LOG_GL_ERRORV(GLuint cid = glGetUniformLocation(singleColor3Program.ProgramID, "inColor"));
-		LOG_GL_ERRORV(glUniform4f(cid,
-			((float)color.Red()) / 255.0,
-			((float)color.Green()) / 255.0,
-			((float)color.Blue()) / 255.0,
-			((float)color.Alpha()) / 255.0
-		));
-		float ps = 0;
-		if (type == GL_POINTS && enableCapability == 0x0B10) {
-			//POINT_SMOOTH, removed in OpenGL3.x
-            singleColor3Program.SetRenderType(1);
-			ps = singleColor3Program.CalcSmoothPointParams();
-		}
-		else if (enableCapability > 0) {
-			LOG_GL_ERRORV(glEnable(enableCapability));
-		}
-		LOG_GL_ERRORV(glDrawArrays(type, offset0, va.count));
-		if (type == GL_POINTS && enableCapability == 0x0B10) {
-            singleColor3Program.SetRenderType(0);
-			LOG_GL_ERRORV(glPointSize(ps));
-		}
-		else if (enableCapability > 0) {
-			LOG_GL_ERRORV(glDisable(enableCapability));
-		}
-        singleColor3Program.UnbindBuffer(0);
-	}
 
     virtual void SetCurrent() override {
         DrawGLUtils::xlGLCacheInfo::SetCurrent();
