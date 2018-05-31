@@ -1057,28 +1057,32 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
                     // save the unused mappings
                     _stashedMappings.push_back(new StashedMapping(model, strand, node, mapping, color));
-                } else
+                }
+                else
                 {
-                    if (mni != nullptr)
+                    if (mapping != "")
                     {
-                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
-                    }
-                    else if (msi != nullptr)
-                    {
-                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
-                    }
-                    else
-                    {
-                        wxDataViewItem item = FindItem(model.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
+                        if (mni != nullptr)
+                        {
+                            wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
+                            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                            ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+                            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
+                        }
+                        else if (msi != nullptr)
+                        {
+                            wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
+                            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                            ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+                            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
+                        }
+                        else
+                        {
+                            wxDataViewItem item = FindItem(model.ToStdString());
+                            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 1);
+                            ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+                            TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 2);
+                        }
                     }
                 }
             }
@@ -1636,7 +1640,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
             }
         }
 
-        for (unsigned int j = 0; !found && j < model->GetChildCount(); j++)
+        for (unsigned int j = 0; j < model->GetChildCount(); j++)
         {
             auto strand = model->GetNthChild(j);
             if (strand->_mapping != "")
@@ -1648,7 +1652,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
                 }
             }
 
-            for (unsigned int k = 0; !found && k < strand->GetChildCount(); k++)
+            for (unsigned int k = 0; k < strand->GetChildCount(); k++)
             {
                 auto node = strand->GetNthChild(k);
                 if (node->_mapping != "")
