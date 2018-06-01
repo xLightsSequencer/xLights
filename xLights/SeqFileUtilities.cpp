@@ -1140,6 +1140,7 @@ ModelElement * AddModel(Model *m, SequenceElements &se) {
     }
     return nullptr;
 }
+
 void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
                                  bool allowAllModels, bool clearSrc) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2489,6 +2490,34 @@ void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelE
     }
 }
 
+void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+{
+    int node = 0;
+    wxString ccrName = s->_mapping;
+
+    for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+        EffectLayer *layer = se->GetNodeLayer(n, true);
+        wxString nm = ccrName + wxString::Format("-P%02d", (node + 1));
+        if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+            nm = ccrName + wxString::Format(" p%02d", (node + 1));
+        }
+        if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+            nm = ccrName + wxString::Format("-P%d", (node + 1));
+        }
+        if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+            nm = ccrName + wxString::Format(" p%d", (node + 1));
+        }
+        if (std::find(channelNames.begin(), channelNames.end(), nm) == channelNames.end()) {
+            nm = ccrName + wxString::Format(" P %02d", (node + 1));
+        }
+        MapChannelInformation(effectManager,
+            layer, input_xml,
+            nm, s->_color,
+            *mc);
+        node++;
+    }
+}
+
 void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
 {
     if (mc->GetDisplayAs() == "ModelGroup")
@@ -2681,8 +2710,10 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                 }
                 else
                 {
-                    if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
+                    if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), s->_mapping) != dlg.ccrNames.end())
                     {
+                        StrandElement *se = model->GetStrand(str);
+                        MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager);
                     }
                     else
                     {
