@@ -439,6 +439,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
         { wxCMD_LINE_OPTION, "g", "opengl", "specify OpenGL version" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
+        { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
         { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
@@ -534,7 +535,7 @@ bool xLightsApp::OnInit()
             }
             sequenceFiles.push_back(sequenceFile);
         }
-        if (!parser.Found("r") && !info.empty())
+        if (!parser.Found("r") && !parser.Found("o") && !info.empty())
         {
             wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
         }
@@ -567,6 +568,15 @@ bool xLightsApp::OnInit()
         logger_base.info("-r: Render mode is ON");
         topFrame->_renderMode = true;
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequences, sequenceFiles, true);
+    }
+
+    if (parser.Found("o"))
+    {
+        logger_base.info("-o: Turning on output to lights");
+
+        // Turn on output to lights - ignore if another xLights/xSchedule is already outputting
+        topFrame->CheckBoxLightOutput->SetValue(true);
+        topFrame->EnableOutputs(true);
     }
 
     #ifdef LINUX

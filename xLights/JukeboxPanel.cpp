@@ -200,6 +200,20 @@ void JukeboxPanel::Load(wxXmlNode* node)
     ValidateWindow();
 }
 
+void JukeboxPanel::PlayItem(int item)
+{
+    if (_buttons.find(item) != _buttons.end())
+    {
+        _buttons[item]->SelectEffect(xLightsApp::GetFrame()->GetMainSequencer());
+    }
+    else
+    {
+        xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
+        xLightsApp::GetFrame()->GetMainSequencer()->SetPlayStatus(PLAY_TYPE_STOPPED);
+        xLightsApp::GetFrame()->UnselectEffect();
+    }
+}
+
 void JukeboxPanel::OnResize(wxSizeEvent& event)
 {
     wxSize wsz = event.GetSize();
@@ -222,16 +236,7 @@ void JukeboxPanel::OnResize(wxSizeEvent& event)
 void JukeboxPanel::OnButtonClick(wxCommandEvent& event)
 {
     int button = wxAtoi(((wxButton*)event.GetEventObject())->GetLabel());
-    if (_buttons.find(button) != _buttons.end())
-    {
-        _buttons[button]->SelectEffect(xLightsApp::GetFrame()->GetMainSequencer());
-    }
-    else
-    {
-        xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
-        xLightsApp::GetFrame()->GetMainSequencer()->SetPlayStatus(PLAY_TYPE_STOPPED);
-        xLightsApp::GetFrame()->UnselectEffect();
-    }
+    PlayItem(button);
 }
 
 void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)

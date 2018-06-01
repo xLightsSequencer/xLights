@@ -96,6 +96,12 @@ BOOL CALLBACK EnumXLightsWindows(HWND hwnd, LPARAM lparam)
         {
             if (comp[1] == jb->GetSequence() || jb->GetSequence() == "")
             {
+                //jb->SetEnumState(ENUMJUKEBOX::ENUM_STATE_DONE);
+                //::SetLastError(0);
+                //::PostMessage(hwnd, 45898, MAKEWPARAM(0, 0), MAKELPARAM(0, 0));
+                //::PostMessage(hwnd, 45899, MAKEWPARAM(num, 0), MAKELPARAM(0, 0));
+                //return false;
+
                 jb->SetEnumState(ENUMJUKEBOX::ENUM_STATE_SEQUENCERTAB);
                 ::EnumChildWindows(hwnd, EnumXLightsWindows, lparam);
             }
@@ -116,8 +122,8 @@ BOOL CALLBACK EnumXLightsWindows(HWND hwnd, LPARAM lparam)
         {
             jb->SetEnumState(ENUMJUKEBOX::ENUM_STATE_DONE);
             ::SetLastError(0);
-            ::PostMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(0, 0));
-            ::PostMessage(hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(0, 0));
+            ::PostMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(num, 0));
+            ::PostMessage(hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(num, 0));
             return false;
         }
     }
@@ -137,6 +143,15 @@ BOOL CALLBACK EnumTopLevelWindows(HWND hwnd, LPARAM lparam)
 
     if (name.StartsWith("xLights "))
     {
+        //if (jb->GetSequence() == "")
+        //{
+        //    jb->SetEnumState(ENUMJUKEBOX::ENUM_STATE_DONE);
+        //    ::SetLastError(0);
+        //    ::PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(0, 29898), MAKELPARAM(0, 0));
+        //    ::PostMessage(hwnd, WM_COMMAND, MAKEWPARAM(0, 29899), MAKELPARAM(jb->GetButton(), 0));
+        //    return false;
+        //}
+
         jb->SetEnumState(ENUMJUKEBOX::ENUM_STATE_XLIGHTS);
         ::EnumChildWindows(hwnd, EnumXLightsWindows, lparam);
     }
