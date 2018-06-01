@@ -537,6 +537,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         ProjViewMatrix = ProjMatrix * ViewMatrix;
 
         prepare2DViewport(0, mWindowHeight, mWindowWidth, 0);
+        LOG_GL_ERRORV(glClearColor(0, 0, 0, 0));   // background color
+        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
