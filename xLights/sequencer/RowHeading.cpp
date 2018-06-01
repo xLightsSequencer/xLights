@@ -687,13 +687,37 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         if (layer_index < element->GetEffectLayerCount())
         {
-            element->GetEffectLayer(layer_index)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+            if (ri->nodeIndex == -1)
+            {
+                element->GetEffectLayer(layer_index)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+            }
+            else
+            {
+                StrandElement* se = (StrandElement*)element;
+                NodeLayer* nl = se->GetNodeLayer(ri->nodeIndex, false);
+                if (nl != nullptr)
+                {
+                    nl->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+                }
+            }
         }
     }
     else if (id == ID_ROW_MNU_SELECT_ROW_EFFECTS) {
         if (layer_index < element->GetEffectLayerCount())
         {
-            element->GetEffectLayer(layer_index)->SelectAllEffects();
+            if (ri->nodeIndex == -1)
+            {
+                element->GetEffectLayer(layer_index)->SelectAllEffects();
+            }
+            else
+            {
+                StrandElement* se = (StrandElement*)element;
+                NodeLayer* nl = se->GetNodeLayer(ri->nodeIndex, false);
+                if (nl != nullptr)
+                {
+                    nl->SelectAllEffects();
+                }
+            }
         }
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < element->GetEffectLayerCount(); i++)
