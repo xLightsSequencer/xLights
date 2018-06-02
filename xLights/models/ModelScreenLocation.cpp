@@ -2252,7 +2252,9 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
 int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     if (!_locked && "ModelX1" == name) {
+        float old_world_x = worldPos_x;
         worldPos_x = event.GetValue().GetDouble();
+        x2 += old_world_x - worldPos_x;
         return 3;
     }
     else if (_locked && "ModelX1" == name) {
@@ -2260,7 +2262,9 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         return 0;
     }
     else if (!_locked && "ModelY1" == name) {
+        float old_world_y = worldPos_y;
         worldPos_y = event.GetValue().GetDouble();
+        y2 += old_world_y - worldPos_y;
         return 3;
     }
     else if (_locked && "ModelY1" == name) {
@@ -2268,7 +2272,9 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         return 0;
     }
     else if (!_locked && "ModelZ1" == name) {
+        float old_world_z = worldPos_z;
         worldPos_z = event.GetValue().GetDouble();
+        z2 += old_world_z - worldPos_z;
         return 3;
     }
     else if (_locked && "ModelZ1" == name) {
