@@ -2865,7 +2865,6 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         if (ymax < 0.01f) {
             ymax = 0.01f;
         }
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         //Calculate angle of mouse from center.
         if (supportsAngle) {
@@ -2877,15 +2876,12 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
             }
             if (posy >= 0) {
                 angle = angle1;
-                logger_base.debug("Path1");
             }
             else if (posx <= 0) {
                 angle = 90 + (90 + angle1);
-                logger_base.debug("Path2");
             }
             else {
                 angle = -90 - (90 - angle1);
-                logger_base.debug("Path3");
             }
             if (ShiftKeyPressed) {
                 angle = (int)(angle / 5) * 5;
