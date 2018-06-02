@@ -2641,8 +2641,12 @@ void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) co
     if (supportsShear) {
         shearMatrix = glm::mat4(glm::shearY(glm::mat3(1.0f), GetYShear()));
     }
+    glm::mat4 RotateX1 = glm::rotate(Identity, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 RotateX = glm::rotate(Identity, glm::radians((float)rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
     TranslateMatrix = translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
+    if (x2 < 0.0f && y2 != 0.0f) {
+        rotationMatrix = rotationMatrix * RotateX1;
+    }
     matrix = TranslateMatrix * rotationMatrix * RotateX * shearMatrix * scalingMatrix;
 
     if (allow_selected) {
@@ -2861,20 +2865,27 @@ int ThreePointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool
         if (ymax < 0.01f) {
             ymax = 0.01f;
         }
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         //Calculate angle of mouse from center.
         if (supportsAngle) {
             if (posy == 0.0f) return 0;
             float tan = (float)posx / (float)posy;
             int angle1 = -toDegrees((float)atan(tan));
+            if (x2 < 0.0f) {
+                angle1 = -angle1;
+            }
             if (posy >= 0) {
                 angle = angle1;
+                logger_base.debug("Path1");
             }
             else if (posx <= 0) {
                 angle = 90 + (90 + angle1);
+                logger_base.debug("Path2");
             }
             else {
                 angle = -90 - (90 - angle1);
+                logger_base.debug("Path3");
             }
             if (ShiftKeyPressed) {
                 angle = (int)(angle / 5) * 5;
@@ -2931,8 +2942,17 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
         if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
 
         if (axis_tool == TOOL_XY_TRANS) {
-            float posx = saved_position.x + drag_delta.x - center.x;
-            float posy = saved_position.y + drag_delta.y - center.y;
+            glm::vec3 a = point2 - origin;
+            glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
+            glm::mat4 inv_rotation = glm::inverse(rotationMatrix);
+            glm::vec3 cent = glm::vec3(inv_rotation * glm::vec4(center, 1.0f));
+            glm::vec3 origin = glm::vec3(inv_rotation * glm::vec4(saved_position + drag_delta, 1.0f));
+
+            float posx = origin.x - cent.x;
+            float posy = origin.y - cent.y;
+
+            //float posx = saved_position.x + drag_delta.x - center.x;
+            //float posy = saved_position.y + drag_delta.y - center.y;
 
             float ymax = RenderHt;
             if (ymax < 0.01f) {
@@ -2948,10 +2968,10 @@ int ThreePointScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bo
                     angle = angle1;
                 }
                 else if (posx <= 0) {
-                    angle = 90 + (90 + angle1);
+                    angle = 180 + angle1;
                 }
                 else {
-                    angle = -90 - (90 - angle1);
+                    angle = -180 + angle1;
                 }
                 if (ShiftKeyPressed) {
                     angle = (int)(angle / 5) * 5;
