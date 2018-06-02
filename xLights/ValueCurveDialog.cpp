@@ -60,6 +60,7 @@ void ValueCurvePanel::Convert(float &x, float &y, wxMouseEvent& event) {
 
 //(*IdInit(ValueCurveDialog)
 const long ValueCurveDialog::ID_STATICTEXT3 = wxNewId();
+const long ValueCurveDialog::ID_STATICTEXT7 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT4 = wxNewId();
 const long ValueCurveDialog::ID_CHOICE1 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT1 = wxNewId();
@@ -112,10 +113,12 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     FlexGridSizer6->AddGrowableCol(1);
     FlexGridSizer6->AddGrowableRow(0);
     FlexGridSizer5 = new wxFlexGridSizer(3, 1, 0, 0);
+    FlexGridSizer5->AddGrowableCol(0);
     FlexGridSizer5->AddGrowableRow(1);
     StaticText_TopValue = new wxStaticText(this, ID_STATICTEXT3, _("100"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, _T("ID_STATICTEXT3"));
     FlexGridSizer5->Add(StaticText_TopValue, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText1 = new wxStaticText(this, ID_STATICTEXT7, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    FlexGridSizer5->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
     StaticText_BottomValue = new wxStaticText(this, ID_STATICTEXT4, _("0"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, _T("ID_STATICTEXT4"));
     FlexGridSizer5->Add(StaticText_BottomValue, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer6->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
@@ -314,6 +317,24 @@ void ValueCurveDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndDialog(wxCANCEL);
 }
 
+void ValueCurveDialog::SetParameter100(int p, float v)
+{
+    float low, high;
+    _vc->GetRangeParm(p, Choice1->GetStringSelection().ToStdString(), low, high);
+
+    if (low == MINVOID)
+    {
+        low = _vc->GetMin();
+    }
+    if (high == MAXVOID)
+    {
+        high = _vc->GetMax();
+    }
+
+    float vv = (high - low) * v / 100.0 + low;
+    SetParameter(p, vv);
+}
+
 void ValueCurveDialog::SetParameter(int p, float v)
 {
     switch (p)
@@ -408,97 +429,97 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
     }
     else if (type == "Ramp")
     {
-        if (_vc->GetParameter1() < 50)
+        if (_vc->GetParameter1_100() < 50)
         {
-            SetParameter(2, 100);
+            SetParameter100(2, 100);
         }
         else
         {
-            SetParameter(2, 0);
+            SetParameter100(2, 0);
         }
     }
     else if (type == "Ramp Up/Down")
     {
-        SetParameter(1, 0);
-        SetParameter(2, 100);
-        SetParameter(3, 0);
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter100(3, 0);
     }
     else if (type == "Ramp Up/Down Hold")
     {
-        SetParameter(1, 0);
-        SetParameter(2, 100);
-        SetParameter(3, 80);
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter100(3, 80);
     }
     else if (type == "Saw Tooth")
     {
-        SetParameter(1, 0);
-        SetParameter(2, 100);
-        SetParameter(3, 2);
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter100(3, 2);
     }
     else if (type == "Parabolic Down")
     {
-        SetParameter(1, 4);
-        SetParameter(2, 0);
+        SetParameter100(1, 4);
+        SetParameter100(2, 0);
     }
     else if (type == "Parabolic Up")
     {
-        SetParameter(1, 4);
-        SetParameter(2, 100);
+        SetParameter100(1, 4);
+        SetParameter100(2, 100);
     }
     else if (type == "Logarithmic Up")
     {
-        SetParameter(1, 4);
-        SetParameter(2, 100);
+        SetParameter100(1, 4);
+        SetParameter100(2, 100);
     }
     else if (type == "Logarithmic Down")
     {
-        SetParameter(1, 15);
-        SetParameter(2, 50);
+        SetParameter100(1, 15);
+        SetParameter100(2, 50);
     }
     else if (type == "Exponential Up")
     {
-        SetParameter(1, 100);
-        SetParameter(2, 50);
+        SetParameter100(1, 100);
+        SetParameter100(2, 50);
     }
     else if (type == "Exponential Down")
     {
-        SetParameter(1, 100);
-        SetParameter(2, 50);
+        SetParameter100(1, 100);
+        SetParameter100(2, 50);
     }
     else if (type == "Sine")
     {
-        SetParameter(1, 75);
-        SetParameter(2, 100);
-        SetParameter(3, 10);
-        SetParameter(4, 50);
+        SetParameter100(1, 75);
+        SetParameter100(2, 100);
+        SetParameter100(3, 10);
+        SetParameter100(4, 50);
     }
     else if (type == "Decaying Sine")
     {
-        SetParameter(1, 75);
-        SetParameter(2, 100);
-        SetParameter(3, 10);
-        SetParameter(4, 50);
+        SetParameter100(1, 75);
+        SetParameter100(2, 100);
+        SetParameter100(3, 10);
+        SetParameter100(4, 50);
     }
     else if (type == "Random")
     {
-        SetParameter(1, 0);
-        SetParameter(2, 100);
-        SetParameter(3, 5);
-        SetParameter(4, 0);
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter100(3, 5);
+        SetParameter100(4, 0);
     }
     else if (type == "Abs Sine")
     {
-        SetParameter(1, 0);
-        SetParameter(2, 100);
-        SetParameter(3, 10);
-        SetParameter(4, 50);
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter100(3, 10);
+        SetParameter100(4, 50);
     }
     else if (type == "Square")
     {
-        SetParameter(1, 0);
-        SetParameter(2, 100);
-        SetParameter(3, 1);
-        SetParameter(4, 0);
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter100(3, 1);
+        SetParameter100(4, 0);
     }
     else if (type == "Custom")
     {

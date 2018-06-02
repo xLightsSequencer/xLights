@@ -246,8 +246,8 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
     }
     else if (type == "Decaying Sine")
     {
-        low = MINVOID;
-        high = MAXVOID;
+        //low = MINVOID;
+        //high = MAXVOID;
     }
     else if (type == "Abs Sine")
     {
@@ -372,8 +372,6 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     }
     else if (type == "Decaying Sine")
     {
-        low = MINVOID;
-        high = MAXVOID;
     }
     else if (type == "Abs Sine")
     {
@@ -1471,6 +1469,12 @@ void ValueCurve::SetWrap(bool wrap)
     }
 
     RenderType();
+}
+
+float ValueCurve::GetParameter1_100() const
+{
+    float range = _max - _min;
+    return (GetParameter1() - _min) * 100 / range;
 }
 
 float ValueCurve::FindMinPointLessThan(float point)

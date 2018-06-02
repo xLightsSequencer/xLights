@@ -127,6 +127,7 @@ public:
     void SetParameter4(float parameter4) { _parameter4 = SafeParameter(4, parameter4); RenderType(); }
     void SetWrap(bool wrap);
     float GetParameter1() const { return _parameter1; }
+    float GetParameter1_100() const;
     float GetParameter2() const { return _parameter2; }
     float GetParameter3() const { return _parameter3; }
     float GetParameter4() const { return _parameter4; }

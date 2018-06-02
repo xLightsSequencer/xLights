@@ -69,6 +69,7 @@ class ValueCurveDialog: public wxDialog
     bool _slideridd;
     void ValidateWindow();
     void SetParameter(int p, float v);
+    void SetParameter100(int p, float v);
     ValueCurvePanel* _vcp;
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
@@ -97,6 +98,7 @@ class ValueCurveDialog: public wxDialog
 		wxSlider* Slider_Parameter2;
 		wxSlider* Slider_Parameter3;
 		wxSlider* Slider_Parameter4;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText_BottomValue;
 		wxStaticText* StaticText_P1;
 		wxStaticText* StaticText_P2;
@@ -113,6 +115,7 @@ class ValueCurveDialog: public wxDialog
 
 		//(*Identifiers(ValueCurveDialog)
 		static const long ID_STATICTEXT3;
+		static const long ID_STATICTEXT7;
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT1;
