@@ -2212,6 +2212,20 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
 void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *propertyEditor) const {
     wxPGProperty *prop = propertyEditor->Append(new wxBoolProperty("Locked", "Locked", _locked));
     prop->SetAttribute("UseCheckbox", 1);
+    prop = propertyEditor->Append(new wxFloatProperty("WorldX", "WorldX", worldPos_x));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.5);
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxFloatProperty("WorldY", "WorldY", worldPos_y));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.5);
+    prop->SetEditor("SpinCtrl");
+    prop = propertyEditor->Append(new wxFloatProperty("WorldZ", "WorldZ", worldPos_z));
+    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Step", 0.5);
+    prop->SetEditor("SpinCtrl");
+
+    prop->SetAttribute("UseCheckbox", 1);
     prop = propertyEditor->Append(new wxFloatProperty("X1", "ModelX1", worldPos_x));
     prop->SetAttribute("Precision", 2);
     prop->SetAttribute("Step", 0.5);
@@ -2251,11 +2265,35 @@ void TwoPointScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *
 
 int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if (!_locked && "ModelX1" == name) {
+    if (!_locked && "WorldX" == name) {
+        worldPos_x = event.GetValue().GetDouble();
+        return 7;
+    }
+    else if (_locked && "WorldX" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "WorldY" == name) {
+        worldPos_y = event.GetValue().GetDouble();
+        return 7;
+    }
+    else if (_locked && "WorldY" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "WorldZ" == name) {
+        worldPos_z = event.GetValue().GetDouble();
+        return 7;
+    }
+    else if (_locked && "WorldZ" == name) {
+        event.Veto();
+        return 0;
+    }
+    else if (!_locked && "ModelX1" == name) {
         float old_world_x = worldPos_x;
         worldPos_x = event.GetValue().GetDouble();
         x2 += old_world_x - worldPos_x;
-        return 3;
+        return 7;
     }
     else if (_locked && "ModelX1" == name) {
         event.Veto();
@@ -2265,7 +2303,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_y = worldPos_y;
         worldPos_y = event.GetValue().GetDouble();
         y2 += old_world_y - worldPos_y;
-        return 3;
+        return 7;
     }
     else if (_locked && "ModelY1" == name) {
         event.Veto();
@@ -2275,7 +2313,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_z = worldPos_z;
         worldPos_z = event.GetValue().GetDouble();
         z2 += old_world_z - worldPos_z;
-        return 3;
+        return 7;
     }
     else if (_locked && "ModelZ1" == name) {
         event.Veto();
