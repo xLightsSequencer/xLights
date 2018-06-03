@@ -28,6 +28,7 @@ public:
     virtual void SetValue(const std::string &val) override {};
     void SetValue(ValueCurve* vc) { _vc = vc; }
     void SetType(std::string type) { _type = type; }
+    void SetTimeOffset(int timeoffset) { _timeOffset = timeoffset; }
     void Delete();
     void Undo();
     void SaveUndo(float x, float y);
@@ -56,6 +57,7 @@ private:
     float _minGrabbedPoint;
     float _maxGrabbedPoint;
     std::string _type;
+    int _timeOffset;
     std::list<wxRealPoint> _undo;
     int _start;
     int _end;
@@ -98,7 +100,9 @@ class ValueCurveDialog: public wxDialog
 		wxSlider* Slider_Parameter2;
 		wxSlider* Slider_Parameter3;
 		wxSlider* Slider_Parameter4;
+		wxSlider* Slider_TimeOffset;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText_BottomValue;
 		wxStaticText* StaticText_P1;
 		wxStaticText* StaticText_P2;
@@ -109,6 +113,7 @@ class ValueCurveDialog: public wxDialog
 		wxTextCtrl* TextCtrl_Parameter2;
 		wxTextCtrl* TextCtrl_Parameter3;
 		wxTextCtrl* TextCtrl_Parameter4;
+		wxTextCtrl* TextCtrl_TimeOffset;
 		//*)
 
 	protected:
@@ -132,6 +137,9 @@ class ValueCurveDialog: public wxDialog
 		static const long IDD_TEXTCTRL_Parameter4;
 		static const long ID_CHECKBOX_WrapValues;
 		static const long ID_BUTTON5;
+		static const long ID_STATICTEXT8;
+		static const long ID_SLIDER1;
+		static const long ID_TEXTCTRL1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;
 		static const long ID_BUTTON1;
@@ -163,6 +171,8 @@ class ValueCurveDialog: public wxDialog
 		void OnButtonExportClick(wxCommandEvent& event);
 		void OnButtonPresetClick(wxCommandEvent& event);
 		void OnButton_ReverseClick(wxCommandEvent& event);
+		void OnSlider_TimeOffsetCmdSliderUpdated(wxScrollEvent& event);
+		void OnTextCtrl_TimeOffsetText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

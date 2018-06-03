@@ -73,6 +73,7 @@ class ValueCurve
     float _max;
     float _min;
     float _divisor;
+    int _timeOffset;
     float _parameter1;
     float _parameter2;
     float _parameter3;
@@ -125,7 +126,9 @@ public:
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }
     void SetParameter3(float parameter3) { _parameter3 = SafeParameter(3, parameter3); RenderType(); }
     void SetParameter4(float parameter4) { _parameter4 = SafeParameter(4, parameter4); RenderType(); }
+    void SetTimeOffset(int timeOffset) { _timeOffset = timeOffset; RenderType(); }
     void SetWrap(bool wrap);
+    int GetTimeOffset() const { return _timeOffset; }
     float GetParameter1() const { return _parameter1; }
     float GetParameter1_100() const;
     float GetParameter2() const { return _parameter2; }
