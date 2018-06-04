@@ -878,7 +878,9 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 
     long stch;
     Output* o = GetOutput(channel + 1, stch);
-    wxASSERT(o != nullptr);
+
+    // if this doesnt map to an output then skip it
+    if (o == nullptr) return;
 
     long left = size;
 

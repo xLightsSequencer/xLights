@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <valuecurve 
-data="Active=TRUE|Id=ID_VALUECURVE_XVC|Type=Sine|Min=0.00|Max=100.00|P1=75|P2=100|P3=20|P4=50|" SourceVersion="2017.19"  >
+data="Active=TRUE|Id=ID_VALUECURVE_XVC|Type=Sine|Min=0.00|Max=100.00|P2=100|P3=20|P4=50|TO=75|" SourceVersion="2017.19"  >
 </valuecurve>
