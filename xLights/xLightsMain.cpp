@@ -4517,56 +4517,59 @@ void xLightsFrame::CheckSequence(bool display)
                 else
                 {
                     wxArrayString ipElements = wxSplit((*n)->GetIP(), '.');
-                    int ip1 = wxAtoi(ipElements[0]);
-                    int ip2 = wxAtoi(ipElements[1]);
-                    int ip3 = wxAtoi(ipElements[2]);
-                    int ip4 = wxAtoi(ipElements[3]);
+                    if (ipElements.size() > 3) {
+                        //looks like an IP address
+                        int ip1 = wxAtoi(ipElements[0]);
+                        int ip2 = wxAtoi(ipElements[1]);
+                        int ip3 = wxAtoi(ipElements[2]);
+                        int ip4 = wxAtoi(ipElements[3]);
 
-                    if (ip1 == 10)
-                    {
-                        if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
+                        if (ip1 == 10)
+                        {
+                            if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                LogAndWrite(f, msg.ToStdString());
+                                errcount++;
+                            }
+                            // else this is valid
+                        }
+                        else if (ip1 == 192 && ip2 == 168)
+                        {
+                            if (ip3 == 255 && ip4 == 255) {
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                LogAndWrite(f, msg.ToStdString());
+                                errcount++;
+                            }
+                            // else this is valid
+                        }
+                        else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
+                        {
+                            // this is valid
+                        }
+                        else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
+                        {
                             wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
-                        // else this is valid
-                    }
-                    else if (ip1 == 192 && ip2 == 168)
-                    {
-                        if (ip3 == 255 && ip4 == 255) {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        else if (ip1 == 0)
+                        {
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
-                        // else this is valid
-                    }
-                    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
-                    {
-                        // this is valid
-                    }
-                    else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
-                    {
-                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                    else if (ip1 == 0)
-                    {
-                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                    else if (ip1 >= 224 && ip1 <= 239)
-                    {
-                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                    else
-                    {
-                        wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        warncount++;
+                        else if (ip1 >= 224 && ip1 <= 239)
+                        {
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                        else
+                        {
+                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
                     }
                 }
             }

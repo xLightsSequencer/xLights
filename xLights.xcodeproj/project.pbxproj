@@ -649,6 +649,8 @@
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
 		67FF39931D57F5D000290DB4 /* NoteImportDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */; };
+		67FF749720BD82B6000EA3A3 /* PlayListItemJukebox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF749320BD82B5000EA3A3 /* PlayListItemJukebox.cpp */; };
+		67FF749820BD82B6000EA3A3 /* PlayListItemJukeboxPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF749520BD82B5000EA3A3 /* PlayListItemJukeboxPanel.cpp */; };
 		67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */; };
 		67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */; };
 /* End PBXBuildFile section */
@@ -1769,6 +1771,10 @@
 		67FF39901D57F5D000290DB4 /* MusicXML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MusicXML.h; sourceTree = "<group>"; };
 		67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoteImportDialog.cpp; sourceTree = "<group>"; };
 		67FF39921D57F5D000290DB4 /* NoteImportDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteImportDialog.h; sourceTree = "<group>"; };
+		67FF749320BD82B5000EA3A3 /* PlayListItemJukebox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemJukebox.cpp; path = PlayList/PlayListItemJukebox.cpp; sourceTree = "<group>"; };
+		67FF749420BD82B5000EA3A3 /* PlayListItemJukeboxPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemJukeboxPanel.h; path = PlayList/PlayListItemJukeboxPanel.h; sourceTree = "<group>"; };
+		67FF749520BD82B5000EA3A3 /* PlayListItemJukeboxPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemJukeboxPanel.cpp; path = PlayList/PlayListItemJukeboxPanel.cpp; sourceTree = "<group>"; };
+		67FF749620BD82B5000EA3A3 /* PlayListItemJukebox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemJukebox.h; path = PlayList/PlayListItemJukebox.h; sourceTree = "<group>"; };
 		67FFB8171FA3F65D007F9FBB /* Control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Control.h; sourceTree = "<group>"; };
 		67FFB8181FA3F65D007F9FBB /* OutputProcessDeadChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OutputProcessDeadChannel.cpp; sourceTree = "<group>"; };
 		67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeadChannelDialog.h; sourceTree = "<group>"; };
@@ -3035,6 +3041,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				67FF749320BD82B5000EA3A3 /* PlayListItemJukebox.cpp */,
+				67FF749620BD82B5000EA3A3 /* PlayListItemJukebox.h */,
+				67FF749520BD82B5000EA3A3 /* PlayListItemJukeboxPanel.cpp */,
+				67FF749420BD82B5000EA3A3 /* PlayListItemJukeboxPanel.h */,
 				6783D017209758BF00C6F51D /* PlayListItemProjector.cpp */,
 				6783D019209758BF00C6F51D /* PlayListItemProjector.h */,
 				6783D018209758BF00C6F51D /* PlayListItemProjectorPanel.cpp */,
@@ -3209,7 +3219,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = xl;
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = "Daniel Kulp";
 				TargetAttributes = {
 					67480D0B2072575400B3ED60 = {
@@ -3713,6 +3723,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,
+				67FF749720BD82B6000EA3A3 /* PlayListItemJukebox.cpp in Sources */,
 				670827FF2024C39C0002B617 /* LorControllerDialog.cpp in Sources */,
 				670828002024C39C0002B617 /* LorControllers.cpp in Sources */,
 				674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */,
@@ -3899,6 +3910,7 @@
 				67D75E592020ED60005BAC6E /* EventFPP.cpp in Sources */,
 				67DA0AF91E39C8EB00E2A859 /* DimWhiteDialog.cpp in Sources */,
 				67C581551E4B95A400932DFA /* OutputProcessReverse.cpp in Sources */,
+				67FF749820BD82B6000EA3A3 /* PlayListItemJukeboxPanel.cpp in Sources */,
 				67F23FA01E329E3300F8B985 /* connection.cpp in Sources */,
 				1ECB4F761FF635D7006D57AA /* OSCPacket.cpp in Sources */,
 				67DA0AFE1E39C8EB00E2A859 /* OutputProcessRemap.cpp in Sources */,
@@ -3921,6 +3933,7 @@
 		67480D1A2072575600B3ED60 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3935,6 +3948,7 @@
 		67480D1B2072575600B3ED60 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3955,12 +3969,15 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
@@ -4036,12 +4053,15 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
@@ -4108,6 +4128,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
@@ -4127,6 +4148,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
@@ -4145,6 +4167,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -4159,6 +4182,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				OTHER_CFLAGS = (
 					"$(inherited)",
