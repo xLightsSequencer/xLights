@@ -7,6 +7,7 @@
 #include <wx/numdlg.h>
 #include "models/ModelGroup.h"
 #include "../SelectTimingsDialog.h"
+#include "models/SubModel.h"
 
 #define ICON_SPACE 25
 
@@ -1075,11 +1076,42 @@ void RowHeading::Draw()
         }
         else        // Draw label
         {
+            auto name = rowInfo->element->GetName();
             if (rowInfo->element->GetType() == ELEMENT_TYPE_SUBMODEL) {
                 prefix += "  ";
+
+                // find the parent row so we can work out its type
+                int toprow = mSequenceElements->GetFirstVisibleModelRow();
+                int parent = toprow + rowInfo->RowNumber;
+                bool done = false;
+                while (!done && parent >= 0)
+                {
+                    auto maybeParent = mSequenceElements->GetRowInformationFromRow(parent);
+                    if (maybeParent != nullptr && maybeParent->element->GetType() == ELEMENT_TYPE_MODEL && !maybeParent->submodel)
+                    {
+                        done = true;
+                    }
+                    else
+                    {
+                        parent--;
+                    }
+                }
+
+                if (done)
+                {
+                    Model* pm = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
+                    if (pm != nullptr && pm->GetDisplayAs() == "ModelGroup")
+                    {
+                        name = rowInfo->element->GetFullName();
+                        if (prefix.size() >= 3)
+                        {
+                            prefix = prefix.substr(3);
+                        }
+                    }
+                }
             }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            dc.DrawLabel(prefix + rowInfo->element->GetName() + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(prefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
         if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING)

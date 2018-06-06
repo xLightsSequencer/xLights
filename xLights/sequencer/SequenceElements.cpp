@@ -582,26 +582,26 @@ size_t SequenceElements::GetVisibleRowInformationSize()
 
 Row_Information_Struct* SequenceElements::GetRowInformation(size_t index)
 {
-    if(index < mRowInformation.size())
+    if (index < mRowInformation.size())
     {
         return &mRowInformation[index];
     }
     else
     {
-        return NULL;
+        return nullptr;
     }
 }
 
 Row_Information_Struct* SequenceElements::GetRowInformationFromRow(int row_number)
 {
-    for(size_t i=0;i<mRowInformation.size();i++)
+    for (size_t i = 0; i < mRowInformation.size(); i++)
     {
-        if(row_number == mRowInformation[i].Index)
+        if (row_number == mRowInformation[i].Index)
         {
             return &mRowInformation[i];
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 std::string SequenceElements::UniqueElementName(const std::string& basename) const
