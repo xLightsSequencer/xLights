@@ -195,6 +195,7 @@ const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
@@ -800,6 +801,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu3->AppendSeparator();
     MenuItemShiftEffects = new wxMenuItem(Menu3, ID_SHIFT_EFFECTS, _("Shift Effects"), _("Use this options to shift all effects in the sequence."), wxITEM_NORMAL);
     Menu3->Append(MenuItemShiftEffects);
+    MenuItemShiftSelectedEffects = new wxMenuItem(Menu3, ID_MNU_SHIFT_SELECTED_EFFECTS, _("Shift Selected Effects"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItemShiftSelectedEffects);
     MenuBar->Append(Menu3, _("&Edit"));
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
@@ -1174,6 +1177,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_SHIFT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
+    Connect(ID_MNU_SHIFT_SELECTED_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftSelectedEffectsSelected);
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
@@ -5824,6 +5828,58 @@ void xLightsFrame::ExportEffects(wxString filename)
     f.Close();
 }
 
+void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
+{
+    wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift the selected effects:\n\n"
+        "Note: Will be rounded to the nearest timing interval.\n"
+        "      This operation cannot be reversed with Undo.\n"
+        "      Effects shifted left may be truncated or deleted.\n"
+        "      Effects that would overlap unselected effects wont be moved.",
+        "Shift Selected Effects", "", wxOK | wxCANCEL | wxCENTER);
+    if (ted.ShowModal() == wxID_OK) {
+        int milliseconds = wxAtoi(ted.GetValue());
+        if (CurrentSeqXmlFile->GetSequenceLoaded()) {
+            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+            int ms = wxAtoi(mss);
+            milliseconds /= ms;
+            milliseconds *= ms;
+        }
+        for (int elem = 0; elem<mSequenceElements.GetElementCount(MASTER_VIEW); elem++) {
+            Element* ele = mSequenceElements.GetElement(elem, MASTER_VIEW);
+            for (int layer = 0; layer<ele->GetEffectLayerCount(); layer++) {
+                EffectLayer* el = ele->GetEffectLayer(layer);
+                ShiftSelectedEffectsOnLayer(el, milliseconds);
+            }
+            if (ele->GetType() == ELEMENT_TYPE_MODEL)
+            {
+                ModelElement *me = dynamic_cast<ModelElement *>(ele);
+                for (int i = 0; i < me->GetStrandCount(); ++i)
+                {
+                    Element* se = me->GetStrand(i);
+                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                    for (int k = 0; k < ste->GetNodeLayerCount(); ++k)
+                    {
+                        NodeLayer* nl = ste->GetNodeLayer(k, false);
+                        if (nl != nullptr)
+                        {
+                            ShiftSelectedEffectsOnLayer(nl, milliseconds);
+                        }
+                    }
+                }
+                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i)
+                {
+                    Element* se = me->GetSubModel(i);
+                    for (int layer = 0; layer<se->GetEffectLayerCount(); layer++) {
+                        EffectLayer* sel = se->GetEffectLayer(layer);
+                        ShiftSelectedEffectsOnLayer(sel, milliseconds);
+                    }
+                }
+            }
+        }
+        mainSequencer->PanelEffectGrid->Refresh();
+    }
+}
+
 void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
 {
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects:\n\n"
@@ -5898,6 +5954,99 @@ void xLightsFrame::ShiftEffectsOnLayer(EffectLayer* el, int milliseconds)
             eff->SetStartTimeMS(start_ms+milliseconds);
         }
         eff->SetEndTimeMS(end_ms+milliseconds);
+    }
+}
+
+void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds)
+{
+    if (milliseconds < 0)
+    {
+        std::list<int> toRemove;
+        for (int ef = 0; ef < el->GetEffectCount(); ef++) {
+            // move left
+            Effect* eff = el->GetEffect(ef);
+            if (eff->GetSelected())
+            {
+                bool moved = false;
+                int start_ms = eff->GetStartTimeMS();
+                int end_ms = eff->GetEndTimeMS();
+                if (start_ms + milliseconds < 0) {
+                    if (end_ms + milliseconds < 0) {
+                        // effect shifted off screen - delete
+                        if (eff == selectedEffect) {
+                            UnselectEffect();
+                        }
+                        // move it out of the way so it doesnt cause clashes
+                        eff->SetStartTimeMS(-100);
+                        eff->SetEndTimeMS(-90);
+                        toRemove.push_front(ef); // we need to delete them in reverse order
+                        continue;
+                    }
+                    else {
+                        // truncate start of effect
+                        eff->SetStartTimeMS(0);
+                        moved = true;
+                    }
+                }
+                else {
+                    auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
+                    bool clash = false;
+                    for (auto it = effectsInTime.begin(); it != effectsInTime.end(); ++it)
+                    {
+                        if ((*it)->GetID() != eff->GetID())
+                        {
+                            clash = true;
+                            break;
+                        }
+                    }
+                    if (!clash)
+                    {
+                        eff->SetStartTimeMS(start_ms + milliseconds);
+                        moved = true;
+                    }
+                }
+                if (moved)
+                {
+                    eff->SetEndTimeMS(end_ms + milliseconds);
+                }
+            }
+        }
+        for (auto it = toRemove.begin(); it != toRemove.end(); ++it)
+        {
+            el->RemoveEffect(*it);
+        }
+    }
+    else
+    {
+        // Move right
+        for (int ef = el->GetEffectCount() - 1; ef >= 0; ef--) {  // count backwards so we can delete if needed
+            Effect* eff = el->GetEffect(ef);
+            if (eff->GetSelected())
+            {
+                bool moved = false;
+                int start_ms = eff->GetStartTimeMS();
+                int end_ms = eff->GetEndTimeMS();
+                auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
+                bool clash = false;
+                for (auto it = effectsInTime.begin(); it != effectsInTime.end(); ++it)
+                {
+                    if ((*it)->GetID() != eff->GetID())
+                    {
+                        clash = true;
+                        break;
+                    }
+                }
+                if (!clash)
+                {
+                    eff->SetStartTimeMS(start_ms + milliseconds);
+                    moved = true;
+                }
+                if (moved)
+                {
+                    eff->SetEndTimeMS(end_ms + milliseconds);
+                }
+            }
+        }
     }
 }
 
@@ -7754,3 +7903,4 @@ void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
    pane.IsShown() ? pane.Hide() : pane.Show();
    m_mgr->Update();
 }
+

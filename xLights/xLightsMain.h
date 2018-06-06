@@ -546,6 +546,7 @@ public:
     void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
     void OnMenuItem53Selected(wxCommandEvent& event);
     void OnMenuItem_JukeboxSelected(wxCommandEvent& event);
+    void OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -648,6 +649,7 @@ private:
     static const long ID_FILE_BACKUP;
     static const long ID_FILE_ALTBACKUP;
     static const long ID_SHIFT_EFFECTS;
+    static const long ID_MNU_SHIFT_SELECTED_EFFECTS;
     static const long ID_MENUITEM13;
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
@@ -871,6 +873,7 @@ private:
     wxMenuItem* MenuItemRenderEraseMode;
     wxMenuItem* MenuItemSelectEffect;
     wxMenuItem* MenuItemShiftEffects;
+    wxMenuItem* MenuItemShiftSelectedEffects;
     wxMenuItem* MenuItemTimingEditMode;
     wxMenuItem* MenuItemTimingPlayMode;
     wxMenuItem* MenuItemViewSaveAsPerspective;
@@ -1436,6 +1439,7 @@ private:
     bool CheckForUpdate(bool force);
     void check32AppOn64Machine();
     void ShiftEffectsOnLayer(EffectLayer* el, int milliseconds);
+    void ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds);
     void InitSequencer();
     void CreateSequencer();
     void DoStopSequence();
