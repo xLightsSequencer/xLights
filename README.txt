@@ -12,6 +12,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (dkulp)  Big speedup for Canvas mode
+   -- enh (keith)  Add PixelEditor import
+   -- bug (keith)  Fix LMS CCR imports not working correctly
+   -- bug (keith)  Fix delete and select on a node row not working
+   -- enh (keith)  Add ability for xSchedule to trigger a jukebox item
 2018.14 May 23, 2018
    -- enh (keith)  Add select/copy/paste all effects on a model
    -- enh (keith)  Add windows check for newer version
