@@ -227,6 +227,7 @@ void Effect::SetEffectName(const std::string & name)
 
 wxString Effect::GetDescription() const
 {
+    std::unique_lock<std::mutex> lock(settingsLock);
     if (mSettings.Contains("X_Effect_Description"))
     {
         return mSettings["X_Effect_Description"];
@@ -273,11 +274,13 @@ bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
 
 bool Effect::IsLocked() const
 {
+    std::unique_lock<std::mutex> lock(settingsLock);
     return mSettings.Contains("X_Effect_Locked");
 }
 
 void Effect::SetLocked(bool lock)
 {
+    std::unique_lock<std::mutex> getlock(settingsLock);
     if (lock)
     {
         mSettings["X_Effect_Locked"] = "True";
