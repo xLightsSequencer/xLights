@@ -17,6 +17,15 @@
 #include "FontManager.h"
 #include "SequenceVideoPanel.h"
 
+#include "effects/ButterflyEffect.h"
+#include "effects/BarsEffect.h"
+#include "effects/CurtainEffect.h"
+#include "effects/FireEffect.h"
+#include "effects/GarlandsEffect.h"
+#include "effects/MeteorsEffect.h"
+#include "effects/PinwheelEffect.h"
+#include "effects/SnowflakesEffect.h"
+
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 #include <wx/tokenzr.h>
@@ -24,6 +33,7 @@
 #include <wx/uri.h>
 
 #include "osxMacUtils.h"
+#include "effects/SpiralsPanel.h"
 
 void xLightsFrame::AddAllModelsToSequence()
 {
@@ -2882,7 +2892,7 @@ wxXmlNode* FindLastLPEEffectNode(wxXmlNode* effect, int start_centisecond, int e
         int newstartIntensity = wxAtoi(n->GetAttribute("startIntensity", "100"));
         int newendIntensity = wxAtoi(n->GetAttribute("endIntensity", "100"));
         wxString newsettings = n->GetAttribute("pixelEffect", "");
-        if (settings != settings)
+        if (settings != newsettings)
         {
             break;
         }
@@ -2997,14 +3007,14 @@ float Rescale(float original, float sourceMin, float sourceMax, float targetMin,
     return ((original - sourceMin) / (sourceMax - sourceMin))*(targetMax - targetMin) + targetMin;
 }
 
-wxString RescaleWithRangeI(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc)
+wxString RescaleWithRangeI(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax)
 {
     if (r.Contains("R"))
     {
         // it is a range
         wxArrayString rr = wxSplit(r, 'R');
-        vc = ","+vcName+"=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + wxString::Format("%.2f", targetMin) +
-             "|Max=" + wxString::Format("%.2f", targetMax) +
+        vc = ","+vcName+"=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + wxString::Format("%.2f", targetRealMin) +
+             "|Max=" + wxString::Format("%.2f", targetRealMax) +
              "|P1=" + wxString::Format("%.2f", Rescale(wxAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
              "|P2=" + wxString::Format("%.2f", Rescale(wxAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
              "|RV=TRUE|";
@@ -3017,14 +3027,14 @@ wxString RescaleWithRangeI(wxString r, wxString vcName, float sourceMin, float s
     }
 }
 
-wxString RescaleWithRangeF(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc)
+wxString RescaleWithRangeF(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax)
 {
     if (r.Contains("R"))
     {
         // it is a range
         wxArrayString rr = wxSplit(r, 'R');
-        vc = ","+vcName+"=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + wxString::Format("%.2f", targetMin) +
-             "|Max=" + wxString::Format("%.2f", targetMax) +
+        vc = ","+vcName+"=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + wxString::Format("%.2f", targetRealMin) +
+             "|Max=" + wxString::Format("%.2f", targetRealMax) +
              "|P1=" + wxString::Format("%.2f", Rescale(wxAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
              "|P2=" + wxString::Format("%.2f", Rescale(wxAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
              "|RV=TRUE|";
@@ -3036,7 +3046,7 @@ wxString RescaleWithRangeF(wxString r, wxString vcName, float sourceMin, float s
     return wxString::Format("%.1f", Rescale(wxAtof(r), sourceMin, sourceMax, targetMin, targetMax));
 }
 
-std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayString& arrSettings, std::string& palette)
+std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayString& arrSettings, std::string& palette, int durationMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -3050,17 +3060,17 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString style = parms[0];
             wxString chunks = parms[1];
             wxString vcChunks;
-            chunks = RescaleWithRangeI(chunks, "E_VALUECURVE_Butterfly_Chunks", 1, 10, 1, 10, vcChunks);
+            chunks = RescaleWithRangeI(chunks, "E_VALUECURVE_Butterfly_Chunks", 1, 10, 1, 10, vcChunks, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX);
             wxString skip = parms[2];
             wxString vcSkip;
-            skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip);
+            skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip, BUTTERFLY_SKIP_MIN, BUTTERFLY_SKIP_MAX);
             wxString direction = parms[3];
             wxString hue = parms[4];
             wxString vcHue;
-            hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue);
+            hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
             wxString speed = parms[5];
             wxString vcSpeed;
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed); // target range is actually 0-100 but i think 50 = 50
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX); 
             wxString colours = parms[6];
 
             if (style == "linear")
@@ -3135,26 +3145,29 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             // 1, left_to_right, 20, 50, 0, False, none, 12
             wxString repeat = parms[0];
             wxString vcRepeat;
-            repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Spirals_Count", 1, 5, 1, 5, vcRepeat);
+            repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Spirals_Count", 1, 5, 1, 5, vcRepeat, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
             wxString direction = parms[1];
             wxString rotation = parms[2];
+            rotation = wxString::Format("%.2f", wxAtof(rotation) / 60.0);
             wxString vcRotation;
-            rotation = RescaleWithRangeI(rotation, "E_VALUECURVE_Spirals_Rotation", 0, 50, 0, 30, vcRotation);
+            rotation = RescaleWithRangeF(rotation, "E_VALUECURVE_Spirals_Rotation", 0, 50, 0, 50, vcRotation, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
+            rotation = wxString::Format("%d", (int)(wxAtof(rotation) * 10.0));
             wxString thickness = parms[3];
             wxString vcThickness;
-            thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 1000, vcThickness);
+            thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 100, vcThickness, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
             wxString thicknessChange = parms[4];
             wxString blend = parms[5];
             wxString show3d = parms[6];
             wxString speed = parms[7];
+            speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)durationMS / 1000.0))));
             wxString vcSpeed;
             if (direction == "right_to_left")
             {
-                speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -200, vcSpeed);
+                speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -50, vcSpeed, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
             }
             else
             {
-                speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, 200, vcSpeed);
+                speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, 50, vcSpeed, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
             }
 
             settings += ",E_SLIDER_Spirals_Count=" + repeat;
@@ -3191,15 +3204,16 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString direction = parms[0];
             wxString repeat = parms[1];
             wxString vcRepeat;
-            repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Bars_BarCount", 1, 5, 1, 5, vcRepeat);
+            repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Bars_BarCount", 1, 5, 1, 5, vcRepeat, BARCOUNT_MIN, BARCOUNT_MAX);
             wxString highlight = parms[2];
             wxString show3d = parms[3];
             wxString speed = parms[4];
+            speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)durationMS / 1000.0))));
             wxString vcSpeed;
-            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed);            
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BARCYCLES_MIN, BARCYCLES_MAX);            
             wxString centre = parms[5];
             wxString vcCentre;
-            centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre);
+            centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BARCENTER_MIN, BARCENTER_MAX);
                             
             settings += ",E_SLIDER_Bars_BarCount=" + repeat;
             settings += vcRepeat;
@@ -3239,9 +3253,9 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString font = parms[1];
             wxString fontSize = parms[2];
             wxString vcCrap;
-            fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 100, 0, 100, vcCrap);
+            fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
             wxString position = parms[3];
-            position = RescaleWithRangeI(position, "IGNORE", -50, 50, -200, 200, vcCrap);
+            position = RescaleWithRangeI(position, "IGNORE", -50, 50, -200, 200, vcCrap, -1, -1);
 
             settings += ",E_TEXTCTRL_Text=" + seconds;
             settings += ",E_CHOICE_Text_Count=seconds";
@@ -3272,11 +3286,11 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString movement = parms[1];
             wxString swag = parms[2];
             wxString vcSwag;
-            swag = RescaleWithRangeF(swag, "E_VALUECURVE_Curtain_Swag", 0, 10, 0, 10, vcSwag);
+            swag = RescaleWithRangeF(swag, "E_VALUECURVE_Curtain_Swag", 0, 10, 0, 10, vcSwag, CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX);
             wxString repeat = parms[3];
             wxString speed = parms[4];
             wxString vcSpeed;
-            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Curtain_Speed", 0, 50, 0, 10, vcSpeed);
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Curtain_Speed", 0, 50, 0, 10, vcSpeed, CURTAIN_SPEED_MIN, CURTAIN_SPEED_MAX);
 
             settings += ",E_CHOICE_Curtain_Edge=" + edge;
             movement.Replace("_", " ");
@@ -3308,10 +3322,10 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             //50,0
             wxString height = parms[0];
             wxString vcHeight;
-            height = RescaleWithRangeI(height, "E_VALUECURVE_Fire_Height", 10, 100, 0, 100, vcHeight);
+            height = RescaleWithRangeI(height, "E_VALUECURVE_Fire_Height", 10, 100, 0, 100, vcHeight, FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX);
             wxString hueShift = parms[1];
             wxString vcHueShift;
-            hueShift = RescaleWithRangeI(hueShift, "E_VALUECURVE_Fire_HueShift", 0, 359, 0, 100, vcHueShift);
+            hueShift = RescaleWithRangeI(hueShift, "E_VALUECURVE_Fire_HueShift", 0, 359, 0, 100, vcHueShift, FIRE_HUE_MIN, FIRE_HUE_MAX);
 
             settings += ",E_SLIDER_Fire_Height=" + height;
             settings += vcHeight;
@@ -3323,13 +3337,13 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             // 10,50,2,30,normal,continuous
             wxString explosionRate = parms[0];
             wxString vcCrap;
-            explosionRate = RescaleWithRangeI(explosionRate, "IGNORE", 1, 95, 1, 50, vcCrap);
+            explosionRate = RescaleWithRangeI(explosionRate, "IGNORE", 1, 95, 1, 50, vcCrap, -1, -1);
             wxString particles = parms[1];
-            particles = RescaleWithRangeI(particles, "IGNORE", 1, 100, 1, 100, vcCrap);
+            particles = RescaleWithRangeI(particles, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
             wxString velocity = parms[2];
-            velocity = RescaleWithRangeI(velocity, "IGNORE", 1, 10, 1, 10, vcCrap);
+            velocity = RescaleWithRangeI(velocity, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
             wxString fade = parms[3];
-            fade = RescaleWithRangeI(fade, "IGNORE", 1, 100, 1, 100, vcCrap);
+            fade = RescaleWithRangeI(fade, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
             wxString pattern = parms[4]; // not used
             wxString rateChange = parms[5]; // not used
             settings += ",E_SLIDER_Fireworks_Explosions=" + explosionRate;
@@ -3342,14 +3356,14 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             // 3,34,once_at_speed,12,bottom_to_top
             wxString type = parms[0];
             wxString vcCrap;
-            type = RescaleWithRangeI(type, "IGNORE", 0, 4, 0, 4, vcCrap);
+            type = RescaleWithRangeI(type, "IGNORE", 0, 4, 0, 4, vcCrap, -1, -1);
             wxString spacing = parms[1];
             wxString vcSpacing;
-            spacing = RescaleWithRangeI(spacing, "E_VALUECURVE_Garlands_Spacing", 0, 100, 1, 100, vcSpacing);
+            spacing = RescaleWithRangeI(spacing, "E_VALUECURVE_Garlands_Spacing", 0, 100, 1, 100, vcSpacing, GARLANDS_SPACING_MIN, GARLANDS_SPACING_MAX);
             wxString repeat = parms[2];
             wxString speed = parms[3];
             wxString vcSpeed;
-            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Garlands_Cycles", 0, 50, 0, 20, vcSpeed);
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Garlands_Cycles", 0, 50, 0, 20, vcSpeed, GARLANDS_CYCLES_MIN, GARLANDS_CYCLES_MAX);
             wxString fill = parms[4];
 
             settings += ",E_SLIDER_Garlands_Type=" + type;
@@ -3394,17 +3408,17 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString colourScheme = parms[0];
             wxString count = parms[1];
             wxString vcCount;
-            count = RescaleWithRangeI(count, "E_VALUECURVE_Meteors_Count", 1, 100, 1, 100, vcCount);
+            count = RescaleWithRangeI(count, "E_VALUECURVE_Meteors_Count", 1, 100, 1, 100, vcCount, METEORS_COUNT_MIN, METEORS_COUNT_MAX);
             wxString length = parms[2];
             wxString vcLength;
-            length = RescaleWithRangeI(length, "E_VALUECURVE_Meteors_Length", 1, 100, 1, 100, vcLength);
+            length = RescaleWithRangeI(length, "E_VALUECURVE_Meteors_Length", 1, 100, 1, 100, vcLength, METEORS_LENGTH_MIN, METEORS_LENGTH_MAX);
             wxString effect = parms[3];
             wxString swirl = parms[4];
             wxString vcSwirl;
-            swirl = RescaleWithRangeI(swirl, "E_VALUECURVE_Meteors_Swirl_Intensity", 0, 20, 0, 20, vcSwirl);
+            swirl = RescaleWithRangeI(swirl, "E_VALUECURVE_Meteors_Swirl_Intensity", 0, 20, 0, 20, vcSwirl, METEORS_SWIRL_MIN, METEORS_SWIRL_MAX);
             wxString speed = parms[5];
             wxString vcSpeed;
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Meteors_Speed", 1, 50, 1, 50, vcSpeed);
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Meteors_Speed", 1, 50, 1, 50, vcSpeed, METEORS_SPEED_MIN, METEORS_SPEED_MAX);
 
             settings += ",E_CHOICE_Meteors_Type=" + colourScheme.Lower();
             settings += ",E_SLIDER_Meteors_Count=" + count;
@@ -3451,13 +3465,13 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString movement = parms[2];
             wxString x = parms[3];
             wxString vcCrap;
-            x = RescaleWithRangeI(x, "IGNORE", -50, 50, -100, 100, vcCrap);
+            x = RescaleWithRangeI(x, "IGNORE", -50, 50, -100, 100, vcCrap, -1, -1);
             wxString peekabooHoldTime = parms[4]; // not used
-            peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 100, 0, 100, vcCrap);
+            peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
             wxString wiggle = parms[5]; // not used
-            wiggle = RescaleWithRangeI(wiggle, "IGNORE", 0, 100, 0, 100, vcCrap);
+            wiggle = RescaleWithRangeI(wiggle, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
             wxString speed = parms[6];
-            speed = RescaleWithRangeF(speed, "IGNORE", 0, 50, 0, 20, vcCrap);
+            speed = RescaleWithRangeF(speed, "IGNORE", 0, 50, 0, 20, vcCrap, -1, -1);
 
             settings += ",E_FILEPICKER_Pictures_Filename=" + file;
             if (scale == "True")
@@ -3496,28 +3510,28 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
 
             wxString arms = parms[0];
             wxString vcCrap;
-            arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap);
+            arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
             wxString width = parms[1];
             wxString vcWidth;
-            width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth);
+            width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX);
             wxString bend = parms[2];
             wxString vcBend;
-            bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend);
+            bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX);
             wxString colour = parms[3]; // not used
             wxString CCW = parms[4];
             wxString speed = parms[5];
             wxString vcSpeed;
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed);
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
             wxString length = parms[6];
             wxString vcLength;
-            length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength);
+            length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX);
             wxString x = parms[7];
             wxString vcX;
-            x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX);
+            x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PINWHEEL_X_MIN, PINWHEEL_X_MAX);
             wxString y = parms[8];
             wxString vcY;
-            y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY);
-
+            y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+            
             settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
             settings += ",E_SLIDER_Pinwheel_Thickness=" + width;
             settings += vcWidth;
@@ -3546,17 +3560,17 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             //5,1,0,12,60
             wxString count = parms[0];
             wxString vcCount;
-            count = RescaleWithRangeI(count, "E_VALUECURVE_Snowflakes_Count", 1, 20, 1, 20, vcCount);
+            count = RescaleWithRangeI(count, "E_VALUECURVE_Snowflakes_Count", 1, 20, 1, 20, vcCount, SNOWFLAKES_COUNT_MIN, SNOWFLAKES_COUNT_MAX);
             wxString type = parms[1];
             wxString vcCrap;
-            type = RescaleWithRangeI(type, "IGNORE", 0, 5, 0, 5, vcCrap);
+            type = RescaleWithRangeI(type, "IGNORE", 0, 5, 0, 5, vcCrap, -1, -1);
             wxString direction = parms[2]; // not used
-            direction = RescaleWithRangeI(direction, "IGNORE", -8, 8, -8, 8, vcCrap);
+            direction = RescaleWithRangeI(direction, "IGNORE", -8, 8, -8, 8, vcCrap, -1, -1);
             wxString speed = parms[3];
             wxString vcSpeed;
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Snowflakes_Speed", 0, 50, 0, 50, vcSpeed);
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Snowflakes_Speed", 0, 50, 0, 50, vcSpeed, SNOWFLAKES_SPEED_MIN, SNOWFLAKES_SPEED_MAX);
             wxString accumulation = parms[4];
-            accumulation = RescaleWithRangeI(accumulation, "IGNORE", 0, 100, 0, 100, vcCrap);
+            accumulation = RescaleWithRangeI(accumulation, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
 
             settings += ",E_SLIDER_Snowflakes_Count=" + count;
             settings += ",E_SLIDER_Snowflakes_Type=" + type;
@@ -3584,16 +3598,16 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             text.Replace("&amp;", "&");
             wxString fontSize = parms[1];
             wxString vcCrap;
-            fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 149, 0, 149, vcCrap);
+            fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 149, 0, 149, vcCrap, -1, -1);
             wxString movement = parms[2];
             wxString position = parms[3];
-            position = RescaleWithRangeI(position, "IGNORE", -50, 49, -200, 200, vcCrap);
+            position = RescaleWithRangeI(position, "IGNORE", -50, 49, -200, 200, vcCrap, -1, -1);
             wxString peekabooHoldTime = parms[4]; // unused
-            peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 99, 0, 99, vcCrap);
+            peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
             wxString bounce = parms[5]; // unused
-            bounce = RescaleWithRangeI(bounce, "IGNORE", 0, 99, 0, 99, vcCrap);
+            bounce = RescaleWithRangeI(bounce, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
             wxString speed = parms[6];
-            speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap);
+            speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap, -1, -1);
             if (parms.size() > 7)
             {
                 wxString unknown1 = parms[7]; // unused
@@ -3632,9 +3646,9 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             // 50,25,twinkle,random
             wxString rate = parms[0];
             wxString vcCrap;
-            rate = RescaleWithRangeI(rate, "IGNORE", 0, 100, 0, 100, vcCrap);
+            rate = RescaleWithRangeI(rate, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
             wxString density = parms[1];
-            density = RescaleWithRangeI(density, "IGNORE", 0, 100, 0, 100, vcCrap);
+            density = RescaleWithRangeI(density, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
             wxString mode = parms[2];
             wxString layout = parms[3];
 
@@ -3799,7 +3813,7 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
                                                         }
                                                     }
 
-                                                    newsettings += LPEParseEffectSettings(effectType, effSettings, newpalette);
+                                                    newsettings += LPEParseEffectSettings(effectType, effSettings, newpalette, (endCentisecond - startCentisecond) * 10);
 
                                                     layer->AddEffect(0, ourEffectType, newsettings, newpalette, TimeLine::RoundToMultipleOfPeriod(startCentisecond * 10, frequency), TimeLine::RoundToMultipleOfPeriod(endCentisecond * 10, frequency), false, false);
                                                 }

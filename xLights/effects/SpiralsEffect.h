@@ -3,7 +3,6 @@
 
 #include "RenderableEffect.h"
 
-
 class SpiralsEffect : public RenderableEffect {
     public:
         SpiralsEffect(int id);
