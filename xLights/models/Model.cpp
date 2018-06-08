@@ -1171,10 +1171,22 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                         if (i == -1 && m == this && stringStartChan.size() > 0) {
                             i = stringStartChan[0];
                         }
-                        return i + returnChannel;
+                        int res = i + returnChannel;
+                        if (res < 1)
+                        {
+                            valid = false;
+                            res = 1;
+                        }
+                        return res;
                     }
                     else {
-                        return m->GetLastChannel() + returnChannel + 1;
+                        int res = m->GetLastChannel() + returnChannel + 1;
+                        if (res < 1)
+                        {
+                            valid = false;
+                            res = 1;
+                        }
+                        return res;
                     }
                 }
                 else {
@@ -1193,7 +1205,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
                 int returnChannel = wxAtoi(cs[2]);
 
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel(cs[0].Trim(false).Trim(true).ToStdString(), returnUniverse - 1, returnChannel - 1);
-                if (res <= 0)
+                if (res < 1)
                 {
                     res = 1;
                     valid = false;
@@ -1208,7 +1220,7 @@ int Model::GetNumberFromChannelString(const std::string &str, bool &valid, std::
 
                 // find output based on universe number ...
                 int res = modelManager.GetOutputManager()->GetAbsoluteChannel("", returnUniverse - 1, returnChannel - 1);
-                if (res <= 0)
+                if (res < 1)
                 {
                     res = 1;
                     valid = false;
