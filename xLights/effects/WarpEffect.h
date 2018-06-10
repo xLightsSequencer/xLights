@@ -35,6 +35,7 @@ class WarpEffect : public RenderableEffect
         static unsigned s_programId_bandedSwirl_out;
         static unsigned s_programId_ripple_in;
         static unsigned s_programId_ripple_out;
+        static unsigned s_programId_waterdrops;
         static unsigned s_noiseTexId;
         static unsigned s_vertexArrayId;
         static unsigned s_vertexBufferId;
