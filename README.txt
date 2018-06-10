@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix delete and select on a node row not working
    -- enh (keith)  Add ability for xSchedule to trigger a jukebox item
    -- enh (keith)  Add the ability to shift a set of selected effects by a given time interval
+   -- enh (scott)  Added Import Button to Submodel Dialog, this will import submodels from xmodel files.
 2018.14 May 23, 2018
    -- enh (keith)  Add select/copy/paste all effects on a model
    -- enh (keith)  Add windows check for newer version
