@@ -5,6 +5,7 @@
 #include <vector>
 #include <wx/dnd.h>
 #include <wx/listctrl.h>
+#include <wx/xml/xml.h>
 
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
@@ -88,6 +89,7 @@ public:
     wxButton* Button_ReverseNodes;
     wxButton* Button_ReverseRow;
     wxButton* Button_ReverseRows;
+    wxButton* Button_Sub_Import;
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
     wxCheckBox* LayoutCheckbox;
@@ -114,6 +116,7 @@ protected:
     static const long ID_BUTTON3;
     static const long ID_BUTTON4;
     static const long ID_BUTTON5;
+    static const long ID_BUTTON_SUB_IMPORT;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
@@ -157,6 +160,9 @@ protected:
     void SelectRow(int r);
     wxString ReverseRow(wxString row);
 
+    void ImportSubModel(std::string filename);
+    void ReadSubModelXML(wxXmlNode* xmlData);
+
 private:
 
     //(*Handlers(SubModelsDialog)
@@ -183,6 +189,7 @@ private:
     void OnButton_ReverseRowClick(wxCommandEvent& event);
     void OnButton_MoveDownClick(wxCommandEvent& event);
     void OnButton_MoveUpClick(wxCommandEvent& event);
+    void OnButton_Sub_ImportClick(wxCommandEvent& event);
     //*)
 
     wxWindow* _parent;
