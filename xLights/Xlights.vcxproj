@@ -182,8 +182,10 @@
     <ClCompile Include="controllers\SimpleFTP.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
+    <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
+    <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="effects\CandlePanel.cpp" />
@@ -203,6 +205,7 @@
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
+    <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
@@ -488,6 +491,7 @@
     <ClCompile Include="ViewsModelsPanel.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
+    <ClCompile Include="WarpPanel.cpp" />
     <ClCompile Include="WiringDialog.cpp" />
     <ClCompile Include="wxCheckedListCtrl.cpp" />
     <ClCompile Include="xlColorCanvas.cpp" />
@@ -521,8 +525,10 @@
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\SimpleFTP.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
+    <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
+    <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="FolderSelection.h" />
     <ClInclude Include="FontManager.h" />
@@ -544,6 +550,7 @@
     <ClInclude Include="effects\ServoEffect.h" />
     <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
+    <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="outputs/ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />
@@ -823,6 +830,7 @@
     <ClInclude Include="ViewsModelsPanel.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />
+    <ClInclude Include="WarpPanel.h" />
     <ClInclude Include="wininet.h" />
     <ClInclude Include="WiringDialog.h" />
     <ClInclude Include="wxCheckedListCtrl.h" />
