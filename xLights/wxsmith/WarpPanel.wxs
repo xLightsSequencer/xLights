@@ -78,7 +78,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_X" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_X" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_X" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_X" member="yes">
 							<value>50</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
@@ -104,7 +104,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_Y" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Y" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_Y" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Y" member="yes">
 							<value>50</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
@@ -131,7 +131,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Speed" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Speed" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
@@ -158,7 +158,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_Frequency" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Frequency" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_Frequency" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Frequency" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
@@ -171,7 +171,7 @@
 						<object class="wxFlexGridSizer" variable="PreviewSizer" member="no">
 							<cols>3</cols>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

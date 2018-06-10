@@ -2,6 +2,7 @@
 #define WARPPANEL_H
 
 #include "xlGLCanvas.h"
+#include "BulkEditControls.h"
 
 class WarpPreview : public xlGLCanvas
 {
@@ -24,8 +25,6 @@ protected:
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
-
-#include "../BulkEditControls.h"
 
 class WarpPanel: public wxPanel
 {
@@ -64,16 +63,16 @@ class WarpPanel: public wxPanel
 		static const long ID_CHOICE_Warp_Treatment;
 		static const long ID_STATICTEXT3;
 		static const long ID_SLIDER_Warp_X;
-		static const long ID_TEXTCTRL_Warp_X;
+		static const long IDD_TEXTCTRL_Warp_X;
 		static const long ID_STATICTEXT4;
 		static const long ID_SLIDER_Warp_Y;
-		static const long ID_TEXTCTRL_Warp_Y;
+		static const long IDD_TEXTCTRL_Warp_Y;
 		static const long ID_STATICTEXT6;
 		static const long ID_SLIDER_Warp_Speed;
-		static const long ID_TEXTCTRL_Warp_Speed;
+		static const long IDD_TEXTCTRL_Warp_Speed;
 		static const long ID_STATICTEXT5;
 		static const long ID_SLIDER_Warp_Frequency;
-		static const long ID_TEXTCTRL_Warp_Frequency;
+		static const long IDD_TEXTCTRL_Warp_Frequency;
 		//*)
 
 		WarpPreview * _preview;

@@ -59,8 +59,8 @@ public:
 		eff_TWINKLE,
 		eff_VIDEO,
 		eff_VUMETER,
-		eff_WAVE,
-      eff_WARP,
+        eff_WARP,
+        eff_WAVE,
         eff_LASTEFFECT //Always the last entry
     };
 

@@ -83,7 +83,7 @@ namespace
       double   Dist2( const Vec2D& p ) const { return ( *this - p ).Len2(); }
       double   Dist( const Vec2D& p ) const { return ( *this - p ).Len(); }
       Vec2D    Norm() const { return Len() > 0 ? *this / Len() : Vec2D( 0, 0 ); }
-      BOOL     IsNormal() const { return fabs( Len2() - 1 ) < 1e-6; }
+      bool     IsNormal() const { return fabs( Len2() - 1 ) < 1e-6; }
       Vec2D    Rotate( const double& fAngle ) const
       {
          double cs = ::cos( fAngle );
@@ -672,7 +672,7 @@ std::string WarpEffect::GetEffectString()
 
      int freq = p->Slider_Warp_Frequency->GetValue();
      if ( 20 != freq )
-       ret << "E_TEXTCTRL_Warp_Freq=" << p->TextCtrl_Warp_Frequency->GetValue().ToStdString() << ",";
+       ret << "E_TEXTCTRL_Warp_Frequency=" << p->TextCtrl_Warp_Frequency->GetValue().ToStdString() << ",";
 
      return ret.str();
 }
@@ -691,8 +691,8 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
       settingsMap.erase( "E_TEXTCTRL_Warp_Y" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Speed", "" )== "20" )
       settingsMap.erase( "E_TEXTCTRL_Warp_Speed" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Freq", "" )== "20" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Freq" );
+    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Frequency", "" )== "20" )
+      settingsMap.erase( "E_TEXTCTRL_Warp_Frequency" );
 
     RenderableEffect::RemoveDefaults(version, effect);
 }
@@ -704,7 +704,7 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    std::string warpStrX = SettingsMap.Get( "TEXTCTRL_Warp_X", "50" );
    std::string warpStrY = SettingsMap.Get( "TEXTCTRL_Warp_Y", "50" );
    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
-   std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Freq", "20" );
+   std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
    float x = 0.01f * std::stoi( warpStrX );
    float y = 0.01f * std::stoi( warpStrY );
    float speed = std::stof( speedStr );
@@ -808,62 +808,62 @@ bool WarpEffect::CanRenderOnBackgroundThread( Effect *effect, const SettingsMap 
    return !( useOpenGL && OpenGLShaders::HasShaderSupport() && OpenGLShaders::HasFramebufferObjects() );
 }
 
-void WarpEffect::sizeForRenderBuffer( const RenderBuffer& rb )
+void WarpEffect::sizeForRenderBuffer(const RenderBuffer& rb)
 {
-   if ( !s_shadersInit )
-   {
-      s_programId_dissolve_in = OpenGLShaders::compile( vsSrc, psDissolveIn );
-      s_programId_dissolve_out = OpenGLShaders::compile( vsSrc, psDissolveOut );
-      s_programId_circleReveal_in = OpenGLShaders::compile( vsSrc, psCircleRevealIn );
-      s_programId_circleReveal_out = OpenGLShaders::compile( vsSrc, psCircleRevealOut );
-      s_programId_bandedSwirl_in = OpenGLShaders::compile( vsSrc, psBandedSwirlIn );
-      s_programId_bandedSwirl_out = OpenGLShaders::compile( vsSrc, psBandedSwirlOut );
-      s_programId_ripple_in = OpenGLShaders::compile( vsSrc, psRippleIn );
-      s_programId_ripple_out = OpenGLShaders::compile( vsSrc, psRippleOut );
-      s_programId_waterdrops = OpenGLShaders::compile( vsSrc, psWaterDrops );
-      s_noiseTexId = NoiseTexture();
+    if (!s_shadersInit)
+    {
+        s_programId_dissolve_in = OpenGLShaders::compile(vsSrc, psDissolveIn);
+        s_programId_dissolve_out = OpenGLShaders::compile(vsSrc, psDissolveOut);
+        s_programId_circleReveal_in = OpenGLShaders::compile(vsSrc, psCircleRevealIn);
+        s_programId_circleReveal_out = OpenGLShaders::compile(vsSrc, psCircleRevealOut);
+        s_programId_bandedSwirl_in = OpenGLShaders::compile(vsSrc, psBandedSwirlIn);
+        s_programId_bandedSwirl_out = OpenGLShaders::compile(vsSrc, psBandedSwirlOut);
+        s_programId_ripple_in = OpenGLShaders::compile(vsSrc, psRippleIn);
+        s_programId_ripple_out = OpenGLShaders::compile(vsSrc, psRippleOut);
+        s_programId_waterdrops = OpenGLShaders::compile(vsSrc, psWaterDrops);
+        s_noiseTexId = NoiseTexture();
 
-      VertexTex vt[4] =
-      {
-         { {  1.f, -1.f }, { 1.f, 0.f } },
-         { { -1.f, -1.f }, { 0.f, 0.f } },
-         { {  1.f,  1.f }, { 1.f, 1.f } },
-         { { -1.f,  1.f }, { 0.f, 1.f } }
-      };
-      glGenVertexArrays( 1, &s_vertexArrayId );
-      glGenBuffers( 1, &s_vertexBufferId );
+        VertexTex vt[4] =
+        {
+           { {  1.f, -1.f }, { 1.f, 0.f } },
+           { { -1.f, -1.f }, { 0.f, 0.f } },
+           { {  1.f,  1.f }, { 1.f, 1.f } },
+           { { -1.f,  1.f }, { 0.f, 1.f } }
+        };
+        glGenVertexArrays(1, &s_vertexArrayId);
+        glGenBuffers(1, &s_vertexBufferId);
 
-      glBindVertexArray( s_vertexArrayId );
-      glBindBuffer( GL_ARRAY_BUFFER, s_vertexBufferId );
-      glBufferData( GL_ARRAY_BUFFER, sizeof(VertexTex[4]), vt, GL_STATIC_DRAW );
+        glBindVertexArray(s_vertexArrayId);
+        glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(VertexTex[4]), vt, GL_STATIC_DRAW);
 
-      glBindVertexArray( 0 );
-      glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-      createOpenGLRenderBuffer( rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId );
+        createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
 
-      s_rbTex = RenderBufferTexture( rb.BufferWi, rb.BufferHt );
+        s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
 
-      s_rbWidth = rb.BufferWi;
-      s_rbHeight = rb.BufferHt;
-      s_shadersInit = true;
-   }
-   else if ( rb.BufferWi > s_rbWidth || rb.BufferHt > s_rbHeight )
-   {
-      glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-      if ( s_fbId )
-         glDeleteFramebuffers( 1, &s_fbId );
-      if ( s_rbId )
-      {
-         glBindRenderbuffer( GL_RENDERBUFFER, 0 );
-         glDeleteRenderbuffers( 1, &s_rbId );
-      }
-      if ( s_rbTex )
-         glDeleteTextures( 1, &s_rbTex );
-      createOpenGLRenderBuffer( rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId );
-      s_rbTex = RenderBufferTexture( rb.BufferWi, rb.BufferHt );
+        s_rbWidth = rb.BufferWi;
+        s_rbHeight = rb.BufferHt;
+        s_shadersInit = true;
+    }
+    else if (rb.BufferWi > s_rbWidth || rb.BufferHt > s_rbHeight)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (s_fbId)
+            glDeleteFramebuffers(1, &s_fbId);
+        if (s_rbId)
+        {
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
+            glDeleteRenderbuffers(1, &s_rbId);
+        }
+        if (s_rbTex)
+            glDeleteTextures(1, &s_rbTex);
+        createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
+        s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
 
-      s_rbWidth = rb.BufferWi;
-      s_rbHeight = rb.BufferHt;
-   }
+        s_rbWidth = rb.BufferWi;
+        s_rbHeight = rb.BufferHt;
+    }
 }
