@@ -1457,12 +1457,9 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
             wxString name = child->GetAttribute("name");
-            //cannot have duplicate names, skip
+            //cannot have duplicate names, generate new
             if (GetSubModelInfoIndex(name) != -1)
-            {
-                child = child->GetNext();
-                continue;
-            }
+                name = GenerateSubModelName(name);
             SubModelInfo *sm = new SubModelInfo(name);
             sm->name = name;
             sm->oldName = name;
