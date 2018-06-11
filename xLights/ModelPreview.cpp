@@ -36,6 +36,32 @@ END_EVENT_TABLE()
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
+PreviewCamera::PreviewCamera()
+{
+    angleX = 20.0f;
+    angleY = 5.0f;
+    distance = -2000.0f;
+    posX = -500.0f;
+    posY = 0.0f;
+    zoom = 1.0f;
+    panx = 0.0f;
+    pany = 0.0f;
+    zoom_corrx = 0.0f;
+    zoom_corry = 0.0f;
+    is_3d = true;
+}
+
+PreviewCamera::~PreviewCamera()
+{
+}
+
+void ModelPreview::setupCameras()
+{
+    camera3d = new PreviewCamera();
+    camera3d->is_3d = true;
+    camera2d = new PreviewCamera();
+}
+
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
 	if (m_mouse_down) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
@@ -237,7 +263,7 @@ void ModelPreview::keyReleased(wxKeyEvent& event) {}
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
       image(nullptr), PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_),
-      m_mouse_down(false), m_wheel_down(false), is_3d(false)
+      m_mouse_down(false), m_wheel_down(false), is_3d(false), camera3d(nullptr), camera2d(nullptr)
 {
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
@@ -245,19 +271,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     virtualHeight = 0;
     sprite = nullptr;
     _model = nullptr;
-    cameraAngleX = 20;
-    cameraAngleY = 5;
-	cameraDistance = -2000.0f;
-    cameraPosX = -500;
-    cameraPosY = 0;
-    zoom = 1.0f;
-    zoom2D = 1.0f;
-    panx = 0.0f;
-    pany = 0.0f;
-    panx2D = 0.0f;
-    pany2D = 0.0f;
-    zoom_corrx2D = 0.0f;
-    zoom_corry2D = 0.0f;
+    setupCameras();
 }
 
 ModelPreview::ModelPreview(wxPanel* parent)
@@ -269,13 +283,11 @@ ModelPreview::ModelPreview(wxPanel* parent)
     virtualWidth = 0;
     virtualHeight = 0;
     is_3d = false;
-    zoom2D = 1.0f;
-    panx2D = 0.0f;
-    pany2D = 0.0f;
-    zoom_corrx2D = 0.0f;
-    zoom_corry2D = 0.0f;
+    setupCameras();
     image = nullptr;
     sprite = nullptr;
+    camera3d = nullptr;
+    camera2d = nullptr;
     xlights = nullptr;
 }
 
@@ -436,20 +448,20 @@ void ModelPreview::SetCameraView(int camerax, int cameray, bool latch)
 {
 	static int last_offsetx = 0;
 	static int last_offsety = 0;
-	static int latched_x = cameraAngleX;
-	static int latched_y = cameraAngleY;
+	static int latched_x = camera3d->angleX;
+	static int latched_y = camera3d->angleY;
 
 	if (latch) {
-		cameraAngleX = latched_x + last_offsetx;
-		cameraAngleY = latched_y + last_offsety;
-		latched_x = cameraAngleX;
-		latched_y = cameraAngleY;
+        camera3d->angleX = latched_x + last_offsetx;
+        camera3d->angleY = latched_y + last_offsety;
+		latched_x = camera3d->angleX;
+		latched_y = camera3d->angleY;
         last_offsetx = 0;
         last_offsety = 0;
     }
 	else {
-		cameraAngleX = latched_x + cameray / 2;
-		cameraAngleY = latched_y + camerax / 2;
+        camera3d->angleX = latched_x + cameray / 2;
+        camera3d->angleY = latched_y + camerax / 2;
 		last_offsetx = cameray / 2;
 		last_offsety = camerax / 2;
 	}
@@ -459,18 +471,18 @@ void ModelPreview::SetCameraPos(int camerax, int cameray, bool latch)
 {
 	static int last_offsetx = 0;
 	static int last_offsety = 0;
-	static int latched_x = cameraPosX;
-	static int latched_y = cameraPosY;
+	static int latched_x = camera3d->posX;
+	static int latched_y = camera3d->posY;
 
 	if (latch) {
-		cameraPosX = latched_x + last_offsetx;
-		cameraPosY = latched_y + last_offsety;
-		latched_x = cameraPosX;
-		latched_y = cameraPosY;
+        camera3d->posX = latched_x + last_offsetx;
+        camera3d->posY = latched_y + last_offsety;
+		latched_x = camera3d->posX;
+		latched_y = camera3d->posY;
 	}
 	else {
-		cameraPosX = latched_x + camerax;
-		cameraPosY = latched_y + cameray;
+        camera3d->posX = latched_x + camerax;
+        camera3d->posY = latched_y + cameray;
 		last_offsetx = camerax;
 		last_offsety = cameray;
 	}
@@ -479,24 +491,24 @@ void ModelPreview::SetCameraPos(int camerax, int cameray, bool latch)
 void ModelPreview::SetZoomDelta(float delta)
 {
     if (is_3d) {
-        zoom *= 1.0f + delta;
+        camera3d->zoom *= 1.0f + delta;
     }
     else {
-        zoom2D *= 1.0f - delta;
-        zoom_corrx2D = ((mWindowWidth * zoom2D) - mWindowWidth) / 2.0f;
-        zoom_corry2D = ((mWindowHeight * zoom2D) - mWindowHeight) / 2.0f;
+        camera2d->zoom *= 1.0f - delta;
+        camera2d->zoom_corrx = ((mWindowWidth * camera2d->zoom) - mWindowWidth) / 2.0f;
+        camera2d->zoom_corry = ((mWindowHeight * camera2d->zoom) - mWindowHeight) / 2.0f;
     }
 }
 
 void ModelPreview::SetPan(float deltax, float deltay)
 {
     if (is_3d) {
-        panx += deltax;
-        pany += deltay;
+        camera3d->panx += deltax;
+        camera3d->pany += deltay;
     }
     else {
-        panx2D += deltax;
-        pany2D += deltay;
+        camera2d->panx += deltax;
+        camera2d->pany += deltay;
     }
 }
 
@@ -523,15 +535,15 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             // centers the direction that is smaller
             if (scale2dh < scale2dw) {
                 scale2d = scale2dh;
-                scale_corrx = ((scale2dw*(float)virtualWidth - (scale2d*(float)virtualWidth)) * zoom2D) / 2.0f;
+                scale_corrx = ((scale2dw*(float)virtualWidth - (scale2d*(float)virtualWidth)) * camera2d->zoom) / 2.0f;
             }
             else {
                 scale2d = scale2dw;
-                scale_corry = ((scale2dh*(float)virtualHeight - (scale2d*(float)virtualHeight)) * zoom2D) / 2.0f;
+                scale_corry = ((scale2dh*(float)virtualHeight - (scale2d*(float)virtualHeight)) * camera2d->zoom) / 2.0f;
             }
         }
-        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(zoom2D * scale2d, zoom2D * scale2d, 1.0f));
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(panx2D*zoom2D - zoom_corrx2D + scale_corrx, pany2D*zoom2D - zoom_corry2D + scale_corry, 0.0f));
+        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(camera2d->zoom * scale2d, camera2d->zoom * scale2d, 1.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(camera2d->panx*camera2d->zoom - camera2d->zoom_corrx + scale_corrx, camera2d->pany*camera2d->zoom - camera2d->zoom_corry + scale_corry, 0.0f));
         ViewMatrix = ViewTranslate * ViewScale;
         ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);  // this must match prepare2DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;
@@ -560,9 +572,9 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 
     /*****************************   3D   ********************************/
     if (is_3d) {
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(cameraPosX + (panx * zoom), cameraPosY + (pany * zoom), cameraDistance * zoom));
-        glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleX), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(cameraAngleY), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->posX + (camera3d->panx * camera3d->zoom), camera3d->posY + (camera3d->pany * camera3d->zoom), camera3d->distance * camera3d->zoom));
+        glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->angleX), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->angleY), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 10000.0f);  // this must match prepare3DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;
@@ -582,7 +594,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         currentPixelScaleFactor = 1.0;
         accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
         accumulator.Finish(GL_TRIANGLES);
-        drawGrid(mWindowWidth, mWindowWidth / 40);
+        if (virtualWidth > 0 && virtualHeight > 0) {
+            drawGrid(virtualWidth, virtualHeight / 40);
+        }
+        else {
+            drawGrid(mWindowWidth, mWindowWidth / 40);
+        }
     }
 
     if (mBackgroundImageExists)
