@@ -20,6 +20,25 @@ class LayoutGroup;
 class xLightsFrame;
 class xlVertex3Accumulator;
 
+class PreviewCamera
+{
+public:
+    PreviewCamera();
+    virtual ~PreviewCamera();
+
+    float posX;
+    float posY;
+    float angleX;
+    float angleY;
+    float distance;
+    float zoom;
+    float panx;
+    float pany;
+    float zoom_corrx;
+    float zoom_corry;
+    bool is_3d;
+};
+
 class ModelPreview : public xlGLCanvas
 {
 
@@ -84,7 +103,7 @@ public:
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive();
-    float GetZoom() { return (is_3d ? zoom : zoom2D); }
+    float GetZoom() { return (is_3d ? camera3d->zoom : camera2d->zoom); }
     void SetPan(float deltax, float deltay);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
@@ -105,6 +124,7 @@ protected:
     virtual bool UsesVertex3ColorAccumulator() override {return true;}
 
 private:
+    void setupCameras();
 	void render(wxPaintEvent& event);
 	void SetOrigin();
 	void mouseMoved(wxMouseEvent& event);
@@ -141,19 +161,6 @@ private:
     DrawGLUtils::xlAccumulator accumulator;
     Model* _model;
     xLightsFrame* xlights;
-    float cameraAngleY;
-    float cameraAngleX;
-    float cameraDistance;
-    float zoom;
-    float zoom2D;  // zoom works opposite in 2D
-    float panx;
-    float pany;
-    float panx2D;
-    float pany2D;
-    float zoom_corrx2D;
-    float zoom_corry2D;
-    float cameraPosX;
-	float cameraPosY;
 	DrawGLUtils::xlVertex3Accumulator gridlines;
     DrawGLUtils::xl3Accumulator accumulator3d;
     bool is_3d;
@@ -163,6 +170,10 @@ private:
     glm::mat4 ViewMatrix;
     glm::mat4 ProjMatrix;
     glm::mat4 ProjViewMatrix;
+
+    std::vector<PreviewCamera*> previewCameras;
+    PreviewCamera* camera3d;
+    PreviewCamera* camera2d;
 
     double currentPixelScaleFactor = 1.0;
 
