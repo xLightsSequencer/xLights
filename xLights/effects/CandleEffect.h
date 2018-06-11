@@ -20,7 +20,7 @@ class CandleEffect : public RenderableEffect
     public:
         CandleEffect(int id);
         virtual ~CandleEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 protected:

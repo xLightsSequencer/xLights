@@ -1,13 +1,18 @@
+#include <wx/wx.h>
+#include <wx/brush.h>
+#include <wx/numdlg.h>
+
 #include "RowHeading.h"
-#include "wx/wx.h"
-#include "wx/brush.h"
-#include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "../BitmapCache.h"
-#include <wx/numdlg.h>
 #include "models/ModelGroup.h"
 #include "../SelectTimingsDialog.h"
 #include "models/SubModel.h"
+#include "ColorManager.h"
+#include "SequenceElements.h"
+#include "../xLightsMain.h"
+
+#include <log4cpp/Category.hh>
 
 #define ICON_SPACE 25
 

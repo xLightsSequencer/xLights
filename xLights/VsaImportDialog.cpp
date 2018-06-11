@@ -1,3 +1,13 @@
+//(*InternalHeaders(VsaImportDialog)
+#include <wx/font.h>
+#include <wx/intl.h>
+#include <wx/string.h>
+//*)
+
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
+#include <wx/msgdlg.h>
+
 #include "VsaImportDialog.h"
 #include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
@@ -6,15 +16,6 @@
 #include "support/FastComboEditor.h"
 #include "support/GridCellChoiceRenderer.h"
 #include "support/EzGrid.h"
-#include <wx/wfstream.h>
-#include <wx/txtstrm.h>
-#include <wx/msgdlg.h>
-
-//(*InternalHeaders(VsaImportDialog)
-#include <wx/font.h>
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
 
 //(*IdInit(VsaImportDialog)
 const long VsaImportDialog::ID_STATICTEXT39 = wxNewId();

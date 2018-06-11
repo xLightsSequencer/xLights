@@ -1,11 +1,8 @@
-#include "ColorPanel.h"
-
 #define ZERO 0
 
-#include "../include/padlock16x16-green.xpm" //-DJ
-#include "../include/padlock16x16-red.xpm" //-DJ
-#include "../include/padlock16x16-blue.xpm" //-DJ
-#include "ColorCurve.h"
+#include "../include/padlock16x16-green.xpm"
+#include "../include/padlock16x16-red.xpm"
+#include "../include/padlock16x16-blue.xpm"
 #include "../include/cc_time.xpm"
 #include "../include/cc_timelocked.xpm"
 #include "../include/cc_left.xpm"
@@ -17,8 +14,14 @@
 #include "../include/cc_cw.xpm"
 #include "../include/cc_radialin.xpm"
 #include "../include/cc_radialout.xpm"
+#include "../include/save.xpm"
+#include "../include/delete.xpm"
+#include "../include/switch.xpm"
 
 #include "xLightsMain.h"
+#include "ColorPanel.h"
+#include "ColorCurve.h"
+#include "effects/EffectPanelUtils.h"
 
 //(*InternalHeaders(ColorPanel)
 #include <wx/bitmap.h>
@@ -32,12 +35,11 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/odcombo.h>
-#include "effects/EffectPanelUtils.h"
 #include <wx/config.h>
+#include <wx/filename.h>
+#include <wx/stdpaths.h>
 
-#include "../include/save.xpm"
-#include "../include/delete.xpm"
-#include "../include/switch.xpm"
+#include <log4cpp/Category.hh>
 
 #define PALETTE_SIZE 8
 

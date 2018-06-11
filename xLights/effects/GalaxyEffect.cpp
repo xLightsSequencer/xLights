@@ -62,7 +62,7 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
     return 0;
 }
 
-void GalaxyEffect::SetDefaultParameters(Model *cls) {
+void GalaxyEffect::SetDefaultParameters() {
     GalaxyPanel *gp = (GalaxyPanel*)panel;
     if (gp == nullptr) {
         return;

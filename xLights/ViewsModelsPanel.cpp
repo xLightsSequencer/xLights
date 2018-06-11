@@ -1,5 +1,3 @@
-#include "ViewsModelsPanel.h"
-
 //#define TRACEMOVES
 
 //(*InternalHeaders(ViewsModelsPanel)
@@ -7,16 +5,21 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/xml/xml.h>
+#include <wx/dnd.h>
+
 #include "../include/model-16.xpm"
 #include "../include/timing-16.xpm"
 #include "../include/eye-16.xpm"
 #include "../include/eye-16_gray.xpm"
-#include <wx/xml/xml.h>
+
+#include "ViewsModelsPanel.h"
 #include "sequencer/SequenceElements.h"
 #include "xLightsMain.h"
 #include "SequenceViewManager.h"
-#include <wx/dnd.h>
 #include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_VMDROP, wxCommandEvent);

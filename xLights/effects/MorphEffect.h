@@ -40,7 +40,7 @@ class MorphEffect : public RenderableEffect
         virtual AssistPanel *GetAssistPanel(wxWindow *parent, xLightsFrame* xl_frame) override;
         virtual bool HasAssistPanel() override { return true; }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:

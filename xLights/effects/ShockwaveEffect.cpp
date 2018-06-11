@@ -33,7 +33,7 @@ int ShockwaveEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
     return 2;
 }
 
-void ShockwaveEffect::SetDefaultParameters(Model *cls) {
+void ShockwaveEffect::SetDefaultParameters() {
     ShockwavePanel *sp = (ShockwavePanel*)panel;
     if (sp == nullptr) {
         return;

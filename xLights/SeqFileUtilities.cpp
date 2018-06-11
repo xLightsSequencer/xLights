@@ -1,3 +1,9 @@
+#include <wx/wfstream.h>
+#include <wx/zipstrm.h>
+#include <wx/tokenzr.h>
+#include <wx/config.h>
+#include <wx/uri.h>
+
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
 #include "FileConverter.h"
@@ -16,7 +22,12 @@
 #include "HousePreviewPanel.h"
 #include "FontManager.h"
 #include "SequenceVideoPanel.h"
+#include "EffectAssist.h"
+#include "ViewsModelsPanel.h"
+#include "ModelPreview.h"
+#include "sequencer/MainSequencer.h"
 
+#include "effects/SpiralsPanel.h"
 #include "effects/ButterflyEffect.h"
 #include "effects/BarsEffect.h"
 #include "effects/CurtainEffect.h"
@@ -26,27 +37,21 @@
 #include "effects/PinwheelEffect.h"
 #include "effects/SnowflakesEffect.h"
 
-#include <wx/wfstream.h>
-#include <wx/zipstrm.h>
-#include <wx/tokenzr.h>
-#include <wx/config.h>
-#include <wx/uri.h>
-
 #include "osxMacUtils.h"
-#include "effects/SpiralsPanel.h"
+#include <log4cpp/Category.hh>
 
 void xLightsFrame::AddAllModelsToSequence()
 {
     std::string models_to_add = "";
     bool first_model = true;
-    for(wxXmlNode* e=ModelGroupsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
+    for (wxXmlNode* e = ModelGroupsNode->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "modelGroup")
         {
-            wxString name=e->GetAttribute("name");
+            wxString name = e->GetAttribute("name");
             if (!mSequenceElements.ElementExists(name.ToStdString(), 0))
             {
-                if( !first_model ) {
+                if (!first_model) {
                     models_to_add += ",";
                 }
                 models_to_add += name;
@@ -54,14 +59,14 @@ void xLightsFrame::AddAllModelsToSequence()
             }
         }
     }
-    for(wxXmlNode* e=ModelsNode->GetChildren(); e!=nullptr; e=e->GetNext() )
+    for (wxXmlNode* e = ModelsNode->GetChildren(); e != nullptr; e = e->GetNext())
     {
         if (e->GetName() == "model")
         {
-            wxString name=e->GetAttribute("name");
+            wxString name = e->GetAttribute("name");
             if (!mSequenceElements.ElementExists(name.ToStdString(), 0))
             {
-                if( !first_model ) {
+                if (!first_model) {
                     models_to_add += ",";
                 }
                 models_to_add += name;

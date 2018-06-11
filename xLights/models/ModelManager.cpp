@@ -1,11 +1,12 @@
-#include "ModelManager.h"
-#include "Model.h"
-
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
+#include <wx/regex.h>
 
+#include <cctype>
+
+#include "ModelManager.h"
+#include "Model.h"
 #include "SubModel.h"
-
 #include "StarModel.h"
 #include "ArchesModel.h"
 #include "CandyCaneModel.h"
@@ -26,8 +27,8 @@
 #include "IciclesModel.h"
 #include "../sequencer/Element.h"
 #include "../xLightsMain.h"
-#include <wx/regex.h>
-#include <cctype>
+
+#include <log4cpp/Category.hh>
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) : _outputManager(outputManager), xlights(xl)
 {

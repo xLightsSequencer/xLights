@@ -45,7 +45,7 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-void LiquidEffect::SetDefaultParameters(Model *cls) {
+void LiquidEffect::SetDefaultParameters() {
     LiquidPanel *tp = (LiquidPanel*)panel;
     if (tp == nullptr) {
         return;

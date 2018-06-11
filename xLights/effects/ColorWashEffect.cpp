@@ -1,16 +1,14 @@
-#include "ColorWashEffect.h"
-
-#include "ColorWashPanel.h"
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
 
+#include "ColorWashEffect.h"
+#include "ColorWashPanel.h"
 #include "../sequencer/Effect.h"
 #include "../sequencer/EffectLayer.h"
 #include "../sequencer/Element.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
 #include "../../include/ColorWash.xpm"
-#include "../xLightsMain.h" //xLightsFrame
 #include "../models/DmxModel.h"
 
 #include <sstream>
@@ -32,7 +30,6 @@ ColorWashEffect::~ColorWashEffect()
     //dtor
 }
 
-
 int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                           DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramps) {
     if (e->HasBackgroundDisplayList()) {
@@ -49,7 +46,7 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
     return 2;
 }
 
-void ColorWashEffect::SetDefaultParameters(Model *cls) {
+void ColorWashEffect::SetDefaultParameters() {
     ColorWashPanel *p = (ColorWashPanel*)panel;
     if (p == nullptr) {
         return;
@@ -156,7 +153,7 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
     bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
 
-    int x,y;
+    int y;
     xlColor color, orig;
 
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
@@ -172,7 +169,7 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     // the proper red, green, and blue channels.
     //////////////////////////////////////////////////////////////
     if (buffer.cur_model != "") {
-        Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+        Model* model_info = buffer.GetModel();
         if (model_info != nullptr) {
             if( model_info->GetDisplayAs() == "DMX" ) {
                 xlColor c;
@@ -226,7 +223,7 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         orig = color;
         HSVValue hsvOrig = color.asHSV();
         xlColor color2 = color;
-        for (x=startX; x <= endX; x++)
+        for (int x = startX; x <= endX; x++)
         {
             HSVValue hsv = hsvOrig;
             if (HorizFade) {

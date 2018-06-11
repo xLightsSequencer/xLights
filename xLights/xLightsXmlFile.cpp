@@ -1,17 +1,24 @@
-#include "xLightsMain.h"
 #include <wx/tokenzr.h>
-#include "OptionChooser.h"
-#include "../include/spxml-0.5/spxmlparser.hpp"
-#include "effects/EffectManager.h"
-#include "effects/RenderableEffect.h"
-#include "xLightsXmlFile.h"
 #include <wx/regex.h>
 #include <wx/numdlg.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
+#include <wx/dir.h>
+#include <wx/textfile.h>
+
+#include "../include/spxml-0.5/spxmlparser.hpp"
+
+#include "xLightsXmlFile.h"
+#include "xLightsMain.h"
+#include "OptionChooser.h"
+#include "effects/EffectManager.h"
+#include "effects/RenderableEffect.h"
 #include "osxMacUtils.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
+#include "sequencer/TimeLine.h"
+
+#include <log4cpp/Category.hh>
 
 #define string_format wxString::Format
 

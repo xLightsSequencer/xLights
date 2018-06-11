@@ -1,7 +1,6 @@
 #include <wx/dnd.h>
 #include "TopEffectsPanel.h"
 #include <wx/event.h>
-#include "xLightsMain.h"
 #include "sequencer/EffectDropTarget.h"
 #include "../include/Off.xpm"
 

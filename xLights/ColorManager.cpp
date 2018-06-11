@@ -1,6 +1,9 @@
+#include <wx/xml/xml.h>
+
 #include "ColorManager.h"
 #include "xLightsMain.h"
-#include <wx/xml/xml.h>
+
+#include <log4cpp/Category.hh>
 
 ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)

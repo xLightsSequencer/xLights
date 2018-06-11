@@ -123,7 +123,7 @@ public:
     SnowstormList SnowstormItems;
 };
 
-void SnowstormEffect::SetDefaultParameters(Model *cls)
+void SnowstormEffect::SetDefaultParameters()
 {
     SnowstormPanel *sp = (SnowstormPanel*)panel;
     if (sp == nullptr) {

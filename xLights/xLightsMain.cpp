@@ -7,9 +7,6 @@
  * License:
  **************************************************************/
 
-#include "xLightsMain.h"
-#include "SplashDialog.h"
-#include "UpdaterDialog.h"
 #include <wx/msgdlg.h>
 #include <wx/tokenzr.h>
 #include <wx/dir.h>
@@ -24,11 +21,19 @@
 #include <wx/textctrl.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
-#include "xLightsApp.h" //global app run-time flags
-#include "heartbeat.h" //DJ
-#include "SeqSettingsDialog.h"
 #include <wx/grid.h>
 #include <wx/mimetype.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
+
+#include <cctype>
+
+#include "xLightsMain.h"
+#include "SplashDialog.h"
+#include "UpdaterDialog.h"
+#include "xLightsApp.h"
+#include "heartbeat.h"
+#include "SeqSettingsDialog.h"
 #include "xLightsVersion.h"
 #include "RenderCommandEvent.h"
 #include "effects/RenderableEffect.h"
@@ -48,6 +53,16 @@
 #include "FolderSelection.h"
 #include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
+#include "EffectAssist.h"
+#include "EffectsPanel.h"
+#include "outputs/IPOutput.h"
+#include "GenerateLyricsDialog.h"
+#include "VendorModelDialog.h"
+#include "VendorMusicDialog.h"
+#include "sequencer/MainSequencer.h"
+#include "LayoutGroup.h"
+#include "ModelPreview.h"
+#include "TopEffectsPanel.h"
 
 // image files
 #include "../include/xLights.xpm"
@@ -70,13 +85,6 @@
 #define MAXBACKUPFILE_MB 30
 
 #include "osxMacUtils.h"
-#include <wx/zipstrm.h>
-#include <wx/wfstream.h>
-#include <cctype>
-#include "outputs/IPOutput.h"
-#include "GenerateLyricsDialog.h"
-#include "VendorModelDialog.h"
-#include "VendorMusicDialog.h"
 
 //helper functions
 enum wxbuildinfoformat

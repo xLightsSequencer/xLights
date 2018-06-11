@@ -1,15 +1,3 @@
-#include <wx/filedlg.h>
-#include "SeqSettingsDialog.h"
-#include "NewTimingDialog.h"
-#include "xLightsXmlFile.h"
-#include "DataLayer.h"
-#include "FileConverter.h"
-#include "LorConvertDialog.h"
-#include <wx/treectrl.h>
-#include "Images_png.h"
-#include "ConvertLogDialog.h"
-#include "VAMPPluginDialog.h"
-
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -20,10 +8,24 @@
 //*)
 
 #include <wx/numdlg.h>
+#include <wx/filedlg.h>
+#include <wx/treectrl.h>
+#include <wx/dir.h>
+
 #include <list>
-#include <string>
+
+#include "SeqSettingsDialog.h"
+#include "NewTimingDialog.h"
+#include "xLightsXmlFile.h"
+#include "DataLayer.h"
+#include "FileConverter.h"
+#include "LorConvertDialog.h"
+#include "Images_png.h"
+#include "ConvertLogDialog.h"
+#include "VAMPPluginDialog.h"
 #include "CustomTimingDialog.h"
 #include "VendorMusicDialog.h"
+#include "xLightsMain.h"
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();

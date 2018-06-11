@@ -1,13 +1,11 @@
-#include "wx/wx.h"
-#include "wx/sizer.h"
+#include <wx/wx.h>
+#include <wx/sizer.h>
+#include <wx/artprov.h>
+
 #ifdef __WXMAC__
- #include "OpenGL/gl.h"
+    #include "OpenGL/gl.h"
 #else
-//#ifdef _MSC_VER
-//#include "GL/glut.h"
-//#else
-#include <GL/gl.h>
-//#endif
+    #include <GL/gl.h>
 #endif
 
 #include "ModelPreview.h"
@@ -18,18 +16,16 @@
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
-#include <wx/artprov.h>
+
+#include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
-EVT_MOTION(ModelPreview::mouseMoved)
-EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
-EVT_LEFT_UP(ModelPreview::mouseLeftUp)
-EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
-EVT_RIGHT_DOWN(ModelPreview::rightClick)
-//EVT_KEY_DOWN(ModelPreview::keyPressed)
-//EVT_KEY_UP(ModelPreview::keyReleased)
-//EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
-EVT_PAINT(ModelPreview::render)
+    EVT_MOTION(ModelPreview::mouseMoved)
+    EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
+    EVT_LEFT_UP(ModelPreview::mouseLeftUp)
+    EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
+    EVT_RIGHT_DOWN(ModelPreview::rightClick)
+    EVT_PAINT(ModelPreview::render)
 END_EVENT_TABLE()
 
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
@@ -166,7 +162,7 @@ void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
-    PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_)
+      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_)
 {
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
@@ -284,11 +280,11 @@ void ModelPreview::SetbackgroundImage(wxString img)
 
 void ModelPreview::SetBackgroundBrightness(int brightness)
 {
-   mBackgroundBrightness = brightness;
-   if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100)
-   {
+    mBackgroundBrightness = brightness;
+    if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100)
+    {
         mBackgroundBrightness = 100;
-   }
+    }
 }
 
 void ModelPreview::SetPointSize(wxDouble pointSize)
@@ -394,8 +390,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         if (image == nullptr)
         {
             logger_base.debug("Loading background image file %s for preview %s.",
-                (const char *)mBackgroundImage.c_str(),
-                (const char *)GetName().c_str());
+                              (const char *)mBackgroundImage.c_str(),
+                              (const char *)GetName().c_str());
             image = new Image(mBackgroundImage);
             sprite = new xLightsDrawable(image);
         }

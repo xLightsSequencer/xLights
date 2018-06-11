@@ -1,28 +1,17 @@
-
-
-#include "wx/wx.h"
-
+#include <wx/wx.h>
 #ifdef __WXMAC__
     #include "OpenGL/gl.h"
 #else
     #include <GL/gl.h>
 #endif
-
-//#include "wx/sizer.h"
-#include "wx/glcanvas.h"
-#define INBUFF  16384
-#define OUTBUFF 32768
-
+#include <wx/glcanvas.h>
 #include <wx/event.h>
-#include "../xLightsTimer.h"
-//#include <wx/artprov.h>
 #include <wx/bitmap.h>
-//#include <wx/settings.h>
-//#include <wx/font.h>
 #include <wx/intl.h>
 #include <wx/image.h>
 #include <wx/string.h>
 
+#include "../xLightsTimer.h"
 #include "Waveform.h"
 #include "TimeLine.h"
 #include "../RenderCommandEvent.h"
@@ -31,6 +20,7 @@
 #include "ColorManager.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
+
 #include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_WAVE_FORM_MOVED, wxCommandEvent);
@@ -184,8 +174,8 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     if(id == ID_WAVE_MNU_RENDER)
     {
         logger_base.debug("OnGridPopup - ID_WAVE_MNU_RENDER");
-        RenderCommandEvent event("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
-        wxPostEvent(mParent, event);
+        RenderCommandEvent rcEvent("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
+        wxPostEvent(mParent, rcEvent);
     }
     Refresh();
 }
@@ -354,7 +344,6 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     DrawGLUtils::xlAccumulator vac;
     vac.PreAlloc(18);
-    //xlColor color(212,208,200);
     xLightsFrame* frame = xLightsApp::GetFrame();
     xlColor color = frame->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
 

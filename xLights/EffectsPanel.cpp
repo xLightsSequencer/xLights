@@ -107,7 +107,7 @@ EffectsPanel::~EffectsPanel()
 void EffectsPanel::SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
-        eff->SetDefaultParameters(cls);
+        eff->SetDefaultParameters();
 	}
 }
 void EffectsPanel::SetSequenceElements(SequenceElements *els) {

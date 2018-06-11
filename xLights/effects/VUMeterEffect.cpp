@@ -166,7 +166,7 @@ void VUMeterEffect::SetPanelStatus(Model* cls)
     vp->ValidateWindow();
 }
 
-void VUMeterEffect::SetDefaultParameters(Model *cls) 
+void VUMeterEffect::SetDefaultParameters() 
 {
     VUMeterPanel *vp = (VUMeterPanel*)panel;
     if (vp == nullptr) {

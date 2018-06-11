@@ -30,7 +30,7 @@ wxPanel *LightningEffect::CreatePanel(wxWindow *parent) {
 #define RIGHT 2
 #define LEFT 3
 
-void LightningEffect::SetDefaultParameters(Model *cls) {
+void LightningEffect::SetDefaultParameters() {
     LightningPanel *lp = (LightningPanel*)panel;
     if (lp == nullptr) {
         return;

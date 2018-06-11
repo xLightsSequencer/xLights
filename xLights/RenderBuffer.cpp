@@ -20,17 +20,21 @@
     You should have received a copy of the GNU General Public License
     along with xLights.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************/
+
 #include <cmath>
 #ifdef _MSC_VER
 	// required so M_PI will be defined by MSC
 	#define _USE_MATH_DEFINES
 	#include <math.h>
 #endif
+
 #include "RenderBuffer.h"
 #include "sequencer/Effect.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 template <class CTX>
 class ContextPool {
@@ -76,7 +80,6 @@ private:
     std::function<CTX* ()> allocator;
     std::string _type;
 };
-
 
 static ContextPool<TextDrawingContext> *TEXT_CONTEXT_POOL = nullptr;
 static ContextPool<PathDrawingContext> *PATH_CONTEXT_POOL = nullptr;
@@ -187,6 +190,11 @@ AudioManager* RenderBuffer::GetMedia()
 		return nullptr;
 	}
 	return xLightsFrame::CurrentSeqXmlFile->GetMedia();
+}
+
+Model* RenderBuffer::GetModel() const
+{
+    return frame->AllModels[cur_model];
 }
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }

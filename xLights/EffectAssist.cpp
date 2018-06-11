@@ -1,5 +1,4 @@
 #include "EffectAssist.h"
-#include "xLightsMain.h"
 #include "effects/EffectManager.h"
 #include "effects/assist/xlGridCanvasEmpty.h"
 #include "xLightsXmlFile.h"

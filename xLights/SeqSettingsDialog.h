@@ -1,7 +1,6 @@
 #ifndef SEQSETTINGSDIALOG_H
 #define SEQSETTINGSDIALOG_H
 
-#include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "tmGridCell.h"
 #include "FlickerFreeBitmapButton.h"

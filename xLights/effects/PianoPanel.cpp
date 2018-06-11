@@ -1,10 +1,3 @@
-#include "PianoPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
-#include "EffectPanelUtils.h"
-#include <wx/textfile.h>
-#include "../sequencer/Effect.h"
-#include "PianoEffect.h"
-
 //(*InternalHeaders(PianoPanel)
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
@@ -23,7 +16,14 @@
 #include <wx/filename.h>
 #include <wx/valnum.h>
 
-#include "../xLightsMain.h"
+#include "../../include/padlock16x16-blue.xpm"
+
+#include "PianoPanel.h"
+#include "EffectPanelUtils.h"
+#include "../sequencer/Effect.h"
+#include "PianoEffect.h"
+#include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 //(*IdInit(PianoPanel)
@@ -183,8 +183,8 @@ void PianoPanel::ValidateWindow()
         Choice_Piano_MIDITrack_APPLYLAST->Enable(false);
     }
 
-    SpinCtrl_Piano_StartMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_StartMIDI->GetValue()).c_str()));
-    SpinCtrl_Piano_EndMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_EndMIDI->GetValue()).c_str()));
+    SpinCtrl_Piano_StartMIDI->SetToolTip(wxString(DecodeMidi(SpinCtrl_Piano_StartMIDI->GetValue()).c_str()));
+    SpinCtrl_Piano_EndMIDI->SetToolTip(wxString(DecodeMidi(SpinCtrl_Piano_EndMIDI->GetValue()).c_str()));
 }
 
 void PianoPanel::SetTimingTracks(wxCommandEvent& event)

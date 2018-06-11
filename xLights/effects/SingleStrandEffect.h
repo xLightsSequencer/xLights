@@ -17,7 +17,7 @@ class SingleStrandEffect : public RenderableEffect
     public:
         SingleStrandEffect(int id);
         virtual ~SingleStrandEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }

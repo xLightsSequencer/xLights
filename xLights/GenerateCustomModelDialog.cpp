@@ -1,9 +1,3 @@
-#include "GenerateCustomModelDialog.h"
-#include "effects/VideoPanel.h"
-
-#include <map>
-#include <list>
-
 //(*InternalHeaders(GenerateCustomModelDialog)
 #include <wx/font.h>
 #include <wx/intl.h>
@@ -16,9 +10,15 @@
 #include <wx/log.h>
 #include <wx/generic/statbmpg.h>
 
-#include "xLightsMain.h"
+#include <map>
+#include <list>
+
+#include "GenerateCustomModelDialog.h"
+#include "effects/VideoPanel.h"
 #include "xLightsVersion.h"
 #include "xLightsXmlFile.h"
+#include "outputs/OutputManager.h"
+
 #include <log4cpp/Category.hh>
 
 #define GCM_DISPLAYIMAGEWIDTH 800
@@ -61,6 +61,7 @@ public:
     {
         _doerasebackground = true;
     };
+
     void OnEraseBackGround(wxEraseEvent& event)
     {
         if (_doerasebackground)

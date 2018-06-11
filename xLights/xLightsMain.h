@@ -11,15 +11,13 @@
 #define XLIGHTSMAIN_H
 
 #ifdef _MSC_VER
+    #include <stdlib.h>
 
-#include <stdlib.h>
-
-//#define VISUALSTUDIO_MEMORYLEAKDETECTION
-#ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-
+    //#define VISUALSTUDIO_MEMORYLEAKDETECTIO
+    #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
+        #define _CRTDBG_MAP_ALLOC
+        #include <crtdbg.h>
+    #endif
 #endif
 
 //(*Headers(xLightsFrame)
@@ -39,11 +37,16 @@
 #include <wx/timer.h>
 //*)
 
-#include <wx/stdpaths.h>
+#include <wx/choicebk.h>
 #include <wx/filename.h>
 #include <wx/xml/xml.h>
 #include <wx/dir.h>
-#include <unordered_map> //-DJ
+#include <wx/treebase.h>
+
+#include <unordered_map>
+#include <map>
+#include <set>
+#include <vector>
 
 #ifdef LINUX
 #include <unistd.h>
@@ -52,36 +55,18 @@
 #inlcude <windows.h>
 #endif
 
-#include <map>
-#include <set>
-#include <vector>
-
 #include "outputs/OutputManager.h"
-#include "EffectTreeDialog.h"
-#include "EffectsPanel.h"
 #include "PixelBuffer.h"
-#include "ModelPreview.h"
-#include "EffectAssist.h"
 #include "SequenceData.h"
-#include "PhonemeDictionary.h"
-
-#include "sequencer/EffectsGrid.h"
-#include "sequencer/MainSequencer.h"
-#include "sequencer/Waveform.h"
-#include "TopEffectsPanel.h"
-#include "TimingPanel.h"
-#include "ColorPanel.h"
-#include "PerspectivesPanel.h"
-#include "ViewsModelsPanel.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
-#include "LayoutGroup.h"
 #include "xLightsTimer.h"
 #include "JobPool.h"
-#include <log4cpp/Category.hh>
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
-#include "SelectPanel.h"
+#include "PhonemeDictionary.h"
+#include "xLightsXmlFile.h"
+#include "sequencer/EffectsGrid.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -93,6 +78,16 @@ class SelectPanel;
 class SequenceVideoPanel;
 class EffectIconPanel;
 class JukeboxPanel;
+class TimingPanel;
+class ColorPanel;
+class EffectsPanel;
+class EffectAssist;
+class LayoutGroup;
+class ViewsModelsPanel;
+class PerspectivesPanel;
+class TopEffectsPanel;
+class MainSequencer;
+class ModelPreview;
 
 // max number of most recently used show directories on the File menu
 #define MRU_LENGTH 4
@@ -159,9 +154,9 @@ wxDECLARE_EVENT(EVT_APPLYLAST, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RGBEFFECTS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TURNONOUTPUTTOLIGHTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAYJUKEBOXITEM, wxCommandEvent);
+wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
 
 static const wxString xlights_base_name       = "xLights";
-
 static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms|LOR Animation Sequences (*.las)|*.las|HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata|Vixen Sequences (*.vix)|*.vix|Glediator Record File (*.gled)|*.gled)|Lynx Conductor Sequences (*.seq)|*.seq|xLights Sequences(*.xseq)|*.xseq|xLights Imports(*.iseq)|*.iseq|Falcon Pi Player Sequences (*.fseq)|*.fseq";
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";
 
@@ -207,7 +202,7 @@ public:
     virtual ~xlAuiToolBar() {}
 
     wxSize &GetAbsoluteMinSize() {return m_absoluteMinSize;}
-    wxSize GetMinSize() const {return m_absoluteMinSize;}
+    wxSize GetMinSize() const override {return m_absoluteMinSize;}
 };
 
 class FPSEvent
@@ -437,7 +432,6 @@ public:
     void OnSetGridNodeValues(wxCommandEvent& event);
     void OnMenuItemImportEffects(wxCommandEvent& event);
     void SetPlaySpeed(wxCommandEvent& event);
-    void OnBitmapButton_Link_DirsClick(wxCommandEvent& event);
     void OnMenuItemRenderOnSave(wxCommandEvent& event);
     void OnNotebook1PageChanging(wxAuiNotebookEvent& event);
     void OnButtonAddNullClick(wxCommandEvent& event);
@@ -544,11 +538,12 @@ public:
     void OnButtonOtherFoldersClick(wxCommandEvent& event);
     void OnMenuItem_BackupPurgeIntervalSelected(wxCommandEvent& event);
     void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
-    void OnMenuItem53Selected(wxCommandEvent& event);
     void OnMenuItem_JukeboxSelected(wxCommandEvent& event);
     void OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event);
     //*)
 private:
+
+    //void OnMenuItem53Selected(wxCommandEvent& event);
 
     void OnIdle(wxIdleEvent& event);
     void DoMenuAction(wxMenuEvent &evt);
@@ -1209,7 +1204,7 @@ protected:
     void PreviewOutput(int period);
     void TimerOutput(int period);
     void UpdateChannelNames();
-    void StopNow(void);
+    void StopNow();
     bool ShowFolderIsInBackup(const std::string showdir);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
@@ -1497,7 +1492,7 @@ public:
 
     void LoadJukebox(wxXmlNode* node);
     static wxXmlNode* FindNode(wxXmlNode* parent, const wxString& tag, const wxString& attr, const wxString& value, bool create = false);
-    static std::string DecodeMidi(int midi);
+    TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }
 
     int GetPlayStatus() const { return playType; }
     MainSequencer* GetMainSequencer() const { return mainSequencer; }

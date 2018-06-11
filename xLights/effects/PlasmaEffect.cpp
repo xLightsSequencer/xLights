@@ -43,7 +43,7 @@ static inline int GetPlasmaColorScheme(const std::string &ColorSchemeStr) {
     return PLASMA_NORMAL_COLORS;
 }
 
-void PlasmaEffect::SetDefaultParameters(Model *cls) {
+void PlasmaEffect::SetDefaultParameters() {
     PlasmaPanel *pp = (PlasmaPanel*)panel;
     if (pp == nullptr) {
         return;

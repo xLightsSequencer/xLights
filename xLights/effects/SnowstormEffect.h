@@ -9,7 +9,7 @@ class SnowstormEffect : public RenderableEffect
     public:
         SnowstormEffect(int id);
         virtual ~SnowstormEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool AppropriateOnNodes() const override { return false; }
 protected:

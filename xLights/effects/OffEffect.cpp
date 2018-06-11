@@ -19,7 +19,7 @@ wxPanel *OffEffect::CreatePanel(wxWindow *parent) {
     return new OffPanel(parent);
 }
 
-void OffEffect::SetDefaultParameters(Model *cls) {
+void OffEffect::SetDefaultParameters() {
     OffPanel *p = (OffPanel*)panel;
     p->CheckBox_Transparent->SetValue(false);
 }

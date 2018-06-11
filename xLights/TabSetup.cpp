@@ -8,7 +8,6 @@
  * License:
  **************************************************************/
 
-#include "xLightsMain.h"
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 #include <wx/numdlg.h>
@@ -16,6 +15,7 @@
 #include <wx/artprov.h>
 #include <wx/regex.h>
 
+#include "xLightsMain.h"
 #include "LayoutPanel.h"
 #include "xLightsXmlFile.h"
 #include "controllers/FPP.h"
@@ -24,8 +24,8 @@
 #include "controllers/SanDevices.h"
 #include "controllers/J1Sys.h"
 #include "controllers/ESPixelStick.h"
-
-// dialogs
+#include "sequencer/MainSequencer.h"
+#include "ViewsModelsPanel.h"
 #include "outputs/Output.h"
 #include "outputs/NullOutput.h"
 #include "outputs/E131Output.h"
@@ -33,11 +33,10 @@
 #include "outputs/DDPOutput.h"
 #include "outputs/DMXOutput.h"
 #include "outputs/LOROptimisedOutput.h"
-
-// Process Setup Panel Events
-
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
@@ -116,7 +115,7 @@ void xLightsFrame::OnMenuMRU(wxCommandEvent& event)
 
 bool xLightsFrame::SetDir(const wxString& newdir)
 {
-    static bool HasMenuSeparator=false;
+    static bool HasMenuSeparator = false;
     int idx, cnt, i;
 
     // don't change show directories with an open sequence because models won't match
@@ -143,7 +142,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     // reject change if something is playing
     if (play_mode == play_list || play_mode == play_single)
     {
-        wxMessageBox(_("Cannot change directories during playback"),_("Error"));
+        wxMessageBox(_("Cannot change directories during playback"), _("Error"));
         return false;
     }
 
@@ -151,21 +150,21 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     CheckUnsavedChanges();
 
     // Force update of Preset dialog
-    if( EffectTreeDlg != nullptr ) {
+    if (EffectTreeDlg != nullptr) {
         delete EffectTreeDlg;
     }
     EffectTreeDlg = nullptr;
 
     // update most recently used array
-    idx=mru.Index(newdir);
+    idx = mru.Index(newdir);
     if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
     if (!CurrentDir.IsEmpty())
     {
-        idx=mru.Index(CurrentDir);
+        idx = mru.Index(CurrentDir);
         if (idx != wxNOT_FOUND) mru.RemoveAt(idx);
-        mru.Insert(CurrentDir,0);
+        mru.Insert(CurrentDir, 0);
     }
-    cnt=mru.GetCount();
+    cnt = mru.GetCount();
     if (cnt > MRU_LENGTH)
     {
         mru.RemoveAt(MRU_LENGTH, cnt - MRU_LENGTH);
@@ -179,16 +178,16 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     */
 
     // save config
-    bool DirExists=wxFileName::DirExists(newdir);
-    wxString mru_name, value;
+    bool DirExists = wxFileName::DirExists(newdir);
+    wxString value;
     wxConfigBase* config = wxConfigBase::Get();
     if (DirExists) config->Write(_("LastDir"), newdir);
-    for (i=0; i<MRU_LENGTH; i++)
+    for (i = 0; i < MRU_LENGTH; i++)
     {
-        mru_name=wxString::Format("mru%d",i);
+        wxString mru_name = wxString::Format("mru%d", i);
         if (mru_MenuItem[i] != nullptr)
         {
-            Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+            Disconnect(mru_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
             MenuFile->Delete(mru_MenuItem[i]);
             mru_MenuItem[i] = nullptr;
         }
@@ -205,24 +204,24 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     //delete config;
 
     // append mru items to menu
-    cnt=mru.GetCount();
+    cnt = mru.GetCount();
     if (!HasMenuSeparator && cnt > 0)
     {
         MenuFile->AppendSeparator();
-        HasMenuSeparator=true;
+        HasMenuSeparator = true;
     }
-    for (i=0; i<cnt; i++)
+    for (i = 0; i < cnt; i++)
     {
         int menuID = wxNewId();
         mru_MenuItem[i] = new wxMenuItem(MenuFile, menuID, mru[i]);
-        Connect(menuID,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
+        Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
         MenuFile->Append(mru_MenuItem[i]);
     }
     MenuFile->UpdateUI();
 
     if (!DirExists)
     {
-        wxString msg=_("The show directory '") + newdir + ("' no longer exists.\nPlease choose a new show directory.");
+        wxString msg = _("The show directory '") + newdir + ("' no longer exists.\nPlease choose a new show directory.");
         wxMessageBox(msg);
         return false;
     }
@@ -233,8 +232,8 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     CheckBoxLightOutput->SetValue(false);
     _outputManager.StopOutput();
     _outputManager.DeleteAllOutputs();
-    CurrentDir=newdir;
-    showDirectory=newdir;
+    CurrentDir = newdir;
+    showDirectory = newdir;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Show directory set to : %s.", (const char *)showDirectory.c_str());
@@ -248,7 +247,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     DisplayXlightsFilename(wxEmptyString);
 
     // load network
-    networkFile.AssignDir( CurrentDir );
+    networkFile.AssignDir(CurrentDir);
     networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
     if (networkFile.FileExists())
     {
@@ -280,19 +279,19 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     kbf.AssignDir(CurrentDir);
     kbf.SetFullName("xlights_keybindings.xml");
     mainSequencer->keyBindings.Load(kbf);
-    
+
     LoadEffectsFile();
-    
+
     if (mBackupOnLaunch)
     {
         logger_base.debug("Backing up show directory before we do anything this session in this folder : %s.", (const char *)CurrentDir.c_str());
         DoBackup(false, true);
         logger_base.debug("Backup completed.");
     }
-    
-    long LinkFlag=0;
+
+    long LinkFlag = 0;
     config->Read(_("LinkFlag"), &LinkFlag);
-    if( LinkFlag ) {
+    if (LinkFlag) {
         mediaDirectory = CurrentDir;
         config->Write(_("MediaDir"), mediaDirectory);
         logger_base.debug("Media Directory set to : %s.", (const char *)mediaDirectory.c_str());
@@ -437,44 +436,44 @@ void xLightsFrame::UpdateNetworkList(bool updateModels)
 // reset test channel listbox
 void xLightsFrame::UpdateChannelNames()
 {
-    wxString FormatSpec,RGBFormatSpec;
+    wxString FormatSpec, RGBFormatSpec;
     int NodeNum;
-    size_t ChannelNum, NodeCount,n,c, ChanPerNode;
+    size_t ChannelNum, NodeCount, n, c, ChanPerNode;
 
     ChNames.clear();
     ChNames.resize(_outputManager.GetTotalChannels());
     // update names with RGB models where MyDisplay is checked
 
-	// KW left as some of the conversions seem to use this
+    // KW left as some of the conversions seem to use this
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
         Model *model = it->second;
-        NodeCount=model->GetNodeCount();
+        NodeCount = model->GetNodeCount();
         ChanPerNode = model->GetChanCountPerNode();
-        FormatSpec = "Ch %ld: "+model->name+" #%d";
-        for(n=0; n < NodeCount; n++)
+        FormatSpec = "Ch %ld: " + model->name + " #%d";
+        for (n = 0; n < NodeCount; n++)
         {
-            ChannelNum=model->NodeStartChannel(n);
+            ChannelNum = model->NodeStartChannel(n);
 
-            NodeNum=n+1;
-            if (ChanPerNode==1)
+            NodeNum = n + 1;
+            if (ChanPerNode == 1)
             {
                 if (ChannelNum < ChNames.Count())
                 {
-                    if( ChNames[ChannelNum] == "" )
+                    if (ChNames[ChannelNum] == "")
                     {
-                        ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum);
+                        ChNames[ChannelNum] = wxString::Format(FormatSpec, ChannelNum + 1, NodeNum);
                     }
                 }
             }
             else
             {
-                for(c=0; c < ChanPerNode; c++)
+                for (c = 0; c < ChanPerNode; c++)
                 {
                     if (ChannelNum < ChNames.Count())
                     {
-                        if( ChNames[ChannelNum] == "" )
+                        if (ChNames[ChannelNum] == "")
                         {
-                            ChNames[ChannelNum] = wxString::Format(FormatSpec,ChannelNum+1,NodeNum)+model->GetChannelColorLetter(c);
+                            ChNames[ChannelNum] = wxString::Format(FormatSpec, ChannelNum + 1, NodeNum) + model->GetChannelColorLetter(c);
                         }
                     }
                     ChannelNum++;
@@ -1493,9 +1492,9 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     if (!AllSelectedSupportIP()) {
         oc->Enable(false);
     } else {
-        int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-        if (item != -1) {
-            Output* o = _outputManager.GetOutput(item);
+        int item2 = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        if (item2 != -1) {
+            Output* o = _outputManager.GetOutput(item2);
             if (o->GetIP() == "MULTICAST") {
                 oc->Enable(false);
             }
@@ -1504,9 +1503,9 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
 	pc->Enable(false);
 	if (selcnt == 1) {
-		int item = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-		if (item != -1) {
-			Output* o = _outputManager.GetOutput(item);
+		int item2 = GridNetwork->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+		if (item2 != -1) {
+			Output* o = _outputManager.GetOutput(item2);
 			if (o->CanPing()) {
 				pc->Enable(true);
 			}

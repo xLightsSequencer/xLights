@@ -14,7 +14,7 @@ class VideoEffect : public RenderableEffect
         void Render(RenderBuffer &buffer,
 					std::string filename, double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool keepaspectratio, std::string durationTreatment, bool synchroniseAudio);
         virtual bool CanBeRandom() override {return false;}
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
         virtual bool AppropriateOnNodes() const override { return false; }

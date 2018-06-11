@@ -1,18 +1,16 @@
-#include "PianoEffect.h"
-
-#include "PianoPanel.h"
-
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsMain.h"
-#include "../xLightsXmlFile.h"
-#include "../UtilFunctions.h"
-
 #include <vector>
 
 #include "../../include/piano-16.xpm"
 #include "../../include/piano-64.xpm"
+
+#include "PianoEffect.h"
+#include "PianoPanel.h"
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+#include "../xLightsXmlFile.h"
+#include "../UtilFunctions.h"
+#include "models/Model.h"
 
 #include <log4cpp/Category.hh>
 
@@ -123,7 +121,7 @@ wxPanel *PianoEffect::CreatePanel(wxWindow *parent) {
 	return _panel;
 }
 
-void PianoEffect::SetDefaultParameters(Model *cls) {
+void PianoEffect::SetDefaultParameters() {
     PianoPanel *pp = (PianoPanel*)panel;
     if (pp == nullptr) {
         return;

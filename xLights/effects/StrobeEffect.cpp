@@ -67,7 +67,7 @@ public:
     std::list<StrobeClass> strobe;
 };
 
-void StrobeEffect::SetDefaultParameters(Model *cls)
+void StrobeEffect::SetDefaultParameters()
 {
     StrobePanel *sp = (StrobePanel*)panel;
     if (sp == nullptr) {

@@ -7,7 +7,7 @@ class SpiralsEffect : public RenderableEffect {
     public:
         SpiralsEffect(int id);
         virtual ~SpiralsEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }

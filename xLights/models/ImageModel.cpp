@@ -1,12 +1,14 @@
-#include "ImageModel.h"
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
+
+#include "ImageModel.h"
 #include "ModelScreenLocation.h"
 #include "../ModelPreview.h"
 #include "../RenderBuffer.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 ImageModel::ImageModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)

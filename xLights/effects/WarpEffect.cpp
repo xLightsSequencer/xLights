@@ -1,17 +1,22 @@
-#include "WarpEffect.h"
-#include "WarpPanel.h"
+#include <wx/checkbox.h>
 
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "../xLightsMain.h" //xLightsFrame
-#include "../DissolveTransitionPattern.h"
+#include <sstream>
 
 #include "../../include/warp-64.xpm"
 #include "../../include/warp-48.xpm"
 #include "../../include/warp-32.xpm"
 #include "../../include/warp-24.xpm"
 #include "../../include/warp-16.xpm"
+
+#include "WarpEffect.h"
+#include "WarpPanel.h"
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+#include "../xLightsMain.h"
+#include "../DissolveTransitionPattern.h"
+#include "../xLightsApp.h"
+#include "../TimingPanel.h"
 
 namespace
 {
@@ -289,7 +294,7 @@ wxPanel *WarpEffect::CreatePanel(wxWindow *parent)
     return new WarpPanel(parent);
 }
 
-void WarpEffect::SetDefaultParameters(Model *cls)
+void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
     p->Choice_Warp_Type->SetSelection( 0 );
@@ -306,6 +311,11 @@ void WarpEffect::SetDefaultParameters(Model *cls)
 
     p->Slider_Warp_Frequency->SetValue( 20 );
     p->TextCtrl_Warp_Frequency->SetValue( "20" );
+
+    // Turn on canvas mode as this really only makes sense in canvas mode
+    xLightsFrame* frame = xLightsApp::GetFrame();
+    TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
+    layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
 std::string WarpEffect::GetEffectString()

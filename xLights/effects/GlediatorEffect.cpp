@@ -195,7 +195,7 @@ wxPanel *GlediatorEffect::CreatePanel(wxWindow *parent) {
     return new GlediatorPanel(parent);
 }
 
-void GlediatorEffect::SetDefaultParameters(Model *cls) {
+void GlediatorEffect::SetDefaultParameters() {
     GlediatorPanel *gp = (GlediatorPanel*)panel;
     if (gp == nullptr) {
         return;

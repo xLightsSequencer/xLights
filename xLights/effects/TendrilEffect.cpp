@@ -411,7 +411,7 @@ wxPanel *TendrilEffect::CreatePanel(wxWindow *parent) {
     return new TendrilPanel(parent);
 }
 
-void TendrilEffect::SetDefaultParameters(Model *cls) {
+void TendrilEffect::SetDefaultParameters() {
     TendrilPanel *tp = (TendrilPanel*)panel;
     if (tp == nullptr) {
         return;

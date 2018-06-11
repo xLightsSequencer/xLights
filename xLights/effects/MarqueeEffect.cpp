@@ -27,7 +27,7 @@ wxPanel *MarqueeEffect::CreatePanel(wxWindow *parent) {
     return new MarqueePanel(parent);
 }
 
-void MarqueeEffect::SetDefaultParameters(Model *cls) {
+void MarqueeEffect::SetDefaultParameters() {
     MarqueePanel *mp = (MarqueePanel*)panel;
     if (mp == nullptr) {
         return;

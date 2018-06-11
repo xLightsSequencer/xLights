@@ -23,7 +23,7 @@ wxPanel *SpiralsEffect::CreatePanel(wxWindow *parent) {
     return new SpiralsPanel(parent);
 }
 
-void SpiralsEffect::SetDefaultParameters(Model *cls)
+void SpiralsEffect::SetDefaultParameters()
 {
     SpiralsPanel *sp = (SpiralsPanel*)panel;
     if (sp == nullptr) {

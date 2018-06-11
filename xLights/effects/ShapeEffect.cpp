@@ -105,7 +105,7 @@ wxPanel *ShapeEffect::CreatePanel(wxWindow *parent) {
 #define RENDER_SHAPE_PRESENT    12
 #define RENDER_SHAPE_EMOJI      13
 
-void ShapeEffect::SetDefaultParameters(Model *cls) {
+void ShapeEffect::SetDefaultParameters() {
     ShapePanel *sp = (ShapePanel*)panel;
     if (sp == nullptr) {
         return;

@@ -1,18 +1,17 @@
 #include <wx/wx.h>
-
-#include "Model.h"
-
 #include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+#include <wx/sstream.h>
 
+#include "Model.h"
+#include "ModelManager.h"
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
 #include "../Color.h"
 #include "../DrawGLUtils.h"
 #include "../DimmingCurve.h"
-
 #include "../StrandNodeNamesDialog.h"
 #include "../ModelFaceDialog.h"
 #include "../ModelStateDialog.h"
@@ -21,15 +20,16 @@
 #include "../SubModelsDialog.h"
 #include "../ControllerConnectionDialog.h"
 #include "../outputs/Output.h"
+#include "../outputs/OutputManager.h"
 #include "../outputs/IPOutput.h"
 #include "../VendorModelDialog.h"
-
+#include "../ModelPreview.h"
 #include "ModelScreenLocation.h"
-#include <wx/sstream.h>
-
 #include "SubModel.h"
 #include "../UtilFunctions.h"
 #include "xLightsVersion.h"
+
+#include <log4cpp/Category.hh>
 
 static const std::string DEFAULT("Default");
 static const std::string PER_PREVIEW("Per Preview");

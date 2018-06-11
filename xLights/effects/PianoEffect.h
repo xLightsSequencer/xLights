@@ -17,7 +17,7 @@ class PianoEffect : public RenderableEffect
         virtual bool CanBeRandom() override {return false;}
 		virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
 		static std::vector<float> Parse(wxString& l);
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual int GetColorSupportedCount() const override { return 5; }

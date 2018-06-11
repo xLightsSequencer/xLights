@@ -1,13 +1,14 @@
-#include "EffectTreeDialog.h"
-#include "xLightsMain.h"
-#include "xLightsVersion.h"
-#include "UtilFunctions.h"
-//#include <log4cpp/Category.hh>
-
 //(*InternalHeaders(EffectTreeDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+#include "EffectTreeDialog.h"
+#include "xLightsMain.h"
+#include "xLightsVersion.h"
+#include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 //(*IdInit(EffectTreeDialog)
 const long EffectTreeDialog::ID_TREECTRL1 = wxNewId();

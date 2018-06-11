@@ -1,14 +1,16 @@
-#include "HousePreviewPanel.h"
-#include "xLightsMain.h"
-#include "ModelPreview.h"
-#include <wx/artprov.h>
-#include "xLightsXmlFile.h"
-#include "UtilFunctions.h"
-
 //(*InternalHeaders(HousePreviewPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+#include <wx/artprov.h>
+
+#include "HousePreviewPanel.h"
+#include "xLightsMain.h"
+#include "ModelPreview.h"
+#include "xLightsXmlFile.h"
+#include "UtilFunctions.h"
+#include "sequencer/MainSequencer.h"
 
 //(*IdInit(HousePreviewPanel)
 const long HousePreviewPanel::ID_BITMAPBUTTON1 = wxNewId();
@@ -115,7 +117,6 @@ HousePreviewPanel::~HousePreviewPanel()
 	//(*Destroy(HousePreviewPanel)
 	//*)
 }
-
 
 void HousePreviewPanel::OnPlayButtonClick(wxCommandEvent& event)
 {

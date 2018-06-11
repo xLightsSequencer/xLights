@@ -1,17 +1,17 @@
-#include "LMSImportChannelMapDialog.h"
-#include "sequencer/SequenceElements.h"
-#include "xLightsMain.h"
-#include "models/Model.h"
+//(*InternalHeaders(LMSImportChannelMapDialog)
+#include <wx/intl.h>
+#include <wx/string.h>
+//*)
 
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
 #include <wx/colordlg.h>
 
-//(*InternalHeaders(LMSImportChannelMapDialog)
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
+#include "LMSImportChannelMapDialog.h"
+#include "sequencer/SequenceElements.h"
+#include "xLightsMain.h"
+#include "models/Model.h"
 
 //(*IdInit(LMSImportChannelMapDialog)
 const long LMSImportChannelMapDialog::ID_CHOICE1 = wxNewId();

@@ -1,7 +1,9 @@
-#include <wx/utils.h> //check keyboard state -DJ
+#include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
 #include <wx/xml/xml.h>
+#include <wx/config.h>
+
 #include "xLightsMain.h"
 #include "SeqSettingsDialog.h"
 #include "xLightsXmlFile.h"
@@ -12,10 +14,18 @@
 #include "LayoutPanel.h"
 #include "osxMacUtils.h"
 #include "UtilFunctions.h"
-#include <wx/config.h>
 #include "BufferPanel.h"
 #include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
+#include "EffectsPanel.h"
+#include "TimingPanel.h"
+#include "ColorPanel.h"
+#include "LayoutGroup.h"
+#include "ModelPreview.h"
+#include "ViewsModelsPanel.h"
+#include "PerspectivesPanel.h"
+
+#include <log4cpp/Category.hh>
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
@@ -34,8 +44,7 @@ void xLightsFrame::OnButtonNewSequenceClick(wxCommandEvent& event)
 	EnableSequenceControls(true);
 }
 
-
-// load the specified .xseq binary file
+// load the specified .?seq binary file
 void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
 {
     // read xlights file
@@ -43,7 +52,8 @@ void xLightsFrame::SeqLoadXlightsXSEQ(const wxString& filename)
     if (fn.GetExt() == "xseq") {
         ReadXlightsFile(filename);
         fn.SetExt("fseq");
-    } else {
+    }
+    else {
         ReadFalconFile(filename, nullptr);
     }
     DisplayXlightsFilename(fn.GetFullPath());

@@ -1,15 +1,17 @@
-#include "EffectLayer.h"
 #include <algorithm>
 #include <vector>
+
+#include "EffectLayer.h"
 #include "EffectsGrid.h"
 #include "Effect.h"
 #include "RowHeading.h"
 #include "../models/Model.h"
 #include "../effects/EffectManager.h"
 #include "../effects/RenderableEffect.h"
-#include <log4cpp/Category.hh>
 #include "Element.h"
 #include "xLightsMain.h"
+
+#include <log4cpp/Category.hh>
 
 std::atomic_int EffectLayer::exclusive_index(0);
 const std::string NamedLayer::NO_NAME("");

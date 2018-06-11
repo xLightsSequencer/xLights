@@ -56,7 +56,7 @@ public:
     int LastLifeState;
 };
 
-void LifeEffect::SetDefaultParameters(Model *cls) {
+void LifeEffect::SetDefaultParameters() {
     LifePanel *lp = (LifePanel*)panel;
     if (lp == nullptr) {
         return;

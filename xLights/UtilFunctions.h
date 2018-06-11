@@ -9,6 +9,7 @@
 
 // Consolidated set of utility functions
 std::string Ordinal(int i);
+std::string DecodeMidi(int midi);
 bool DeleteDirectory(std::string directory);
 bool IsIPValid(const std::string &ip);
 bool IsIPValidOrHostname(const std::string &ip, bool iponly = false);

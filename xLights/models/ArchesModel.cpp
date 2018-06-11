@@ -1,12 +1,12 @@
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
-
-#include "ArchesModel.h"
-#include "ModelScreenLocation.h"
 #include <wx/msgdlg.h>
 #include <wx/log.h>
 #include <wx/filedlg.h>
+
+#include "ArchesModel.h"
+#include "ModelScreenLocation.h"
 #include "xLightsVersion.h"
 #include "../xLightsMain.h"
 

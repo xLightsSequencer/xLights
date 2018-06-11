@@ -20,7 +20,7 @@ FillEffect::~FillEffect()
     //dtor
 }
 
-void FillEffect::SetDefaultParameters(Model *cls) {
+void FillEffect::SetDefaultParameters() {
     FillPanel *fp = (FillPanel*)panel;
     if (fp == nullptr) {
         return;

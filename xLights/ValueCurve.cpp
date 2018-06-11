@@ -1,11 +1,13 @@
-#include "ValueCurve.h"
 #include <wx/wx.h>
 #include <wx/string.h>
+#include <wx/msgdlg.h>
+
+#include "ValueCurve.h"
 #include "xLightsVersion.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
-#include <wx/msgdlg.h>
 #include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 float ValueCurve::SafeParameter(size_t p, float v)

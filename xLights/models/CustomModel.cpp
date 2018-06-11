@@ -1,4 +1,3 @@
-
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
@@ -10,6 +9,9 @@
 #include "../xLightsVersion.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
+#include "outputs/OutputManager.h"
+
+#include <log4cpp/Category.hh>
 
 #define retmsg(msg)  \
 { \

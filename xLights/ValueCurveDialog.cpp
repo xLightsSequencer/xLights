@@ -1,6 +1,3 @@
-#include "ValueCurveDialog.h"
-#include "xLightsMain.h"
-
 //(*InternalHeaders(ValueCurveDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -12,11 +9,17 @@
 #include <wx/filedlg.h>
 #include <wx/file.h>
 #include <wx/msgdlg.h>
+#include <wx/stdpaths.h>
+
+#include "ValueCurveDialog.h"
+#include "xLightsMain.h"
 #include "ValueCurve.h"
-#include <log4cpp/Category.hh>
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
+#include "sequencer/MainSequencer.h"
+
+#include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
     EVT_MOTION(ValueCurvePanel::mouseMoved)

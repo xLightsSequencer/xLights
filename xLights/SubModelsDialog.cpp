@@ -1,19 +1,3 @@
-#include "SubModelsDialog.h"
-
-#include <wx/dnd.h>
-#include <wx/textdlg.h>
-#include <wx/msgdlg.h>
-#include <wx/menu.h>
-#include <wx/tokenzr.h>
-
-#include "models/Model.h"
-#include "SubBufferPanel.h"
-#include "SubModelGenerateDialog.h"
-#include "UtilFunctions.h"
-#include "xLightsApp.h"
-#include "xLightsMain.h"
-#include "LayoutPanel.h"
-
 //(*InternalHeaders(SubModelsDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -28,6 +12,21 @@
 #include <wx/string.h>
 #include <wx/textctrl.h>
 //*)
+
+#include <wx/dnd.h>
+#include <wx/msgdlg.h>
+#include <wx/menu.h>
+#include <wx/tokenzr.h>
+
+#include "SubModelsDialog.h"
+#include "models/Model.h"
+#include "SubBufferPanel.h"
+#include "SubModelGenerateDialog.h"
+#include "UtilFunctions.h"
+#include "xLightsApp.h"
+#include "models/ModelManager.h"
+#include "xLightsMain.h"
+#include "LayoutPanel.h"
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 

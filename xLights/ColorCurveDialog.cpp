@@ -1,7 +1,3 @@
-#include "ColorCurveDialog.h"
-#include "xLightsMain.h"
-#include "xLightsVersion.h"
-
 //(*InternalHeaders(ColorCurveDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -9,11 +5,17 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/file.h>
-#include <log4cpp/Category.hh>
 #include <wx/colordlg.h>
 #include <wx/stdpaths.h>
+
+#include "ColorCurveDialog.h"
+#include "xLightsMain.h"
+#include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
+#include "sequencer/MainSequencer.h"
+
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_CCP_CHANGED, wxCommandEvent);
 

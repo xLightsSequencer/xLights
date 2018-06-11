@@ -1,5 +1,3 @@
-#include "FolderSelection.h"
-
 //(*InternalHeaders(FolderSelection)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -7,8 +5,14 @@
 
 #include <wx/config.h>
 #include <wx/dirdlg.h>
-#include "xLightsMain.h"
+#include <wx/filename.h>
+#include <wx/dir.h>
+#include <wx/msgdlg.h>
+
+#include "FolderSelection.h"
 #include "osxMacUtils.h"
+
+#include <log4cpp/Category.hh>
 
 //(*IdInit(FolderSelection)
 const long FolderSelection::ID_CHECKBOX_MEDIA_USE_SHOW = wxNewId();

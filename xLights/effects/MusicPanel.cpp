@@ -1,9 +1,3 @@
-#include "MusicPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
-#include "EffectPanelUtils.h"
-#include "../xLightsMain.h"
-#include "MusicEffect.h"
-
 //(*InternalHeaders(MusicPanel)
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
@@ -18,6 +12,13 @@
 #include <wx/string.h>
 #include <wx/textctrl.h>
 //*)
+
+#include "../../include/padlock16x16-blue.xpm"
+
+#include "MusicPanel.h"
+#include "EffectPanelUtils.h"
+#include "MusicEffect.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(MusicPanel)
 const long MusicPanel::ID_STATICTEXT_Music_Bars = wxNewId();
@@ -204,6 +205,7 @@ MusicPanel::MusicPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHOICE_Music_Colour,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Music_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MusicPanel::OnLockButtonClick);
 	//*)
+
     SetName("ID_PANEL_Music");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MusicPanel::OnVCChanged, 0, this);
@@ -223,8 +225,8 @@ PANEL_EVENT_HANDLERS(MusicPanel)
 
 void MusicPanel::ValidateWindow()
 {
-    Slider_Music_StartNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_Music_StartNote->GetValue()).c_str()));
-    Slider_Music_EndNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_Music_EndNote->GetValue()).c_str()));
+    Slider_Music_StartNote->SetToolTip(wxString(DecodeMidi(Slider_Music_StartNote->GetValue()).c_str()));
+    Slider_Music_EndNote->SetToolTip(wxString(DecodeMidi(Slider_Music_EndNote->GetValue()).c_str()));
 }
 
 void MusicPanel::OnChoice_Music_TypeSelect(wxCommandEvent& event)

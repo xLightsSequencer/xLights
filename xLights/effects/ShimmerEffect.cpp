@@ -21,7 +21,7 @@ wxPanel *ShimmerEffect::CreatePanel(wxWindow *parent) {
     return new ShimmerPanel(parent);
 }
 
-void ShimmerEffect::SetDefaultParameters(Model *cls)
+void ShimmerEffect::SetDefaultParameters()
 {
     ShimmerPanel *sp = (ShimmerPanel*)panel;
     if (sp == nullptr) {

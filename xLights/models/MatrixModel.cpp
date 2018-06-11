@@ -1,12 +1,13 @@
-#include "MatrixModel.h"
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
-#include "ModelScreenLocation.h"
 #include <wx/log.h>
 #include <wx/filedlg.h>
-#include "../xLightsVersion.h"
 #include <wx/msgdlg.h>
+
+#include "MatrixModel.h"
+#include "ModelScreenLocation.h"
+#include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 
 MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)

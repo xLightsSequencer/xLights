@@ -1,14 +1,15 @@
-#include "PicturesAssistPanel.h"
-#include "../../xlColorPicker.h"
-#include "../../xlColorPickerFields.h"
-#include "../../../include/PaintToolIcons.h"
-#include "../../xLightsMain.h"
-#include "../../xLightsXmlFile.h"
-
 //(*InternalHeaders(PicturesAssistPanel)
 #include <wx/string.h>
 #include <wx/intl.h>
 //*)
+
+#include "PicturesAssistPanel.h"
+#include "../../xlColorPicker.h"
+#include "../../xlColorPickerFields.h"
+#include "../../../include/PaintToolIcons.h"
+#include "../../models/Model.h"
+#include "../../xLightsMain.h"
+#include "../../xLightsXmlFile.h"
 
 //(*IdInit(PicturesAssistPanel)
 const long PicturesAssistPanel::ID_BUTTON_NewImage = wxNewId();

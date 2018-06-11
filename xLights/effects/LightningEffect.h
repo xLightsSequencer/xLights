@@ -22,7 +22,7 @@ class LightningEffect : public RenderableEffect
     public:
         LightningEffect(int id);
         virtual ~LightningEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool AppropriateOnNodes() const override { return false; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }

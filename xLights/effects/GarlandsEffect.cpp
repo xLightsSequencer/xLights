@@ -46,7 +46,7 @@ int GetDirection(const std::string &direction) {
     return 0;
 }
 
-void GarlandsEffect::SetDefaultParameters(Model *cls) {
+void GarlandsEffect::SetDefaultParameters() {
     GarlandsPanel *fp = (GarlandsPanel*)panel;
     if (fp == nullptr) {
         return;

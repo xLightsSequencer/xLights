@@ -1,18 +1,3 @@
-#include "PicturesEffect.h"
-#include "PicturesPanel.h"
-
-#include "../sequencer/Effect.h"
-#include "../RenderBuffer.h"
-#include "../UtilClasses.h"
-#include "assist/xlGridCanvasPictures.h"
-#include "assist/PicturesAssistPanel.h"
-#include "../xLightsXmlFile.h"
-#include "../xLightsMain.h" 
-#include "../models/Model.h"
-#include "../UtilFunctions.h"
-#include <log4cpp/Category.hh>
-#include "GIFImage.h"
-
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/gifdecod.h>
@@ -23,7 +8,21 @@
 #include "../../include/pictures-32.xpm"
 #include "../../include/pictures-48.xpm"
 #include "../../include/pictures-64.xpm"
+
+#include "PicturesEffect.h"
+#include "PicturesPanel.h"
+#include "../sequencer/Effect.h"
+#include "../RenderBuffer.h"
+#include "../UtilClasses.h"
+#include "assist/xlGridCanvasPictures.h"
+#include "assist/PicturesAssistPanel.h"
+#include "../xLightsXmlFile.h"
+#include "../models/Model.h"
 #include "../UtilFunctions.h"
+#include "GIFImage.h"
+#include "../xLightsMain.h" 
+
+#include <log4cpp/Category.hh>
 
 #define wrdebug(...)
 
@@ -334,7 +333,7 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     cache->PictureName = filename;
 }
 
-void PicturesEffect::SetDefaultParameters(Model *cls) {
+void PicturesEffect::SetDefaultParameters() {
     PicturesPanel *pp = (PicturesPanel*)panel;
     if (pp == nullptr) {
         return;

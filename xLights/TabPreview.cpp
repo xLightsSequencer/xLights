@@ -1,11 +1,11 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
+#include "ModelPreview.h"
 #include "HousePreviewPanel.h"
-
-#define PREVIEWROTATIONFACTOR 3
-
 #include "LayoutPanel.h"
 #include "osxMacUtils.h"
+
+#define PREVIEWROTATIONFACTOR 3
 
 void xLightsFrame::UpdatePreview()
 {
@@ -24,7 +24,6 @@ void xLightsFrame::RenderLayout()
 
 void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
-
 }
 
 void xLightsFrame::PreviewOutput(int period)

@@ -1,7 +1,8 @@
+#include <wx/wx.h>
+#include <wx/brush.h>
+
 #include "TimeLine.h"
 #include "Waveform.h"
-#include "wx/wx.h"
-#include "wx/brush.h"
 #include "../xLightsMain.h"
 
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);

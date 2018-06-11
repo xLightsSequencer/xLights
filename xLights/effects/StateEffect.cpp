@@ -1,3 +1,5 @@
+#include <wx/tokenzr.h>
+
 #include "StateEffect.h"
 #include "StatePanel.h"
 #include "../models/Model.h"
@@ -5,12 +7,11 @@
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../xLightsMain.h" //xLightsFrame
 #include "../../include/state-16.xpm"
 #include "../../include/state-64.xpm"
 #include "../UtilFunctions.h"
 
-#include <wx/tokenzr.h>
+#include <log4cpp/Category.hh>
 
 StateEffect::StateEffect(int id) : RenderableEffect(id, "State", state_16, state_64, state_64, state_64, state_64)
 {
@@ -71,7 +72,7 @@ void StateEffect::SetPanelStatus(Model *cls) {
     }
 
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); it++) {
+        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); ++it) {
             if (it->second.size() > 30) // actually it should be about 120
             {
                 fp->Choice_StateDefinitonChoice->Append(it->first);
@@ -92,11 +93,11 @@ std::list<std::string> StateEffect::GetStates(Model *cls, std::string model) {
     std::list<std::string> res;
 
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); it++)
+        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->stateInfo.begin(); it != cls->stateInfo.end(); ++it)
         {
             if (model == it->first)
             {
-                for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
                 {
                     wxString f(it2->first);
                     if (f.EndsWith("-Name") && it2->second != "")
@@ -115,7 +116,7 @@ wxPanel *StateEffect::CreatePanel(wxWindow *parent) {
     return new StatePanel(parent);
 }
 
-void StateEffect::SetDefaultParameters(Model *cls) {
+void StateEffect::SetDefaultParameters() {
     StatePanel *sp = (StatePanel*)panel;
     if (sp == nullptr) {
         return;
@@ -148,7 +149,7 @@ void StateEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name)
 {
-    for (auto it2 = map.begin(); it2 != map.end(); it2++)
+    for (auto it2 = map.begin(); it2 != map.end(); ++it2)
     {
         wxString f(it2->first);
         if (f.EndsWith("-Name") && it2->second == name)
@@ -181,13 +182,14 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     if (track != nullptr) {
         lock = &track->GetChangeLock();
     }
+
     std::unique_lock<std::recursive_mutex> locker(*lock);
 
     if (buffer.cur_model == "") {
         return;
     }
 
-    Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+    Model* model_info = buffer.GetModel();
     if (model_info == nullptr) {
         return;
     }
@@ -236,13 +238,12 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     if (tstates == "") {
 
         // if we dont have a track then exit
-        if (track == NULL)
+        if (track == nullptr)
         {
             return;
         }
 
         EffectLayer *layer = track->GetEffectLayer(0);
-        std::unique_lock<std::recursive_mutex> locker(layer->GetLock());
         int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
         posms = buffer.curPeriod * buffer.frameTimeInMs;
         Effect *ef = layer->GetEffectByTime(time);
@@ -256,12 +257,12 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         }
 
         ef = layer->GetEffectByTime(buffer.curEffStartPer * buffer.frameTimeInMs + 1);
-        while (ef != NULL && ef->GetStartTimeMS() <= time)
+        while (ef != nullptr && ef->GetStartTimeMS() <= time)
         {
             intervalnumber++;
             int endtime = ef->GetEndTimeMS();
             ef = layer->GetEffectByTime(endtime + 1);
-            if (ef == NULL)
+            if (ef == nullptr)
             {
                 ef = layer->GetEffectAfterTime(endtime + 1);
             }
@@ -500,6 +501,3 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         }
     }
 }
-
-
-

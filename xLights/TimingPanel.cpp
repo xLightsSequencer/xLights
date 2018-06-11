@@ -1,7 +1,3 @@
-#include "TimingPanel.h"
-#include "../include/padlock16x16-blue.xpm" //-DJ
-#include <wx/msgdlg.h>
-#include <wx/config.h>
 //(*InternalHeaders(TimingPanel)
 #include <wx/bitmap.h>
 #include <wx/image.h>
@@ -10,6 +6,12 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/msgdlg.h>
+#include <wx/config.h>
+
+#include "../include/padlock16x16-blue.xpm"
+
+#include "TimingPanel.h"
 #include "models/Model.h"
 #include "effects/EffectPanelUtils.h"
 #include "LayerSelectDialog.h"

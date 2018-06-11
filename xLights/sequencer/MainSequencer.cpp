@@ -1,17 +1,20 @@
-#include "../xLightsMain.h"
-#include "MainSequencer.h"
-#include "TimeLine.h"
-#include "../UtilFunctions.h"
-#include <wx/event.h>
-#include <wx/clipbrd.h>
-#include "../xLightsVersion.h"
-
 //(*InternalHeaders(MainSequencer)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
 #include <wx/dcbuffer.h>
+#include <wx/event.h>
+#include <wx/clipbrd.h>
+
+#include "MainSequencer.h"
+#include "SequenceElements.h"
+#include "../xLightsMain.h"
+#include "TimeLine.h"
+#include "../UtilFunctions.h"
+#include "../xLightsVersion.h"
+
+#include <log4cpp/Category.hh>
 
 //(*IdInit(MainSequencer)
 const long MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();

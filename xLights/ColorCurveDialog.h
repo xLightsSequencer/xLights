@@ -10,11 +10,11 @@
 //*)
 
 #include <wx/colourdata.h>
+#include <wx/dir.h>
 
 #include "xlCustomControl.h"
 #include "ColorCurve.h"
 
-class wxDir;
 class wxAutoBufferedPaintDC;
 class Element;
 

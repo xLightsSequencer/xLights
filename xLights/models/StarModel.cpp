@@ -7,7 +7,7 @@
 #include <wx/msgdlg.h>
 
 #include "StarModel.h"
-#include <xLightsVersion.h>
+#include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 
 std::vector<std::string> StarModel::STAR_BUFFER_STYLES;

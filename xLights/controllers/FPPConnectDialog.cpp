@@ -1,18 +1,23 @@
-#include "FPPConnectDialog.h"
-#include "xLightsMain.h"
-#include "FPP.h"
-#include <wx/regex.h>
-#include "xLightsXmlFile.h"
-#include <wx/volume.h>
-#include <wx/progdlg.h>
-#include <wx/config.h>
-#include "outputs/Output.h"
-#include "UtilFunctions.h"
-
 //(*InternalHeaders(FPPConnectDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+#include <wx/regex.h>
+#include <wx/volume.h>
+#include <wx/progdlg.h>
+#include <wx/config.h>
+#include <wx/dir.h>
+
+#include "FPPConnectDialog.h"
+#include "xLightsMain.h"
+#include "FPP.h"
+#include "xLightsXmlFile.h"
+#include "outputs/Output.h"
+#include "outputs/OutputManager.h"
+#include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_STATICTEXT1 = wxNewId();

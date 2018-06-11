@@ -73,7 +73,7 @@ void MusicEffect::adjustSettings(const std::string &version, Effect *effect, boo
     }
 }
 
-void MusicEffect::SetDefaultParameters(Model *cls) {
+void MusicEffect::SetDefaultParameters() {
     MusicPanel *mp = (MusicPanel*)panel;
     if (mp == nullptr) {
         return;

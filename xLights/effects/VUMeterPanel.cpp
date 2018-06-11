@@ -1,9 +1,3 @@
-#include "VUMeterPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
-#include "EffectPanelUtils.h"
-#include "../xLightsMain.h"
-#include "VUMeterEffect.h"
-
 //(*InternalHeaders(VUMeterPanel)
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
@@ -18,6 +12,13 @@
 #include <wx/string.h>
 #include <wx/textctrl.h>
 //*)
+
+#include "../../include/padlock16x16-blue.xpm"
+
+#include "VUMeterPanel.h"
+#include "EffectPanelUtils.h"
+#include "VUMeterEffect.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(VUMeterPanel)
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_Bars = wxNewId();
@@ -255,6 +256,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	//*)
+    
     SetName("ID_PANEL_VUMeter");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VUMeterPanel::OnVCChanged, 0, this);
@@ -403,8 +405,8 @@ void VUMeterPanel::ValidateWindow()
         BitmapButton_VUMeter_YOffsetVC->Disable();
     }
 
-    Slider_VUMeter_StartNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_VUMeter_StartNote->GetValue()).c_str()));
-    Slider_VUMeter_EndNote->SetToolTip(wxString(xLightsFrame::DecodeMidi(Slider_VUMeter_EndNote->GetValue()).c_str()));
+    Slider_VUMeter_StartNote->SetToolTip(wxString(DecodeMidi(Slider_VUMeter_StartNote->GetValue()).c_str()));
+    Slider_VUMeter_EndNote->SetToolTip(wxString(DecodeMidi(Slider_VUMeter_EndNote->GetValue()).c_str()));
 }
 
 void VUMeterPanel::OnChoice_VUMeter_TypeSelect(wxCommandEvent& event)

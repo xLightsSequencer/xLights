@@ -11,7 +11,7 @@ class OffEffect : public RenderableEffect
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::string GetEffectString() override;
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
     protected:

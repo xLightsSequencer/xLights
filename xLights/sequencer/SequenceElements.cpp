@@ -1,9 +1,10 @@
-#include "wx/wx.h"
+#include <wx/wx.h>
 #include <wx/utils.h>
-#include <algorithm>
-#include <regex>
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
+
+#include <algorithm>
+#include <regex>
 
 #include "SequenceElements.h"
 #include "TimeLine.h"
@@ -16,6 +17,8 @@
 #include "../UtilFunctions.h"
 #include "../SequenceViewManager.h"
 #include "../JukeboxPanel.h"
+
+#include <log4cpp/Category.hh>
 
 static const std::string STR_EMPTY("");
 static const std::string STR_NAME("name");

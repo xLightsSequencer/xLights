@@ -14,14 +14,13 @@
 //*)
 
 #include <wx/dir.h>
-#include "ColorCurve.h"
-#include "BulkEditControls.h"
 
 #include <vector>
 #include <map>
-#include "osx_utils/TouchBars.h"
 
-wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
+#include "ColorCurve.h"
+#include "BulkEditControls.h"
+#include "osx_utils/TouchBars.h"
 
 #define COLORPANEL_BRIGHTNESS_MIN 0
 #define COLORPANEL_BRIGHTNESS_MAX 400

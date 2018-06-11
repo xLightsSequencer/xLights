@@ -1,5 +1,3 @@
-#include "ModelGroupPanel.h"
-
 //(*InternalHeaders(ModelGroupPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -8,11 +6,13 @@
 #include <wx/string.h>
 //*)
 
-#include "xLightsMain.h"
+#include <wx/xml/xml.h>
+#include <wx/time.h>
+
+#include "ModelGroupPanel.h"
 #include "models/ModelManager.h"
 #include "models/ModelGroup.h"
 #include "LayoutPanel.h"
-#include <wx/xml/xml.h>
 
 // This event is fired when a model is dropped between lists
 wxDEFINE_EVENT(EVT_MGDROP, wxCommandEvent);

@@ -10,7 +10,7 @@ class ColorWashEffect : public RenderableEffect
         ColorWashEffect(int id);
         virtual ~ColorWashEffect();
     
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual int DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator &bg, xlColor* colorMask, bool ramps) override;
         virtual std::string GetEffectString() override;
