@@ -526,6 +526,11 @@
     <ClInclude Include="controllers\SimpleFTP.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
+    <ClInclude Include="effects\assist\AssistPanel.h" />
+    <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="effects\WarpEffect.h" />

@@ -25,6 +25,7 @@
 #include <wx/mimetype.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
+#include <wx/stdpaths.h>
 
 #include <cctype>
 

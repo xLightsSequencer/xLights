@@ -5,8 +5,8 @@
 
 #include "AssistPanel.h"
 #include "../../xLightsMain.h"
-#include "models/Model.h";
-#include "sequencer/Element.h"
+#include "../../models/Model.h"
+#include "../../sequencer/Element.h"
 
 #include <log4cpp/Category.hh>
 

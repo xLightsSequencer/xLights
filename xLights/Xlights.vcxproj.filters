@@ -687,6 +687,11 @@
     <ClInclude Include="WarpPanel.h" />
     <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="OpenGLShaders.h" />
+    <ClInclude Include="effects\assist\AssistPanel.h" />
+    <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
