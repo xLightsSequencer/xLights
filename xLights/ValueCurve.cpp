@@ -1315,7 +1315,7 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
     //_active = true;
 
     // Start (param1) for Sine, Absolute Sine and Decaying Sine has been deprecated and replaced by TimeOffset
-    if (_parameter1 != 0 && (_type == "Sine" || _type == "Abs Sine"| _type == "Decaying Sine"))
+    if (_parameter1 != 0 && (_type == "Sine" || _type == "Abs Sine" || _type == "Decaying Sine"))
     {
         _timeOffset = 100 - _parameter1;
         _parameter1 = 0;

@@ -1678,23 +1678,21 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         int ia = data1->nativeOrder;
         int ib = data2->nativeOrder;
         if (ia > ib)
+        {
             if (ascending)
             {
                 return 1;
             }
-            else
-            {
-                return -1;
-            }
+            return -1;
+        }
         if (ia < ib)
+        {
             if (ascending)
             {
                 return -1;
             }
-            else
-            {
-                return 1;
-            }
+            return 1;
+        }
     }
 
     return NumberAwareStringCompare(a->name, b->name);
