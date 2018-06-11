@@ -602,8 +602,6 @@
 		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />
 		<Unit filename="VsaImportDialog.h" />
-		<Unit filename="WarpPanel.cpp" />
-		<Unit filename="WarpPanel.h" />
 		<Unit filename="WiringDialog.cpp" />
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
@@ -822,6 +820,8 @@
 		<Unit filename="effects/VideoPanel.h" />
 		<Unit filename="effects/WarpEffect.cpp" />
 		<Unit filename="effects/WarpEffect.h" />
+        <Unit filename="effects/WarpPanel.cpp" />
+        <Unit filename="effects/WarpPanel.h" />
 		<Unit filename="effects/WaveEffect.cpp" />
 		<Unit filename="effects/WaveEffect.h" />
 		<Unit filename="effects/WavePanel.cpp" />
@@ -1324,7 +1324,7 @@
 					<wxDialog wxs="wxsmith/FolderSelection.wxs" src="FolderSelection.cpp" hdr="FolderSelection.h" fwddecl="0" i18n="1" name="FolderSelection" language="CPP" />
 					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
-					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="WarpPanel.cpp" hdr="WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
