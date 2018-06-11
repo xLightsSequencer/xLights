@@ -11,7 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (scott)  Added Import Button to the Submodel Dialog, this will import the submodels from a xmodel files.
+   -- enh (scott)  Added "Copy", "Import from Model", and "Import from File" Buttons to the Submodel Dialog.
+					- Copy The Currently Selected SubModel.
+					- Import SubModels from another Model.
+					- Import SubModels from a xmodel files.
 2018.15 June 10, 2018
    -- enh (dkulp)  Big speedup for Canvas mode
    -- enh (keith)  Add PixelEditor import
