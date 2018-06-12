@@ -50,6 +50,7 @@ class WarpPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxTextCtrl* TextCtrl1;
 		//*)
 
 		void ValidateWindow();
@@ -57,6 +58,7 @@ class WarpPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(WarpPanel)
+		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE_Warp_Type;
 		static const long ID_STATICTEXT2;
@@ -75,7 +77,6 @@ class WarpPanel: public wxPanel
 		static const long IDD_TEXTCTRL_Warp_Frequency;
 		//*)
 
-		WarpPreview * _preview;
 		static const long ID_CANVAS;
 		friend class WarpEffect;
 
