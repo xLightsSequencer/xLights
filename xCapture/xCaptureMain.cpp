@@ -128,6 +128,9 @@ void xCaptureFrame::StashPacket(long type, wxByte* packet, int len)
     }
     else if (type == ID_ARTNETSOCKET)
     {
+        // we only handle artdmx packets
+        if (packet[9] != 0x50) return;
+
         universe = ((int)packet[15] << 8) + (int)packet[14];
     }
 
