@@ -108,6 +108,16 @@ namespace
       return xlColor( *val, *val, *val );
    }
 
+   struct WarpEffectParams
+   {
+      WarpEffectParams( float i_progress, const Vec2D& i_xy, float i_speed, float i_frequency )
+         : progress(i_progress), xy(i_xy), speed(i_speed), frequency(i_frequency) {}
+      float progress;
+      Vec2D xy;
+      float speed;
+      float frequency;
+   };
+
    float genWave( float len, float speed, float time, float PI )
    {
       float wave = RenderBuffer::sin( speed * PI * len + time );
@@ -117,16 +127,15 @@ namespace
       return wave;
    }
 
-   xlColor waterDrops( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor waterDrops( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       const float PI = 3.14159265359;
-#define time (-progress * 35.0)
-      Vec2D so( 0.5f, 0.5f );
-      Vec2D pos2( Vec2D( s, t ) - so );
+#define time (-params.progress * 35.0)
+      Vec2D pos2( Vec2D( s, t ) - params.xy );
       Vec2D pos2n( pos2.Norm() );
 
       double len = pos2.Len();
-      float wave = genWave( len, 20.f, time, PI );
+      float wave = genWave( len, params.speed, time, PI );
 #undef time
       Vec2D uv2( -pos2n * wave / ( 1.0 + 5.0 * len ) );
 
@@ -134,84 +143,76 @@ namespace
       return tex2D( cb, st.x, st.y );
    }
 
-   xlColor rippleIn( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor rippleIn( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
-      const Vec2D center( 0.5, 0.5 );
-      const double frequency = 20;
-      const double speed = 10;
       const double amplitude = 0.15;
 
-      Vec2D toUV( s - center.x, t - center.y );
+      Vec2D toUV( s - params.xy.x, t - params.xy.y );
       double distanceFromCenter = toUV.Len();
       Vec2D normToUV = toUV / distanceFromCenter;
 
-      double wave = RenderBuffer::cos( frequency * distanceFromCenter - speed * progress );
-      double offset = progress * wave * amplitude;
+      double wave = RenderBuffer::cos( params.frequency * distanceFromCenter - params.speed * params.progress );
+      double offset = params.progress * wave * amplitude;
 
-      Vec2D newUV = center + normToUV * ( distanceFromCenter + offset );
+      Vec2D newUV = params.xy + normToUV * ( distanceFromCenter + offset );
 
       xlColor c1 = tex2D( cb, s, t );
       xlColor c2 = tex2D( cb, newUV.x, newUV.y );
 
-      return lerp( c2, c1, progress );
+      return lerp( c2, c1, params.progress );
    }
-   xlColor rippleOut( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor rippleOut( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
-      const Vec2D center( 0.5, 0.5 );
-      const double frequency = 20;
-      const double speed = 10;
       const double amplitude = 0.15;
 
-      Vec2D toUV( s - center.x, t - center.y );
+      Vec2D toUV( s - params.xy.x, t - params.xy.y );
       double distanceFromCenter = toUV.Len();
       Vec2D normToUV = toUV / distanceFromCenter;
 
-      double wave = RenderBuffer::cos( frequency * distanceFromCenter - speed * progress );
-      double offset = progress * wave * amplitude;
+      double wave = RenderBuffer::cos( params.frequency * distanceFromCenter - params.speed * params.progress );
+      double offset = params.progress * wave * amplitude;
 
-      Vec2D newUV = center + normToUV * ( distanceFromCenter + offset );
+      Vec2D newUV = params.xy + normToUV * ( distanceFromCenter + offset );
 
       xlColor c1 = tex2D( cb, s, t );
       xlColor c2 = tex2D( cb, newUV.x, newUV.y );
 
-      return lerp( c1, c2, progress );
+      return lerp( c1, c2, params.progress );
    }
 
-   xlColor dissolveIn( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor dissolveIn( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       xlColor dissolveColor = dissolveTex( s, t );
-      unsigned char byteProgress = (unsigned char)( 255 * progress );
+      unsigned char byteProgress = (unsigned char)( 255 * params.progress );
       return (dissolveColor.red <= byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
-   xlColor dissolveOut( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor dissolveOut( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       xlColor dissolveColor = dissolveTex( s, t );
-      unsigned char byteProgress = (unsigned char)( 255 * progress );
+      unsigned char byteProgress = (unsigned char)( 255 * params.progress );
       return (dissolveColor.red > byteProgress) ? tex2D( cb, s, t ) : xlBLACK;
    }
 
-   xlColor circleRevealIn( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor circleRevealIn( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       const float FuzzyAmount = 0.04f;
       const float CircleSize = 0.60f;
-      const Vec2D CenterPt( 0.5, 0.5 );
 
-      float radius = -FuzzyAmount + progress * (CircleSize + 2.0 * FuzzyAmount);
-      float fromCenter = ( Vec2D(s,t) - CenterPt).Len();
+      float radius = -FuzzyAmount + params.progress * (CircleSize + 2.0 * FuzzyAmount);
+      float fromCenter = ( Vec2D(s,t) - params.xy).Len();
       float distFromCircle = fromCenter - radius;
 
       xlColor c = tex2D( cb, s, t );
       float p = CLAMP((distFromCircle + FuzzyAmount) / (2.0 * FuzzyAmount), 0., 1. );
       return lerp( c, xlBLACK, p );
    }
-   xlColor circleRevealOut( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor circleRevealOut( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       const float FuzzyAmount = 0.04f;
       const float CircleSize = 0.60f;
-      const Vec2D CenterPt( 0.5, 0.5 );
 
-      float radius = -FuzzyAmount + (1-progress) * (CircleSize + 2.0 * FuzzyAmount);
-      float fromCenter = ( Vec2D(s,t) - CenterPt).Len();
+      float radius = -FuzzyAmount + (1-params.progress) * (CircleSize + 2.0 * FuzzyAmount);
+      float fromCenter = ( Vec2D(s,t) - params.xy).Len();
       float distFromCircle = fromCenter - radius;
 
       xlColor c = tex2D( cb, s, t );
@@ -219,50 +220,46 @@ namespace
       return lerp( c, xlBLACK, p );
    }
 
-   xlColor bandedSwirlIn( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor bandedSwirlIn( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
-      const Vec2D Center( 0.5, 0.5 );
-      const double Frequency = 20.;
       const double TwistAmount = 1.6;
 
-      Vec2D toUV( Vec2D( s, t ) - Center );
+      Vec2D toUV( Vec2D( s, t ) - params.xy );
       double distanceFromCenter = toUV.Len();
       Vec2D normToUV( toUV / distanceFromCenter );
       float angle = ::atan2( normToUV.y, normToUV.x );
 
-      angle += RenderBuffer::sin( distanceFromCenter * Frequency ) * TwistAmount * (1 - progress);
+      angle += RenderBuffer::sin( distanceFromCenter * params.frequency ) * TwistAmount * (1 - params.progress);
       Vec2D newUV( RenderBuffer::cos( angle ), RenderBuffer::sin( angle ) );
-      newUV = newUV * distanceFromCenter + Center;
+      newUV = newUV * distanceFromCenter + params.xy;
 
       xlColor c1 = tex2D( cb, s, t );
       xlColor c2 = tex2D( cb, newUV.x, newUV.y );
 
-      return lerp( c1, c2, progress );
+      return lerp( c1, c2, params.progress );
    }
-   xlColor bandedSwirlOut( const ColorBuffer& cb, double s, double t, float progress )
+   xlColor bandedSwirlOut( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
-      const Vec2D Center( 0.5, 0.5 );
-      const double Frequency = 20.;
       const double TwistAmount = 1.6;
 
-      Vec2D toUV( Vec2D( s, t ) - Center );
+      Vec2D toUV( Vec2D( s, t ) - params.xy );
       double distanceFromCenter = toUV.Len();
       Vec2D normToUV( toUV / distanceFromCenter );
       float angle = ::atan2( normToUV.y, normToUV.x );
 
-      angle += RenderBuffer::sin( distanceFromCenter * Frequency ) * TwistAmount * progress;
+      angle += RenderBuffer::sin( distanceFromCenter * params.frequency ) * TwistAmount * params.progress;
       Vec2D newUV( RenderBuffer::cos( angle ), RenderBuffer::sin( angle ) );
-      newUV = newUV * distanceFromCenter + Center;
+      newUV = newUV * distanceFromCenter + params.xy;
 
       xlColor c1 = tex2D( cb, s, t );
       xlColor c2 = tex2D( cb, newUV.x, newUV.y );
 
-      return lerp( c2, c1, progress );
+      return lerp( c2, c1, params.progress );
    }
 
-   typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, float progress );
+   typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
 
-   void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, float progress )
+   void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
    {
       xlColorVector cvOrig( rb.pixels );
       ColorBuffer cb( cvOrig, rb.BufferWi, rb.BufferHt );
@@ -273,7 +270,7 @@ namespace
          for ( int x = 0; x < rb.BufferWi; ++x )
          {
             double s = double( x ) / ( rb.BufferWi - 1 );
-            rb.SetPixel( x, y, transform( cb, s, t, progress ) );
+            rb.SetPixel( x, y, transform( cb, s, t, params ) );
          }
       }
    }
@@ -378,20 +375,21 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    std::string warpStrY = SettingsMap.Get( "TEXTCTRL_Warp_Y", "50" );
    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
-   float x = 0.01f * std::stoi( warpStrX );
-   float y = 0.01f * std::stoi( warpStrY );
+   double x = 0.01 * std::stoi( warpStrX );
+   double y = 0.01f * std::stoi( warpStrY );
    float speed = std::stof( speedStr );
-   float freq = std::stof( freqStr );
+   float frequency = std::stof( freqStr );
    float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
+   WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
    if ( warpType == "water drops" )
-      RenderPixelTransform( waterDrops, buffer, progress );
+      RenderPixelTransform( waterDrops, buffer, params );
    else if ( warpType == "ripple" )
-      RenderPixelTransform( warpTreatment == "in" ? rippleIn : rippleOut, buffer, progress );
+      RenderPixelTransform( warpTreatment == "in" ? rippleIn : rippleOut, buffer, params );
    else if ( warpType == "dissolve" )
-      RenderPixelTransform( warpTreatment == "in" ? dissolveIn : dissolveOut, buffer, progress );
+      RenderPixelTransform( warpTreatment == "in" ? dissolveIn : dissolveOut, buffer, params );
    else if ( warpType == "banded swirl" )
-      RenderPixelTransform( warpTreatment == "in" ? bandedSwirlIn : bandedSwirlOut, buffer, progress );
+      RenderPixelTransform( warpTreatment == "in" ? bandedSwirlIn : bandedSwirlOut, buffer, params );
    else if ( warpType == "circle reveal" )
-      RenderPixelTransform( warpTreatment == "in" ? circleRevealIn : circleRevealOut, buffer, progress );
+      RenderPixelTransform( warpTreatment == "in" ? circleRevealIn : circleRevealOut, buffer, params );
 }

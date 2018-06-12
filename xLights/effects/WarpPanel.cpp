@@ -3,10 +3,12 @@
 
 //(*InternalHeaders(WarpPanel)
 #include <wx/intl.h>
+#include <wx/settings.h>
 #include <wx/string.h>
 //*)
 
 //(*IdInit(WarpPanel)
+const long WarpPanel::ID_TEXTCTRL1 = wxNewId();
 const long WarpPanel::ID_STATICTEXT1 = wxNewId();
 const long WarpPanel::ID_CHOICE_Warp_Type = wxNewId();
 const long WarpPanel::ID_STATICTEXT2 = wxNewId();
@@ -55,11 +57,19 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	//(*Initialize(WarpPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* PreviewSizer;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(2, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
+	FlexGridSizer1->AddGrowableRow(1);
+	FlexGridSizer3 = new wxFlexGridSizer(1, 1, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	TextCtrl1 = new wxTextCtrl(this, ID_TEXTCTRL1, _("The warp effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work."), wxDefaultPosition, wxDLG_UNIT(this,wxSize(99,32)), wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	TextCtrl1->Disable();
+	TextCtrl1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU));
+	FlexGridSizer3->Add(TextCtrl1, 1, wxEXPAND, 2);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Warp Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
@@ -104,16 +114,11 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer2->Add(Slider_Warp_Frequency, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_Warp_Frequency = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Warp_Frequency, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_Warp_Frequency"));
 	FlexGridSizer2->Add(TextCtrl_Warp_Frequency, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	PreviewSizer = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer2->Add(PreviewSizer, 1, wxALL, 5);
-	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 2);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
-
-	_preview = new WarpPreview( this, ID_CANVAS );
-	PreviewSizer->Add(_preview, 1, wxALL | wxEXPAND, 0);
 }
 
 WarpPanel::~WarpPanel()

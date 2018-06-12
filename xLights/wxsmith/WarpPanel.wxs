@@ -4,7 +4,31 @@
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<rows>2</rows>
 			<growablecols>0</growablecols>
+			<growablerows>1</growablerows>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+					<cols>1</cols>
+					<rows>1</rows>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl1" member="yes">
+							<value>The warp effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work.</value>
+							<size>99,32d</size>
+							<enabled>0</enabled>
+							<bg>wxSYS_COLOUR_MENU</bg>
+							<style>wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER</style>
+						</object>
+						<flag>wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>3</cols>
@@ -167,16 +191,8 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="PreviewSizer" member="no">
-							<cols>3</cols>
-						</object>
-						<flag>wxALL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
