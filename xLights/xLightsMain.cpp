@@ -7589,16 +7589,17 @@ bool xLightsFrame::CheckForUpdate(bool force)
             }
             page = page.Mid(start + len);
         }
+
+        wxString dlv = urlVersion;
+        dlv.Replace(".", "_");
+        wxString bit = GetBitness();
+        bit.Replace("bit", "");
+        downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
 #else
         wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
         wxString urlVersion = wxString(out_stream.GetString());
         reVersion.Replace(&urlVersion, "\\1", 1);
 #endif
-
-        logger_base.debug("Current Version: %s. Latest Available %s. Skip Version %s.",
-            (const char *)xlights_version_string.c_str(),
-            (const char *)urlVersion.c_str(),
-            (const char *)configver.c_str());
 
         wxConfigBase* config = wxConfigBase::Get();
         if (!force && (config != nullptr))
@@ -7606,10 +7607,16 @@ bool xLightsFrame::CheckForUpdate(bool force)
             config->Read("SkipVersion", &configver);
         }
 
+        logger_base.debug("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
+            (const char *)xlights_version_string.c_str(),
+            (const char *)urlVersion.c_str(),
+            (const char *)configver.c_str());
+
         if ((!urlVersion.Matches(configver))
             && (!urlVersion.Matches(xlights_version_string))) {
             found_update = true;
             UpdaterDialog *dialog = new UpdaterDialog(this);
+
             dialog->urlVersion = urlVersion;
             dialog->force = force;
             dialog->downloadUrl = downloadUrl;

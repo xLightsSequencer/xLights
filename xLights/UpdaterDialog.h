@@ -7,7 +7,6 @@
 #include <wx/button.h>
 #include <wx/stattext.h>
 //*)
-#include <wx/config.h>
 
 class UpdaterDialog: public wxDialog
 {
@@ -18,7 +17,6 @@ class UpdaterDialog: public wxDialog
 		wxString urlVersion = "";
 		wxString downloadUrl = "";
 		bool force = false;
-		wxConfigBase* config;
 
 		//(*Declarations(UpdaterDialog)
 		wxButton* ButtonUpDownload;
@@ -43,7 +41,6 @@ class UpdaterDialog: public wxDialog
 		void OnButtonUpdateSkipClick(wxCommandEvent& event);
 		void OnButtonUpdateIgnoreClick(wxCommandEvent& event);
 		//*)
-
 
 		DECLARE_EVENT_TABLE()
 };
