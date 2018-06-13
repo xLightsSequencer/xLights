@@ -90,10 +90,11 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Piano_ShowSharps" variable="BitmapButton_Piano_ShowSharps" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_Piano_ShowSharps" variable="BitmapButton_Piano_ShowSharps" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -154,7 +155,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Piano_Scale" subclass="BulkEditValueCurveButton" variable="BitmapButton_Piano_ScaleVC" member="yes">
-									<bitmap code="valuecurvenotselected_24" />
+                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>

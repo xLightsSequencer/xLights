@@ -3,73 +3,15 @@
 	<object class="wxPanel" name="EffectsPanel">
 		<id_arg>0</id_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-			<cols>2</cols>
+			<cols>1</cols>
+			<rows>1</rows>
 			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxChoicebook" name="ID_CHOICEBOOK1" variable="EffectChoicebook" member="yes">
 					<handler function="EffectSelected" entry="EVT_CHOICEBOOK_PAGE_CHANGED" />
 				</object>
 				<flag>wxRIGHT|wxEXPAND</flag>
-				<border>2</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
-					<cols>1</cols>
-					<object class="sizeritem">
-						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-							<cols>2</cols>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICEBOOK1" variable="BitmapButton_LayerEffect" member="yes">
-									<bitmap code="padlock16x16_blue_xpm" />
-									<size>13,13</size>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>1</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON87" variable="BitmapButton_normal" member="yes">
-									<bitmap code="padlock16x16_green_xpm" />
-									<size>13,13</size>
-									<hidden>1</hidden>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>1</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton_locked" member="yes">
-									<bitmap code="padlock16x16_red_xpm" />
-									<size>13,13</size>
-									<hidden>1</hidden>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>1</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON88" variable="BitmapButton_random" member="yes">
-									<bitmap code="padlock16x16_blue_xpm" />
-									<size>13,13</size>
-									<hidden>1</hidden>
-									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
-								</object>
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>1</border>
-								<option>1</option>
-							</object>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>1</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

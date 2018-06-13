@@ -39,16 +39,6 @@ class VUMeterPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_VUMeter_XOffset;
 		BulkEditTextCtrl* TextCtrl_VUMeter_YOffset;
 		BulkEditValueCurveButton* BitmapButton_VUMeter_YOffsetVC;
-		wxBitmapButton* BitmapButton_VUMeter_Bars;
-		wxBitmapButton* BitmapButton_VUMeter_EndNote;
-		wxBitmapButton* BitmapButton_VUMeter_Sensitivity;
-		wxBitmapButton* BitmapButton_VUMeter_Shape;
-		wxBitmapButton* BitmapButton_VUMeter_SlowDownFalls;
-		wxBitmapButton* BitmapButton_VUMeter_StartNote;
-		wxBitmapButton* BitmapButton_VUMeter_TimingTrack;
-		wxBitmapButton* BitmapButton_VUMeter_Type;
-		wxBitmapButton* BitmapButton_VUMeter_XOffset;
-		wxBitmapButton* BitmapButton_VUMeter_YOffset;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
@@ -63,6 +53,16 @@ class VUMeterPanel: public wxPanel
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
+		xlLockButton* BitmapButton_VUMeter_Bars;
+		xlLockButton* BitmapButton_VUMeter_EndNote;
+		xlLockButton* BitmapButton_VUMeter_Sensitivity;
+		xlLockButton* BitmapButton_VUMeter_Shape;
+		xlLockButton* BitmapButton_VUMeter_SlowDownFalls;
+		xlLockButton* BitmapButton_VUMeter_StartNote;
+		xlLockButton* BitmapButton_VUMeter_TimingTrack;
+		xlLockButton* BitmapButton_VUMeter_Type;
+		xlLockButton* BitmapButton_VUMeter_XOffset;
+		xlLockButton* BitmapButton_VUMeter_YOffset;
 		//*)
 
 	protected:

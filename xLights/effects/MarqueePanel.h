@@ -38,13 +38,6 @@ class MarqueePanel: public wxPanel
 		BulkEditSlider* Slider_Marquee_Stagger;
 		BulkEditSlider* Slider_Marquee_Start;
 		BulkEditSlider* Slider_Marquee_Thickness;
-		wxBitmapButton* BitmapButton_Marquee_ScaleX;
-		wxBitmapButton* BitmapButton_Marquee_ScaleY;
-		wxBitmapButton* BitmapButton_Marquee_Skip_Size;
-		wxBitmapButton* BitmapButton_Marquee_Speed;
-		wxBitmapButton* BitmapButton_Marquee_Stagger;
-		wxBitmapButton* BitmapButton_Marquee_Start;
-		wxBitmapButton* BitmapButton_Marquee_Thickness;
 		wxNotebook* Notebook_Marquee;
 		wxPanel* Panel_Marquee_Position;
 		wxPanel* Panel_Marquee_Settings;
@@ -59,6 +52,13 @@ class MarqueePanel: public wxPanel
 		wxStaticText* StaticText201;
 		wxStaticText* StaticText244;
 		wxStaticText* StaticText62;
+		xlLockButton* BitmapButton_Marquee_ScaleX;
+		xlLockButton* BitmapButton_Marquee_ScaleY;
+		xlLockButton* BitmapButton_Marquee_Skip_Size;
+		xlLockButton* BitmapButton_Marquee_Speed;
+		xlLockButton* BitmapButton_Marquee_Stagger;
+		xlLockButton* BitmapButton_Marquee_Start;
+		xlLockButton* BitmapButton_Marquee_Thickness;
 		//*)
 
 	protected:

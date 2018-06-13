@@ -1,7 +1,6 @@
 #include "ValueCurveButton.h"
-#include "../include/valuecurveselected.xpm"
 
-
+#include <wx/artprov.h>
 #include <wx/dcmemory.h>
 
 wxDEFINE_EVENT(EVT_VC_CHANGED, wxCommandEvent);
@@ -49,8 +48,7 @@ void ValueCurveButton::UpdateBitmap() {
     else
     {
         if (!disabledBitmap.IsOk()) {
-            wxBitmap bmp(valuecurvenotselected_24);
-            disabledBitmap = bmp;
+            disabledBitmap = wxArtProvider::GetBitmap("xlART_valuecurve_notselected", wxART_BUTTON);
         }
         SetBitmap(disabledBitmap);
     }

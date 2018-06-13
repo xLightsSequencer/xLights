@@ -3,12 +3,12 @@
 
 //(*Headers(OnPanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
+class wxCheckBox;
 class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,20 +21,20 @@ class OnPanel: public wxPanel
 		virtual ~OnPanel();
 
 		//(*Declarations(OnPanel)
-		BulkEditSlider* SliderEnd;
-		wxStaticText* StaticText137;
-		BulkEditSlider* SliderStart;
-		BulkEditTextCtrl* TextCtrlStart;
-		BulkEditSlider* Slider_On_Transparency;
-		wxStaticText* StaticText174;
-		wxStaticText* StaticText114;
-		BulkEditTextCtrl* TextCtrlEnd;
 		BulkEditCheckBox* CheckBoxShimmer;
-		wxStaticText* StaticText113;
-		BulkEditTextCtrl* TextCtrlOnTransparency;
-		BulkEditTextCtrl* TextCtrlCycles;
 		BulkEditSlider* SliderCycles;
+		BulkEditSlider* SliderEnd;
+		BulkEditSlider* SliderStart;
+		BulkEditSlider* Slider_On_Transparency;
+		BulkEditTextCtrl* TextCtrlCycles;
+		BulkEditTextCtrl* TextCtrlEnd;
+		BulkEditTextCtrl* TextCtrlOnTransparency;
+		BulkEditTextCtrl* TextCtrlStart;
 		BulkEditValueCurveButton* BitmapButton_On_Transparency;
+		wxStaticText* StaticText113;
+		wxStaticText* StaticText114;
+		wxStaticText* StaticText137;
+		wxStaticText* StaticText174;
 		//*)
 
 	protected:

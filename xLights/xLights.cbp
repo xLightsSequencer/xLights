@@ -820,8 +820,8 @@
 		<Unit filename="effects/VideoPanel.h" />
 		<Unit filename="effects/WarpEffect.cpp" />
 		<Unit filename="effects/WarpEffect.h" />
-        <Unit filename="effects/WarpPanel.cpp" />
-        <Unit filename="effects/WarpPanel.h" />
+		<Unit filename="effects/WarpPanel.cpp" />
+		<Unit filename="effects/WarpPanel.h" />
 		<Unit filename="effects/WaveEffect.cpp" />
 		<Unit filename="effects/WaveEffect.h" />
 		<Unit filename="effects/WavePanel.cpp" />
@@ -1180,6 +1180,8 @@
 		<Unit filename="xlGLCanvas.h" />
 		<Unit filename="xlGridCanvas.cpp" />
 		<Unit filename="xlGridCanvas.h" />
+		<Unit filename="xlLockButton.cpp" />
+		<Unit filename="xlLockButton.h" />
 		<Unit filename="xlSlider.cpp" />
 		<Unit filename="xlSlider.h" />
 		<Unit filename="xlights_out.h" />

@@ -35,20 +35,20 @@ class CirclesPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Circles_Count;
 		BulkEditValueCurveButton* BitmapButton_Circles_Size;
 		BulkEditValueCurveButton* BitmapButton_Circles_Speed;
-		wxBitmapButton* BitmapButton2;
-		wxBitmapButton* BitmapButton_CirclesBounce;
-		wxBitmapButton* BitmapButton_CirclesBubbles;
-		wxBitmapButton* BitmapButton_CirclesCollide;
-		wxBitmapButton* BitmapButton_CirclesCount;
-		wxBitmapButton* BitmapButton_CirclesPlasma;
-		wxBitmapButton* BitmapButton_CirclesRadial3D;
-		wxBitmapButton* BitmapButton_CirclesRadial;
-		wxBitmapButton* BitmapButton_CirclesSize;
-		wxBitmapButton* BitmapButton_Circles_Linear_Fade;
-		wxBitmapButton* BitmapButton_RandomMotion;
 		wxStaticText* StaticText136;
 		wxStaticText* StaticText137;
 		wxStaticText* StaticText31;
+		xlLockButton* BitmapButton2;
+		xlLockButton* BitmapButton_CirclesBounce;
+		xlLockButton* BitmapButton_CirclesBubbles;
+		xlLockButton* BitmapButton_CirclesCollide;
+		xlLockButton* BitmapButton_CirclesCount;
+		xlLockButton* BitmapButton_CirclesPlasma;
+		xlLockButton* BitmapButton_CirclesRadial3D;
+		xlLockButton* BitmapButton_CirclesRadial;
+		xlLockButton* BitmapButton_CirclesSize;
+		xlLockButton* BitmapButton_Circles_Linear_Fade;
+		xlLockButton* BitmapButton_RandomMotion;
 		//*)
 
 	protected:

@@ -7,9 +7,9 @@
 //(*InternalHeaders(TopEffectsPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/settings.h>
-#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
 #include <wx/string.h>
 //*)
 
@@ -27,9 +27,9 @@ END_EVENT_TABLE()
 TopEffectsPanel::TopEffectsPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(TopEffectsPanel)
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	MainSizer = new wxFlexGridSizer(0, 2, 0, 0);

@@ -2,9 +2,9 @@
 #define ASSISTPANEL_H
 
 //(*Headers(AssistPanel)
-#include <wx/sizer.h>
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
+#include <wx/sizer.h>
 //*)
 
 #include "../../xlGridCanvas.h"

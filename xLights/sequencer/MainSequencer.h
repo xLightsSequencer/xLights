@@ -73,13 +73,13 @@ class MainSequencer: public wxPanel
         void SetupTouchBar(EffectManager &m, ColorPanelTouchBar *colorTouchBar);
 
 		//(*Declarations(MainSequencer)
-		wxScrollBar* ScrollBarEffectsHorizontal;
-		wxScrollBar* ScrollBarEffectsVertical;
-		wxChoice* ViewChoice;
 		EffectsGrid* PanelEffectGrid;
 		RowHeading* PanelRowHeadings;
-		Waveform* PanelWaveForm;
 		TimeLine* PanelTimeLine;
+		Waveform* PanelWaveForm;
+		wxChoice* ViewChoice;
+		wxScrollBar* ScrollBarEffectsHorizontal;
+		wxScrollBar* ScrollBarEffectsVertical;
 		//*)
 
         KeyBindingMap keyBindings;

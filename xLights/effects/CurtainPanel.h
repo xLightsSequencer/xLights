@@ -3,13 +3,13 @@
 
 //(*Headers(CurtainPanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
-class wxFlexGridSizer;
+class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,21 +22,21 @@ class CurtainPanel: public wxPanel
 		virtual ~CurtainPanel();
 
 		//(*Declarations(CurtainPanel)
-		BulkEditValueCurveButton* BitmapButton_Curtain_SpeedVC;
-		BulkEditSliderF1* Slider_Curtain_Speed;
 		BulkEditCheckBox* CheckBox_Curtain_Repeat;
-		wxStaticText* StaticText6;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText7;
-		wxBitmapButton* BitmapButton_CurtainEffect;
-		wxBitmapButton* BitmapButton_CurtainEdge;
-		BulkEditSlider* Slider_Curtain_Swag;
-		wxStaticText* StaticText178;
-		wxBitmapButton* BitmapButton_CurtainRepeat;
-		BulkEditChoice* Choice_Curtain_Effect;
-		wxBitmapButton* BitmapButton_CurtainSwag;
-		BulkEditValueCurveButton* BitmapButton_Curtain_SwagVC;
 		BulkEditChoice* Choice_Curtain_Edge;
+		BulkEditChoice* Choice_Curtain_Effect;
+		BulkEditSlider* Slider_Curtain_Swag;
+		BulkEditSliderF1* Slider_Curtain_Speed;
+		BulkEditValueCurveButton* BitmapButton_Curtain_SpeedVC;
+		BulkEditValueCurveButton* BitmapButton_Curtain_SwagVC;
+		wxStaticText* StaticText178;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		xlLockButton* BitmapButton_CurtainEdge;
+		xlLockButton* BitmapButton_CurtainEffect;
+		xlLockButton* BitmapButton_CurtainRepeat;
+		xlLockButton* BitmapButton_CurtainSwag;
 		//*)
 
 	protected:

@@ -74,10 +74,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pictures_Direction" variable="BitmapButton_PicturesDirection" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Pictures_Direction" variable="BitmapButton_PicturesDirection" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -113,10 +113,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_Speed" variable="BitmapButton_PicturesSpeed" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_Speed" variable="BitmapButton_PicturesSpeed" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -151,10 +151,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj" variable="BitmapButton_PicturesFrameRateAdj" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj" variable="BitmapButton_PicturesFrameRateAdj" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>

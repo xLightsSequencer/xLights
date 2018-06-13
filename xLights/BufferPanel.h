@@ -79,14 +79,6 @@ public:
 		BulkEditValueCurveButton* BitmapButton_XRotation;
 		BulkEditValueCurveButton* BitmapButton_YPivot;
 		BulkEditValueCurveButton* BitmapButton_YRotation;
-		wxBitmapButton* BitmapButton_EffectBlur;
-		wxBitmapButton* BitmapButton_OverlayBkg;
-		wxBitmapButton* BitmapButton_PivotPointX;
-		wxBitmapButton* BitmapButton_PivotPointY;
-		wxBitmapButton* BitmapButton_Rotation;
-		wxBitmapButton* BitmapButton_Rotations;
-		wxBitmapButton* BitmapButton_Zoom;
-		wxBitmapButton* BitmapButton_ZoomQuality;
 		wxCheckBox* CheckBox_ResetBufferPanel;
 		wxChoice* Choice_Preset;
 		wxFlexGridSizer* BufferSizer;
@@ -110,6 +102,14 @@ public:
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
+		xlLockButton* BitmapButton_EffectBlur;
+		xlLockButton* BitmapButton_OverlayBkg;
+		xlLockButton* BitmapButton_PivotPointX;
+		xlLockButton* BitmapButton_PivotPointY;
+		xlLockButton* BitmapButton_Rotation;
+		xlLockButton* BitmapButton_Rotations;
+		xlLockButton* BitmapButton_Zoom;
+		xlLockButton* BitmapButton_ZoomQuality;
 		//*)
 
         SubBufferPanel *subBufferPanel;

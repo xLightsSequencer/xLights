@@ -64,22 +64,6 @@ class MorphPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_X2;
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_Y1;
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_Y2;
-		wxBitmapButton* BitmapButton_MorphStagger;
-		wxBitmapButton* BitmapButton_Morph_Accel;
-		wxBitmapButton* BitmapButton_Morph_Duration;
-		wxBitmapButton* BitmapButton_Morph_EndLength;
-		wxBitmapButton* BitmapButton_Morph_EndX1;
-		wxBitmapButton* BitmapButton_Morph_EndX2;
-		wxBitmapButton* BitmapButton_Morph_EndY1;
-		wxBitmapButton* BitmapButton_Morph_EndY2;
-		wxBitmapButton* BitmapButton_Morph_RepeatCount;
-		wxBitmapButton* BitmapButton_Morph_RepeatSkip;
-		wxBitmapButton* BitmapButton_Morph_StartLength;
-		wxBitmapButton* BitmapButton_Morph_StartX1;
-		wxBitmapButton* BitmapButton_Morph_StartX2;
-		wxBitmapButton* BitmapButton_Morph_StartY1;
-		wxBitmapButton* BitmapButton_Morph_StartY2;
-		wxBitmapButton* BitmapButton_ShowHeadAtStart;
 		wxButton* ButtonSwap;
 		wxCheckBox* CheckBox_Morph_End_Link;
 		wxCheckBox* CheckBox_Morph_Start_Link;
@@ -100,6 +84,22 @@ class MorphPanel: public wxPanel
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText59;
 		wxStaticText* StaticText99;
+		xlLockButton* BitmapButton_MorphStagger;
+		xlLockButton* BitmapButton_Morph_Accel;
+		xlLockButton* BitmapButton_Morph_Duration;
+		xlLockButton* BitmapButton_Morph_EndLength;
+		xlLockButton* BitmapButton_Morph_EndX1;
+		xlLockButton* BitmapButton_Morph_EndX2;
+		xlLockButton* BitmapButton_Morph_EndY1;
+		xlLockButton* BitmapButton_Morph_EndY2;
+		xlLockButton* BitmapButton_Morph_RepeatCount;
+		xlLockButton* BitmapButton_Morph_RepeatSkip;
+		xlLockButton* BitmapButton_Morph_StartLength;
+		xlLockButton* BitmapButton_Morph_StartX1;
+		xlLockButton* BitmapButton_Morph_StartX2;
+		xlLockButton* BitmapButton_Morph_StartY1;
+		xlLockButton* BitmapButton_Morph_StartY2;
+		xlLockButton* BitmapButton_ShowHeadAtStart;
 		//*)
 
 	protected:

@@ -7,6 +7,7 @@
 #include <wx/choice.h>
 #include <wx/checkbox.h>
 #include "ValueCurveButton.h"
+#include "xlLockButton.h"
 
 class wxStaticText;
 

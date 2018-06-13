@@ -1,15 +1,14 @@
 #include "StatePanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 #include <list>
 #include "StateEffect.h"
 
 //(*InternalHeaders(StatePanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/radiobut.h>
 #include <wx/choice.h>
 #include <wx/intl.h>
+#include <wx/radiobut.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
 //*)
 
@@ -37,11 +36,11 @@ StatePanel::StatePanel(wxWindow* parent)
     _model = nullptr;
 
 	//(*Initialize(StatePanel)
-	wxStaticBoxSizer* StaticBoxSizer2;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer47;
 	wxFlexGridSizer* FlexGridSizer97;
 	wxFlexGridSizer* FlexGridSizer98;
-	wxFlexGridSizer* FlexGridSizer1;
+	wxStaticBoxSizer* StaticBoxSizer2;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);

@@ -28,7 +28,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fire_Height" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fire_HeightVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -50,10 +50,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_Height" variable="BitmapButton_FireHeight" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Fire_Height" variable="BitmapButton_FireHeight" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -81,7 +81,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fire_HueShift" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fire_HueShiftVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -103,10 +103,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_HueShift" variable="BitmapButton_FireWidth" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Fire_HueShift" variable="BitmapButton_FireWidth" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -136,7 +136,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Fire_GrowthCycles" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fire_GrowthCyclesVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -158,10 +158,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles" variable="BitmapButton_FireGrow" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Fire_GrowthCycles" variable="BitmapButton_FireGrow" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -189,10 +189,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic" variable="BitmapButton_Fire_GrowWithMusic" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Fire_GrowWithMusic" variable="BitmapButton_Fire_GrowWithMusic" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>

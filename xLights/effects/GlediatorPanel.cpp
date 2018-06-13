@@ -1,5 +1,4 @@
 #include "GlediatorPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 #include "wx/filedlg.h"
 

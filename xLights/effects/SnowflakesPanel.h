@@ -29,15 +29,15 @@ class SnowflakesPanel: public wxPanel
 		BulkEditSlider* Slider_Snowflakes_Type;
 		BulkEditValueCurveButton* BitmapButton_Snowflakes_Count;
 		BulkEditValueCurveButton* BitmapButton_Snowflakes_Speed;
-		wxBitmapButton* BitmapButton_Falling;
-		wxBitmapButton* BitmapButton_SnowflakesCount;
-		wxBitmapButton* BitmapButton_SnowflakesSpeed;
-		wxBitmapButton* BitmapButton_SnowflakesType;
 		wxStaticText* StaticText181;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText79;
 		wxStaticText* StaticText80;
+		xlLockButton* BitmapButton_Falling;
+		xlLockButton* BitmapButton_SnowflakesCount;
+		xlLockButton* BitmapButton_SnowflakesSpeed;
+		xlLockButton* BitmapButton_SnowflakesType;
 		//*)
 
 	protected:

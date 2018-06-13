@@ -3,12 +3,12 @@
 
 //(*Headers(SpiralsPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -33,30 +33,30 @@ class SpiralsPanel: public wxPanel
 		virtual ~SpiralsPanel();
 
 		//(*Declarations(SpiralsPanel)
-		BulkEditSlider* Slider_Spirals_Thickness;
-		BulkEditSliderF1* Slider_Spirals_Rotation;
-		BulkEditValueCurveButton* BitmapButton_VCSpirals_Rotation;
-		wxBitmapButton* BitmapButton_SpiralsRotation;
-		BulkEditCheckBox* CheckBox_Spirals_Grow;
-		BulkEditValueCurveButton* BitmapButton_VCSpiralsCount;
-		wxBitmapButton* BitmapButton_SpiralsDirection;
-		BulkEditValueCurveButton* BitmapButton_VCSpirals_Movement;
-		wxBitmapButton* BitmapButton_SpiralsGrow;
-		wxBitmapButton* BitmapButton_SpiralsShrink;
-		BulkEditSlider* Slider_Spirals_Count;
-		wxBitmapButton* BitmapButton_Spirals3D;
 		BulkEditCheckBox* CheckBox_Spirals_3D;
-		wxBitmapButton* BitmapButton_SpiralsCount;
-		wxStaticText* StaticText34;
-		wxStaticText* StaticText38;
-		BulkEditSliderF1* Slider_Spirals_Movement;
-		wxStaticText* StaticText40;
-		BulkEditCheckBox* CheckBox_Spirlas_Shrink;
-		BulkEditValueCurveButton* BitmapButton_VCSpirals_Thickness;
-		wxStaticText* StaticText36;
-		wxBitmapButton* BitmapButton_SpiralsThickness;
 		BulkEditCheckBox* CheckBox_Spirals_Blend;
-		wxBitmapButton* BitmapButton_SpiralsBlend;
+		BulkEditCheckBox* CheckBox_Spirals_Grow;
+		BulkEditCheckBox* CheckBox_Spirlas_Shrink;
+		BulkEditSlider* Slider_Spirals_Count;
+		BulkEditSlider* Slider_Spirals_Thickness;
+		BulkEditSliderF1* Slider_Spirals_Movement;
+		BulkEditSliderF1* Slider_Spirals_Rotation;
+		BulkEditValueCurveButton* BitmapButton_VCSpiralsCount;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Movement;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Rotation;
+		BulkEditValueCurveButton* BitmapButton_VCSpirals_Thickness;
+		wxStaticText* StaticText34;
+		wxStaticText* StaticText36;
+		wxStaticText* StaticText38;
+		wxStaticText* StaticText40;
+		xlLockButton* BitmapButton_Spirals3D;
+		xlLockButton* BitmapButton_SpiralsBlend;
+		xlLockButton* BitmapButton_SpiralsCount;
+		xlLockButton* BitmapButton_SpiralsDirection;
+		xlLockButton* BitmapButton_SpiralsGrow;
+		xlLockButton* BitmapButton_SpiralsRotation;
+		xlLockButton* BitmapButton_SpiralsShrink;
+		xlLockButton* BitmapButton_SpiralsThickness;
 		//*)
 
 	protected:

@@ -2,7 +2,6 @@
 #define EFFECTSPANEL_H
 
 //(*Headers(EffectsPanel)
-#include <wx/bmpbuttn.h>
 #include <wx/choicebk.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
@@ -14,6 +13,7 @@ class SequenceElements;
 class Model;
 class wxSlider;
 class EffectManager;
+class xlLockButton;
 
 class EffectsPanel: public wxPanel
 {
@@ -35,10 +35,6 @@ public:
     bool WantOverlayBkg(); //selectable clear canvas before render -DJ
 
     //(*Declarations(EffectsPanel)
-    wxBitmapButton* BitmapButton_LayerEffect;
-    wxBitmapButton* BitmapButton_locked;
-    wxBitmapButton* BitmapButton_normal;
-    wxBitmapButton* BitmapButton_random;
     wxChoicebook* EffectChoicebook;
     //*)
 
@@ -47,10 +43,6 @@ protected:
 
     //(*Identifiers(EffectsPanel)
     static const long ID_CHOICEBOOK1;
-    static const long ID_BITMAPBUTTON_CHOICEBOOK1;
-    static const long ID_BITMAPBUTTON87;
-    static const long ID_BITMAPBUTTON1;
-    static const long ID_BITMAPBUTTON88;
     //*)
 
 private:

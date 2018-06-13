@@ -25,12 +25,12 @@ class TwinklePanel: public wxPanel
 		BulkEditCheckBox* CheckBox_Twinkle_Strobe;
 		BulkEditSlider* Slider_Twinkle_Count;
 		BulkEditSlider* Slider_Twinkle_Steps;
-		wxBitmapButton* BitmapButton24;
-		wxBitmapButton* BitmapButton_TwinkleCount;
-		wxBitmapButton* BitmapButton_TwinkleSteps;
-		wxBitmapButton* BitmapButton_TwinkleStrobe;
 		wxStaticText* StaticText104;
 		wxStaticText* StaticText85;
+		xlLockButton* BitmapButton24;
+		xlLockButton* BitmapButton_TwinkleCount;
+		xlLockButton* BitmapButton_TwinkleSteps;
+		xlLockButton* BitmapButton_TwinkleStrobe;
 		//*)
 
 	protected:

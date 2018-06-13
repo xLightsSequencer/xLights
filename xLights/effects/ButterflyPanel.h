@@ -3,12 +3,12 @@
 
 //(*Headers(ButterflyPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,21 +21,21 @@ class ButterflyPanel: public wxPanel
 		virtual ~ButterflyPanel();
 
 		//(*Declarations(ButterflyPanel)
-		BulkEditSlider* Slider_Butterfly_Chunks;
-		BulkEditValueCurveButton* BitmapButton_Butterfly_Skip;
-		wxStaticText* StaticText175;
-		wxStaticText* StaticText28;
-		BulkEditSlider* Slider_Butterfly_Speed;
-		BulkEditValueCurveButton* BitmapButton_Butterfly_Speed;
-		BulkEditChoice* Choice_Butterfly_Direction;
 		BulkEditChoice* Choice_Butterfly_Colors;
-		BulkEditSlider* Slider_Butterfly_Style;
-		wxStaticText* StaticText27;
+		BulkEditChoice* Choice_Butterfly_Direction;
+		BulkEditSlider* Slider_Butterfly_Chunks;
 		BulkEditSlider* Slider_Butterfly_Skip;
-		wxStaticText* StaticText26;
+		BulkEditSlider* Slider_Butterfly_Speed;
+		BulkEditSlider* Slider_Butterfly_Style;
 		BulkEditValueCurveButton* BitmapButton_Butterfly_Chunks;
-		wxStaticText* StaticText58;
+		BulkEditValueCurveButton* BitmapButton_Butterfly_Skip;
+		BulkEditValueCurveButton* BitmapButton_Butterfly_Speed;
+		wxStaticText* StaticText175;
 		wxStaticText* StaticText25;
+		wxStaticText* StaticText26;
+		wxStaticText* StaticText27;
+		wxStaticText* StaticText28;
+		wxStaticText* StaticText58;
 		//*)
 
 	protected:

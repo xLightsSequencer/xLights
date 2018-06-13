@@ -46,16 +46,6 @@ class GalaxyPanel: public wxPanel
 		BulkEditValueCurveButton* ValueCurve_Galaxy_Start_Angle;
 		BulkEditValueCurveButton* ValueCurve_Galaxy_Start_Radius;
 		BulkEditValueCurveButton* ValueCurve_Galaxy_Start_Width;
-		wxBitmapButton* BitmapButton_Galaxy_Accel;
-		wxBitmapButton* BitmapButton_Galaxy_CenterX;
-		wxBitmapButton* BitmapButton_Galaxy_CenterY;
-		wxBitmapButton* BitmapButton_Galaxy_Duration;
-		wxBitmapButton* BitmapButton_Galaxy_End_Radius;
-		wxBitmapButton* BitmapButton_Galaxy_End_Width;
-		wxBitmapButton* BitmapButton_Galaxy_Revolutions;
-		wxBitmapButton* BitmapButton_Galaxy_Start_Angle;
-		wxBitmapButton* BitmapButton_Galaxy_Start_Radius;
-		wxBitmapButton* BitmapButton_Galaxy_Start_Width;
 		wxNotebook* Notebook_Galaxy;
 		wxStaticText* StaticText125;
 		wxStaticText* StaticText126;
@@ -67,6 +57,16 @@ class GalaxyPanel: public wxPanel
 		wxStaticText* StaticText140;
 		wxStaticText* StaticText141;
 		wxStaticText* StaticText142;
+		xlLockButton* BitmapButton_Galaxy_Accel;
+		xlLockButton* BitmapButton_Galaxy_CenterX;
+		xlLockButton* BitmapButton_Galaxy_CenterY;
+		xlLockButton* BitmapButton_Galaxy_Duration;
+		xlLockButton* BitmapButton_Galaxy_End_Radius;
+		xlLockButton* BitmapButton_Galaxy_End_Width;
+		xlLockButton* BitmapButton_Galaxy_Revolutions;
+		xlLockButton* BitmapButton_Galaxy_Start_Angle;
+		xlLockButton* BitmapButton_Galaxy_Start_Radius;
+		xlLockButton* BitmapButton_Galaxy_Start_Width;
 		//*)
 
 	protected:

@@ -1,4 +1,4 @@
-﻿xLights is a show sequencer and player/scheduler designed to control
+xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Scale bitmap buttons for locks/value curves, color panels on HiDPI screens
+   -- enh (dkulp)  New high-res lock/unlock icons
    -- enh (dkulp)  Initial support for using system background colors
    -- bug (dkulp)  TouchBar forward/back buttons reversed
    -- enh (scott)  Added "Copy", "Import from Model", and "Import from File" Buttons to the Submodel Dialog.

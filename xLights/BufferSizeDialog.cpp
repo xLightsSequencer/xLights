@@ -2,10 +2,11 @@
 #include "ValueCurveDialog.h"
 
 //(*InternalHeaders(BufferSizeDialog)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/intl.h>
 #include <wx/button.h>
 #include <wx/image.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -32,8 +33,8 @@ END_EVENT_TABLE()
 BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(BufferSizeDialog)
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, _("Buffer Size"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -49,28 +50,28 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 	SpinCtrl_Top = new wxSpinCtrl(this, ID_SPINCTRL1, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 200, 100, _T("ID_SPINCTRL1"));
 	SpinCtrl_Top->SetValue(_T("100"));
 	FlexGridSizer2->Add(SpinCtrl_Top, 1, wxALL|wxEXPAND, 5);
-	ValueCurve_Top = new ValueCurveButton(this, ID_VALUECURVE_BufferTop, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferTop"));
+	ValueCurve_Top = new ValueCurveButton(this, ID_VALUECURVE_BufferTop, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferTop"));
 	FlexGridSizer2->Add(ValueCurve_Top, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Left"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Left = new wxSpinCtrl(this, ID_SPINCTRL2, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 99, 0, _T("ID_SPINCTRL2"));
 	SpinCtrl_Left->SetValue(_T("0"));
 	FlexGridSizer2->Add(SpinCtrl_Left, 1, wxALL|wxEXPAND, 5);
-	ValueCurve_Left = new ValueCurveButton(this, ID_VALUECURVE_BufferLeft, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferLeft"));
+	ValueCurve_Left = new ValueCurveButton(this, ID_VALUECURVE_BufferLeft, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferLeft"));
 	FlexGridSizer2->Add(ValueCurve_Left, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Bottom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Bottom = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, 0, -100, 99, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_Bottom->SetValue(_T("0"));
 	FlexGridSizer2->Add(SpinCtrl_Bottom, 1, wxALL|wxEXPAND, 5);
-	ValueCurve_Bottom = new ValueCurveButton(this, ID_VALUECURVE_BufferBottom, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferBottom"));
+	ValueCurve_Bottom = new ValueCurveButton(this, ID_VALUECURVE_BufferBottom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferBottom"));
 	FlexGridSizer2->Add(ValueCurve_Bottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Right"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer2->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SpinCtrl_Right = new wxSpinCtrl(this, ID_SPINCTRL4, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 1, 200, 100, _T("ID_SPINCTRL4"));
 	SpinCtrl_Right->SetValue(_T("100"));
 	FlexGridSizer2->Add(SpinCtrl_Right, 1, wxALL|wxEXPAND, 5);
-	ValueCurve_Right = new ValueCurveButton(this, ID_VALUECURVE_BufferRight, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferRight"));
+	ValueCurve_Right = new ValueCurveButton(this, ID_VALUECURVE_BufferRight, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_BufferRight"));
 	FlexGridSizer2->Add(ValueCurve_Right, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();

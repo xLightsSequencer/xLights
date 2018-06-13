@@ -33,10 +33,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Count" variable="BitmapButton_TwinkleCount" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Count" variable="BitmapButton_TwinkleCount" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -73,10 +73,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Steps" variable="BitmapButton_TwinkleSteps" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Twinkle_Steps" variable="BitmapButton_TwinkleSteps" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -103,10 +103,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe" variable="BitmapButton_TwinkleStrobe" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_Strobe" variable="BitmapButton_TwinkleStrobe" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -133,10 +133,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom" variable="BitmapButton24" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Twinkle_ReRandom" variable="BitmapButton24" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>

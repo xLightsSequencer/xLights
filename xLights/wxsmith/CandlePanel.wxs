@@ -29,7 +29,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_FlameAgility" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_FlameAgilityVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -51,10 +51,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility" variable="BitmapButton_Candle_FlameAgility" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Candle_FlameAgility" variable="BitmapButton_Candle_FlameAgility" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -85,7 +85,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindBaseline" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_WindBaselineVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -107,10 +107,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline" variable="BitmapButton_Cande_WindBaseline" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindBaseline" variable="BitmapButton_Cande_WindBaseline" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -141,7 +141,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindVariability" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_WindVariabilityVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -163,10 +163,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindVariability" variable="BitmapButton_Cande_WinfVariability" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindVariability" variable="BitmapButton_Cande_WinfVariability" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -197,7 +197,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Candle_WindCalmness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Candle_WindCalmnessVC" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -219,10 +219,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness" variable="BitmapButton_Candle_WindCalmness" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Candle_WindCalmness" variable="BitmapButton_Candle_WindCalmness" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>

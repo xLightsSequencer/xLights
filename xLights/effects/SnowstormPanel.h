@@ -3,11 +3,11 @@
 
 //(*Headers(SnowstormPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -20,15 +20,15 @@ class SnowstormPanel: public wxPanel
 		virtual ~SnowstormPanel();
 
 		//(*Declarations(SnowstormPanel)
-		wxBitmapButton* BitmapButton_SnowstormCount;
 		BulkEditSlider* Slider_Snowstorm_Count;
-		wxBitmapButton* BitmapButton_SnowstormLength;
-		wxStaticText* StaticText45;
-		BulkEditSlider* Slider_Snowstorm_Speed;
-		wxBitmapButton* BitmapButton_SnowstormSpeed;
 		BulkEditSlider* Slider_Snowstorm_Length;
-		wxStaticText* StaticText51;
+		BulkEditSlider* Slider_Snowstorm_Speed;
 		wxStaticText* StaticText180;
+		wxStaticText* StaticText45;
+		wxStaticText* StaticText51;
+		xlLockButton* BitmapButton_SnowstormCount;
+		xlLockButton* BitmapButton_SnowstormLength;
+		xlLockButton* BitmapButton_SnowstormSpeed;
 		//*)
 
 	protected:

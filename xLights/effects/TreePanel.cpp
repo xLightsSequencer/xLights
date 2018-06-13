@@ -1,13 +1,14 @@
 #include "TreePanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(TreePanel)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
 #include <wx/image.h>
 #include <wx/intl.h>
+#include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
@@ -48,7 +49,8 @@ TreePanel::TreePanel(wxWindow* parent)
 	TextCtrl59 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Tree_Branches, _("3"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Tree_Branches"));
 	TextCtrl59->SetMaxLength(3);
 	FlexGridSizer71->Add(TextCtrl59, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_TreeBranches = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Tree_Branches, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Tree_Branches"));
+	BitmapButton_TreeBranches = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Tree_Branches, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Tree_Branches"));
+	BitmapButton_TreeBranches->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer71->Add(BitmapButton_TreeBranches, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText182 = new wxStaticText(this, ID_STATICTEXT_Tree_Speed, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Tree_Speed"));
 	FlexGridSizer71->Add(StaticText182, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

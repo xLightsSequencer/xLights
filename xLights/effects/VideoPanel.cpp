@@ -1,17 +1,16 @@
 #include "VideoPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(VideoPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
 #include <wx/checkbox.h>
-#include <wx/filepicker.h>
-#include <wx/slider.h>
 #include <wx/choice.h>
+#include <wx/filepicker.h>
 #include <wx/intl.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(VideoPanel)
@@ -48,13 +47,13 @@ END_EVENT_TABLE()
 VideoPanel::VideoPanel(wxWindow* parent)
 {
 	//(*Initialize(VideoPanel)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer42;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);

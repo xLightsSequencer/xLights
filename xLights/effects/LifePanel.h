@@ -3,11 +3,11 @@
 
 //(*Headers(LifePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -20,14 +20,14 @@ class LifePanel: public wxPanel
 		virtual ~LifePanel();
 
 		//(*Declarations(LifePanel)
-		wxBitmapButton* BitmapButton_LifeCount;
-		wxStaticText* StaticText35;
-		wxStaticText* StaticText37;
 		BulkEditSlider* Slider_Life_Count;
 		BulkEditSlider* Slider_Life_Seed;
 		BulkEditSlider* Slider_Life_Speed;
 		wxStaticText* StaticText134;
-		wxBitmapButton* BitmapButton_LifeSpeed;
+		wxStaticText* StaticText35;
+		wxStaticText* StaticText37;
+		xlLockButton* BitmapButton_LifeCount;
+		xlLockButton* BitmapButton_LifeSpeed;
 		//*)
 
 	protected:

@@ -182,6 +182,7 @@
 		6763C5621F701E87006616FF /* PlayListItemFilePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6763C55F1F701E87006616FF /* PlayListItemFilePanel.cpp */; };
 		6763C5631F701E87006616FF /* PlayListItemFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6763C5611F701E87006616FF /* PlayListItemFile.cpp */; };
 		6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */; };
+		676507CD20D185F200532BA9 /* xlLockButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676507CB20D185F100532BA9 /* xlLockButton.cpp */; };
 		67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */; };
 		6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038C1D01CA0800589601 /* FillEffect.cpp */; };
 		676603911D01CA2400589601 /* FillPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038F1D01CA2400589601 /* FillPanel.cpp */; };
@@ -1034,6 +1035,8 @@
 		6763C5611F701E87006616FF /* PlayListItemFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFile.cpp; path = PlayList/PlayListItemFile.cpp; sourceTree = "<group>"; };
 		6764010A1C8FBFC30079A4CF /* LayoutPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutPanel.h; sourceTree = "<group>"; };
 		6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutPanel.cpp; sourceTree = "<group>"; };
+		676507CB20D185F100532BA9 /* xlLockButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlLockButton.cpp; sourceTree = "<group>"; };
+		676507CC20D185F100532BA9 /* xlLockButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlLockButton.h; sourceTree = "<group>"; };
 		67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelScreenLocation.cpp; path = models/ModelScreenLocation.cpp; sourceTree = "<group>"; };
 		67653D5B1CA589830026A30B /* ModelScreenLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelScreenLocation.h; path = models/ModelScreenLocation.h; sourceTree = "<group>"; };
 		6766038C1D01CA0800589601 /* FillEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FillEffect.cpp; path = effects/FillEffect.cpp; sourceTree = "<group>"; };
@@ -1150,7 +1153,7 @@
 		67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelLayoutDialog.h; sourceTree = "<group>"; };
 		67A619C817B51C0F008E95BB /* EffectListDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectListDialog.cpp; sourceTree = "<group>"; };
 		67A619C917B51C0F008E95BB /* EffectListDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectListDialog.h; sourceTree = "<group>"; };
-		67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = EffectsPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = EffectsPanel.cpp; sourceTree = "<group>"; };
 		67A619CB17B51C0F008E95BB /* EffectsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = EffectsPanel.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PaletteMgmtDialog.cpp; sourceTree = "<group>"; };
 		67A619D517B51C0F008E95BB /* PaletteMgmtDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PaletteMgmtDialog.h; sourceTree = "<group>"; };
@@ -1396,7 +1399,7 @@
 		67B71D221EC09FDB00690109 /* ColorManagerDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorManagerDialog.cpp; sourceTree = "<group>"; };
 		67B71D231EC09FDB00690109 /* ColorManagerDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorManagerDialog.h; sourceTree = "<group>"; };
 		67B797171A5AE343008D5921 /* ColorPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ColorPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		67B797181A5AE343008D5921 /* TimingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TimingPanel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		67B797181A5AE343008D5921 /* TimingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = TimingPanel.cpp; sourceTree = "<group>"; };
 		67B797191A5AE343008D5921 /* TopEffectsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopEffectsPanel.cpp; sourceTree = "<group>"; };
 		67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxCheckedListCtrl.cpp; sourceTree = "<group>"; };
 		67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxCheckedListCtrl.h; sourceTree = "<group>"; };
@@ -2581,6 +2584,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				676507CB20D185F100532BA9 /* xlLockButton.cpp */,
+				676507CC20D185F100532BA9 /* xlLockButton.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
@@ -3438,6 +3443,7 @@
 				675DE2691B53381800A9BB44 /* xlColorCanvas.cpp in Sources */,
 				67B2B2281E1947BE0024F0BB /* E131Dialog.cpp in Sources */,
 				675D404B1E896AFD0033C950 /* LiquidEffect.cpp in Sources */,
+				676507CD20D185F200532BA9 /* xlLockButton.cpp in Sources */,
 				67BD732D200D0C000074208A /* ImageModel.cpp in Sources */,
 				6761F5F71C4EA041009780DA /* xlGridCanvasEmpty.cpp in Sources */,
 				67BC8BB51D2152C5009B660F /* StatePanel.cpp in Sources */,

@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+#include "../xlLockButton.h"
+
 class wxCommandEvent;
 class wxScrollEvent;
 class wxPanel;

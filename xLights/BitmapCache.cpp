@@ -10,9 +10,10 @@
 #include "BitmapCache.h"
 #include "UtilFunctions.h"
 
-#include "../include/padlock16x16-blue.xpm"
-#include "../include/padlock16x16-red.xpm"
-
+#include "../include/padlock_open_14.xpm"
+#include "../include/padlock_open_28.xpm"
+#include "../include/padlock_close_14.xpm"
+#include "../include/padlock_close_28.xpm"
 
 
 
@@ -108,6 +109,27 @@
 
 #include "../include/model-16.xpm"
 #include "../include/model-64.xpm"
+
+// used on the Color Panel
+#include "../include/cc_time.xpm"
+#include "../include/cc_timelocked.xpm"
+#include "../include/cc_left.xpm"
+#include "../include/cc_right.xpm"
+#include "../include/cc_up.xpm"
+#include "../include/cc_down.xpm"
+#include "../include/cc_na.xpm"
+#include "../include/cc_ccw.xpm"
+#include "../include/cc_cw.xpm"
+#include "../include/cc_radialin.xpm"
+#include "../include/cc_radialout.xpm"
+#include "../include/save.xpm"
+#include "../include/delete.xpm"
+#include "../include/switch.xpm"
+
+
+#include "../include/valuecurvenotselected.xpm"
+#include "../include/valuecurveselected.xpm"
+
 
 #include "wx/artprov.h"
 
@@ -215,13 +237,22 @@ public:
         return (*data)[eff];
     }
     const wxBitmap &GetOtherImage(const wxString &name,
-                                  const char **data) {
+                                  const char **data,
+                                  const char **dataDouble) {
         const wxBitmap &bmp = others[name];
         if (!bmp.IsOk()) {
+            if (GetSystemContentScaleFactor() > 1.5) {
+                wxImage image(dataDouble);
+                if (dataDouble == data) {
+                    image.Rescale(image.GetWidth() * 2, image.GetHeight() * 2);
+                }
+                others[name] = wxBitmap(image, -1, 2.0);
+                return others[name];
+            }
             wxImage image(data);
             others[name] = wxBitmap(image);
         }
-        return bmp;
+        return others[name];
     }
 
 
@@ -380,6 +411,42 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, save_16_xpm, save_24_xpm, save_32_xpm, save_48_xpm, save_64_xpm);
     } else if (wxART_FILE_SAVE_AS == id) {
         return effectBitmaps.get(24, false, id, save_as_16_xpm, save_as_24_xpm, save_as_32_xpm, save_as_48_xpm, save_as_64_xpm);
+    } else if ("xlART_PADLOCK_OPEN" == id) {
+        return effectBitmaps.GetOtherImage("Unlocked", padlock_open_14, padlock_open_28);
+    } else if ("xlART_PADLOCK_CLOSED" == id) {
+        return effectBitmaps.GetOtherImage("Locked", padlock_close_14, padlock_close_28);
+    } else if ("xlART_cc_time_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_time_xpm", cc_time_xpm, cc_time_xpm);
+    } else if ("xlART_cc_timelocked_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_timelocked_xpm", cc_timelocked_xpm, cc_timelocked_xpm);
+    } else if ("xlART_cc_left_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_left_xpm", cc_left_xpm, cc_left_xpm);
+    } else if ("xlART_cc_right_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_right_xpm", cc_right_xpm, cc_right_xpm);
+    } else if ("xlART_cc_up_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_up_xpm", cc_up_xpm, cc_up_xpm);
+    } else if ("xlART_cc_down_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_down_xpm", cc_down_xpm, cc_down_xpm);
+    } else if ("xlART_cc_na_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_na_xpm", cc_na_xpm, cc_na_xpm);
+    } else if ("xlART_cc_ccw_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_ccw_xpm", cc_ccw_xpm, cc_ccw_xpm);
+    } else if ("xlART_cc_cw_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_cw_xpm", cc_cw_xpm, cc_cw_xpm);
+    } else if ("xlART_cc_radialin_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_radialin_xpm", cc_radialin_xpm, cc_radialin_xpm);
+    } else if ("xlART_cc_radialout_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_radialout_xpm", cc_radialout_xpm, cc_radialout_xpm);
+    } else if ("xlART_colorpanel_switch_xpm" == id) {
+        return effectBitmaps.GetOtherImage("colorpanel_switch_xpm", switch_xpm, switch_xpm);
+    } else if ("xlART_colorpanel_delete_xpm" == id) {
+        return effectBitmaps.GetOtherImage("colorpanel_delete_xpm", delete_xpm, delete_xpm);
+    } else if ("xlART_colorpanel_save_xpm" == id) {
+        return effectBitmaps.GetOtherImage("colorpanel_save_xpm", save_xpm, save_xpm);
+    } else if ("xlART_valuecurve_selected" == id) {
+        return effectBitmaps.GetOtherImage("valuecurve_selected_xpm", valuecurveselected_24, valuecurveselected_24);
+    } else if ("xlART_valuecurve_notselected" == id) {
+        return effectBitmaps.GetOtherImage("valuecurve_notselected", valuecurvenotselected_24, valuecurvenotselected_24);
     }
     //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
     return wxNullBitmap;
@@ -434,8 +501,8 @@ const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int 
 
 const wxBitmap &BitmapCache::GetLockIcon(bool locked) {
     if (locked) {
-        return effectBitmaps.GetOtherImage("Locked", padlock16x16_red_xpm);
+        return effectBitmaps.GetOtherImage("Locked", padlock_close_14, padlock_close_28);
     }
-    return effectBitmaps.GetOtherImage("Unlocked", padlock16x16_blue_xpm);
+    return effectBitmaps.GetOtherImage("Unlocked", padlock_open_14, padlock_open_28);
 }
 

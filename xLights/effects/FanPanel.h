@@ -51,19 +51,6 @@ class FanPanel: public wxPanel
 		BulkEditValueCurveButton* ValueCurve_Fan_Revolutions;
 		BulkEditValueCurveButton* ValueCurve_Fan_Start_Angle;
 		BulkEditValueCurveButton* ValueCurve_Fan_Start_Radius;
-		wxBitmapButton* BitmapButton_Fan_Accel;
-		wxBitmapButton* BitmapButton_Fan_Blade_Angle;
-		wxBitmapButton* BitmapButton_Fan_Blade_Width;
-		wxBitmapButton* BitmapButton_Fan_CenterX;
-		wxBitmapButton* BitmapButton_Fan_CenterY;
-		wxBitmapButton* BitmapButton_Fan_Duration;
-		wxBitmapButton* BitmapButton_Fan_Element_Width;
-		wxBitmapButton* BitmapButton_Fan_End_Radius;
-		wxBitmapButton* BitmapButton_Fan_Num_Blades;
-		wxBitmapButton* BitmapButton_Fan_Num_Elements;
-		wxBitmapButton* BitmapButton_Fan_Revolutions;
-		wxBitmapButton* BitmapButton_Fan_Start_Angle;
-		wxBitmapButton* BitmapButton_Fan_Start_Radius;
 		wxNotebook* Notebook1;
 		wxStaticText* StaticText133;
 		wxStaticText* StaticText135;
@@ -78,6 +65,19 @@ class FanPanel: public wxPanel
 		wxStaticText* StaticText151;
 		wxStaticText* StaticText152;
 		wxStaticText* StaticText153;
+		xlLockButton* BitmapButton_Fan_Accel;
+		xlLockButton* BitmapButton_Fan_Blade_Angle;
+		xlLockButton* BitmapButton_Fan_Blade_Width;
+		xlLockButton* BitmapButton_Fan_CenterX;
+		xlLockButton* BitmapButton_Fan_CenterY;
+		xlLockButton* BitmapButton_Fan_Duration;
+		xlLockButton* BitmapButton_Fan_Element_Width;
+		xlLockButton* BitmapButton_Fan_End_Radius;
+		xlLockButton* BitmapButton_Fan_Num_Blades;
+		xlLockButton* BitmapButton_Fan_Num_Elements;
+		xlLockButton* BitmapButton_Fan_Revolutions;
+		xlLockButton* BitmapButton_Fan_Start_Angle;
+		xlLockButton* BitmapButton_Fan_Start_Radius;
 		//*)
 
 	protected:

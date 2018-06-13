@@ -28,13 +28,13 @@ class StrobePanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Number_Strobes;
 		BulkEditTextCtrl* TextCtrl_Strobe_Duration;
 		BulkEditTextCtrl* TextCtrl_Strobe_Type;
-		wxBitmapButton* BitmapButton_NumberStrobes;
-		wxBitmapButton* BitmapButton_StrobeDuration;
-		wxBitmapButton* BitmapButton_Strobe_Music;
-		wxBitmapButton* BitmapButton_Strobe_Type;
 		wxStaticText* StaticText110;
 		wxStaticText* StaticText111;
 		wxStaticText* StaticText112;
+		xlLockButton* BitmapButton_NumberStrobes;
+		xlLockButton* BitmapButton_StrobeDuration;
+		xlLockButton* BitmapButton_Strobe_Music;
+		xlLockButton* BitmapButton_Strobe_Type;
 		//*)
 
 	protected:

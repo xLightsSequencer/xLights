@@ -3,13 +3,13 @@
 
 //(*Headers(RipplePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -24,29 +24,29 @@ class RipplePanel: public wxPanel
 		virtual ~RipplePanel();
 
 		//(*Declarations(RipplePanel)
-		wxBitmapButton* BitmapButton_Ripple_Rotation;
-		BulkEditChoice* Choice_Ripple_Object_To_Draw;
-		wxStaticText* StaticText70;
-		BulkEditChoice* Choice_Ripple_Movement;
-		BulkEditTextCtrl* TextCtrl_Ripple_Points;
-		wxStaticText* StaticText_Ripple_Rotation;
-		BulkEditSlider* Slider_Ripple_Rotation;
-		wxStaticText* StaticText1;
-		wxBitmapButton* BitmapButton_Ripple_Movement;
-		wxStaticText* StaticText176;
-		wxStaticText* StaticText69;
-		wxBitmapButton* BitmapButton_Ripple_Points;
-		BulkEditSlider* Slider_Ripple_Thickness;
-		wxBitmapButton* BitmapButton_Ripple_Object_To_Draw;
-		BulkEditValueCurveButton* BitmapButton_Ripple_ThicknessVC;
-		BulkEditSlider* Slider_Ripple_Points;
-		wxBitmapButton* BitmapButton_RippleThickness;
-		wxStaticText* StaticText72;
-		BulkEditSliderF1* Slider_Ripple_Cycles;
 		BulkEditCheckBox* CheckBox_Ripple3D;
+		BulkEditChoice* Choice_Ripple_Movement;
+		BulkEditChoice* Choice_Ripple_Object_To_Draw;
+		BulkEditSlider* Slider_Ripple_Points;
+		BulkEditSlider* Slider_Ripple_Rotation;
+		BulkEditSlider* Slider_Ripple_Thickness;
+		BulkEditSliderF1* Slider_Ripple_Cycles;
+		BulkEditTextCtrl* TextCtrl_Ripple_Points;
 		BulkEditTextCtrl* TextCtrl_Ripple_Rotation;
-		wxBitmapButton* BitmapButton_Ripple3D;
 		BulkEditValueCurveButton* BitmapButton_Ripple_CyclesVC;
+		BulkEditValueCurveButton* BitmapButton_Ripple_ThicknessVC;
+		wxStaticText* StaticText176;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText69;
+		wxStaticText* StaticText70;
+		wxStaticText* StaticText72;
+		wxStaticText* StaticText_Ripple_Rotation;
+		xlLockButton* BitmapButton_Ripple3D;
+		xlLockButton* BitmapButton_RippleThickness;
+		xlLockButton* BitmapButton_Ripple_Movement;
+		xlLockButton* BitmapButton_Ripple_Object_To_Draw;
+		xlLockButton* BitmapButton_Ripple_Points;
+		xlLockButton* BitmapButton_Ripple_Rotation;
 		//*)
 
 	protected:

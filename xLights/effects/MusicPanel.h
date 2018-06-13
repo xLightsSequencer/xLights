@@ -39,16 +39,6 @@ class MusicPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Music_Sensitivity;
 		BulkEditTextCtrl* TextCtrl_Music_StartNote;
 		BulkEditValueCurveButton* BitmapButton_Music_OffsetVC;
-		wxBitmapButton* BitmapButton_Music_Bars;
-		wxBitmapButton* BitmapButton_Music_Colour;
-		wxBitmapButton* BitmapButton_Music_EndNote;
-		wxBitmapButton* BitmapButton_Music_Fade;
-		wxBitmapButton* BitmapButton_Music_Offset;
-		wxBitmapButton* BitmapButton_Music_Scale;
-		wxBitmapButton* BitmapButton_Music_Scaling;
-		wxBitmapButton* BitmapButton_Music_Sensitivity;
-		wxBitmapButton* BitmapButton_Music_StartNote;
-		wxBitmapButton* BitmapButton_Music_Type;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText1;
@@ -57,6 +47,16 @@ class MusicPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		xlLockButton* BitmapButton_Music_Bars;
+		xlLockButton* BitmapButton_Music_Colour;
+		xlLockButton* BitmapButton_Music_EndNote;
+		xlLockButton* BitmapButton_Music_Fade;
+		xlLockButton* BitmapButton_Music_Offset;
+		xlLockButton* BitmapButton_Music_Scale;
+		xlLockButton* BitmapButton_Music_Scaling;
+		xlLockButton* BitmapButton_Music_Sensitivity;
+		xlLockButton* BitmapButton_Music_StartNote;
+		xlLockButton* BitmapButton_Music_Type;
 		//*)
 
 	protected:

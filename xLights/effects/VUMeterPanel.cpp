@@ -1,4 +1,5 @@
 //(*InternalHeaders(VUMeterPanel)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -12,8 +13,6 @@
 #include <wx/string.h>
 #include <wx/textctrl.h>
 //*)
-
-#include "../../include/padlock16x16-blue.xpm"
 
 #include "VUMeterPanel.h"
 #include "EffectPanelUtils.h"
@@ -93,8 +92,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_Bars = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_Bars, _("20"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_Bars"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_Bars = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_Bars, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_Bars"));
-	BitmapButton_VUMeter_Bars->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_Bars = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_Bars, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_Bars"));
+	BitmapButton_VUMeter_Bars->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Bars, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Type, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Type"));
 	FlexGridSizer31->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -127,8 +126,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_VUMeter_Type = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Type, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Type"));
-	BitmapButton_VUMeter_Type->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_Type = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Type, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Type"));
+	BitmapButton_VUMeter_Type->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT_VUMeter_TimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_TimingTrack"));
 	FlexGridSizer31->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -137,8 +136,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Choice_VUMeter_TimingTrack, 1, wxALL|wxEXPAND, 2);
 	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer31->Add(StaticText4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_VUMeter_TimingTrack = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack"));
-	BitmapButton_VUMeter_TimingTrack->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_TimingTrack = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack"));
+	BitmapButton_VUMeter_TimingTrack->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_TimingTrack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Sensitivity, _("Sensitivity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Sensitivity"));
 	FlexGridSizer31->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -149,8 +148,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_Sensitivity = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_Sensitivity, _("70"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_Sensitivity"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_VUMeter_Sensitivity = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity"));
-	BitmapButton_VUMeter_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_Sensitivity = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity"));
+	BitmapButton_VUMeter_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Shape, _("Shape"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Shape"));
 	FlexGridSizer31->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -176,8 +175,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Choice_VUMeter_Shape, 1, wxALL|wxEXPAND, 2);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer31->Add(StaticText8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_VUMeter_Shape = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Shape, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Shape"));
-	BitmapButton_VUMeter_Shape->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_Shape = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_VUMeter_Shape, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_VUMeter_Shape"));
+	BitmapButton_VUMeter_Shape->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Shape, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
 	FlexGridSizer31->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -186,8 +185,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(CheckBox_VUMeter_SlowDownFalls, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer31->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_SlowDownFalls = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls"));
-	BitmapButton_VUMeter_SlowDownFalls->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_SlowDownFalls = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls"));
+	BitmapButton_VUMeter_SlowDownFalls->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_SlowDownFalls, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT_VUMeter_StartNote, _("Start Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_StartNote"));
 	FlexGridSizer31->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -195,8 +194,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Slider_VUMeter_StartNote, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_StartNote = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_StartNote, _("36"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_StartNote"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_StartNote = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote"));
-	BitmapButton_VUMeter_StartNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_StartNote = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote"));
+	BitmapButton_VUMeter_StartNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_StartNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT_VUMeter_EndNote, _("End Note"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_EndNote"));
 	FlexGridSizer31->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -204,8 +203,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(Slider_VUMeter_EndNote, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_EndNote = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_EndNote, _("84"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_EndNote"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_EndNote = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote"));
-	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_EndNote = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote"));
+	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText13 = new wxStaticText(this, ID_STATICTEXT_VUMeter_XOffset, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_XOffset"));
 	FlexGridSizer31->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -216,8 +215,8 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_XOffset = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_XOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_XOffset"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_XOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset"));
-	BitmapButton_VUMeter_XOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_XOffset = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset"));
+	BitmapButton_VUMeter_XOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_XOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText14 = new wxStaticText(this, ID_STATICTEXT_VUMeter_YOffset, _("Vertical Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_YOffset"));
 	FlexGridSizer31->Add(StaticText14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -225,13 +224,13 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_VUMeter_YOffset = new BulkEditSlider(this, ID_SLIDER_VUMeter_YOffset, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_VUMeter_YOffset"));
 	FlexGridSizer1->Add(Slider_VUMeter_YOffset, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_VUMeter_YOffsetVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_VUMeter_YOffset, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_VUMeter_YOffset"));
+	BitmapButton_VUMeter_YOffsetVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_VUMeter_YOffset, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_VUMeter_YOffset"));
 	FlexGridSizer1->Add(BitmapButton_VUMeter_YOffsetVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer31->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_YOffset = new BulkEditTextCtrl(this, IDD_TEXTCTRL_VUMeter_YOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_VUMeter_YOffset"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_VUMeter_YOffset = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset, wxNullBitmap, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset"));
-	BitmapButton_VUMeter_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_VUMeter_YOffset = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset"));
+	BitmapButton_VUMeter_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);

@@ -8,8 +8,6 @@
 #include <wx/spinctrl.h>
 
 //(*InternalHeaders(EffectsPanel)
-#include <wx/bitmap.h>
-#include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
@@ -29,10 +27,6 @@
 
 //(*IdInit(EffectsPanel)
 const long EffectsPanel::ID_CHOICEBOOK1 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON_CHOICEBOOK1 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON87 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON1 = wxNewId();
-const long EffectsPanel::ID_BITMAPBUTTON88 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsPanel,wxPanel)
@@ -45,35 +39,18 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
 {
     //(*Initialize(EffectsPanel)
     wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer6;
-    wxFlexGridSizer* FlexGridSizer8;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
-    FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
+    FlexGridSizer1->AddGrowableRow(0);
     EffectChoicebook = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
     FlexGridSizer1->Add(EffectChoicebook, 1, wxRIGHT|wxEXPAND, 2);
-    FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-    BitmapButton_LayerEffect = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICEBOOK1, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICEBOOK1"));
-    FlexGridSizer6->Add(BitmapButton_LayerEffect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    BitmapButton_normal = new wxBitmapButton(this, ID_BITMAPBUTTON87, padlock16x16_green_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON87"));
-    BitmapButton_normal->Hide();
-    FlexGridSizer6->Add(BitmapButton_normal, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    BitmapButton_locked = new wxBitmapButton(this, ID_BITMAPBUTTON1, padlock16x16_red_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
-    BitmapButton_locked->Hide();
-    FlexGridSizer6->Add(BitmapButton_locked, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    BitmapButton_random = new wxBitmapButton(this, ID_BITMAPBUTTON88, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON88"));
-    BitmapButton_random->Hide();
-    FlexGridSizer6->Add(BitmapButton_random, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-    FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 1);
-    FlexGridSizer1->Add(FlexGridSizer8, 1, wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::EffectSelected);
-    Connect(ID_BITMAPBUTTON_CHOICEBOOK1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EffectsPanel::OnLockButtonClick);
     //*)
 
     SetName("Effect");

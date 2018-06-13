@@ -3,17 +3,18 @@
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(ServoPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(ServoPanel)
@@ -34,9 +35,9 @@ END_EVENT_TABLE()
 ServoPanel::ServoPanel(wxWindow* parent)
 {
 	//(*Initialize(ServoPanel)
-	wxFlexGridSizer* FlexGridSizer2;
 	BulkEditTextCtrl* TextCtrl_Servo;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer_Main = new wxFlexGridSizer(0, 1, 0, 0);
@@ -57,7 +58,7 @@ ServoPanel::ServoPanel(wxWindow* parent)
 	FlexGridSizer1->Add(Label_DMX1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_Servo = new BulkEditSlider(this, IDD_SLIDER_Servo, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Servo"));
 	FlexGridSizer1->Add(Slider_Servo, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_Servo = new BulkEditValueCurveButton(this, ID_VALUECURVE_Servo, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Servo"));
+	ValueCurve_Servo = new BulkEditValueCurveButton(this, ID_VALUECURVE_Servo, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Servo"));
 	FlexGridSizer1->Add(ValueCurve_Servo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Servo = new BulkEditTextCtrl(this, ID_TEXTCTRL_Servo, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Servo"));
 	FlexGridSizer1->Add(TextCtrl_Servo, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);

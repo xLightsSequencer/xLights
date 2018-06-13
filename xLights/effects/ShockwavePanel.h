@@ -3,14 +3,14 @@
 
 //(*Headers(ShockwavePanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxNotebookEvent;
-class wxNotebook;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
+class wxCheckBox;
 class wxFlexGridSizer;
+class wxNotebook;
+class wxNotebookEvent;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -23,35 +23,35 @@ class ShockwavePanel: public wxPanel
 		virtual ~ShockwavePanel();
 
 		//(*Declarations(ShockwavePanel)
-		wxStaticText* StaticText156;
-		BulkEditValueCurveButton* BitmapButton_Shockwave_Start_Width;
-		BulkEditSlider* Slider_Shockwave_CenterY;
 		BulkEditCheckBox* CheckBox_Shockwave_Blend_Edges;
-		BulkEditSlider* Slider_Shockwave_End_Width;
-		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterX;
-		wxStaticText* StaticText154;
-		BulkEditSlider* Slider_Shockwave_Start_Width;
-		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterY;
-		BulkEditSlider* Slider_Shockwave_Start_Radius;
-		wxBitmapButton* BitmapButton_Shockwave_EndWidth;
-		wxBitmapButton* BitmapButton_Shockwave_StartRadius;
-		wxBitmapButton* BitmapButton_Shockwave_Center_X;
-		wxBitmapButton* BitmapButton_Shockwave_Accel;
-		BulkEditSlider* Slider_Shockwave_End_Radius;
-		wxBitmapButton* BitmapButton_Shockwave_Center_Y;
-		wxBitmapButton* BitmapButton_Shockwave_StartWidth;
-		wxStaticText* StaticText158;
-		BulkEditSlider* Slider_Shockwave_CenterX;
-		BulkEditValueCurveButton* BitmapButton_Shockwave_Start_Radius;
-		wxStaticText* StaticText159;
-		wxStaticText* StaticText157;
-		BulkEditValueCurveButton* BitmapButton_Shockwave_End_Width;
-		wxNotebook* Notebook3;
-		wxBitmapButton* BitmapButton_Shockwave_EndRadius;
 		BulkEditSlider* Slider_Shockwave_Accel;
-		wxStaticText* StaticText155;
-		wxStaticText* StaticText166;
+		BulkEditSlider* Slider_Shockwave_CenterX;
+		BulkEditSlider* Slider_Shockwave_CenterY;
+		BulkEditSlider* Slider_Shockwave_End_Radius;
+		BulkEditSlider* Slider_Shockwave_End_Width;
+		BulkEditSlider* Slider_Shockwave_Start_Radius;
+		BulkEditSlider* Slider_Shockwave_Start_Width;
+		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterX;
+		BulkEditValueCurveButton* BitmapButton_Shockwave_CenterY;
 		BulkEditValueCurveButton* BitmapButton_Shockwave_End_Radius;
+		BulkEditValueCurveButton* BitmapButton_Shockwave_End_Width;
+		BulkEditValueCurveButton* BitmapButton_Shockwave_Start_Radius;
+		BulkEditValueCurveButton* BitmapButton_Shockwave_Start_Width;
+		wxNotebook* Notebook3;
+		wxStaticText* StaticText154;
+		wxStaticText* StaticText155;
+		wxStaticText* StaticText156;
+		wxStaticText* StaticText157;
+		wxStaticText* StaticText158;
+		wxStaticText* StaticText159;
+		wxStaticText* StaticText166;
+		xlLockButton* BitmapButton_Shockwave_Accel;
+		xlLockButton* BitmapButton_Shockwave_Center_X;
+		xlLockButton* BitmapButton_Shockwave_Center_Y;
+		xlLockButton* BitmapButton_Shockwave_EndRadius;
+		xlLockButton* BitmapButton_Shockwave_EndWidth;
+		xlLockButton* BitmapButton_Shockwave_StartRadius;
+		xlLockButton* BitmapButton_Shockwave_StartWidth;
 		//*)
 
 	protected:

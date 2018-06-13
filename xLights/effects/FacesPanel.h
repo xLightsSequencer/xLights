@@ -4,11 +4,11 @@
 //(*Headers(FacesPanel)
 #include <wx/panel.h>
 class wxCheckBox;
-class wxRadioButton;
-class wxStaticText;
-class wxFlexGridSizer;
-class wxStaticBoxSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxRadioButton;
+class wxStaticBoxSizer;
+class wxStaticText;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,14 +22,14 @@ class FacesPanel: public wxPanel
 
 		//(*Declarations(FacesPanel)
 		BulkEditCheckBox* CheckBox_Faces_Outline;
-		wxRadioButton* RadioButton1;
-		wxChoice* Choice_Faces_Phoneme;
-		wxStaticText* StaticText14;
-		wxRadioButton* RadioButton2;
-		wxChoice* Choice_Faces_TimingTrack;
-		wxStaticText* StaticText71;
-		wxChoice* Face_FaceDefinitonChoice;
 		BulkEditChoice* Choice_Faces_Eyes;
+		wxChoice* Choice_Faces_Phoneme;
+		wxChoice* Choice_Faces_TimingTrack;
+		wxChoice* Face_FaceDefinitonChoice;
+		wxRadioButton* RadioButton1;
+		wxRadioButton* RadioButton2;
+		wxStaticText* StaticText14;
+		wxStaticText* StaticText71;
 		//*)
 
 	protected:

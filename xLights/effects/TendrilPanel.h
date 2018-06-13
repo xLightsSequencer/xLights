@@ -3,12 +3,12 @@
 
 //(*Headers(TendrilPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -34,62 +34,62 @@ class TendrilPanel: public wxPanel
 		virtual ~TendrilPanel();
 
 		//(*Declarations(TendrilPanel)
-		BulkEditTextCtrl* TextCtrl_Tendril_Thickness;
-		BulkEditTextCtrl* TextCtrl_Tendril_XOffset;
-		BulkEditTextCtrl* TextCtrl_Tendril_Speed;
-		BulkEditTextCtrl* TextCtrl_Tendril_ManualY;
-		wxBitmapButton* BitmapButton_TendrilFriction;
-		wxStaticText* StaticText13;
-		BulkEditTextCtrl* TextCtrl_Tendril_YOffset;
-		BulkEditTextCtrl* TextCtrl_Tendril_TuneMovement;
-		BulkEditValueCurveButton* BitmapButton_Tendril_ManualXVC;
-		BulkEditValueCurveButton* BitmapButton_Tendril_YOffsetVC;
-		BulkEditSlider* Slider_Tendril_Tension;
-		BulkEditSlider* Slider_Tendril_Length;
-		wxBitmapButton* BitmapButton_Tendril_YOffset;
-		BulkEditTextCtrl* TextCtrl_Tendril_Dampening;
-		BulkEditSlider* Slider_Tendril_TuneMovement;
-		wxBitmapButton* BitmapButton_Tendril_Movement;
-		BulkEditSlider* Slider_Tendril_ManualX;
-		wxBitmapButton* BitmapButton_Tendril_Thickness;
-		wxBitmapButton* BitmapButton_TendrilSpeed;
-		wxBitmapButton* BitmapButton_Tendril_TuneMovement;
-		wxStaticText* StaticText1;
-		BulkEditValueCurveButton* BitmapButton_Tendril_XOffsetVC;
-		wxStaticText* StaticText10;
-		wxBitmapButton* BitmapButton_TendrilTension;
-		wxBitmapButton* BitmapButton_Tendril_XOffset;
-		BulkEditSlider* Slider_Tendril_ManualY;
-		BulkEditTextCtrl* TextCtrl_Tendril_Friction;
-		wxStaticText* StaticText3;
-		BulkEditTextCtrl* TextCtrl_Tendril_Tension;
-		BulkEditSlider* Slider_Tendril_Trails;
-		BulkEditSlider* Slider_Tendril_Thickness;
-		wxStaticText* StaticText68;
-		BulkEditValueCurveButton* BitmapButton_Tendril_ManualYVC;
-		BulkEditSlider* Slider_Tendril_Friction;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText12;
 		BulkEditChoice* Choice_Tendril_Movement;
-		BulkEditSlider* Slider_Tendril_XOffset;
-		wxStaticText* StaticText7;
-		BulkEditValueCurveButton* BitmapButton_Tendril_ThicknessVC;
-		BulkEditTextCtrl* TextCtrl_Tendril_ManualX;
-		wxStaticText* StaticText4;
-		BulkEditTextCtrl* TextCtrl_Tendril_Length;
-		BulkEditTextCtrl* TextCtrl_Tendril_Trails;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText2;
-		wxBitmapButton* BitmapButton_TendrilDampening;
 		BulkEditSlider* Slider_Tendril_Dampening;
-		wxBitmapButton* BitmapButton_TendrilTrails;
-		wxStaticText* StaticText6;
-		BulkEditValueCurveButton* BitmapButton_Tendril_TuneMovementVC;
-		BulkEditSlider* Slider_Tendril_YOffset;
+		BulkEditSlider* Slider_Tendril_Friction;
+		BulkEditSlider* Slider_Tendril_Length;
+		BulkEditSlider* Slider_Tendril_ManualX;
+		BulkEditSlider* Slider_Tendril_ManualY;
 		BulkEditSlider* Slider_Tendril_Speed;
-		wxStaticText* StaticText9;
+		BulkEditSlider* Slider_Tendril_Tension;
+		BulkEditSlider* Slider_Tendril_Thickness;
+		BulkEditSlider* Slider_Tendril_Trails;
+		BulkEditSlider* Slider_Tendril_TuneMovement;
+		BulkEditSlider* Slider_Tendril_XOffset;
+		BulkEditSlider* Slider_Tendril_YOffset;
+		BulkEditTextCtrl* TextCtrl_Tendril_Dampening;
+		BulkEditTextCtrl* TextCtrl_Tendril_Friction;
+		BulkEditTextCtrl* TextCtrl_Tendril_Length;
+		BulkEditTextCtrl* TextCtrl_Tendril_ManualX;
+		BulkEditTextCtrl* TextCtrl_Tendril_ManualY;
+		BulkEditTextCtrl* TextCtrl_Tendril_Speed;
+		BulkEditTextCtrl* TextCtrl_Tendril_Tension;
+		BulkEditTextCtrl* TextCtrl_Tendril_Thickness;
+		BulkEditTextCtrl* TextCtrl_Tendril_Trails;
+		BulkEditTextCtrl* TextCtrl_Tendril_TuneMovement;
+		BulkEditTextCtrl* TextCtrl_Tendril_XOffset;
+		BulkEditTextCtrl* TextCtrl_Tendril_YOffset;
+		BulkEditValueCurveButton* BitmapButton_Tendril_ManualXVC;
+		BulkEditValueCurveButton* BitmapButton_Tendril_ManualYVC;
+		BulkEditValueCurveButton* BitmapButton_Tendril_ThicknessVC;
+		BulkEditValueCurveButton* BitmapButton_Tendril_TuneMovementVC;
+		BulkEditValueCurveButton* BitmapButton_Tendril_XOffsetVC;
+		BulkEditValueCurveButton* BitmapButton_Tendril_YOffsetVC;
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
-		wxBitmapButton* BitmapButton_TendrilLength;
+		wxStaticText* StaticText12;
+		wxStaticText* StaticText13;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText68;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		xlLockButton* BitmapButton_TendrilDampening;
+		xlLockButton* BitmapButton_TendrilFriction;
+		xlLockButton* BitmapButton_TendrilLength;
+		xlLockButton* BitmapButton_TendrilSpeed;
+		xlLockButton* BitmapButton_TendrilTension;
+		xlLockButton* BitmapButton_TendrilTrails;
+		xlLockButton* BitmapButton_Tendril_Movement;
+		xlLockButton* BitmapButton_Tendril_Thickness;
+		xlLockButton* BitmapButton_Tendril_TuneMovement;
+		xlLockButton* BitmapButton_Tendril_XOffset;
+		xlLockButton* BitmapButton_Tendril_YOffset;
 		//*)
 
 	protected:

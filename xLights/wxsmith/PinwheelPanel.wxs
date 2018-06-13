@@ -40,10 +40,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Arms" variable="BitmapButton_PinwheelNumberArms" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Arms" variable="BitmapButton_PinwheelNumberArms" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -74,7 +74,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Pinwheel_ArmSize" subclass="BulkEditValueCurveButton" variable="BitmapButton_Pinwheel_ArmSizeVC" member="yes">
-									<bitmap code="valuecurvenotselected_24" />
+                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
@@ -98,10 +98,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_ArmSize" variable="BitmapButton_Pinwheel_ArmSize" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_ArmSize" variable="BitmapButton_Pinwheel_ArmSize" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -132,7 +132,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Pinwheel_Twist" subclass="BulkEditValueCurveButton" variable="BitmapButton_Pinwheel_TwistVC" member="yes">
-									<bitmap code="valuecurvenotselected_24" />
+                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
@@ -156,10 +156,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Twist" variable="BitmapButton_PinwheelTwist" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Twist" variable="BitmapButton_PinwheelTwist" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -186,7 +186,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Pinwheel_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Pinwheel_ThicknessVC" member="yes">
-									<bitmap code="valuecurvenotselected_24" />
+                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
@@ -210,10 +210,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Thickness" variable="BitmapButton_PinwheelThickness" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Thickness" variable="BitmapButton_PinwheelThickness" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -244,7 +244,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Pinwheel_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Pinwheel_SpeedVC" member="yes">
-									<bitmap code="valuecurvenotselected_24" />
+                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
@@ -268,10 +268,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Speed" variable="BitmapButton_PinwheelSpeed" member="yes">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pinwheel_Speed" variable="BitmapButton_PinwheelSpeed" member="yes">
+                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                            <size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -331,10 +331,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Pinwheel_Rotation" variable="BitmapButton_PinwheelRotation" member="yes">
-									<bitmap code="padlock16x16_blue_xpm" />
-									<size>13,13</size>
-									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+								<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Pinwheel_Rotation" variable="BitmapButton_PinwheelRotation" member="yes">
+                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                    <size>14,14</size>
+									<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 								</object>
@@ -372,10 +372,10 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pinwheel_3D" variable="BitmapButton_Pinwheel3D" member="yes">
-									<bitmap code="padlock16x16_blue_xpm" />
-									<size>13,13</size>
-									<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+								<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Pinwheel_3D" variable="BitmapButton_Pinwheel3D" member="yes">
+                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                    <size>14,14</size>
+									<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 								</object>
@@ -427,7 +427,7 @@
 									<cols>2</cols>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_VALUECURVE_PinwheelXC" subclass="ValueCurveButton" variable="BitmapButton_PinwheelXCVC" member="yes">
-											<bitmap code="valuecurvenotselected_24" />
+                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 										</object>
@@ -475,7 +475,7 @@
 											<cols>2</cols>
 											<object class="sizeritem">
 												<object class="wxBitmapButton" name="ID_VALUECURVE_PinwheelYC" subclass="ValueCurveButton" variable="BitmapButton_PinwheelYCVC" member="yes">
-													<bitmap code="valuecurvenotselected_24" />
+                                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 												</object>

@@ -1,8 +1,8 @@
 #include "MarqueePanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(MarqueePanel)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -85,7 +85,6 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	BulkEditTextCtrl* TextCtrl_Marquee_Stagger;
 	BulkEditTextCtrl* TextCtrl_Marquee_Start;
 	BulkEditTextCtrl* TextCtrl_Marquee_Thickness;
-	wxBitmapButton* BitmapButton_Marquee_Band_Size;
 	wxFlexGridSizer* FlexGridSizer135;
 	wxFlexGridSizer* FlexGridSizer136;
 	wxFlexGridSizer* FlexGridSizer137;
@@ -93,6 +92,7 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer23;
 	wxFlexGridSizer* FlexGridSizer58;
 	wxGridBagSizer* GridBagSizer5;
+	xlLockButton* BitmapButton_Marquee_Band_Size;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer23 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -108,8 +108,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Band_Size = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Band_Size, _("3"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Band_Size"));
 	TextCtrl_Marquee_Band_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Band_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_Band_Size = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size"));
-	BitmapButton_Marquee_Band_Size->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_Band_Size = new xlLockButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size"));
+	BitmapButton_Marquee_Band_Size->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Band_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText194 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Skip_Size, _("Skip Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Skip_Size"));
 	FlexGridSizer58->Add(StaticText194, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -118,8 +118,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Skip_Size = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Skip_Size, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Skip_Size"));
 	TextCtrl_Marquee_Skip_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Skip_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_Skip_Size = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size"));
-	BitmapButton_Marquee_Skip_Size->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_Skip_Size = new xlLockButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size"));
+	BitmapButton_Marquee_Skip_Size->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Skip_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText195 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Thickness, _("Thickness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Thickness"));
 	FlexGridSizer58->Add(StaticText195, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -128,8 +128,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Thickness = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Thickness, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Thickness"));
 	TextCtrl_Marquee_Thickness->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_Thickness = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Thickness, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Thickness"));
-	BitmapButton_Marquee_Thickness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_Thickness = new xlLockButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Thickness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Thickness"));
+	BitmapButton_Marquee_Thickness->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText62 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Stagger, _("Stagger:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Stagger"));
 	FlexGridSizer58->Add(StaticText62, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -138,8 +138,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Stagger = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Stagger, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Stagger"));
 	TextCtrl_Marquee_Stagger->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_Stagger = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Stagger, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Stagger"));
-	BitmapButton_Marquee_Stagger->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_Stagger = new xlLockButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Stagger, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Stagger"));
+	BitmapButton_Marquee_Stagger->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText196 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Speed, _("Speed:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Speed"));
 	FlexGridSizer58->Add(StaticText196, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -148,8 +148,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Speed = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Speed, _("3"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Speed"));
 	TextCtrl_Marquee_Speed->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_Speed = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Speed"));
-	BitmapButton_Marquee_Speed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_Speed = new xlLockButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Speed"));
+	BitmapButton_Marquee_Speed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText244 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Start, _("Start Pos:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Start"));
 	FlexGridSizer58->Add(StaticText244, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -158,8 +158,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_Start = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Start, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Start"));
 	TextCtrl_Marquee_Start->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_Start = new wxBitmapButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Start, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Start"));
-	BitmapButton_Marquee_Start->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_Start = new xlLockButton(Panel_Marquee_Settings, ID_BITMAPBUTTON_SLIDER_Marquee_Start, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_Start"));
+	BitmapButton_Marquee_Start->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer58->Add(BitmapButton_Marquee_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer58->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Marquee_Reverse = new BulkEditCheckBox(Panel_Marquee_Settings, ID_CHECKBOX_Marquee_Reverse, _("Reverse:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT, wxDefaultValidator, _T("ID_CHECKBOX_Marquee_Reverse"));
@@ -179,8 +179,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_ScaleX = new BulkEditTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_Marquee_ScaleX, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_ScaleX"));
 	TextCtrl_Marquee_ScaleX->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_ScaleX = new wxBitmapButton(Panel_Marquee_Position, ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX"));
-	BitmapButton_Marquee_ScaleX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_ScaleX = new xlLockButton(Panel_Marquee_Position, ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX"));
+	BitmapButton_Marquee_ScaleX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer138->Add(BitmapButton_Marquee_ScaleX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText199 = new wxStaticText(Panel_Marquee_Position, ID_STATICTEXT_Marquee_ScaleY, _("Scale Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_ScaleY"));
 	FlexGridSizer138->Add(StaticText199, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -189,8 +189,8 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_Marquee_ScaleY = new BulkEditTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_Marquee_ScaleY, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_ScaleY"));
 	TextCtrl_Marquee_ScaleY->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_Marquee_ScaleY = new wxBitmapButton(Panel_Marquee_Position, ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY"));
-	BitmapButton_Marquee_ScaleY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Marquee_ScaleY = new xlLockButton(Panel_Marquee_Position, ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY"));
+	BitmapButton_Marquee_ScaleY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer138->Add(BitmapButton_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer135->Add(FlexGridSizer138, 1, wxALL|wxEXPAND, 5);
 	StaticLine1 = new wxStaticLine(Panel_Marquee_Position, ID_STATICLINE1, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL, _T("ID_STATICLINE1"));

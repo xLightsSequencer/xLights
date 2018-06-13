@@ -2,10 +2,10 @@
 #define PICTURESASSISTPANEL_H
 
 //(*Headers(PicturesAssistPanel)
-#include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 //*)
 
@@ -28,20 +28,20 @@ class PicturesAssistPanel: public wxPanel
         void SetxLightsFrame(xLightsFrame* xlights_parent) { mxLightsParent = xlights_parent; }
 
 		//(*Declarations(PicturesAssistPanel)
-		wxFlexGridSizer* FlexGridSizer1;
-		wxButton* Button_Resize;
-		wxScrolledWindow* ScrolledWindowEffectAssist;
+		wxButton* Button_LoadImage;
 		wxButton* Button_NewImage;
-		wxFlexGridSizer* FlexGridSizer_Container;
+		wxButton* Button_Resize;
 		wxButton* Button_SaveAs;
+		wxButton* Button_SaveImage;
+		wxFlexGridSizer* FlexGridSizer1;
+		wxFlexGridSizer* FlexGridSizer_Container;
+		wxFlexGridSizer* FlexGridSizer_RightSide;
+		wxPanel* Panel_RightSide;
 		wxPanel* Panel_Sizer;
+		wxScrolledWindow* ScrolledWindowEffectAssist;
 		wxStaticText* StaticText_CurrentImage;
 		wxStaticText* StaticText_ImageSize;
-		wxButton* Button_LoadImage;
 		wxStaticText* StaticText_ModelSize;
-		wxButton* Button_SaveImage;
-		wxPanel* Panel_RightSide;
-		wxFlexGridSizer* FlexGridSizer_RightSide;
 		//*)
 
 	protected:

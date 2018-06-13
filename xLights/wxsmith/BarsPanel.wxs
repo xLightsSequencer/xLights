@@ -30,7 +30,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Bars_BarCount" subclass="BulkEditValueCurveButton" variable="BitmapButton_Bars_BarCount" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -52,10 +52,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Bars_BarCount" variable="BitmapButton_PaletteRep" member="no">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Bars_BarCount" subclass="xlLockButton" variable="BitmapButton_PaletteRep" member="no">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -68,7 +68,7 @@
 					<label>Cycles</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
@@ -86,7 +86,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Bars_Cycles" subclass="BulkEditValueCurveButton" variable="BitmapButton_Bars_Cycles" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -146,10 +146,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Bars_Direction" variable="BitmapButton_Direction" member="no">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
-					<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Bars_Direction" subclass="xlLockButton" variable="BitmapButton_Direction" member="no">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
@@ -179,12 +179,11 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Bars_Center" subclass="BulkEditValueCurveButton" variable="BitmapButton_Bars_Center" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
@@ -198,7 +197,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="spacer">
@@ -213,7 +211,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-					<cols>8</cols>
+					<cols>2</cols>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Highlight" subclass="BulkEditCheckBox" variable="CheckBox_Bars_Highlight" member="yes">
 							<label>Highlight</label>
@@ -223,35 +221,30 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight" variable="BitmapButton_Highlight" member="no">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Highlight" subclass="xlLockButton" variable="BitmapButton_Highlight" member="no">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>1</border>
-						<option>1</option>
-					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Bars_3D" subclass="BulkEditCheckBox" variable="CheckBox_Bars_3D" member="yes">
 							<label>3D</label>
 						</object>
-						<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_3D" variable="BitmapButton_3D" member="no">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_3D" subclass="xlLockButton" variable="BitmapButton_3D" member="no">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -259,29 +252,24 @@
 						<border>1</border>
 						<option>1</option>
 					</object>
-					<object class="spacer">
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX_Bars_Gradient" subclass="BulkEditCheckBox" variable="CheckBox_Bars_Gradient" member="yes">
 							<label>Gradient</label>
 						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient" variable="BitmapButton_Gradient" member="no">
-							<bitmap code="padlock16x16_blue_xpm" />
-							<size>13,13</size>
-							<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Bars_Gradient" subclass="xlLockButton" variable="BitmapButton_Gradient" member="no">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<border>1</border>
 						<option>1</option>
 					</object>
 				</object>

@@ -3,12 +3,12 @@
 
 //(*Headers(CandlePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,27 +22,27 @@ class CandlePanel: public wxPanel
 		virtual ~CandlePanel();
 
 		//(*Declarations(CandlePanel)
-		BulkEditValueCurveButton* BitmapButton_Candle_FlameAgilityVC;
-		wxStaticText* StaticText132;
-		BulkEditSlider* Slider_Candle_WindVariability;
-		BulkEditTextCtrl* TextCtrl_Candle_WindVariability;
-		BulkEditTextCtrl* TextCtrl_Candle_FlameAgility;
-		BulkEditValueCurveButton* BitmapButton_Candle_WindVariabilityVC;
-		wxBitmapButton* BitmapButton_Candle_WindCalmness;
-		wxBitmapButton* BitmapButton_Cande_WinfVariability;
-		BulkEditTextCtrl* TextCtrl_Candle_WindBaseline;
-		BulkEditSlider* Slider_Candle_WindBaseline;
-		wxStaticText* StaticText83;
-		wxStaticText* StaticText1;
-		BulkEditSlider* Slider_Candle_WindCalmness;
-		BulkEditValueCurveButton* BitmapButton_Candle_WindBaselineVC;
-		BulkEditSlider* Slider_Candle_FlameAgility;
-		BulkEditTextCtrl* TextCtrl_Candle_WindCalmness;
 		BulkEditCheckBox* CheckBox_PerNode;
-		wxStaticText* StaticText30;
-		wxBitmapButton* BitmapButton_Candle_FlameAgility;
+		BulkEditSlider* Slider_Candle_FlameAgility;
+		BulkEditSlider* Slider_Candle_WindBaseline;
+		BulkEditSlider* Slider_Candle_WindCalmness;
+		BulkEditSlider* Slider_Candle_WindVariability;
+		BulkEditTextCtrl* TextCtrl_Candle_FlameAgility;
+		BulkEditTextCtrl* TextCtrl_Candle_WindBaseline;
+		BulkEditTextCtrl* TextCtrl_Candle_WindCalmness;
+		BulkEditTextCtrl* TextCtrl_Candle_WindVariability;
+		BulkEditValueCurveButton* BitmapButton_Candle_FlameAgilityVC;
+		BulkEditValueCurveButton* BitmapButton_Candle_WindBaselineVC;
 		BulkEditValueCurveButton* BitmapButton_Candle_WindCalmnessVC;
-		wxBitmapButton* BitmapButton_Cande_WindBaseline;
+		BulkEditValueCurveButton* BitmapButton_Candle_WindVariabilityVC;
+		wxStaticText* StaticText132;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText30;
+		wxStaticText* StaticText83;
+		xlLockButton* BitmapButton_Cande_WindBaseline;
+		xlLockButton* BitmapButton_Cande_WinfVariability;
+		xlLockButton* BitmapButton_Candle_FlameAgility;
+		xlLockButton* BitmapButton_Candle_WindCalmness;
 		//*)
 
 	protected:

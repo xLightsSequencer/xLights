@@ -38,19 +38,19 @@ class FireworksPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Fireworks_Fade;
 		BulkEditTextCtrl* TextCtrl_Fireworks_Sensitivity;
 		BulkEditTextCtrl* TextCtrl_Fireworks_Velocity;
-		wxBitmapButton* BitmapButton1;
-		wxBitmapButton* BitmapButton_FireworksCount;
-		wxBitmapButton* BitmapButton_FireworksFade;
-		wxBitmapButton* BitmapButton_FireworksNumberExplosions;
-		wxBitmapButton* BitmapButton_FireworksVelocity;
-		wxBitmapButton* BitmapButton_Fireworks_Sensitivity;
-		wxBitmapButton* BitmapButton_Fireworks_UseMusic;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText91;
 		wxStaticText* StaticText93;
 		wxStaticText* StaticText94;
 		wxStaticText* StaticText95;
+		xlLockButton* BitmapButton1;
+		xlLockButton* BitmapButton_FireworksCount;
+		xlLockButton* BitmapButton_FireworksFade;
+		xlLockButton* BitmapButton_FireworksNumberExplosions;
+		xlLockButton* BitmapButton_FireworksVelocity;
+		xlLockButton* BitmapButton_Fireworks_Sensitivity;
+		xlLockButton* BitmapButton_Fireworks_UseMusic;
 		//*)
 
 	protected:

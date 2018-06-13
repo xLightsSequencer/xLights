@@ -3,12 +3,12 @@
 
 //(*Headers(ShimmerPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,18 +21,18 @@ class ShimmerPanel: public wxPanel
 		virtual ~ShimmerPanel();
 
 		//(*Declarations(ShimmerPanel)
-		BulkEditSliderF1* Slider_Shimmer_Cycles;
 		BulkEditCheckBox* CheckBox_PRE_2017_7;
-		wxBitmapButton* BitmapButton_ShimmerCycles;
-		BulkEditSlider* Slider_Shimmer_Duty_Factor;
 		BulkEditCheckBox* CheckBox_Shimmer_Use_All_Colors;
+		BulkEditSlider* Slider_Shimmer_Duty_Factor;
+		BulkEditSliderF1* Slider_Shimmer_Cycles;
 		BulkEditValueCurveButton* BitmapButton_Shimmer_CyclesVC;
+		BulkEditValueCurveButton* BitmapButton_Shimmer_Duty_FactorVC;
 		wxStaticText* StaticText65;
 		wxStaticText* StaticText66;
-		wxBitmapButton* BitmapButton_Shimmer_Duty_Factor;
 		wxStaticText* StaticText67;
-		wxBitmapButton* BitmapButton_Shimmer_Use_All_Colors;
-		BulkEditValueCurveButton* BitmapButton_Shimmer_Duty_FactorVC;
+		xlLockButton* BitmapButton_ShimmerCycles;
+		xlLockButton* BitmapButton_Shimmer_Duty_Factor;
+		xlLockButton* BitmapButton_Shimmer_Use_All_Colors;
 		//*)
 
 	protected:

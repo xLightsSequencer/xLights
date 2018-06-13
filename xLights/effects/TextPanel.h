@@ -37,13 +37,6 @@ class TextPanel: public wxPanel
 		BulkEditSlider* Slider_Text_YEnd;
 		BulkEditSlider* Slider_Text_YStart;
 		BulkEditTextCtrl* TextCtrl_Text;
-		wxBitmapButton* BitmapButton1;
-		wxBitmapButton* BitmapButton_TextCount;
-		wxBitmapButton* BitmapButton_TextDir;
-		wxBitmapButton* BitmapButton_TextEffect;
-		wxBitmapButton* BitmapButton_TextFont;
-		wxBitmapButton* BitmapButton_TextToCenter;
-		wxBitmapButton* BitmapButton_Text_Speed;
 		wxPanel* Panel17;
 		wxPanel* Panel_Text1;
 		wxStaticText* StaticText107;
@@ -56,6 +49,13 @@ class TextPanel: public wxPanel
 		wxStaticText* StaticText53;
 		wxStaticText* StaticText78;
 		wxStaticText* StaticText98;
+		xlLockButton* BitmapButton1;
+		xlLockButton* BitmapButton_TextCount;
+		xlLockButton* BitmapButton_TextDir;
+		xlLockButton* BitmapButton_TextEffect;
+		xlLockButton* BitmapButton_TextFont;
+		xlLockButton* BitmapButton_TextToCenter;
+		xlLockButton* BitmapButton_Text_Speed;
 		//*)
 
 

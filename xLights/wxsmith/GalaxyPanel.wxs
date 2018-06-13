@@ -30,7 +30,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_CenterX" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_CenterX" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -50,10 +50,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX" variable="BitmapButton_Galaxy_CenterX" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_CenterX" variable="BitmapButton_Galaxy_CenterX" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -79,7 +79,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_CenterY" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_CenterY" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -99,10 +99,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY" variable="BitmapButton_Galaxy_CenterY" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_CenterY" variable="BitmapButton_Galaxy_CenterY" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -129,7 +129,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Start_Radius" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_Start_Radius" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -149,10 +149,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius" variable="BitmapButton_Galaxy_Start_Radius" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Radius" variable="BitmapButton_Galaxy_Start_Radius" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -179,7 +179,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Start_Width" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_Start_Width" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -199,10 +199,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width" variable="BitmapButton_Galaxy_Start_Width" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Width" variable="BitmapButton_Galaxy_Start_Width" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -228,7 +228,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Start_Angle" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_Start_Angle" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -248,10 +248,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle" variable="BitmapButton_Galaxy_Start_Angle" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Start_Angle" variable="BitmapButton_Galaxy_Start_Angle" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -287,7 +287,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_End_Radius" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_End_Radius" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -307,10 +307,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius" variable="BitmapButton_Galaxy_End_Radius" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_End_Radius" variable="BitmapButton_Galaxy_End_Radius" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -337,7 +337,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_End_Width" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_End_Width" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -357,10 +357,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width" variable="BitmapButton_Galaxy_End_Width" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_End_Width" variable="BitmapButton_Galaxy_End_Width" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -387,7 +387,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Revolutions" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_Revolutions" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -407,10 +407,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions" variable="BitmapButton_Galaxy_Revolutions" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Revolutions" variable="BitmapButton_Galaxy_Revolutions" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -445,7 +445,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Duration" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_Duration" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -465,10 +465,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Duration" variable="BitmapButton_Galaxy_Duration" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Duration" variable="BitmapButton_Galaxy_Duration" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -495,7 +495,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Galaxy_Accel" subclass="BulkEditValueCurveButton" variable="ValueCurve_Galaxy_Accel" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -515,10 +515,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Accel" variable="BitmapButton_Galaxy_Accel" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Galaxy_Accel" variable="BitmapButton_Galaxy_Accel" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>

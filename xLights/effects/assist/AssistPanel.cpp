@@ -1,6 +1,6 @@
 //(*InternalHeaders(AssistPanel)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 #include "AssistPanel.h"

@@ -3,13 +3,13 @@
 
 //(*Headers(ServoPanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
-class wxFlexGridSizer;
+class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,13 +22,13 @@ class ServoPanel: public wxPanel
 		virtual ~ServoPanel();
 
 		//(*Declarations(ServoPanel)
-		wxFlexGridSizer* FlexGridSizer_Main;
-		BulkEditValueCurveButton* ValueCurve_Servo;
-		wxStaticText* Label_DMX1;
-		BulkEditSlider* Slider_Servo;
-		wxStaticText* StaticText1;
-		BulkEditChoice* Choice_Channel;
 		BulkEditCheckBox* CheckBox_16bit;
+		BulkEditChoice* Choice_Channel;
+		BulkEditSlider* Slider_Servo;
+		BulkEditValueCurveButton* ValueCurve_Servo;
+		wxFlexGridSizer* FlexGridSizer_Main;
+		wxStaticText* Label_DMX1;
+		wxStaticText* StaticText1;
 		//*)
 
 	protected:
