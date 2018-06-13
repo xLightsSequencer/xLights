@@ -4466,7 +4466,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Multiple outputs sending to same destination");
 
     std::list<std::string> used;
-    outputs = _outputManager.GetOutputs();
+    outputs = _outputManager.GetAllOutputs();
     for (auto n = outputs.begin(); n != outputs.end(); ++n)
     {
         if ((*n)->IsIpOutput())
@@ -4486,16 +4486,47 @@ void xLightsFrame::CheckSequence(bool display)
         }
         else if ((*n)->IsSerialOutput())
         {
-            if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+            if ((*n)->GetCommPort() != "NotConnected")
             {
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
-                LogAndWrite(f, msg.ToStdString());
-                errcount++;
+                if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+                else
+                {
+                    used.push_back((*n)->GetCommPort());
+                }
             }
-            else
-            {
-                used.push_back((*n)->GetCommPort());
-            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // multiple outputs to same universe/ID
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Multiple outputs with same universe/id number");
+
+    std::map<int, int> useduid;
+    outputs = _outputManager.GetAllOutputs();
+    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    {
+        useduid[(*n)->GetUniverse()]++;
+    }
+
+    for (auto it = useduid.begin(); it != useduid.end(); ++it)
+    {
+        if (it->second > 1)
+        {
+            wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", it->second, it->first);
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
         }
     }
 

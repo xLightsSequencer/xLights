@@ -59,6 +59,7 @@ public:
     bool AreAllIPOutputs(std::list<int> outputNumbers);
     std::list<Output*> GetAllOutputs(const std::string& ip, const std::list<int>& selected = std::list<int>()) const;
     std::list<Output*> GetAllOutputs(const std::list<int>& outputNumbers) const;
+    std::list<Output*> GetAllOutputs() const;
     std::list<Output*> GetOutputs() const { return _outputs; } // returns a list like that on setup tab
     void Replace(Output* replacethis, Output* withthis);
     Output* GetOutput(int outputNumber) const;

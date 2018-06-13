@@ -702,6 +702,29 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::list<int>& outputNumb
     return res;
 }
 
+std::list<Output*> OutputManager::GetAllOutputs() const
+{
+    std::list<Output*> res;
+
+    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    {
+        if ((*it)->IsOutputCollection())
+        {
+            auto o2 = (*it)->GetOutputs();
+            for (auto it2 = o2.begin(); it2 != o2.end(); ++it2)
+            {
+                res.push_back(*it2);
+            }
+        }
+        else
+        {
+            res.push_back(*it);
+        }
+    }
+
+    return res;
+}
+
 void OutputManager::Replace(Output* replacethis, Output* withthis)
 {
     std::list<Output*> newoutputs;
