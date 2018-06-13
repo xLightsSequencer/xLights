@@ -878,7 +878,6 @@
 		672F95201A7A6619005FF8BF /* Image_Loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Image_Loader.h; sourceTree = "<group>"; };
 		672F95211A7A6619005FF8BF /* Image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Image.h; sourceTree = "<group>"; };
 		672F95221A7A6619005FF8BF /* PreviewModels.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewModels.h; sourceTree = "<group>"; };
-		672F95231A7A6619005FF8BF /* ViewsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsDialog.h; sourceTree = "<group>"; };
 		672F95251A7A6619005FF8BF /* XlightsDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XlightsDrawable.h; sourceTree = "<group>"; };
 		6730747A208E737800D57F99 /* FolderSelection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FolderSelection.cpp; sourceTree = "<group>"; };
 		6730747B208E737800D57F99 /* FolderSelection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FolderSelection.h; sourceTree = "<group>"; };
@@ -2867,7 +2866,6 @@
 				672F95151A7A6619005FF8BF /* TopEffectsPanel.h */,
 				671B331C1AD5CB7600C9F215 /* UtilClasses.h */,
 				67E42C1E1B5C32AD00CEBEC2 /* VAMPPluginDialog.h */,
-				672F95231A7A6619005FF8BF /* ViewsDialog.h */,
 				67A61A0817B51C0F008E95BB /* wininet.h */,
 				67B845051A9C0E7500564051 /* wxCheckedListCtrl.h */,
 				675DE25A1B53381800A9BB44 /* xlColorCanvas.h */,

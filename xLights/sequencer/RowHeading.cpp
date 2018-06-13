@@ -1027,9 +1027,15 @@ void RowHeading::Draw()
 {
     wxClientDC dc(this);
     wxCoord w,h;
-    wxPen penOutline(wxColor(32,32,32), 0.1);
     dc.GetSize(&w,&h);
-    wxBrush brush(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER).asWxColor(), wxBRUSHSTYLE_SOLID);
+    xlColor rowHeaderCol = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
+    xlColor outlineCol(32, 32, 32);
+    if ((rowHeaderCol.Red() + rowHeaderCol.Blue() + rowHeaderCol.Green()) < 128) {
+        outlineCol.Set(211, 211, 211);
+    }
+    wxPen penOutline(outlineCol.asWxColor(), 0.1);
+
+    wxBrush brush(rowHeaderCol.asWxColor(), wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row = 0;

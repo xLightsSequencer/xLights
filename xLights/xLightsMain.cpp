@@ -456,6 +456,13 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
 END_EVENT_TABLE()
 
 
+xlAuiToolBar::xlAuiToolBar(wxWindow* parent,
+                           wxWindowID id,
+                           const wxPoint& pos,
+                           const wxSize& size,
+                           long style)
+: wxAuiToolBar(parent, id, pos, size, style) {
+}
 
 void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
 

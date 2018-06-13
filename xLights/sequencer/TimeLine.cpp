@@ -782,7 +782,7 @@ void TimeLine::render( wxDC& dc ) {
     const wxPen* pen_transparent = wxTRANSPARENT_PEN;
     dc.SetPen(pen);
     dc.GetSize(&w,&h);
-    wxBrush brush(wxColor(212,208,200),wxBRUSHSTYLE_SOLID);
+    wxBrush brush(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE),wxBRUSHSTYLE_SOLID);
     wxBrush brush_range(wxColor(187, 173,193),wxBRUSHSTYLE_SOLID);
     wxBrush brush_past_end(wxColor(153, 204, 255),wxBRUSHSTYLE_CROSSDIAG_HATCH);
     dc.SetBrush(brush);

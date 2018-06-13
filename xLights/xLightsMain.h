@@ -197,8 +197,7 @@ public:
                  wxWindowID id = wxID_ANY,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 long style = wxAUI_TB_DEFAULT_STYLE) :
-    wxAuiToolBar(parent, id, pos, size, style) {}
+                 long style = wxAUI_TB_DEFAULT_STYLE); 
     virtual ~xlAuiToolBar() {}
 
     wxSize &GetAbsoluteMinSize() {return m_absoluteMinSize;}

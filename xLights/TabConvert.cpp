@@ -44,10 +44,10 @@ void xLightsFrame::SetStatusText(const wxString &msg, int filename) {
     } else {
         if (filename) {
             FileNameText->SetLabel(msg);
-            FileNameText->SetForegroundColour(*wxBLACK);
+            FileNameText->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
         } else {
             StatusText->SetLabel(msg);
-            StatusText->SetForegroundColour(*wxBLACK);
+            StatusText->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
         }
     }
 }

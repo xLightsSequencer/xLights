@@ -237,9 +237,9 @@ void ModelPreview::InitializeGLCanvas()
     SetCurrentGLContext();
 
     if (allowSelected) {
-        LOG_GL_ERRORV(glClearColor(0.8f, 0.8f, 0.8f, 1.0f)); // Black Background
-    }
-    else {
+        wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f)); // Black Background
+    } else {
         LOG_GL_ERRORV(glClearColor(0.0, 0.0, 0.0, 1.0f)); // Black Background
     }
     LOG_GL_ERRORV(glEnable(GL_BLEND));
@@ -281,8 +281,7 @@ void ModelPreview::SetbackgroundImage(wxString img)
 void ModelPreview::SetBackgroundBrightness(int brightness)
 {
     mBackgroundBrightness = brightness;
-    if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100)
-    {
+    if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100) {
         mBackgroundBrightness = 100;
     }
 }
@@ -374,21 +373,17 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
         accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
         accumulator.Finish(GL_TRIANGLES);
-    }
-    else if (virtualWidth == 0 && virtualHeight == 0) {
+    } else if (virtualWidth == 0 && virtualHeight == 0) {
         int i = (int)mWindowHeight;
         DrawGLUtils::Translate(0, -i, 0);
-    }
-    else {
+    } else {
         DrawGLUtils::Translate(0, -virtualHeight, 0);
         accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
         accumulator.Finish(GL_TRIANGLES);
     }
 
-    if (mBackgroundImageExists)
-    {
-        if (image == nullptr)
-        {
+    if (mBackgroundImageExists) {
+        if (image == nullptr) {
             logger_base.debug("Loading background image file %s for preview %s.",
                               (const char *)mBackgroundImage.c_str(),
                               (const char *)GetName().c_str());
@@ -403,8 +398,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             if (nscalew < nscaleh) {
                 scaleh = 1.0;
                 scalew = nscalew / nscaleh;
-            }
-            else {
+            } else {
                 scaleh = nscaleh / nscalew;
                 scalew = 1.0;
             }

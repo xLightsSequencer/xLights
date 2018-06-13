@@ -139,7 +139,10 @@ public:
     {
         if(!IsShownOnScreen()) return;
         SetCurrentGLContext();
-        xlColor c(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK));
+        xlColor c(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+        //c.Set(70,70,70); //54->70
+        //
+        
         LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
                                    ((float)c.Green())/255.0f,
                                    ((float)c.Blue())/255.0f, 1.0f));
@@ -158,6 +161,7 @@ public:
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
+        
         DrawGLUtils::xlVertexTextAccumulator va;
 #define LINEGAP 1.2
         int y = _fontSize * LINEGAP;
