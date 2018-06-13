@@ -960,7 +960,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_BackupPurge->Append(MenuItem_BkpPMonth);
     MenuItem_BkpPWeek = new wxMenuItem(MenuItem_BackupPurge, ID_MNU_BKPPURGE_WEEK, _("7 Days"), wxEmptyString, wxITEM_RADIO);
     MenuItem_BackupPurge->Append(MenuItem_BkpPWeek);
-    MenuSettings->Append(ID_MNU_BKP_PURGE, _("Backup Purge"), MenuItem_BackupPurge, wxEmptyString);
+    MenuSettings->Append(ID_MNU_BKP_PURGE, _("Purge Backups Older Than"), MenuItem_BackupPurge, wxEmptyString);
     MenuItem_BackupSubfolders = new wxMenuItem(MenuSettings, ID_MNU_BACKUP, _("Backup Subfolders"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_BackupSubfolders);
     MenuItem_ExcludePresetsFromPackagedSequences = new wxMenuItem(MenuSettings, ID_MNU_EXCLUDEPRESETS, _("Exclude Presets From Packaged Sequences"), wxEmptyString, wxITEM_CHECK);
