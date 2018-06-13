@@ -62,10 +62,9 @@ namespace
 
    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
    {
-      double progressInv = 1 - progress;
-      double red   = progress * b.red   + progressInv * a.red;
-      double green = progress * b.green + progressInv * a.green;
-      double blue  = progress * b.blue  + progressInv * a.blue;
+      double red   = a.red   + progress * ( b.red   - a.red   );
+      double green = a.green + progress * ( b.green - a.green );
+      double blue  = a.blue  + progress * ( b.blue  - a.blue  );
 
       return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
    }
