@@ -34,10 +34,12 @@ class WarpPanel: public wxPanel
 		virtual ~WarpPanel();
 
 		//(*Declarations(WarpPanel)
+		BulkEditSlider* Slider_Warp_Cycle_Count;
 		BulkEditSlider* Slider_Warp_Frequency;
 		BulkEditSlider* Slider_Warp_Speed;
 		BulkEditSlider* Slider_Warp_X;
 		BulkEditSlider* Slider_Warp_Y;
+		BulkEditTextCtrl* TextCtrl_Warp_Cycle_Count;
 		BulkEditTextCtrl* TextCtrl_Warp_Frequency;
 		BulkEditTextCtrl* TextCtrl_Warp_Speed;
 		BulkEditTextCtrl* TextCtrl_Warp_X;
@@ -50,10 +52,9 @@ class WarpPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
 		wxTextCtrl* TextCtrl1;
 		//*)
-
-		void ValidateWindow();
 
 	protected:
 
@@ -65,20 +66,20 @@ class WarpPanel: public wxPanel
 		static const long ID_CHOICE_Warp_Treatment;
 		static const long ID_STATICTEXT3;
 		static const long ID_SLIDER_Warp_X;
-		static const long IDD_TEXTCTRL_Warp_X;
+		static const long ID_TEXTCTRL_Warp_X;
 		static const long ID_STATICTEXT4;
 		static const long ID_SLIDER_Warp_Y;
-		static const long IDD_TEXTCTRL_Warp_Y;
+		static const long ID_TEXTCTRL_Warp_Y;
+		static const long ID_STATICTEXT7;
+		static const long ID_SLIDER_Warp_Cycle_Count;
+		static const long ID_TEXTCTRL_Warp_Cycle_Count;
 		static const long ID_STATICTEXT6;
 		static const long ID_SLIDER_Warp_Speed;
-		static const long IDD_TEXTCTRL_Warp_Speed;
+		static const long ID_TEXTCTRL_Warp_Speed;
 		static const long ID_STATICTEXT5;
 		static const long ID_SLIDER_Warp_Frequency;
-		static const long IDD_TEXTCTRL_Warp_Frequency;
+		static const long ID_TEXTCTRL_Warp_Frequency;
 		//*)
-
-		static const long ID_CANVAS;
-		friend class WarpEffect;
 
 	private:
 
