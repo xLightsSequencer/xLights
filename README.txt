@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Initial support for using system background colors
+   -- bug (dkulp)  TouchBar forward/back buttons reversed
    -- enh (scott)  Added "Copy", "Import from Model", and "Import from File" Buttons to the Submodel Dialog.
 					- Copy The Currently Selected SubModel.
 					- Import SubModels from another Model.
