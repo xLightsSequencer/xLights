@@ -62,10 +62,9 @@ namespace
 
    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
    {
-      double progressInv = 1 - progress;
-      double red   = progress * b.red   + progressInv * a.red;
-      double green = progress * b.green + progressInv * a.green;
-      double blue  = progress * b.blue  + progressInv * a.blue;
+      double red   = a.red   + progress * ( b.red   - a.red   );
+      double green = a.green + progress * ( b.green - a.green );
+      double blue  = a.blue  + progress * ( b.blue  - a.blue  );
 
       return xlColor( uint8_t( red ), uint8_t( green ), uint8_t( blue ) );
    }
@@ -303,6 +302,9 @@ void WarpEffect::SetDefaultParameters()
     p->Slider_Warp_Y->SetValue( 50 );
     p->TextCtrl_Warp_Y->SetValue( "50" );
 
+    p->Slider_Warp_Cycle_Count->SetValue( 1 );
+    p->TextCtrl_Warp_Cycle_Count->SetValue( "1" );
+
     p->Slider_Warp_Speed->SetValue( 20 );
     p->TextCtrl_Warp_Speed->SetValue( "20" );
 
@@ -336,6 +338,10 @@ std::string WarpEffect::GetEffectString()
      if ( 50 != yvalue )
         ret << "E_TEXTCTRL_Warp_Y=" << p->TextCtrl_Warp_Y->GetValue().ToStdString() << ",";
 
+     int cycleCount = p->Slider_Warp_Cycle_Count->GetValue();
+     if ( 1 != cycleCount )
+      ret << "E_TEXTCTRL_Warp_Cycle_Count=" << p->TextCtrl_Warp_Cycle_Count->GetValue().ToStdString() << ",";
+
      int speed = p->Slider_Warp_Speed->GetValue();
      if ( 20 != speed )
         ret << "E_TEXTCTRL_Warp_Speed=" << p->TextCtrl_Warp_Speed->GetValue().ToStdString() << ",";
@@ -359,6 +365,8 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
       settingsMap.erase( "E_TEXTCTRL_Warp_X" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Y", "" )== "50" )
       settingsMap.erase( "E_TEXTCTRL_Warp_Y" );
+    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Cycle_Count", "" ) == "1" )
+      settingsMap.erase( "E_TEXTCTRL_Warp_Cycle_Count" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Speed", "" )== "20" )
       settingsMap.erase( "E_TEXTCTRL_Warp_Speed" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Frequency", "" )== "20" )
@@ -373,6 +381,7 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment", "constant");
    std::string warpStrX = SettingsMap.Get( "TEXTCTRL_Warp_X", "50" );
    std::string warpStrY = SettingsMap.Get( "TEXTCTRL_Warp_Y", "50" );
+   std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
    double x = 0.01 * std::stoi( warpStrX );
@@ -384,12 +393,44 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
    if ( warpType == "water drops" )
       RenderPixelTransform( waterDrops, buffer, params );
-   else if ( warpType == "ripple" )
-      RenderPixelTransform( warpTreatment == "in" ? rippleIn : rippleOut, buffer, params );
-   else if ( warpType == "dissolve" )
-      RenderPixelTransform( warpTreatment == "in" ? dissolveIn : dissolveOut, buffer, params );
-   else if ( warpType == "banded swirl" )
-      RenderPixelTransform( warpTreatment == "in" ? bandedSwirlIn : bandedSwirlOut, buffer, params );
-   else if ( warpType == "circle reveal" )
-      RenderPixelTransform( warpTreatment == "in" ? circleRevealIn : circleRevealOut, buffer, params );
+   else
+   {
+      PixelTransform xform = nullptr;
+      // the other warps were originally intended as transitions in or out... for constant
+      // treatment, we'll just cycle between progress of [0,1] and [1,0]
+      if ( warpTreatment == "constant" )
+      {
+         float cycleCount = std::stof( warpStrCycleCount );
+         float intervalLen = 1.f / (2 * cycleCount );
+         float scaledProgress = progress / intervalLen;
+         float intervalProgress, intervalIndex;
+         intervalProgress = std::modf( scaledProgress, &intervalIndex );
+         if ( int(intervalIndex) % 2 )
+            intervalProgress = 1.f - intervalProgress;
+         //LinearInterpolater interpolater;
+         //float interpolatedProgress = interpolate( intervalProgress, 0.0,0.2, 1.0,0.8, interpolater );
+         params.progress = intervalProgress;
+         if ( warpType == "ripple" )
+            xform = rippleIn;
+         else if ( warpType == "dissolve" )
+            xform = dissolveIn;
+         else if ( warpType == "banded swirl" )
+            xform = bandedSwirlIn;
+         else if ( warpType == "circle reveal" )
+            xform = circleRevealIn;
+      }
+      else
+      {
+         if ( warpType == "ripple" )
+            xform = ( warpTreatment == "in" )? rippleIn : rippleOut;
+         else if ( warpType == "dissolve" )
+            xform = ( warpTreatment == "in" ) ? dissolveIn : dissolveOut;
+         else if ( warpType == "banded swirl" )
+            xform = ( warpTreatment == "in" ) ? bandedSwirlIn : bandedSwirlOut;
+         else if ( warpType == "circle reveal" )
+            xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
+      }
+      if ( xform != nullptr )
+         RenderPixelTransform( xform, buffer, params );
+   }
 }

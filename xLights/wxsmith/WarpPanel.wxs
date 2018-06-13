@@ -102,7 +102,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_X" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_X" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_X" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_X" member="yes">
 							<value>50</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
@@ -128,8 +128,36 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_Y" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Y" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_Y" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Y" member="yes">
 							<value>50</value>
+							<size>20,-1d</size>
+							<style>wxTE_PROCESS_ENTER</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+							<label>Cycle Count</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Warp_Cycle_Count" subclass="BulkEditSlider" variable="Slider_Warp_Cycle_Count" member="yes">
+							<value>1</value>
+							<min>1</min>
+							<max>10</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_Cycle_Count" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Cycle_Count" member="yes">
+							<value>1</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
 						</object>
@@ -155,7 +183,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Speed" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Speed" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
@@ -182,7 +210,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Warp_Frequency" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Frequency" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Warp_Frequency" subclass="BulkEditTextCtrl" variable="TextCtrl_Warp_Frequency" member="yes">
 							<value>20</value>
 							<size>20,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
