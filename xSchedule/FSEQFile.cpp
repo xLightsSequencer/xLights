@@ -108,7 +108,7 @@ void FSEQFile::Load(const std::string& filename)
         char tag[5];
         memset(tag, 0x00, sizeof(tag));
         _fh->Read(tag, sizeof(tag)-1);
-        if (std::string(tag) == "PSEQ")
+        if (std::string(tag) == "PSEQ" || std::string(tag) == "FSEQ")
         {
             _frame0Offset = ReadInt16(_fh);
             _fh->Read(&_minorVersion, sizeof(_minorVersion));
