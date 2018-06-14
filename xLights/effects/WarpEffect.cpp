@@ -293,14 +293,15 @@ wxPanel *WarpEffect::CreatePanel(wxWindow *parent)
 void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
+
     p->Choice_Warp_Type->SetSelection( 0 );
     p->Choice_Warp_Treatment->SetSelection( 0 );
 
-    p->Slider_Warp_X->SetValue( 50 );
-    p->TextCtrl_Warp_X->SetValue( "50" );
+    SetSliderValue( p->Slider_Warp_X, 50 );
+    p->BitmapButton_Warp_X->SetActive( false );
 
-    p->Slider_Warp_Y->SetValue( 50 );
-    p->TextCtrl_Warp_Y->SetValue( "50" );
+    SetSliderValue( p->Slider_Warp_Y, 50 );
+    p->BitmapButton_Warp_Y->SetActive( false );
 
     p->Slider_Warp_Cycle_Count->SetValue( 1 );
     p->TextCtrl_Warp_Cycle_Count->SetValue( "1" );
@@ -330,13 +331,31 @@ std::string WarpEffect::GetEffectString()
      if ( "constant" != warpTreatment )
         ret << "E_CHOICE_Warp_Treatment=" << warpTreatment.ToStdString() << ",";
 
-     int xvalue = p->Slider_Warp_X->GetValue();
-     if ( 50 != xvalue )
-        ret << "E_TEXTCTRL_Warp_X=" << p->TextCtrl_Warp_X->GetValue().ToStdString() << ",";
+     if ( p->BitmapButton_Warp_X->GetValue()->IsActive() )
+     {
+        ret << "E_VALUECURVE_Warp_X=";
+        ret << p->BitmapButton_Warp_X->GetValue()->Serialise();
+        ret << ",";
+     }
+     else
+     {
+        int xvalue = p->Slider_Warp_X->GetValue();
+        if ( 50 != xvalue )
+          ret << "E_TEXTCTRL_Warp_X=" << p->TextCtrl_Warp_X->GetValue().ToStdString() << ",";
+     }
 
-     int yvalue = p->Slider_Warp_Y->GetValue();
-     if ( 50 != yvalue )
-        ret << "E_TEXTCTRL_Warp_Y=" << p->TextCtrl_Warp_Y->GetValue().ToStdString() << ",";
+     if ( p->BitmapButton_Warp_Y->GetValue()->IsActive() )
+     {
+        ret << "E_VALUECURVE_Warp_Y=";
+        ret << p->BitmapButton_Warp_Y->GetValue()->Serialise();
+        ret << ",";
+     }
+     else
+     {
+        int yvalue = p->Slider_Warp_Y->GetValue();
+        if ( 50 != yvalue )
+           ret << "E_TEXTCTRL_Warp_Y=" << p->TextCtrl_Warp_Y->GetValue().ToStdString() << ",";
+     }
 
      int cycleCount = p->Slider_Warp_Cycle_Count->GetValue();
      if ( 1 != cycleCount )
@@ -361,10 +380,6 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
       settingsMap.erase( "E_CHOICE_Warp_Type" );
     if ( settingsMap.Get( "E_CHOICE_Warp_Treatment", "" )== "constant" )
       settingsMap.erase( "E_CHOICE_Warp_Treatment" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_X", "" )== "50" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_X" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Y", "" )== "50" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Y" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Cycle_Count", "" ) == "1" )
       settingsMap.erase( "E_TEXTCTRL_Warp_Cycle_Count" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Speed", "" )== "20" )
@@ -377,18 +392,19 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
+
    std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
    std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment", "constant");
-   std::string warpStrX = SettingsMap.Get( "TEXTCTRL_Warp_X", "50" );
-   std::string warpStrY = SettingsMap.Get( "TEXTCTRL_Warp_Y", "50" );
    std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
-   double x = 0.01 * std::stoi( warpStrX );
-   double y = 0.01f * std::stoi( warpStrY );
+   int xPercentage = GetValueCurveInt( "Warp_X", 0, SettingsMap, progress, 0, 100 );
+   int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100 );
+   double x = 0.01 * xPercentage;
+   double y = 0.01 * yPercentage;
    float speed = std::stof( speedStr );
    float frequency = std::stof( freqStr );
-   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
    WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
    if ( warpType == "water drops" )
