@@ -130,6 +130,7 @@
 #include "../include/valuecurvenotselected.xpm"
 #include "../include/valuecurveselected.xpm"
 
+#include "Images_png.h"
 
 #include "wx/artprov.h"
 
@@ -235,6 +236,34 @@ public:
             }
         }
         return (*data)[eff];
+    }
+    const wxBitmap &GetOtherImagePNG(const wxString &name,
+                                  const unsigned char *data, int size,
+                                  const unsigned char *dataDouble = nullptr, int sizeDoube = -1) {
+        const wxBitmap &bmp = others[name];
+        if (!bmp.IsOk()) {
+            if (GetSystemContentScaleFactor() > 1.5) {
+                wxBitmap bmp = dataDouble == nullptr
+                    ?  wxBitmap::NewFromPNGData(data, size)
+                    :  wxBitmap::NewFromPNGData(dataDouble, sizeDoube);
+#ifndef __WXOSX__
+                wxImage image = bmp.ConvertToImage();
+                if (dataDouble == nullptr || dataDouble == data) {
+                    image.Rescale(image.GetWidth() * 2, image.GetHeight() * 2);
+                }
+                bmp = wxBitmap(image, -1, 2.0);
+#else
+                if (dataDouble != nullptr && dataDouble != data)  {
+                    wxImage image = bmp.ConvertToImage();
+                    bmp = wxBitmap(image, -1, 2.0);
+                }
+#endif
+                others[name] = bmp;
+                return others[name];
+            }
+            others[name] = wxBitmap::NewFromPNGData(data, size);
+        }
+        return others[name];
     }
     const wxBitmap &GetOtherImage(const wxString &name,
                                   const char **data,
@@ -446,7 +475,49 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
     } else if ("xlART_valuecurve_selected" == id) {
         return effectBitmaps.GetOtherImage("valuecurve_selected_xpm", valuecurveselected_24, valuecurveselected_24);
     } else if ("xlART_valuecurve_notselected" == id) {
-        return effectBitmaps.GetOtherImage("valuecurve_notselected", valuecurvenotselected_24, valuecurvenotselected_24);
+        return effectBitmaps.GetOtherImage("valuecurve_notselected_xpm", valuecurvenotselected_24, valuecurvenotselected_24);
+    } else if ("xlART_musical_seq" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, musical_seq_png, sizeof(musical_seq_png));
+    } else if ("xlART_musical_seq_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, musical_seq_pressed_png, sizeof(musical_seq_pressed_png));
+    } else if ("xlART_animation_seq" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, animation_seq_png, sizeof(animation_seq_png));
+    } else if ("xlART_animation_seq_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, animation_seq_pressed_png, sizeof(animation_seq_pressed_png));
+    } else if ("xlART_time_25ms" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_25ms_png, sizeof(time_25ms_png));
+    } else if ("xlART_time_25ms_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_25ms_pressed_png, sizeof(time_25ms_pressed_png));
+    } else if ("xlART_time_custom" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_custom_png, sizeof(time_custom_png));
+    } else if ("xlART_time_custom_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_custom_pressed_png, sizeof(time_custom_pressed_png));
+    } else if ("xlART_time_50ms" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_50ms_png, sizeof(time_50ms_png));
+    } else if ("xlART_time_50ms_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_50ms_pressed_png, sizeof(time_50ms_pressed_png));
+    } else if ("xlART_quick_start" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, quick_start_png, sizeof(quick_start_png));
+    } else if ("xlART_quick_start_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, quick_start_pressed_png, sizeof(quick_start_pressed_png));
+    } else if ("xlART_xlights_logo" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, xlights_logo_png, sizeof(xlights_logo_png));
+    } else if ("xlART_lightorama" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, lightorama_png, sizeof(lightorama_png));
+    } else if ("xlART_vixen" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, vixen_png, sizeof(vixen_png));
+    } else if ("xlART_glediator" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, glediator_png, sizeof(glediator_png));
+    } else if ("xlART_hls" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, hls_png, sizeof(hls_png));
+    } else if ("xlART_lynx" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, lynx_png, sizeof(lynx_png));
+        /*
+    } else if ("xlART_" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, _png, sizeof(_png));
+    } else if ("xlART_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, _pressed_png, sizeof(_pressed_png));
+         */
     }
     //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
     return wxNullBitmap;
