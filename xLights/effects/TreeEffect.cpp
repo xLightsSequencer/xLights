@@ -25,7 +25,7 @@ wxPanel *TreeEffect::CreatePanel(wxWindow *parent) {
     return new TreePanel(parent);
 }
 
-void TreeEffect::SetDefaultParameters(Model *cls)
+void TreeEffect::SetDefaultParameters()
 {
     TreePanel *tp = (TreePanel*)panel;
     if (tp == nullptr) {

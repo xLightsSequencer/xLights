@@ -3,11 +3,11 @@
 
 //(*Headers(SpirographPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -20,31 +20,31 @@ class SpirographPanel: public wxPanel
 		virtual ~SpirographPanel();
 
 		//(*Declarations(SpirographPanel)
-		wxStaticText* StaticText89;
-		BulkEditSlider* Slider_Spirograph_Length;
 		BulkEditSlider* Slider_Spirograph_Animate;
-		wxBitmapButton* BitmapButton_Spirographr;
-		wxStaticText* StaticText88;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_SpeedrVC;
-		wxBitmapButton* BitmapButton_SpirographLength;
-		wxStaticText* StaticText92;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_AnimateVC;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_rVC;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_RVC;
-		wxStaticText* StaticText190;
-		wxStaticText* StaticText87;
-		wxBitmapButton* BitmapButton_SpirographAnimate;
-		wxBitmapButton* BitmapButton_SpirographSpeed;
-		wxStaticText* StaticText191;
-		BulkEditSlider* Slider_Spirograph_d;
-		wxBitmapButton* BitmapButton_SpirographR;
-		BulkEditSlider* Slider_Spirograph_Speed;
-		wxBitmapButton* BitmapButton_Spirographd;
-		BulkEditSlider* Slider_Spirograph_r;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_dVC;
-		wxStaticText* StaticText90;
-		BulkEditValueCurveButton* BitmapButton_Spirograph_LengthVC;
+		BulkEditSlider* Slider_Spirograph_Length;
 		BulkEditSlider* Slider_Spirograph_R;
+		BulkEditSlider* Slider_Spirograph_Speed;
+		BulkEditSlider* Slider_Spirograph_d;
+		BulkEditSlider* Slider_Spirograph_r;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_AnimateVC;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_LengthVC;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_RVC;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_SpeedrVC;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_dVC;
+		BulkEditValueCurveButton* BitmapButton_Spirograph_rVC;
+		wxStaticText* StaticText190;
+		wxStaticText* StaticText191;
+		wxStaticText* StaticText87;
+		wxStaticText* StaticText88;
+		wxStaticText* StaticText89;
+		wxStaticText* StaticText90;
+		wxStaticText* StaticText92;
+		xlLockButton* BitmapButton_SpirographAnimate;
+		xlLockButton* BitmapButton_SpirographLength;
+		xlLockButton* BitmapButton_SpirographR;
+		xlLockButton* BitmapButton_SpirographSpeed;
+		xlLockButton* BitmapButton_Spirographd;
+		xlLockButton* BitmapButton_Spirographr;
 		//*)
 
 	protected:

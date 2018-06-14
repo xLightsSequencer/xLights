@@ -1,6 +1,7 @@
 #include "BufferPanel.h"
 
 //(*InternalHeaders(BufferPanel)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/intl.h>
@@ -12,7 +13,6 @@
 #include <vector>
 #include "models/Model.h"
 #include "effects/EffectPanelUtils.h"
-#include "../include/padlock16x16-blue.xpm" //-DJ
 #include "ValueCurveDialog.h"
 #include "SubBufferPanel.h"
 #include <wx/config.h>
@@ -126,8 +126,6 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
     _blur.SetMax(15);
 
 	//(*Initialize(BufferPanel)
-	wxBitmapButton* BitmapButtonBufferStyle;
-	wxBitmapButton* BitmapButton_BufferTransform;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
@@ -145,6 +143,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	wxPanel* Panel3;
 	wxPanel* Panel4;
 	wxStaticText* StaticText11;
+	xlLockButton* BitmapButtonBufferStyle;
+	xlLockButton* BitmapButton_BufferTransform;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -170,8 +170,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BufferStyleChoice->SetSelection( BufferStyleChoice->Append(_("Default")) );
 	BufferStyleChoice->Append(_("Per Preview"));
 	BufferSizer->Add(BufferStyleChoice, 1, wxALL|wxEXPAND, 2);
-	BitmapButtonBufferStyle = new wxBitmapButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferStyle, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferStyle"));
-	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButtonBufferStyle = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferStyle, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferStyle"));
+	BitmapButtonBufferStyle->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButtonBufferStyle->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	BufferSizer->Add(BitmapButtonBufferStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT_BufferTransform, _("Transformation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BufferTransform"));
@@ -184,8 +184,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BufferTransform->Append(_("Flip Vertical"));
 	BufferTransform->Append(_("Flip Horizontal"));
 	BufferSizer->Add(BufferTransform, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_BufferTransform = new wxBitmapButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferTransform, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
-	BitmapButton_BufferTransform->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_BufferTransform = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_CHOICE_BufferTransform, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_BufferTransform"));
+	BitmapButton_BufferTransform->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_BufferTransform->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	BufferSizer->Add(BitmapButton_BufferTransform, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText5 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT_Blur, _("Blur"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Blur"));
@@ -195,22 +195,22 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_EffectBlur = new BulkEditSlider(ScrolledWindow1, ID_SLIDER_Blur, 1, 1, 15, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Blur"));
 	Slider_EffectBlur->SetMinSize(wxDLG_UNIT(ScrolledWindow1,wxSize(20,-1)));
 	FlexGridSizer6->Add(Slider_EffectBlur, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Blur = new BulkEditValueCurveButton(ScrolledWindow1, ID_VALUECURVE_Blur, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Blur"));
+	BitmapButton_Blur = new BulkEditValueCurveButton(ScrolledWindow1, ID_VALUECURVE_Blur, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Blur"));
 	FlexGridSizer6->Add(BitmapButton_Blur, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrl_EffectBlur = new BulkEditTextCtrl(ScrolledWindow1, IDD_TEXTCTRL_Blur, _("1"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow1,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Blur"));
 	TextCtrl_EffectBlur->SetMaxLength(2);
 	FlexGridSizer6->Add(TextCtrl_EffectBlur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	BufferSizer->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_EffectBlur = new wxBitmapButton(ScrolledWindow1, ID_BITMAPBUTTON_SLIDER_EffectBlur, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectBlur"));
-	BitmapButton_EffectBlur->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_EffectBlur = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_SLIDER_EffectBlur, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_EffectBlur"));
+	BitmapButton_EffectBlur->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_EffectBlur->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	BufferSizer->Add(BitmapButton_EffectBlur, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_OverlayBkg = new BulkEditCheckBox(ScrolledWindow1, ID_CHECKBOX_OverlayBkg, _("Persistent"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_OverlayBkg"));
 	CheckBox_OverlayBkg->SetValue(false);
 	BufferSizer->Add(CheckBox_OverlayBkg, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	BufferSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_OverlayBkg = new wxBitmapButton(ScrolledWindow1, ID_BITMAPBUTTON_OverlayBkg, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
-	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_OverlayBkg = new xlLockButton(ScrolledWindow1, ID_BITMAPBUTTON_OverlayBkg, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_OverlayBkg"));
+	BitmapButton_OverlayBkg->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_OverlayBkg->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	BufferSizer->Add(BitmapButton_OverlayBkg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FullBufferSizer->Add(BufferSizer, 1, wxALL|wxEXPAND, 0);
@@ -253,14 +253,14 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_Rotation = new BulkEditSlider(ScrolledWindow2, ID_SLIDER_Rotation, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Rotation"));
 	Slider_Rotation->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer2->Add(Slider_Rotation, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_VCRotation = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_Rotation, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Rotation"));
+	BitmapButton_VCRotation = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_Rotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Rotation"));
 	FlexGridSizer2->Add(BitmapButton_VCRotation, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_Rotation = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, _rotation, _T("IDD_TEXTCTRL_Rotation"));
 	TextCtrl_Rotation->SetMaxLength(3);
 	FlexGridSizer2->Add(TextCtrl_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	RotoZoomSizer->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Rotation = new wxBitmapButton(ScrolledWindow2, ID_BITMAPBUTTON_Rotation, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Rotation"));
-	BitmapButton_Rotation->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Rotation = new xlLockButton(ScrolledWindow2, ID_BITMAPBUTTON_Rotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Rotation"));
+	BitmapButton_Rotation->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_Rotation->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	RotoZoomSizer->Add(BitmapButton_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText3 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT_Rotations, _("Z Rotations"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Rotations"));
@@ -270,13 +270,13 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_Rotations = new BulkEditSliderF1(ScrolledWindow2, ID_SLIDER_Rotations, 0, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Rotations"));
 	Slider_Rotations->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer5->Add(Slider_Rotations, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_VCRotations = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_Rotations, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Rotations"));
+	BitmapButton_VCRotations = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_Rotations, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Rotations"));
 	FlexGridSizer5->Add(BitmapButton_VCRotations, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Rotations = new BulkEditTextCtrlF1(ScrolledWindow2, IDD_TEXTCTRL_Rotations, _("0.0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, _rotations, _T("IDD_TEXTCTRL_Rotations"));
 	FlexGridSizer5->Add(TextCtrl_Rotations, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	RotoZoomSizer->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Rotations = new wxBitmapButton(ScrolledWindow2, ID_BITMAPBUTTON_Rotations, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Rotations"));
-	BitmapButton_Rotations->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Rotations = new xlLockButton(ScrolledWindow2, ID_BITMAPBUTTON_Rotations, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Rotations"));
+	BitmapButton_Rotations->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_Rotations->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	RotoZoomSizer->Add(BitmapButton_Rotations, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText8 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT_PivotPointX, _("Z Pivot Point X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PivotPointX"));
@@ -286,13 +286,13 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_PivotPointX = new BulkEditSlider(ScrolledWindow2, ID_SLIDER_PivotPointX, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PivotPointX"));
 	Slider_PivotPointX->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer9->Add(Slider_PivotPointX, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_VCPivotPointX = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_PivotPointX, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PivotPointX"));
+	BitmapButton_VCPivotPointX = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_PivotPointX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PivotPointX"));
 	FlexGridSizer9->Add(BitmapButton_VCPivotPointX, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_PivotPointX = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_PivotPointX, _("50"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, _pivotpointx, _T("IDD_TEXTCTRL_PivotPointX"));
 	FlexGridSizer9->Add(TextCtrl_PivotPointX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	RotoZoomSizer->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_PivotPointX = new wxBitmapButton(ScrolledWindow2, ID_BITMAPBUTTON_PivotPointX, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_PivotPointX"));
-	BitmapButton_PivotPointX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_PivotPointX = new xlLockButton(ScrolledWindow2, ID_BITMAPBUTTON_PivotPointX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_PivotPointX"));
+	BitmapButton_PivotPointX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_PivotPointX->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	RotoZoomSizer->Add(BitmapButton_PivotPointX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText9 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT_PivotPointY, _("Z Pivot Point Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PivotPointY"));
@@ -302,13 +302,13 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_PivotPointY = new BulkEditSlider(ScrolledWindow2, ID_SLIDER_PivotPointY, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_PivotPointY"));
 	Slider_PivotPointY->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer10->Add(Slider_PivotPointY, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_VCPivotPointY = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_PivotPointY, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PivotPointY"));
+	BitmapButton_VCPivotPointY = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_PivotPointY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PivotPointY"));
 	FlexGridSizer10->Add(BitmapButton_VCPivotPointY, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_PivotPointY = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_PivotPointY, _("50"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, _pivotpointy, _T("IDD_TEXTCTRL_PivotPointY"));
 	FlexGridSizer10->Add(TextCtrl_PivotPointY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	RotoZoomSizer->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_PivotPointY = new wxBitmapButton(ScrolledWindow2, ID_BITMAPBUTTON_PivotPointY, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_PivotPointY"));
-	BitmapButton_PivotPointY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_PivotPointY = new xlLockButton(ScrolledWindow2, ID_BITMAPBUTTON_PivotPointY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_PivotPointY"));
+	BitmapButton_PivotPointY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_PivotPointY->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	RotoZoomSizer->Add(BitmapButton_PivotPointY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText6 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT_Zoom, _("Zoom"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Zoom"));
@@ -318,13 +318,13 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_Zoom = new BulkEditSliderF1(ScrolledWindow2, ID_SLIDER_Zoom, 0, 0, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Zoom"));
 	Slider_Zoom->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer7->Add(Slider_Zoom, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_VCZoom = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_Zoom, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Zoom"));
+	BitmapButton_VCZoom = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_Zoom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Zoom"));
 	FlexGridSizer7->Add(BitmapButton_VCZoom, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Zoom = new BulkEditTextCtrlF1(ScrolledWindow2, IDD_TEXTCTRL_Zoom, _("0.0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, _zoom, _T("IDD_TEXTCTRL_Zoom"));
 	FlexGridSizer7->Add(TextCtrl_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	RotoZoomSizer->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_Zoom = new wxBitmapButton(ScrolledWindow2, ID_BITMAPBUTTON_Zoom, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Zoom"));
-	BitmapButton_Zoom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_Zoom = new xlLockButton(ScrolledWindow2, ID_BITMAPBUTTON_Zoom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Zoom"));
+	BitmapButton_Zoom->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_Zoom->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	RotoZoomSizer->Add(BitmapButton_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText7 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT_ZoomQuality, _("Zoom Quality"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_ZoomQuality"));
@@ -337,8 +337,8 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	TextCtrl_ZoomQuality = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_ZoomQuality, _("1"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, _zoomquality, _T("IDD_TEXTCTRL_ZoomQuality"));
 	FlexGridSizer8->Add(TextCtrl_ZoomQuality, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	RotoZoomSizer->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
-	BitmapButton_ZoomQuality = new wxBitmapButton(ScrolledWindow2, ID_BITMAPBUTTON_ZoomQuality, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_ZoomQuality"));
-	BitmapButton_ZoomQuality->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_ZoomQuality = new xlLockButton(ScrolledWindow2, ID_BITMAPBUTTON_ZoomQuality, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_ZoomQuality"));
+	BitmapButton_ZoomQuality->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_ZoomQuality->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	RotoZoomSizer->Add(BitmapButton_ZoomQuality, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText10 = new wxStaticText(ScrolledWindow2, ID_STATICTEXT_XRotation, _("X Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_XRotation"));
@@ -348,7 +348,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_XRotation = new BulkEditSlider(ScrolledWindow2, ID_SLIDER_XRotation, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_XRotation"));
 	Slider_XRotation->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer3->Add(Slider_XRotation, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_XRotation = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_XRotation, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_XRotation"));
+	BitmapButton_XRotation = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_XRotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_XRotation"));
 	FlexGridSizer3->Add(BitmapButton_XRotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_XRotation = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_XRotation, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_XRotation"));
 	TextCtrl_XRotation->SetMaxLength(3);
@@ -362,7 +362,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_XPivot = new BulkEditSlider(ScrolledWindow2, ID_SLIDER_XPivot, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_XPivot"));
 	Slider_XPivot->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer12->Add(Slider_XPivot, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_XPivot = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_XPivot, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_XPivot"));
+	BitmapButton_XPivot = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_XPivot, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_XPivot"));
 	FlexGridSizer12->Add(BitmapButton_XPivot, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_XPivot = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_XPivot, _("50"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_XPivot"));
 	TextCtrl_XPivot->SetMaxLength(3);
@@ -376,7 +376,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_YRotation = new BulkEditSlider(ScrolledWindow2, ID_SLIDER_YRotation, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_YRotation"));
 	Slider_YRotation->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer4->Add(Slider_YRotation, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_YRotation = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_YRotation, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_YRotation"));
+	BitmapButton_YRotation = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_YRotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_YRotation"));
 	FlexGridSizer4->Add(BitmapButton_YRotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_YRotation = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_YRotation, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_YRotation"));
 	TextCtrl_YRotation->SetMaxLength(3);
@@ -390,7 +390,7 @@ BufferPanel::BufferPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_YPivot = new BulkEditSlider(ScrolledWindow2, ID_SLIDER_YPivot, 50, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_YPivot"));
 	Slider_YPivot->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer13->Add(Slider_YPivot, 1, wxALL|wxEXPAND, 1);
-	BitmapButton_YPivot = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_YPivot, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_YPivot"));
+	BitmapButton_YPivot = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_YPivot, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_YPivot"));
 	FlexGridSizer13->Add(BitmapButton_YPivot, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_YPivot = new BulkEditTextCtrl(ScrolledWindow2, IDD_TEXTCTRL_YPivot, _("50"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_YPivot"));
 	TextCtrl_YPivot->SetMaxLength(3);

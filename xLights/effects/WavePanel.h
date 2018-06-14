@@ -3,13 +3,13 @@
 
 //(*Headers(WavePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -24,33 +24,33 @@ class WavePanel: public wxPanel
 		virtual ~WavePanel();
 
 		//(*Declarations(WavePanel)
-		wxStaticText* StaticText50;
-		wxStaticText* StaticText47;
-		BulkEditSlider* Slider_Thickness_Percentage;
-		wxBitmapButton* BitmapButton_Wave_Direction;
-		wxStaticText* StaticText48;
-		wxStaticText* StaticText56;
-		BulkEditValueCurveButton* BitmapButton_Wave_HeightVC;
 		BulkEditCheckBox* CheckBox_Mirror_Wave;
-		wxBitmapButton* BitmapButton_Wave_Height;
-		BulkEditValueCurveButton* BitmapButton_Thickness_PercentageVC;
-		wxStaticText* StaticText55;
-		wxBitmapButton* BitmapButton_Wave_Thickness;
-		wxBitmapButton* BitmapButton_WaveType;
-		wxBitmapButton* BitmapButton_WaveSpeed;
-		wxBitmapButton* BitmapButton_NumberWaves;
-		BulkEditChoice* Choice_Wave_Direction;
-		BulkEditSlider* Slider_Number_Waves;
 		BulkEditChoice* Choice_Fill_Colors;
-		wxStaticText* StaticText189;
-		BulkEditValueCurveButton* BitmapButton_Number_WavesVC;
-		BulkEditValueCurveButton* BitmapButton_Wave_SpeedVC;
-		BulkEditSlider* Slider_Wave_Speed;
-		wxBitmapButton* BitmapButton_Wave_FillColors;
-		BulkEditSlider* Slider_Wave_Height;
-		wxStaticText* StaticText52;
-		wxBitmapButton* BitmapButton_Wave_MirrorWave;
+		BulkEditChoice* Choice_Wave_Direction;
 		BulkEditChoice* Choice_Wave_Type;
+		BulkEditSlider* Slider_Number_Waves;
+		BulkEditSlider* Slider_Thickness_Percentage;
+		BulkEditSlider* Slider_Wave_Height;
+		BulkEditSlider* Slider_Wave_Speed;
+		BulkEditValueCurveButton* BitmapButton_Number_WavesVC;
+		BulkEditValueCurveButton* BitmapButton_Thickness_PercentageVC;
+		BulkEditValueCurveButton* BitmapButton_Wave_HeightVC;
+		BulkEditValueCurveButton* BitmapButton_Wave_SpeedVC;
+		wxStaticText* StaticText189;
+		wxStaticText* StaticText47;
+		wxStaticText* StaticText48;
+		wxStaticText* StaticText50;
+		wxStaticText* StaticText52;
+		wxStaticText* StaticText55;
+		wxStaticText* StaticText56;
+		xlLockButton* BitmapButton_NumberWaves;
+		xlLockButton* BitmapButton_WaveSpeed;
+		xlLockButton* BitmapButton_WaveType;
+		xlLockButton* BitmapButton_Wave_Direction;
+		xlLockButton* BitmapButton_Wave_FillColors;
+		xlLockButton* BitmapButton_Wave_Height;
+		xlLockButton* BitmapButton_Wave_MirrorWave;
+		xlLockButton* BitmapButton_Wave_Thickness;
 		//*)
 
 	protected:

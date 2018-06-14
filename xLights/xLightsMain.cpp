@@ -7,9 +7,6 @@
  * License:
  **************************************************************/
 
-#include "xLightsMain.h"
-#include "SplashDialog.h"
-#include "UpdaterDialog.h"
 #include <wx/msgdlg.h>
 #include <wx/tokenzr.h>
 #include <wx/dir.h>
@@ -24,11 +21,20 @@
 #include <wx/textctrl.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
-#include "xLightsApp.h" //global app run-time flags
-#include "heartbeat.h" //DJ
-#include "SeqSettingsDialog.h"
 #include <wx/grid.h>
 #include <wx/mimetype.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
+#include <wx/stdpaths.h>
+
+#include <cctype>
+
+#include "xLightsMain.h"
+#include "SplashDialog.h"
+#include "UpdaterDialog.h"
+#include "xLightsApp.h"
+#include "heartbeat.h"
+#include "SeqSettingsDialog.h"
 #include "xLightsVersion.h"
 #include "RenderCommandEvent.h"
 #include "effects/RenderableEffect.h"
@@ -48,13 +54,18 @@
 #include "FolderSelection.h"
 #include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
+#include "EffectAssist.h"
+#include "EffectsPanel.h"
+#include "outputs/IPOutput.h"
+#include "GenerateLyricsDialog.h"
+#include "VendorModelDialog.h"
+#include "VendorMusicDialog.h"
+#include "sequencer/MainSequencer.h"
+#include "LayoutGroup.h"
+#include "ModelPreview.h"
+#include "TopEffectsPanel.h"
 
 // image files
-#include "../include/xLights.xpm"
-#include "../include/xLights-16.xpm"
-#include "../include/xLights-32.xpm"
-#include "../include/xLights-64.xpm"
-#include "../include/xLights-128.xpm"
 #include "../include/control-pause-blue-icon.xpm"
 #include "../include/control-play-blue-icon.xpm"
 
@@ -70,13 +81,6 @@
 #define MAXBACKUPFILE_MB 30
 
 #include "osxMacUtils.h"
-#include <wx/zipstrm.h>
-#include <wx/wfstream.h>
-#include <cctype>
-#include "outputs/IPOutput.h"
-#include "GenerateLyricsDialog.h"
-#include "VendorModelDialog.h"
-#include "VendorMusicDialog.h"
 
 //helper functions
 enum wxbuildinfoformat
@@ -195,6 +199,7 @@ const long xLightsFrame::ID_MENUITEM2 = wxNewId();
 const long xLightsFrame::ID_FILE_BACKUP = wxNewId();
 const long xLightsFrame::ID_FILE_ALTBACKUP = wxNewId();
 const long xLightsFrame::ID_SHIFT_EFFECTS = wxNewId();
+const long xLightsFrame::ID_MNU_SHIFT_SELECTED_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
@@ -446,6 +451,13 @@ BEGIN_EVENT_TABLE(xLightsFrame,wxFrame)
 END_EVENT_TABLE()
 
 
+xlAuiToolBar::xlAuiToolBar(wxWindow* parent,
+                           wxWindowID id,
+                           const wxPoint& pos,
+                           const wxSize& size,
+                           long style)
+: wxAuiToolBar(parent, id, pos, size, style) {
+}
 
 void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBar) {
 
@@ -800,6 +812,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu3->AppendSeparator();
     MenuItemShiftEffects = new wxMenuItem(Menu3, ID_SHIFT_EFFECTS, _("Shift Effects"), _("Use this options to shift all effects in the sequence."), wxITEM_NORMAL);
     Menu3->Append(MenuItemShiftEffects);
+    MenuItemShiftSelectedEffects = new wxMenuItem(Menu3, ID_MNU_SHIFT_SELECTED_EFFECTS, _("Shift Selected Effects"), wxEmptyString, wxITEM_NORMAL);
+    Menu3->Append(MenuItemShiftSelectedEffects);
     MenuBar->Append(Menu3, _("&Edit"));
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
@@ -948,7 +962,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_BackupPurge->Append(MenuItem_BkpPMonth);
     MenuItem_BkpPWeek = new wxMenuItem(MenuItem_BackupPurge, ID_MNU_BKPPURGE_WEEK, _("7 Days"), wxEmptyString, wxITEM_RADIO);
     MenuItem_BackupPurge->Append(MenuItem_BkpPWeek);
-    MenuSettings->Append(ID_MNU_BKP_PURGE, _("Backup Purge"), MenuItem_BackupPurge, wxEmptyString);
+    MenuSettings->Append(ID_MNU_BKP_PURGE, _("Purge Backups Older Than"), MenuItem_BackupPurge, wxEmptyString);
     MenuItem_BackupSubfolders = new wxMenuItem(MenuSettings, ID_MNU_BACKUP, _("Backup Subfolders"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_BackupSubfolders);
     MenuItem_ExcludePresetsFromPackagedSequences = new wxMenuItem(MenuSettings, ID_MNU_EXCLUDEPRESETS, _("Exclude Presets From Packaged Sequences"), wxEmptyString, wxITEM_CHECK);
@@ -1174,6 +1188,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_FILE_ALTBACKUP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmAltBackupMenuItemSelected);
     Connect(wxID_EXIT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnQuit);
     Connect(ID_SHIFT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftEffectsSelected);
+    Connect(ID_MNU_SHIFT_SELECTED_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemShiftSelectedEffectsSelected);
     Connect(ID_MENUITEM13,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnActionTestMenuItemSelected);
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
@@ -1475,14 +1490,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
 
-    wxIconBundle icons;
-    icons.AddIcon(wxIcon(xlights_16_xpm));
-    icons.AddIcon(wxIcon(xlights_32_xpm));
-    icons.AddIcon(wxIcon(xlights_64_xpm));
-    icons.AddIcon(wxIcon(xlights_128_xpm));
-    icons.AddIcon(wxIcon(xlights_xpm));
-
-    SetIcons(icons);
+    SetIcons(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON));
     logger_base.debug("IconBundle creation done.");
 
     SetName("xLights");
@@ -4453,7 +4461,7 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Multiple outputs sending to same destination");
 
     std::list<std::string> used;
-    outputs = _outputManager.GetOutputs();
+    outputs = _outputManager.GetAllOutputs();
     for (auto n = outputs.begin(); n != outputs.end(); ++n)
     {
         if ((*n)->IsIpOutput())
@@ -4473,16 +4481,47 @@ void xLightsFrame::CheckSequence(bool display)
         }
         else if ((*n)->IsSerialOutput())
         {
-            if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+            if ((*n)->GetCommPort() != "NotConnected")
             {
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
-                LogAndWrite(f, msg.ToStdString());
-                errcount++;
+                if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+                else
+                {
+                    used.push_back((*n)->GetCommPort());
+                }
             }
-            else
-            {
-                used.push_back((*n)->GetCommPort());
-            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // multiple outputs to same universe/ID
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Multiple outputs with same universe/id number");
+
+    std::map<int, int> useduid;
+    outputs = _outputManager.GetAllOutputs();
+    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    {
+        useduid[(*n)->GetUniverse()]++;
+    }
+
+    for (auto it = useduid.begin(); it != useduid.end(); ++it)
+    {
+        if (it->second > 1)
+        {
+            wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", it->second, it->first);
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
         }
     }
 
@@ -4513,56 +4552,59 @@ void xLightsFrame::CheckSequence(bool display)
                 else
                 {
                     wxArrayString ipElements = wxSplit((*n)->GetIP(), '.');
-                    int ip1 = wxAtoi(ipElements[0]);
-                    int ip2 = wxAtoi(ipElements[1]);
-                    int ip3 = wxAtoi(ipElements[2]);
-                    int ip4 = wxAtoi(ipElements[3]);
+                    if (ipElements.size() > 3) {
+                        //looks like an IP address
+                        int ip1 = wxAtoi(ipElements[0]);
+                        int ip2 = wxAtoi(ipElements[1]);
+                        int ip3 = wxAtoi(ipElements[2]);
+                        int ip4 = wxAtoi(ipElements[3]);
 
-                    if (ip1 == 10)
-                    {
-                        if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
+                        if (ip1 == 10)
+                        {
+                            if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                LogAndWrite(f, msg.ToStdString());
+                                errcount++;
+                            }
+                            // else this is valid
+                        }
+                        else if (ip1 == 192 && ip2 == 168)
+                        {
+                            if (ip3 == 255 && ip4 == 255) {
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                LogAndWrite(f, msg.ToStdString());
+                                errcount++;
+                            }
+                            // else this is valid
+                        }
+                        else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
+                        {
+                            // this is valid
+                        }
+                        else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
+                        {
                             wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
-                        // else this is valid
-                    }
-                    else if (ip1 == 192 && ip2 == 168)
-                    {
-                        if (ip3 == 255 && ip4 == 255) {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                        else if (ip1 == 0)
+                        {
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
-                        // else this is valid
-                    }
-                    else if (ip1 == 172 && ip2 >= 16 && ip2 <= 31)
-                    {
-                        // this is valid
-                    }
-                    else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
-                    {
-                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                    else if (ip1 == 0)
-                    {
-                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                    else if (ip1 >= 224 && ip1 <= 239)
-                    {
-                        wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        errcount++;
-                    }
-                    else
-                    {
-                        wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
-                        LogAndWrite(f, msg.ToStdString());
-                        warncount++;
+                        else if (ip1 >= 224 && ip1 <= 239)
+                        {
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                        else
+                        {
+                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            warncount++;
+                        }
                     }
                 }
             }
@@ -5824,6 +5866,58 @@ void xLightsFrame::ExportEffects(wxString filename)
     f.Close();
 }
 
+void xLightsFrame::OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event)
+{
+    wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift the selected effects:\n\n"
+        "Note: Will be rounded to the nearest timing interval.\n"
+        "      This operation cannot be reversed with Undo.\n"
+        "      Effects shifted left may be truncated or deleted.\n"
+        "      Effects that would overlap unselected effects wont be moved.",
+        "Shift Selected Effects", "", wxOK | wxCANCEL | wxCENTER);
+    if (ted.ShowModal() == wxID_OK) {
+        int milliseconds = wxAtoi(ted.GetValue());
+        if (CurrentSeqXmlFile->GetSequenceLoaded()) {
+            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+            int ms = wxAtoi(mss);
+            milliseconds /= ms;
+            milliseconds *= ms;
+        }
+        for (int elem = 0; elem<mSequenceElements.GetElementCount(MASTER_VIEW); elem++) {
+            Element* ele = mSequenceElements.GetElement(elem, MASTER_VIEW);
+            for (int layer = 0; layer<ele->GetEffectLayerCount(); layer++) {
+                EffectLayer* el = ele->GetEffectLayer(layer);
+                ShiftSelectedEffectsOnLayer(el, milliseconds);
+            }
+            if (ele->GetType() == ELEMENT_TYPE_MODEL)
+            {
+                ModelElement *me = dynamic_cast<ModelElement *>(ele);
+                for (int i = 0; i < me->GetStrandCount(); ++i)
+                {
+                    Element* se = me->GetStrand(i);
+                    StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                    for (int k = 0; k < ste->GetNodeLayerCount(); ++k)
+                    {
+                        NodeLayer* nl = ste->GetNodeLayer(k, false);
+                        if (nl != nullptr)
+                        {
+                            ShiftSelectedEffectsOnLayer(nl, milliseconds);
+                        }
+                    }
+                }
+                for (int i = 0; i < me->GetSubModelAndStrandCount(); ++i)
+                {
+                    Element* se = me->GetSubModel(i);
+                    for (int layer = 0; layer<se->GetEffectLayerCount(); layer++) {
+                        EffectLayer* sel = se->GetEffectLayer(layer);
+                        ShiftSelectedEffectsOnLayer(sel, milliseconds);
+                    }
+                }
+            }
+        }
+        mainSequencer->PanelEffectGrid->Refresh();
+    }
+}
+
 void xLightsFrame::OnMenuItemShiftEffectsSelected(wxCommandEvent& event)
 {
     wxTextEntryDialog ted(this, "Enter the number of milliseconds to shift all effects:\n\n"
@@ -5898,6 +5992,99 @@ void xLightsFrame::ShiftEffectsOnLayer(EffectLayer* el, int milliseconds)
             eff->SetStartTimeMS(start_ms+milliseconds);
         }
         eff->SetEndTimeMS(end_ms+milliseconds);
+    }
+}
+
+void xLightsFrame::ShiftSelectedEffectsOnLayer(EffectLayer* el, int milliseconds)
+{
+    if (milliseconds < 0)
+    {
+        std::list<int> toRemove;
+        for (int ef = 0; ef < el->GetEffectCount(); ef++) {
+            // move left
+            Effect* eff = el->GetEffect(ef);
+            if (eff->GetSelected())
+            {
+                bool moved = false;
+                int start_ms = eff->GetStartTimeMS();
+                int end_ms = eff->GetEndTimeMS();
+                if (start_ms + milliseconds < 0) {
+                    if (end_ms + milliseconds < 0) {
+                        // effect shifted off screen - delete
+                        if (eff == selectedEffect) {
+                            UnselectEffect();
+                        }
+                        // move it out of the way so it doesnt cause clashes
+                        eff->SetStartTimeMS(-100);
+                        eff->SetEndTimeMS(-90);
+                        toRemove.push_front(ef); // we need to delete them in reverse order
+                        continue;
+                    }
+                    else {
+                        // truncate start of effect
+                        eff->SetStartTimeMS(0);
+                        moved = true;
+                    }
+                }
+                else {
+                    auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
+                    bool clash = false;
+                    for (auto it = effectsInTime.begin(); it != effectsInTime.end(); ++it)
+                    {
+                        if ((*it)->GetID() != eff->GetID())
+                        {
+                            clash = true;
+                            break;
+                        }
+                    }
+                    if (!clash)
+                    {
+                        eff->SetStartTimeMS(start_ms + milliseconds);
+                        moved = true;
+                    }
+                }
+                if (moved)
+                {
+                    eff->SetEndTimeMS(end_ms + milliseconds);
+                }
+            }
+        }
+        for (auto it = toRemove.begin(); it != toRemove.end(); ++it)
+        {
+            el->RemoveEffect(*it);
+        }
+    }
+    else
+    {
+        // Move right
+        for (int ef = el->GetEffectCount() - 1; ef >= 0; ef--) {  // count backwards so we can delete if needed
+            Effect* eff = el->GetEffect(ef);
+            if (eff->GetSelected())
+            {
+                bool moved = false;
+                int start_ms = eff->GetStartTimeMS();
+                int end_ms = eff->GetEndTimeMS();
+                auto effectsInTime = el->GetAllEffectsByTime(start_ms + milliseconds, end_ms + milliseconds);
+                bool clash = false;
+                for (auto it = effectsInTime.begin(); it != effectsInTime.end(); ++it)
+                {
+                    if ((*it)->GetID() != eff->GetID())
+                    {
+                        clash = true;
+                        break;
+                    }
+                }
+                if (!clash)
+                {
+                    eff->SetStartTimeMS(start_ms + milliseconds);
+                    moved = true;
+                }
+                if (moved)
+                {
+                    eff->SetEndTimeMS(end_ms + milliseconds);
+                }
+            }
+        }
     }
 }
 
@@ -7428,16 +7615,17 @@ bool xLightsFrame::CheckForUpdate(bool force)
             }
             page = page.Mid(start + len);
         }
+
+        wxString dlv = urlVersion;
+        dlv.Replace(".", "_");
+        wxString bit = GetBitness();
+        bit.Replace("bit", "");
+        downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
 #else
         wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
         wxString urlVersion = wxString(out_stream.GetString());
         reVersion.Replace(&urlVersion, "\\1", 1);
 #endif
-
-        logger_base.debug("Current Version: %s. Latest Available %s. Skip Version %s.",
-            (const char *)xlights_version_string.c_str(),
-            (const char *)urlVersion.c_str(),
-            (const char *)configver.c_str());
 
         wxConfigBase* config = wxConfigBase::Get();
         if (!force && (config != nullptr))
@@ -7445,10 +7633,16 @@ bool xLightsFrame::CheckForUpdate(bool force)
             config->Read("SkipVersion", &configver);
         }
 
+        logger_base.debug("Current Version: '%s'. Latest Available '%s'. Skip Version '%s'.",
+            (const char *)xlights_version_string.c_str(),
+            (const char *)urlVersion.c_str(),
+            (const char *)configver.c_str());
+
         if ((!urlVersion.Matches(configver))
             && (!urlVersion.Matches(xlights_version_string))) {
             found_update = true;
             UpdaterDialog *dialog = new UpdaterDialog(this);
+
             dialog->urlVersion = urlVersion;
             dialog->force = force;
             dialog->downloadUrl = downloadUrl;
@@ -7754,3 +7948,4 @@ void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
    pane.IsShown() ? pane.Hide() : pane.Show();
    m_mgr->Update();
 }
+

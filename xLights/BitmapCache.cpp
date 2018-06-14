@@ -10,9 +10,10 @@
 #include "BitmapCache.h"
 #include "UtilFunctions.h"
 
-#include "../include/padlock16x16-blue.xpm"
-#include "../include/padlock16x16-red.xpm"
-
+#include "../include/padlock_open_14.xpm"
+#include "../include/padlock_open_28.xpm"
+#include "../include/padlock_close_14.xpm"
+#include "../include/padlock_close_28.xpm"
 
 
 
@@ -108,6 +109,35 @@
 
 #include "../include/model-16.xpm"
 #include "../include/model-64.xpm"
+
+// used on the Color Panel
+#include "../include/cc_time.xpm"
+#include "../include/cc_timelocked.xpm"
+#include "../include/cc_left.xpm"
+#include "../include/cc_right.xpm"
+#include "../include/cc_up.xpm"
+#include "../include/cc_down.xpm"
+#include "../include/cc_na.xpm"
+#include "../include/cc_ccw.xpm"
+#include "../include/cc_cw.xpm"
+#include "../include/cc_radialin.xpm"
+#include "../include/cc_radialout.xpm"
+#include "../include/save.xpm"
+#include "../include/delete.xpm"
+#include "../include/switch.xpm"
+
+
+#include "../include/valuecurvenotselected.xpm"
+#include "../include/valuecurveselected.xpm"
+
+#include "Images_png.h"
+
+#include "../include/xLights.xpm"
+#include "../include/xLights-16.xpm"
+#include "../include/xLights-32.xpm"
+#include "../include/xLights-64.xpm"
+#include "../include/xLights-128.xpm"
+#include "../include/splashimage.h"
 
 #include "wx/artprov.h"
 
@@ -214,14 +244,51 @@ public:
         }
         return (*data)[eff];
     }
-    const wxBitmap &GetOtherImage(const wxString &name,
-                                  const char **data) {
+    const wxBitmap &GetOtherImagePNG(const wxString &name,
+                                  const unsigned char *data, int size,
+                                  const unsigned char *dataDouble = nullptr, int sizeDoube = -1) {
         const wxBitmap &bmp = others[name];
         if (!bmp.IsOk()) {
+            if (GetSystemContentScaleFactor() > 1.5) {
+                wxBitmap bmp = dataDouble == nullptr
+                    ?  wxBitmap::NewFromPNGData(data, size)
+                    :  wxBitmap::NewFromPNGData(dataDouble, sizeDoube);
+#ifndef __WXOSX__
+                wxImage image = bmp.ConvertToImage();
+                if (dataDouble == nullptr || dataDouble == data) {
+                    image.Rescale(image.GetWidth() * 2, image.GetHeight() * 2);
+                }
+                bmp = wxBitmap(image, -1, 2.0);
+#else
+                if (dataDouble != nullptr && dataDouble != data)  {
+                    wxImage image = bmp.ConvertToImage();
+                    bmp = wxBitmap(image, -1, 2.0);
+                }
+#endif
+                others[name] = bmp;
+                return others[name];
+            }
+            others[name] = wxBitmap::NewFromPNGData(data, size);
+        }
+        return others[name];
+    }
+    const wxBitmap &GetOtherImage(const wxString &name,
+                                  const char **data,
+                                  const char **dataDouble) {
+        const wxBitmap &bmp = others[name];
+        if (!bmp.IsOk()) {
+            if (GetSystemContentScaleFactor() > 1.5) {
+                wxImage image(dataDouble);
+                if (dataDouble == data) {
+                    image.Rescale(image.GetWidth() * 2, image.GetHeight() * 2);
+                }
+                others[name] = wxBitmap(image, -1, 2.0);
+                return others[name];
+            }
             wxImage image(data);
             others[name] = wxBitmap(image);
         }
-        return bmp;
+        return others[name];
     }
 
 
@@ -380,13 +447,102 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, save_16_xpm, save_24_xpm, save_32_xpm, save_48_xpm, save_64_xpm);
     } else if (wxART_FILE_SAVE_AS == id) {
         return effectBitmaps.get(24, false, id, save_as_16_xpm, save_as_24_xpm, save_as_32_xpm, save_as_48_xpm, save_as_64_xpm);
+    } else if ("xlART_PADLOCK_OPEN" == id) {
+        return effectBitmaps.GetOtherImage("Unlocked", padlock_open_14, padlock_open_28);
+    } else if ("xlART_PADLOCK_CLOSED" == id) {
+        return effectBitmaps.GetOtherImage("Locked", padlock_close_14, padlock_close_28);
+    } else if ("xlART_cc_time_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_time_xpm", cc_time_xpm, cc_time_xpm);
+    } else if ("xlART_cc_timelocked_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_timelocked_xpm", cc_timelocked_xpm, cc_timelocked_xpm);
+    } else if ("xlART_cc_left_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_left_xpm", cc_left_xpm, cc_left_xpm);
+    } else if ("xlART_cc_right_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_right_xpm", cc_right_xpm, cc_right_xpm);
+    } else if ("xlART_cc_up_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_up_xpm", cc_up_xpm, cc_up_xpm);
+    } else if ("xlART_cc_down_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_down_xpm", cc_down_xpm, cc_down_xpm);
+    } else if ("xlART_cc_na_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_na_xpm", cc_na_xpm, cc_na_xpm);
+    } else if ("xlART_cc_ccw_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_ccw_xpm", cc_ccw_xpm, cc_ccw_xpm);
+    } else if ("xlART_cc_cw_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_cw_xpm", cc_cw_xpm, cc_cw_xpm);
+    } else if ("xlART_cc_radialin_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_radialin_xpm", cc_radialin_xpm, cc_radialin_xpm);
+    } else if ("xlART_cc_radialout_xpm" == id) {
+        return effectBitmaps.GetOtherImage("cc_radialout_xpm", cc_radialout_xpm, cc_radialout_xpm);
+    } else if ("xlART_colorpanel_switch_xpm" == id) {
+        return effectBitmaps.GetOtherImage("colorpanel_switch_xpm", switch_xpm, switch_xpm);
+    } else if ("xlART_colorpanel_delete_xpm" == id) {
+        return effectBitmaps.GetOtherImage("colorpanel_delete_xpm", delete_xpm, delete_xpm);
+    } else if ("xlART_colorpanel_save_xpm" == id) {
+        return effectBitmaps.GetOtherImage("colorpanel_save_xpm", save_xpm, save_xpm);
+    } else if ("xlART_valuecurve_selected" == id) {
+        return effectBitmaps.GetOtherImage("valuecurve_selected_xpm", valuecurveselected_24, valuecurveselected_24);
+    } else if ("xlART_valuecurve_notselected" == id) {
+        return effectBitmaps.GetOtherImage("valuecurve_notselected_xpm", valuecurvenotselected_24, valuecurvenotselected_24);
+    } else if ("xlART_musical_seq" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, musical_seq_png, sizeof(musical_seq_png));
+    } else if ("xlART_musical_seq_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, musical_seq_pressed_png, sizeof(musical_seq_pressed_png));
+    } else if ("xlART_animation_seq" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, animation_seq_png, sizeof(animation_seq_png));
+    } else if ("xlART_animation_seq_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, animation_seq_pressed_png, sizeof(animation_seq_pressed_png));
+    } else if ("xlART_time_25ms" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_25ms_png, sizeof(time_25ms_png));
+    } else if ("xlART_time_25ms_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_25ms_pressed_png, sizeof(time_25ms_pressed_png));
+    } else if ("xlART_time_custom" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_custom_png, sizeof(time_custom_png));
+    } else if ("xlART_time_custom_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_custom_pressed_png, sizeof(time_custom_pressed_png));
+    } else if ("xlART_time_50ms" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_50ms_png, sizeof(time_50ms_png));
+    } else if ("xlART_time_50ms_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, time_50ms_pressed_png, sizeof(time_50ms_pressed_png));
+    } else if ("xlART_quick_start" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, quick_start_png, sizeof(quick_start_png));
+    } else if ("xlART_quick_start_pressed" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, quick_start_pressed_png, sizeof(quick_start_pressed_png));
+    } else if ("xlART_xlights_logo" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, xlights_logo_png, sizeof(xlights_logo_png));
+    } else if ("xlART_lightorama" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, lightorama_png, sizeof(lightorama_png));
+    } else if ("xlART_vixen" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, vixen_png, sizeof(vixen_png));
+    } else if ("xlART_glediator" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, glediator_png, sizeof(glediator_png));
+    } else if ("xlART_hls" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, hls_png, sizeof(hls_png));
+    } else if ("xlART_lynx" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, lynx_png, sizeof(lynx_png));
+    } else if ("xlART_xLights_SlashImage" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, xl_splashimage_png, sizeof(xl_splashimage_png));
+        /*
+    } else if ("xlART_" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, _png, sizeof(_png));
+         */
     }
     //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
     return wxNullBitmap;
 }
 wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
         const wxArtClient& client) {
-    printf("ib:  %s   %s \n", (const char *)id.c_str(), (const char*)client.c_str());
+    
+    if (id == "xlART_xLights_Icons") {
+        static wxIconBundle icons;
+        if (icons.IsEmpty()) {
+            icons.AddIcon(wxIcon(xlights_16_xpm));
+            icons.AddIcon(wxIcon(xlights_32_xpm));
+            icons.AddIcon(wxIcon(xlights_64_xpm));
+            icons.AddIcon(wxIcon(xlights_128_xpm));
+            icons.AddIcon(wxIcon(xlights_xpm));
+        }
+        return icons;
+    }
     return wxNullIconBundle;
 }
 
@@ -434,8 +590,8 @@ const wxBitmap &BitmapCache::GetCornerIcon(int position, wxString &toolTip, int 
 
 const wxBitmap &BitmapCache::GetLockIcon(bool locked) {
     if (locked) {
-        return effectBitmaps.GetOtherImage("Locked", padlock16x16_red_xpm);
+        return effectBitmaps.GetOtherImage("Locked", padlock_close_14, padlock_close_28);
     }
-    return effectBitmaps.GetOtherImage("Unlocked", padlock16x16_blue_xpm);
+    return effectBitmaps.GetOtherImage("Unlocked", padlock_open_14, padlock_open_28);
 }
 

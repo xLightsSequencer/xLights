@@ -114,7 +114,7 @@ public:
 
 #define REPEATTRIGGER 20
 
-void FireworksEffect::SetDefaultParameters(Model *cls) {
+void FireworksEffect::SetDefaultParameters() {
     FireworksPanel *fp = (FireworksPanel*)panel;
     if (fp == nullptr) {
         return;

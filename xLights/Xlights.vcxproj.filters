@@ -343,6 +343,10 @@
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="VideoRenderCacher.cpp" />
+    <ClCompile Include="DissolveTransitionPattern.cpp" />
+    <ClCompile Include="effects\WarpEffect.cpp" />
+    <ClCompile Include="OpenGLShaders.cpp" />
+    <ClCompile Include="effects\WarpPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -681,6 +685,15 @@
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
     <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="VideoRenderCacher.h" />
+    <ClInclude Include="DissolveTransitionPattern.h" />
+    <ClInclude Include="effects\WarpEffect.h" />
+    <ClInclude Include="OpenGLShaders.h" />
+    <ClInclude Include="effects\assist\AssistPanel.h" />
+    <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
+    <ClInclude Include="effects\WarpPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

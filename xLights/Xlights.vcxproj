@@ -182,8 +182,11 @@
     <ClCompile Include="controllers\SimpleFTP.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
+    <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
+    <ClCompile Include="effects\WarpEffect.cpp" />
+    <ClCompile Include="effects\WarpPanel.cpp" />
     <ClCompile Include="EffectTimingDialog.cpp" />
     <ClCompile Include="effects\CandleEffect.cpp" />
     <ClCompile Include="effects\CandlePanel.cpp" />
@@ -203,6 +206,7 @@
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
+    <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="BitmapCache.cpp" />
@@ -522,8 +526,16 @@
     <ClInclude Include="controllers\SanDevices.h" />
     <ClInclude Include="controllers\SimpleFTP.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
+    <ClInclude Include="DissolveTransitionPattern.h" />
+    <ClInclude Include="effects\assist\AssistPanel.h" />
+    <ClInclude Include="effects\assist\PicturesAssistPanel.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
+    <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
+    <ClInclude Include="effects\WarpEffect.h" />
+    <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
     <ClInclude Include="FolderSelection.h" />
     <ClInclude Include="FontManager.h" />
@@ -545,6 +557,7 @@
     <ClInclude Include="effects\ServoEffect.h" />
     <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
+    <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="outputs/ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="BitmapCache.h" />

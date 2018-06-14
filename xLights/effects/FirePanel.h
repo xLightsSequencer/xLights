@@ -3,13 +3,13 @@
 
 //(*Headers(FirePanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
+class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -23,24 +23,24 @@ class FirePanel: public wxPanel
 		virtual ~FirePanel();
 
 		//(*Declarations(FirePanel)
-		wxStaticText* StaticText193;
-		wxStaticText* StaticText132;
-		wxBitmapButton* BitmapButton_FireGrow;
-		BulkEditValueCurveButton* BitmapButton_Fire_GrowthCyclesVC;
-		BulkEditSliderF1* Slider_Fire_GrowthCycles;
-		BulkEditValueCurveButton* BitmapButton_Fire_HeightVC;
-		wxStaticText* StaticText83;
-		wxBitmapButton* BitmapButton_Fire_GrowWithMusic;
-		BulkEditSlider* Slider_Fire_Height;
-		BulkEditValueCurveButton* BitmapButton_Fire_HueShiftVC;
 		BulkEditCheckBox* CheckBox_Fire_GrowWithMusic;
-		BulkEditTextCtrl* TextCtrl_Fire_Height;
-		wxStaticText* StaticText30;
-		BulkEditSlider* Slider_Fire_HueShift;
-		wxBitmapButton* BitmapButton_FireWidth;
 		BulkEditChoice* Choice_Fire_Location;
-		wxBitmapButton* BitmapButton_FireHeight;
+		BulkEditSlider* Slider_Fire_Height;
+		BulkEditSlider* Slider_Fire_HueShift;
+		BulkEditSliderF1* Slider_Fire_GrowthCycles;
+		BulkEditTextCtrl* TextCtrl_Fire_Height;
 		BulkEditTextCtrlF1* TextCtrl_Fire_GrowthCycles;
+		BulkEditValueCurveButton* BitmapButton_Fire_GrowthCyclesVC;
+		BulkEditValueCurveButton* BitmapButton_Fire_HeightVC;
+		BulkEditValueCurveButton* BitmapButton_Fire_HueShiftVC;
+		wxStaticText* StaticText132;
+		wxStaticText* StaticText193;
+		wxStaticText* StaticText30;
+		wxStaticText* StaticText83;
+		xlLockButton* BitmapButton_FireGrow;
+		xlLockButton* BitmapButton_FireHeight;
+		xlLockButton* BitmapButton_FireWidth;
+		xlLockButton* BitmapButton_Fire_GrowWithMusic;
 		//*)
 
 	protected:

@@ -38,13 +38,13 @@ public:
 		BulkEditTextCtrl* TextCtrl_Piano_Scale;
 		BulkEditTextCtrl* TextCtrl_Piano_XOffset;
 		BulkEditValueCurveButton* BitmapButton_Piano_ScaleVC;
-		wxBitmapButton* BitmapButton_Piano_ShowSharps;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
 		wxStaticText* StaticText_Piano_NumKeys;
+		xlLockButton* BitmapButton_Piano_ShowSharps;
 		//*)
 
 	protected:

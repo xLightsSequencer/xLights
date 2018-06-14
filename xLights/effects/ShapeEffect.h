@@ -31,7 +31,7 @@ class ShapeEffect : public RenderableEffect
     public:
         ShapeEffect(int id);
         virtual ~ShapeEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;

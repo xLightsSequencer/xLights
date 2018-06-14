@@ -7,26 +7,27 @@
  * License:
  **************************************************************/
 
-#ifdef _MSC_VER
-//#include <vld.h> // visual leak detector ... https://vld.codeplex.com/
-#endif
-
-#include "xLightsApp.h"
-//#include "heartbeat.h" //DJ
-
 //(*AppHeaders
 #include "xLightsMain.h"
 #include <wx/image.h>
 //*)
+
+#include <wx/stdpaths.h>
 #include <wx/config.h>
 
-#include "xLightsVersion.h"
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
-#include <log4cpp/Configurator.hh>
+#ifdef _MSC_VER
+//#include <vld.h> // visual leak detector ... https://vld.codeplex.com/
+#endif
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
+
+#include "xLightsApp.h"
+#include "xLightsVersion.h"
+
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
+#include <log4cpp/Configurator.hh>
 
 #ifdef LINUX
 #include <GL/glut.h>

@@ -1,10 +1,11 @@
 #include "ColorManagerDialog.h"
+#include "ColorManager.h"
+#include "ColorFanImage.h"
+#include "sequencer/MainSequencer.h"
+
 #include <wx/colour.h>
 #include <wx/colourdata.h>
 #include <wx/colordlg.h>
-#include "ColorManager.h"
-#include "xLightsMain.h"
-#include "ColorFanImage.h"
 
 //(*InternalHeaders(ColorManagerDialog)
 #include <wx/bitmap.h>

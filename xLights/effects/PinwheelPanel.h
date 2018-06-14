@@ -39,13 +39,6 @@ class PinwheelPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_TwistVC;
 		ValueCurveButton* BitmapButton_PinwheelXCVC;
 		ValueCurveButton* BitmapButton_PinwheelYCVC;
-		wxBitmapButton* BitmapButton_Pinwheel3D;
-		wxBitmapButton* BitmapButton_PinwheelNumberArms;
-		wxBitmapButton* BitmapButton_PinwheelRotation;
-		wxBitmapButton* BitmapButton_PinwheelSpeed;
-		wxBitmapButton* BitmapButton_PinwheelThickness;
-		wxBitmapButton* BitmapButton_PinwheelTwist;
-		wxBitmapButton* BitmapButton_Pinwheel_ArmSize;
 		wxStaticText* StaticText184;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText63;
@@ -56,6 +49,13 @@ class PinwheelPanel: public wxPanel
 		wxStaticText* StaticText81;
 		wxStaticText* StaticText82;
 		wxStaticText* StaticText84;
+		xlLockButton* BitmapButton_Pinwheel3D;
+		xlLockButton* BitmapButton_PinwheelNumberArms;
+		xlLockButton* BitmapButton_PinwheelRotation;
+		xlLockButton* BitmapButton_PinwheelSpeed;
+		xlLockButton* BitmapButton_PinwheelThickness;
+		xlLockButton* BitmapButton_PinwheelTwist;
+		xlLockButton* BitmapButton_Pinwheel_ArmSize;
 		//*)
 
 	protected:

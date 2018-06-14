@@ -40,6 +40,7 @@ std::list<std::string> MeteorsEffect::CheckEffectSettings(const SettingsMap& set
 wxPanel *MeteorsEffect::CreatePanel(wxWindow *parent) {
     return new MeteorsPanel(parent);
 }
+
 //these must match list indexes in xLightsMain.h: -DJ
 #define METEORS_DOWN  0
 #define METEORS_UP  1
@@ -123,7 +124,7 @@ static MeteorsRenderCache* GetCache(RenderBuffer &buffer, int id) {
     return cache;
 }
 
-void MeteorsEffect::SetDefaultParameters(Model *cls) {
+void MeteorsEffect::SetDefaultParameters() {
     MeteorsPanel *mp = (MeteorsPanel*)panel;
     if (mp == nullptr) {
         return;

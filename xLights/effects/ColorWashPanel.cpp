@@ -1,20 +1,20 @@
 #include "ColorWashPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 #include "ColorWashEffect.h"
 
 //(*InternalHeaders(ColorWashPanel)
+#include <wx/artprov.h>
+#include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
-#include <wx/sizer.h>
-#include <wx/settings.h>
-#include <wx/string.h>
-#include <wx/slider.h>
-#include <wx/intl.h>
-#include <wx/stattext.h>
-#include <wx/bitmap.h>
-#include <wx/textctrl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(ColorWashPanel)
@@ -39,12 +39,12 @@ END_EVENT_TABLE()
 ColorWashPanel::ColorWashPanel(wxWindow* parent)
 {
 	//(*Initialize(ColorWashPanel)
-	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer114;
 	wxFlexGridSizer* FlexGridSizer124;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer37;
 	wxFlexGridSizer* FlexGridSizer75;
 	wxFlexGridSizer* FlexGridSizer9;
-	wxFlexGridSizer* FlexGridSizer37;
-	wxFlexGridSizer* FlexGridSizer114;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer37 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -57,14 +57,14 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	SliderCycles = new BulkEditSliderF1(this, IDD_SLIDER_ColorWash_Cycles, 10, 1, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_ColorWash_Cycles"));
 	FlexGridSizer1->Add(SliderCycles, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_ColorWash_CyclesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_ColorWash_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_ColorWash_Cycles"));
+	BitmapButton_ColorWash_CyclesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_ColorWash_Cycles, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_ColorWash_Cycles"));
 	FlexGridSizer1->Add(BitmapButton_ColorWash_CyclesVC, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer9->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	CyclesTextCtrl = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_ColorWash_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_ColorWash_Cycles"));
 	CyclesTextCtrl->SetMaxLength(3);
 	FlexGridSizer9->Add(CyclesTextCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_ColorWashCount = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles"));
-	BitmapButton_ColorWashCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_ColorWashCount = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_ColorWash_Cycles"));
+	BitmapButton_ColorWashCount->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer9->Add(BitmapButton_ColorWashCount, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer37->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer75 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -72,14 +72,14 @@ ColorWashPanel::ColorWashPanel(wxWindow* parent)
 	VFadeCheckBox = new BulkEditCheckBox(this, ID_CHECKBOX_ColorWash_VFade, _("Vertical Fade"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ColorWash_VFade"));
 	VFadeCheckBox->SetValue(false);
 	FlexGridSizer75->Add(VFadeCheckBox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ColorWashVFade = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade"));
-	BitmapButton_ColorWashVFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_ColorWashVFade = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ColorWash_VFade"));
+	BitmapButton_ColorWashVFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer75->Add(BitmapButton_ColorWashVFade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	HFadeCheckBox = new BulkEditCheckBox(this, ID_CHECKBOX_ColorWash_HFade, _("Horizontal Fade"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ColorWash_HFade"));
 	HFadeCheckBox->SetValue(false);
 	FlexGridSizer75->Add(HFadeCheckBox, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ColorWashHFade = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade"));
-	BitmapButton_ColorWashHFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_ColorWashHFade = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ColorWash_HFade"));
+	BitmapButton_ColorWashHFade->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer75->Add(BitmapButton_ColorWashHFade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer37->Add(FlexGridSizer75, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer114 = new wxFlexGridSizer(0, 1, 0, 0);

@@ -1049,6 +1049,10 @@
 					<help>Use this options to shift all effects in the sequence.</help>
 					<handler function="OnMenuItemShiftEffectsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_SHIFT_SELECTED_EFFECTS" variable="MenuItemShiftSelectedEffects" member="yes">
+					<label>Shift Selected Effects</label>
+					<handler function="OnMenuItemShiftSelectedEffectsSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu1" member="yes">
 				<label>&amp;Tools</label>
@@ -1333,7 +1337,7 @@
 					<checkable>1</checkable>
 				</object>
 				<object class="wxMenu" name="ID_MNU_BKP_PURGE" variable="MenuItem_BackupPurge" member="yes">
-					<label>Backup Purge</label>
+					<label>Purge Backups Older Than</label>
 					<object class="wxMenuItem" name="ID_MNU_BKPPURGE_NEVER" variable="MenuItem_BkpPNever" member="yes">
 						<label>Never</label>
 						<handler function="OnMenuItem_BackupPurgeIntervalSelected" entry="EVT_MENU" />

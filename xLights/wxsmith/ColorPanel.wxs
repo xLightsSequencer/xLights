@@ -49,7 +49,8 @@
 															<cols>3</cols>
 															<growablecols>1</growablecols>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" variable="BitmapButton_ShuffleColours" member="yes">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON4" subclass="xlSizedBitmapButton" variable="BitmapButton_ShuffleColours" member="yes">
+																	<bitmap stock_id="xlART_colorpanel_switch_xpm" stock_client="wxART_BUTTON" />
 																	<size>24,24</size>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_ShuffleColoursClick" entry="EVT_BUTTON" />
@@ -68,7 +69,8 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" variable="BitmapButton_SavePalette" member="yes">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON3" subclass="xlSizedBitmapButton" variable="BitmapButton_SavePalette" member="yes">
+																	<bitmap stock_id="xlART_colorpanel_save_xpm" stock_client="wxART_BUTTON" />
 																	<size>24,24</size>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_SavePaletteClick" entry="EVT_BUTTON" />
@@ -92,7 +94,8 @@
 																<option>1</option>
 															</object>
 															<object class="sizeritem">
-																<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" variable="BitmapButton_DeletePalette" member="yes">
+																<object class="wxBitmapButton" name="ID_BITMAPBUTTON2" subclass="xlSizedBitmapButton" variable="BitmapButton_DeletePalette" member="yes">
+																	<bitmap stock_id="xlART_colorpanel_delete_xpm" stock_client="wxART_BUTTON" />
 																	<size>24,24</size>
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnBitmapButton_DeletePaletteClick" entry="EVT_BUTTON" />
@@ -129,12 +132,11 @@
 													<handler function="OnCheckBox_ResetColorPanelClick" entry="EVT_CHECKBOX" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -145,7 +147,7 @@
 												<object class="wxStaticText" name="ID_STATICTEXT_SparkleFrequency" variable="StaticText22" member="yes">
 													<label>Sparkles</label>
 												</object>
-												<flag>wxALL|wxEXPAND</flag>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
 												<option>1</option>
 											</object>
@@ -162,7 +164,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_SparkleFrequency" subclass="BulkEditValueCurveButton" variable="BitmapButton_SparkleFrequencyVC" member="yes">
-															<bitmap code="valuecurvenotselected_24" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -184,11 +186,10 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" variable="BitmapButton_SparkleFrequency" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_SparkleFrequency" subclass="xlLockButton" variable="BitmapButton_SparkleFrequency" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
+													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
@@ -197,7 +198,6 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -210,20 +210,17 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MusicSparkles" variable="BitmapButton_MusicSparkles" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_MusicSparkles" subclass="xlLockButton" variable="BitmapButton_MusicSparkles" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
+													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -248,7 +245,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Brightness" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCBrightness" member="yes">
-															<bitmap code="valuecurvenotselected_24" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -269,11 +266,10 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" variable="BitmapButton_Brightness" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Brightness" subclass="xlLockButton" variable="BitmapButton_Brightness" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
+													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
@@ -302,11 +298,10 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" variable="BitmapButton_Contrast" member="yes">
-													<bitmap code="padlock16x16_blue_xpm" />
-													<size>13,13</size>
-													<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
-													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Contrast" subclass="xlLockButton" variable="BitmapButton_Contrast" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
+													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
@@ -331,12 +326,10 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -360,7 +353,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_HueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_HueAdjust" member="yes">
-															<bitmap code="valuecurvenotselected_24" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -402,7 +395,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_SaturationAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_SaturationAdjust" member="yes">
-															<bitmap code="valuecurvenotselected_24" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -444,7 +437,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_ValueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_ValueAdjust" member="yes">
-															<bitmap code="valuecurvenotselected_24" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>

@@ -1,20 +1,21 @@
-#include "xLightsImportChannelMapDialog.h"
-#include "sequencer/SequenceElements.h"
-#include "xLightsMain.h"
-#include "models/Model.h"
-#include "models/ModelGroup.h"
-#include "UtilFunctions.h"
-#include <log4cpp/Category.hh>
+//(*InternalHeaders(xLightsImportChannelMapDialog)
+#include <wx/intl.h>
+#include <wx/string.h>
+//*)
 
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/msgdlg.h>
 #include <wx/colordlg.h>
 
-//(*InternalHeaders(xLightsImportChannelMapDialog)
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
+#include "xLightsImportChannelMapDialog.h"
+#include "sequencer/SequenceElements.h"
+#include "xLightsMain.h"
+#include "models/Model.h"
+#include "models/ModelGroup.h"
+#include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_MDDROP, wxCommandEvent);
 

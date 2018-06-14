@@ -86,11 +86,11 @@ EffectGridTouchBar::EffectGridTouchBar(xlTouchBarSupport &support, const EffectM
     pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Stop"); },
                                              "Stop",
                                              wxArtProvider::GetBitmap("xlART_STOP")));
-    pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Forward"); },
-                                             "Forward",
-                                             wxArtProvider::GetBitmap("xlART_BACKWARD")));
     pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Back"); },
                                              "Backward",
+                                             wxArtProvider::GetBitmap("xlART_BACKWARD")));
+    pbitems.push_back(new ButtonTouchBarItem([mainSequencer]() { mainSequencer->TouchPlayControl("Forward"); },
+                                             "Forward",
                                              wxArtProvider::GetBitmap("xlART_FORWARD")));
     
     items.push_back(new GroupTouchBarItem("Playback Controls", pbitems));

@@ -1,27 +1,23 @@
-//
-//  Render.cpp
-//  xLights
-//
-//
-
 #include <mutex>
 #include <condition_variable>
+#include <map>
+#include <memory>
 
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "RenderCommandEvent.h"
-#include <map>
-#include <memory>
 #include "effects/RenderableEffect.h"
 #include "RenderProgressDialog.h"
 #include "SeqExportDialog.h"
 #include "RenderUtils.h"
 #include "models/ModelGroup.h"
-
-#define END_OF_RENDER_FRAME INT_MAX
+#include "sequencer/MainSequencer.h"
+#include "UtilFunctions.h"
+#include "PixelBuffer.h"
 
 #include <log4cpp/Category.hh>
-#include "UtilFunctions.h"
+
+#define END_OF_RENDER_FRAME INT_MAX
 
 //other common strings
 static const std::string STR_EMPTY("");

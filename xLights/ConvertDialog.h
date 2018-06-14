@@ -18,7 +18,7 @@ class SP_XmlStartTagEvent;
 #include <set>
 
 #include "SequenceData.h"
-#include "xLightsMain.h"
+
 class OutputManager;
 
 typedef SequenceData SeqDataType;

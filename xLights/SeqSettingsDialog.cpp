@@ -1,15 +1,3 @@
-#include <wx/filedlg.h>
-#include "SeqSettingsDialog.h"
-#include "NewTimingDialog.h"
-#include "xLightsXmlFile.h"
-#include "DataLayer.h"
-#include "FileConverter.h"
-#include "LorConvertDialog.h"
-#include <wx/treectrl.h>
-#include "Images_png.h"
-#include "ConvertLogDialog.h"
-#include "VAMPPluginDialog.h"
-
 //(*InternalHeaders(SeqSettingsDialog)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -20,10 +8,23 @@
 //*)
 
 #include <wx/numdlg.h>
+#include <wx/filedlg.h>
+#include <wx/treectrl.h>
+#include <wx/dir.h>
+
 #include <list>
-#include <string>
+
+#include "SeqSettingsDialog.h"
+#include "NewTimingDialog.h"
+#include "xLightsXmlFile.h"
+#include "DataLayer.h"
+#include "FileConverter.h"
+#include "LorConvertDialog.h"
+#include "ConvertLogDialog.h"
+#include "VAMPPluginDialog.h"
 #include "CustomTimingDialog.h"
 #include "VendorMusicDialog.h"
+#include "xLightsMain.h"
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
@@ -138,24 +139,24 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 {
     _plog = nullptr;
 
-	musical_seq = wxBITMAP_PNG_FROM_DATA(musical_seq);
-	musical_seq_pressed = wxBITMAP_PNG_FROM_DATA(musical_seq_pressed);
-	animation_seq = wxBITMAP_PNG_FROM_DATA(animation_seq);
-	animation_seq_pressed = wxBITMAP_PNG_FROM_DATA(animation_seq_pressed);
-	time_25ms = wxBITMAP_PNG_FROM_DATA(time_25ms);
-	time_25ms_pressed = wxBITMAP_PNG_FROM_DATA(time_25ms_pressed);
-	time_50ms = wxBITMAP_PNG_FROM_DATA(time_50ms);
-	time_50ms_pressed = wxBITMAP_PNG_FROM_DATA(time_50ms_pressed);
-	time_custom = wxBITMAP_PNG_FROM_DATA(time_custom);
-	time_custom_pressed = wxBITMAP_PNG_FROM_DATA(time_custom_pressed);
-	lightorama = wxBITMAP_PNG_FROM_DATA(lightorama);
-	vixen = wxBITMAP_PNG_FROM_DATA(vixen);
-	glediator = wxBITMAP_PNG_FROM_DATA(glediator);
-	hls = wxBITMAP_PNG_FROM_DATA(hls);
-	lynx = wxBITMAP_PNG_FROM_DATA(lynx);
-	xlights_logo = wxBITMAP_PNG_FROM_DATA(xlights_logo);
-    quick_start = wxBITMAP_PNG_FROM_DATA(quick_start);
-    quick_start_pressed = wxBITMAP_PNG_FROM_DATA(quick_start_pressed);
+    musical_seq = wxArtProvider::GetBitmap("xlART_musical_seq");
+	musical_seq_pressed = wxArtProvider::GetBitmap("xlART_musical_seq_pressed");
+	animation_seq = wxArtProvider::GetBitmap("xlART_animation_seq");
+	animation_seq_pressed = wxArtProvider::GetBitmap("xlART_animation_seq_pressed");
+	time_25ms = wxArtProvider::GetBitmap("xlART_time_25ms");
+	time_25ms_pressed = wxArtProvider::GetBitmap("xlART_time_25ms_pressed");
+	time_50ms = wxArtProvider::GetBitmap("xlART_time_50ms");
+	time_50ms_pressed = wxArtProvider::GetBitmap("xlART_time_50ms_pressed");
+	time_custom = wxArtProvider::GetBitmap("xlART_time_custom");
+	time_custom_pressed = wxArtProvider::GetBitmap("xlART_time_custom_pressed");
+	lightorama = wxArtProvider::GetBitmap("xlART_lightorama");
+	vixen = wxArtProvider::GetBitmap("xlART_vixen");
+	glediator = wxArtProvider::GetBitmap("xlART_glediator");
+	hls = wxArtProvider::GetBitmap("xlART_hls");
+	lynx = wxArtProvider::GetBitmap("xlART_lynx");
+	xlights_logo = wxArtProvider::GetBitmap("xlART_xlights_logo");
+    quick_start = wxArtProvider::GetBitmap("xlART_quick_start");
+    quick_start_pressed = wxArtProvider::GetBitmap("xlART_quick_start_pressed");
 
 	//(*Initialize(SeqSettingsDialog)
 	wxFlexGridSizer* FlexGridSizer10;
@@ -508,10 +509,10 @@ void SeqSettingsDialog::WizardPage1()
     GridBagSizerWizard = new wxGridBagSizer(0, 1);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
-    BitmapButton_Wiz_Music = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, musical_seq, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
+    BitmapButton_Wiz_Music = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Music, musical_seq, wxDefaultPosition, musical_seq.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Music"));
     BitmapButton_Wiz_Music->SetBitmapSelected(musical_seq_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Music, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Wiz_Anim = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
+    BitmapButton_Wiz_Anim = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Wiz_Anim, animation_seq, wxDefaultPosition, animation_seq.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Wiz_Anim"));
     BitmapButton_Wiz_Anim->SetBitmapSelected(animation_seq_pressed);
     GridSizerWizButtons->Add(BitmapButton_Wiz_Anim, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -527,13 +528,13 @@ void SeqSettingsDialog::WizardPage2()
     GridBagSizerWizard->Clear(true);
     GridBagSizerWizard->Add(493,16,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons = new wxGridSizer(0, 1, 10, 0);
-    BitmapButton_25ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_25ms, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
+    BitmapButton_25ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_25ms, time_25ms, wxDefaultPosition, time_25ms.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_25ms"));
     BitmapButton_25ms->SetBitmapSelected(time_25ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_25ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_50ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_50ms, time_50ms, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_50ms"));
+    BitmapButton_50ms = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_50ms, time_50ms, wxDefaultPosition, time_50ms.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_50ms"));
     BitmapButton_50ms->SetBitmapSelected(time_50ms_pressed);
     GridSizerWizButtons->Add(BitmapButton_50ms, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_Custom = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Custom, time_custom, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Custom"));
+    BitmapButton_Custom = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_Custom, time_custom, wxDefaultPosition, time_custom.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Custom"));
     BitmapButton_Custom->SetBitmapSelected(time_custom_pressed);
     GridSizerWizButtons->Add(BitmapButton_Custom, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizerWizard->Add(GridSizerWizButtons, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -574,7 +575,7 @@ void SeqSettingsDialog::WizardPage3()
     }
 	ModelsChoice->SetSelection(0);
 	GridSizerWizButtons->Add(ModelsChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-    BitmapButton_quick_start = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_quick_start, quick_start, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_quick_start"));
+    BitmapButton_quick_start = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_quick_start, quick_start, wxDefaultPosition, quick_start.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_quick_start"));
     BitmapButton_quick_start->SetBitmapSelected(quick_start_pressed);
     GridSizerWizButtons->Add(BitmapButton_quick_start, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ModelsChoiceNext = new wxButton(Panel_Wizard, ID_BUTTON_models_next, _("More Options >>"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_models_next"));
@@ -606,17 +607,17 @@ void SeqSettingsDialog::WizardPage4()
     GridSizerWizButtons = new wxGridSizer(0, 2, 5, 10);
     GridSizerWizButtons->Add(StaticText_Page3Optional, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
     GridSizerWizButtons->Add(50,1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-    BitmapButton_lor = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lor, lightorama, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lor"));
+    BitmapButton_lor = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lor, lightorama, wxDefaultPosition, lightorama.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lor"));
     GridSizerWizButtons->Add(BitmapButton_lor, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_hls = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_hls, hls, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_hls"));
+    BitmapButton_hls = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_hls, hls, wxDefaultPosition, hls.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_hls"));
     GridSizerWizButtons->Add(BitmapButton_hls, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_xlights = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_xlights, xlights_logo, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_xlights"));
+    BitmapButton_xlights = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_xlights, xlights_logo, wxDefaultPosition, xlights_logo.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_xlights"));
     GridSizerWizButtons->Add(BitmapButton_xlights, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_vixen = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_vixen, vixen, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_vixen"));
+    BitmapButton_vixen = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_vixen, vixen, wxDefaultPosition, vixen.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_vixen"));
     GridSizerWizButtons->Add(BitmapButton_vixen, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_gled = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_gled, glediator, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_gled"));
+    BitmapButton_gled = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_gled, glediator, wxDefaultPosition, glediator.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_gled"));
     GridSizerWizButtons->Add(BitmapButton_gled, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButton_lynx = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lynx, lynx, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lynx"));
+    BitmapButton_lynx = new FlickerFreeBitmapButton(Panel_Wizard, ID_BITMAPBUTTON_lynx, lynx, wxDefaultPosition, lynx.GetScaledSize(), wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_lynx"));
     GridSizerWizButtons->Add(BitmapButton_lynx, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridSizerWizButtons->Add(185,30,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_SkipImport = new wxButton(Panel_Wizard, ID_BUTTON_skip_import, _("Skip >>"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_skip_import"));

@@ -102,7 +102,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_VALUECURVE_On_Transparency" subclass="BulkEditValueCurveButton" variable="BitmapButton_On_Transparency" member="yes">
-											<bitmap code="valuecurvenotselected_24" />
+                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 										</object>

@@ -1,14 +1,15 @@
+//(*InternalHeaders(PicturesAssistPanel)
+#include <wx/intl.h>
+#include <wx/string.h>
+//*)
+
 #include "PicturesAssistPanel.h"
 #include "../../xlColorPicker.h"
 #include "../../xlColorPickerFields.h"
 #include "../../../include/PaintToolIcons.h"
+#include "../../models/Model.h"
 #include "../../xLightsMain.h"
 #include "../../xLightsXmlFile.h"
-
-//(*InternalHeaders(PicturesAssistPanel)
-#include <wx/string.h>
-#include <wx/intl.h>
-//*)
 
 //(*IdInit(PicturesAssistPanel)
 const long PicturesAssistPanel::ID_BUTTON_NewImage = wxNewId();
@@ -57,11 +58,11 @@ PicturesAssistPanel::PicturesAssistPanel(wxWindow* parent, wxWindowID id,const w
     paint_selectcopy_selected = wxBITMAP_PNG_FROM_DATA(selectcopy_sel);
 
 	//(*Initialize(PicturesAssistPanel)
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* PaintToolsSizer;
-	wxFlexGridSizer* PaintFuntionsSizer;
-	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* ColorPickerSizer;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* PaintFuntionsSizer;
+	wxFlexGridSizer* PaintToolsSizer;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);

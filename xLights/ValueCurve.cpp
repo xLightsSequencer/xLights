@@ -1,11 +1,13 @@
-#include "ValueCurve.h"
 #include <wx/wx.h>
 #include <wx/string.h>
+#include <wx/msgdlg.h>
+
+#include "ValueCurve.h"
 #include "xLightsVersion.h"
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
-#include <wx/msgdlg.h>
 #include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 float ValueCurve::SafeParameter(size_t p, float v)
@@ -246,8 +248,8 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
     }
     else if (type == "Decaying Sine")
     {
-        low = MINVOID;
-        high = MAXVOID;
+        //low = MINVOID;
+        //high = MAXVOID;
     }
     else if (type == "Abs Sine")
     {
@@ -372,8 +374,6 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     }
     else if (type == "Decaying Sine")
     {
-        low = MINVOID;
-        high = MAXVOID;
     }
     else if (type == "Abs Sine")
     {
@@ -384,6 +384,7 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
 
 void ValueCurve::Reverse()
 {
+    _timeOffset = 100 - _timeOffset;
     if (_type == "Custom")
     {
         for (auto it = _values.begin(); it != _values.end(); ++it)
@@ -437,11 +438,15 @@ void ValueCurve::Reverse()
     //}
     else if (_type == "Sine")   
     {
-        SetParameter1((int)(GetParameter1() + 25.0) % 100);
+        _timeOffset = 100 - _timeOffset;
+        _timeOffset += 0.5 * 100 * 10 / _parameter3;
+        _timeOffset %= 100;
     }
     else if (_type == "Abs Sine")
     {
-        SetParameter1((int)(GetParameter1() + 25.0) % 100);
+        _timeOffset = 100 - _timeOffset;
+        _timeOffset += 0.5 * 100 * 10 / _parameter3;
+        _timeOffset %= 100;
     }
     else if (_type == "Square")
     {
@@ -890,7 +895,7 @@ void ValueCurve::RenderType()
     }
     else if (_type == "Sine")
     {
-        // p1 - offset in cycle
+        // p1 - offset in cycle - deprecated
         // p2 - maxy
         // p3 - cycles
         // one cycle = 2* PI
@@ -899,7 +904,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.025)
         {
             if (i > 1.0) i = 1.0;
-            float r = i * maxx + ((parameter1 * pi2) / 100.0f);
+            float r = i * maxx; // +((parameter1 * pi2) / 100.0f);
             float y = (parameter4 - 50.0) / 50.0 + (sin(r) * (std::max(parameter2, 1.0f) / 200.0f)) + 0.5f;
             bool wrapped = false;
             if (_wrap)
@@ -922,7 +927,7 @@ void ValueCurve::RenderType()
     }
     else if (_type == "Decaying Sine")
     {
-        // p1 - offset in cycle
+        // p1 - offset in cycle - deprecated
         // p2 - maxy
         // p3 - cycles
         // one cycle = 2* PI
@@ -931,7 +936,8 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.025)
         {
             if (i > 1.0) i = 1.0;
-            float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
+
+            float r = i * maxx; // +(((float)_parameter1 * pi2) / 100.0f);
             float exponent = exp(-0.1 * i * maxx);
             float y = ((float)_parameter4 - 50.0) / 50.0 + (exponent * cos(r) * (std::max((float)_parameter2, 1.0f) / 200.0f)) + 0.5f;
             bool wrapped = false;
@@ -989,7 +995,7 @@ void ValueCurve::RenderType()
     }
     else if (_type == "Abs Sine")
     {
-        // p1 - offset in cycle
+        // p1 - offset in cycle - deprecated
         // p2 - maxy
         // p3 - cycles
         // one cycle = 2* PI
@@ -998,7 +1004,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.025)
         {
             if (i > 1.0) i = 1.0;
-            float r = i * maxx + ((parameter1 * pi2) / 100.0f);
+            float r = i * maxx; // +((parameter1 * pi2) / 100.0f);
             float y = (parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max(parameter2, 1.0f) / 100.0f)));
             bool wrapped = false;
             if (_wrap)
@@ -1031,6 +1037,7 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     _wrap = wrap;
     _realValues = true;
     _divisor = divisor;
+    _timeOffset = 0;
     _parameter1 = SafeParameter(1, parameter1);
     _parameter2 = SafeParameter(2, parameter2);
     _parameter3 = SafeParameter(3, parameter3);
@@ -1054,6 +1061,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
     _parameter2 = 0;
     _parameter3 = 0;
     _parameter4 = 0;
+    _timeOffset = 0;
     _active = false;
     _wrap = false;
     _realValues = true;
@@ -1097,6 +1105,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         _parameter2 = 0.0f;
         _parameter3 = 0.0f;
         _parameter4 = 0.0f;
+        _timeOffset = 0;
         _wrap = false;
 
         float oldmin = _min;
@@ -1198,6 +1207,10 @@ std::string ValueCurve::Serialise()
         {
             res += "P4=" + std::string(wxString::Format("%.2f", _parameter4).c_str()) + "|";
         }
+        if (_timeOffset != 0)
+        {
+            res += "TO=" + std::string(wxString::Format("%d", _timeOffset).c_str()) + "|";
+        }
         if (_wrap)
         {
             res += "WRAP=TRUE|";
@@ -1263,6 +1276,10 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
     {
         _parameter1 = wxAtof(wxString(s.c_str()));
     }
+    else if (kk == "TO")
+    {
+        _timeOffset = wxAtoi(wxString(s.c_str()));
+    }
     else if (kk == "WRAP")
     {
         _wrap = true;
@@ -1296,6 +1313,13 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
 
     _values.sort();
     //_active = true;
+
+    // Start (param1) for Sine, Absolute Sine and Decaying Sine has been deprecated and replaced by TimeOffset
+    if (_parameter1 != 0 && (_type == "Sine" || _type == "Abs Sine" || _type == "Decaying Sine"))
+    {
+        _timeOffset = 100 - _parameter1;
+        _parameter1 = 0;
+    }
 }
 
 void ValueCurve::SetType(std::string type)
@@ -1334,6 +1358,9 @@ float ValueCurve::GetValueAt(float offset)
 
     if (offset < 0.0f) offset = 0.0;
     if (offset > 1.0f) offset = 1.0;
+
+    offset += (float)_timeOffset / 100;
+    if (offset > 1.0) offset -= 1.0;
 
     vcSortablePoint last = _values.front();
     auto it = _values.begin();
@@ -1473,6 +1500,12 @@ void ValueCurve::SetWrap(bool wrap)
     RenderType();
 }
 
+float ValueCurve::GetParameter1_100() const
+{
+    float range = _max - _min;
+    return (GetParameter1() - _min) * 100 / range;
+}
+
 float ValueCurve::FindMinPointLessThan(float point)
 {
     float res = 0.0;
@@ -1487,6 +1520,7 @@ float ValueCurve::FindMinPointLessThan(float point)
 
     return vcSortablePoint::Normalise(res);
 }
+
 float ValueCurve::FindMaxPointGreaterThan(float point)
 {
     float res = 1.0;
@@ -1535,6 +1569,7 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
     for (int x = 1; x < width; x++) {
         float x1 = x;
         x1 /= (float)width;
+
         float y = (GetValueAt(x1)) * (float)width;
         y = (float)height - 1.0f - y;
         dc.DrawLine(x - 1, lastY, x, std::round(y));

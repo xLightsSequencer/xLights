@@ -30,7 +30,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterX" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_CenterX" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -50,10 +50,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX" variable="BitmapButton_Shockwave_Center_X" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterX" variable="BitmapButton_Shockwave_Center_X" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -79,7 +79,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_CenterY" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_CenterY" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -99,10 +99,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY" variable="BitmapButton_Shockwave_Center_Y" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_CenterY" variable="BitmapButton_Shockwave_Center_Y" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -129,7 +129,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Radius" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_Start_Radius" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -149,10 +149,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius" variable="BitmapButton_Shockwave_StartRadius" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Radius" variable="BitmapButton_Shockwave_StartRadius" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -179,7 +179,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Radius" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_End_Radius" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -199,10 +199,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius" variable="BitmapButton_Shockwave_EndRadius" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Radius" variable="BitmapButton_Shockwave_EndRadius" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -229,7 +229,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_Start_Width" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_Start_Width" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -249,10 +249,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width" variable="BitmapButton_Shockwave_StartWidth" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Start_Width" variable="BitmapButton_Shockwave_StartWidth" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -279,7 +279,7 @@
 								</object>
 								<object class="sizeritem">
 									<object class="wxBitmapButton" name="ID_VALUECURVE_Shockwave_End_Width" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shockwave_End_Width" member="yes">
-										<bitmap code="valuecurvenotselected_24" />
+                                        <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -299,10 +299,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width" variable="BitmapButton_Shockwave_EndWidth" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_End_Width" variable="BitmapButton_Shockwave_EndWidth" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -348,10 +348,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Accel" variable="BitmapButton_Shockwave_Accel" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Shockwave_Accel" variable="BitmapButton_Shockwave_Accel" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>

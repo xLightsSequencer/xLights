@@ -3,12 +3,12 @@
 
 //(*Headers(ColorWashPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxFlexGridSizer;
 class wxBitmapButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 class wxSlider;
 class wxStaticText;
-class wxCheckBox;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -24,17 +24,17 @@ class ColorWashPanel: public wxPanel
 		virtual ~ColorWashPanel();
 
 		//(*Declarations(ColorWashPanel)
-		BulkEditCheckBox* ShimmerCheckBox;
-		BulkEditValueCurveButton* BitmapButton_ColorWash_CyclesVC;
-		BulkEditCheckBox* VFadeCheckBox;
-		BulkEditCheckBox* HFadeCheckBox;
-		wxBitmapButton* BitmapButton_ColorWashVFade;
-		BulkEditTextCtrlF1* CyclesTextCtrl;
-		wxStaticText* StaticText5;
 		BulkEditCheckBox* CircularPaletteCheckBox;
+		BulkEditCheckBox* HFadeCheckBox;
+		BulkEditCheckBox* ShimmerCheckBox;
+		BulkEditCheckBox* VFadeCheckBox;
 		BulkEditSliderF1* SliderCycles;
-		wxBitmapButton* BitmapButton_ColorWashHFade;
-		wxBitmapButton* BitmapButton_ColorWashCount;
+		BulkEditTextCtrlF1* CyclesTextCtrl;
+		BulkEditValueCurveButton* BitmapButton_ColorWash_CyclesVC;
+		wxStaticText* StaticText5;
+		xlLockButton* BitmapButton_ColorWashCount;
+		xlLockButton* BitmapButton_ColorWashHFade;
+		xlLockButton* BitmapButton_ColorWashVFade;
 		//*)
 
 

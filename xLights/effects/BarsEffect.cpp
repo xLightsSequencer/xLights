@@ -58,7 +58,7 @@ static inline int GetDirection(const std::string & DirectionString) {
     return 0;
 }
 
-void BarsEffect::SetDefaultParameters(Model *cls) {
+void BarsEffect::SetDefaultParameters() {
     BarsPanel *bp = (BarsPanel*)panel;
     if (bp == nullptr) {
         return;

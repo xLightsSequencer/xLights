@@ -33,7 +33,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferTop" subclass="ValueCurveButton" variable="ValueCurve_Top" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -62,7 +62,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferLeft" subclass="ValueCurveButton" variable="ValueCurve_Left" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -91,7 +91,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferBottom" subclass="ValueCurveButton" variable="ValueCurve_Bottom" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>
@@ -120,7 +120,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_BufferRight" subclass="ValueCurveButton" variable="ValueCurve_Right" member="yes">
-							<bitmap code="valuecurvenotselected_24" />
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnValueCurve_Click" entry="EVT_BUTTON" />
 						</object>

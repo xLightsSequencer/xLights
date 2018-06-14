@@ -1,3 +1,5 @@
+#include <list>
+
 #include "FacesEffect.h"
 #include "FacesPanel.h"
 #include "../models/Model.h"
@@ -8,10 +10,12 @@
 #include "../UtilFunctions.h"
 #include "../xLightsMain.h" 
 #include "PicturesEffect.h"
-#include <list>
-#include "../../include/corofaces.xpm"
+
 #include <wx/tokenzr.h>
-#include "UtilFunctions.h"
+
+#include "../../include/corofaces.xpm"
+
+#include <log4cpp/Category.hh>
 
 #define PI 3.1415926
 
@@ -154,7 +158,7 @@ wxPanel *FacesEffect::CreatePanel(wxWindow *parent) {
     return new FacesPanel(parent);
 }
 
-void FacesEffect::SetDefaultParameters(Model *cls) {
+void FacesEffect::SetDefaultParameters() {
     FacesPanel *fp = (FacesPanel*)panel;
     if (fp == nullptr) {
         return;
@@ -548,7 +552,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     buffer.Color2HSV(color, hsv);
 
     std::vector<wxPoint> first_xy;
-    Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+    Model* model_info = buffer.GetModel();
     if (!model_info || !parse_model(buffer.cur_model))
     {
         return;
@@ -651,7 +655,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (buffer.cur_model == "") {
         return;
     }
-    Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+    Model* model_info = buffer.GetModel();
     if (model_info == nullptr) {
         return;
     }

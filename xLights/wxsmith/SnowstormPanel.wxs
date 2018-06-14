@@ -32,10 +32,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Count" variable="BitmapButton_SnowstormCount" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Count" variable="BitmapButton_SnowstormCount" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                    <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -69,10 +70,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Length" variable="BitmapButton_SnowstormLength" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Length" variable="BitmapButton_SnowstormLength" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                    <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -108,9 +110,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed" variable="BitmapButton_SnowstormSpeed" member="yes">
-					<bitmap code="padlock16x16_blue_xpm" />
-					<size>13,13</size>
+				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Snowstorm_Speed" variable="BitmapButton_SnowstormSpeed" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+                    <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>

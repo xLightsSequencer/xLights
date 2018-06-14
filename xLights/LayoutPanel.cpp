@@ -1,5 +1,3 @@
-#include "LayoutPanel.h"
-
 //(*InternalHeaders(LayoutPanel)
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -22,21 +20,24 @@
 #include <wx/artprov.h>
 #include <wx/dataview.h>
 #include <wx/config.h>
+#include <wx/treebase.h>
 
+#include "LayoutPanel.h"
 #include "ModelPreview.h"
 #include "xLightsMain.h"
 #include "DrawGLUtils.h"
 #include "ChannelLayoutDialog.h"
 #include "ControllerConnectionDialog.h"
-#include "models/ModelGroup.h"
 #include "ModelGroupPanel.h"
-
+#include "LayoutGroup.h"
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
+#include "models/ModelGroup.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
-#include "support/VectorMath.h"
+#include "ColorManager.h"
+#include "VectorMath.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -1732,23 +1733,21 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         int ia = data1->nativeOrder;
         int ib = data2->nativeOrder;
         if (ia > ib)
+        {
             if (ascending)
             {
                 return 1;
             }
-            else
-            {
-                return -1;
-            }
+            return -1;
+        }
         if (ia < ib)
+        {
             if (ascending)
             {
                 return -1;
             }
-            else
-            {
-                return 1;
-            }
+            return 1;
+        }
     }
 
     return NumberAwareStringCompare(a->name, b->name);

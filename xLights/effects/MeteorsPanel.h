@@ -40,15 +40,6 @@ class MeteorsPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Meteors_Swirl_Intensity;
 		BulkEditValueCurveButton* BitmapButton_Meteors_XOffsetVC;
 		BulkEditValueCurveButton* BitmapButton_Meteors_YOffsetVC;
-		wxBitmapButton* BitmapButton_FadeWithDistance;
-		wxBitmapButton* BitmapButton_MeteorsCount;
-		wxBitmapButton* BitmapButton_MeteorsEffect;
-		wxBitmapButton* BitmapButton_MeteorsLength;
-		wxBitmapButton* BitmapButton_MeteorsSwirlIntensity;
-		wxBitmapButton* BitmapButton_MeteorsType;
-		wxBitmapButton* BitmapButton_Meteors_UseMusic;
-		wxBitmapButton* BitmapButton_Meteors_XOffset;
-		wxBitmapButton* BitmapButton_Meteors_YOffset;
 		wxStaticText* StaticText128;
 		wxStaticText* StaticText130;
 		wxStaticText* StaticText1;
@@ -57,6 +48,15 @@ class MeteorsPanel: public wxPanel
 		wxStaticText* StaticText41;
 		wxStaticText* StaticText43;
 		wxStaticText* StaticText4;
+		xlLockButton* BitmapButton_FadeWithDistance;
+		xlLockButton* BitmapButton_MeteorsCount;
+		xlLockButton* BitmapButton_MeteorsEffect;
+		xlLockButton* BitmapButton_MeteorsLength;
+		xlLockButton* BitmapButton_MeteorsSwirlIntensity;
+		xlLockButton* BitmapButton_MeteorsType;
+		xlLockButton* BitmapButton_Meteors_UseMusic;
+		xlLockButton* BitmapButton_Meteors_XOffset;
+		xlLockButton* BitmapButton_Meteors_YOffset;
 		//*)
 
 	protected:

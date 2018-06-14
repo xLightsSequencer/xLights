@@ -1,13 +1,11 @@
-#include "wx/wx.h"
-#include "wx/sizer.h"
+#include <wx/wx.h>
+#include <wx/sizer.h>
+#include <wx/artprov.h>
+
 #ifdef __WXMAC__
- #include "OpenGL/gl.h"
+    #include "OpenGL/gl.h"
 #else
-//#ifdef _MSC_VER
-//#include "GL/glut.h"
-//#else
-#include <GL/gl.h>
-//#endif
+    #include <GL/gl.h>
 #endif
 
 #include "ModelPreview.h"
@@ -18,7 +16,8 @@
 #include "ColorManager.h"
 #include "LayoutGroup.h"
 #include "xLightsMain.h"
-#include <wx/artprov.h>
+
+#include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
 EVT_MOTION(ModelPreview::mouseMoved)
@@ -287,12 +286,19 @@ ModelPreview::ModelPreview(wxPanel* parent)
     image = nullptr;
     sprite = nullptr;
     camera3d = nullptr;
-    camera2d = nullptr;
+    camera2d = new PreviewCamera();
     xlights = nullptr;
 }
 
 ModelPreview::~ModelPreview()
 {
+    if (camera2d) {
+        delete camera2d;
+    }
+    if (camera3d) {
+        delete camera3d;
+    }
+
     if (image) {
         if (cache) {
             cache->AddTextureToDelete(image->getID());
@@ -342,9 +348,9 @@ void ModelPreview::InitializeGLCanvas()
     SetCurrentGLContext();
 
     if (allowSelected) {
-        LOG_GL_ERRORV(glClearColor(0.8f, 0.8f, 0.8f, 1.0f)); // Black Background
-    }
-    else {
+        wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f)); // Black Background
+    } else {
         LOG_GL_ERRORV(glClearColor(0.0, 0.0, 0.0, 1.0f)); // Black Background
     }
     LOG_GL_ERRORV(glEnable(GL_BLEND));
@@ -385,11 +391,10 @@ void ModelPreview::SetbackgroundImage(wxString img)
 
 void ModelPreview::SetBackgroundBrightness(int brightness)
 {
-   mBackgroundBrightness = brightness;
-   if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100)
-   {
+    mBackgroundBrightness = brightness;
+    if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100) {
         mBackgroundBrightness = 100;
-   }
+    }
 }
 
 void ModelPreview::SetPointSize(wxDouble pointSize)
@@ -602,13 +607,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         }
     }
 
-    if (mBackgroundImageExists)
-    {
-        if (image == nullptr)
-        {
+    if (mBackgroundImageExists) {
+        if (image == nullptr) {
             logger_base.debug("Loading background image file %s for preview %s.",
-                (const char *)mBackgroundImage.c_str(),
-                (const char *)GetName().c_str());
+                              (const char *)mBackgroundImage.c_str(),
+                              (const char *)GetName().c_str());
             image = new Image(mBackgroundImage);
             sprite = new xLightsDrawable(image);
         }
@@ -620,8 +623,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             if (nscalew < nscaleh) {
                 scaleh = 1.0;
                 scalew = nscalew / nscaleh;
-            }
-            else {
+            } else {
                 scaleh = nscaleh / nscalew;
                 scalew = 1.0;
             }
@@ -692,3 +694,4 @@ void ModelPreview::drawGrid(float size, float step)
 	//glVertex3f(0, 0, -size);
 	//glVertex3f(0, 0, size);
 }
+

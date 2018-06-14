@@ -11,7 +11,27 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Vixen FSEQ File Support to xSchedule
+   -- enh (dkulp)  Scale bitmap buttons for locks/value curves, color panels on HiDPI screens
+   -- enh (dkulp)  New high-res lock/unlock icons
+   -- enh (dkulp)  Initial support for using system background colors
+   -- bug (dkulp)  TouchBar forward/back buttons reversed
+   -- enh (scott)  Added "Copy", "Import from Model", and "Import from File" Buttons to the Submodel Dialog.
+					- Copy The Currently Selected SubModel.
+					- Import SubModels from another Model.
+					- Import SubModels from a xmodel files.
+2018.15 June 10, 2018
    -- enh (dkulp)  Big speedup for Canvas mode
+   -- enh (keith)  Add PixelEditor import
+   -- bug (keith)  Fix LMS CCR imports not working correctly
+   -- bug (keith)  Fix delete and select on a node row not working
+   -- enh (keith)  Add ability for xSchedule to trigger a jukebox item
+   -- enh (keith)  Add the ability to shift a set of selected effects by a given time interval
+   -- enh (keith)  Add collapse all layers to row heading right click menu
+   -- enh (keith)  Add parent model to submodel names when they are in groups and the group is expanded in sequencer
+   -- enh (keith)  Add the ability to time shift value curves
+   -- enh (keith)  Add -o command line option to turn on output to lights when xlights starts
+   -- bug (keith)  Fixes for crashes in xLights, xSchedule and xCapture
 2018.14 May 23, 2018
    -- enh (keith)  Add select/copy/paste all effects on a model
    -- enh (keith)  Add windows check for newer version

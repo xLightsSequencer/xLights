@@ -1,20 +1,20 @@
 #include "GarlandsPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 #include "GarlandsEffect.h"
 
 //(*InternalHeaders(GarlandsPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/choice.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(GarlandsPanel)
@@ -44,10 +44,10 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 {
 	//(*Initialize(GarlandsPanel)
 	BulkEditTextCtrl* TextCtrl61;
-	BulkEditTextCtrlF1* TextCtrl63;
-	wxFlexGridSizer* FlexGridSizer2;
 	BulkEditTextCtrl* TextCtrl62;
+	BulkEditTextCtrlF1* TextCtrl63;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer39;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -60,8 +60,8 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 	TextCtrl61 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Garlands_Type, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Garlands_Type"));
 	TextCtrl61->SetMaxLength(3);
 	FlexGridSizer39->Add(TextCtrl61, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_GarlandsType = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Garlands_Type, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Garlands_Type"));
-	BitmapButton_GarlandsType->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_GarlandsType = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Garlands_Type, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Garlands_Type"));
+	BitmapButton_GarlandsType->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer39->Add(BitmapButton_GarlandsType, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText33 = new wxStaticText(this, ID_STATICTEXT_Garlands_Spacing, _("Spacing"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Garlands_Spacing"));
 	FlexGridSizer39->Add(StaticText33, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -69,14 +69,14 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Garlands_Spacing = new BulkEditSlider(this, ID_SLIDER_Garlands_Spacing, 10, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Garlands_Spacing"));
 	FlexGridSizer1->Add(Slider_Garlands_Spacing, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Garlands_SpacingVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Garlands_Spacing, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Garlands_Spacing"));
+	BitmapButton_Garlands_SpacingVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Garlands_Spacing, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Garlands_Spacing"));
 	FlexGridSizer1->Add(BitmapButton_Garlands_SpacingVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer39->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	TextCtrl62 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Garlands_Spacing, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_Garlands_Spacing"));
 	TextCtrl62->SetMaxLength(3);
 	FlexGridSizer39->Add(TextCtrl62, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_GarlandsSpacing = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Garlands_Spacing, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Garlands_Spacing"));
-	BitmapButton_GarlandsSpacing->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_GarlandsSpacing = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Garlands_Spacing, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Garlands_Spacing"));
+	BitmapButton_GarlandsSpacing->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer39->Add(BitmapButton_GarlandsSpacing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText183 = new wxStaticText(this, ID_STATICTEXT_Garlands_Cycles, _("Cycles"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Garlands_Cycles"));
 	FlexGridSizer39->Add(StaticText183, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -84,7 +84,7 @@ GarlandsPanel::GarlandsPanel(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Garlands_Cycles = new BulkEditSliderF1(this, IDD_SLIDER_Garlands_Cycles, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Garlands_Cycles"));
 	FlexGridSizer2->Add(Slider_Garlands_Cycles, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Garlands_CyclesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Garlands_Cycles, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Garlands_Cycles"));
+	BitmapButton_Garlands_CyclesVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Garlands_Cycles, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Garlands_Cycles"));
 	FlexGridSizer2->Add(BitmapButton_Garlands_CyclesVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer39->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl63 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Garlands_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("ID_TEXTCTRL_Garlands_Cycles"));

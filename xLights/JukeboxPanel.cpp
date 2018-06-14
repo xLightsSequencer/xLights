@@ -1,11 +1,11 @@
-#include "JukeboxPanel.h"
-
 //(*InternalHeaders(JukeboxPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
 #include <wx/button.h>
+
+#include "JukeboxPanel.h"
 #include "sequencer/MainSequencer.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"

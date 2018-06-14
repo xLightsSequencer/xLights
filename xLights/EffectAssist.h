@@ -2,8 +2,8 @@
 #define EFFECTASSIST_H
 
 //(*Headers(EffectAssist)
-#include <wx/sizer.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
 //*)
 
 #include "xlGridCanvas.h"

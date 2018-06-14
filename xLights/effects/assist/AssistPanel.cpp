@@ -1,10 +1,14 @@
+//(*InternalHeaders(AssistPanel)
+#include <wx/intl.h>
+#include <wx/string.h>
+//*)
+
 #include "AssistPanel.h"
 #include "../../xLightsMain.h"
+#include "../../models/Model.h"
+#include "../../sequencer/Element.h"
 
-//(*InternalHeaders(AssistPanel)
-#include <wx/string.h>
-#include <wx/intl.h>
-//*)
+#include <log4cpp/Category.hh>
 
 //(*IdInit(AssistPanel)
 const long AssistPanel::ID_SCROLLEDWINDOW_Assist = wxNewId();

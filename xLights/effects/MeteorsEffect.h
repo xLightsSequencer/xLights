@@ -26,7 +26,7 @@ class MeteorsEffect : public RenderableEffect
     public:
         MeteorsEffect(int id);
         virtual ~MeteorsEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual bool AppropriateOnNodes() const override { return false; }

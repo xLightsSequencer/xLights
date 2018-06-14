@@ -62,7 +62,7 @@ int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int
     return 0;
 }
 
-void FanEffect::SetDefaultParameters(Model *cls) {
+void FanEffect::SetDefaultParameters() {
     FanPanel *fp = (FanPanel*)panel;
     if (fp == nullptr) {
         return;

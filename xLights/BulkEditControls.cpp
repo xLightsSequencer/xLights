@@ -1,14 +1,15 @@
-#include "BulkEditControls.h"
+#include <wx/textdlg.h>
+#include <wx/numdlg.h>
+#include <wx/choicdlg.h>
 
+#include "BulkEditControls.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
 #include "EffectsPanel.h"
 #include "sequencer/MainSequencer.h"
 #include "BulkEditSliderDialog.h"
 
-#include <wx/textdlg.h>
-#include <wx/numdlg.h>
-#include <wx/choicdlg.h>
+#include <log4cpp/Category.hh>
 
 // Here is how the sliders, labels, value curves and text boxes all work together.
 //

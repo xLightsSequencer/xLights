@@ -48,7 +48,7 @@ static inline int GetButterflyColorScheme(const std::string &color) {
     return 0;
 }
 
-void ButterflyEffect::SetDefaultParameters(Model *cls) {
+void ButterflyEffect::SetDefaultParameters() {
     ButterflyPanel *bp = (ButterflyPanel*)panel;
     if (bp == nullptr) {
         return;

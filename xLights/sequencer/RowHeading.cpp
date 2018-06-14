@@ -1,12 +1,18 @@
+#include <wx/wx.h>
+#include <wx/brush.h>
+#include <wx/numdlg.h>
+
 #include "RowHeading.h"
-#include "wx/wx.h"
-#include "wx/brush.h"
-#include "../xLightsMain.h"
 #include "../xLightsVersion.h"
 #include "../BitmapCache.h"
-#include <wx/numdlg.h>
 #include "models/ModelGroup.h"
 #include "../SelectTimingsDialog.h"
+#include "models/SubModel.h"
+#include "ColorManager.h"
+#include "SequenceElements.h"
+#include "../xLightsMain.h"
+
+#include <log4cpp/Category.hh>
 
 #define ICON_SPACE 25
 
@@ -34,7 +40,8 @@ const long RowHeading::ID_ROW_MNU_EXPORT_RENDERED_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_STRANDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SHOW_EFFECTS = wxNewId();
-const long RowHeading::ID_ROW_MNU_COLLAPSEALL = wxNewId();
+const long RowHeading::ID_ROW_MNU_COLLAPSEALLMODELS = wxNewId();
+const long RowHeading::ID_ROW_MNU_COLLAPSEALLLAYERS = wxNewId();
 const long RowHeading::ID_ROW_MNU_TOGGLE_NODES = wxNewId();
 const long RowHeading::ID_ROW_MNU_CONVERT_TO_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PROMOTE_EFFECTS = wxNewId();
@@ -259,7 +266,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
             mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS,"Toggle Models");
         }
         mnuLayer.Append(ID_ROW_MNU_SHOW_EFFECTS, "Show All Effects");
-        mnuLayer.Append(ID_ROW_MNU_COLLAPSEALL, "Collapse All");
+        mnuLayer.Append(ID_ROW_MNU_COLLAPSEALLMODELS, "Collapse All Models");
+        mnuLayer.Append(ID_ROW_MNU_COLLAPSEALLLAYERS, "Collapse All Layers");
         if (ri->nodeIndex > -1) {
             StrandElement *se = dynamic_cast<StrandElement*>(element);
             if (se && se->GetNodeLayer(ri->nodeIndex)->GetEffectCount() == 0) {
@@ -687,13 +695,37 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->get_undo_mgr().CreateUndoStep();
         if (layer_index < element->GetEffectLayerCount())
         {
-            element->GetEffectLayer(layer_index)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+            if (ri->nodeIndex == -1)
+            {
+                element->GetEffectLayer(layer_index)->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+            }
+            else
+            {
+                StrandElement* se = (StrandElement*)element;
+                NodeLayer* nl = se->GetNodeLayer(ri->nodeIndex, false);
+                if (nl != nullptr)
+                {
+                    nl->RemoveAllEffects(&mSequenceElements->get_undo_mgr());
+                }
+            }
         }
     }
     else if (id == ID_ROW_MNU_SELECT_ROW_EFFECTS) {
         if (layer_index < element->GetEffectLayerCount())
         {
-            element->GetEffectLayer(layer_index)->SelectAllEffects();
+            if (ri->nodeIndex == -1)
+            {
+                element->GetEffectLayer(layer_index)->SelectAllEffects();
+            }
+            else
+            {
+                StrandElement* se = (StrandElement*)element;
+                NodeLayer* nl = se->GetNodeLayer(ri->nodeIndex, false);
+                if (nl != nullptr)
+                {
+                    nl->SelectAllEffects();
+                }
+            }
         }
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < element->GetEffectLayerCount(); i++)
@@ -754,11 +786,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
         }
     }
-    else if (id == ID_ROW_MNU_COLLAPSEALL) {
-        logger_base.debug("RowHeading::OnLayerPopup Collapse all.");
+    else if (id == ID_ROW_MNU_COLLAPSEALLMODELS) {
+        logger_base.debug("RowHeading::OnLayerPopup Collapse all models.");
         int view = mSequenceElements->GetCurrentView();
 
-        for (int i = 0;  i < mSequenceElements->GetElementCount(view); ++i)
+        for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
         {
             Element* e = mSequenceElements->GetElement(i, view);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
@@ -769,6 +801,17 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     me->ShowStrands(false);
                 }
             }
+        }
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }  else if (id == ID_ROW_MNU_COLLAPSEALLLAYERS) {
+        logger_base.debug("RowHeading::OnLayerPopup Collapse all layers.");
+
+        int view = mSequenceElements->GetCurrentView();
+        for (int i = 0; i < mSequenceElements->GetElementCount(view); ++i)
+        {
+            Element* e = mSequenceElements->GetElement(i, view);
+            e->SetCollapsed(true);
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -984,9 +1027,15 @@ void RowHeading::Draw()
 {
     wxClientDC dc(this);
     wxCoord w,h;
-    wxPen penOutline(wxColor(32,32,32), 0.1);
     dc.GetSize(&w,&h);
-    wxBrush brush(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER).asWxColor(), wxBRUSHSTYLE_SOLID);
+    xlColor rowHeaderCol = ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER);
+    xlColor outlineCol(32, 32, 32);
+    if ((rowHeaderCol.Red() + rowHeaderCol.Blue() + rowHeaderCol.Green()) < 128) {
+        outlineCol.Set(211, 211, 211);
+    }
+    wxPen penOutline(outlineCol.asWxColor(), 0.1);
+
+    wxBrush brush(rowHeaderCol.asWxColor(), wxBRUSHSTYLE_SOLID);
     dc.SetBrush(brush);
     dc.SetPen(penOutline);
     int row = 0;
@@ -1051,11 +1100,42 @@ void RowHeading::Draw()
         }
         else        // Draw label
         {
+            auto name = rowInfo->element->GetName();
             if (rowInfo->element->GetType() == ELEMENT_TYPE_SUBMODEL) {
                 prefix += "  ";
+
+                // find the parent row so we can work out its type
+                int toprow = mSequenceElements->GetFirstVisibleModelRow();
+                int parent = toprow + rowInfo->RowNumber;
+                bool done = false;
+                while (!done && parent >= 0)
+                {
+                    auto maybeParent = mSequenceElements->GetRowInformationFromRow(parent);
+                    if (maybeParent != nullptr && maybeParent->element->GetType() == ELEMENT_TYPE_MODEL && !maybeParent->submodel)
+                    {
+                        done = true;
+                    }
+                    else
+                    {
+                        parent--;
+                    }
+                }
+
+                if (done)
+                {
+                    Model* pm = mSequenceElements->GetXLightsFrame()->AllModels[mSequenceElements->GetRowInformationFromRow(parent)->element->GetModelName()];
+                    if (pm != nullptr && pm->GetDisplayAs() == "ModelGroup")
+                    {
+                        name = rowInfo->element->GetFullName();
+                        if (prefix.size() >= 3)
+                        {
+                            prefix = prefix.substr(3);
+                        }
+                    }
+                }
             }
             wxRect r(DEFAULT_ROW_HEADING_MARGIN,startY,w-DEFAULT_ROW_HEADING_MARGIN,DEFAULT_ROW_HEADING_HEIGHT);
-            dc.DrawLabel(prefix + rowInfo->element->GetName() + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
+            dc.DrawLabel(prefix + name + layers,r,wxALIGN_CENTER_VERTICAL|wxALIGN_LEFT);
         }
 
         if (rowInfo->element->GetType() != ELEMENT_TYPE_TIMING)

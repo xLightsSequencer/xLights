@@ -47,7 +47,7 @@ class RenderableEffect
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
         wxPanel *GetPanel(wxWindow *parent);
-		virtual void SetDefaultParameters(Model *cls) {}
+		virtual void SetDefaultParameters() {}
 		virtual void SetPanelStatus(Model *cls) {}
 		virtual std::string GetEffectString();
 

@@ -1,11 +1,16 @@
-#include "PolyLineModel.h"
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
+#include <wx/msgdlg.h>
+#include <wx/log.h>
+#include <wx/filedlg.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <glm/mat3x3.hpp>
+
+#include "PolyLineModel.h"
 #include "ModelScreenLocation.h"
 #include "Shapes.h"
 #include "../support/VectorMath.h"
@@ -15,7 +20,11 @@
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
     segs_collapsed = true;
+    num_segments = 0;
+    total_length = 0.0f;
+    hasIndivSeg = false;
 }
+
 PolyLineModel::PolyLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     segs_collapsed = true;

@@ -1,11 +1,9 @@
-//
-//  KeyBindings.cpp
-//  xLights
-
 #include <wx/xml/xml.h>
+
 #include "KeyBindings.h"
-#include "xLightsMain.h"
 #include "xLightsVersion.h"
+
+#include <log4cpp/Category.hh>
 
 void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding('t', TIMING_ADD));

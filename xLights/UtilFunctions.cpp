@@ -1,10 +1,78 @@
-#include "UtilFunctions.h"
-#include <log4cpp/Category.hh>
 #include <wx/filename.h>
 #include <wx/config.h>
 #include <wx/regex.h>
 #include <wx/sckaddr.h>
 #include <wx/dir.h>
+
+#include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
+
+std::string DecodeMidi(int midi)
+{
+    int n = midi % 12;
+    int o = midi / 12 - 1;
+    // dont go below zero ... if so move it up an octave ... the user will never know
+    while (o < 0)
+    {
+        o++;
+    }
+
+    bool sharp = false;
+    char note = '?';
+    switch (n)
+    {
+    case 9:
+        note = 'A';
+        break;
+    case 10:
+        note = 'A';
+        sharp = true;
+        break;
+    case 11:
+        note = 'B';
+        break;
+    case 0:
+        note = 'C';
+        break;
+    case 1:
+        note = 'C';
+        sharp = true;
+        break;
+    case 2:
+        note = 'D';
+        break;
+    case 3:
+        note = 'D';
+        sharp = true;
+        break;
+    case 4:
+        note = 'E';
+        break;
+    case 5:
+        note = 'F';
+        break;
+    case 6:
+        note = 'F';
+        sharp = true;
+        break;
+    case 7:
+        note = 'G';
+        break;
+    case 8:
+        note = 'G';
+        sharp = true;
+        break;
+    default:
+        break;
+    }
+
+    if (sharp)
+    {
+        return wxString::Format("%c#%d", note, o).ToStdString();
+    }
+    return wxString::Format("%c%d", note, o).ToStdString();
+}
 
 bool IsFileInShowDir(const wxString& showDir, const std::string filename)
 {

@@ -1,17 +1,20 @@
-#include "../xLightsMain.h"
-#include "MainSequencer.h"
-#include "TimeLine.h"
-#include "../UtilFunctions.h"
-#include <wx/event.h>
-#include <wx/clipbrd.h>
-#include "../xLightsVersion.h"
-
 //(*InternalHeaders(MainSequencer)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
 #include <wx/dcbuffer.h>
+#include <wx/event.h>
+#include <wx/clipbrd.h>
+
+#include "MainSequencer.h"
+#include "SequenceElements.h"
+#include "../xLightsMain.h"
+#include "TimeLine.h"
+#include "../UtilFunctions.h"
+#include "../xLightsVersion.h"
+
+#include <log4cpp/Category.hh>
 
 //(*IdInit(MainSequencer)
 const long MainSequencer::ID_CHOICE_VIEW_CHOICE = wxNewId();
@@ -136,7 +139,10 @@ public:
     {
         if(!IsShownOnScreen()) return;
         SetCurrentGLContext();
-        xlColor c(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK));
+        xlColor c(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+        //c.Set(70,70,70); //54->70
+        //
+        
         LOG_GL_ERRORV(glClearColor(((float)c.Red())/255.0f,
                                    ((float)c.Green())/255.0f,
                                    ((float)c.Blue())/255.0f, 1.0f));
@@ -155,7 +161,8 @@ public:
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-        DrawGLUtils::xlVertexTextAccumulator va;
+        
+        DrawGLUtils::xlVertexTextAccumulator va(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
 #define LINEGAP 1.2
         int y = _fontSize * LINEGAP;
         va.AddVertex(5, y, _time);
@@ -192,10 +199,10 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     logger_base.debug("                Creating main sequencer");
 
     //(*Initialize(MainSequencer)
-    wxFlexGridSizer* FlexGridSizer4;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxStaticText* StaticText1;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxStaticText* StaticText1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
@@ -206,7 +213,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     StaticText1 = new wxStaticText(this, wxID_ANY, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer2->Add(StaticText1, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
-    FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT, 5);
+    FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
     FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);

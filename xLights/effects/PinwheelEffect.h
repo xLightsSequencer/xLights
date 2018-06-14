@@ -28,7 +28,7 @@ class PinwheelEffect : public RenderableEffect
     public:
         PinwheelEffect(int id);
         virtual ~PinwheelEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) override { return true; }
         virtual bool needToAdjustSettings(const std::string &version) override;

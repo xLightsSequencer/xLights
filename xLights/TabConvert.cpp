@@ -7,49 +7,52 @@
  * License:
  **************************************************************/
 
-#define FRAMECLASS xLightsFrame::
-
 #include <stdio.h>
 #include <sstream>
 #include <iomanip>
-#include "xLightsMain.h"
-#include "ConvertDialog.h"
-#include "FileConverter.h"
 
 #include <wx/msgdlg.h>
-#include "UtilFunctions.h"
+#include <wx/filename.h>
 
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libavutil/opt.h>
-#include <libavutil/imgutils.h>
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libswscale/swscale.h>
+    #include <libavutil/opt.h>
+    #include <libavutil/imgutils.h>
 }
 
+#include "ConvertDialog.h"
+#include "FileConverter.h"
+#include "UtilFunctions.h"
 #include "models/ModelGroup.h"
+#include "outputs/OutputManager.h"
+#include "sequencer/EffectLayer.h"
+#include "xLightsMain.h"
 
-void FRAMECLASS ConversionError(const wxString& msg)
+#include <log4cpp/Category.hh>
+
+void xLightsFrame::ConversionError(const wxString& msg)
 {
     wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
 }
 
-void FRAMECLASS SetStatusText(const wxString &msg, int filename) {
+void xLightsFrame::SetStatusText(const wxString &msg, int filename) {
     if (_renderMode) {
         printf("%s\n", (const char *)msg.c_str());
     } else {
         if (filename) {
             FileNameText->SetLabel(msg);
-            FileNameText->SetForegroundColour(*wxBLACK);
+            FileNameText->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
         } else {
             StatusText->SetLabel(msg);
-            StatusText->SetForegroundColour(*wxBLACK);
+            StatusText->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
         }
     }
 }
 
-void FRAMECLASS SetStatusTextColor(const wxString &msg, const wxColor& color) {
+void xLightsFrame::SetStatusTextColor(const wxString &msg, const wxColor& color) {
     if (_renderMode) {
         printf("%s\n", (const char *)msg.c_str());
     } else {
@@ -58,7 +61,7 @@ void FRAMECLASS SetStatusTextColor(const wxString &msg, const wxColor& color) {
     }
 }
 
-void FRAMECLASS ConversionInit()
+void xLightsFrame::ConversionInit()
 {
     long TotChannels=_outputManager.GetTotalChannels();
     mediaFilename.clear();
@@ -71,7 +74,7 @@ void FRAMECLASS ConversionInit()
     SeqData.init(0, 0, 50);
 }
 
-void FRAMECLASS SetMediaFilename(const wxString& filename)
+void xLightsFrame:: SetMediaFilename(const wxString& filename)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Setting media file to: %s.", (const char *)filename.c_str());
@@ -92,7 +95,7 @@ void FRAMECLASS SetMediaFilename(const wxString& filename)
     }
 }
 
-void FRAMECLASS ClearLastPeriod()
+void xLightsFrame:: ClearLastPeriod()
 {
     int LastPer = SeqData.NumFrames()-1;
     for (size_t ch=0; ch < SeqData.NumChannels(); ch++)
@@ -103,7 +106,7 @@ void FRAMECLASS ClearLastPeriod()
 
 #define string_format wxString::Format
 
-void FRAMECLASS WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
+void xLightsFrame:: WriteVirFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxFile f;
     if (!f.Create(filename, true))
@@ -127,7 +130,7 @@ void FRAMECLASS WriteVirFile(const wxString& filename, long numChans, long numPe
     f.Close();
 }
 
-void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn)
+void xLightsFrame:: WriteLSPFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int cpn)
 {
     /*  MrChristnas2000 (from DLA forum) investigated the lsp xml file for LSP 2.8
 
@@ -385,7 +388,7 @@ void FRAMECLASS WriteLSPFile(const wxString& filename, long numChans, long numPe
     SetStatusText(wxString("Status: Export Complete. ") + string_format(" Channels exported=%4d ", channels_exported));
 }
 
-void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
+void xLightsFrame:: WriteHLSFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf)
 {
     wxString ChannelName, TestName;
     int seqidx = 0;
@@ -424,7 +427,7 @@ void FRAMECLASS WriteHLSFile(const wxString& filename, long numChans, long numPe
     f.Close();
 }
 
-void FRAMECLASS WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int ver, int cpn)
+void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long numPeriods, SeqDataType *dataBuf, int ver, int cpn)
 {
     wxString ChannelName, TestName;
     int p, csec;
@@ -604,7 +607,7 @@ Rene Nyffenegger rene.nyffenegger@adp-gmbh.ch
 
 */
 
-void FRAMECLASS WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
+void xLightsFrame:: WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize)
 {
     wxUint16 fixedHeaderLength = 20;
@@ -806,7 +809,7 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
     }
 }
 
-void FRAMECLASS WriteVideoModelFile(const wxString& filenames, long numChans, long numPeriods,
+void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -982,8 +985,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filenames, long numChans, lo
 
     frame->pts = 0;
 
-    size_t i = 0;
-    for (i = 0; i < numPeriods; i++)
+    for (size_t i = 0; i < numPeriods; i++)
     {
         // Create a bitmap with the current frame
         wxImage image(origwidth, origheight, true);
@@ -1049,7 +1051,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filenames, long numChans, lo
     avcodec_close(video_st->codec);
     av_free(frame->data[0]);
     av_free(frame);
-    for (i = 0; i < oc->nb_streams; i++) {
+    for (size_t i = 0; i < oc->nb_streams; i++) {
         av_freep(&oc->streams[i]->codec);
         av_freep(&oc->streams[i]);
     }
@@ -1065,7 +1067,7 @@ void FRAMECLASS WriteVideoModelFile(const wxString& filenames, long numChans, lo
     logger_base.debug("Model video written successfully.");
 }
 
-void FRAMECLASS WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
+void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize, Model* model)
 {
     // this writes out at the sequence frame rate ... this may be a problem as samples I have seen seem to use 30fps
@@ -1136,7 +1138,7 @@ void FRAMECLASS WriteMinleonNECModelFile(const wxString& filename, long numChans
     logger_base.debug("Model Minleon Network Effects Controller file written successfully.");
 }
 
-void FRAMECLASS ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)
+void xLightsFrame:: ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg)
 {
     ConvertParameters read_params(FileName,                                     // input filename
         SeqData,                                      // sequence data object
@@ -1154,7 +1156,7 @@ wxString FromAscii(const char *val) {
     return wxString::FromAscii(val);
 }
 
-void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilename)
+void xLightsFrame:: ReadXlightsFile(const wxString& FileName, wxString *mediaFilename)
 {
     wxFile f;
     char hdr[512], filetype[10];
@@ -1202,7 +1204,7 @@ void FRAMECLASS ReadXlightsFile(const wxString& FileName, wxString *mediaFilenam
     f.Close();
 }
 
-void FRAMECLASS WriteFalconPiFile(const wxString& filename)
+void xLightsFrame:: WriteFalconPiFile(const wxString& filename)
 {
     wxUint8 vMinor = 0;
     wxUint8 vMajor = 1;
@@ -1308,4 +1310,3 @@ void FRAMECLASS WriteFalconPiFile(const wxString& filename)
     f.Close();
     free(buf);
 }
-

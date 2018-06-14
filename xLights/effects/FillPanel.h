@@ -3,13 +3,13 @@
 
 //(*Headers(FillPanel)
 #include <wx/panel.h>
-class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
-class wxFlexGridSizer;
+class wxCheckBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,23 +22,23 @@ class FillPanel: public wxPanel
 		virtual ~FillPanel();
 
 		//(*Declarations(FillPanel)
+		BulkEditCheckBox* CheckBox_Fill_Color_Time;
+		BulkEditCheckBox* CheckBox_Fill_Offset_In_Pixels;
+		BulkEditCheckBox* CheckBox_Fill_Wrap;
 		BulkEditChoice* Choice_Fill_Direction;
-		BulkEditSlider* Slider_Fill_Position;
-		BulkEditValueCurveButton* BitmapButton_Fill_Band_Size;
-		wxStaticText* StaticText2;
+		BulkEditSlider* Slider_Fill_Band_Size;
 		BulkEditSlider* Slider_Fill_Offset;
+		BulkEditSlider* Slider_Fill_Position;
+		BulkEditSlider* Slider_Fill_Skip_Size;
+		BulkEditValueCurveButton* BitmapButton_Fill_Band_Size;
+		BulkEditValueCurveButton* BitmapButton_Fill_Offset;
 		BulkEditValueCurveButton* BitmapButton_Fill_Position;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		BulkEditValueCurveButton* BitmapButton_Fill_Skip_Size;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText23;
 		wxStaticText* StaticText24;
-		BulkEditCheckBox* CheckBox_Fill_Offset_In_Pixels;
-		BulkEditSlider* Slider_Fill_Band_Size;
-		BulkEditValueCurveButton* BitmapButton_Fill_Offset;
-		BulkEditCheckBox* CheckBox_Fill_Color_Time;
-		BulkEditCheckBox* CheckBox_Fill_Wrap;
-		BulkEditSlider* Slider_Fill_Skip_Size;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		//*)
 
 	protected:

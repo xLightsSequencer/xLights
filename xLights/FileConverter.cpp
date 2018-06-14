@@ -1,35 +1,37 @@
-#include "FileConverter.h"
-
 #include <algorithm>
 #include <map>
-
-#include "../include/spxml-0.5/spxmlparser.hpp"
-#include "../include/spxml-0.5/spxmlevent.hpp"
-#include "UtilFunctions.h"
-
-#ifndef FPP
 
 #include <wx/app.h>
 #include <wx/arrstr.h>
 #include <wx/file.h>
-#include "xLightsMain.h"
-#include "ConvertDialog.h"
-#include "ConvertLogDialog.h"
-#include "outputs/Output.h"
+#include <wx/filename.h>
+#include <wx/xml/xml.h>
 
-#define string_format wxString::Format
+#include "../include/spxml-0.5/spxmlparser.hpp"
+#include "../include/spxml-0.5/spxmlevent.hpp"
 
+#include "FileConverter.h"
+#include "UtilFunctions.h"
+#include "outputs/OutputManager.h"
+#ifndef FPP
+    #include "xLightsMain.h"
+    #include "ConvertDialog.h"
+    #include "ConvertLogDialog.h"
+    #include "outputs/Output.h"
+    #define string_format wxString::Format
 #endif
+
+#include <log4cpp/Category.hh>
 
 static const int MAX_READ_BLOCK_SIZE = 4096 * 1024;
 
 void ConvertParameters::AppendConvertStatus(const wxString& msg, bool flushbuffer)
 {
-    if (convertDialog != NULL)
+    if (convertDialog != nullptr)
     {
         convertDialog->AppendConvertStatus(msg + "\n", flushbuffer);
     }
-    if (convertLogDialog != NULL)
+    if (convertLogDialog != nullptr)
     {
         convertLogDialog->AppendConvertStatus(msg + "\n", flushbuffer);
     }
@@ -52,11 +54,11 @@ void ConvertParameters::SetStatusText(wxString msg)
 
 void ConvertParameters::ConversionError(wxString msg)
 {
-    if (convertDialog != NULL)
+    if (convertDialog != nullptr)
     {
         convertDialog->ConversionError(msg);
     }
-    else if (xLightsFrm != NULL)
+    else if (xLightsFrm != nullptr)
     {
         xLightsFrm->ConversionError(msg);
     }
@@ -64,11 +66,11 @@ void ConvertParameters::ConversionError(wxString msg)
 
 void ConvertParameters::PlayerError(wxString msg)
 {
-    if (convertDialog != NULL)
+    if (convertDialog != nullptr)
     {
         convertDialog->PlayerError(msg);
     }
-    else if (xLightsFrm != NULL)
+    else if (xLightsFrm != nullptr)
     {
         xLightsFrm->PlayerError(msg);
     }

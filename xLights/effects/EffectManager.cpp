@@ -47,6 +47,7 @@
 #include "TwinkleEffect.h"
 #include "VideoEffect.h"
 #include "VUMeterEffect.h"
+#include "WarpEffect.h"
 #include "WaveEffect.h"
 
 EffectManager::EffectManager()
@@ -97,7 +98,8 @@ EffectManager::EffectManager()
 	add(new TwinkleEffect(eff_TWINKLE));
 	add(new VideoEffect(eff_VIDEO));
 	add(new VUMeterEffect(eff_VUMETER));
-	add(new WaveEffect(eff_WAVE));
+    add(new WarpEffect(eff_WARP));
+    add(new WaveEffect(eff_WAVE));
 
     //Map an old name
     effectsByName["CoroFaces"] = GetEffect("Faces");

@@ -113,8 +113,9 @@ void xCaptureFrame::PurgeCollectedData()
 {
     while (_capturedData.size() > 0)
     {
-        delete _capturedData.front();
+        auto toDelete = _capturedData.front();
         _capturedData.pop_front();
+        delete toDelete;
     }
 }
 
@@ -127,6 +128,9 @@ void xCaptureFrame::StashPacket(long type, wxByte* packet, int len)
     }
     else if (type == ID_ARTNETSOCKET)
     {
+        // we only handle artdmx packets
+        if (packet[9] != 0x50) return;
+
         universe = ((int)packet[15] << 8) + (int)packet[14];
     }
 
@@ -564,7 +568,13 @@ void xCaptureFrame::OnAbout(wxCommandEvent& event)
 
 PacketData::PacketData(long type, wxByte* packet, int len)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _timeStamp = wxDateTime::UNow();
     _frameTimeMS = -1;
+    _seq = 0;
+    _length = 0;
+    _pdata = nullptr;
+
     if (type == xCaptureFrame::ID_E131SOCKET)
     {
         // validate the packet
@@ -579,9 +589,14 @@ PacketData::PacketData(long type, wxByte* packet, int len)
         if (packet[11] != 0x31) return;
         if (packet[12] != 0x37) return;
 
-        _timeStamp = wxDateTime::UNow();
-        _seq = packet[111];
+        _seq = (int)packet[111];
         _length = (((int)packet[115] - 0x70) << 8) + (int)packet[116] - 11;
+        if (_length > len - 126)
+        {
+            logger_base.warn("E131 packet of claimed length %d truncated to actual packet length %d.", _length, len - 126);
+            logger_base.warn("    Packet looks unlikely to be valid.");
+            _length = len - 126;
+        }
         _pdata = (wxByte*)malloc(_length);
         memcpy(_pdata, &packet[126], _length);
     }
@@ -598,9 +613,14 @@ PacketData::PacketData(long type, wxByte* packet, int len)
         if (packet[6] != 't') return;
         if (packet[9] != 0x50) return;
 
-        _timeStamp = wxDateTime::UNow();
-        _seq = packet[12];
+        _seq = (int)packet[12];
         _length = ((int)packet[16] << 8) + (int)packet[17];
+        if (_length > len - 18)
+        {
+            logger_base.warn("ArtNet packet of claimed length %d truncated to actual packet length %d.", _length, len - 18);
+            logger_base.warn("    Packet looks unlikely to be valid.");
+            _length = len - 18;
+        }
         _pdata = (wxByte*)malloc(_length);
         memcpy(_pdata, &packet[18], _length);
     }
@@ -610,8 +630,9 @@ Collector::~Collector()
 {
     while (_packets.size() > 0)
     {
-        delete _packets.front();
+        auto toDelete = _packets.front();
         _packets.pop_front();
+        delete toDelete;
     }
 }
 
@@ -648,7 +669,7 @@ void Collector::CalculateFrames(wxDateTime startTime, int frameMS)
 
             if (next != _packets.end() && (*next)->_seq == lastseq)
             {
-                logger_base.warn("Universe %d missing one packet sequence %d", _universe, lastseq);
+                logger_base.warn("Universe %d missing one packet sequence lastSeq %d", _universe, lastseq);
                 // only one frame was missing so assume it was lost
                 ms += frameMS;
                 lastseq += 1;

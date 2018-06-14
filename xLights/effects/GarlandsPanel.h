@@ -3,12 +3,12 @@
 
 //(*Headers(GarlandsPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,18 +21,18 @@ class GarlandsPanel: public wxPanel
 		virtual ~GarlandsPanel();
 
 		//(*Declarations(GarlandsPanel)
-		BulkEditValueCurveButton* BitmapButton_Garlands_CyclesVC;
+		BulkEditChoice* Choice_Garlands_Direction;
+		BulkEditSlider* Slider_Garlands_Spacing;
+		BulkEditSlider* Slider_Garlands_Type;
 		BulkEditSliderF1* Slider_Garlands_Cycles;
-		wxBitmapButton* BitmapButton_GarlandsType;
-		wxStaticText* StaticText33;
+		BulkEditValueCurveButton* BitmapButton_Garlands_CyclesVC;
 		BulkEditValueCurveButton* BitmapButton_Garlands_SpacingVC;
-		wxBitmapButton* BitmapButton_GarlandsSpacing;
+		wxStaticText* StaticText183;
 		wxStaticText* StaticText192;
 		wxStaticText* StaticText32;
-		wxStaticText* StaticText183;
-		BulkEditChoice* Choice_Garlands_Direction;
-		BulkEditSlider* Slider_Garlands_Type;
-		BulkEditSlider* Slider_Garlands_Spacing;
+		wxStaticText* StaticText33;
+		xlLockButton* BitmapButton_GarlandsSpacing;
+		xlLockButton* BitmapButton_GarlandsType;
 		//*)
 
 	protected:

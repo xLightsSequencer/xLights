@@ -14,7 +14,7 @@ class SnowflakesEffect : public RenderableEffect
     public:
         SnowflakesEffect(int id);
         virtual ~SnowflakesEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

@@ -14,14 +14,14 @@
 //*)
 
 #include <wx/dir.h>
-#include "ColorCurve.h"
-#include "BulkEditControls.h"
 
 #include <vector>
 #include <map>
-#include "osx_utils/TouchBars.h"
 
-wxDECLARE_EVENT(EVT_EFFECT_PALETTE_UPDATED, wxCommandEvent);
+#include "xlLockButton.h"
+#include "ColorCurve.h"
+#include "BulkEditControls.h"
+#include "osx_utils/TouchBars.h"
 
 #define COLORPANEL_BRIGHTNESS_MIN 0
 #define COLORPANEL_BRIGHTNESS_MAX 400
@@ -96,13 +96,6 @@ public:
 		BulkEditValueCurveButton* BitmapButton_SparkleFrequencyVC;
 		BulkEditValueCurveButton* BitmapButton_VCBrightness;
 		ColourList* BitmapButton_ColourChoice;
-		wxBitmapButton* BitmapButton_Brightness;
-		wxBitmapButton* BitmapButton_Contrast;
-		wxBitmapButton* BitmapButton_DeletePalette;
-		wxBitmapButton* BitmapButton_MusicSparkles;
-		wxBitmapButton* BitmapButton_SavePalette;
-		wxBitmapButton* BitmapButton_ShuffleColours;
-		wxBitmapButton* BitmapButton_SparkleFrequency;
 		wxCheckBox* CheckBox_ResetColorPanel;
 		wxFlexGridSizer* FlexGridSizer_Palette;
 		wxPanel* Panel_Sizer;
@@ -114,6 +107,13 @@ public:
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		xlLockButton* BitmapButton_Brightness;
+		xlLockButton* BitmapButton_Contrast;
+		xlLockButton* BitmapButton_MusicSparkles;
+		xlLockButton* BitmapButton_SparkleFrequency;
+		xlSizedBitmapButton* BitmapButton_DeletePalette;
+		xlSizedBitmapButton* BitmapButton_SavePalette;
+		xlSizedBitmapButton* BitmapButton_ShuffleColours;
 		//*)
 
 	protected:

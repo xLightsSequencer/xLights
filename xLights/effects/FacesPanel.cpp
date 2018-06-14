@@ -1,14 +1,13 @@
 #include "FacesPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(FacesPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
 #include <wx/checkbox.h>
-#include <wx/radiobut.h>
 #include <wx/choice.h>
 #include <wx/intl.h>
+#include <wx/radiobut.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
 //*)
 
@@ -32,10 +31,10 @@ END_EVENT_TABLE()
 FacesPanel::FacesPanel(wxWindow* parent)
 {
 	//(*Initialize(FacesPanel)
-	wxStaticBoxSizer* StaticBoxSizer2;
 	wxFlexGridSizer* FlexGridSizer47;
 	wxFlexGridSizer* FlexGridSizer97;
 	wxFlexGridSizer* FlexGridSizer98;
+	wxStaticBoxSizer* StaticBoxSizer2;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer47 = new wxFlexGridSizer(0, 1, 0, 0);

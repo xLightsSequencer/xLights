@@ -1,6 +1,9 @@
+#include <wx/xml/xml.h>
+
 #include "ColorManager.h"
 #include "xLightsMain.h"
-#include <wx/xml/xml.h>
+
+#include <log4cpp/Category.hh>
 
 ColorManager::ColorManager(xLightsFrame* frame)
 : xlights(frame)
@@ -30,15 +33,21 @@ ColorManager* ColorManager::instance()
 
 void ColorManager::ResetDefaults()
 {
+    colors.clear();
     for( size_t i = 0; i < NUM_COLORS; ++i )
 	{
-        colors[xLights_color[i].name] = xLights_color[i].color;
+        if (!xLights_color[i].canUseSystem) {
+            colors[xLights_color[i].name] = xLights_color[i].color;
+        }
 	}
+    colors_system["WaveformBackground"] = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+    colors_system["RowHeader"] = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 }
 
 void ColorManager::Snapshot()
 {
 	// store a new snapshot
+    colors_backup.clear();
     for (auto it = colors.begin(); it != colors.end(); ++it)
 	{
         colors_backup[it->first] = it->second;
@@ -47,6 +56,7 @@ void ColorManager::Snapshot()
 
 void ColorManager::RestoreSnapshot()
 {
+    colors.clear();
     for (auto it = colors_backup.begin(); it != colors_backup.end(); ++it)
 	{
         colors[it->first] = it->second;
@@ -70,12 +80,20 @@ void ColorManager::SetDirty()
 
 xlColor ColorManager::GetColor(ColorNames name)
 {
-    return colors[xLights_color[name].name];
+    auto search = colors.find(xLights_color[name].name);
+    if(search != colors.end()) {
+        return search->second;
+    }
+    return colors_system[xLights_color[name].name];
 }
 
 const xlColor* ColorManager::GetColorPtr(ColorNames name)
 {
-    return &colors[xLights_color[name].name];
+    auto const search = colors.find(xLights_color[name].name);
+    if (search != colors.end()) {
+        return &search->second;
+    }
+    return &colors_system[xLights_color[name].name];
 }
 
 void ColorManager::RefreshColors()
@@ -146,6 +164,7 @@ void ColorManager::Load(wxXmlNode* colors_node)
 {
 	if (colors_node != nullptr)
 	{
+        colors.clear();
         for (wxXmlNode* c = colors_node->GetChildren(); c != nullptr; c = c->GetNext())
         {
             std::string name = c->GetName().ToStdString();

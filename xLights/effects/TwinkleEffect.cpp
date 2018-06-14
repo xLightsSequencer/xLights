@@ -43,7 +43,7 @@ public:
     std::vector<StrobeClass> strobe;
 };
 
-void TwinkleEffect::SetDefaultParameters(Model *cls)
+void TwinkleEffect::SetDefaultParameters()
 {
     TwinklePanel *tp = (TwinklePanel*)panel;
     if (tp == nullptr) {

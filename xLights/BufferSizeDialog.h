@@ -2,11 +2,11 @@
 #define BUFFERSIZEDIALOG_H
 
 //(*Headers(BufferSizeDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
 #include <wx/bmpbuttn.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 //*)
 
 #include "ValueCurveButton.h"
@@ -23,18 +23,18 @@ class BufferSizeDialog: public wxDialog
         void OnVCChanged(wxCommandEvent& event); 
 
 		//(*Declarations(BufferSizeDialog)
-		wxStaticText* StaticText2;
-		wxSpinCtrl* SpinCtrl_Top;
 		ValueCurveButton* ValueCurve_Bottom;
-		ValueCurveButton* ValueCurve_Top;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		ValueCurveButton* ValueCurve_Left;
-		wxSpinCtrl* SpinCtrl_Right;
-		wxSpinCtrl* SpinCtrl_Bottom;
 		ValueCurveButton* ValueCurve_Right;
-		wxStaticText* StaticText4;
+		ValueCurveButton* ValueCurve_Top;
+		wxSpinCtrl* SpinCtrl_Bottom;
 		wxSpinCtrl* SpinCtrl_Left;
+		wxSpinCtrl* SpinCtrl_Right;
+		wxSpinCtrl* SpinCtrl_Top;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
 		//*)
 
 	protected:

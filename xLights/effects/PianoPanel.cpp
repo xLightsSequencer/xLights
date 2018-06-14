@@ -1,17 +1,12 @@
-#include "PianoPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
-#include "EffectPanelUtils.h"
-#include <wx/textfile.h>
-#include "../sequencer/Effect.h"
-#include "PianoEffect.h"
-
 //(*InternalHeaders(PianoPanel)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/image.h>
 #include <wx/intl.h>
+#include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/spinctrl.h>
@@ -23,7 +18,12 @@
 #include <wx/filename.h>
 #include <wx/valnum.h>
 
-#include "../xLightsMain.h"
+#include "PianoPanel.h"
+#include "EffectPanelUtils.h"
+#include "../sequencer/Effect.h"
+#include "PianoEffect.h"
+#include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 //(*IdInit(PianoPanel)
@@ -87,7 +87,8 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	CheckBox_Piano_ShowSharps = new BulkEditCheckBox(this, ID_CHECKBOX_Piano_ShowSharps, _("Show Sharps and Flats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Piano_ShowSharps"));
 	CheckBox_Piano_ShowSharps->SetValue(true);
 	FlexGridSizer27->Add(CheckBox_Piano_ShowSharps, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Piano_ShowSharps = new wxBitmapButton(this, ID_BITMAPBUTTON_Piano_ShowSharps, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_ShowSharps"));
+	BitmapButton_Piano_ShowSharps = new xlLockButton(this, ID_BITMAPBUTTON_Piano_ShowSharps, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Piano_ShowSharps"));
+	BitmapButton_Piano_ShowSharps->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer27->Add(BitmapButton_Piano_ShowSharps, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer27->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText8 = new wxStaticText(this, ID_STATICTEXT_Piano_MIDITrack_APPLYLAST, _("Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Piano_MIDITrack_APPLYLAST"));
@@ -104,7 +105,7 @@ PianoPanel::PianoPanel(wxWindow* parent)
 	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Piano_Scale = new BulkEditSlider(this, ID_SLIDER_Piano_Scale, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Piano_Scale"));
 	FlexGridSizer4->Add(Slider_Piano_Scale, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Piano_ScaleVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Piano_Scale, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Piano_Scale"));
+	BitmapButton_Piano_ScaleVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Piano_Scale, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Piano_Scale"));
 	FlexGridSizer4->Add(BitmapButton_Piano_ScaleVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Piano_Scale = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Piano_Scale, _("100"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Piano_Scale"));
@@ -183,8 +184,8 @@ void PianoPanel::ValidateWindow()
         Choice_Piano_MIDITrack_APPLYLAST->Enable(false);
     }
 
-    SpinCtrl_Piano_StartMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_StartMIDI->GetValue()).c_str()));
-    SpinCtrl_Piano_EndMIDI->SetToolTip(wxString(xLightsFrame::DecodeMidi(SpinCtrl_Piano_EndMIDI->GetValue()).c_str()));
+    SpinCtrl_Piano_StartMIDI->SetToolTip(wxString(DecodeMidi(SpinCtrl_Piano_StartMIDI->GetValue()).c_str()));
+    SpinCtrl_Piano_EndMIDI->SetToolTip(wxString(DecodeMidi(SpinCtrl_Piano_EndMIDI->GetValue()).c_str()));
 }
 
 void PianoPanel::SetTimingTracks(wxCommandEvent& event)

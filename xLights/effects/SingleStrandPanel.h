@@ -3,15 +3,15 @@
 
 //(*Headers(SingleStrandPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxChoice;
-class wxNotebook;
-class wxFlexGridSizer;
 class wxBitmapButton;
-class wxSlider;
-class wxNotebookEvent;
-class wxStaticText;
 class wxCheckBox;
+class wxChoice;
+class wxFlexGridSizer;
+class wxNotebook;
+class wxNotebookEvent;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -24,46 +24,46 @@ class SingleStrandPanel: public wxPanel
 		virtual ~SingleStrandPanel();
 
 		//(*Declarations(SingleStrandPanel)
-		wxBitmapButton* BitmapButton_Chase_3dFade1;
-		wxBitmapButton* BitmapButton_ChaseRotations;
-		wxBitmapButton* BitmapButton_Skips_Direction;
-		wxStaticText* StaticText60;
-		wxPanel* Panel1;
+		BulkEditCheckBox* CheckBox_Chase_3dFade1;
 		BulkEditCheckBox* CheckBox_Chase_Group_All;
+		BulkEditChoice* Choice_Chase_Type1;
+		BulkEditChoice* Choice_SingleStrand_Colors;
+		BulkEditChoice* Choice_Skips_Direction;
+		BulkEditSlider* Slider_Color_Mix1;
+		BulkEditSlider* Slider_Number_Chases;
+		BulkEditSlider* Slider_Skips_Advance;
+		BulkEditSlider* Slider_Skips_BandSize;
 		BulkEditSlider* Slider_Skips_SkipSize;
-		wxBitmapButton* BitmapButton_Color_Mix1;
-		wxStaticText* StaticText101;
+		BulkEditSlider* Slider_Skips_StartPos;
+		BulkEditSliderF1* Slider_Chase_Rotations;
 		BulkEditValueCurveButton* BitmapButton_Chase_Rotations;
-		wxBitmapButton* BitmapButton_SkipsAdvance;
-		wxStaticText* StaticText179;
+		BulkEditValueCurveButton* BitmapButton_Color_Mix1VC;
 		BulkEditValueCurveButton* BitmapButton_Number_ChasesVC;
+		wxNotebook* SingleStrandEffectType;
+		wxPanel* Panel1;
+		wxPanel* Panel2;
+		wxStaticText* StaticText101;
+		wxStaticText* StaticText105;
+		wxStaticText* StaticText106;
 		wxStaticText* StaticText109;
 		wxStaticText* StaticText10;
-		wxPanel* Panel2;
-		wxBitmapButton* BitmapButton_Chase_Type1;
-		wxStaticText* StaticText105;
-		BulkEditChoice* Choice_Skips_Direction;
-		wxNotebook* SingleStrandEffectType;
-		BulkEditSlider* Slider_Skips_BandSize;
-		wxBitmapButton* BitmapButton_Chase_Group_All;
-		BulkEditSliderF1* Slider_Chase_Rotations;
-		wxBitmapButton* BitmapButton_SingleStrand_Colors;
-		wxStaticText* StaticText106;
-		wxStaticText* StaticText61;
-		BulkEditCheckBox* CheckBox_Chase_3dFade1;
-		BulkEditSlider* Slider_Number_Chases;
-		wxBitmapButton* BitmapButton_Skips_BandSize;
-		BulkEditSlider* Slider_Color_Mix1;
-		BulkEditChoice* Choice_SingleStrand_Colors;
-		BulkEditSlider* Slider_Skips_Advance;
-		BulkEditValueCurveButton* BitmapButton_Color_Mix1VC;
-		BulkEditSlider* Slider_Skips_StartPos;
-		wxStaticText* StaticText9;
 		wxStaticText* StaticText11;
-		wxBitmapButton* BitmapButton_Skips_StartingPosition;
-		wxBitmapButton* BitmapButton_Skips_SkipSize;
-		wxBitmapButton* BitmapButton_Number_Chases;
-		BulkEditChoice* Choice_Chase_Type1;
+		wxStaticText* StaticText179;
+		wxStaticText* StaticText60;
+		wxStaticText* StaticText61;
+		wxStaticText* StaticText9;
+		xlLockButton* BitmapButton_ChaseRotations;
+		xlLockButton* BitmapButton_Chase_3dFade1;
+		xlLockButton* BitmapButton_Chase_Group_All;
+		xlLockButton* BitmapButton_Chase_Type1;
+		xlLockButton* BitmapButton_Color_Mix1;
+		xlLockButton* BitmapButton_Number_Chases;
+		xlLockButton* BitmapButton_SingleStrand_Colors;
+		xlLockButton* BitmapButton_SkipsAdvance;
+		xlLockButton* BitmapButton_Skips_BandSize;
+		xlLockButton* BitmapButton_Skips_Direction;
+		xlLockButton* BitmapButton_Skips_SkipSize;
+		xlLockButton* BitmapButton_Skips_StartingPosition;
 		//*)
 
 	protected:

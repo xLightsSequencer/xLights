@@ -1,4 +1,3 @@
-
 #include <wx/tokenzr.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>

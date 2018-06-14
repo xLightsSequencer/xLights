@@ -25,7 +25,7 @@ wxPanel *PinwheelEffect::CreatePanel(wxWindow *parent) {
     return new PinwheelPanel(parent);
 }
 
-void PinwheelEffect::SetDefaultParameters(Model *cls) {
+void PinwheelEffect::SetDefaultParameters() {
     PinwheelPanel *pp = (PinwheelPanel*)panel;
     if (pp == nullptr) {
         return;

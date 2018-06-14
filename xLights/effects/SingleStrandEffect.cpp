@@ -62,7 +62,7 @@ int mapDirection(const wxString & d) {
     return 0;
 }
 
-void SingleStrandEffect::SetDefaultParameters(Model *cls)
+void SingleStrandEffect::SetDefaultParameters()
 {
     SingleStrandPanel *sp = (SingleStrandPanel*)panel;
     if (sp == nullptr) {

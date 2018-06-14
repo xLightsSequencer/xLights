@@ -17,7 +17,7 @@ class VUMeterEffect : public RenderableEffect
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         void Render(RenderBuffer &buffer, SequenceElements *elements,
                     int bars, const std::string& type, const std::string& timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset);
-		virtual void SetDefaultParameters(Model *cls) override;
+		virtual void SetDefaultParameters() override;
         virtual void SetPanelStatus(Model *cls) override;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;

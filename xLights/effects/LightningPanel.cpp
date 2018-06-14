@@ -1,9 +1,9 @@
 #include "LightningPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 #include "LightningEffect.h"
 
 //(*InternalHeaders(LightningPanel)
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
@@ -79,14 +79,14 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Number_Bolts = new BulkEditSlider(this, ID_SLIDER_Number_Bolts, 10, 1, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Bolts"));
 	FlexGridSizer1->Add(Slider_Number_Bolts, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Number_BoltsVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Number_Bolts, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Number_Bolts"));
+	BitmapButton_Number_BoltsVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Number_Bolts, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Number_Bolts"));
 	FlexGridSizer1->Add(BitmapButton_Number_BoltsVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer140->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Number_Bolts = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Number_Bolts, _("10"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Bolts"));
 	TextCtrl_Number_Bolts->SetMaxLength(3);
 	FlexGridSizer140->Add(TextCtrl_Number_Bolts, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_NumberBolts = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Number_Bolts, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Number_Bolts"));
-	BitmapButton_NumberBolts->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_NumberBolts = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Number_Bolts, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Number_Bolts"));
+	BitmapButton_NumberBolts->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_NumberBolts, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	StaticText205 = new wxStaticText(this, ID_STATICTEXT_Number_Segments, _("Width of Bolt"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Number_Segments"));
 	FlexGridSizer140->Add(StaticText205, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -94,15 +94,14 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Number_Segments = new BulkEditSlider(this, ID_SLIDER_Number_Segments, 5, 1, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Number_Segments"));
 	FlexGridSizer2->Add(Slider_Number_Segments, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Number_SegmentsVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Number_Segments, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Number_Segments"));
+	BitmapButton_Number_SegmentsVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Number_Segments, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Number_Segments"));
 	FlexGridSizer2->Add(BitmapButton_Number_SegmentsVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer140->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Number_Segments = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Number_Segments, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Number_Segments"));
 	TextCtrl_Number_Segments->SetMaxLength(4);
 	FlexGridSizer140->Add(TextCtrl_Number_Segments, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_NumberSegments = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Number_Segments, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Number_Segments"));
-	BitmapButton_NumberSegments->SetMinSize(wxSize(13,13));
-	BitmapButton_NumberSegments->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_NumberSegments = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Number_Segments, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Number_Segments"));
+	BitmapButton_NumberSegments->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_NumberSegments, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText206 = new wxStaticText(this, ID_STATICTEXT_ForkedLightning, _("Forked Lightning"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_ForkedLightning"));
 	FlexGridSizer140->Add(StaticText206, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -110,9 +109,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	CheckBox_ForkedLightning->SetValue(false);
 	FlexGridSizer140->Add(CheckBox_ForkedLightning, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer140->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_ForkedLightning = new wxBitmapButton(this, ID_BITMAPBUTTON_CHECKBOX_ForkedLightning, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ForkedLightning"));
-	BitmapButton_ForkedLightning->SetMinSize(wxSize(13,13));
-	BitmapButton_ForkedLightning->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_ForkedLightning = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_ForkedLightning, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_ForkedLightning"));
+	BitmapButton_ForkedLightning->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_ForkedLightning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	StaticText207 = new wxStaticText(this, ID_STATICTEXT_Lightning_TopX, _("Top X Location"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_TopX"));
 	FlexGridSizer140->Add(StaticText207, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -120,15 +118,14 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer3->AddGrowableCol(0);
 	Slider_Lightning_TopX = new BulkEditSlider(this, ID_SLIDER_Lightning_TopX, 0, -50, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_TopX"));
 	FlexGridSizer3->Add(Slider_Lightning_TopX, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Lightning_TopXVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Lightning_TopX, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Lightning_TopX"));
+	BitmapButton_Lightning_TopXVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Lightning_TopX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Lightning_TopX"));
 	FlexGridSizer3->Add(BitmapButton_Lightning_TopXVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer140->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	TextCtrl86 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Lightning_TopX, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Lightning_TopX"));
 	TextCtrl86->SetMaxLength(4);
 	FlexGridSizer140->Add(TextCtrl86, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_LightningTopX = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_TopX, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_TopX"));
-	BitmapButton_LightningTopX->SetMinSize(wxSize(13,13));
-	BitmapButton_LightningTopX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_LightningTopX = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_TopX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_TopX"));
+	BitmapButton_LightningTopX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_LightningTopX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText208 = new wxStaticText(this, ID_STATICTEXT_Lightning_TopY, _("Top Y Location"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_TopY"));
 	FlexGridSizer140->Add(StaticText208, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -136,14 +133,13 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Lightning_TopY = new BulkEditSlider(this, ID_SLIDER_Lightning_TopY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Lightning_TopY"));
 	FlexGridSizer4->Add(Slider_Lightning_TopY, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_Lightning_TopYVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Lightning_TopY, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Lightning_TopY"));
+	BitmapButton_Lightning_TopYVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Lightning_TopY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Lightning_TopY"));
 	FlexGridSizer4->Add(BitmapButton_Lightning_TopYVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer140->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
 	TextCtrl88 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Lightning_TopY, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Lightning_TopY"));
 	FlexGridSizer140->Add(TextCtrl88, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_LightningTopY = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_TopY, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_TopY"));
-	BitmapButton_LightningTopY->SetMinSize(wxSize(13,13));
-	BitmapButton_LightningTopY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_LightningTopY = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_TopY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_TopY"));
+	BitmapButton_LightningTopY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_LightningTopY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText209 = new wxStaticText(this, ID_STATICTEXT_Lightning_BOTX, _("X Movement"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_BOTX"));
 	FlexGridSizer140->Add(StaticText209, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -151,9 +147,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer140->Add(Slider_Lightning_BOTX, 1, wxALL|wxEXPAND, 2);
 	TextCtrl89 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Lightning_BOTX, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Lightning_BOTX"));
 	FlexGridSizer140->Add(TextCtrl89, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_LightningBOTX = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_BOTX, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_BOTX"));
-	BitmapButton_LightningBOTX->SetMinSize(wxSize(13,13));
-	BitmapButton_LightningBOTX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_LightningBOTX = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_BOTX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_BOTX"));
+	BitmapButton_LightningBOTX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_LightningBOTX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText210 = new wxStaticText(this, ID_STATICTEXT_Lightning_BOTY, _("(Not Used yet)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_BOTY"));
 	FlexGridSizer140->Add(StaticText210, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -161,9 +156,8 @@ LightningPanel::LightningPanel(wxWindow* parent)
 	FlexGridSizer140->Add(Slider_Lightning_BOTY, 1, wxALL|wxEXPAND, 2);
 	TextCtrl90 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Lightning_BOTY, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Lightning_BOTY"));
 	FlexGridSizer140->Add(TextCtrl90, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_LightningBOTY = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_BOTY, padlock16x16_blue_xpm, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_BOTY"));
-	BitmapButton_LightningBOTY->SetMinSize(wxSize(13,13));
-	BitmapButton_LightningBOTY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_LightningBOTY = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Lightning_BOTY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Lightning_BOTY"));
+	BitmapButton_LightningBOTY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer140->Add(BitmapButton_LightningBOTY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT_Lightning_Direction, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Lightning_Direction"));
 	FlexGridSizer140->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);

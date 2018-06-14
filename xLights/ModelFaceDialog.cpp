@@ -1,12 +1,3 @@
-#include "ModelFaceDialog.h"
-#include "xLightsXmlFile.h"
-#include "NodesGridCellEditor.h"
-#include "ModelPreview.h"
-#include "DimmingCurve.h"
-#include "UtilFunctions.h"
-#include "MatrixFaceDownloadDialog.h"
-#include "xLightsMain.h"
-
 //(*InternalHeaders(ModelFaceDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -22,6 +13,7 @@
 #include <wx/tokenzr.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
+#include <wx/dir.h>
 
 #include "../include/AI.xpm"
 #include "../include/E.xpm"
@@ -33,6 +25,17 @@
 #include "../include/REST.xpm"
 #include "../include/U.xpm"
 #include "../include/WQ.xpm"
+
+#include "ModelFaceDialog.h"
+#include "xLightsXmlFile.h"
+#include "NodesGridCellEditor.h"
+#include "ModelPreview.h"
+#include "DimmingCurve.h"
+#include "UtilFunctions.h"
+#include "MatrixFaceDownloadDialog.h"
+#include "xLightsMain.h"
+
+#include <log4cpp/Category.hh>
 
 #define CHANNEL_COL 0
 #define COLOR_COL 1

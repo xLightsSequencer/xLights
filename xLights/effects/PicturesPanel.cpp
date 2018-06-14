@@ -1,23 +1,23 @@
 #include "PicturesPanel.h"
-#include "../../include/padlock16x16-blue.xpm"
 #include "EffectPanelUtils.h"
 
 //(*InternalHeaders(PicturesPanel)
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/filepicker.h>
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
-#include <wx/settings.h>
-#include <wx/choice.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/filepicker.h>
 #include <wx/gbsizer.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/notebook.h>
+#include <wx/settings.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(PicturesPanel)
@@ -71,31 +71,31 @@ END_EVENT_TABLE()
 PicturesPanel::PicturesPanel(wxWindow* parent)
 {
 	//(*Initialize(PicturesPanel)
-	wxFlexGridSizer* FlexGridSizer112;
-	wxFlexGridSizer* FlexGridSizer19;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxGridBagSizer* GridBagSizer2;
-	BulkEditTextCtrl* TextCtrl_PicturesXC;
-	BulkEditTextCtrlF1* TextCtrl_Pictures_FR;
-	BulkEditTextCtrl* TextCtrl_Pictures_StartScale;
-	wxPanel* Panel1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxPanel* PictureStartPositionPanel;
-	wxFlexGridSizer* FlexGridSizer102;
-	BulkEditTextCtrl* TextCtrl_Pictures_EndScale;
-	BulkEditTextCtrl* TextCtrl_PicturesYC;
-	BulkEditTextCtrlF1* TextCtrl48;
-	wxFlexGridSizer* FlexGridSizer111;
-	BulkEditTextCtrl* TextCtrl2;
-	wxPanel* Panel2;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer106;
 	BulkEditTextCtrl* TextCtrl1;
-	wxGridBagSizer* GridBagSizer3;
-	wxFlexGridSizer* FlexGridSizer42;
-	wxNotebook* Notebook4;
-	wxFlexGridSizer* FlexGridSizer31;
+	BulkEditTextCtrl* TextCtrl2;
+	BulkEditTextCtrl* TextCtrl_PicturesXC;
+	BulkEditTextCtrl* TextCtrl_PicturesYC;
+	BulkEditTextCtrl* TextCtrl_Pictures_EndScale;
+	BulkEditTextCtrl* TextCtrl_Pictures_StartScale;
+	BulkEditTextCtrlF1* TextCtrl48;
+	BulkEditTextCtrlF1* TextCtrl_Pictures_FR;
+	wxFlexGridSizer* FlexGridSizer102;
+	wxFlexGridSizer* FlexGridSizer106;
+	wxFlexGridSizer* FlexGridSizer111;
+	wxFlexGridSizer* FlexGridSizer112;
 	wxFlexGridSizer* FlexGridSizer113;
+	wxFlexGridSizer* FlexGridSizer19;
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer31;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer42;
+	wxGridBagSizer* GridBagSizer2;
+	wxGridBagSizer* GridBagSizer3;
+	wxNotebook* Notebook4;
+	wxPanel* Panel1;
+	wxPanel* Panel2;
+	wxPanel* PictureStartPositionPanel;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -136,8 +136,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	Choice_Pictures_Direction->Append(_("tile-up"));
 	FlexGridSizer31->Add(Choice_Pictures_Direction, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	BitmapButton_PicturesDirection = new wxBitmapButton(this, ID_BITMAPBUTTON_CHOICE_Pictures_Direction, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Pictures_Direction"));
-	BitmapButton_PicturesDirection->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_PicturesDirection = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Pictures_Direction, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Pictures_Direction"));
+	BitmapButton_PicturesDirection->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_PicturesDirection, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	StaticText68 = new wxStaticText(this, ID_STATICTEXT_Pictures_Speed, _("Movement Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Pictures_Speed"));
 	FlexGridSizer31->Add(StaticText68, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -146,8 +146,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	TextCtrl48 = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_Speed, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_Speed"));
 	TextCtrl48->SetMaxLength(4);
 	FlexGridSizer31->Add(TextCtrl48, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_PicturesSpeed = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_Speed, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_Speed"));
-	BitmapButton_PicturesSpeed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_PicturesSpeed = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_Speed"));
+	BitmapButton_PicturesSpeed->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_PicturesSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText96 = new wxStaticText(this, ID_STATICTEXT_Pictures_FrameRateAdj, _("Frame Rate Adj"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Pictures_FrameRateAdj"));
 	FlexGridSizer31->Add(StaticText96, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -156,8 +156,8 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	TextCtrl_Pictures_FR = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_FrameRateAdj, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_FrameRateAdj"));
 	TextCtrl_Pictures_FR->SetMaxLength(4);
 	FlexGridSizer31->Add(TextCtrl_Pictures_FR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	BitmapButton_PicturesFrameRateAdj = new wxBitmapButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj, padlock16x16_blue_xpm, wxDefaultPosition, wxSize(13,13), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj"));
-	BitmapButton_PicturesFrameRateAdj->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+	BitmapButton_PicturesFrameRateAdj = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj"));
+	BitmapButton_PicturesFrameRateAdj->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_PicturesFrameRateAdj, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer42->Add(FlexGridSizer31, 1, wxEXPAND, 2);
 	FlexGridSizer102 = new wxFlexGridSizer(0, 1, 0, 0);

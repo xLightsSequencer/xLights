@@ -134,7 +134,7 @@ public:
     int effectState;
 };
 
-void SnowflakesEffect::SetDefaultParameters(Model *cls)
+void SnowflakesEffect::SetDefaultParameters()
 {
     SnowflakesPanel *sp = (SnowflakesPanel*)panel;
     if (sp == nullptr) {

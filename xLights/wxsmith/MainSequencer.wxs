@@ -22,14 +22,13 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE_VIEW_CHOICE" variable="ViewChoice" member="yes" />
-						<flag>wxBOTTOM|wxLEFT|wxRIGHT</flag>
+						<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
-						<minsize>-1,3d</minsize>
 						<option>1</option>
 					</object>
 				</object>

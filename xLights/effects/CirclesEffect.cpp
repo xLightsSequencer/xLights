@@ -128,7 +128,7 @@ public:
     MetaBall *metaballs;
 };
 
-void CirclesEffect::SetDefaultParameters(Model *cls) {
+void CirclesEffect::SetDefaultParameters() {
     CirclesPanel *cp = (CirclesPanel*)panel;
     if (cp == nullptr) {
         return;

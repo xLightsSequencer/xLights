@@ -5,6 +5,7 @@
 #include <vector>
 #include <wx/dnd.h>
 #include <wx/listctrl.h>
+#include <wx/xml/xml.h>
 
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
@@ -30,6 +31,7 @@ class ModelPreview;
 class SubBufferPanel;
 class xLightsFrame;
 class LayoutPanel;
+class ModelManager;
 
 wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -57,6 +59,8 @@ class SubModelsDialog : public wxDialog
     public:
         SubModelInfo() {}
         SubModelInfo(const wxString &n) : name(n), oldName(n) {}
+        SubModelInfo(SubModelInfo *n) : name(n->name), oldName(n->oldName),
+            vertical(n->vertical), isRanges(n->isRanges), subBuffer(n->subBuffer), strands(n->strands) {}
 
         wxString name;
         wxString oldName;
@@ -82,12 +86,15 @@ public:
     //(*Declarations(SubModelsDialog)
     wxButton* AddButton;
     wxButton* AddRowButton;
+    wxButton* ButtonCopy;
+    wxButton* ButtonCopyModel;
     wxButton* Button_Generate;
     wxButton* Button_MoveDown;
     wxButton* Button_MoveUp;
     wxButton* Button_ReverseNodes;
     wxButton* Button_ReverseRow;
     wxButton* Button_ReverseRows;
+    wxButton* Button_Sub_Import;
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
     wxCheckBox* LayoutCheckbox;
@@ -113,7 +120,10 @@ protected:
     static const long ID_LISTCTRL_SUB_MODELS;
     static const long ID_BUTTON3;
     static const long ID_BUTTON4;
+    static const long ID_BUTTONCOPY;
     static const long ID_BUTTON5;
+    static const long ID_BUTTON_COPY_MODEL;
+    static const long ID_BUTTON_SUB_IMPORT;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
@@ -157,6 +167,10 @@ protected:
     void SelectRow(int r);
     wxString ReverseRow(wxString row);
 
+    void ImportSubModel(std::string filename);
+    void ReadSubModelXML(wxXmlNode* xmlData);
+    wxArrayString getModelList(ModelManager* modelManager);
+
 private:
 
     //(*Handlers(SubModelsDialog)
@@ -183,6 +197,9 @@ private:
     void OnButton_ReverseRowClick(wxCommandEvent& event);
     void OnButton_MoveDownClick(wxCommandEvent& event);
     void OnButton_MoveUpClick(wxCommandEvent& event);
+    void OnButton_Sub_ImportClick(wxCommandEvent& event);
+    void OnButtonCopyModelClick(wxCommandEvent& event);
+    void OnButton_Sub_CopyClick(wxCommandEvent& event);
     //*)
 
     wxWindow* _parent;

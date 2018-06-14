@@ -3,11 +3,11 @@
 
 //(*Headers(StatePanel)
 #include <wx/panel.h>
-class wxRadioButton;
-class wxStaticText;
-class wxFlexGridSizer;
-class wxStaticBoxSizer;
 class wxChoice;
+class wxFlexGridSizer;
+class wxRadioButton;
+class wxStaticBoxSizer;
+class wxStaticText;
 //*)
 
 class StateEffect;
@@ -29,15 +29,15 @@ class StatePanel: public wxPanel
 
 		//(*Declarations(StatePanel)
 		BulkEditChoice* Choice_State_Color;
-		wxRadioButton* RadioButton1;
-		wxChoice* Choice_State_State;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText14;
-		wxRadioButton* RadioButton2;
-		wxChoice* Choice_StateDefinitonChoice;
-		wxStaticText* StaticText1;
-		BulkEditChoice* Choice_State_TimingTrack;
 		BulkEditChoice* Choice_State_Mode;
+		BulkEditChoice* Choice_State_TimingTrack;
+		wxChoice* Choice_StateDefinitonChoice;
+		wxChoice* Choice_State_State;
+		wxRadioButton* RadioButton1;
+		wxRadioButton* RadioButton2;
+		wxStaticText* StaticText14;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		//*)
 
 	protected:

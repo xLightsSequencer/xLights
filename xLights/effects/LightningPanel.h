@@ -38,13 +38,6 @@ class LightningPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Lightning_TopYVC;
 		BulkEditValueCurveButton* BitmapButton_Number_BoltsVC;
 		BulkEditValueCurveButton* BitmapButton_Number_SegmentsVC;
-		wxBitmapButton* BitmapButton_ForkedLightning;
-		wxBitmapButton* BitmapButton_LightningBOTX;
-		wxBitmapButton* BitmapButton_LightningBOTY;
-		wxBitmapButton* BitmapButton_LightningTopX;
-		wxBitmapButton* BitmapButton_LightningTopY;
-		wxBitmapButton* BitmapButton_NumberBolts;
-		wxBitmapButton* BitmapButton_NumberSegments;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText203;
 		wxStaticText* StaticText205;
@@ -53,6 +46,13 @@ class LightningPanel: public wxPanel
 		wxStaticText* StaticText208;
 		wxStaticText* StaticText209;
 		wxStaticText* StaticText210;
+		xlLockButton* BitmapButton_ForkedLightning;
+		xlLockButton* BitmapButton_LightningBOTX;
+		xlLockButton* BitmapButton_LightningBOTY;
+		xlLockButton* BitmapButton_LightningTopX;
+		xlLockButton* BitmapButton_LightningTopY;
+		xlLockButton* BitmapButton_NumberBolts;
+		xlLockButton* BitmapButton_NumberSegments;
 		//*)
 
 	protected:

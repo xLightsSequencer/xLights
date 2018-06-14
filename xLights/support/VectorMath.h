@@ -61,6 +61,6 @@ namespace VectorMath
     glm::mat4 rotationMatrixFromXAxisToVector2(const glm::vec3 &a, const glm::vec3 &b);
     glm::mat4 rotationMatrixBetweenVectors(const glm::vec3 &a, const glm::vec3 &b);
 
-};
+}
 
 #endif // VECTORMATH_H

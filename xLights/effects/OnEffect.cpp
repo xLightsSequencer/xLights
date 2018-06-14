@@ -1,20 +1,18 @@
+#include <sstream>
+
+#include "../../include/On.xpm"
+
 #include "OnEffect.h"
 #include "OnPanel.h"
-
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-#include "../xLightsMain.h" //xLightsFrame
 #include "../models/DmxModel.h"
 
 static const std::string TEXTCTRL_Eff_On_Start("TEXTCTRL_Eff_On_Start");
 static const std::string TEXTCTRL_Eff_On_End("TEXTCTRL_Eff_On_End");
 static const std::string CHECKBOX_On_Shimmer("CHECKBOX_On_Shimmer");
 static const std::string TEXTCTRL_On_Cycles("TEXTCTRL_On_Cycles");
-
-#include "../../include/On.xpm"
-
-#include <sstream>
 
 OnEffect::OnEffect(int i) : RenderableEffect(i, "On", On, On, On, On, On)
 {
@@ -30,7 +28,7 @@ wxPanel *OnEffect::CreatePanel(wxWindow *parent) {
     return new OnPanel(parent);
 }
 
-void OnEffect::SetDefaultParameters(Model *cls) {
+void OnEffect::SetDefaultParameters() {
     OnPanel *p = (OnPanel*)panel;
     p->CheckBoxShimmer->SetValue(false);
     p->TextCtrlStart->SetValue("100");
@@ -76,8 +74,7 @@ std::string OnEffect::GetEffectString() {
 void GetOnEffectColors(const Effect *e, xlColor &start, xlColor &end) {
     int starti = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_Start", 100);
     int endi = e->GetSettings().GetInt("E_TEXTCTRL_Eff_On_End", 100);
-    xlColor newcolor;
-    newcolor = e->GetPalette()[0];
+    xlColor newcolor = e->GetPalette()[0];
     if (starti == 100 && endi == 100) {
         start = end = newcolor;
     } else {
@@ -219,7 +216,7 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
     // the proper red, green, and blue channels.
     //////////////////////////////////////////////////////////////
     if (buffer.cur_model != "") {
-        Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+        Model* model_info = buffer.GetModel();
         if (model_info != nullptr) {
             if( model_info->GetDisplayAs() == "DMX" ) {
                 xlColor c;

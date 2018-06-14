@@ -1,7 +1,3 @@
-#include "EffectsGrid.h"
-#include "MainSequencer.h"
-#include "TimeLine.h"
-
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 #include <wx/textdlg.h>
@@ -11,6 +7,9 @@
   #include <GL/gl.h>
 #endif
 
+#include "EffectsGrid.h"
+#include "MainSequencer.h"
+#include "TimeLine.h"
 #include  "RowHeading.h"
 #include "../xLightsMain.h"
 #include "SequenceElements.h"
@@ -27,6 +26,11 @@
 #include "effects/GlediatorEffect.h"
 #include "effects/VideoEffect.h"
 #include "effects/PicturesEffect.h"
+#include "ColorManager.h"
+#include "models/Model.h"
+#include "PixelBuffer.h"
+
+#include <log4cpp/Category.hh>
 
 #define EFFECT_RESIZE_NO                    0
 #define EFFECT_RESIZE_LEFT                  1

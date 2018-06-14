@@ -3,12 +3,12 @@
 
 //(*Headers(PlasmaPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
+class wxBitmapButton;
 class wxChoice;
 class wxFlexGridSizer;
-class wxBitmapButton;
 class wxSlider;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -21,15 +21,15 @@ class PlasmaPanel: public wxPanel
 		virtual ~PlasmaPanel();
 
 		//(*Declarations(PlasmaPanel)
-		BulkEditSlider* Slider_Plasma_Speed;
-		wxStaticText* StaticText204;
-		BulkEditValueCurveButton* BitmapButton_Plasma_SpeedVC;
-		BulkEditSlider* Slider_Plasma_Line_Density;
 		BulkEditChoice* Choice_Plasma_Color;
+		BulkEditSlider* Slider_Plasma_Line_Density;
+		BulkEditSlider* Slider_Plasma_Speed;
 		BulkEditSlider* Slider_Plasma_Style;
-		wxStaticText* StaticText202;
-		wxStaticText* StaticText64;
+		BulkEditValueCurveButton* BitmapButton_Plasma_SpeedVC;
 		wxStaticText* StaticText197;
+		wxStaticText* StaticText202;
+		wxStaticText* StaticText204;
+		wxStaticText* StaticText64;
 		//*)
 
 	protected:

@@ -50,8 +50,6 @@ class TimingPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Fadeout;
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
-		wxBitmapButton* BitmapButton_CheckBox_LayerMorph;
-		wxBitmapButton* BitmapButton_EffectLayerMix;
 		wxButton* Button_Layers;
 		wxCheckBox* CheckBox_Canvas;
 		wxCheckBox* CheckBox_LayerMorph;
@@ -63,6 +61,8 @@ class TimingPanel: public wxPanel
 		wxStaticText* OutAdjustmentText;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText4;
+		xlLockButton* BitmapButton_CheckBox_LayerMorph;
+		xlLockButton* BitmapButton_EffectLayerMix;
 		//*)
 
 	protected:

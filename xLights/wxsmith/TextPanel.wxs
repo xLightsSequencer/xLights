@@ -51,10 +51,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_FONTPICKER_Text_Font" variable="BitmapButton_TextFont" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_FONTPICKER_Text_Font" variable="BitmapButton_TextFont" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -77,10 +77,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON1" variable="BitmapButton1" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -121,10 +121,10 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir" variable="BitmapButton_TextDir" member="yes">
-												<bitmap code="padlock16x16_blue_xpm" />
-												<size>13,13</size>
-												<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+											<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Text_Dir" variable="BitmapButton_TextDir" member="yes">
+                                                <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                                <size>14,14</size>
+												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 											</object>
@@ -147,10 +147,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_TextToCenter" variable="BitmapButton_TextToCenter" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_TextToCenter" variable="BitmapButton_TextToCenter" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -195,10 +195,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Text_Speed" variable="BitmapButton_Text_Speed" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_Text_Speed" variable="BitmapButton_Text_Speed" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -232,10 +232,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Effect" variable="BitmapButton_TextEffect" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Text_Effect" variable="BitmapButton_TextEffect" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>
@@ -271,10 +271,10 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Text_Count" variable="BitmapButton_TextCount" member="yes">
-										<bitmap code="padlock16x16_blue_xpm" />
-										<size>13,13</size>
-										<bg>wxSYS_COLOUR_ACTIVECAPTION</bg>
+									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Text_Count" variable="BitmapButton_TextCount" member="yes">
+                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                                        <size>14,14</size>
+										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 									</object>

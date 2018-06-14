@@ -140,7 +140,7 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
     return cache;
 }
 
-void FireEffect::SetDefaultParameters(Model *cls) {
+void FireEffect::SetDefaultParameters() {
     FirePanel *fp = (FirePanel*)panel;
     if (fp == nullptr) {
         return;

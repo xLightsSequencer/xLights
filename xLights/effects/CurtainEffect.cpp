@@ -71,7 +71,7 @@ public:
     int LastCurtainLimit;
 };
 
-void CurtainEffect::SetDefaultParameters(Model *cls) {
+void CurtainEffect::SetDefaultParameters() {
     CurtainPanel *cp = (CurtainPanel*)panel;
     if (cp == nullptr) {
         return;

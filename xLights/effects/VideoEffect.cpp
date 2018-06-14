@@ -1,7 +1,12 @@
+#include "../../include/video-16.xpm"
+#include "../../include/video-24.xpm"
+#include "../../include/video-32.xpm"
+#include "../../include/video-48.xpm"
+#include "../../include/video-64.xpm"
+
 #include "VideoEffect.h"
 #include "VideoPanel.h"
 #include "../VideoReader.h"
-
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
@@ -9,12 +14,6 @@
 #include "../xLightsMain.h" 
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
-
-#include "../../include/video-16.xpm"
-#include "../../include/video-24.xpm"
-#include "../../include/video-32.xpm"
-#include "../../include/video-48.xpm"
-#include "../../include/video-64.xpm"
 
 #include <log4cpp/Category.hh>
 
@@ -129,7 +128,7 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
     }
 }
 
-void VideoEffect::SetDefaultParameters(Model *cls)
+void VideoEffect::SetDefaultParameters()
 {
     VideoPanel *vp = (VideoPanel*)panel;
     if (vp == nullptr) {

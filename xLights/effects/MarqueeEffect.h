@@ -8,7 +8,7 @@ class MarqueeEffect : public RenderableEffect
     public:
         MarqueeEffect(int id);
         virtual ~MarqueeEffect();    
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 

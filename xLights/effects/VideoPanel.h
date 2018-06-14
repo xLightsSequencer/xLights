@@ -3,13 +3,13 @@
 
 //(*Headers(VideoPanel)
 #include <wx/panel.h>
-class wxFilePickerCtrl;
 class wxCheckBox;
-class wxTextCtrl;
-class wxStaticText;
-class wxSlider;
-class wxFlexGridSizer;
 class wxChoice;
+class wxFilePickerCtrl;
+class wxFlexGridSizer;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include <wx/filepicker.h>
@@ -51,26 +51,26 @@ class VideoPanel: public wxPanel
 		virtual ~VideoPanel();
 
         //(*Declarations(VideoPanel)
-        BulkEditTextCtrl* TextCtrl_Video_CropBottom;
-        wxStaticText* StaticText2;
-        BulkEditSlider* Slider_Video_CropTop;
-        BulkEditChoice* Choice_Video_DurationTreatment;
-        BulkEditCheckBox* CheckBox_Video_AspectRatio;
-        wxStaticText* StaticText8;
-        BulkEditSlider* Slider_Video_CropRight;
-        wxStaticText* StaticText1;
-        wxStaticText* StaticText3;
-        BulkEditTextCtrlF2* TextCtrl_Video_Starttime;
-        BulkEditSlider* Slider_Video_CropBottom;
-        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
-        wxStaticText* StaticText5;
-        BulkEditSliderF2* Slider_Video_Starttime;
         BulkEditCheckBox* CheckBox_SynchroniseWithAudio;
-        BulkEditTextCtrl* TextCtrl_Video_CropTop;
-        wxStaticText* StaticText4;
+        BulkEditCheckBox* CheckBox_Video_AspectRatio;
+        BulkEditChoice* Choice_Video_DurationTreatment;
+        BulkEditSlider* Slider_Video_CropBottom;
         BulkEditSlider* Slider_Video_CropLeft;
+        BulkEditSlider* Slider_Video_CropRight;
+        BulkEditSlider* Slider_Video_CropTop;
+        BulkEditSliderF2* Slider_Video_Starttime;
+        BulkEditTextCtrl* TextCtrl_Video_CropBottom;
         BulkEditTextCtrl* TextCtrl_Video_CropLeft;
         BulkEditTextCtrl* TextCtrl_Video_CropRight;
+        BulkEditTextCtrl* TextCtrl_Video_CropTop;
+        BulkEditTextCtrlF2* TextCtrl_Video_Starttime;
+        wxStaticText* StaticText1;
+        wxStaticText* StaticText2;
+        wxStaticText* StaticText3;
+        wxStaticText* StaticText4;
+        wxStaticText* StaticText5;
+        wxStaticText* StaticText8;
+        xlVideoFilePickerCtrl* FilePicker_Video_Filename;
         //*)
 
 protected:

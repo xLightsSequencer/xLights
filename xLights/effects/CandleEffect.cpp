@@ -78,7 +78,7 @@ static CandleRenderCache* GetCache(RenderBuffer &buffer, int id) {
     return cache;
 }
 
-void CandleEffect::SetDefaultParameters(Model *cls) {
+void CandleEffect::SetDefaultParameters() {
     CandlePanel *fp = (CandlePanel*)panel;
     if (fp == nullptr) {
         return;

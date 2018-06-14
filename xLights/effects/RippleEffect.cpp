@@ -40,7 +40,7 @@ wxPanel *RippleEffect::CreatePanel(wxWindow *parent) {
 #define MOVEMENT_EXPLODE    0
 #define MOVEMENT_IMPLODE    1
 
-void RippleEffect::SetDefaultParameters(Model *cls) {
+void RippleEffect::SetDefaultParameters() {
     RipplePanel *rp = (RipplePanel*)panel;
     if (rp == nullptr) {
         return;
@@ -56,8 +56,6 @@ void RippleEffect::SetDefaultParameters(Model *cls) {
     SetSliderValue(rp->Slider_Ripple_Cycles, 10);
     SetSliderValue(rp->Slider_Ripple_Points, 5);
 	SetSliderValue(rp->Slider_Ripple_Rotation, 0);
-
-
 
     SetCheckBoxValue(rp->CheckBox_Ripple3D, false);
 }

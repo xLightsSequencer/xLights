@@ -24,9 +24,9 @@ class TreePanel: public wxPanel
 		BulkEditCheckBox* CheckBox1;
 		BulkEditSlider* Slider_Tree_Branches;
 		BulkEditSlider* Slider_Tree_Speed;
-		wxBitmapButton* BitmapButton_TreeBranches;
 		wxStaticText* StaticText182;
 		wxStaticText* StaticText86;
+		xlLockButton* BitmapButton_TreeBranches;
 		//*)
 
 	protected:

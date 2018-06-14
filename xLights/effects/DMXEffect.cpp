@@ -1,18 +1,15 @@
 #include "DMXEffect.h"
 #include "DMXPanel.h"
-
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-
-#include "../xLightsMain.h" //xLightsFrame
+#include "../models/Model.h"
 
 #include "../../include/dmx-16.xpm"
 #include "../../include/dmx-24.xpm"
 #include "../../include/dmx-32.xpm"
 #include "../../include/dmx-48.xpm"
 #include "../../include/dmx-64.xpm"
-
 
 DMXEffect::DMXEffect(int id) : RenderableEffect(id, "DMX", dmx_16, dmx_24, dmx_32, dmx_48, dmx_64)
 {
@@ -34,7 +31,7 @@ static int GetPct(wxString val)
     return (value * 100) / 255;
 }
 
-void DMXEffect::SetDefaultParameters(Model *cls) {
+void DMXEffect::SetDefaultParameters() {
     DMXPanel *dp = (DMXPanel*)panel;
     if (dp == nullptr) {
         return;
@@ -213,7 +210,7 @@ void DMXEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &b
     if (buffer.cur_model == "") {
         return;
     }
-    Model* model_info = buffer.frame->AllModels[buffer.cur_model];
+    Model* model_info = buffer.GetModel();
     if (model_info == nullptr) {
         return;
     }

@@ -25,7 +25,7 @@ wxPanel *SpirographEffect::CreatePanel(wxWindow *parent) {
     return new SpirographPanel(parent);
 }
 
-void SpirographEffect::SetDefaultParameters(Model *cls)
+void SpirographEffect::SetDefaultParameters()
 {
     SpirographPanel *sp = (SpirographPanel*)panel;
     if (sp == nullptr) {

@@ -73,7 +73,7 @@ std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-void MorphEffect::SetDefaultParameters(Model *cls) {
+void MorphEffect::SetDefaultParameters() {
     MorphPanel *mp = (MorphPanel*)panel;
     if (mp == nullptr) {
         return;

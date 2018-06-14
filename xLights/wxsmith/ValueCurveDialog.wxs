@@ -19,6 +19,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
 							<cols>1</cols>
 							<rows>3</rows>
+							<growablecols>0</growablecols>
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText_TopValue" member="yes">
@@ -29,8 +30,11 @@
 								<border>2</border>
 								<option>1</option>
 							</object>
-							<object class="spacer">
-								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText1" member="yes">
+									<label></label>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
 								<option>1</option>
 							</object>
@@ -248,6 +252,33 @@
 						<option>1</option>
 					</object>
 					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText2" member="yes">
+							<label>Time offset</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER1" variable="Slider_TimeOffset" member="yes">
+							<handler function="OnSlider_TimeOffsetCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_TimeOffset" member="yes">
+							<value>0</value>
+							<maxlength>5</maxlength>
+							<size>25,-1d</size>
+							<handler function="OnTextCtrl_TimeOffsetText" entry="EVT_TEXT" />
+						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>

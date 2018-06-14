@@ -73,7 +73,7 @@ static inline int GetWaveFillColor(const std::string &color) {
     return 0; //None
 }
 
-void WaveEffect::SetDefaultParameters(Model *cls) {
+void WaveEffect::SetDefaultParameters() {
     WavePanel *wp = (WavePanel*)panel;
     if (wp == nullptr) {
         return;

@@ -1,5 +1,3 @@
-#include "ConvertDialog.h"
-
 // xml
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
@@ -11,21 +9,26 @@
 #include "../include/spxml-0.5/spxmlstag.cpp"
 
 #include <map>
+
 #include <wx/base64.h>
 #include <wx/confbase.h>
 #include <wx/wfstream.h>
+#include <wx/xml/xml.h>
+#include <wx/filename.h>
 
 //(*InternalHeaders(ConvertDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
+#include "ConvertDialog.h"
 #include "FileConverter.h"
 #include "xLightsMain.h"
 #include "outputs/Output.h"
+#include "UtilFunctions.h"
+#include "outputs/OutputManager.h"
 
 #include <log4cpp/Category.hh>
-#include "UtilFunctions.h"
 
 //(*IdInit(ConvertDialog)
 const long ConvertDialog::ID_STATICTEXT2 = wxNewId();

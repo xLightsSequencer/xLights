@@ -1,4 +1,3 @@
-
 #include <wx/wx.h>
 #include <wx/xml/xml.h>
 
@@ -6,6 +5,9 @@
 #include "xLightsMain.h"
 #include "models/Model.h"
 #include "PreviewPane.h"
+#include "ModelPreview.h"
+
+#include <log4cpp/Category.hh>
 
 LayoutGroup::LayoutGroup(const std::string & name, xLightsFrame* xl, wxXmlNode *node)
 : mName(name), mScaleBackgroundImage(false), mBackgroundBrightness(100), mPreviewHidden(true), mPreviewCreated(false),

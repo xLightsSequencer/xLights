@@ -9,7 +9,7 @@ class StrobeEffect : public RenderableEffect
     public:
         StrobeEffect(int id);
         virtual ~StrobeEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 protected:

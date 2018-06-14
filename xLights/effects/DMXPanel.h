@@ -3,13 +3,13 @@
 
 //(*Headers(DMXPanel)
 #include <wx/panel.h>
-class wxTextCtrl;
-class wxNotebookEvent;
-class wxNotebook;
-class wxStaticText;
-class wxSlider;
 class wxBitmapButton;
 class wxFlexGridSizer;
+class wxNotebook;
+class wxNotebookEvent;
+class wxSlider;
+class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,66 +22,66 @@ class DMXPanel: public wxPanel
 		virtual ~DMXPanel();
 
 		//(*Declarations(DMXPanel)
+		BulkEditSlider* Slider_DMX10;
 		BulkEditSlider* Slider_DMX11;
-		ValueCurveButton* ValueCurve_DMX16;
-		wxStaticText* Label_DMX8;
-		BulkEditSlider* Slider_DMX5;
-		BulkEditSlider* Slider_DMX1;
-		wxStaticText* Label_DMX17;
-		wxNotebook* Notebook7;
-		wxFlexGridSizer* FlexGridSizer_Main;
-		BulkEditSlider* Slider_DMX15;
-		BulkEditSlider* Slider_DMX14;
-		ValueCurveButton* ValueCurve_DMX18;
-		wxFlexGridSizer* FlexGridSizer_Panel1;
-		BulkEditSlider* Slider_DMX6;
-		wxStaticText* Label_DMX10;
-		wxStaticText* Label_DMX9;
-		wxStaticText* Label_DMX2;
-		wxStaticText* Label_DMX1;
-		BulkEditValueCurveButton* ValueCurve_DMX8;
-		BulkEditValueCurveButton* ValueCurve_DMX2;
 		BulkEditSlider* Slider_DMX12;
+		BulkEditSlider* Slider_DMX13;
+		BulkEditSlider* Slider_DMX14;
+		BulkEditSlider* Slider_DMX15;
 		BulkEditSlider* Slider_DMX16;
 		BulkEditSlider* Slider_DMX17;
-		BulkEditValueCurveButton* ValueCurve_DMX9;
-		BulkEditValueCurveButton* ValueCurve_DMX7;
-		ValueCurveButton* ValueCurve_DMX17;
-		BulkEditSlider* Slider_DMX3;
-		wxStaticText* Label_DMX18;
-		ValueCurveButton* ValueCurve_DMX12;
-		BulkEditSlider* Slider_DMX4;
-		wxPanel* ChannelPanel1;
 		BulkEditSlider* Slider_DMX18;
-		BulkEditSlider* Slider_DMX13;
-		BulkEditValueCurveButton* ValueCurve_DMX6;
-		wxStaticText* Label_DMX5;
-		BulkEditSlider* Slider_DMX10;
-		ValueCurveButton* ValueCurve_DMX14;
-		wxStaticText* Label_DMX13;
-		wxStaticText* Label_DMX11;
-		ValueCurveButton* ValueCurve_DMX13;
+		BulkEditSlider* Slider_DMX1;
 		BulkEditSlider* Slider_DMX2;
-		wxPanel* ChannelPanel2;
-		wxStaticText* Label_DMX12;
+		BulkEditSlider* Slider_DMX3;
+		BulkEditSlider* Slider_DMX4;
+		BulkEditSlider* Slider_DMX5;
+		BulkEditSlider* Slider_DMX6;
 		BulkEditSlider* Slider_DMX7;
-		BulkEditValueCurveButton* ValueCurve_DMX4;
-		wxStaticText* Label_DMX16;
-		wxStaticText* Label_DMX15;
-		wxFlexGridSizer* FlexGridSizer_Panel2;
-		wxStaticText* Label_DMX6;
-		BulkEditValueCurveButton* ValueCurve_DMX3;
-		BulkEditSlider* Slider_DMX9;
-		BulkEditValueCurveButton* ValueCurve_DMX5;
-		wxStaticText* Label_DMX4;
-		ValueCurveButton* ValueCurve_DMX15;
-		ValueCurveButton* ValueCurve_DMX10;
-		wxStaticText* Label_DMX14;
-		BulkEditValueCurveButton* ValueCurve_DMX1;
-		ValueCurveButton* ValueCurve_DMX11;
 		BulkEditSlider* Slider_DMX8;
+		BulkEditSlider* Slider_DMX9;
+		BulkEditValueCurveButton* ValueCurve_DMX1;
+		BulkEditValueCurveButton* ValueCurve_DMX2;
+		BulkEditValueCurveButton* ValueCurve_DMX3;
+		BulkEditValueCurveButton* ValueCurve_DMX4;
+		BulkEditValueCurveButton* ValueCurve_DMX5;
+		BulkEditValueCurveButton* ValueCurve_DMX6;
+		BulkEditValueCurveButton* ValueCurve_DMX7;
+		BulkEditValueCurveButton* ValueCurve_DMX8;
+		BulkEditValueCurveButton* ValueCurve_DMX9;
+		ValueCurveButton* ValueCurve_DMX10;
+		ValueCurveButton* ValueCurve_DMX11;
+		ValueCurveButton* ValueCurve_DMX12;
+		ValueCurveButton* ValueCurve_DMX13;
+		ValueCurveButton* ValueCurve_DMX14;
+		ValueCurveButton* ValueCurve_DMX15;
+		ValueCurveButton* ValueCurve_DMX16;
+		ValueCurveButton* ValueCurve_DMX17;
+		ValueCurveButton* ValueCurve_DMX18;
+		wxFlexGridSizer* FlexGridSizer_Main;
+		wxFlexGridSizer* FlexGridSizer_Panel1;
+		wxFlexGridSizer* FlexGridSizer_Panel2;
+		wxNotebook* Notebook7;
+		wxPanel* ChannelPanel1;
+		wxPanel* ChannelPanel2;
+		wxStaticText* Label_DMX10;
+		wxStaticText* Label_DMX11;
+		wxStaticText* Label_DMX12;
+		wxStaticText* Label_DMX13;
+		wxStaticText* Label_DMX14;
+		wxStaticText* Label_DMX15;
+		wxStaticText* Label_DMX16;
+		wxStaticText* Label_DMX17;
+		wxStaticText* Label_DMX18;
+		wxStaticText* Label_DMX1;
+		wxStaticText* Label_DMX2;
 		wxStaticText* Label_DMX3;
+		wxStaticText* Label_DMX4;
+		wxStaticText* Label_DMX5;
+		wxStaticText* Label_DMX6;
 		wxStaticText* Label_DMX7;
+		wxStaticText* Label_DMX8;
+		wxStaticText* Label_DMX9;
 		//*)
 
 	protected:

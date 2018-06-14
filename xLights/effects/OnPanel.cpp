@@ -2,16 +2,17 @@
 #include "OnEffect.h"
 
 //(*InternalHeaders(OnPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/slider.h>
 #include <wx/bmpbuttn.h>
-#include <wx/intl.h>
+#include <wx/checkbox.h>
 #include <wx/image.h>
+#include <wx/intl.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(OnPanel)
@@ -41,13 +42,13 @@ END_EVENT_TABLE()
 OnPanel::OnPanel(wxWindow* parent)
 {
 	//(*Initialize(OnPanel)
-	wxFlexGridSizer* FlexGridSizer95;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer18;
-	wxFlexGridSizer* FlexGridSizer93;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer92;
+	wxFlexGridSizer* FlexGridSizer93;
+	wxFlexGridSizer* FlexGridSizer95;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer92 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -80,7 +81,7 @@ OnPanel::OnPanel(wxWindow* parent)
 	FlexGridSizer18->AddGrowableCol(0);
 	Slider_On_Transparency = new BulkEditSlider(this, IDD_SLIDER_On_Transparency, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_On_Transparency"));
 	FlexGridSizer18->Add(Slider_On_Transparency, 1, wxALL|wxEXPAND, 2);
-	BitmapButton_On_Transparency = new BulkEditValueCurveButton(this, ID_VALUECURVE_On_Transparency, valuecurvenotselected_24, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_On_Transparency"));
+	BitmapButton_On_Transparency = new BulkEditValueCurveButton(this, ID_VALUECURVE_On_Transparency, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_On_Transparency"));
 	FlexGridSizer18->Add(BitmapButton_On_Transparency, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	TextCtrlOnTransparency = new BulkEditTextCtrl(this, ID_TEXTCTRL_On_Transparency, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Transparency"));
 	TextCtrlOnTransparency->SetMaxLength(3);

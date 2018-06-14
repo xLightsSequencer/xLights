@@ -14,7 +14,7 @@ class ShimmerEffect : public RenderableEffect
     public:
         ShimmerEffect(int id);
         virtual ~ShimmerEffect();
-        virtual void SetDefaultParameters(Model *cls) override;
+        virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }

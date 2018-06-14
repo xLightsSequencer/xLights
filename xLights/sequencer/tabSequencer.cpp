@@ -1,10 +1,13 @@
 #include <map>
-#include <wx/utils.h> //check keyboard state -DJ
+
+#include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
 #include <wx/filename.h>
 #include <wx/filepicker.h>
 #include <wx/fontpicker.h>
+#include <wx/config.h>
+
 #include "../xLightsMain.h"
 #include "SequenceElements.h"
 #include "../TopEffectsPanel.h"
@@ -24,13 +27,21 @@
 #include "../SequenceVideoPanel.h"
 #include "../RenderCommandEvent.h"
 #include "../xLightsVersion.h"
-#include <wx/config.h>
-#include "HousePreviewPanel.h"
-#include "UtilFunctions.h"
-#include "JukeboxPanel.h"
-#include "EffectIconPanel.h"
+#include "../HousePreviewPanel.h"
+#include "../UtilFunctions.h"
+#include "../JukeboxPanel.h"
+#include "../EffectsPanel.h"
+#include "../EffectAssist.h"
+#include "../ColorPanel.h"
+#include "../TimingPanel.h"
+#include "../ModelPreview.h"
+#include "MainSequencer.h"
+#include "../PerspectivesPanel.h"
+#include "../SelectPanel.h"
+#include "../LayoutGroup.h"
 
-/************************************* New Sequencer Code*****************************************/
+#include <log4cpp/Category.hh>
+
 void xLightsFrame::CreateSequencer()
 {
     // Lots of logging here as this function hard crashes
@@ -918,6 +929,13 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             timingPanel->SetDefaultControls(nullptr, true);
             bufferPanel->SetDefaultControls(nullptr, true);
             colorPanel->SetDefaultSettings(true);
+
+            // do the effect setting last as it may want to override some of the above
+            // this should be used sparingly ... 
+            RenderableEffect *eff = GetEffectManager().GetEffect(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection());
+            if (eff != nullptr) {
+                eff->SetDefaultParameters();
+            }
         } else {
             event.updateUI = false;
         }
@@ -3051,72 +3069,6 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
     }
 }
 
-std::string xLightsFrame::DecodeMidi(int midi)
-{
-    int n = midi % 12;
-    int o = midi / 12 - 1;
-    // dont go below zero ... if so move it up an octave ... the user will never know
-    while (o < 0)
-    {
-        o++;
-    }
-
-    bool sharp = false;
-    char note = '?';
-    switch(n)
-    {
-    case 9:
-        note = 'A';
-        break;
-    case 10:
-        note = 'A';
-        sharp = true;
-        break;
-    case 11:
-        note = 'B';
-        break;
-    case 0:
-        note = 'C';
-        break;
-    case 1:
-        note = 'C';
-        sharp = true;
-        break;
-    case 2:
-        note = 'D';
-        break;
-    case 3:
-        note = 'D';
-        sharp = true;
-        break;
-    case 4:
-        note = 'E';
-        break;
-    case 5:
-        note = 'F';
-        break;
-    case 6:
-        note = 'F';
-        sharp = true;
-        break;
-    case 7:
-        note = 'G';
-        break;
-    case 8:
-        note = 'G';
-        sharp = true;
-        break;
-    default:
-        break;
-    }
-
-    if (sharp)
-    {
-        return wxString::Format("%c#%d", note, o).ToStdString();
-    }
-    return wxString::Format("%c%d", note, o).ToStdString();
-}
-
 std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
 {
     std::string res;
@@ -3127,7 +3079,7 @@ std::string xLightsFrame::CreateNotesLabel(const std::list<float>& notes) const
         {
             res += ",";
         }
-        res += xLightsFrame::DecodeMidi((int)*it);
+        res += DecodeMidi((int)*it);
     }
 
     return res;

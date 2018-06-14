@@ -233,7 +233,7 @@ void TextEffect::SelectTextColor(std::string& palette, int index)
     palette = new_palette;
 }
 
-void TextEffect::SetDefaultParameters(Model *cls) {
+void TextEffect::SetDefaultParameters() {
     TextPanel *tp = (TextPanel*)panel;
     if (tp == nullptr) {
         return;

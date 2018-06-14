@@ -1,9 +1,13 @@
-#include "UpdaterDialog.h"
-
 //(*InternalHeaders(UpdaterDialog)
 #include <wx/string.h>
 #include <wx/intl.h>
 //*)
+
+#include <wx/config.h>
+
+#include "UpdaterDialog.h"
+
+#include <log4cpp/Category.hh>
 
 //(*IdInit(UpdaterDialog)
 const long UpdaterDialog::ID_UPDATELABEL = wxNewId();
@@ -45,8 +49,6 @@ UpdaterDialog::UpdaterDialog(wxWindow* parent,wxWindowID id)
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&UpdaterDialog::OnButtonUpdateIgnoreClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&UpdaterDialog::OnButtonUpdateSkipClick);
 	//*)
-	config = wxConfigBase::Get();
-
 }
 
 UpdaterDialog::~UpdaterDialog()
@@ -57,19 +59,29 @@ UpdaterDialog::~UpdaterDialog()
 
 void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("User has chosen to upgrade to version %s. URL: %s",
+        (const char *)urlVersion.c_str(), (const char *)downloadUrl.c_str());
     wxLaunchDefaultBrowser(downloadUrl);
+    wxConfigBase* config = wxConfigBase::Get();
     config->Write("SkipVersion","");
-    this->Destroy();
+    EndDialog(wxID_OK);
 }
 
 void UpdaterDialog::OnButtonUpdateSkipClick(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("User has chosen to skip upgrade to version %s.", (const char *)urlVersion.c_str());
+    wxConfigBase* config = wxConfigBase::Get();
     config->Write("SkipVersion","");
-    this->Destroy();
+    EndDialog(wxID_CANCEL);
 }
 
 void UpdaterDialog::OnButtonUpdateIgnoreClick(wxCommandEvent& event)
 {
-    config->Write("SkipVersion",urlVersion);
-    this->Destroy();
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("User has chosen to ignore upgrade to version %s.", (const char *)urlVersion.c_str());
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("SkipVersion", urlVersion);
+    EndDialog(wxID_CLOSE);
 }
