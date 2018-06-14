@@ -66,11 +66,6 @@
 #include "TopEffectsPanel.h"
 
 // image files
-#include "../include/xLights.xpm"
-#include "../include/xLights-16.xpm"
-#include "../include/xLights-32.xpm"
-#include "../include/xLights-64.xpm"
-#include "../include/xLights-128.xpm"
 #include "../include/control-pause-blue-icon.xpm"
 #include "../include/control-play-blue-icon.xpm"
 
@@ -1495,14 +1490,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     Grid1HasFocus = false; //set this before grid gets any events -DJ
 
-    wxIconBundle icons;
-    icons.AddIcon(wxIcon(xlights_16_xpm));
-    icons.AddIcon(wxIcon(xlights_32_xpm));
-    icons.AddIcon(wxIcon(xlights_64_xpm));
-    icons.AddIcon(wxIcon(xlights_128_xpm));
-    icons.AddIcon(wxIcon(xlights_xpm));
-
-    SetIcons(icons);
+    SetIcons(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON));
     logger_base.debug("IconBundle creation done.");
 
     SetName("xLights");

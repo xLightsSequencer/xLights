@@ -132,12 +132,11 @@
 													<handler function="OnCheckBox_ResetColorPanelClick" entry="EVT_CHECKBOX" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
+												<border>2</border>
 												<option>1</option>
 											</object>
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
@@ -148,7 +147,7 @@
 												<object class="wxStaticText" name="ID_STATICTEXT_SparkleFrequency" variable="StaticText22" member="yes">
 													<label>Sparkles</label>
 												</object>
-												<flag>wxALL|wxEXPAND</flag>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 												<border>2</border>
 												<option>1</option>
 											</object>
@@ -199,7 +198,6 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -212,7 +210,6 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -224,7 +221,6 @@
 													<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -249,7 +245,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Brightness" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCBrightness" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -330,12 +326,10 @@
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="spacer">
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>2</border>
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
@@ -359,7 +353,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_HueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_HueAdjust" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -401,7 +395,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_SaturationAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_SaturationAdjust" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -443,7 +437,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Color_ValueAdjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Color_ValueAdjust" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>

@@ -132,6 +132,13 @@
 
 #include "Images_png.h"
 
+#include "../include/xLights.xpm"
+#include "../include/xLights-16.xpm"
+#include "../include/xLights-32.xpm"
+#include "../include/xLights-64.xpm"
+#include "../include/xLights-128.xpm"
+#include "../include/splashimage.h"
+
 #include "wx/artprov.h"
 
 
@@ -512,11 +519,11 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.GetOtherImagePNG(id, hls_png, sizeof(hls_png));
     } else if ("xlART_lynx" == id) {
         return effectBitmaps.GetOtherImagePNG(id, lynx_png, sizeof(lynx_png));
+    } else if ("xlART_xLights_SlashImage" == id) {
+        return effectBitmaps.GetOtherImagePNG(id, xl_splashimage_png, sizeof(xl_splashimage_png));
         /*
     } else if ("xlART_" == id) {
         return effectBitmaps.GetOtherImagePNG(id, _png, sizeof(_png));
-    } else if ("xlART_pressed" == id) {
-        return effectBitmaps.GetOtherImagePNG(id, _pressed_png, sizeof(_pressed_png));
          */
     }
     //printf("bmp:  %s   %s  %dx%d\n", (const char *)id.c_str(), (const char*)client.c_str(), size.x, size.y);
@@ -524,7 +531,18 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
 }
 wxIconBundle xlArtProvider::CreateIconBundle(const wxArtID& id,
         const wxArtClient& client) {
-    printf("ib:  %s   %s \n", (const char *)id.c_str(), (const char*)client.c_str());
+    
+    if (id == "xlART_xLights_Icons") {
+        static wxIconBundle icons;
+        if (icons.IsEmpty()) {
+            icons.AddIcon(wxIcon(xlights_16_xpm));
+            icons.AddIcon(wxIcon(xlights_32_xpm));
+            icons.AddIcon(wxIcon(xlights_64_xpm));
+            icons.AddIcon(wxIcon(xlights_128_xpm));
+            icons.AddIcon(wxIcon(xlights_xpm));
+        }
+        return icons;
+    }
     return wxNullIconBundle;
 }
 

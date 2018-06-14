@@ -5,16 +5,12 @@
 #include <wx/string.h>
 //*)
 
-#include <splashimage.h>
 #include <wx/dcclient.h>
 #include "xLightsVersion.h"
+#include "UtilFunctions.h"
 #include <log4cpp/Category.hh>
 
-#include "../include/xLights.xpm"
-#include "../include/xLights-16.xpm"
-#include "../include/xLights-32.xpm"
-#include "../include/xLights-64.xpm"
-#include "../include/xLights-128.xpm"
+#include "wx/artprov.h"
 
 //(*IdInit(SplashDialog)
 //*)
@@ -35,24 +31,19 @@ SplashDialog::SplashDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
 	Connect(wxEVT_PAINT,(wxObjectEventFunction)&SplashDialog::OnPaint);
 	//*)
 
-    wxIconBundle icons;
-    icons.AddIcon(wxIcon(xlights_16_xpm));
-    icons.AddIcon(wxIcon(xlights_32_xpm));
-    icons.AddIcon(wxIcon(xlights_64_xpm));
-    icons.AddIcon(wxIcon(xlights_128_xpm));
-    icons.AddIcon(wxIcon(xlights_xpm));
-
-    SetIcons(icons);
+    SetIcons(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON));
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     logger_base.debug("Loading splash image.");
-    _image = wxBITMAP_PNG_FROM_DATA(xl_xsmall);
+    _image = wxArtProvider::GetBitmap("xlART_xLights_SlashImage", wxART_OTHER);
     logger_base.debug("Splash loaded. IsOk %s, %dx%d", _image.IsOk() ? "TRUE" : "FALSE", _image.GetWidth(), _image.GetHeight());
 
-    int w = 773;
-    int h = 247;
+    wxSize sz = _image.GetScaledSize();
+    int w = sz.GetWidth();
+    int h = sz.GetHeight();
     SetSize(w, h);
+    Center();
 }
 
 SplashDialog::~SplashDialog()
@@ -67,14 +58,24 @@ void SplashDialog::OnPaint(wxPaintEvent& event)
     logger_base.debug("Splash painting.");
 
     wxPaintDC dc(this);
-    dc.SetFont(wxFont(wxSize(0, 12), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    dc.SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     dc.DrawBitmap(_image, 0, 0);
 
     wxSize size = GetSize();
-
-    dc.DrawText(xlights_version_string + " " + GetBitness(), wxPoint(size.GetWidth() - 100, 10));
-    dc.DrawText("www.xlights.org", wxPoint(10, size.GetHeight() - 25));
-    dc.DrawText("videos.xlights.org", wxPoint(170, size.GetHeight() - 25));
-    dc.DrawText("www.xlights.org/facebook", wxPoint(450, size.GetHeight() - 25));
+    
+    int scl = 1;
+#ifndef __WXOSX__
+    if (GetSystemContentScaleFactor() > 1.5) {
+        scl = 2;
+    }
+#endif
+    wxString ver = xlights_version_string + " " + GetBitness();
+    int w, h, descent;
+    
+    dc.GetTextExtent(ver, &w, &h, &descent);
+    dc.DrawText(ver, wxPoint(size.GetWidth() - w - 10*scl, h - descent));
+    dc.DrawText("www.xlights.org", wxPoint(10*scl, size.GetHeight() - 10 - h ));
+    dc.DrawText("videos.xlights.org", wxPoint(170*scl, size.GetHeight() - 10 - h));
+    dc.DrawText("www.xlights.org/facebook", wxPoint(450*scl, size.GetHeight() - 10 - h));
 }
