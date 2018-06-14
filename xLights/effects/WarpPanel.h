@@ -89,8 +89,8 @@ class WarpPanel: public wxPanel
 	private:
 
 		//(*Handlers(WarpPanel)
-		void OnChoice_Warp_TypeSelect(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

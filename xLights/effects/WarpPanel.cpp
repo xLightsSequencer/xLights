@@ -1,4 +1,5 @@
 #include "WarpPanel.h"
+#include "EffectPanelUtils.h"
 #include "xlGLCanvas.h"
 
 //(*InternalHeaders(WarpPanel)
@@ -159,7 +160,14 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(ID_VALUECURVE_Warp_X,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WarpPanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_Warp_Y,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WarpPanel::OnVCButtonClick);
 	//*)
+
+	SetName( "ID_PANEL_WARP" );
+
+	Connect( wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&WarpPanel::OnVCChanged, 0, this );
 
 	BitmapButton_Warp_X->SetLimits( 0, 100 );
 	BitmapButton_Warp_Y->SetLimits( 0, 100 );
@@ -170,11 +178,15 @@ WarpPanel::~WarpPanel()
 	//(*Destroy(WarpPanel)
 	//*)
 }
-void WarpPanel::OnChoice_Warp_TypeSelect(wxCommandEvent& event)
-{
-}
 
 void WarpPanel::OnVCButtonClick(wxCommandEvent& event)
 {
-   int x = 1;
+   EffectPanelUtils::OnVCButtonClick( event );
+}
+
+//PANEL_EVENT_HANDLERS(WarpPanel)
+
+void WarpPanel::OnVCChanged(wxCommandEvent& event)
+{
+   EffectPanelUtils::OnVCChanged( event );
 }

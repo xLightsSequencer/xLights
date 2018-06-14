@@ -124,6 +124,7 @@
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Warp_X" subclass="BulkEditValueCurveButton" variable="BitmapButton_Warp_X" member="yes">
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
@@ -165,6 +166,7 @@
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_Warp_Y" subclass="BulkEditValueCurveButton" variable="BitmapButton_Warp_Y" member="yes">
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

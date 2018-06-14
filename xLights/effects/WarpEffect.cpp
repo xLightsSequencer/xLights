@@ -392,18 +392,19 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
+
    std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
    std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment", "constant");
    std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
-   int xPercentage = GetValueCurveInt( "Warp_X", 0, SettingsMap, 1.f, 0, 100 );
-   int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, 1.f, 0, 100 );
+   int xPercentage = GetValueCurveInt( "Warp_X", 0, SettingsMap, progress, 0, 100 );
+   int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100 );
    double x = 0.01 * xPercentage;
    double y = 0.01 * yPercentage;
    float speed = std::stof( speedStr );
    float frequency = std::stof( freqStr );
-   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
    WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
    if ( warpType == "water drops" )
