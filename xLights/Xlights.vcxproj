@@ -506,6 +506,7 @@
     <ClCompile Include="xLightsTimer.cpp" />
     <ClCompile Include="xLightsVersion.cpp" />
     <ClCompile Include="xLightsXmlFile.cpp" />
+    <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="xlSlider.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -852,6 +853,7 @@
     <ClInclude Include="xLightsTimer.h" />
     <ClInclude Include="xLightsVersion.h" />
     <ClInclude Include="xLightsXmlFile.h" />
+    <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="xlSlider.h" />
   </ItemGroup>
   <ItemGroup>
