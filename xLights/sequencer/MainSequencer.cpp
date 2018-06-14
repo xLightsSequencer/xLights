@@ -162,7 +162,7 @@ public:
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         
-        DrawGLUtils::xlVertexTextAccumulator va;
+        DrawGLUtils::xlVertexTextAccumulator va(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
 #define LINEGAP 1.2
         int y = _fontSize * LINEGAP;
         va.AddVertex(5, y, _time);

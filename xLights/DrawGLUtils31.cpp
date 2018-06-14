@@ -376,10 +376,14 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                 "in vec2 UV;\n"
                                 "out vec4 color;\n"
                                 "uniform sampler2D tex;\n"
-                                "uniform int RenderType;\n"
+                                "uniform int RenderType = 0;\n"
                                 "void main(){\n"
                                 "    vec4 c = texture(tex, UV);\n"
-                                "    color = vec4(c.rgb, c.a*fragmentColor.a);\n"
+                                "    if (RenderType == 0) {\n"
+                                "        color = vec4(c.rgb, c.a*fragmentColor.a);\n"
+                                "    } else {\n"
+                                "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
+                                "    }\n"
                                 "}\n", 3);
         }
         if (UsesVertexAccumulator) {
@@ -550,7 +554,16 @@ public:
                 LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
                 
                 GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
-                LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                if (it->useTexturePixelColor) {
+                    LOG_GL_ERRORV(glUniform4f(cid, ((float)it->texturePixelColor.red) / 255.0f,
+                                              ((float)it->texturePixelColor.green) / 255.0f,
+                                              ((float)it->texturePixelColor.blue) / 255.0f,
+                                              ((float)it->texturePixelColor.alpha) / 255.0f));
+                    textureProgram.SetRenderType(1);
+                } else {
+                    LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                    textureProgram.SetRenderType(0);
+                }
             } else if (type == GL_POINTS && enableCapability == 0x0B10) {
                 //POINT_SMOOTH, removed in OpenGL3.x
                 normalProgram.SetRenderType(1);
@@ -641,7 +654,16 @@ public:
         LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
 
         GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
-        LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0));
+        if (va.forceColor) {
+            textureProgram.SetRenderType(1);
+            LOG_GL_ERRORV(glUniform4f(cid, ((float)va.color.red) / 255.0f,
+                                      ((float)va.color.green) / 255.0f,
+                                      ((float)va.color.blue) / 255.0f,
+                                      ((float)va.color.alpha) / 255.0f));
+        } else {
+            textureProgram.SetRenderType(0);
+            LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0));
+        }
 
         if (enableCapability > 0) {
             LOG_GL_ERRORV(glEnable(enableCapability));

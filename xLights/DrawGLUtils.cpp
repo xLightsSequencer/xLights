@@ -217,7 +217,45 @@ public:
         LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
         LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, va.vertices));
         
-        if (va.alpha != 255) {
+        if (va.forceColor) {
+
+            int tem, crgb, srgb, orgb, ca, sa, oa;
+            glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &tem);
+            glGetTexEnviv(GL_TEXTURE_ENV, GL_COMBINE_RGB, &crgb);
+            glGetTexEnviv(GL_TEXTURE_ENV, GL_SOURCE0_RGB, &srgb);
+            glGetTexEnviv(GL_TEXTURE_ENV, GL_OPERAND0_RGB, &orgb);
+            glGetTexEnviv(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, &ca);
+            glGetTexEnviv(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, &sa);
+            glGetTexEnviv(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, &oa);
+            
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+            
+            glAlphaFunc(GL_GREATER, 0.5f);
+            LOG_GL_ERRORV(glColor4f(((float)va.color.red) / 255.0f,
+                                    ((float)va.color.green) / 255.0f,
+                                    ((float)va.color.blue) / 255.0f,
+                                    ((float)va.color.alpha) / 255.0f));
+
+            LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
+            
+            
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, tem);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, crgb);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, srgb);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, orgb);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, ca);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, sa);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, oa);
+            glAlphaFunc(GL_ALWAYS, 0.0f);
+            LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
+            
+        } else if (va.alpha != 255) {
             float intensity = va.alpha;
             intensity /= 255;
             if (intensity > 1.0) {
@@ -602,7 +640,11 @@ void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int 
     memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
     memcpy(&tvertices[count*2], va.tvertices, sizeof(float)*va.count*2);
     count += va.count;
-    FinishTextures(type, va.id, va.alpha, enableCapability);
+    if (va.forceColor) {
+        FinishTextures(type, va.id, va.color, enableCapability);
+    } else {
+        FinishTextures(type, va.id, va.alpha, enableCapability);
+    }
 }
 
 void DrawGLUtils::xlAccumulator::DoRealloc(int newMax) {
@@ -629,6 +671,10 @@ void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, fl
     vertices[i] = y;
     tvertices[i] = ty;
     count++;
+}
+void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, const xlColor &color, int enableCapability) {
+    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, color));
+    start = count;
 }
 
 void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
@@ -1234,6 +1280,10 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
         FONTS[tsize].Create(tsize);
     }
     DrawGLUtils::xlVertexTextureAccumulator vat(currentCache->GetTextureId(FONTS[tsize].fontIdx));
+    if (va.color != xlBLACK) {
+        vat.forceColor = true;
+        vat.color = va.color;
+    }
     for (int x = 0; x < va.count; x++) {
         FONTS[tsize].Populate(va.vertices[x*2], va.vertices[x*2 + 1], va.text[x], factor, vat);
     }

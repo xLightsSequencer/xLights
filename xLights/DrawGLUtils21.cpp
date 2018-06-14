@@ -131,8 +131,15 @@ public:
             "varying vec2 textCoord;\n"
             "uniform sampler2D tex;\n"
             "uniform vec4 inColor;\n"
+            "uniform int RenderType = 0;\n"
             "void main(){\n"
-            "    gl_FragColor = vec4(texture2D(tex, textCoord).rgb, texture2D(tex, textCoord).a * inColor.a);\n"
+            "    vec4 col = texture2D(tex, textCoord);\n"
+            "    if (RenderType == 0) {\n"
+            "        gl_FragColor = vec4(col.rgb, col.a * inColor.a);\n"
+            "    } else {\n"
+            "        gl_FragColor = vec4(inColor.rgb, col.a * inColor.a);\n"
+            "    }\n"
+
             "}\n");
 
         ProgramIDtexture = LinkProgram(VertexShaderIDtx, FragmentShaderIDtxt);
@@ -348,8 +355,20 @@ public:
                     if (tattrib == cattrib || tattrib == vattrib) {
                         LOG_GL_ERRORV(glVertexAttribPointer(tattrib, 2, GL_FLOAT, true, 0, va.tvertices));
                     }
-                    GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
-                    glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0);
+                    if (it->useTexturePixelColor) {
+                        GLuint cid = glGetUniformLocation(ProgramIDtexture, "RenderType");
+                        LOG_GL_ERRORV(glUniform1i(cid, 1));
+                        cid = glGetUniformLocation(ProgramIDtexture, "inColor");
+                        LOG_GL_ERRORV(glUniform4f(cid, ((float)it->texturePixelColor.red) / 255.0f,
+                                                  ((float)it->texturePixelColor.green) / 255.0f,
+                                                  ((float)it->texturePixelColor.blue) / 255.0f,
+                                                  ((float)it->texturePixelColor.alpha) / 255.0f));
+                    } else {
+                        GLuint cid = glGetUniformLocation(ProgramIDtexture, "RenderType");
+                        LOG_GL_ERRORV(glUniform1i(cid, 0));
+                        cid = glGetUniformLocation(ProgramIDtexture, "inColor");
+                        LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                    }
                     
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
@@ -481,8 +500,20 @@ public:
         
         LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(ProgramIDtexture, "tex"), 0));
 
-        GLuint cid = glGetUniformLocation(ProgramIDtexture, "inColor");
-        glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0);
+        if (va.forceColor) {
+            GLuint cid = glGetUniformLocation(ProgramIDtexture, "RenderType");
+            LOG_GL_ERRORV(glUniform1i(cid, 1));
+            cid = glGetUniformLocation(ProgramIDtexture, "inColor");
+            LOG_GL_ERRORV(glUniform4f(cid, ((float)va.color.red) / 255.0f,
+                                  ((float)va.color.green) / 255.0f,
+                                  ((float)va.color.blue) / 255.0f,
+                                  ((float)va.color.alpha) / 255.0f));
+        } else {
+            GLuint cid = glGetUniformLocation(ProgramIDtexture, "RenderType");
+            LOG_GL_ERRORV(glUniform1i(cid, 0));
+            cid = glGetUniformLocation(ProgramIDtexture, "inColor");
+            glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0);
+        }
 
         
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
