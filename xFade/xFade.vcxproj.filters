@@ -9,6 +9,13 @@
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="Emitter.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
+    <ClCompile Include="MIDIListener.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SettingsDialog.cpp" />
+    <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidi.cpp" />
+    <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidiDatabase.cpp" />
+    <ClCompile Include="wxLED.cpp" />
+    <ClCompile Include="MIDIAssociateDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -20,6 +27,12 @@
     <ClInclude Include="Emitter.h" />
     <ClInclude Include="PacketData.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
+    <ClInclude Include="MIDIListener.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="SettingsDialog.h" />
+    <ClInclude Include="..\xSchedule\wxMIDI\src\wxMidi.h" />
+    <ClInclude Include="wxLED.h" />
+    <ClInclude Include="MIDIAssociateDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

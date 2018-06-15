@@ -165,8 +165,15 @@
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\xLightsTimer.cpp" />
     <ClCompile Include="..\xLights\xLightsVersion.cpp" />
+    <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidi.cpp" />
+    <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidiDatabase.cpp" />
     <ClCompile Include="Emitter.cpp" />
+    <ClCompile Include="MIDIAssociateDialog.cpp" />
+    <ClCompile Include="MIDIListener.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SettingsDialog.cpp" />
     <ClCompile Include="UniverseEntryDialog.cpp" />
+    <ClCompile Include="wxLED.cpp" />
     <ClCompile Include="xFadeApp.cpp" />
     <ClCompile Include="xFadeMain.cpp" />
   </ItemGroup>
@@ -175,9 +182,15 @@
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
     <ClInclude Include="..\xLights\xLightsVersion.h" />
+    <ClInclude Include="..\xSchedule\wxMIDI\src\wxMidi.h" />
     <ClInclude Include="Emitter.h" />
+    <ClInclude Include="MIDIAssociateDialog.h" />
+    <ClInclude Include="MIDIListener.h" />
     <ClInclude Include="PacketData.h" />
+    <ClInclude Include="Settings.h" />
+    <ClInclude Include="SettingsDialog.h" />
     <ClInclude Include="UniverseEntryDialog.h" />
+    <ClInclude Include="wxLED.h" />
     <ClInclude Include="xFadeApp.h" />
     <ClInclude Include="xFadeMain.h" />
   </ItemGroup>

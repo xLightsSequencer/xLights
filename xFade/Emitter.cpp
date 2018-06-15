@@ -78,6 +78,16 @@ public:
                 {
                     auto l = _emitter->GetLeft(it->first);
                     auto r = _emitter->GetRight(it->first);
+
+                    if (l._length == 0 && r._length > 0)
+                    {
+                        l.InitialiseLength(r._type, r._length, it->first);
+                    }
+                    else if (r._length == 0 && l._length > 0)
+                    {
+                        r.InitialiseLength(l._type, l._length, it->first);
+                    }
+
                     auto protocol = _emitter->GetProtocol(it->first);
 
                     float pos = _emitter->GetPos();
@@ -85,14 +95,19 @@ public:
                     if (pos == 0.0)
                     {
                         PrepareData(&sendData, &l, protocol);
+                        sendData.ApplyBrightness(_emitter->GetLeftBrightness());
                     }
                     else if (pos == 1.0)
                     {
                         PrepareData(&sendData, &r, protocol);
+                        sendData.ApplyBrightness(_emitter->GetRightBrightness());
                     }
                     else
                     {
                         int sz = std::min(l.GetDataLength(), r.GetDataLength());
+
+                        l.ApplyBrightness(_emitter->GetLeftBrightness());
+                        r.ApplyBrightness(_emitter->GetRightBrightness());
 
                         Blend(l.GetDataPtr(), r.GetDataPtr(), sz, pos);
                         PrepareData(&sendData, &l, protocol);
@@ -110,6 +125,7 @@ public:
             if (diffMS > 0)
                 wxMilliSleep(diffMS);
         }
+        logger_base.debug("Emitter thread exiting.");
         return nullptr;
     }
 };
@@ -131,6 +147,7 @@ Emitter::Emitter(std::map<int, std::string>* ip, std::map<int, PacketData>* left
 
 Emitter::~Emitter()
 {
+    Stop();
 }
 
 void Emitter::Stop()
@@ -160,6 +177,7 @@ void Emitter::Restart()
         _emitterThread = nullptr;
     }
 
+    _stop = false;
     _emitterThread = new EmitterThread(this);
     _emitterThread->Create();
     _emitterThread->Run();

@@ -47,6 +47,7 @@
 					<Add library="../lib/windows/DbgHelp.Lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="../lib/windows/libportmidi.a" />
 					<Add library="libwinmm.a" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
@@ -97,6 +98,8 @@
 					<Add library="../lib/windows/imagehlp.lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="libwinmm.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -207,6 +210,8 @@
 					<Add library="../lib/windows64/libimagehlp.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
+					<Add library="../lib/windows64/libportmidi.a" />
+					<Add library="libwinmm.a" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>
@@ -227,8 +232,19 @@
 		<Unit filename="../xLights/xLightsTimer.h" />
 		<Unit filename="../xLights/xLightsVersion.cpp" />
 		<Unit filename="../xLights/xLightsVersion.h" />
+		<Unit filename="../xSchedule/wxMIDI/src/wxMidi.cpp" />
+		<Unit filename="../xSchedule/wxMIDI/src/wxMidi.h" />
+		<Unit filename="../xSchedule/wxMIDI/src/wxMidiDatabase.cpp" />
 		<Unit filename="Emitter.cpp" />
 		<Unit filename="Emitter.h" />
+		<Unit filename="MIDIAssociateDialog.cpp" />
+		<Unit filename="MIDIAssociateDialog.h" />
+		<Unit filename="MIDIListener.cpp" />
+		<Unit filename="MIDIListener.h" />
+		<Unit filename="Settings.cpp" />
+		<Unit filename="Settings.h" />
+		<Unit filename="SettingsDialog.cpp" />
+		<Unit filename="SettingsDialog.h" />
 		<Unit filename="UniverseEntryDialog.cpp" />
 		<Unit filename="UniverseEntryDialog.h" />
 		<Unit filename="resource.rc">
@@ -237,6 +253,10 @@
 			<Option target="MinGW_Release" />
 			<Option target="64bit_MinGW_Release" />
 		</Unit>
+		<Unit filename="wxLED.cpp" />
+		<Unit filename="wxLED.h" />
+		<Unit filename="wxsmith/MIDIAssociateDialog.wxs" />
+		<Unit filename="wxsmith/SettingsDialog.wxs" />
 		<Unit filename="wxsmith/xFadeframe.wxs" />
 		<Unit filename="xFadeApp.cpp" />
 		<Unit filename="xFadeApp.h" />
@@ -252,6 +272,8 @@
 				<resources>
 					<wxFrame wxs="wxsmith/xFadeframe.wxs" src="xFadeMain.cpp" hdr="xFadeMain.h" fwddecl="0" i18n="1" name="xFadeFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/UniverseEntryDialog.wxs" src="UniverseEntryDialog.cpp" hdr="UniverseEntryDialog.h" fwddecl="0" i18n="1" name="UniverseEntryDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SettingsDialog.wxs" src="SettingsDialog.cpp" hdr="SettingsDialog.h" fwddecl="0" i18n="1" name="SettingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/MIDIAssociateDialog.wxs" src="MIDIAssociateDialog.cpp" hdr="MIDIAssociateDialog.h" fwddecl="0" i18n="1" name="MIDIAssociateDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

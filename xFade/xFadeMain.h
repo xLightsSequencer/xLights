@@ -13,8 +13,6 @@
 #ifdef _MSC_VER
 
 #include <stdlib.h>
-#include "PacketData.h"
-
 //#define VISUALSTUDIO_MEMORYLEAKDETECTION
 #ifdef VISUALSTUDIO_MEMORYLEAKDETECTION
 #define _CRTDBG_MAP_ALLOC
@@ -25,10 +23,7 @@
 
 //(*Headers(xFadeFrame)
 #include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
 #include <wx/frame.h>
-#include <wx/listctrl.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
@@ -43,11 +38,15 @@
 #include <map>
 #include <wx/socket.h>
 #include <mutex>
+#include "Settings.h"
 #include "PacketData.h"
+#include "wxLED.h"
 
 class wxDebugReportCompress;
 class wxDatagramSocket;
 class Emitter;
+class MIDIListener;
+class wxFont;
 
 class xFadeFrame : public wxFrame
 {
@@ -58,22 +57,20 @@ class xFadeFrame : public wxFrame
     void ValidateWindow();
     void AddFadeTimeButton(std::string label);
 
-    std::map<int, std::string> _targetIP;
-    std::map<int, std::string> _targetDesc;
-    std::map<int, std::string> _targetProtocol;
     std::map<int, PacketData> _leftData;
     std::map<int, PacketData> _rightData;
     wxString _leftTag;
     wxString _rightTag;
+    Settings _settings;
     wxDatagramSocket* _e131SocketReceive;
     wxDatagramSocket* _artNETSocketReceive;
-    wxString _localInputIP;
-    wxString _localOutputIP;
-    wxString _defaultIP;
     Emitter* _emitter;
-    wxColor _defaultColour;
+    MIDIListener* _midiListener;
     std::mutex _lock;
     int _direction; // auto fade direction
+    wxLed* Led_Left;
+    wxLed* Led_Right;
+    wxFont* _selectedButtonFont;
 
     std::string ExtractE131Tag(wxByte* packet);
     void SetFade();
@@ -92,6 +89,9 @@ class xFadeFrame : public wxFrame
     void LoadUniverses();
     void SetMIDIForControl(wxString controlName, float parm = 0.0);
 
+    static const long ID_LED1;
+    static const long ID_LED2;
+
 public:
 
         xFadeFrame(wxWindow* parent, wxWindowID id = -1);
@@ -109,23 +109,17 @@ private:
         void OnAbout(wxCommandEvent& event);
         void OnResize(wxSizeEvent& event);
         void OnKeyDown(wxKeyEvent& event);
-        void OnListView_UniversesItemSelect(wxListEvent& event);
-        void OnListView_UniversesItemActivated(wxListEvent& event);
-        void OnCheckBox_E131Click(wxCommandEvent& event);
-        void OnCheckBox_ArtNETClick(wxCommandEvent& event);
-        void OnButton_AddClick(wxCommandEvent& event);
-        void OnButton_EditClick(wxCommandEvent& event);
-        void OnButton_DeleteClick(wxCommandEvent& event);
         void OnUITimerTrigger(wxTimerEvent& event);
-        void OnListView_UniversesItemDeselect(wxListEvent& event);
-        void OnChoice_FrameTimingSelect(wxCommandEvent& event);
-        void OnButton_ForceInputClick(wxCommandEvent& event);
-        void OnButton_ForceOutputClick(wxCommandEvent& event);
         void OnButton_MiddleClick(wxCommandEvent& event);
         void OnButton_LeftClick(wxCommandEvent& event);
         void OnButton_RightClick(wxCommandEvent& event);
         void OnButton_ConnectToxLightsClick(wxCommandEvent& event);
         void OnSlider1CmdSliderUpdated(wxScrollEvent& event);
+        void OnButton_ConfigureClick(wxCommandEvent& event);
+        void OnSlider_LeftBrightnessCmdSliderUpdated(wxScrollEvent& event);
+        void OnSlider_RightBrightnessCmdSliderUpdated(wxScrollEvent& event);
+        void OnSlider_MasterBrightnessCmdSliderUpdated(wxScrollEvent& event);
+        void OnTextCtrl_CrossFadeTimeText(wxCommandEvent& event);
         //*)
 
         //(*Identifiers(xFadeFrame)
@@ -134,32 +128,25 @@ private:
         static const long ID_STATICTEXT10;
         static const long ID_TEXTCTRL4;
         static const long ID_PANEL1;
-        static const long ID_BUTTON2;
+        static const long ID_BUTTON_CONNECT;
+        static const long ID_BUTTON3;
+        static const long ID_STATICLINE1;
         static const long ID_STATICTEXT5;
-        static const long ID_CHECKBOX_E131;
-        static const long ID_CHECKBOX_ARTNET;
+        static const long ID_SLIDER_LeftBrightness;
         static const long ID_STATICTEXT7;
+        static const long ID_SLIDER_RightBrightness;
         static const long ID_STATICTEXT8;
-        static const long ID_BUTTON9;
+        static const long ID_SLIDER_MasterBrightness;
+        static const long ID_STATICLINE2;
+        static const long ID_STATICTEXT1;
+        static const long ID_TEXTCTRL_TIME;
         static const long ID_STATICTEXT2;
         static const long ID_STATICTEXT3;
-        static const long ID_BUTTON12;
-        static const long ID_STATICTEXT9;
-        static const long ID_CHOICE1;
-        static const long ID_STATICLINE1;
-        static const long ID_STATICTEXT1;
-        static const long ID_TEXTCTRL1;
-        static const long ID_STATICTEXT14;
         static const long ID_PANEL3;
-        static const long ID_BUTTON1;
-        static const long ID_BUTTON10;
-        static const long ID_SLIDER1;
-        static const long ID_BUTTON11;
-        static const long ID_STATICLINE2;
-        static const long ID_LISTVIEW_UNIVERSES;
-        static const long ID_BUTTON3;
-        static const long ID_BUTTON4;
-        static const long ID_BUTTON5;
+        static const long ID_BUTTON_MIDDLE;
+        static const long ID_BUTTON_LEFT;
+        static const long ID_SLIDER_FADE;
+        static const long ID_BUTTON_RIGHT;
         static const long ID_STATICTEXT4;
         static const long ID_TEXTCTRL2;
         static const long ID_STATICTEXT11;
@@ -170,24 +157,19 @@ private:
         //*)
 
         //(*Declarations(xFadeFrame)
-        wxButton* Button_Add;
+        wxButton* Button_Configure;
         wxButton* Button_ConnectToxLights;
-        wxButton* Button_Delete;
-        wxButton* Button_Edit;
-        wxButton* Button_ForceInput;
-        wxButton* Button_ForceOutput;
         wxButton* Button_Left;
         wxButton* Button_Middle;
         wxButton* Button_Right;
-        wxCheckBox* CheckBox_ArtNET;
-        wxCheckBox* CheckBox_E131;
-        wxChoice* Choice_FrameTiming;
         wxGridSizer* GridSizer_TimePresets;
-        wxListView* ListView_Universes;
         wxPanel* Panel_FadeTime;
         wxPanel* Panel_Left;
         wxPanel* Panel_Right;
         wxSlider* Slider1;
+        wxSlider* Slider_LeftBrightness;
+        wxSlider* Slider_MasterBrightness;
+        wxSlider* Slider_RightBrightness;
         wxStaticLine* StaticLine1;
         wxStaticLine* StaticLine2;
         wxStaticText* StaticText10;
@@ -200,8 +182,6 @@ private:
         wxStaticText* StaticText7;
         wxStaticText* StaticText8;
         wxStaticText* StaticText9;
-        wxStaticText* StaticText_InputIP;
-        wxStaticText* StaticText_OutputIP;
         wxStatusBar* StatusBar1;
         wxTextCtrl* TextCtrl_CrossFadeTime;
         wxTextCtrl* TextCtrl_LeftSequence;
@@ -220,6 +200,10 @@ private:
         void OnButtonClickRight(wxCommandEvent& event);
         void OnButtonRClickRight(wxContextMenuEvent& event);
         void OnTextCtrlRClickCrossFadeTime(wxContextMenuEvent& event);
+        void OnSliderRClickFade(wxContextMenuEvent& event);
+        void OnSliderRClickLeftBrightness(wxContextMenuEvent& event);
+        void OnSliderRClickRightBrightness(wxContextMenuEvent& event);
+        void OnSliderRClickMasterBrightness(wxContextMenuEvent& event);
 
         void OnButtonClickFT(wxCommandEvent& event);
         void OnButtonRClickFT(wxContextMenuEvent& event);
@@ -227,6 +211,8 @@ private:
         void OnButtonRClickFadeLeft(wxContextMenuEvent& event);
         void OnButtonRClickFadeMiddle(wxContextMenuEvent& event);
         void OnButtonRClickFadeRight(wxContextMenuEvent& event);
+
+        void OnMIDIEvent(wxCommandEvent& event);
 };
 
 #endif // XFADEMAIN_H

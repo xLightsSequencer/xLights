@@ -7,6 +7,11 @@
  * License:
  **************************************************************/
 
+ //(*InternalHeaders(xFadeFrame)
+ #include <wx/intl.h>
+ #include <wx/string.h>
+ //*)
+
 #define ZERO 0
 #define E131PORT 5568
 #define ARTNETPORT 0x1936
@@ -25,6 +30,9 @@
 #include "../xLights/IPEntryDialog.h"
 #include "Emitter.h"
 #include "../xLights/UtilFunctions.h"
+#include "MIDIListener.h"
+#include "SettingsDialog.h"
+#include "MIDIAssociateDialog.h"
 
 #ifndef __WXMSW__
 #include <netinet/in.h>
@@ -36,11 +44,6 @@
 #include "../include/xLights-32.xpm"
 #include "../include/xLights-64.xpm"
 #include "../include/xLights-128.xpm"
-
-//(*InternalHeaders(xFadeFrame)
-#include <wx/intl.h>
-#include <wx/string.h>
-//*)
 
 //helper functions
 enum wxbuildinfoformat {
@@ -74,32 +77,25 @@ const long xFadeFrame::ID_TEXTCTRL3 = wxNewId();
 const long xFadeFrame::ID_STATICTEXT10 = wxNewId();
 const long xFadeFrame::ID_TEXTCTRL4 = wxNewId();
 const long xFadeFrame::ID_PANEL1 = wxNewId();
-const long xFadeFrame::ID_BUTTON2 = wxNewId();
+const long xFadeFrame::ID_BUTTON_CONNECT = wxNewId();
+const long xFadeFrame::ID_BUTTON3 = wxNewId();
+const long xFadeFrame::ID_STATICLINE1 = wxNewId();
 const long xFadeFrame::ID_STATICTEXT5 = wxNewId();
-const long xFadeFrame::ID_CHECKBOX_E131 = wxNewId();
-const long xFadeFrame::ID_CHECKBOX_ARTNET = wxNewId();
+const long xFadeFrame::ID_SLIDER_LeftBrightness = wxNewId();
 const long xFadeFrame::ID_STATICTEXT7 = wxNewId();
+const long xFadeFrame::ID_SLIDER_RightBrightness = wxNewId();
 const long xFadeFrame::ID_STATICTEXT8 = wxNewId();
-const long xFadeFrame::ID_BUTTON9 = wxNewId();
+const long xFadeFrame::ID_SLIDER_MasterBrightness = wxNewId();
+const long xFadeFrame::ID_STATICLINE2 = wxNewId();
+const long xFadeFrame::ID_STATICTEXT1 = wxNewId();
+const long xFadeFrame::ID_TEXTCTRL_TIME = wxNewId();
 const long xFadeFrame::ID_STATICTEXT2 = wxNewId();
 const long xFadeFrame::ID_STATICTEXT3 = wxNewId();
-const long xFadeFrame::ID_BUTTON12 = wxNewId();
-const long xFadeFrame::ID_STATICTEXT9 = wxNewId();
-const long xFadeFrame::ID_CHOICE1 = wxNewId();
-const long xFadeFrame::ID_STATICLINE1 = wxNewId();
-const long xFadeFrame::ID_STATICTEXT1 = wxNewId();
-const long xFadeFrame::ID_TEXTCTRL1 = wxNewId();
-const long xFadeFrame::ID_STATICTEXT14 = wxNewId();
 const long xFadeFrame::ID_PANEL3 = wxNewId();
-const long xFadeFrame::ID_BUTTON1 = wxNewId();
-const long xFadeFrame::ID_BUTTON10 = wxNewId();
-const long xFadeFrame::ID_SLIDER1 = wxNewId();
-const long xFadeFrame::ID_BUTTON11 = wxNewId();
-const long xFadeFrame::ID_STATICLINE2 = wxNewId();
-const long xFadeFrame::ID_LISTVIEW_UNIVERSES = wxNewId();
-const long xFadeFrame::ID_BUTTON3 = wxNewId();
-const long xFadeFrame::ID_BUTTON4 = wxNewId();
-const long xFadeFrame::ID_BUTTON5 = wxNewId();
+const long xFadeFrame::ID_BUTTON_MIDDLE = wxNewId();
+const long xFadeFrame::ID_BUTTON_LEFT = wxNewId();
+const long xFadeFrame::ID_SLIDER_FADE = wxNewId();
+const long xFadeFrame::ID_BUTTON_RIGHT = wxNewId();
 const long xFadeFrame::ID_STATICTEXT4 = wxNewId();
 const long xFadeFrame::ID_TEXTCTRL2 = wxNewId();
 const long xFadeFrame::ID_STATICTEXT11 = wxNewId();
@@ -111,10 +107,13 @@ const long xFadeFrame::ID_TIMER1 = wxNewId();
 
 const long xFadeFrame::ID_E131SOCKET = wxNewId();
 const long xFadeFrame::ID_ARTNETSOCKET = wxNewId();
+const long xFadeFrame::ID_LED1 = wxNewId();
+const long xFadeFrame::ID_LED2 = wxNewId();
 
 BEGIN_EVENT_TABLE(xFadeFrame,wxFrame)
     //(*EventTable(xFadeFrame)
     //*)
+    EVT_COMMAND(wxID_ANY, EVT_MIDI, xFadeFrame::OnMIDIEvent)
 END_EVENT_TABLE()
 
 void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
@@ -144,10 +143,18 @@ void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
         if (left)
         {
             _leftData[universe].Update(type, packet, len);
+            if (_leftData[universe].GetSequenceNum() % 10 == 0)
+            {
+                Led_Left->Enable(!Led_Left->IsEnabled());
+            }
         }
         else if (right)
         {
             _rightData[universe].Update(type, packet, len);
+            if (_rightData[universe].GetSequenceNum() % 10 == 0)
+            {
+                Led_Right->Enable(!Led_Right->IsEnabled());
+            }
         }
     }
 }
@@ -212,7 +219,7 @@ bool xFadeFrame::IsRight(long type, wxByte* packet, int len)
 
 bool xFadeFrame::IsUniverseToBeCaptured(int universe)
 {
-    return _targetIP.find(universe) != _targetIP.end();
+    return _settings._targetIP.find(universe) != _settings._targetIP.end();
 }
 
 xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
@@ -222,6 +229,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     _e131SocketReceive = nullptr;
     _artNETSocketReceive = nullptr;
     _emitter = nullptr;
+    _selectedButtonFont = new wxFont(14, wxFONTFAMILY_SWISS, wxFontStyle::wxFONTSTYLE_NORMAL, wxFontWeight::wxFONTWEIGHT_BOLD);
 
     //(*Initialize(xFadeFrame)
     wxBoxSizer* BoxSizer1;
@@ -232,7 +240,6 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer9;
@@ -267,86 +274,61 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     BoxSizer1->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
-    FlexGridSizer2->AddGrowableRow(5);
-    Button_ConnectToxLights = new wxButton(this, ID_BUTTON2, _("Connect To xLights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    Button_ConnectToxLights = new wxButton(this, ID_BUTTON_CONNECT, _("Connect To xLights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CONNECT"));
     FlexGridSizer2->Add(Button_ConnectToxLights, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
-    StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Protocols:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_E131 = new wxCheckBox(this, ID_CHECKBOX_E131, _("E131"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_E131"));
-    CheckBox_E131->SetValue(true);
-    FlexGridSizer6->Add(CheckBox_E131, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_ArtNET = new wxCheckBox(this, ID_CHECKBOX_ARTNET, _("ArtNET"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ARTNET"));
-    CheckBox_ArtNET->SetValue(false);
-    FlexGridSizer6->Add(CheckBox_ArtNET, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Input Interface:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_InputIP = new wxStaticText(this, ID_STATICTEXT8, _("UNKNOWN"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-    FlexGridSizer6->Add(StaticText_InputIP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_ForceInput = new wxButton(this, ID_BUTTON9, _("Force"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
-    FlexGridSizer6->Add(Button_ForceInput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Output Interface:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_OutputIP = new wxStaticText(this, ID_STATICTEXT3, _("UNKNOWN"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer6->Add(StaticText_OutputIP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_ForceOutput = new wxButton(this, ID_BUTTON12, _("Force"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
-    FlexGridSizer6->Add(Button_ForceOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText6 = new wxStaticText(this, ID_STATICTEXT9, _("Frame Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
-    FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_FrameTiming = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    Choice_FrameTiming->Append(_("25ms"));
-    Choice_FrameTiming->Append(_("30ms"));
-    Choice_FrameTiming->SetSelection( Choice_FrameTiming->Append(_("50ms")) );
-    Choice_FrameTiming->Append(_("100ms"));
-    FlexGridSizer6->Add(Choice_FrameTiming, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
+    Button_Configure = new wxButton(this, ID_BUTTON3, _("Configure"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    FlexGridSizer2->Add(Button_Configure, 1, wxALL|wxEXPAND, 5);
     StaticLine1 = new wxStaticLine(this, ID_STATICLINE1, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE1"));
     FlexGridSizer2->Add(StaticLine1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer5->AddGrowableCol(1);
+    StaticText6 = new wxStaticText(this, ID_STATICTEXT5, _("Left brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+    FlexGridSizer5->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_LeftBrightness = new wxSlider(this, ID_SLIDER_LeftBrightness, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_LeftBrightness"));
+    FlexGridSizer5->Add(Slider_LeftBrightness, 1, wxALL|wxEXPAND, 5);
+    StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Right brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+    FlexGridSizer5->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_RightBrightness = new wxSlider(this, ID_SLIDER_RightBrightness, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_RightBrightness"));
+    FlexGridSizer5->Add(Slider_RightBrightness, 1, wxALL|wxEXPAND, 5);
+    StaticText10 = new wxStaticText(this, ID_STATICTEXT8, _("Master brightness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer5->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Slider_MasterBrightness = new wxSlider(this, ID_SLIDER_MasterBrightness, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_MasterBrightness"));
+    FlexGridSizer5->Add(Slider_MasterBrightness, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer2->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
+    StaticLine2 = new wxStaticLine(this, ID_STATICLINE2, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE2"));
+    FlexGridSizer2->Add(StaticLine2, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer8->AddGrowableCol(1);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Cross Fade Time:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer8->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    TextCtrl_CrossFadeTime = new wxTextCtrl(this, ID_TEXTCTRL1, _("1.00"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    TextCtrl_CrossFadeTime = new wxTextCtrl(this, ID_TEXTCTRL_TIME, _("1.00"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_TIME"));
     FlexGridSizer8->Add(TextCtrl_CrossFadeTime, 1, wxALL|wxEXPAND, 5);
-    StaticText10 = new wxStaticText(this, ID_STATICTEXT14, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT14"));
-    FlexGridSizer8->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Panel_FadeTime = new wxPanel(this, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
-    GridSizer_TimePresets = new wxGridSizer(0, 5, 0, 0);
-    Panel_FadeTime->SetSizer(GridSizer_TimePresets);
-    GridSizer_TimePresets->Fit(Panel_FadeTime);
-    GridSizer_TimePresets->SetSizeHints(Panel_FadeTime);
-    FlexGridSizer8->Add(Panel_FadeTime, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
+    Panel_FadeTime = new wxPanel(this, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+    Panel_FadeTime->SetMinSize(wxSize(-1,20));
+    FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer4->AddGrowableCol(1);
+    StaticText2 = new wxStaticText(Panel_FadeTime, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer4->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridSizer_TimePresets = new wxGridSizer(0, 5, 0, 0);
+    FlexGridSizer4->Add(GridSizer_TimePresets, 0, wxEXPAND, 0);
+    StaticText5 = new wxStaticText(Panel_FadeTime, ID_STATICTEXT3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+    FlexGridSizer4->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Panel_FadeTime->SetSizer(FlexGridSizer4);
+    FlexGridSizer4->Fit(Panel_FadeTime);
+    FlexGridSizer4->SetSizeHints(Panel_FadeTime);
+    FlexGridSizer2->Add(Panel_FadeTime, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer3->AddGrowableCol(1);
-    FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Middle = new wxButton(this, ID_BUTTON1, _("v"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    Button_Middle = new wxButton(this, ID_BUTTON_MIDDLE, _("v"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_MIDDLE"));
     FlexGridSizer3->Add(Button_Middle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Left = new wxButton(this, ID_BUTTON10, _("<"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+    Button_Left = new wxButton(this, ID_BUTTON_LEFT, _("<"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LEFT"));
     FlexGridSizer3->Add(Button_Left, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Slider1 = new wxSlider(this, ID_SLIDER1, 0, 0, 10000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
+    Slider1 = new wxSlider(this, ID_SLIDER_FADE, 0, 0, 10000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_FADE"));
     FlexGridSizer3->Add(Slider1, 1, wxALL|wxEXPAND, 5);
-    Button_Right = new wxButton(this, ID_BUTTON11, _(">"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+    Button_Right = new wxButton(this, ID_BUTTON_RIGHT, _(">"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RIGHT"));
     FlexGridSizer3->Add(Button_Right, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
-    StaticLine2 = new wxStaticLine(this, ID_STATICLINE2, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("ID_STATICLINE2"));
-    FlexGridSizer2->Add(StaticLine2, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer4->AddGrowableCol(0);
-    FlexGridSizer4->AddGrowableRow(0);
-    ListView_Universes = new wxListView(this, ID_LISTVIEW_UNIVERSES, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_UNIVERSES"));
-    FlexGridSizer4->Add(ListView_Universes, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-    Button_Add = new wxButton(this, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    FlexGridSizer5->Add(Button_Add, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Edit = new wxButton(this, ID_BUTTON4, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer5->Add(Button_Edit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_Delete = new wxButton(this, ID_BUTTON5, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer5->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
     BoxSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer7->AddGrowableCol(0);
@@ -382,24 +364,27 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_ConnectToxLightsClick);
-    Connect(ID_CHECKBOX_E131,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnCheckBox_E131Click);
-    Connect(ID_CHECKBOX_ARTNET,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnCheckBox_ArtNETClick);
-    Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_ForceInputClick);
-    Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_ForceOutputClick);
-    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xFadeFrame::OnChoice_FrameTimingSelect);
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_MiddleClick);
-    Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_LeftClick);
-    Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xFadeFrame::OnSlider1CmdSliderUpdated);
-    Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_RightClick);
-    Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&xFadeFrame::OnListView_UniversesItemSelect);
-    Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&xFadeFrame::OnListView_UniversesItemDeselect);
-    Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xFadeFrame::OnListView_UniversesItemActivated);
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_AddClick);
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_EditClick);
-    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_DeleteClick);
+    Connect(ID_BUTTON_CONNECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_ConnectToxLightsClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_ConfigureClick);
+    Connect(ID_SLIDER_LeftBrightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xFadeFrame::OnSlider_LeftBrightnessCmdSliderUpdated);
+    Connect(ID_SLIDER_RightBrightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xFadeFrame::OnSlider_RightBrightnessCmdSliderUpdated);
+    Connect(ID_SLIDER_MasterBrightness,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xFadeFrame::OnSlider_MasterBrightnessCmdSliderUpdated);
+    Connect(ID_TEXTCTRL_TIME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&xFadeFrame::OnTextCtrl_CrossFadeTimeText);
+    Connect(ID_BUTTON_MIDDLE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_MiddleClick);
+    Connect(ID_BUTTON_LEFT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_LeftClick);
+    Connect(ID_SLIDER_FADE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xFadeFrame::OnSlider1CmdSliderUpdated);
+    Connect(ID_BUTTON_RIGHT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_RightClick);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xFadeFrame::OnUITimerTrigger);
     //*)
+
+    Led_Left = new wxLed(this, ID_LED1, "808080", wxDefaultPosition, wxDefaultSize);
+    Led_Left->Disable();
+    Led_Left->SetColor("00FF00");
+    FlexGridSizer3->Insert(0, Led_Left, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    Led_Right = new wxLed(this, ID_LED2, "808080", wxDefaultPosition, wxDefaultSize);
+    Led_Right->SetColor("00FF00");
+    Led_Right->Disable();
+    FlexGridSizer3->Insert(2, Led_Right, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
 
     Connect(ID_E131SOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xFadeFrame::OnE131SocketEvent);
     Connect(ID_ARTNETSOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xFadeFrame::OnArtNETSocketEvent);
@@ -408,6 +393,10 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Connect(Button_Middle->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickFadeMiddle);
     Connect(Button_Right->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickFadeRight);
     Connect(TextCtrl_CrossFadeTime->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnTextCtrlRClickCrossFadeTime);
+    Connect(Slider1->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickFade);
+    Connect(Slider_LeftBrightness->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickLeftBrightness);
+    Connect(Slider_RightBrightness->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickRightBrightness);
+    Connect(Slider_MasterBrightness->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickMasterBrightness);
 
     SetTitle("xLights Fade " + xlights_version_string + " " + GetBitness());
 
@@ -419,32 +408,14 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     icons.AddIcon(wxIcon(xlights_xpm));
     SetIcons(icons);
 
-    ListView_Universes->AppendColumn("Start");
-    ListView_Universes->AppendColumn("End");
-    ListView_Universes->AppendColumn("IP Address");
-    ListView_Universes->AppendColumn("Description");
-    ListView_Universes->AppendColumn("Protocol");
-
-    wxIPV4address addr;
-    wxString fullhostname = wxGetFullHostName();
-    addr.AnyAddress();
-    wxDatagramSocket* testSocket = new wxDatagramSocket(addr, wxSOCKET_NOWAIT);
-    if (testSocket) delete testSocket;
-    addr.Hostname(fullhostname);
-
-    _defaultIP = addr.IPAddress();
-
     LoadState();
 
-    StaticText_InputIP->SetLabel(_localInputIP);
-    StaticText_OutputIP->SetLabel(_localOutputIP);
-
-    _emitter = new Emitter(&_targetIP, &_leftData, &_rightData, &_targetProtocol, &_lock, _localOutputIP);
+    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP);
 
     for (int i = 0; i < JUKEBOXBUTTONS; i++)
     {
         wxButton* button = new wxButton(Panel_Left, wxID_ANY, wxString::Format("%d", i + 1), wxDefaultPosition, wxSize(BUTTONWIDTH, BUTTONHEIGHT),
-            0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JBL") + wxString::Format("%d", i + 1));
+            0, wxDefaultValidator, _T("ID_BUTTON_JBL") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         GridSizer_LeftJukeBox->Add(button, 1, wxALL | wxEXPAND);
@@ -452,13 +423,12 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
         Connect(button->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickLeft);
 
         button = new wxButton(Panel_Right, wxID_ANY, wxString::Format("%d", i + 1), wxDefaultPosition, wxSize(BUTTONWIDTH, BUTTONHEIGHT),
-            0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JBR") + wxString::Format("%d", i + 1));
+            0, wxDefaultValidator, _T("ID_BUTTON_JBR") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         GridSizer_RightJukebox->Add(button, 1, wxALL | wxEXPAND);
         Connect(button->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xFadeFrame::OnButtonClickRight);
         Connect(button->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickRight);
-        _defaultColour = button->GetBackgroundColour();
     }
 
     AddFadeTimeButton("0.5");
@@ -475,15 +445,21 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     SetFade();
     SetTiming();
 
-    if (CheckBox_ArtNET->GetValue()) CreateArtNETListener();
-    if (CheckBox_E131->GetValue()) CreateE131Listener();
+    if (_settings._ArtNET) CreateArtNETListener();
+    if (_settings._E131) CreateE131Listener();
 
     TextCtrl_LeftSequence->SetValue("");
     TextCtrl_RightSequence->SetValue("");
     TextCtrl_LeftTag->SetValue("");
     TextCtrl_RightTag->SetValue("");
 
+    _midiListener = new MIDIListener(_settings.GetMIDIDeviceId(), this);
+
     ValidateWindow();
+}
+
+void xFadeFrame::ValidateWindow()
+{
 }
 
 void xFadeFrame::LoadState()
@@ -504,96 +480,18 @@ void xFadeFrame::LoadState()
     SetSize(w, h);
     Layout();
 
-    wxString localInputIP = config->Read(_("xfLocalInputIP"), "");
-    if (localInputIP != "")
-    {
-        _localInputIP = localInputIP;
-    }
-    else
-    {
-        _localInputIP = _defaultIP;
-    }
-
-    wxString localOutputIP = config->Read(_("xfLocalOutputIP"), "");
-    if (localOutputIP != "")
-    {
-        _localOutputIP = localOutputIP;
-    }
-    else
-    {
-        _localOutputIP = _defaultIP;
-    }
-
-    wxString state = config->Read(_("xfState"), "");
-    wxArrayString items = wxSplit(state, ',');
-    for (auto it = items.begin(); it != items.end(); ++it)
-    {
-        if (*it != "")
-        {
-            wxArrayString pr = wxSplit(*it, '=');
-            if (pr[0].StartsWith("ID_TEXTCTRL"))
-            {
-                wxTextCtrl* win = (wxTextCtrl*)FindWindowByName(pr[0], this);
-                win->SetValue(pr[1]);
-            }
-            else if (pr[0].StartsWith("ID_CHECKBOX"))
-            {
-                wxCheckBox* win = (wxCheckBox*)FindWindowByName(pr[0], this);
-                win->SetValue(pr[1] == "TRUE");
-            }
-            else if (pr[0].StartsWith("ID_SPINCTRL"))
-            {
-                wxSpinCtrl* win = (wxSpinCtrl*)FindWindowByName(pr[0], this);
-                win->SetValue(wxAtoi(pr[1]));
-            }
-            else if (pr[0].StartsWith("ID_LISTVIEW"))
-            {
-                wxListView* win = (wxListView*)FindWindowByName(pr[0], this);
-                if (pr[1] != "")
-                {
-                    wxArrayString rows = wxSplit(pr[1], '|');
-                    for (auto it2 = rows.begin(); it2 != rows.end(); ++it2)
-                    {
-                        if (*it2 != "")
-                        {
-                            wxArrayString values = wxSplit(*it2, ':');
-
-                            long id = win->InsertItem(win->GetItemCount(), values[0]);
-                            win->SetItem(id, 1, values[1]);
-                            win->SetItem(id, 2, values[2]);
-                            win->SetItem(id, 3, values[3]);
-                            if (values.size() > 4)
-                            {
-                                win->SetItem(id, 4, values[4]);
-                            }
-                            else
-                            {
-                                win->SetItem(id, 4, "As per input");
-                            }
-
-                            for (int i = wxAtoi(values[0]); i <= wxAtoi(values[1]); i++)
-                            {
-                                _targetIP[i] = values[2];
-                                _targetDesc[i] = values[3];
-                                if (values.size() > 4)
-                                {
-                                    _targetProtocol[i] = values[4];
-                                }
-                                else
-                                {
-                                    _targetProtocol[i] = "As per input";
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    wxString settings = config->Read(_("xfSettings"), "");
+    _settings.Load(settings);
 }
 
 xFadeFrame::~xFadeFrame()
 {
+    if (_midiListener != nullptr)
+    {
+        _midiListener->Stop();
+        //delete _midiListener;
+    }
+
     if (_emitter != nullptr)
     {
         _emitter->Stop();
@@ -607,6 +505,11 @@ xFadeFrame::~xFadeFrame()
     {
         delete _emitter;
         _emitter = nullptr;
+    }
+
+    if (_selectedButtonFont != nullptr)
+    {
+        delete _selectedButtonFont;
     }
 
     //(*Destroy(xFadeFrame)
@@ -627,62 +530,14 @@ void xFadeFrame::SaveState()
     config->Write(_("xfWindowPosW"), w);
     config->Write(_("xfWindowPosH"), h);
 
-    if (_localInputIP == _defaultIP)
-    {
-        config->DeleteEntry(_("xfLocalInputIP"));
-    }
-    else
-    {
-        config->Write(_("xfLocalInputIP"), _localInputIP);
-    }
-
-    if (_localOutputIP == _defaultIP)
-    {
-        config->DeleteEntry(_("xfLocalOutputIP"));
-    }
-    else
-    {
-        config->Write(_("xfLocalOutputIP"), _localOutputIP);
-    }
-
-    wxString state;
-    auto windows = GetChildren();
-    for (auto it = windows.begin(); it != windows.end(); ++it)
-    {
-        if ((*it)->GetName().StartsWith("ID_TEXTCTRL"))
-        {
-            state += (*it)->GetName() + "=" + ((wxTextCtrl*)(*it))->GetValue() + ",";
-        }
-        else if ((*it)->GetName().StartsWith("ID_CHECKBOX"))
-        {
-            state += (*it)->GetName() + "=" + (((wxCheckBox*)(*it))->GetValue() ? "TRUE," : "FALSE,");
-        }
-        else if ((*it)->GetName().StartsWith("ID_SPINCTRL"))
-        {
-            state += (*it)->GetName() + "=" + wxString::Format("%d,", ((wxSpinCtrl*)(*it))->GetValue());
-        }
-        else if ((*it)->GetName().StartsWith("ID_LISTVIEW"))
-        {
-            wxString lv;
-            for (int i = 0; i < ((wxListView*)(*it))->GetItemCount(); i++)
-            {
-                lv += ((wxListView*)(*it))->GetItemText(i, 0) + ":" +
-                    ((wxListView*)(*it))->GetItemText(i, 1) + ":" +
-                    ((wxListView*)(*it))->GetItemText(i, 2) + ":" +
-                    ((wxListView*)(*it))->GetItemText(i, 3) + ":" +
-                    ((wxListView*)(*it))->GetItemText(i, 4) + "|";
-            }
-            state += (*it)->GetName() + "=" + lv + ",";
-        }
-    }
-    config->Write(_("xfState"), state);
+    config->Write(_("xfSettings"), wxString(_settings.Serialise()));
     config->Flush();
 }
 
 // close not required sockets
 void xFadeFrame::CloseSockets(bool force)
 {
-    if (force || !CheckBox_E131->GetValue())
+    if (force || !_settings._E131)
     {
         if (_e131SocketReceive != nullptr)
         {
@@ -692,7 +547,7 @@ void xFadeFrame::CloseSockets(bool force)
         }
     }
 
-    if (force || !CheckBox_ArtNET->GetValue())
+    if (force || !_settings._ArtNET)
     {
         if (_artNETSocketReceive != nullptr)
         {
@@ -705,8 +560,10 @@ void xFadeFrame::CloseSockets(bool force)
 
 void xFadeFrame::AddFadeTimeButton(std::string label)
 {
+    wxString l = label;
+    l.Replace(".", "_");
     wxButton* button = new wxButton(Panel_FadeTime, wxID_ANY, label, wxDefaultPosition, wxSize(2 * BUTTONWIDTH, BUTTONHEIGHT),
-        0, wxDefaultValidator, _T("ID_BITMAPBUTTON_FBT") /*+ label*/);
+        0, wxDefaultValidator, _T("ID_BUTTON_FBT") + l);
     button->SetMinSize(wxSize(2*BUTTONWIDTH, BUTTONHEIGHT));
     button->SetMaxSize(wxSize(2*BUTTONWIDTH, BUTTONHEIGHT));
     GridSizer_TimePresets->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
@@ -729,8 +586,9 @@ void xFadeFrame::OnAbout(wxCommandEvent& event)
 
 PacketData::PacketData()
 {
-    _length = 0; 
-    _type = 0; 
+    memset(_data, 0x00, sizeof(_data));
+    _length = 0;
+    _type = 0;
     _universe = 0;
     _tag = wxString::Format("xFade %d", wxGetProcessId()).ToStdString();
 }
@@ -803,6 +661,7 @@ void PacketData::Update(long type, wxByte* packet, int len)
         if (packet[11] != 0x31) return;
         if (packet[12] != 0x37) return;
 
+        _universe = ((int)_data[113] << 8) + (int)_data[114];
         _type = type;
         _length = len;
         memcpy(_data, packet, len);
@@ -820,6 +679,7 @@ void PacketData::Update(long type, wxByte* packet, int len)
         if (packet[6] != 't') return;
         if (packet[9] != 0x50) return;
 
+        _universe = ((int)_data[15] << 8) + (int)_data[14];
         _type = type;
         _length = len;
         memcpy(_data, packet, len);
@@ -1013,6 +873,55 @@ void PacketData::InitialiseE131Header()
     _data[116] = lo;  // 0x20b = E131_PACKET_LEN - 115
 }
 
+int PacketData::GetSequenceNum() const
+{
+    if (_length <= 0) return -1;
+
+    if (_type == xFadeFrame::ID_E131SOCKET)
+    {
+        return (int)_data[111];
+    }
+    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
+    {
+        return (int)_data[12];
+    }
+    return -1;
+}
+
+void PacketData::InitialiseLength(long type, int length, int universe)
+{
+    _type = type;
+    _length = length;
+    _universe = universe;
+
+    if (_type == xFadeFrame::ID_E131SOCKET)
+    {
+        InitialiseE131Header();
+    }
+    else if (_type == xFadeFrame::ID_ARTNETSOCKET)
+    {
+        InitialiseArtNETHeader();
+    }
+}
+
+void PacketData::ApplyBrightness(int brightness)
+{
+    if (brightness == 100) return;
+
+    if (brightness == 0)
+    {
+        memset(GetDataPtr(), 0x00, GetDataLength());
+    }
+    else
+    {
+        wxByte* p = GetDataPtr();
+        for (int i = 0; i < GetDataLength(); i++)
+        {
+            *(p + i) = (wxByte)((int)*(p+i) * brightness / 100);
+        }
+    }
+}
+
 void PacketData::CopyFrom(PacketData* source, long targetType)
 {
     _length = 0;
@@ -1058,20 +967,6 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
     }
 }
 
-void xFadeFrame::ValidateWindow()
-{
-    if (ListView_Universes->GetSelectedItemCount() == 0)
-    {
-        Button_Edit->Enable(false);
-        Button_Delete->Enable(false);
-    }
-    else
-    {
-        Button_Edit->Enable(true);
-        Button_Delete->Enable(true);
-    }
-}
-
 void xFadeFrame::CreateE131Listener()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1084,15 +979,28 @@ void xFadeFrame::CreateE131Listener()
     //create and bind to the address above
     _e131SocketReceive = new wxDatagramSocket(addr);
 
-    logger_base.debug("E131 listening on %s", (const char*)_localInputIP.c_str());
+    if (_e131SocketReceive == nullptr)
+    {
+        logger_base.error("Problem listening for e131.");
+        return;
+    }
+    else if (!_e131SocketReceive->IsOk())
+    {
+        logger_base.error("Problem listening for e131.");
+        delete _e131SocketReceive;
+        _e131SocketReceive = nullptr;
+        return;
+    }
 
-    for (auto it = _targetIP.begin(); it != _targetIP.end(); ++it)
+    logger_base.debug("E131 listening on %s", (const char*)_settings._localInputIP.c_str());
+
+    for (auto it = _settings._targetIP.begin(); it != _settings._targetIP.end(); ++it)
     {
         struct ip_mreq mreq;
         wxString ip = wxString::Format("239.255.%d.%d", it->first >> 8, it->first & 0xFF);
         logger_base.debug("E131 registering for multicast on %s.", (const char *)ip.c_str());
         mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
-        mreq.imr_interface.s_addr = inet_addr(_localInputIP.c_str()); // this will only listen on the default interface
+        mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
         if (!_e131SocketReceive->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
         {
             logger_base.warn("    Error opening E131 multicast listener %s.", (const char *)ip.c_str());
@@ -1119,15 +1027,28 @@ void xFadeFrame::CreateArtNETListener()
     //create and bind to the address above
     _artNETSocketReceive = new wxDatagramSocket(addr);
 
-    logger_base.debug("ARTNet listening on %s", (const char*)_localInputIP.c_str());
+    if (_artNETSocketReceive == nullptr)
+    {
+        logger_base.error("Problem listening for ArtNET.");
+        return;
+    }
+    else if (!_artNETSocketReceive->IsOk())
+    {
+        logger_base.error("Problem listening for ArtNET.");
+        delete _artNETSocketReceive;
+        _artNETSocketReceive = nullptr;
+        return;
+    }
 
-    for (auto it = _targetIP.begin(); it != _targetIP.end(); ++it)
+    logger_base.debug("ARTNet listening on %s", (const char*)_settings._localInputIP.c_str());
+
+    for (auto it = _settings._targetIP.begin(); it != _settings._targetIP.end(); ++it)
     {
                 struct ip_mreq mreq;
                 wxString ip = wxString::Format("239.255.%d.%d", it->first >> 8, it->first & 0xFF);
                 logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
                 mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
-                mreq.imr_interface.s_addr = inet_addr(_localInputIP.c_str()); // this will only listen on the default interface
+                mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
                 if (!_artNETSocketReceive->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
                 {
                     logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
@@ -1142,91 +1063,63 @@ void xFadeFrame::CreateArtNETListener()
     _artNETSocketReceive->Notify(true);
 }
 
-void xFadeFrame::LoadUniverses()
+void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 {
-    int sel = ListView_Universes->GetFirstSelected();
+    wxByte status = (event.GetInt() >> 24) & 0xFF;
+    wxByte channel = (event.GetInt() >> 16) & 0xFF;
+    wxByte data1 = (event.GetInt() >> 8) & 0xFF;
+    wxByte data2 = event.GetInt() & 0xFF;
 
-    ListView_Universes->Freeze();
+    wxString controlName = _settings.LookupMIDI(status, channel, data1);
 
-    ListView_Universes->DeleteAllItems();
+    if (controlName == "") return;
 
-    int startu = 0;
-    int lastu = 0;
-    std::string lastip = "";
-    std::string lastdesc = "";
-    std::string lastprotocol = "";
+    wxWindow* control = wxFindWindowByName(controlName, this);
 
-    auto itd = _targetDesc.begin();
-    auto itp = _targetProtocol.begin();
-    for (auto it = _targetIP.begin(); it != _targetIP.end(); ++it)
+    if (control == nullptr) return;
+
+    if (controlName.StartsWith("ID_TEXTCTRL"))
     {
-        if (lastu != it->first-1 || lastip != it->second)
-        {
-            if (lastu != 0)
-            {
-                ListView_Universes->InsertItem(ListView_Universes->GetItemCount(), wxString::Format("%d", startu));
-                ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 1, wxString::Format("%d", lastu));
-                ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 2, lastip);
-                ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 3, lastdesc);
-                ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 4, lastprotocol);
-
-                startu = it->first;
-                lastu = it->first;
-                lastip = it->second;
-                lastdesc = itd->second;
-                lastprotocol = itp->second;
-            }
-            else
-            {
-                startu = it->first;
-                lastu = it->first;
-                lastip = it->second;
-                lastdesc = itd->second;
-                lastprotocol = itp->second;
-            }
-        }
-        else
-        {
-            lastu = it->first;
-        }
-
-        ++itd;
-        ++itp;
+        // this is the time field
+        float value = (float)data2 * 10.0 / 127.0;
+        ((wxTextCtrl*)control)->SetValue(wxString::Format("%.1f", value));
+        wxCommandEvent e(wxEVT_TEXT);
+        e.SetEventObject(control);
+        e.SetId(control->GetId());
+        wxPostEvent(this, e);
     }
-
-    if (startu != 0)
+    else if (controlName.StartsWith("ID_SLIDER"))
     {
-        ListView_Universes->InsertItem(ListView_Universes->GetItemCount(), wxString::Format("%d", startu));
-        ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 1, wxString::Format("%d", lastu));
-        ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 2, lastip);
-        ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 3, lastdesc);
-        ListView_Universes->SetItem(ListView_Universes->GetItemCount() - 1, 4, lastprotocol);
+        wxSlider* slider = (wxSlider*)control;
+        int low = slider->GetMin();
+        int max = slider->GetMax();
+        float value = ((float)data2 * ((float)max - (float)low)) / 127.0 + (float)low;
+        slider->SetValue(value);
+        wxCommandEvent e(wxEVT_COMMAND_SLIDER_UPDATED);
+        e.SetEventObject(control);
+        e.SetId(control->GetId());
+        wxPostEvent(this, e);
     }
-
-    ListView_Universes->Select(sel);
-
-    ListView_Universes->Thaw();
+    else if (controlName.StartsWith("ID_BUTTON"))
+    {
+        wxCommandEvent e(wxEVT_COMMAND_BUTTON_CLICKED);
+        e.SetEventObject(control);
+        e.SetId(control->GetId());
+        wxPostEvent(this, e);
+    }
 }
 
 void xFadeFrame::SetMIDIForControl(wxString controlName, float parm)
 {
-    SaveState();
-}
+    int status, channel, data1;
+    _settings.LookupMIDI(controlName, status, channel, data1);
 
-void xFadeFrame::AddUniverseRange(int low, int high, std::string ipAddress, std::string desc, std::string protocol)
-{
-    for (int i = low; i <= high; i++)
+    MIDIAssociateDialog dlg(this, controlName, _midiListener, status, channel, data1);
+    if (dlg.ShowModal() == wxID_OK)
     {
-        _targetIP[i] = ipAddress;
-        _targetDesc[i] = desc;
-        _targetProtocol[i] = protocol;
+        _settings.SetMIDIControl(controlName, (dlg.Choice_Status->GetSelection() << 4) + 0x80, dlg.Choice_Channel->GetSelection(), dlg.Choice_Data1->GetSelection());
+        SaveState();
     }
-
-    LoadUniverses();
-
-    // Need to redo sockets in case we have multicast
-    RestartInterfaces();
-    ValidateWindow();
 }
 
 void xFadeFrame::OnResize(wxSizeEvent& event)
@@ -1293,49 +1186,6 @@ void xFadeFrame::OnKeyDown(wxKeyEvent& event)
     ValidateWindow();
 }
 
-void xFadeFrame::OnListView_UniversesItemSelect(wxListEvent& event)
-{
-    ValidateWindow();
-}
-
-void xFadeFrame::OnListView_UniversesItemActivated(wxListEvent& event)
-{
-    if (ListView_Universes->GetSelectedItemCount() > 0)
-    {
-        int start = wxAtoi(ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected()));
-        int end = wxAtoi(ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 1));
-        UniverseEntryDialog dlg(this, start, end, ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 2), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 3), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 4));
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            AddUniverseRange(dlg.SpinCtrl_Start->GetValue(), dlg.SpinCtrl_End->GetValue(), dlg.TextCtrl_IPAddress->GetValue().ToStdString(), dlg.TextCtrl_Description->GetValue().ToStdString(), dlg.Choice_Protocol->GetStringSelection().ToStdString());
-            SaveState();
-        }
-    }
-    ValidateWindow();
-}
-
-void xFadeFrame::OnCheckBox_E131Click(wxCommandEvent& event)
-{
-    CloseSockets();
-    if (CheckBox_E131->GetValue())
-    {
-        CreateE131Listener();
-    }
-    SaveState();
-    ValidateWindow();
-}
-
-void xFadeFrame::OnCheckBox_ArtNETClick(wxCommandEvent& event)
-{
-    CloseSockets();
-    if (CheckBox_ArtNET->GetValue())
-    {
-        CreateArtNETListener();
-    }
-    SaveState();
-    ValidateWindow();
-}
-
 void xFadeFrame::OnE131SocketEvent(wxSocketEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1389,49 +1239,6 @@ void xFadeFrame::OnArtNETSocketEvent(wxSocketEvent & event)
     default:
         logger_base.warn("OnArtNETSocketEvent: Unexpected event !");
         break;
-    }
-}
-
-void xFadeFrame::OnButton_AddClick(wxCommandEvent& event)
-{
-    UniverseEntryDialog dlg(this, -1, -1, "", "", "As per input");
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        AddUniverseRange(dlg.SpinCtrl_Start->GetValue(), dlg.SpinCtrl_End->GetValue(), dlg.TextCtrl_IPAddress->GetValue().ToStdString(), dlg.TextCtrl_Description->GetValue().ToStdString(), dlg.Choice_Protocol->GetStringSelection().ToStdString());
-        SaveState();
-    }
-}
-
-void xFadeFrame::OnButton_EditClick(wxCommandEvent& event)
-{
-    if (ListView_Universes->GetSelectedItemCount() > 0)
-    {
-        int start = wxAtoi(ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected()));
-        int end = wxAtoi(ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 1));
-        UniverseEntryDialog dlg(this, start, end, ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 2), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 3), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 4));
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            AddUniverseRange(dlg.SpinCtrl_Start->GetValue(), dlg.SpinCtrl_End->GetValue(), dlg.TextCtrl_IPAddress->GetValue().ToStdString(), dlg.TextCtrl_Description->GetValue().ToStdString(), dlg.Choice_Protocol->GetStringSelection().ToStdString());
-            SaveState();
-        }
-    }
-}
-
-void xFadeFrame::OnButton_DeleteClick(wxCommandEvent& event)
-{
-    if (ListView_Universes->GetSelectedItemCount() > 0)
-    {
-        int start = wxAtoi(ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected()));
-        int end = wxAtoi(ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 1));
-
-        for (int i = start; i <= end; i++)
-        {
-            _targetIP.erase(i);
-            _targetDesc.erase(i);
-            _targetProtocol.erase(i);
-        }
-        LoadUniverses();
-        SaveState();
     }
 }
 
@@ -1502,49 +1309,46 @@ void xFadeFrame::SetTiming()
 {
     if (_emitter != nullptr)
     {
-        wxString frm = Choice_FrameTiming->GetStringSelection();
-        if (frm == "25ms")
-        {
-            _emitter->SetFrameMS(25);
-        }
-        else if (frm == "30ms")
-        {
-            _emitter->SetFrameMS(30);
-        }
-        else if (frm == "100ms")
-        {
-            _emitter->SetFrameMS(100);
-        }
-        else
-        {
-            _emitter->SetFrameMS(50);
-        }
+        _emitter->SetFrameMS(_settings._frameMS);
     }
 }
 
 void xFadeFrame::RestartInterfaces()
 {
     CloseSockets(true);
-    if (CheckBox_E131->GetValue())
+    if (_settings._E131)
     {
         CreateE131Listener();
     }
-    if (CheckBox_ArtNET->GetValue())
+    if (_settings._ArtNET)
     {
         CreateArtNETListener();
     }
     ValidateWindow();
 }
 
-void xFadeFrame::OnListView_UniversesItemDeselect(wxListEvent& event)
-{
-}
-
 void xFadeFrame::OnButtonClickLeft(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int button = wxAtoi(((wxButton*)event.GetEventObject())->GetLabel());
 
+    logger_base.debug("Playing jukebox left. %d", button);
+
     wxString result = xLightsRequest(1, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button));
+
+    if (result.StartsWith("SUCCESS"))
+    {
+        auto buttons = Panel_Left->GetChildren();
+        for (auto b = buttons.begin(); b != buttons.end(); ++b)
+        {
+            ((wxButton*)*b)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            ((wxButton*)*b)->SetFont(wxNullFont);
+        }
+
+        ((wxButton*)event.GetEventObject())->SetForegroundColour(*wxBLUE);
+        ((wxButton*)event.GetEventObject())->SetFont(_selectedButtonFont->Underlined());
+    }
 }
 
 void xFadeFrame::OnButtonRClickLeft(wxContextMenuEvent& event)
@@ -1555,9 +1359,26 @@ void xFadeFrame::OnButtonRClickLeft(wxContextMenuEvent& event)
 
 void xFadeFrame::OnButtonClickRight(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int button = wxAtoi(((wxButton*)event.GetEventObject())->GetLabel());
 
+    logger_base.debug("Playing jukebox right. %d", button);
+
     wxString result = xLightsRequest(2, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button));
+
+    if (result.StartsWith("SUCCESS"))
+    {
+        auto buttons = Panel_Right->GetChildren();
+        for (auto b = buttons.begin(); b != buttons.end(); ++b)
+        {
+            ((wxButton*)*b)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+            ((wxButton*)*b)->SetFont(wxNullFont);
+        }
+
+        ((wxButton*)event.GetEventObject())->SetForegroundColour(*wxBLUE);
+        ((wxButton*)event.GetEventObject())->SetFont(_selectedButtonFont->Underlined());
+    }
 }
 
 void xFadeFrame::OnButtonRClickRight(wxContextMenuEvent& event)
@@ -1567,6 +1388,26 @@ void xFadeFrame::OnButtonRClickRight(wxContextMenuEvent& event)
 }
 
 void xFadeFrame::OnTextCtrlRClickCrossFadeTime(wxContextMenuEvent& event)
+{
+    SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
+}
+
+void xFadeFrame::OnSliderRClickFade(wxContextMenuEvent& event)
+{
+    SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
+}
+
+void xFadeFrame::OnSliderRClickLeftBrightness(wxContextMenuEvent& event)
+{
+    SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
+}
+
+void xFadeFrame::OnSliderRClickRightBrightness(wxContextMenuEvent& event)
+{
+    SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
+}
+
+void xFadeFrame::OnSliderRClickMasterBrightness(wxContextMenuEvent& event)
 {
     SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
 }
@@ -1584,63 +1425,6 @@ void xFadeFrame::OnButtonRClickFadeMiddle(wxContextMenuEvent& event)
 void xFadeFrame::OnButtonRClickFadeRight(wxContextMenuEvent& event)
 {
     SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
-}
-
-void xFadeFrame::OnChoice_FrameTimingSelect(wxCommandEvent& event)
-{
-    SetTiming();
-    SaveState();
-}
-
-void xFadeFrame::OnButton_ForceInputClick(wxCommandEvent& event)
-{
-    IPEntryDialog dlg(this);
-    dlg.TextCtrl_IPAddress->SetValue(_localInputIP);
-
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        if (dlg.TextCtrl_IPAddress->GetValue() == "")
-        {
-            _localInputIP = _defaultIP;
-        }
-        else
-        {
-            _localInputIP = dlg.TextCtrl_IPAddress->GetValue();
-        }
-        StaticText_InputIP->SetLabel(_localInputIP);
-        RestartInterfaces();
-        SaveState();
-    }
-}
-
-void xFadeFrame::OnButton_ForceOutputClick(wxCommandEvent& event)
-{
-    IPEntryDialog dlg(this);
-    dlg.TextCtrl_IPAddress->SetValue(_localOutputIP);
-
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        if (dlg.TextCtrl_IPAddress->GetValue() == "")
-        {
-            _localOutputIP = _defaultIP;
-        }
-        else
-        {
-            _localOutputIP = dlg.TextCtrl_IPAddress->GetValue();
-        }
-        StaticText_OutputIP->SetLabel(_localOutputIP);
-        RestartInterfaces();
-        if (_emitter != nullptr)
-        {
-            _emitter->SetLocalIP(_localOutputIP);
-            _emitter->Restart();
-        }
-        else
-        {
-            _emitter = new Emitter(&_targetIP, &_leftData, &_rightData, &_targetProtocol, &_lock, _localOutputIP);
-        }
-        SaveState();
-    }
 }
 
 void xFadeFrame::OnButton_MiddleClick(wxCommandEvent& event)
@@ -1663,7 +1447,11 @@ void xFadeFrame::OnButton_RightClick(wxCommandEvent& event)
 
 void xFadeFrame::OnButtonClickFT(wxCommandEvent& event)
 {
-    TextCtrl_CrossFadeTime->SetValue(((wxButton*)event.GetEventObject())->GetLabel());
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto label = ((wxButton*)event.GetEventObject())->GetLabel();
+    logger_base.debug("Cross fade time button clicked. %s", (const char *)label.c_str());
+    TextCtrl_CrossFadeTime->SetValue(label);
 }
 
 void xFadeFrame::OnButtonRClickFT(wxContextMenuEvent& event)
@@ -1674,6 +1462,9 @@ void xFadeFrame::OnButtonRClickFT(wxContextMenuEvent& event)
 
 void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Connecting to xLights ...");
+
     _leftTag = "";
     _rightTag = "";
     TextCtrl_LeftSequence->SetValue("");
@@ -1736,7 +1527,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
                             }
                             else
                             {
-                                (*b)->SetBackgroundColour(_defaultColour);
+                                (*b)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
                             }
                         }
                     }
@@ -1825,7 +1616,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
                             }
                             else
                             {
-                                (*b)->SetBackgroundColour(_defaultColour);
+                                (*b)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
                             }
                         }
                     }
@@ -1861,9 +1652,66 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     {
         Panel_Right->Enable(false);
     }
+
+    logger_base.debug("    Connecting to xLights done!");
 }
 
 void xFadeFrame::OnSlider1CmdSliderUpdated(wxScrollEvent& event)
 {
     SetFade();
+}
+
+void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Configure ...");
+
+    SettingsDialog dlg(this, &_settings);
+
+    CloseSockets();
+
+    _emitter->Stop();
+    delete _emitter;
+    _emitter = nullptr;
+
+    _midiListener->Stop();
+    delete _midiListener;
+    _midiListener = nullptr;
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        SaveState();
+    }
+
+    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP);
+    _emitter->SetLeftBrightness(Slider_LeftBrightness->GetValue());
+    _emitter->SetRightBrightness(Slider_RightBrightness->GetValue());
+    SetTiming();
+    SetFade();
+    _midiListener = new MIDIListener(_settings.GetMIDIDeviceId(), this);
+    RestartInterfaces();
+
+    logger_base.debug("    Configuring done!");
+}
+
+void xFadeFrame::OnSlider_LeftBrightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    _emitter->SetLeftBrightness(Slider_LeftBrightness->GetValue());
+}
+
+void xFadeFrame::OnSlider_RightBrightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    _emitter->SetRightBrightness(Slider_RightBrightness->GetValue());
+}
+
+void xFadeFrame::OnSlider_MasterBrightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    Slider_LeftBrightness->SetValue(Slider_MasterBrightness->GetValue());
+    Slider_RightBrightness->SetValue(Slider_MasterBrightness->GetValue());
+    _emitter->SetLeftBrightness(Slider_LeftBrightness->GetValue());
+    _emitter->SetRightBrightness(Slider_RightBrightness->GetValue());
+}
+
+void xFadeFrame::OnTextCtrl_CrossFadeTimeText(wxCommandEvent& event)
+{
 }

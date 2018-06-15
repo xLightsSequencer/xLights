@@ -25,6 +25,8 @@ class Emitter
     bool _stop;
     std::mutex* _lock;
     std::string _localIP;
+    int _leftBrightness;
+    int _rightBrightness;
 
     public:
 
@@ -42,6 +44,10 @@ class Emitter
     long GetProtocol(int u) const;
     std::string GetLocalIP() const { return _localIP; }
     void SetLocalIP(std::string localIP) { _localIP = localIP; }
+    void SetLeftBrightness(int brightness) { _leftBrightness = brightness; }
+    void SetRightBrightness(int brightness) { _rightBrightness = brightness; }
+    int GetLeftBrightness() const { return _leftBrightness; }
+    int GetRightBrightness() const { return _rightBrightness; }
 };
 
 #endif 
