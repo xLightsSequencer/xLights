@@ -60,6 +60,18 @@ namespace
       double x, y;
    };
 
+   struct LinearInterpolater
+   {
+      double operator()( double t ) const { return t; }
+   };
+
+   template <class T> double interpolate( double x, double x0, double fx0, double x1, double fx1, const T& interpolater )
+   {
+      return ( x0 != x1 )
+         ? ( fx0 + (fx1 - fx0) * interpolater( (x-x0)/(x1-x0) ) )
+         : ( (fx0 + fx1) / 2 );
+   }
+
    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
    {
       double red   = a.red   + progress * ( b.red   - a.red   );
@@ -256,6 +268,45 @@ namespace
       return lerp( c2, c1, params.progress );
    }
 
+   const float dropletExpandSpeed = 1.5;
+   const float dropletHeightFactor = 0.3;
+   const float dropletRipple = /*80.0*/60.0; // possible progress
+
+   float getDropletHeight( const Vec2D& uv, const Vec2D& dropletPosition, float time )
+   {
+      const float PI = 3.14159265359;
+
+      float decayRate = 0.5; // smaller = faster drops
+      float dropletStrength = 1.0; // larger = bigger impact (0.5 min)
+      float dropletStrengthBias = 0.6;
+      float dropFraction = time / decayRate;
+      float dummy;
+      dropFraction = std::modf( dropFraction, &dummy );
+
+      float ringRadius = dropletExpandSpeed * dropFraction * dropletStrength - dropletStrengthBias;
+      float distanceToDroplet = Vec2D( uv - dropletPosition ).Len();
+      float distanceToEdge = std::max(0.f, ringRadius - distanceToDroplet) / ringRadius;
+
+      float dropletHeight = distanceToDroplet > ringRadius ? 0.0 : distanceToDroplet;
+      dropletHeight = RenderBuffer::cos(PI + (dropletHeight - ringRadius) * dropletRipple * dropletStrength) * 0.5 + 0.5;
+      dropletHeight *= 1.0 - dropFraction;
+      dropletHeight *= distanceToDroplet > ringRadius ? 0.0 : distanceToDroplet / ringRadius;
+
+      return (1.0 - (RenderBuffer::cos(dropletHeight * PI) + 1.0) * 0.5) * dropletHeightFactor;
+   }
+
+   xlColor singleWaterDrop( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
+   {
+      Vec2D uv( s, t );
+      Vec2D pos2( uv - params.xy );
+      Vec2D pos2n( pos2.Norm() );
+
+      float dh = getDropletHeight( uv - Vec2D( 0.5,0.5 ), params.xy - Vec2D( 0.5, 0.5 ), params.progress );
+      Vec2D uv2 = -pos2n * dh / ( 1.0 + 3.0 * pos2.Len() );
+
+      return tex2D( cb, uv.x + uv2.x, uv.y + uv2.y );
+   }
+
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
 
    void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
@@ -409,6 +460,20 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
    if ( warpType == "water drops" )
       RenderPixelTransform( waterDrops, buffer, params );
+   else if ( warpType == "single water drop" )
+   {
+      float cycleCount = std::stof( warpStrCycleCount );
+      float intervalLen = 1.f / cycleCount;
+      float scaledProgress = progress / intervalLen;
+      float intervalProgress, intervalIndex;
+      intervalProgress = std::modf( scaledProgress, &intervalIndex );
+
+      LinearInterpolater interpolater;
+      float interpolatedProgress = interpolate( intervalProgress, 0.0,0.20, 1.0,0.45, interpolater );
+
+      params.progress = interpolatedProgress;
+      RenderPixelTransform( singleWaterDrop, buffer, params );
+   }
    else
    {
       PixelTransform xform = nullptr;
@@ -423,8 +488,6 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
          intervalProgress = std::modf( scaledProgress, &intervalIndex );
          if ( int(intervalIndex) % 2 )
             intervalProgress = 1.f - intervalProgress;
-         //LinearInterpolater interpolater;
-         //float interpolatedProgress = interpolate( intervalProgress, 0.0,0.2, 1.0,0.8, interpolater );
          params.progress = intervalProgress;
          if ( warpType == "ripple" )
             xform = rippleIn;
