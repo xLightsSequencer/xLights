@@ -22,6 +22,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 					- Import SubModels from another Model.
 					- Import SubModels from a xmodel files.
    -- enh (keith)  Add xFade 
+   -- bug (keith)  Windows update does not directly download zip file
+   -- bug (keith)  xCapture doesnt filter out non ArtDMX packets
 2018.15 June 10, 2018
    -- enh (dkulp)  Big speedup for Canvas mode
    -- enh (keith)  Add PixelEditor import
