@@ -211,6 +211,9 @@ void JukeboxPanel::PlayItem(int item)
         xLightsApp::GetFrame()->GetMainSequencer()->UnselectAllEffects();
         xLightsApp::GetFrame()->GetMainSequencer()->SetPlayStatus(PLAY_TYPE_STOPPED);
         xLightsApp::GetFrame()->UnselectEffect();
+
+        // turn all the lights off in case we are outputting to lights
+        xLightsApp::GetFrame()->GetOutputManager()->AllOff();
     }
 }
 
@@ -285,7 +288,6 @@ void JukeboxPanel::ValidateWindow()
 
         if (b > 0)
         {
-            ButtonControl* control = nullptr;
             if (_buttons.find(b) != _buttons.end())
             {
                 // button has a control
@@ -297,4 +299,40 @@ void JukeboxPanel::ValidateWindow()
             }
         }
     }
+}
+
+wxString JukeboxPanel::GetTooltips()
+{
+    wxString res = "|";
+    for (int i = 0; i < JUKEBOXBUTTONS; i++)
+    {
+            if (_buttons.find(i+1) != _buttons.end())
+            {
+        res += _buttons[i+1]->GetTooltip() + "|";
+            }
+            else
+            {
+                res += "|";
+            }
+    }
+
+    return res;
+}
+
+wxString JukeboxPanel::GetEffectPresent() const
+{
+    wxString res = "|";
+    for (int i = 0; i < JUKEBOXBUTTONS; i++)
+    {
+            if (_buttons.find(i+1) != _buttons.end())
+            {
+        res += "TRUE|";
+            }
+            else
+            {
+                res += "|";
+            }
+    }
+
+    return res;
 }

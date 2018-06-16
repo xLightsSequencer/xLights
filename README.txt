@@ -21,6 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 					- Copy The Currently Selected SubModel.
 					- Import SubModels from another Model.
 					- Import SubModels from a xmodel files.
+   -- enh (keith)  Add xFade 
 2018.15 June 10, 2018
    -- enh (dkulp)  Big speedup for Canvas mode
    -- enh (keith)  Add PixelEditor import

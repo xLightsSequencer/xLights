@@ -3,6 +3,7 @@
 #include <wx/socket.h>
 #include "../../xLights/outputs/ArtNetOutput.h"
 #include "ListenerManager.h"
+#include "../../xLights/UtilFunctions.h"
 
 bool ListenerARTNet::IsValidHeader(wxByte* buffer)
 {
@@ -70,7 +71,7 @@ void ListenerARTNet::StartProcess()
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for ARTNet reception. %d : %s", _socket->LastError(), (const char*)IPOutput::DecodeError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for ARTNet reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
         delete _socket;
         _socket = nullptr;
     }

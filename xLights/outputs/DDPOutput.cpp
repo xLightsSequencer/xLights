@@ -6,6 +6,7 @@
 #include <log4cpp/Category.hh>
 #include "DDPDialog.h"
 #include "OutputManager.h"
+#include "../UtilFunctions.h"
 
 #pragma region Static Variables
 bool DDPOutput::__initialised = false;
@@ -88,7 +89,7 @@ void DDPOutput::SendSync()
         }
         else if (syncdatagram->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating DDP sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
+            logger_base.error("Error creating DDP sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -171,7 +172,7 @@ bool DDPOutput::Open()
     }
     else if (_datagram->Error() != wxSOCKET_NOERROR)
     {
-        logger_base.error("Error creating DDP datagram => %d : %s.", _datagram->LastError(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
+        logger_base.error("Error creating DDP datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;

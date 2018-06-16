@@ -43,7 +43,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "D
 Source: "bin/xLights.exe"; DestDir: "{app}"
 Source: "bin/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "include\xLights.ico"; DestDir: "{app}"
+Source: "include\xlights.ico"; DestDir: "{app}"
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
@@ -57,7 +57,13 @@ Source: "include\xSchedule.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xCapture.exe"; DestDir: "{app}"
 Source: "bin/xCapture.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xcapture.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
-Source: "include\xCapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "include\xcapture.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
+; xFade
+Source: "bin/xFade.exe"; DestDir: "{app}"
+Source: "bin/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "include\xfade.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
 Source: "bin/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
@@ -112,6 +118,7 @@ Filename: "{app}\xLights.exe"; Description: "Launch application"; Flags: postins
 Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\xLights"; Check: NeedsAddPath ('C:\Program Files (x86)\xLights')
 

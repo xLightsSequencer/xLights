@@ -1,10 +1,12 @@
 #include "E131Output.h"
 
 #include <wx/xml/xml.h>
+#include <wx/process.h>
 
 #include <log4cpp/Category.hh>
 #include "E131Dialog.h"
 #include "OutputManager.h"
+#include "../UtilFunctions.h"
 
 #pragma region Constructors and Destructors
 E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
@@ -161,7 +163,7 @@ void E131Output::SendSync(int syncUniverse)
             }
             else if (syncdatagram->Error() != wxSOCKET_NOERROR)
             {
-                logger_base.error("Error creating E131 sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)IPOutput::DecodeError(syncdatagram->LastError()).c_str());
+                logger_base.error("Error creating E131 sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
@@ -184,6 +186,12 @@ void E131Output::SendSync(int syncUniverse)
             syncdatagram->SendTo(syncremoteAddr, syncdata, E131_SYNCPACKET_LEN);
         }
     }
+}
+
+std::string E131Output::GetTag()
+{
+    // creates a unique tag per running instance of xLights on this machine
+    return "xLights " + wxString::Format("%ld", wxGetProcessId());
 }
 #pragma endregion Static Functions
 
@@ -246,13 +254,8 @@ bool E131Output::Open()
         _data[38] = 0x72;  // Framing Protocol flags and length (high)
         _data[39] = 0x58;  // 0x258 = 638 - 38
         _data[43] = 0x02;
-        _data[44] = 'x';   // Source Name (64 bytes)
-        _data[45] = 'L';
-        _data[46] = 'i';
-        _data[47] = 'g';
-        _data[48] = 'h';
-        _data[49] = 't';
-        _data[50] = 's';
+        // Source Name (64 bytes)
+        strcpy((char*)&_data[44], GetTag().c_str());
         _data[108] = 100;  // Priority
         _data[113] = UnivHi;  // Universe Number (high)
         _data[114] = UnivLo;  // Universe Number (low)
@@ -287,7 +290,7 @@ bool E131Output::Open()
         }
         else if (_datagram->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating E131 datagram => %d : %s.", _datagram->LastError(), (const char *)IPOutput::DecodeError(_datagram->LastError()).c_str());
+            logger_base.error("Error creating E131 datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
             delete _datagram;
             _datagram = nullptr;
         }

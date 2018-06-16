@@ -2,6 +2,7 @@
 #define PLAYLISTITEMJUKEBOXPANEL_H
 
 //(*Headers(PlayListItemJukeboxPanel)
+#include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
@@ -22,6 +23,7 @@ class PlayListItemJukeboxPanel: public wxPanel
 		virtual ~PlayListItemJukeboxPanel();
 
 		//(*Declarations(PlayListItemJukeboxPanel)
+		wxChoice* Choice_Port;
 		wxSpinCtrl* SpinCtrl_Button;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -29,7 +31,6 @@ class PlayListItemJukeboxPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxTextCtrl* TextCtrl_Delay;
 		wxTextCtrl* TextCtrl_JukeboxName;
-		wxTextCtrl* TextCtrl_Sequence;
 		//*)
 
 	protected:
@@ -38,7 +39,7 @@ class PlayListItemJukeboxPanel: public wxPanel
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL3;
 		static const long ID_STATICTEXT4;
-		static const long ID_TEXTCTRL1;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT1;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT2;

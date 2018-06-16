@@ -42,6 +42,7 @@
 #include <wx/xml/xml.h>
 #include <wx/dir.h>
 #include <wx/treebase.h>
+#include <wx/socket.h>
 
 #include <unordered_map>
 #include <map>
@@ -539,6 +540,9 @@ public:
     void OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event);
     void OnMenuItem_JukeboxSelected(wxCommandEvent& event);
     void OnMenuItemShiftSelectedEffectsSelected(wxCommandEvent& event);
+    void OnMenuItem_xFadeDisabledSelected(wxCommandEvent& event);
+    void OnMenuItem_XFade_ASelected(wxCommandEvent& event);
+    void OnMenuItem_xFade_BSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -753,6 +757,10 @@ private:
     static const long ID_MENUITEM_AUTOSAVE_15;
     static const long ID_MENUITEM_AUTOSAVE_30;
     static const long ID_MENUITEM20;
+    static const long ID_MNU_XFADE_DISABLED;
+    static const long ID_MNU_XFADE_A;
+    static const long ID_MNU_XFADE_B;
+    static const long ID_MNU_XFADE;
     static const long ID_MNU_SD_None;
     static const long ID_MNU_SD_10;
     static const long ID_MNU_SD_20;
@@ -779,6 +787,9 @@ private:
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL_EFFECTS;
     static const long ID_NOTEBOOK_EFFECTS;
+    
+    static const long ID_XFADESOCKET;
+    static const long ID_XFADESERVER;
 
     static const long ID_PLAYER_DIALOG;
     static const long ID_DELETE_EFFECT;
@@ -822,6 +833,7 @@ private:
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
     wxMenu* MenuItem29;
+    wxMenu* MenuItem53;
     wxMenu* MenuItem7;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
@@ -925,6 +937,9 @@ private:
     wxMenuItem* MenuItem_ViewZoomIn;
     wxMenuItem* MenuItem_ViewZoomOut;
     wxMenuItem* MenuItem_e131sync;
+    wxMenuItem* MenuItem_xFade_A;
+    wxMenuItem* MenuItem_xFade_B;
+    wxMenuItem* MenuItem_xFade_Disabled;
     wxMenuItem* MenuItem_xSchedule;
     wxMenuItem* Menu_GenerateCustomModel;
     wxMenuItem* Menu_Settings_Sequence;
@@ -1006,7 +1021,13 @@ private:
     bool _modelBlendDefaultOff;
     bool _snapToTimingMarks;
     bool _autoSavePerspecive;
+    int _xFadePort;
+    wxSocketServer* _xFadeSocket;
 
+    void OnxFadeSocketEvent(wxSocketEvent & event);
+    void OnxFadeServerEvent(wxSocketEvent & event);
+    void StartxFadeListener();
+    wxString ProcessXFadeMessage(wxString msg);
     void ShowACLights();
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     int DecodeBackupPurgeDays(std::string s);

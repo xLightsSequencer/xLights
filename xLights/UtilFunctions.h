@@ -4,10 +4,12 @@
 #include <wx/wx.h>
 #include <string>
 #include "SequenceData.h"
+#include <wx/socket.h>
 
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", (ms) / 60000, ((ms) % 60000) / 1000, (ms) % 1000).c_str()
 
 // Consolidated set of utility functions
+std::string DecodeIPError(wxSocketError err);
 std::string Ordinal(int i);
 std::string DecodeMidi(int midi);
 bool DeleteDirectory(std::string directory);
@@ -20,6 +22,8 @@ bool IsFileInShowDir(const wxString& showDir, const std::string filename);
 wxString FixFile(const wxString& ShowDir, const wxString& file, bool recurse = false);
 wxString FixEffectFileParameter(const wxString& paramname, const wxString& parametervalue, const wxString& ShowDir);
 int base64_decode(const wxString& encoded_string, std::vector<unsigned char> &data);
+int GetxFadePort(int xfp);
+wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress = "127.0.0.1");
 inline long roundTo4(long i) {
     long remainder = i % 4;
     if (remainder == 0) {
