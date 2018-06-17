@@ -65,11 +65,11 @@ namespace
       double operator()( double t ) const { return t; }
    };
 
-   template <class T> double interpolate( double x, double x0, double fx0, double x1, double fx1, const T& interpolater )
+   template <class T> double interpolate( double x, double loIn, double loOut, double hiIn, double hiOut, const T& interpolater )
    {
-      return ( x0 != x1 )
-         ? ( fx0 + (fx1 - fx0) * interpolater( (x-x0)/(x1-x0) ) )
-         : ( (fx0 + fx1) / 2 );
+      return ( loIn != hiIn )
+         ? ( loOut + (hiOut - loOut) * interpolater( (x-loIn)/(hiIn-loIn) ) )
+         : ( (loOut + hiOut) / 2 );
    }
 
    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
@@ -345,7 +345,6 @@ void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
 
-    // Need this for dissolve but seems to break others when using value curves
     p->BitmapButton_Warp_X->SetActive( false );
     p->BitmapButton_Warp_Y->SetActive( false );
 
@@ -423,7 +422,8 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    {
       PixelTransform xform = nullptr;
       // the other warps were originally intended as transitions in or out... for constant
-      // treatment, we'll just cycle between progress of [0,1] and [1,0]
+      // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
+      // a very good description, maybe back-and-forth or something would be more accurate
       if ( warpTreatment == "constant" )
       {
          float cycleCount = std::stof( warpStrCycleCount );

@@ -218,7 +218,7 @@ void WarpPanel::ValidateWindow()
    {
       Choice_Warp_Treatment->Set( choices );
       Choice_Warp_Treatment->SetSelection( 0 );
-      warpTreatment = "onstant";
+      warpTreatment = "constant";
    }
    else
    {
@@ -244,12 +244,10 @@ void WarpPanel::ValidateWindow()
    }
    else
    {
-      BitmapButton_Warp_X->SetActive( false );
       Slider_Warp_X->Enable();
       TextCtrl_Warp_X->Enable();
       BitmapButton_Warp_X->Enable();
 
-      BitmapButton_Warp_Y->SetActive( false );
       Slider_Warp_Y->Enable();
       TextCtrl_Warp_Y->Enable();
       BitmapButton_Warp_Y->Enable();
