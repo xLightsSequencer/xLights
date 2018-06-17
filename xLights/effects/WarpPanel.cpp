@@ -209,7 +209,26 @@ void WarpPanel::OnChoice_Warp_TreatmentSelect(wxCommandEvent& event)
 void WarpPanel::ValidateWindow()
 {
    wxString warpType = Choice_Warp_Type->GetStringSelection();
-   wxString warpTreatment  = Choice_Warp_Treatment->GetStringSelection();
+   wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
+
+   bool constantOnly = ( warpType == "water drops" || warpType == "single water drop" );
+   wxArrayString choices;
+   choices.Add( "constant" );
+   if ( constantOnly )
+   {
+      Choice_Warp_Treatment->Set( choices );
+      Choice_Warp_Treatment->SetSelection( 0 );
+      warpTreatment = "onstant";
+   }
+   else
+   {
+      choices.Add( "in" );
+      choices.Add( "out" );
+      Choice_Warp_Treatment->Set( choices );
+      int index = Choice_Warp_Treatment->FindString( warpTreatment );
+      if ( index != wxNOT_FOUND )
+         Choice_Warp_Treatment->SetSelection( index );
+   }
 
    if ( warpType == "dissolve" )
    {

@@ -345,7 +345,7 @@ void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
 
-    // Need this for dissolve but seems to break others when using VC
+    // Need this for dissolve but seems to break others when using value curves
     p->BitmapButton_Warp_X->SetActive( false );
     p->BitmapButton_Warp_Y->SetActive( false );
 
