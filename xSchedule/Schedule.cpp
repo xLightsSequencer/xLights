@@ -25,7 +25,7 @@ void Schedule::Load(wxXmlNode* node)
     _startDate.ParseDate(node->GetAttribute("StartDate", "01/01/2017"));
     _endDate.ParseDate(node->GetAttribute("EndDate", "01/01/2099"));
     _startTimeString = node->GetAttribute("StartTime", "19:00").Lower();
-    if (_startTimeString == "sunrise" || _startTimeString == "sunset")
+    if (_startTimeString == "sunrise" || _startTimeString == "sunset" || _startTimeString == "sunup" || _startTimeString == "sundown")
     {
         _startTime.ParseTime("0:00");
     }
@@ -35,7 +35,7 @@ void Schedule::Load(wxXmlNode* node)
         _startTimeString = "";
     }
     _endTimeString = node->GetAttribute("EndTime", "22:00").Lower();
-    if (_endTimeString == "sunrise" || _endTimeString == "sunset")
+    if (_endTimeString == "sunrise" || _endTimeString == "sunset" || _endTimeString == "sunup" || _endTimeString == "sundown")
     {
         _endTime.ParseTime("0:00");
     }
@@ -200,19 +200,35 @@ void Schedule::SetDOW(bool mon, bool tue, bool wed, bool thu, bool fri, bool sat
 
 void Schedule::SetTime(wxDateTime& toset, std::string city, wxDateTime time, std::string timeString) const
 {
-    if (timeString == "sunrise")
+    if (timeString == "sunrise" || timeString == "sunup")
     {
         City* c = City::GetCity(city);
-        wxDateTime sunrise = c->GetSunrise(toset);
-        toset.SetHour(sunrise.GetHour());
-        toset.SetMinute(sunrise.GetMinute());
+        if (c != nullptr)
+        {
+            wxDateTime sunrise = c->GetSunrise(toset);
+            toset.SetHour(sunrise.GetHour());
+            toset.SetMinute(sunrise.GetMinute());
+        }
+        else
+        {
+            toset.SetHour(6);
+            toset.SetMinute(0);
+        }
     }
-    else if (timeString == "sunset")
+    else if (timeString == "sunset" || timeString == "sundown")
     {
         City* c = City::GetCity(city);
-        wxDateTime sunset = c->GetSunset(toset);
-        toset.SetHour(sunset.GetHour());
-        toset.SetMinute(sunset.GetMinute());
+        if (c != nullptr)
+        {
+            wxDateTime sunset = c->GetSunset(toset);
+            toset.SetHour(sunset.GetHour());
+            toset.SetMinute(sunset.GetMinute());
+        }
+        else
+        {
+            toset.SetHour(20);
+            toset.SetMinute(0);
+        }
     }
     else
     {
@@ -333,7 +349,7 @@ void Schedule::SetStartTime(const std::string& start)
 
     if (s != GetStartTimeAsString())
     {
-        if (s == "sunrise" || s == "sunset")
+        if (s == "sunrise" || s == "sunset" || s == "sunup" || s == "sundown")
         {
             _startTimeString = s;
         }
@@ -353,7 +369,7 @@ void Schedule::SetEndTime(const std::string& end)
 
     if (e != GetEndTimeAsString())
     {
-        if (e == "sunrise" || e == "sunset")
+        if (e == "sunrise" || e == "sunset" || e == "sunup" || e == "sundown")
         {
             _endTimeString = e;
         }
