@@ -345,23 +345,22 @@ void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
 
+    // Need this for dissolve but seems to break others when using VC
+    p->BitmapButton_Warp_X->SetActive( false );
+    p->BitmapButton_Warp_Y->SetActive( false );
+
     p->Choice_Warp_Type->SetSelection( 0 );
     p->Choice_Warp_Treatment->SetSelection( 0 );
 
     SetSliderValue( p->Slider_Warp_X, 50 );
-    p->BitmapButton_Warp_X->SetActive( false );
 
     SetSliderValue( p->Slider_Warp_Y, 50 );
-    p->BitmapButton_Warp_Y->SetActive( false );
 
-    p->Slider_Warp_Cycle_Count->SetValue( 1 );
-    p->TextCtrl_Warp_Cycle_Count->SetValue( "1" );
+    SetSliderValue( p->Slider_Warp_Cycle_Count, 1 );
 
-    p->Slider_Warp_Speed->SetValue( 20 );
-    p->TextCtrl_Warp_Speed->SetValue( "20" );
+    SetSliderValue( p->Slider_Warp_Speed, 20 );
 
-    p->Slider_Warp_Frequency->SetValue( 20 );
-    p->TextCtrl_Warp_Frequency->SetValue( "20" );
+    SetSliderValue( p->Slider_Warp_Frequency, 20 );
 
     // Turn on canvas mode as this really only makes sense in canvas mode
     xLightsFrame* frame = xLightsApp::GetFrame();
