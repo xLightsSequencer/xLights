@@ -369,60 +369,6 @@ void WarpEffect::SetDefaultParameters()
     layerBlendingPanel->CheckBox_Canvas->SetValue(true);
 }
 
-std::string WarpEffect::GetEffectString()
-{
-     WarpPanel *p = (WarpPanel *)panel;
-     std::stringstream ret;
-
-     wxString warpType( p->Choice_Warp_Type->GetStringSelection() );
-     if ( "water drops" != warpType )
-        ret << "E_CHOICE_Warp_Type=" << warpType.ToStdString() << ",";
-
-     wxString warpTreatment( p->Choice_Warp_Treatment->GetStringSelection() );
-     if ( "constant" != warpTreatment )
-        ret << "E_CHOICE_Warp_Treatment=" << warpTreatment.ToStdString() << ",";
-
-     if ( p->BitmapButton_Warp_X->GetValue()->IsActive() )
-     {
-        ret << "E_VALUECURVE_Warp_X=";
-        ret << p->BitmapButton_Warp_X->GetValue()->Serialise();
-        ret << ",";
-     }
-     else
-     {
-        int xvalue = p->Slider_Warp_X->GetValue();
-        if ( 50 != xvalue )
-          ret << "E_TEXTCTRL_Warp_X=" << p->TextCtrl_Warp_X->GetValue().ToStdString() << ",";
-     }
-
-     if ( p->BitmapButton_Warp_Y->GetValue()->IsActive() )
-     {
-        ret << "E_VALUECURVE_Warp_Y=";
-        ret << p->BitmapButton_Warp_Y->GetValue()->Serialise();
-        ret << ",";
-     }
-     else
-     {
-        int yvalue = p->Slider_Warp_Y->GetValue();
-        if ( 50 != yvalue )
-           ret << "E_TEXTCTRL_Warp_Y=" << p->TextCtrl_Warp_Y->GetValue().ToStdString() << ",";
-     }
-
-     int cycleCount = p->Slider_Warp_Cycle_Count->GetValue();
-     if ( 1 != cycleCount )
-      ret << "E_TEXTCTRL_Warp_Cycle_Count=" << p->TextCtrl_Warp_Cycle_Count->GetValue().ToStdString() << ",";
-
-     int speed = p->Slider_Warp_Speed->GetValue();
-     if ( 20 != speed )
-        ret << "E_TEXTCTRL_Warp_Speed=" << p->TextCtrl_Warp_Speed->GetValue().ToStdString() << ",";
-
-     int freq = p->Slider_Warp_Frequency->GetValue();
-     if ( 20 != freq )
-       ret << "E_TEXTCTRL_Warp_Frequency=" << p->TextCtrl_Warp_Frequency->GetValue().ToStdString() << ",";
-
-     return ret.str();
-}
-
 void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 {
     SettingsMap &settingsMap = effect->GetSettings();
