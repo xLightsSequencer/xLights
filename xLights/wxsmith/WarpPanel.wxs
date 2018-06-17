@@ -55,6 +55,7 @@
 										<item>ripple</item>
 										<item>single water drop</item>
 									</content>
+									<handler function="OnChoice_Warp_TypeSelect" entry="EVT_CHOICE" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>
@@ -88,6 +89,7 @@
 										<item>in</item>
 										<item>out</item>
 									</content>
+									<handler function="OnChoice_Warp_TreatmentSelect" entry="EVT_CHOICE" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>2</border>

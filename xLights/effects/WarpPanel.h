@@ -59,6 +59,8 @@ class WarpPanel: public wxPanel
 		wxTextCtrl* TextCtrl1;
 		//*)
 
+		void ValidateWindow();
+
 	protected:
 
 		//(*Identifiers(WarpPanel)
@@ -91,6 +93,8 @@ class WarpPanel: public wxPanel
 		//(*Handlers(WarpPanel)
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
+		void OnChoice_Warp_TypeSelect(wxCommandEvent& event);
+		void OnChoice_Warp_TreatmentSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

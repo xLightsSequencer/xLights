@@ -65,11 +65,11 @@ namespace
       double operator()( double t ) const { return t; }
    };
 
-   template <class T> double interpolate( double x, double x0, double fx0, double x1, double fx1, const T& interpolater )
+   template <class T> double interpolate( double x, double loIn, double loOut, double hiIn, double hiOut, const T& interpolater )
    {
-      return ( x0 != x1 )
-         ? ( fx0 + (fx1 - fx0) * interpolater( (x-x0)/(x1-x0) ) )
-         : ( (fx0 + fx1) / 2 );
+      return ( loIn != hiIn )
+         ? ( loOut + (hiOut - loOut) * interpolater( (x-loIn)/(hiIn-loIn) ) )
+         : ( (loOut + hiOut) / 2 );
    }
 
    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
@@ -345,82 +345,26 @@ void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
 
+    p->BitmapButton_Warp_X->SetActive( false );
+    p->BitmapButton_Warp_Y->SetActive( false );
+
     p->Choice_Warp_Type->SetSelection( 0 );
     p->Choice_Warp_Treatment->SetSelection( 0 );
 
     SetSliderValue( p->Slider_Warp_X, 50 );
-    p->BitmapButton_Warp_X->SetActive( false );
 
     SetSliderValue( p->Slider_Warp_Y, 50 );
-    p->BitmapButton_Warp_Y->SetActive( false );
 
-    p->Slider_Warp_Cycle_Count->SetValue( 1 );
-    p->TextCtrl_Warp_Cycle_Count->SetValue( "1" );
+    SetSliderValue( p->Slider_Warp_Cycle_Count, 1 );
 
-    p->Slider_Warp_Speed->SetValue( 20 );
-    p->TextCtrl_Warp_Speed->SetValue( "20" );
+    SetSliderValue( p->Slider_Warp_Speed, 20 );
 
-    p->Slider_Warp_Frequency->SetValue( 20 );
-    p->TextCtrl_Warp_Frequency->SetValue( "20" );
+    SetSliderValue( p->Slider_Warp_Frequency, 20 );
 
     // Turn on canvas mode as this really only makes sense in canvas mode
     xLightsFrame* frame = xLightsApp::GetFrame();
     TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
     layerBlendingPanel->CheckBox_Canvas->SetValue(true);
-}
-
-std::string WarpEffect::GetEffectString()
-{
-     WarpPanel *p = (WarpPanel *)panel;
-     std::stringstream ret;
-
-     wxString warpType( p->Choice_Warp_Type->GetStringSelection() );
-     if ( "water drops" != warpType )
-        ret << "E_CHOICE_Warp_Type=" << warpType.ToStdString() << ",";
-
-     wxString warpTreatment( p->Choice_Warp_Treatment->GetStringSelection() );
-     if ( "constant" != warpTreatment )
-        ret << "E_CHOICE_Warp_Treatment=" << warpTreatment.ToStdString() << ",";
-
-     if ( p->BitmapButton_Warp_X->GetValue()->IsActive() )
-     {
-        ret << "E_VALUECURVE_Warp_X=";
-        ret << p->BitmapButton_Warp_X->GetValue()->Serialise();
-        ret << ",";
-     }
-     else
-     {
-        int xvalue = p->Slider_Warp_X->GetValue();
-        if ( 50 != xvalue )
-          ret << "E_TEXTCTRL_Warp_X=" << p->TextCtrl_Warp_X->GetValue().ToStdString() << ",";
-     }
-
-     if ( p->BitmapButton_Warp_Y->GetValue()->IsActive() )
-     {
-        ret << "E_VALUECURVE_Warp_Y=";
-        ret << p->BitmapButton_Warp_Y->GetValue()->Serialise();
-        ret << ",";
-     }
-     else
-     {
-        int yvalue = p->Slider_Warp_Y->GetValue();
-        if ( 50 != yvalue )
-           ret << "E_TEXTCTRL_Warp_Y=" << p->TextCtrl_Warp_Y->GetValue().ToStdString() << ",";
-     }
-
-     int cycleCount = p->Slider_Warp_Cycle_Count->GetValue();
-     if ( 1 != cycleCount )
-      ret << "E_TEXTCTRL_Warp_Cycle_Count=" << p->TextCtrl_Warp_Cycle_Count->GetValue().ToStdString() << ",";
-
-     int speed = p->Slider_Warp_Speed->GetValue();
-     if ( 20 != speed )
-        ret << "E_TEXTCTRL_Warp_Speed=" << p->TextCtrl_Warp_Speed->GetValue().ToStdString() << ",";
-
-     int freq = p->Slider_Warp_Frequency->GetValue();
-     if ( 20 != freq )
-       ret << "E_TEXTCTRL_Warp_Frequency=" << p->TextCtrl_Warp_Frequency->GetValue().ToStdString() << ",";
-
-     return ret.str();
 }
 
 void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
@@ -478,7 +422,8 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    {
       PixelTransform xform = nullptr;
       // the other warps were originally intended as transitions in or out... for constant
-      // treatment, we'll just cycle between progress of [0,1] and [1,0]
+      // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
+      // a very good description, maybe back-and-forth or something would be more accurate
       if ( warpTreatment == "constant" )
       {
          float cycleCount = std::stof( warpStrCycleCount );
