@@ -1468,9 +1468,7 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
             wxString name = child->GetAttribute("name");
-            //cannot have duplicate names, generate new
-            if (GetSubModelInfoIndex(name) != -1)
-                name = GenerateSubModelName(name);
+
             SubModelInfo *sm = new SubModelInfo(name);
             sm->name = name;
             sm->oldName = name;
@@ -1487,6 +1485,20 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
                 sm->strands[x] = child->GetAttribute(wxString::Format("line%d", x));
                 x++;
             }
+
+			//cannot have duplicate names, generate new
+			if (GetSubModelInfoIndex(name) != -1)
+			{
+				SubModelInfo *prevSm = GetSubModelInfo(name);
+				if (*sm == *prevSm) //skip if exactly the same 
+				{
+					child = child->GetNext();
+					continue;
+				}
+				//rename and add if different
+				sm->oldName = sm->name = GenerateSubModelName(name);
+			}
+
             _subModels.push_back(sm);
         }
         child = child->GetNext();
@@ -1517,7 +1529,7 @@ void SubModelsDialog::OnButton_Sub_CopyClick(wxCommandEvent& event)
     wxString name = GetSelectedName();
     if (name == "")
         return;
-    SubModelInfo* sm = new SubModelInfo(GetSubModelInfo(name));
+    SubModelInfo* sm = new SubModelInfo(*GetSubModelInfo(name));
 
     name = GenerateSubModelName(name);
 
