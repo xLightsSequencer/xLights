@@ -30,7 +30,14 @@ Instructions are here:
 
 First, download the source package for wxWidgets from:
 https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2
-and unpack it. 
+and unpack it.
+
+Alternatively, if you would like to build wxWidgets with support for
+OSX Mojave's "Dark Mode", you will need to build it from git sources.   This is a
+'work in progress' as a bunch of UI parts are being re-done to handle the
+darker colors and other UI updates.    To do so, instead of using the above tar.bz2,
+git clone https://github.com/dkulp/wxWidgets
+and then folow the instructions below.
 
 
 Then, from inside a Terminal window:
@@ -118,4 +125,4 @@ Jan 12, 2018 - 6bd8cb964bd625d7f974621cc9883ba52b58600a Start testing/preparing 
 Jan 24, 2018 - d8b3fc84c2239effb1824e7094c7bf24db45a7ba Fixes sorting in TreeListCtrl, also changed compile flags to
              --enable-std_containers  --enable-std_string_conv_in_wxstring
 Feb 26, 2018 - switch to 3.1.1 release tar.bz2
-
+June 17, 2018 - add notes about wxWidgets for OSX Mojave
