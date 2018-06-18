@@ -40,9 +40,9 @@ OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xCapture
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/ResultDialog.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/ResultDialog.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/ResultDialog.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/ResultDialog.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
 
 all: linux_debug linux_release
 
@@ -50,8 +50,8 @@ clean: clean_linux_debug clean_linux_release
 
 before_linux_debug: 
 	@test -d ../bin || mkdir -p ../bin
-	@test -d $(OBJDIR_LINUX_DEBUG)/__/xLights || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xLights
 	@test -d $(OBJDIR_LINUX_DEBUG) || mkdir -p $(OBJDIR_LINUX_DEBUG)
+	@test -d $(OBJDIR_LINUX_DEBUG)/__/xLights || mkdir -p $(OBJDIR_LINUX_DEBUG)/__/xLights
 
 after_linux_debug: 
 
@@ -60,28 +60,34 @@ linux_debug: before_linux_debug out_linux_debug after_linux_debug
 out_linux_debug: before_linux_debug $(OBJ_LINUX_DEBUG) $(DEP_LINUX_DEBUG)
 	$(LD) $(LIBDIR_LINUX_DEBUG) -o $(OUT_LINUX_DEBUG) $(OBJ_LINUX_DEBUG)  $(LDFLAGS_LINUX_DEBUG) $(LIB_LINUX_DEBUG)
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o
-
-$(OBJDIR_LINUX_DEBUG)/ResultDialog.o: ResultDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ResultDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ResultDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o
+$(OBJDIR_LINUX_DEBUG)/xCaptureMain.o: xCaptureMain.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xCaptureMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o
 
 $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o: xCaptureApp.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xCaptureApp.cpp -o $(OBJDIR_LINUX_DEBUG)/xCaptureApp.o
 
-$(OBJDIR_LINUX_DEBUG)/xCaptureMain.o: xCaptureMain.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xCaptureMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xCaptureMain.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/ResultDialog.o: ResultDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ResultDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/ResultDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
 
 clean_linux_debug: 
 	rm -f $(OBJ_LINUX_DEBUG) $(OUT_LINUX_DEBUG)
 
 before_linux_release: 
 	@test -d ../bin || mkdir -p ../bin
-	@test -d $(OBJDIR_LINUX_RELEASE)/__/xLights || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xLights
 	@test -d $(OBJDIR_LINUX_RELEASE) || mkdir -p $(OBJDIR_LINUX_RELEASE)
+	@test -d $(OBJDIR_LINUX_RELEASE)/__/xLights || mkdir -p $(OBJDIR_LINUX_RELEASE)/__/xLights
 
 after_linux_release: 
 
@@ -90,31 +96,37 @@ linux_release: before_linux_release out_linux_release after_linux_release
 out_linux_release: before_linux_release $(OBJ_LINUX_RELEASE) $(DEP_LINUX_RELEASE)
 	$(LD) $(LIBDIR_LINUX_RELEASE) -o $(OUT_LINUX_RELEASE) $(OBJ_LINUX_RELEASE)  $(LDFLAGS_LINUX_RELEASE) $(LIB_LINUX_RELEASE)
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o
-
-$(OBJDIR_LINUX_RELEASE)/ResultDialog.o: ResultDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ResultDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ResultDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o
+$(OBJDIR_LINUX_RELEASE)/xCaptureMain.o: xCaptureMain.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xCaptureMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o
 
 $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o: xCaptureApp.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xCaptureApp.cpp -o $(OBJDIR_LINUX_RELEASE)/xCaptureApp.o
 
-$(OBJDIR_LINUX_RELEASE)/xCaptureMain.o: xCaptureMain.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xCaptureMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xCaptureMain.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o: UniverseEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c UniverseEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/ResultDialog.o: ResultDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ResultDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/ResultDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
 
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
-ResultDialog.cpp: ResultDialog.h
-
-UniverseEntryDialog.cpp: UniverseEntryDialog.h
+xCaptureMain.cpp: xCaptureMain.h UniverseEntryDialog.h ResultDialog.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm
 
 xCaptureApp.cpp: xCaptureApp.h xCaptureMain.h
 
-xCaptureMain.cpp: xCaptureMain.h UniverseEntryDialog.h ResultDialog.h ../include/xLights.xpm ../include/xLights-16.xpm ../include/xLights-32.xpm ../include/xLights-64.xpm ../include/xLights-128.xpm
+UniverseEntryDialog.cpp: UniverseEntryDialog.h
+
+ResultDialog.cpp: ResultDialog.h
 
 .PHONY: before_linux_debug after_linux_debug clean_linux_debug before_linux_release after_linux_release clean_linux_release
 

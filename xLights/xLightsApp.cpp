@@ -444,36 +444,46 @@ bool xLightsApp::OnInit()
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
         { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
+        { wxCMD_LINE_SWITCH, "f", "xfade", "run xfade" },
 #endif
         { wxCMD_LINE_PARAM, "", "", "sequence file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE},
         { wxCMD_LINE_NONE }
     };
 
-// Add option to run xschedule/xcapture via xlights on linux (for AppImage usage)
+// Add option to run xutils via xlights on linux (for AppImage usage)
 #ifdef __LINUX__
        int run_xschedule = FALSE;
        int run_xcapture = FALSE;
+       int run_xfade= FALSE;
        wxFileName f(wxStandardPaths::Get().GetExecutablePath());
        wxString appPath(f.GetPath());
        wxString cmdlineC(appPath+wxT("/xCapture"));
        wxString cmdlineS(appPath+wxT("/xSchedule"));
+       wxString cmdlineF(appPath+wxT("/xFade"));
         for (int i=1; i< argc;i++) {
             if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
-	    } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
+            } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
                 run_xcapture = TRUE;
+            } else if (strncmp(argv[i].c_str(), "-f", 2) == 0) {
+                run_xfade = TRUE;
             } else {
                 cmdlineS += wxT(" ");
                 cmdlineS += wxString::FromUTF8(argv[i]);
                 cmdlineC += wxT(" ");
                 cmdlineC += wxString::FromUTF8(argv[i]);
+                cmdlineF += wxT(" ");
+                cmdlineF += wxString::FromUTF8(argv[i]);
             }
         }
         if (run_xschedule) {
             wxExecute(cmdlineS, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
-	} else if (run_xcapture) {
+        } else if (run_xcapture) {
             wxExecute(cmdlineC, wxEXEC_BLOCK,NULL,NULL);
+            exit(0);
+        } else if (run_xfade) {
+            wxExecute(cmdlineF, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
 #endif

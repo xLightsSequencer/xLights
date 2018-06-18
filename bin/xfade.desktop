@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=xFade %f
+Comment=Realtime control of e1.31
+Name=xFade
+Terminal=false
+Icon=xlights
+Categories=AudioVideo;
+MimeType=text/xml;

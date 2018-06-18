@@ -16,7 +16,7 @@ SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary s
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 PATH            := $(CURDIR)/wxWidgets-3.1.1:$(PATH)
 
-SUBDIRS         = xLights xSchedule xCapture
+SUBDIRS         = xLights xSchedule xCapture xFade
 
 .NOTPARALLEL:
 
@@ -81,8 +81,11 @@ install:
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
 	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
+	-$(INSTALL_PROGRAM) -D bin/xFade $(DESTDIR)/${PREFIX}/bin/xFade
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(INSTALL_PROGRAM) -D bin/xschedule.desktop $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
+	-$(INSTALL_PROGRAM) -D bin/xcapture.desktop $(DESTDIR)/${PREFIX}/share/applications/xcapture.desktop
+	-$(INSTALL_PROGRAM) -D bin/xfade.desktop $(DESTDIR)/${PREFIX}/share/applications/xfade.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
 	cp -r colorcurves/* $(DESTDIR)/${PREFIX}/share/xLights/colorcurves
@@ -105,15 +108,17 @@ uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xcapture.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xfade.desktop
 
 #############################################################################
 
 cbp2make:
 	@if test -n "`cbp2make --version`"; \
-		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak; \
+		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak; \
 	fi
 
-makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak
+makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak
 
 xLights/xLights.cbp.mak: xLights/xLights.cbp
 	@cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak \
@@ -144,6 +149,16 @@ xCapture/xCapture.cbp.mak: xCapture/xCapture.cbp
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xCapture/xCapture.cbp.mak
+
+xFade/xFade.cbp.mak: xFade/xFade.cbp
+	@cbp2make -in xFade/xFade.cbp -cfg cbp2make.cfg -out xFade/xFade.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	@cp xFade/xFade.cbp.mak xFade/xFade.cbp.mak.orig
+	@cat xFade/xFade.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xFade/xFade.cbp.mak
 
 #############################################################################
 
