@@ -52,8 +52,8 @@ namespace
       bool     IsNormal() const { return fabs( Len2() - 1 ) < 1e-6; }
       Vec2D    Rotate( const double& fAngle ) const
       {
-         double cs = ::cos( fAngle );
-         double sn = ::sin( fAngle );
+         float cs = RenderBuffer::cos( fAngle );
+         float sn = RenderBuffer::sin( fAngle );
          return Vec2D( x*cs + y * sn, -x * sn + y * cs );
       }
       Vec2D    Rotate( const Vec2D& p, const double& fAngle ) const { return ( *this - p ).Rotate( fAngle ) + p; }
