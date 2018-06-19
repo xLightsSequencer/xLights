@@ -54,6 +54,7 @@
 										<item>banded swirl</item>
 										<item>ripple</item>
 										<item>single water drop</item>
+										<item>circular swirl</item>
 									</content>
 									<handler function="OnChoice_Warp_TypeSelect" entry="EVT_CHOICE" />
 								</object>

@@ -56,9 +56,12 @@ namespace
          float sn = RenderBuffer::sin( fAngle );
          return Vec2D( x*cs + y * sn, -x * sn + y * cs );
       }
-      Vec2D    Rotate( const Vec2D& p, const double& fAngle ) const { return ( *this - p ).Rotate( fAngle ) + p; }
-      Vec2D    Rotate90() const { return Vec2D( y, -x ); }
-
+      static Vec2D lerp( const Vec2D& a, const Vec2D& b, double progress )
+      {
+         double x = a.x + progress * ( b.x - a.x );
+         double y = a.y + progress * ( b.y - a.y );
+         return Vec2D( x, y );
+      }
       double x, y;
    };
 
@@ -306,6 +309,26 @@ namespace
       return tex2D( cb, uv.x + uv2.x, uv.y + uv2.y );
    }
 
+   xlColor circularSwirl( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
+   {
+      Vec2D uv( s, t );
+      Vec2D dir( uv - params.xy );
+      double len = dir.Len();
+
+      double radius = (1. - params.progress) * 0.70710678;
+      if ( len < radius )
+      {
+         Vec2D rotated( dir.Rotate( -params.speed * len * params.progress * PI ) );
+         Vec2D scaled( rotated * (1. - params.progress) + params.xy );
+
+         Vec2D newUV( Vec2D::lerp( params.xy, scaled, 1. - params.progress ) );
+
+         return tex2D( cb, newUV.x, newUV.y );
+      }
+
+      return xlBLACK;
+   }
+
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
 
    void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
@@ -441,6 +464,8 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             xform = bandedSwirlIn;
          else if ( warpType == "circle reveal" )
             xform = circleRevealIn;
+         else if ( warpType == "circular swirl" )
+            xform = circularSwirl;
       }
       else
       {
@@ -452,7 +477,17 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             xform = ( warpTreatment == "in" ) ? bandedSwirlIn : bandedSwirlOut;
          else if ( warpType == "circle reveal" )
             xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
+         else if ( warpType == "circular swirl" )
+            xform = circularSwirl;
       }
+
+      if ( warpType == "circular swirl" )
+      {
+         params.speed = interpolate( params.speed, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+         if ( warpTreatment == "in" )
+            params.progress = 1. - params.progress;
+      }
+
       if ( xform != nullptr )
          RenderPixelTransform( xform, buffer, params );
    }

@@ -94,6 +94,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	Choice_Warp_Type->Append(_("banded swirl"));
 	Choice_Warp_Type->Append(_("ripple"));
 	Choice_Warp_Type->Append(_("single water drop"));
+	Choice_Warp_Type->Append(_("circular swirl"));
 	FlexGridSizer5->Add(Choice_Warp_Type, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
@@ -267,7 +268,7 @@ void WarpPanel::ValidateWindow()
       TextCtrl_Warp_Cycle_Count->Disable();
    }
 
-   bool supportsSpeed = ( warpType == "water drops" || warpType == "ripple" );
+   bool supportsSpeed = ( warpType == "water drops" || warpType == "ripple" || warpType == "circular swirl" );
    if ( supportsSpeed )
    {
       Slider_Warp_Speed->Enable();
