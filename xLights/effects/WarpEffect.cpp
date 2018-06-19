@@ -25,6 +25,8 @@ namespace
       return std::min( hi, std::max( lo, val ) );
    }
 
+   const float PI = 3.14159265359f;
+
    struct Vec2D
    {
       Vec2D( double i_x = 0., double i_y = 0. ) : x( i_x ), y( i_y ) {}
@@ -129,7 +131,7 @@ namespace
       float frequency;
    };
 
-   float genWave( float len, float speed, float time, float PI )
+   float genWave( float len, float speed, float time )
    {
       float wave = RenderBuffer::sin( speed * PI * len + time );
       wave = ( wave + 1.0 ) * 0.5;
@@ -140,13 +142,12 @@ namespace
 
    xlColor waterDrops( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
-      const float PI = 3.14159265359;
 #define time (-params.progress * 35.0)
       Vec2D pos2( Vec2D( s, t ) - params.xy );
       Vec2D pos2n( pos2.Norm() );
 
       double len = pos2.Len();
-      float wave = genWave( len, params.speed, time, PI );
+      float wave = genWave( len, params.speed, time );
 #undef time
       Vec2D uv2( -pos2n * wave / ( 1.0 + 5.0 * len ) );
 
@@ -274,8 +275,6 @@ namespace
 
    float getDropletHeight( const Vec2D& uv, const Vec2D& dropletPosition, float time )
    {
-      const float PI = 3.14159265359;
-
       float decayRate = 0.5; // smaller = faster drops
       float dropletStrength = 1.0; // larger = bigger impact (0.5 min)
       float dropletStrengthBias = 0.6;
