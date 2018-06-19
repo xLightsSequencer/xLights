@@ -28,6 +28,7 @@ class LinkJukeboxButtonDialog: public wxDialog
 		//(*Declarations(LinkJukeboxButtonDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
+		wxButton* Button_Unlink;
 		wxChoice* Choice_Description;
 		wxChoice* Choice_Layer;
 		wxChoice* Choice_Model;
@@ -61,6 +62,7 @@ class LinkJukeboxButtonDialog: public wxDialog
 		static const long ID_RADIOBUTTON1;
 		static const long ID_STATICTEXT5;
 		static const long ID_CHOICE4;
+		static const long ID_BUTTON3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -75,6 +77,7 @@ class LinkJukeboxButtonDialog: public wxDialog
 		void OnChoice_LayerSelect(wxCommandEvent& event);
 		void OnChoice_ModelSelect(wxCommandEvent& event);
 		void OnRadioButton_Select(wxCommandEvent& event);
+		void OnButton_UnlinkClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

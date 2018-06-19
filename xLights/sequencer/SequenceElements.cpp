@@ -1662,7 +1662,7 @@ std::list<std::string> SequenceElements::GetAllEffectDescriptions()
     return res;
 }
 
-std::list<std::string> SequenceElements::GetAllElementNames()
+std::list<std::string> SequenceElements::GetAllElementNamesWithEffects()
 {
     std::list<std::string> res;
 
@@ -1673,7 +1673,10 @@ std::list<std::string> SequenceElements::GetAllElementNames()
         {
             if (std::find(res.begin(), res.end(), e->GetFullName()) == res.end())
             {
-                res.push_back(e->GetFullName());
+                if (e->HasEffects())
+                {
+                    res.push_back(e->GetFullName());
+                }
             }
         }
     }
@@ -1681,7 +1684,7 @@ std::list<std::string> SequenceElements::GetAllElementNames()
     return res;
 }
 
-int SequenceElements::GetElementLayerCount(std::string elementName)
+int SequenceElements::GetElementLayerCount(std::string elementName, std::list<int>* layers)
 {
     for (size_t i = 0; i < GetElementCount(); i++)
     {
@@ -1690,6 +1693,17 @@ int SequenceElements::GetElementLayerCount(std::string elementName)
         {
             if (e->GetFullName() == elementName)
             {
+                if (layers != nullptr)
+                {
+                    for (int j = 0; j < e->GetEffectLayerCount(); j++)
+                    {
+                        if (e->GetEffectLayer(j)->HasEffects())
+                        {
+                            layers->push_back(j);
+                        }
+                    }
+                }
+
                 return e->GetEffectLayerCount();
             }
         }

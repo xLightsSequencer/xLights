@@ -124,8 +124,6 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
         GridSizer1->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, i);
         Connect(button->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&JukeboxPanel::OnButtonClick);
         Connect(button->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&JukeboxPanel::OnButtonRClick);
-        if (i == 0)
-            _defaultColour = button->GetBackgroundColour();
     }
 
     // This is used by xSchedule
@@ -260,19 +258,24 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
         {
             SetButtonTooltip(control->_number, "");
             delete control;
+            control = nullptr;
             _buttons.erase(button);
         }
 
-        if (dlg.RadioButton_ED->GetValue())
+        if (dlg.RadioButton_ED->GetValue() && dlg.Choice_Description->GetSelection() >= 0)
         {
             control = new ButtonControl(button, dlg.Choice_Description->GetStringSelection().ToStdString(), dlg.TextCtrl_Tooltip->GetValue().ToStdString());
         }
-        else
+        else if (dlg.Choice_Model->GetSelection() >= 0)
         {
             control = new ButtonControl(button, dlg.Choice_Model->GetStringSelection().ToStdString(), wxAtoi(dlg.Choice_Layer->GetStringSelection()), wxAtoi(dlg.Choice_Time->GetStringSelection()), dlg.TextCtrl_Tooltip->GetValue().ToStdString());
         }
-        _buttons[button] = control;
-        SetButtonTooltip(control->_number, control->_tooltip);
+
+        if (control != nullptr)
+        {
+            _buttons[button] = control;
+            SetButtonTooltip(control->_number, control->_tooltip);
+        }
         xLightsApp::GetFrame()->GetMainSequencer()->SetChanged();
         ValidateWindow();
     }
@@ -291,7 +294,7 @@ void JukeboxPanel::ValidateWindow()
             if (_buttons.find(b) != _buttons.end())
             {
                 // button has a control
-                (*it)->SetBackgroundColour(_defaultColour);
+                (*it)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
             }
             else
             {

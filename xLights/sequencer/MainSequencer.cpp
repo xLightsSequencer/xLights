@@ -1117,14 +1117,14 @@ void MainSequencer::SetChanged()
     mSequenceElements->IncrementChangeCount(nullptr);
 }
 
-std::list<std::string> MainSequencer::GetAllElementNames()
+std::list<std::string> MainSequencer::GetAllElementNamesWithEffects()
 {
-    return mSequenceElements->GetAllElementNames();
+    return mSequenceElements->GetAllElementNamesWithEffects();
 }
 
-int MainSequencer::GetElementLayerCount(std::string elementName)
+int MainSequencer::GetElementLayerCount(std::string elementName, std::list<int>* layers)
 {
-    return mSequenceElements->GetElementLayerCount(elementName);
+    return mSequenceElements->GetElementLayerCount(elementName, layers);
 }
 
 std::list<Effect*> MainSequencer::GetElementLayerEffects(std::string elementName, int layer)
