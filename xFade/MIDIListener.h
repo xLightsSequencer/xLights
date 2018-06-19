@@ -43,6 +43,8 @@ class MIDIListener
 {
 	ListenerThread* _thread;
 
+    bool IsValidDeviceId(int deviceId);
+
 	public:
         MIDIListener(int deviceId, wxWindow* win);
 		virtual ~MIDIListener() {}

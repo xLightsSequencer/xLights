@@ -92,6 +92,10 @@ class xFadeFrame : public wxFrame
     static const long ID_LED1;
     static const long ID_LED2;
 
+    void PressJukeboxButton(int button, bool left);
+    wxButton* GetJukeboxButton(int button, wxWindow* panel);
+    int GetActiveButton(wxWindow* panel);
+
 public:
 
         xFadeFrame(wxWindow* parent, wxWindowID id = -1);
@@ -120,6 +124,7 @@ private:
         void OnSlider_RightBrightnessCmdSliderUpdated(wxScrollEvent& event);
         void OnSlider_MasterBrightnessCmdSliderUpdated(wxScrollEvent& event);
         void OnTextCtrl_CrossFadeTimeText(wxCommandEvent& event);
+        void OnButton_AdvanceClick(wxCommandEvent& event);
         //*)
 
         //(*Identifiers(xFadeFrame)
@@ -147,6 +152,7 @@ private:
         static const long ID_BUTTON_LEFT;
         static const long ID_SLIDER_FADE;
         static const long ID_BUTTON_RIGHT;
+        static const long ID_BUTTON_ADVANCE;
         static const long ID_STATICTEXT4;
         static const long ID_TEXTCTRL2;
         static const long ID_STATICTEXT11;
@@ -157,6 +163,7 @@ private:
         //*)
 
         //(*Declarations(xFadeFrame)
+        wxButton* Button_Advance;
         wxButton* Button_Configure;
         wxButton* Button_ConnectToxLights;
         wxButton* Button_Left;
@@ -211,6 +218,7 @@ private:
         void OnButtonRClickFadeLeft(wxContextMenuEvent& event);
         void OnButtonRClickFadeMiddle(wxContextMenuEvent& event);
         void OnButtonRClickFadeRight(wxContextMenuEvent& event);
+        void OnButtonRClickAdvance(wxContextMenuEvent& event);
 
         void OnMIDIEvent(wxCommandEvent& event);
 };

@@ -4,6 +4,21 @@
 
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
 
+bool MIDIListener::IsValidDeviceId(int deviceId)
+{
+    wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
+    int devices = midiSystem->CountDevices();
+    for (int i = 0; i < devices; i++)
+    {
+        wxMidiInDevice* midiDev = new wxMidiInDevice(i);
+        bool input = midiDev->IsInputPort();
+        delete midiDev;
+        if (input && i == deviceId) return true;
+    }
+
+    return false;
+}
+
 MIDIListener::MIDIListener(int deviceId, wxWindow* win)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -11,12 +26,20 @@ MIDIListener::MIDIListener(int deviceId, wxWindow* win)
 
     if (deviceId >= 0)
     {
-        _thread = new ListenerThread(deviceId, win);
-        wxMilliSleep(20);
-        if (!_thread->IsOk())
+        // check device id is valid
+        if (IsValidDeviceId(deviceId))
         {
-            logger_base.error("MIDI listening thread failed.");
-            _thread = nullptr;
+            _thread = new ListenerThread(deviceId, win);
+            wxMilliSleep(20);
+            if (!_thread->IsOk())
+            {
+                logger_base.error("MIDI listening thread failed.");
+                _thread = nullptr;
+            }
+        }
+        else
+        {
+            logger_base.error("MIDI listener not started because device id %d is not valid.", deviceId);
         }
     }
 }

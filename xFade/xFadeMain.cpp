@@ -96,6 +96,7 @@ const long xFadeFrame::ID_BUTTON_MIDDLE = wxNewId();
 const long xFadeFrame::ID_BUTTON_LEFT = wxNewId();
 const long xFadeFrame::ID_SLIDER_FADE = wxNewId();
 const long xFadeFrame::ID_BUTTON_RIGHT = wxNewId();
+const long xFadeFrame::ID_BUTTON_ADVANCE = wxNewId();
 const long xFadeFrame::ID_STATICTEXT4 = wxNewId();
 const long xFadeFrame::ID_TEXTCTRL2 = wxNewId();
 const long xFadeFrame::ID_STATICTEXT11 = wxNewId();
@@ -328,6 +329,10 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     FlexGridSizer3->Add(Slider1, 1, wxALL|wxEXPAND, 5);
     Button_Right = new wxButton(this, ID_BUTTON_RIGHT, _(">"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RIGHT"));
     FlexGridSizer3->Add(Button_Right, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Advance = new wxButton(this, ID_BUTTON_ADVANCE, _("Advance"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADVANCE"));
+    FlexGridSizer3->Add(Button_Advance, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
     BoxSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer7 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -374,6 +379,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Connect(ID_BUTTON_LEFT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_LeftClick);
     Connect(ID_SLIDER_FADE,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&xFadeFrame::OnSlider1CmdSliderUpdated);
     Connect(ID_BUTTON_RIGHT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_RightClick);
+    Connect(ID_BUTTON_ADVANCE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_AdvanceClick);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xFadeFrame::OnUITimerTrigger);
     //*)
 
@@ -389,6 +395,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Connect(ID_E131SOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xFadeFrame::OnE131SocketEvent);
     Connect(ID_ARTNETSOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xFadeFrame::OnArtNETSocketEvent);
 
+    Connect(Button_Advance->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickAdvance);
     Connect(Button_Left->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickFadeLeft);
     Connect(Button_Middle->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickFadeMiddle);
     Connect(Button_Right->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnButtonRClickFadeRight);
@@ -537,10 +544,15 @@ void xFadeFrame::SaveState()
 // close not required sockets
 void xFadeFrame::CloseSockets(bool force)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (force || !_settings._E131)
     {
         if (_e131SocketReceive != nullptr)
         {
+            logger_base.debug("Closing E131 receive socket.");
+            _e131SocketReceive->Notify(false);
+            wxYield(); // let any pending events process
             _e131SocketReceive->Close();
             delete _e131SocketReceive;
             _e131SocketReceive = nullptr;
@@ -551,6 +563,9 @@ void xFadeFrame::CloseSockets(bool force)
     {
         if (_artNETSocketReceive != nullptr)
         {
+            logger_base.debug("Closing ArtNET receive socket.");
+            _artNETSocketReceive->Notify(false);
+            wxYield(); // let any pending events process
             _artNETSocketReceive->Close();
             delete _artNETSocketReceive;
             _artNETSocketReceive = nullptr;
@@ -970,6 +985,7 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
 void xFadeFrame::CreateE131Listener()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_e131SocketReceive != nullptr) return;
 
     //Local address to bind to
@@ -1005,11 +1021,18 @@ void xFadeFrame::CreateE131Listener()
         {
             logger_base.warn("    Error opening E131 multicast listener %s.", (const char *)ip.c_str());
         }
+        else
+        {
+            logger_base.debug("    E131 multicast listener %s registered.", (const char *)ip.c_str());
+        }
     }
 
     //enable event handling
+    logger_base.debug("    Setting E131 event handler.");
     _e131SocketReceive->SetEventHandler(*this, ID_E131SOCKET);
+
     //Notify us about incomming data
+    logger_base.debug("    Turning on E131 notifications.");
     _e131SocketReceive->SetNotify(wxSOCKET_INPUT_FLAG);
     //enable event handling
     _e131SocketReceive->Notify(true);
@@ -1044,20 +1067,27 @@ void xFadeFrame::CreateArtNETListener()
 
     for (auto it = _settings._targetIP.begin(); it != _settings._targetIP.end(); ++it)
     {
-                struct ip_mreq mreq;
-                wxString ip = wxString::Format("239.255.%d.%d", it->first >> 8, it->first & 0xFF);
-                logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
-                mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
-                mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
-                if (!_artNETSocketReceive->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
-                {
-                    logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
-                }
+        struct ip_mreq mreq;
+        wxString ip = wxString::Format("239.255.%d.%d", it->first >> 8, it->first & 0xFF);
+        logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
+        mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
+        mreq.imr_interface.s_addr = inet_addr(_settings._localInputIP.c_str()); // this will only listen on the default interface
+        if (!_artNETSocketReceive->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
+        {
+            logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
+        }
+        else
+        {
+            logger_base.warn("    ARTNet multicast listener %s registered.", (const char *)ip.c_str());
+        }
     }
 
     //enable event handling
+    logger_base.debug("    Setting ArtNET event handler.");
     _artNETSocketReceive->SetEventHandler(*this, ID_ARTNETSOCKET);
+
     //Notify us about incomming data
+    logger_base.debug("    Turning on ArtNET notifications.");
     _artNETSocketReceive->SetNotify(wxSOCKET_INPUT_FLAG);
     //enable event handling
     _artNETSocketReceive->Notify(true);
@@ -1190,6 +1220,15 @@ void xFadeFrame::OnE131SocketEvent(wxSocketEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (_e131SocketReceive == nullptr)
+    {
+        logger_base.error("ERROR: E131 socket received a packet but socket is null");
+        wxASSERT(false);
+        return;
+    }
+
+    wxASSERT(event.GetSocket() == _e131SocketReceive);
+
     wxIPV4address addr;
     addr.Service(E131PORT);
     wxByte buf[E131_PACKET_LEN];
@@ -1209,6 +1248,7 @@ void xFadeFrame::OnE131SocketEvent(wxSocketEvent& event)
     }
         break;
     default:
+        wxASSERT(false);
         logger_base.warn("OnE131SocketEvent: Unexpected event !");
         break;
     }
@@ -1217,6 +1257,15 @@ void xFadeFrame::OnE131SocketEvent(wxSocketEvent& event)
 void xFadeFrame::OnArtNETSocketEvent(wxSocketEvent & event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_artNETSocketReceive == nullptr)
+    {
+        logger_base.error("ERROR: ArtNET socket received a packet but socket is null");
+        wxASSERT(false);
+        return;
+    }
+
+    wxASSERT(event.GetSocket() == _artNETSocketReceive);
 
     wxIPV4address addr;
     addr.Service(ARTNETPORT);
@@ -1237,6 +1286,7 @@ void xFadeFrame::OnArtNETSocketEvent(wxSocketEvent & event)
     }
         break;
     default:
+        wxASSERT(false);
         logger_base.warn("OnArtNETSocketEvent: Unexpected event !");
         break;
     }
@@ -1335,26 +1385,78 @@ void xFadeFrame::OnButtonClickLeft(wxCommandEvent& event)
 
     logger_base.debug("Playing jukebox left. %d", button);
 
-    wxString result = xLightsRequest(1, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button));
-
-    if (result.StartsWith("SUCCESS"))
-    {
-        auto buttons = Panel_Left->GetChildren();
-        for (auto b = buttons.begin(); b != buttons.end(); ++b)
-        {
-            ((wxButton*)*b)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            ((wxButton*)*b)->SetFont(wxNullFont);
-        }
-
-        ((wxButton*)event.GetEventObject())->SetForegroundColour(*wxBLUE);
-        ((wxButton*)event.GetEventObject())->SetFont(_selectedButtonFont->Underlined());
-    }
+    PressJukeboxButton(button, true);
 }
 
 void xFadeFrame::OnButtonRClickLeft(wxContextMenuEvent& event)
 {
     int button = wxAtoi(((wxButton*)event.GetEventObject())->GetLabel());
     SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName(), button);
+}
+
+void xFadeFrame::PressJukeboxButton(int button, bool left)
+{
+    wxWindow* panel;
+    int port = 0;
+    if (left)
+    {
+        panel = Panel_Left;
+        port = 1;
+    }
+    else
+    {
+        panel = Panel_Right;
+        port = 2;
+    }
+
+    wxButton* b = GetJukeboxButton(button, panel);
+
+    if (b != nullptr)
+    {
+        wxString result = xLightsRequest(port, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button));
+
+        if (result.StartsWith("SUCCESS"))
+        {
+            auto buttons = panel->GetChildren();
+            for (auto bb = buttons.begin(); bb != buttons.end(); ++bb)
+            {
+                ((wxButton*)*bb)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+                ((wxButton*)*bb)->SetFont(wxNullFont);
+            }
+
+            b->SetForegroundColour(*wxBLUE);
+            b->SetFont(_selectedButtonFont->Underlined());
+        }
+    }
+}
+
+int xFadeFrame::GetActiveButton(wxWindow* panel)
+{
+    auto buttons = panel->GetChildren();
+    for (auto bb = buttons.begin(); bb != buttons.end(); ++bb)
+    {
+        if ((*bb)->GetForegroundColour() == *wxBLUE)
+        {
+            return wxAtoi((*bb)->GetLabel());
+        }
+    }
+
+    return 0;
+}
+
+wxButton* xFadeFrame::GetJukeboxButton(int button, wxWindow* panel)
+{
+    wxString s = wxString::Format("%d", button);
+    auto buttons = panel->GetChildren();
+    for (auto bb = buttons.begin(); bb != buttons.end(); ++bb)
+    {
+        if ((*bb)->GetLabel() == s)
+        {
+            return (wxButton*)*bb;
+        }
+    }
+
+    return nullptr;
 }
 
 void xFadeFrame::OnButtonClickRight(wxCommandEvent& event)
@@ -1365,20 +1467,7 @@ void xFadeFrame::OnButtonClickRight(wxCommandEvent& event)
 
     logger_base.debug("Playing jukebox right. %d", button);
 
-    wxString result = xLightsRequest(2, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button));
-
-    if (result.StartsWith("SUCCESS"))
-    {
-        auto buttons = Panel_Right->GetChildren();
-        for (auto b = buttons.begin(); b != buttons.end(); ++b)
-        {
-            ((wxButton*)*b)->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-            ((wxButton*)*b)->SetFont(wxNullFont);
-        }
-
-        ((wxButton*)event.GetEventObject())->SetForegroundColour(*wxBLUE);
-        ((wxButton*)event.GetEventObject())->SetFont(_selectedButtonFont->Underlined());
-    }
+    PressJukeboxButton(button, false);
 }
 
 void xFadeFrame::OnButtonRClickRight(wxContextMenuEvent& event)
@@ -1423,6 +1512,11 @@ void xFadeFrame::OnButtonRClickFadeMiddle(wxContextMenuEvent& event)
 }
 
 void xFadeFrame::OnButtonRClickFadeRight(wxContextMenuEvent& event)
+{
+    SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
+}
+
+void xFadeFrame::OnButtonRClickAdvance(wxContextMenuEvent& event)
 {
     SetMIDIForControl(((wxWindow*)event.GetEventObject())->GetName());
 }
@@ -1714,4 +1808,44 @@ void xFadeFrame::OnSlider_MasterBrightnessCmdSliderUpdated(wxScrollEvent& event)
 
 void xFadeFrame::OnTextCtrl_CrossFadeTimeText(wxCommandEvent& event)
 {
+}
+
+void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    bool onLeft = ((_direction == -1 && UITimer.IsRunning()) || Slider1->GetValue() <= 5000);
+
+    if (onLeft)
+    {
+        // get the button to press on the right
+        int activeButton = GetActiveButton(Panel_Right);
+        activeButton++;
+        if (activeButton > JUKEBOXBUTTONS) activeButton = 1;
+
+        logger_base.debug("Advance moving to button %d on right.", activeButton);
+
+        // press active button
+        PressJukeboxButton(activeButton, false);
+
+        // initiate transition to right
+        _direction = 1;
+        UITimer.Start(25);
+    }
+    else
+    {
+        // get the button to press on the left
+        int activeButton = GetActiveButton(Panel_Left);
+        activeButton++;
+        if (activeButton > JUKEBOXBUTTONS) activeButton = 1;
+
+        logger_base.debug("Advance moving to button %d on left.", activeButton);
+
+        // press active button
+        PressJukeboxButton(activeButton, true);
+
+        // initiate transition to left
+        _direction = -1;
+        UITimer.Start(25);
+    }
 }
