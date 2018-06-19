@@ -470,7 +470,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *sp;
 
     p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
-    p->GetCell(0).SetFgCol(*wxBLACK);
 
     AddTypeProperties(grid);
 
@@ -528,7 +527,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     grid->Append(new ControllerConnectionProperty(this, "Controller Connection", "ControllerConnection", ModelXml->GetAttribute("ControllerConnection", "")));
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
-    p->GetCell(0).SetFgCol(*wxBLACK);
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
         i = NODE_TYPES.size() - 2;
@@ -561,7 +559,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     }
     
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
-    p->GetCell(0).SetFgCol(*wxBLACK);
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
     sp->SetAttribute("Max", 300);

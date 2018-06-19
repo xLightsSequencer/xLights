@@ -526,7 +526,7 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
         ButtonSavePreview->SetForegroundColour(wxColour(255,0,0));
         ButtonSavePreview->SetBackgroundColour(wxColour(255,0,0));
     } else {
-        ButtonSavePreview->SetForegroundColour(*wxBLACK);
+        ButtonSavePreview->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
         ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
     }
 #else
@@ -1460,7 +1460,6 @@ void LayoutPanel::SetupPropGrid(Model *model) {
 
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
-        p2->GetCell(0).SetFgCol(*wxBLACK);
 
         model->AddSizeLocationProperties(propertyEditor);
         if (!sizeVisible) {

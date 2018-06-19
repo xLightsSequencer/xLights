@@ -360,4 +360,3 @@ class LayoutPanel: public wxPanel
 };
 
 #endif
-    
