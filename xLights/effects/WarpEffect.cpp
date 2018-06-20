@@ -465,7 +465,10 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
          else if ( warpType == "circle reveal" )
             xform = circleRevealIn;
          else if ( warpType == "circular swirl" )
+         {
+            params.progress = 1. - params.progress;
             xform = circularSwirl;
+         }
       }
       else
       {
