@@ -119,6 +119,8 @@ END_EVENT_TABLE()
 
 void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool left = IsLeft(type ,packet, len);
     bool right = IsRight(type, packet, len);
     int universe = -1;
