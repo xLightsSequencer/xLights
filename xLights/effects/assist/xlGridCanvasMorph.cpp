@@ -327,8 +327,6 @@ void xlGridCanvasMorph::StoreUpdatedMorphPositions()
 
 void xlGridCanvasMorph::SetTooltip(int x, int y)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (x == -1 && y == -1)
     {
         UnsetToolTip();
@@ -345,7 +343,6 @@ void xlGridCanvasMorph::SetTooltip(int x, int y)
 
     wxString tt = wxString::Format("%d%%, %d%%", x, y);
     SetToolTip(tt);
-    logger_base.debug(tt);
 }
 
 void xlGridCanvasMorph::CreateCornerTextures()
