@@ -25,6 +25,8 @@ namespace
       return std::min( hi, std::max( lo, val ) );
    }
 
+   const float PI = 3.14159265359f;
+
    struct Vec2D
    {
       Vec2D( double i_x = 0., double i_y = 0. ) : x( i_x ), y( i_y ) {}
@@ -50,13 +52,16 @@ namespace
       bool     IsNormal() const { return fabs( Len2() - 1 ) < 1e-6; }
       Vec2D    Rotate( const double& fAngle ) const
       {
-         double cs = ::cos( fAngle );
-         double sn = ::sin( fAngle );
+         float cs = RenderBuffer::cos( fAngle );
+         float sn = RenderBuffer::sin( fAngle );
          return Vec2D( x*cs + y * sn, -x * sn + y * cs );
       }
-      Vec2D    Rotate( const Vec2D& p, const double& fAngle ) const { return ( *this - p ).Rotate( fAngle ) + p; }
-      Vec2D    Rotate90() const { return Vec2D( y, -x ); }
-
+      static Vec2D lerp( const Vec2D& a, const Vec2D& b, double progress )
+      {
+         double x = a.x + progress * ( b.x - a.x );
+         double y = a.y + progress * ( b.y - a.y );
+         return Vec2D( x, y );
+      }
       double x, y;
    };
 
@@ -129,7 +134,7 @@ namespace
       float frequency;
    };
 
-   float genWave( float len, float speed, float time, float PI )
+   float genWave( float len, float speed, float time )
    {
       float wave = RenderBuffer::sin( speed * PI * len + time );
       wave = ( wave + 1.0 ) * 0.5;
@@ -140,13 +145,12 @@ namespace
 
    xlColor waterDrops( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
-      const float PI = 3.14159265359;
 #define time (-params.progress * 35.0)
       Vec2D pos2( Vec2D( s, t ) - params.xy );
       Vec2D pos2n( pos2.Norm() );
 
       double len = pos2.Len();
-      float wave = genWave( len, params.speed, time, PI );
+      float wave = genWave( len, params.speed, time );
 #undef time
       Vec2D uv2( -pos2n * wave / ( 1.0 + 5.0 * len ) );
 
@@ -274,8 +278,6 @@ namespace
 
    float getDropletHeight( const Vec2D& uv, const Vec2D& dropletPosition, float time )
    {
-      const float PI = 3.14159265359;
-
       float decayRate = 0.5; // smaller = faster drops
       float dropletStrength = 1.0; // larger = bigger impact (0.5 min)
       float dropletStrengthBias = 0.6;
@@ -305,6 +307,26 @@ namespace
       Vec2D uv2 = -pos2n * dh / ( 1.0 + 3.0 * pos2.Len() );
 
       return tex2D( cb, uv.x + uv2.x, uv.y + uv2.y );
+   }
+
+   xlColor circularSwirl( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
+   {
+      Vec2D uv( s, t );
+      Vec2D dir( uv - params.xy );
+      double len = dir.Len();
+
+      double radius = (1. - params.progress) * 0.70710678;
+      if ( len < radius )
+      {
+         Vec2D rotated( dir.Rotate( -params.speed * len * params.progress * PI ) );
+         Vec2D scaled( rotated * (1. - params.progress) + params.xy );
+
+         Vec2D newUV( Vec2D::lerp( params.xy, scaled, 1. - params.progress ) );
+
+         return tex2D( cb, newUV.x, newUV.y );
+      }
+
+      return xlBLACK;
    }
 
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
@@ -442,6 +464,11 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             xform = bandedSwirlIn;
          else if ( warpType == "circle reveal" )
             xform = circleRevealIn;
+         else if ( warpType == "circular swirl" )
+         {
+            params.progress = 1. - params.progress;
+            xform = circularSwirl;
+         }
       }
       else
       {
@@ -453,7 +480,17 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             xform = ( warpTreatment == "in" ) ? bandedSwirlIn : bandedSwirlOut;
          else if ( warpType == "circle reveal" )
             xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
+         else if ( warpType == "circular swirl" )
+            xform = circularSwirl;
       }
+
+      if ( warpType == "circular swirl" )
+      {
+         params.speed = interpolate( params.speed, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+         if ( warpTreatment == "in" )
+            params.progress = 1. - params.progress;
+      }
+
       if ( xform != nullptr )
          RenderPixelTransform( xform, buffer, params );
    }
