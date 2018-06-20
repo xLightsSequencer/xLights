@@ -122,16 +122,14 @@ void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
     bool left = IsLeft(type ,packet, len);
     bool right = IsRight(type, packet, len);
     int universe = -1;
-    std::string source = "";
+
     if (type == ID_E131SOCKET)
     {
         universe = ((int)packet[113] << 8) + (int)packet[114];
-        source = std::string((char*)&packet[11], 10);
     }
     else if (type == ID_ARTNETSOCKET)
     {
         universe = ((int)packet[15] << 8) + (int)packet[14];
-        source = std::string((char*)&packet[11], 10);
     }
 
     if (universe == -1) return;
@@ -143,18 +141,30 @@ void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
 
         if (left)
         {
-            _leftData[universe].Update(type, packet, len);
-            if (_leftData[universe].GetSequenceNum() % 10 == 0)
+            if (!_leftData[universe].Update(type, packet, len))
             {
-                Led_Left->Enable(!Led_Left->IsEnabled());
+                logger_base.debug("Invalid packet.");
+            }
+            else
+            {
+                if (_leftData[universe].GetSequenceNum() % 10 == 0)
+                {
+                    Led_Left->Enable(!Led_Left->IsEnabled());
+                }
             }
         }
         else if (right)
         {
-            _rightData[universe].Update(type, packet, len);
-            if (_rightData[universe].GetSequenceNum() % 10 == 0)
+            if (!_rightData[universe].Update(type, packet, len))
             {
-                Led_Right->Enable(!Led_Right->IsEnabled());
+                logger_base.debug("Invalid packet.");
+            }
+            else
+            {
+                if (_rightData[universe].GetSequenceNum() % 10 == 0)
+                {
+                    Led_Right->Enable(!Led_Right->IsEnabled());
+                }
             }
         }
     }
@@ -660,21 +670,21 @@ void PacketData::SetData(int c, wxByte dd)
     }
 }
 
-void PacketData::Update(long type, wxByte* packet, int len)
+bool PacketData::Update(long type, wxByte* packet, int len)
 {
     if (type == xFadeFrame::ID_E131SOCKET)
     {
         // validate the packet
-        if (len < E131_PACKET_HEADERLEN) return;
-        if (packet[4] != 0x41) return;
-        if (packet[5] != 0x53) return;
-        if (packet[6] != 0x43) return;
-        if (packet[7] != 0x2d) return;
-        if (packet[8] != 0x45) return;
-        if (packet[9] != 0x31) return;
-        if (packet[10] != 0x2e) return;
-        if (packet[11] != 0x31) return;
-        if (packet[12] != 0x37) return;
+        if (len < E131_PACKET_HEADERLEN) return false;
+        if (packet[4] != 0x41) return false;
+        if (packet[5] != 0x53) return false;
+        if (packet[6] != 0x43) return false;
+        if (packet[7] != 0x2d) return false;
+        if (packet[8] != 0x45) return false;
+        if (packet[9] != 0x31) return false;
+        if (packet[10] != 0x2e) return false;
+        if (packet[11] != 0x31) return false;
+        if (packet[12] != 0x37) return false;
 
         _universe = ((int)_data[113] << 8) + (int)_data[114];
         _type = type;
@@ -684,21 +694,23 @@ void PacketData::Update(long type, wxByte* packet, int len)
     else if (type == xFadeFrame::ID_ARTNETSOCKET)
     {
         // validate the packet
-        if (len < ARTNET_PACKET_HEADERLEN) return;
-        if (packet[0] != 'A') return;
-        if (packet[1] != 'r') return;
-        if (packet[2] != 't') return;
-        if (packet[3] != '-') return;
-        if (packet[4] != 'N') return;
-        if (packet[5] != 'e') return;
-        if (packet[6] != 't') return;
-        if (packet[9] != 0x50) return;
+        if (len < ARTNET_PACKET_HEADERLEN) return false;
+        if (packet[0] != 'A') return false;
+        if (packet[1] != 'r') return false;
+        if (packet[2] != 't') return false;
+        if (packet[3] != '-') return false;
+        if (packet[4] != 'N') return false;
+        if (packet[5] != 'e') return false;
+        if (packet[6] != 't') return false;
+        if (packet[9] != 0x50) return true; // pretend success as otherwise I will log excessively
 
         _universe = ((int)_data[15] << 8) + (int)_data[14];
         _type = type;
         _length = len;
         memcpy(_data, packet, len);
     }
+ 
+    return true;
 }
 
 void PacketData::Send(std::string ip) const
