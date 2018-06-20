@@ -1460,7 +1460,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     UnsavedRgbEffectsChanges = false;
     UnsavedPlaylistChanges = false;
     mStoredLayoutGroup = "Default";
-    mDefaultNetworkSaveBtnColor = ButtonSaveSetup->GetBackgroundColour();
 
     modelsChangeCount = 0;
 

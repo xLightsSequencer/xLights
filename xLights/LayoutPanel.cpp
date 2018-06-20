@@ -398,9 +398,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashPosition(msp);
     }
 
-    
-    mDefaultSaveBtnColor = ButtonSavePreview->GetBackgroundColour();
-
     Reset();
 
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
@@ -527,21 +524,13 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
         ButtonSavePreview->SetBackgroundColour(wxColour(255,0,0));
     } else {
         ButtonSavePreview->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
-        ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
+        ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
 #else
     if (dirty) {
-        //ButtonSavePreview->SetForegroundColour(*wxRED);
-        //auto font = ButtonSavePreview->GetFont();
-        //font.SetWeight(wxFONTWEIGHT_BOLD);
-        //ButtonSavePreview->SetFont(font);
         ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
     } else {
-        //ButtonSavePreview->SetForegroundColour(*wxBLACK);
-        //auto font = ButtonSavePreview->GetFont();
-        //font.SetWeight(wxFONTWEIGHT_NORMAL);
-        //ButtonSavePreview->SetFont(font);
-        ButtonSavePreview->SetBackgroundColour(mDefaultSaveBtnColor);
+        ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
 #endif
 }

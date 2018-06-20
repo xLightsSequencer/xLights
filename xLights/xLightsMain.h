@@ -1001,7 +1001,6 @@ private:
     wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges;
     bool UnsavedPlaylistChanges;
-    wxColor mDefaultNetworkSaveBtnColor;
     int mSavedChangeCount;
     int mLastAutosaveCount;
     wxDateTime starttime;

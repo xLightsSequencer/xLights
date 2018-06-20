@@ -1142,10 +1142,6 @@ void xLightsFrame::NetworkChange()
     ButtonSaveSetup->SetForegroundColour(wxColour(255, 0, 0));
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 0, 0));
 #else
-    //ButtonSaveSetup->SetForegroundColour(*wxRED);
-    //auto font = ButtonSaveSetup->GetFont();
-    //font.SetWeight(wxFONTWEIGHT_BOLD);
-    //ButtonSaveSetup->SetFont(font);
     ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
 #endif
 }
@@ -1156,13 +1152,9 @@ bool xLightsFrame::SaveNetworksFile()
         UnsavedNetworkChanges = false;
 #ifdef __WXOSX__
         ButtonSaveSetup->SetForegroundColour(*wxBLACK);
-        ButtonSaveSetup->SetBackgroundColour(mDefaultNetworkSaveBtnColor);
+        ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #else
-        //ButtonSaveSetup->SetForegroundColour(*wxBLACK);
-        //auto font = ButtonSaveSetup->GetFont();
-        //font.SetWeight(wxFONTWEIGHT_NORMAL);
-        //ButtonSaveSetup->SetFont(font);
-        ButtonSaveSetup->SetBackgroundColour(mDefaultNetworkSaveBtnColor);
+        ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
         return true;
     } else {
