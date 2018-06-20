@@ -716,20 +716,19 @@ void PacketData::Send(std::string ip) const
             localaddr.Hostname(_localIP);
         }
 
-        wxIPV4address remoteaddr;
-
         wxDatagramSocket datagram(localaddr, wxSOCKET_NOWAIT);
 
         if (!datagram.IsOk())
         {
-            logger_base.error("E131Output: Error opening datagram. Network may not be connected? OK : FALSE");
+            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d, From %s", _universe, (const char *)localaddr.IPAddress().ToStdString());
         }
         else if (datagram.Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating E131 datagram => %d : %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str());
+            logger_base.error("Error creating E131 datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().ToStdString());
         }
         else
         {
+            wxIPV4address remoteaddr;
             if (wxString(ip).StartsWith("239.255.") || ip == "MULTICAST")
             {
                 // multicast - universe number must be in lower 2 bytes
@@ -748,21 +747,28 @@ void PacketData::Send(std::string ip) const
     else if (_type == xFadeFrame::ID_ARTNETSOCKET)
     {
         wxIPV4address localaddr;
-        wxIPV4address remoteaddr;
-        localaddr.AnyAddress();
+        if (_localIP == "")
+        {
+            localaddr.AnyAddress();
+        }
+        else
+        {
+            localaddr.Hostname(_localIP);
+        }
 
         wxDatagramSocket datagram(localaddr, wxSOCKET_NOWAIT);
 
         if (!datagram.IsOk())
         {
-            logger_base.error("E131Output: Error opening datagram. Network may not be connected? OK : FALSE");
+            logger_base.error("ArtNET Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d from %s", _universe, (const char *)localaddr.IPAddress().ToStdString());
         }
         else if (datagram.Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating E131 datagram => %d : %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str());
+            logger_base.error("Error creating ArtNET datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().ToStdString());
         }
         else
         {
+            wxIPV4address remoteaddr;
             remoteaddr.Hostname(ip.c_str());
             remoteaddr.Service(ARTNETPORT);
 
