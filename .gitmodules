@@ -1,0 +1,15 @@
+[submodule "dependencies/FFmpeg"]
+	path = dependencies/FFmpeg
+	url = https://github.com/FFmpeg/FFmpeg.git
+[submodule "dependencies/liquidfun"]
+	path = dependencies/liquidfun
+	url = https://github.com/google/liquidfun.git
+[submodule "dependencies/midifile"]
+	path = dependencies/midifile
+	url = https://github.com/craigsapp/midifile.git
+[submodule "dependencies/spxml"]
+	path = dependencies/spxml
+	url = https://github.com/spsoft/spxml.git
+[submodule "dependencies/log4cpp-codegit"]
+	path = dependencies/log4cpp-codegit
+	url = https://git.code.sf.net/p/log4cpp/codegit

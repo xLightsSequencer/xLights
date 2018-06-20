@@ -155,3 +155,12 @@ Version:
 License:     
 Strategy:    Windows: Source files are included in the xLights repository and it is compiled into xLights statically.
 
+Library:     wxLED
+Usage:       UI element used in xFade
+Link:        http://wxcode.sourceforge.net/showcomp.php?name=wxLed
+Source:      https://forums.wxwidgets.org/download/file.php?id=263&sid=1921744d7ea05034b7406984acb0578e
+Last Pulled:
+Version:
+License:
+Strategy:    Source files are included in xLights repository and it is compiled into xFade statically
+
