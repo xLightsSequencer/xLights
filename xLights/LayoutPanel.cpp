@@ -520,12 +520,11 @@ void LayoutPanel::Reset()
 void LayoutPanel::SetDirtyHiLight(bool dirty) {
 #ifdef __WXOSX__
     if (dirty) {
-        ButtonSavePreview->SetForegroundColour(wxColour(255,0,0));
         ButtonSavePreview->SetBackgroundColour(wxColour(255,0,0));
     } else {
-        ButtonSavePreview->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT));
-        ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+        ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
     }
+    ButtonSavePreview->Refresh();
 #else
     if (dirty) {
         ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
