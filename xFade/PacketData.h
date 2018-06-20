@@ -26,7 +26,7 @@ public:
     wxByte GetData(int c);
     wxByte* GetDataPtr();
     void SetData(int c, wxByte dd);
-    void Update(long type, wxByte* packet, int len);
+    bool Update(long type, wxByte* packet, int len);
     void Send(std::string ip) const;
     int GetDataLength() const;
     wxByte UniverseHigh() const { return (_universe >> 8) & 0xFF; }
