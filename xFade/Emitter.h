@@ -15,6 +15,7 @@ class ListenerManager;
 
 class Emitter
 {
+    unsigned long _sent = 0;
     EmitterThread* _emitterThread;
     std::map<int, std::string>* _targetIP;
     std::map<int, std::string>* _protocol;
@@ -48,6 +49,9 @@ class Emitter
     void SetRightBrightness(int brightness) { _rightBrightness = brightness; }
     int GetLeftBrightness() const { return _leftBrightness; }
     int GetRightBrightness() const { return _rightBrightness; }
+    unsigned long GetSent() const { return _sent; }
+    void IncrementSent() { _sent++; }
+    void ZeroSent() { _sent = 0; }
 };
 
 #endif 

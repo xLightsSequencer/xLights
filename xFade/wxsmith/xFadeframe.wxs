@@ -368,13 +368,17 @@
 			</object>
 		</object>
 		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
-			<fields>1</fields>
-			<widths>-10</widths>
-			<styles>wxSB_NORMAL</styles>
+			<fields>3</fields>
+			<widths>-10,-10,-10</widths>
+			<styles>wxSB_NORMAL,wxSB_NORMAL,wxSB_NORMAL</styles>
 		</object>
 		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="UITimer" member="yes">
 			<interval>1000</interval>
 			<handler function="OnUITimerTrigger" entry="EVT_TIMER" />
+		</object>
+		<object class="wxTimer" name="ID_TIMER2" variable="Timer_Status" member="yes">
+			<interval>1000</interval>
+			<handler function="OnTimer_StatusTrigger" entry="EVT_TIMER" />
 		</object>
 	</object>
 </wxsmith>

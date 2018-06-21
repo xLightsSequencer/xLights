@@ -108,7 +108,7 @@ int StarModel::GetStrandLength(int strand) const {
 int StarModel::MapToNodeIndex(int strand, int node) const {
     int idx = 0;
     for (int x = 0; x < strand; x++) {
-        idx += GetStarSize(x);
+        idx += GetStrandLength(x);
     }
     idx += node;
     return idx;

@@ -104,6 +104,7 @@ const long xFadeFrame::ID_TEXTCTRL5 = wxNewId();
 const long xFadeFrame::ID_PANEL2 = wxNewId();
 const long xFadeFrame::ID_STATUSBAR1 = wxNewId();
 const long xFadeFrame::ID_TIMER1 = wxNewId();
+const long xFadeFrame::ID_TIMER2 = wxNewId();
 //*)
 
 const long xFadeFrame::ID_E131SOCKET = wxNewId();
@@ -120,6 +121,8 @@ END_EVENT_TABLE()
 void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_suspendListen) return;
 
     bool left = IsLeft(type ,packet, len);
     bool right = IsRight(type, packet, len);
@@ -149,9 +152,14 @@ void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
             }
             else
             {
-                if (_leftData[universe].GetSequenceNum() % 10 == 0)
+                _leftReceived++;
+                // only flash the LED based on receipt of data for the first universe
+                if (universe == _leftData.begin()->second._universe)
                 {
-                    Led_Left->Enable(!Led_Left->IsEnabled());
+                    if (_leftData[universe].GetSequenceNum() % 10 == 0)
+                    {
+                        Led_Left->Enable(!Led_Left->IsEnabled());
+                    }
                 }
             }
         }
@@ -163,9 +171,14 @@ void xFadeFrame::StashPacket(long type, wxByte* packet, int len)
             }
             else
             {
-                if (_rightData[universe].GetSequenceNum() % 10 == 0)
+                _rightReceived++;
+                // only flash the LED based on receipt of data for the first universe
+                if (universe == _rightData.begin()->second._universe)
                 {
-                    Led_Right->Enable(!Led_Right->IsEnabled());
+                    if (_rightData[universe].GetSequenceNum() % 10 == 0)
+                    {
+                        Led_Right->Enable(!Led_Right->IsEnabled());
+                    }
                 }
             }
         }
@@ -371,13 +384,15 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     StatusBar1 = new wxStatusBar(this, ID_STATUSBAR1, 0, _T("ID_STATUSBAR1"));
-    int __wxStatusBarWidths_1[1] = { -10 };
-    int __wxStatusBarStyles_1[1] = { wxSB_NORMAL };
-    StatusBar1->SetFieldsCount(1,__wxStatusBarWidths_1);
-    StatusBar1->SetStatusStyles(1,__wxStatusBarStyles_1);
+    int __wxStatusBarWidths_1[3] = { -10, -10, -10 };
+    int __wxStatusBarStyles_1[3] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };
+    StatusBar1->SetFieldsCount(3,__wxStatusBarWidths_1);
+    StatusBar1->SetStatusStyles(3,__wxStatusBarStyles_1);
     SetStatusBar(StatusBar1);
     UITimer.SetOwner(this, ID_TIMER1);
     UITimer.Start(1000, false);
+    Timer_Status.SetOwner(this, ID_TIMER2);
+    Timer_Status.Start(1000, false);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
@@ -393,7 +408,10 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Connect(ID_BUTTON_RIGHT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_RightClick);
     Connect(ID_BUTTON_ADVANCE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xFadeFrame::OnButton_AdvanceClick);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xFadeFrame::OnUITimerTrigger);
+    Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xFadeFrame::OnTimer_StatusTrigger);
     //*)
+
+    _suspendListen = false;
 
     Led_Left = new wxLed(this, ID_LED1, "808080", wxDefaultPosition, wxDefaultSize);
     Led_Left->Disable();
@@ -428,6 +446,9 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     SetIcons(icons);
 
     LoadState();
+
+    _leftReceived = 0;
+    _rightReceived = 0;
 
     _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP);
 
@@ -711,7 +732,7 @@ bool PacketData::Update(long type, wxByte* packet, int len)
         _length = len;
         memcpy(_data, packet, len);
     }
- 
+
     return true;
 }
 
@@ -868,6 +889,7 @@ void PacketData::InitialiseE131Header()
     _data[39] = 0x58;  // 0x258 = 638 - 38
     _data[43] = 0x02;
     // Source Name (64 bytes)
+    memset(&_data[44], 0x00, 64);
     strcpy((char*)&_data[44], _tag.c_str());
     _data[108] = 100;  // Priority
     _data[113] = _universe >> 8;  // Universe Number (high)
@@ -962,7 +984,6 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
     _length = 0;
     _type = targetType;
     _universe = source->_universe;
-    _source = source->_source;
 
     if (source->_type == targetType)
     {
@@ -971,6 +992,7 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
 
         if (_type == xFadeFrame::ID_E131SOCKET)
         {
+            memset(&_data[44], 0x00, 64);
             strcpy((char*)&_data[44], _tag.c_str());
             _data[111] = GetNextSequenceNum(_universe);
         }
@@ -988,6 +1010,7 @@ void PacketData::CopyFrom(PacketData* source, long targetType)
             _length = E131_PACKET_HEADERLEN + source->GetDataLength();
             InitialiseE131Header();
             memcpy(source->GetDataPtr(), GetDataPtr(), GetDataLength());
+            memset(&_data[44], 0x00, 64);
             strcpy((char*)&_data[44], _tag.c_str());
             _data[111] = GetNextSequenceNum(_universe);
         }
@@ -1579,13 +1602,16 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Connecting to xLights ...");
 
+    // suspend listening for packets
+    _suspendListen = true;
+
     _leftTag = "";
     _rightTag = "";
     TextCtrl_LeftSequence->SetValue("");
     TextCtrl_RightSequence->SetValue("");
     TextCtrl_LeftTag->SetValue("");
-    TextCtrl_LeftTag->SetValue("");
-
+    TextCtrl_RightTag->SetValue("");
+    
     wxString result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_TOOLTIPS");
     if (result.StartsWith("SUCCESS"))
     {
@@ -1620,8 +1646,6 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_EFFECTPRESENT");
         if (result.StartsWith("SUCCESS"))
         {
-            Panel_Right->Enable(true);
-
             auto bs = wxSplit(result, '|');
 
             i = 0;
@@ -1681,6 +1705,8 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_TOOLTIPS");
     if (result.StartsWith("SUCCESS"))
     {
+        Panel_Right->Enable(true);
+
         auto tips = wxSplit(result, '|');
 
         int i = 0;
@@ -1767,6 +1793,15 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         Panel_Right->Enable(false);
     }
 
+    _leftReceived = 0;
+    _rightReceived = 0;
+    Led_Left->Disable();
+    Led_Right->Disable();
+    _emitter->ZeroSent();
+
+    // un suspend listening for packets
+    _suspendListen = false;
+
     logger_base.debug("    Connecting to xLights done!");
 }
 
@@ -1780,6 +1815,8 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Configure ...");
 
+    _suspendListen = true;
+    
     SettingsDialog dlg(this, &_settings);
 
     CloseSockets();
@@ -1803,6 +1840,13 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     SetTiming();
     SetFade();
     _midiListener = new MIDIListener(_settings.GetMIDIDeviceId(), this);
+
+    _leftReceived = 0;
+    _rightReceived = 0;
+    Led_Left->Disable();
+    Led_Right->Disable();
+    _suspendListen = false;
+
     RestartInterfaces();
 
     logger_base.debug("    Configuring done!");
@@ -1867,5 +1911,27 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
         // initiate transition to left
         _direction = -1;
         UITimer.Start(25);
+    }
+}
+
+void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static unsigned long count = 0;
+    count++;
+    StatusBar1->SetStatusText(wxString::Format("Left: %lu", _leftReceived), 0);
+    StatusBar1->SetStatusText(wxString::Format("Right: %lu", _rightReceived), 2);
+    if (_emitter != nullptr)
+    {
+        StatusBar1->SetStatusText(wxString::Format("Sent: %lu", _emitter->GetSent()), 1);
+        if (count % 60 == 0)
+        {
+            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent %lu.", _leftReceived, _rightReceived, _emitter->GetSent());
+        }
+    }
+    else
+    {
+        StatusBar1->SetStatusText("Sending disabled", 1);
+        logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", _leftReceived, _rightReceived);
     }
 }

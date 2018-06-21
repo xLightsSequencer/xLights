@@ -59,6 +59,9 @@ class xFadeFrame : public wxFrame
 
     std::map<int, PacketData> _leftData;
     std::map<int, PacketData> _rightData;
+    unsigned long _leftReceived;
+    unsigned long _rightReceived;
+    bool _suspendListen;
     wxString _leftTag;
     wxString _rightTag;
     Settings _settings;
@@ -125,6 +128,7 @@ private:
         void OnSlider_MasterBrightnessCmdSliderUpdated(wxScrollEvent& event);
         void OnTextCtrl_CrossFadeTimeText(wxCommandEvent& event);
         void OnButton_AdvanceClick(wxCommandEvent& event);
+        void OnTimer_StatusTrigger(wxTimerEvent& event);
         //*)
 
         //(*Identifiers(xFadeFrame)
@@ -160,6 +164,7 @@ private:
         static const long ID_PANEL2;
         static const long ID_STATUSBAR1;
         static const long ID_TIMER1;
+        static const long ID_TIMER2;
         //*)
 
         //(*Declarations(xFadeFrame)
@@ -195,6 +200,7 @@ private:
         wxTextCtrl* TextCtrl_LeftTag;
         wxTextCtrl* TextCtrl_RightSequence;
         wxTextCtrl* TextCtrl_RightTag;
+        wxTimer Timer_Status;
         xLightsTimer UITimer;
         //*)
 

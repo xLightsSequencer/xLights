@@ -13,6 +13,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (kevin)  Add 'circular swirl' to warp effect
    -- bug (kevin)  Fix issues with warp effect panel
+   -- bug (keith)  Some xFade fixes and improved UI information
+   -- bug (keith)  Fix layered RGB star doesnt render more than 1 node
+   -- enh (keith)  Add display of % location in morph effect assist
+   -- bug (keith)  Some tweaks to wiring view display
+   -- enh (keith)  Some jukebox configuration improvements
+   -- enh (keith)  Add advance button to xFade for shows on rails
+   -- bug (keith)  Fix blank city name sunrise/set crash
+   -- enh (keith)  Recognise sunup and sundown and similies for sunset and sunrise
+   -- enh (scott)  Submodel import should skip submodels that already exist in the model
 2018.16 June 17, 2018
    -- enh (kevin)  Added warp effect for use with canvas blend style 
    -- enh (scott)  Added Vixen FSEQ File Support to xSchedule

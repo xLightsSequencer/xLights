@@ -114,6 +114,7 @@ public:
                     }
 
                     sendData.Send(it->second);
+                    _emitter->IncrementSent();
                 }
 
                 int ms = _emitter->GetFrameMS();
@@ -132,6 +133,7 @@ public:
 
 Emitter::Emitter(std::map<int, std::string>* ip, std::map<int, PacketData>* left, std::map<int, PacketData>* right, std::map<int, std::string>* protocol, std::mutex* lock, std::string localIP)
 {
+    _sent = 0;
     _localIP = localIP;
     _stop = false;
     _lock = lock;

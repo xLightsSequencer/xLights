@@ -16,7 +16,6 @@ public:
     long _type;
     int _universe;
     int _length;
-    std::string _source;
     std::map<int, int> _sequenceNum;
     std::string _tag;
     std::string _localIP;
