@@ -734,11 +734,11 @@ void PacketData::Send(std::string ip) const
 
         if (!datagram.IsOk())
         {
-            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d, From %s", _universe, (const char *)localaddr.IPAddress().ToStdString());
+            logger_base.error("E131 Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d, From %s", _universe, (const char *)localaddr.IPAddress().c_str());
         }
         else if (datagram.Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating E131 datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().ToStdString());
+            logger_base.error("Error creating E131 datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().c_str());
         }
         else
         {
@@ -774,11 +774,11 @@ void PacketData::Send(std::string ip) const
 
         if (!datagram.IsOk())
         {
-            logger_base.error("ArtNET Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d from %s", _universe, (const char *)localaddr.IPAddress().ToStdString());
+            logger_base.error("ArtNET Output: Error opening datagram. Network may not be connected? OK : FALSE, Universe %d from %s", _universe, (const char *)localaddr.IPAddress().c_str());
         }
         else if (datagram.Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating ArtNET datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().ToStdString());
+            logger_base.error("Error creating ArtNET datagram => %d : %s, Universe %d from %s.", datagram.LastError(), (const char *)DecodeIPError(datagram.LastError()).c_str(), _universe, (const char *)localaddr.IPAddress().c_str());
         }
         else
         {
