@@ -9,34 +9,38 @@ if [ -f "/opt/local/lib/libwx_baseu-3.1.2.0.0.dylib" ]; then
 SRCVER=3.1.2.0.0
 elif [ -f "/opt/local/lib/libwx_baseu-3.1.1.0.0.dylib" ]; then
 SRCVER=3.1.1.0.0
-else
+elif [ -f "/opt/local/lib/libwx_baseu-3.1.0.0.0.dylib" ]; then
 SRCVER=3.1.0.0.0
+else
+SRCVER=""
 fi
 
 
-LIBS="baseu baseu_net baseu_xml osx_cocoau_core osx_cocoau_adv osx_cocoau_gl osx_cocoau_media osx_cocoau_html osx_cocoau_aui osx_cocoau_qa osx_cocoau_propgrid"
+if [ -f "/opt/local/lib/libwx_baseu-$SRCVER.dylib" ]; then
+    LIBS="baseu baseu_net baseu_xml osx_cocoau_core osx_cocoau_adv osx_cocoau_gl osx_cocoau_media osx_cocoau_html osx_cocoau_aui osx_cocoau_qa osx_cocoau_propgrid"
 
-mkdir -p "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
-for L in $LIBS
-do
-   rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$SRCVER.dylib"
-   rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$TARGETVER.dylib"
-   cp -af /opt/local/lib/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
-   # cp -af /opt/local/lib/libwx_$L-$TARGETVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
-
-   install_name_tool -change /opt/local/lib/libwx_$L-$TARGETVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
-   install_name_tool -change /opt/local/lib/libwx_$L-$SRCVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
-done
-
-
-for LS in $LIBS
-do
-    for LT in $LIBS
+    mkdir -p "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
+    for L in $LIBS
     do
-	install_name_tool -change /opt/local/lib/libwx_$LS-$TARGETVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
-	install_name_tool -change /opt/local/lib/libwx_$LS-$SRCVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
+        rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$SRCVER.dylib"
+        rm -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$L-$TARGETVER.dylib"
+        cp -af /opt/local/lib/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
+        # cp -af /opt/local/lib/libwx_$L-$TARGETVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks"
+
+        install_name_tool -change /opt/local/lib/libwx_$L-$TARGETVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
+        install_name_tool -change /opt/local/lib/libwx_$L-$SRCVER.dylib @rpath/libwx_$L-$SRCVER.dylib "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS/$PRODUCT_NAME"
     done
-done
+
+
+    for LS in $LIBS
+    do
+        for LT in $LIBS
+        do
+	        install_name_tool -change /opt/local/lib/libwx_$LS-$TARGETVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
+	        install_name_tool -change /opt/local/lib/libwx_$LS-$SRCVER.dylib @rpath/libwx_$LS-$SRCVER.dylib  "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Frameworks/libwx_$LT-$SRCVER.dylib"
+        done
+    done
+fi
 
 fi
 

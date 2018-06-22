@@ -65,10 +65,10 @@ Then, from inside a Terminal window:
 
 If you are planning on being able to build Release builds, you will ALSO need to do:
 
-  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export CPPFLAGS="-stdlib=libc++ -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export LDFLAGS="-stdlib=libc++ -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export CPPFLAGS="-stdlib=libc++ -flto=thin -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export LDFLAGS="-stdlib=libc++ -flto=thin -DwxHAS_GENERIC_DATAVIEWCTRL=1"
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
   export CC=clang 
@@ -78,7 +78,7 @@ If you are planning on being able to build Release builds, you will ALSO need to
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
                 --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin \
                 --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
-                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
+                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --disable-shared
   make 
   make install
 
