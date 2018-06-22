@@ -1,11 +1,11 @@
-#include "ButtonDetailsDialog.h"
-#include "xScheduleMain.h"
-#include "CommandManager.h"
-
 //(*InternalHeaders(ButtonDetailsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+#include "ButtonDetailsDialog.h"
+#include "xScheduleMain.h"
+#include "CommandManager.h"
 
 //(*IdInit(ButtonDetailsDialog)
 const long ButtonDetailsDialog::ID_STATICTEXT1 = wxNewId();

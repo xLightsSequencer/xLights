@@ -47,7 +47,7 @@
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
@@ -106,7 +106,7 @@
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/imagehlp.lib" />
@@ -232,7 +232,7 @@
 					<Add library="../lib/windows64/avformat.lib" />
 					<Add library="../lib/windows64/avcodec.lib" />
 					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/SDL2.lib" />
+					<Add library="../lib/windows64/libSDL2.dll.a" />
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
 					<Add library="../lib/windows64/libimagehlp.a" />

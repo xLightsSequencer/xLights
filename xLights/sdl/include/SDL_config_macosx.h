@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,8 +19,9 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef _SDL_config_macosx_h
-#define _SDL_config_macosx_h
+#ifndef SDL_config_macosx_h_
+#define SDL_config_macosx_h_
+#define SDL_config_h_
 
 #include "SDL_platform.h"
 
@@ -74,9 +75,7 @@
 #define HAVE_STRTOL 1
 #define HAVE_STRTOUL    1
 #define HAVE_STRTOLL    1
-#ifndef HAVE_STRTOULL
 #define HAVE_STRTOULL   1
-#endif
 #define HAVE_STRTOD 1
 #define HAVE_ATOI   1
 #define HAVE_ATOF   1
@@ -175,6 +174,14 @@
 #define SDL_VIDEO_OPENGL_GLX    1
 #endif
 
+/* Enable Vulkan support */
+/* Metal/MoltenVK/Vulkan only supported on 64-bit architectures with 10.11+ */
+#if TARGET_CPU_X86_64 && (MAC_OS_X_VERSION_MAX_ALLOWED >= 101100)
+#define SDL_VIDEO_VULKAN 1
+#else
+#define  SDL_VIDEO_VULKAN 0
+#endif
+
 /* Enable system power support */
 #define SDL_POWER_MACOSX 1
 
@@ -187,4 +194,4 @@
 #define SDL_ALTIVEC_BLITTERS    1
 #endif
 
-#endif /* _SDL_config_macosx_h */
+#endif /* SDL_config_macosx_h_ */
