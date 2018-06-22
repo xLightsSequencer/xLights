@@ -66,6 +66,7 @@ class EffectLayer
         void GetMaximumRangeOfMovementForSelectedEffects(int &toLeft,int &toRight);
         int SelectEffectsInTimeRange(int startTimeMS, int endTimeMS);
         bool HasEffectsInTimeRange(int startTimeMS, int endTimeMS);
+        bool HasEffects();
 
         int SelectEffectsByType(const std::string & type);
         void UnSelectAllEffects();

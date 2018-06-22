@@ -5,6 +5,7 @@
 #include "../../xLights/outputs/IPOutput.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
+#include "../../xLights/UtilFunctions.h"
 
 ListenerOSC::ListenerOSC(ListenerManager* listenerManager) : ListenerBase(listenerManager)
 {
@@ -60,7 +61,7 @@ void ListenerOSC::StartProcess()
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for OSC reception. %d : %s", _socket->LastError(), (const char*)IPOutput::DecodeError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for OSC reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
         delete _socket;
         _socket = nullptr;
     }

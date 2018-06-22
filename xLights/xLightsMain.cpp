@@ -57,6 +57,7 @@
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
 #include "outputs/IPOutput.h"
+#include "outputs/E131Output.h"
 #include "GenerateLyricsDialog.h"
 #include "VendorModelDialog.h"
 #include "VendorMusicDialog.h"
@@ -309,6 +310,10 @@ const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_15 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_30 = wxNewId();
 const long xLightsFrame::ID_MENUITEM20 = wxNewId();
+const long xLightsFrame::ID_MNU_XFADE_DISABLED = wxNewId();
+const long xLightsFrame::ID_MNU_XFADE_A = wxNewId();
+const long xLightsFrame::ID_MNU_XFADE_B = wxNewId();
+const long xLightsFrame::ID_MNU_XFADE = wxNewId();
 const long xLightsFrame::ID_MNU_SD_None = wxNewId();
 const long xLightsFrame::ID_MNU_SD_10 = wxNewId();
 const long xLightsFrame::ID_MNU_SD_20 = wxNewId();
@@ -346,6 +351,9 @@ const long xLightsFrame::ID_UNPROTECT_EFFECT = wxNewId();
 const long xLightsFrame::ID_RANDOM_EFFECT = wxNewId();
 const long xLightsFrame::ID_COPYROW_EFFECT = wxNewId(); //copy random effect across row -DJ
 const long xLightsFrame::ID_CLEARROW_EFFECT = wxNewId(); //clear all effects on this row -DJ
+
+const long xLightsFrame::ID_XFADESERVER = wxNewId();
+const long xLightsFrame::ID_XFADESOCKET = wxNewId();
 
 const long xLightsFrame::ID_MENU_ITEM_PREVIEWS = wxNewId();
 const long xLightsFrame::ID_MENU_ITEM_PREVIEWS_SHOW_ALL = wxNewId();
@@ -484,7 +492,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
-    layoutPanel(nullptr), color_mgr(this)
+    layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -1058,6 +1066,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem48 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_30, _("30 Minutes"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem48);
     MenuSettings->Append(ID_MENUITEM20, _("Auto Save"), AutoSaveMenu, wxEmptyString);
+    MenuItem53 = new wxMenu();
+    MenuItem_xFade_Disabled = new wxMenuItem(MenuItem53, ID_MNU_XFADE_DISABLED, _("Disabled"), wxEmptyString, wxITEM_RADIO);
+    MenuItem53->Append(MenuItem_xFade_Disabled);
+    MenuItem_xFade_A = new wxMenuItem(MenuItem53, ID_MNU_XFADE_A, _("Port A"), wxEmptyString, wxITEM_RADIO);
+    MenuItem53->Append(MenuItem_xFade_A);
+    MenuItem_xFade_B = new wxMenuItem(MenuItem53, ID_MNU_XFADE_B, _("Port B"), wxEmptyString, wxITEM_RADIO);
+    MenuItem53->Append(MenuItem_xFade_B);
+    MenuSettings->Append(ID_MNU_XFADE, _("xFade/xSchedule"), MenuItem53, wxEmptyString);
     MenuItem29 = new wxMenu();
     MenuItem_SD_None = new wxMenuItem(MenuItem29, ID_MNU_SD_None, _("None"), wxEmptyString, wxITEM_RADIO);
     MenuItem29->Append(MenuItem_SD_None);
@@ -1288,6 +1304,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_15,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_30,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
+    Connect(ID_MNU_XFADE_DISABLED,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xFadeDisabledSelected);
+    Connect(ID_MNU_XFADE_A,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_XFade_ASelected);
+    Connect(ID_MNU_XFADE_B,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xFade_BSelected);
     Connect(ID_MNU_SD_None,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_NoneSelected);
     Connect(ID_MNU_SD_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_10Selected);
     Connect(ID_MNU_SD_20,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SD_20Selected);
@@ -1349,6 +1368,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(wxID_CUT, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_COPY, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_PASTE, wxEVT_MENU,(wxObjectEventFunction)&xLightsFrame::DoMenuAction);
+
+    Connect(ID_XFADESOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xLightsFrame::OnxFadeSocketEvent);
+    Connect(ID_XFADESERVER, wxEVT_SOCKET, (wxObjectEventFunction)&xLightsFrame::OnxFadeServerEvent);
 
     SetPanelSequencerLabel("");
 
@@ -1438,7 +1460,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     UnsavedRgbEffectsChanges = false;
     UnsavedPlaylistChanges = false;
     mStoredLayoutGroup = "Default";
-    mDefaultNetworkSaveBtnColor = ButtonSaveSetup->GetBackgroundColour();
 
     modelsChangeCount = 0;
 
@@ -1697,6 +1718,46 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     AutoSaveIntervalSelected(asEvent);
     logger_base.debug("Autosave interval: %d.", AutoSaveInterval);
 
+    config->Read("xFadePort", &_xFadePort, 0);
+    logger_base.debug("xFadePort: %s.", _xFadePort == 0 ? "Disabled" : ((_xFadePort == 1) ? "A" : "B"));
+    if (_xFadePort == 1)
+    {
+        MenuItem_xFade_A->Check();
+    }
+    else if (_xFadePort == 2)
+    {
+        MenuItem_xFade_B->Check();
+    }
+    else
+    {
+        MenuItem_xFade_Disabled->Check();
+    }
+    StartxFadeListener();
+
+    if (_xFadePort > 0 && _xFadeSocket == nullptr)
+    {
+        // try opening it on the other port
+
+        if (_xFadePort == 1)
+        {
+            _xFadePort = 2;
+            MenuItem_xFade_B->Check();
+        }
+        else if (_xFadePort == 2)
+        {
+            MenuItem_xFade_A->Check();
+        _xFadePort = 1;
+        }
+
+        StartxFadeListener();
+        if (_xFadePort > 0 && _xFadeSocket == nullptr)
+        {
+            // Give up
+            _xFadePort = 0;
+            MenuItem_xFade_Disabled->Check();
+        }
+    }
+
     config->Read("BackupPurgeDays", &BackupPurgeDays, 0);
     long bpid = ID_MNU_BKPPURGE_NEVER;
     switch (BackupPurgeDays) {
@@ -1936,6 +1997,13 @@ xLightsFrame::~xLightsFrame()
     Timer1.Stop();
     DrawingContext::CleanUp();
 
+    if (_xFadeSocket != nullptr)
+    {
+        _xFadeSocket->Close();
+        delete _xFadeSocket;
+        _xFadeSocket = nullptr;
+    }
+
     selectedEffect = nullptr;
     _outputManager.DeleteAllOutputs();
 
@@ -1970,6 +2038,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsLocalIP", mLocalIP);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
+    config->Write("xFadePort", _xFadePort);
 
     //definitely not outputting data anymore
     config->Write("OutputActive", false);
@@ -4401,7 +4470,7 @@ void xLightsFrame::CheckSequence(bool display)
         msg += "'. Is the network connected?    ";
         msg = msg + " Ok : " + (testSocket->IsOk() ? "TRUE" : "FALSE");
         if (testSocket != nullptr && testSocket->IsOk()) {
-            msg += wxString::Format(" : Error %d : ", testSocket->LastError()) + IPOutput::DecodeError(testSocket->LastError());
+            msg += wxString::Format(" : Error %d : ", testSocket->LastError()) + DecodeIPError(testSocket->LastError());
         }
         LogAndWrite(f, msg.ToStdString());
         errcount++;
@@ -7949,3 +8018,216 @@ void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
    m_mgr->Update();
 }
 
+void xLightsFrame::OnMenuItem_xFadeDisabledSelected(wxCommandEvent& event)
+{
+    _xFadePort = 0;
+    StartxFadeListener();
+}
+
+void xLightsFrame::OnMenuItem_XFade_ASelected(wxCommandEvent& event)
+{
+    _xFadePort = 1;
+    StartxFadeListener();
+    if (_xFadeSocket == nullptr)
+    {
+        // Give up
+        _xFadePort = 0;
+        MenuItem_xFade_Disabled->Check();
+    }
+}
+
+void xLightsFrame::OnMenuItem_xFade_BSelected(wxCommandEvent& event)
+{
+    _xFadePort = 2;
+    StartxFadeListener();
+    if (_xFadeSocket == nullptr)
+    {
+        // Give up
+        _xFadePort = 0;
+        MenuItem_xFade_Disabled->Check();
+    }
+}
+
+void xLightsFrame::OnxFadeSocketEvent(wxSocketEvent & event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxSocketBase* socket = event.GetSocket();
+    switch (event.GetSocketEvent())
+    {
+    case wxSOCKET_LOST:
+        logger_base.debug("xFade disconnected.");
+        break;
+    case wxSOCKET_INPUT:
+    {
+        wxByte buf[1534];
+        memset(buf, 0x00, sizeof(buf));
+        socket->Notify(false);
+        size_t n = socket->ReadMsg(buf, sizeof(buf) - 1).LastCount();
+        if (!n) {
+            logger_base.error("ERROR: failed to receive xFade data");
+            return;
+        }
+        wxString msg((char *)buf);
+        //logger_base.debug("xFade packet received.");
+        wxString response = ProcessXFadeMessage(msg);
+        socket->WriteMsg(response.c_str(), response.size() + 1);
+        socket->Notify(true);
+    }
+    break;
+    default:
+        logger_base.warn("OnxFadeSocketEvent: Unexpected event !");
+        break;
+    }
+}
+
+void xLightsFrame::OnxFadeServerEvent(wxSocketEvent & event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    switch (event.GetSocketEvent())
+    {
+    case wxSOCKET_CONNECTION:
+    {
+        wxSocketBase * socket = _xFadeSocket->Accept(false);
+        if (socket != nullptr)
+        {
+            logger_base.debug("OnxFadeServerEvent: Client connected.");
+            socket->SetEventHandler(*((wxEvtHandler*)this), ID_XFADESOCKET);
+            socket->SetNotify(wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
+            socket->Notify(true);
+        }
+    }
+        break;
+    default:
+        logger_base.warn("OnxFadeServerEvent: Unexpected event !");
+        break;
+    }
+}
+
+wxString xLightsFrame::ProcessXFadeMessage(wxString msg)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (msg == "TURN_LIGHTS_ON")
+    {
+        logger_base.debug("xFade turning lights on.");
+        CheckBoxLightOutput->SetValue(true);
+        EnableOutputs(true);
+        return "SUCCESS";
+    }
+    else if (msg == "TURN_LIGHTS_OFF")
+    {
+        logger_base.debug("xFade turning lights off.");
+        _outputManager.AllOff();
+        CheckBoxLightOutput->SetValue(false);
+        EnableOutputs();
+        return "SUCCESS";
+    }
+    else if (msg.StartsWith("PLAY_JUKEBOX_BUTTON "))
+    {
+        int button = wxAtoi(msg.substr(sizeof("PLAY_JUKEBOX_BUTTON ") - 1));
+        logger_base.debug("xFade playing jukebox button %d.", button);
+
+        if (CurrentSeqXmlFile != nullptr)
+        {
+            jukeboxPanel->PlayItem(button);
+            return "SUCCESS";
+        }
+        else
+        {
+            logger_base.error("    Error - sequence not open.");
+            return "ERROR_SEQUENCE_NOT_OPEN";
+        }
+    }
+    else if (msg.StartsWith("GET_JUKEBOX_BUTTON_TOOLTIPS"))
+    {
+        if (CurrentSeqXmlFile != nullptr)
+        {
+            return "SUCCESS " + jukeboxPanel->GetTooltips();
+        }
+        else
+        {
+            logger_base.error("    Error - sequence not open.");
+            return "ERROR_SEQUENCE_NOT_OPEN";
+        }
+    }
+    else if (msg.StartsWith("GET_JUKEBOX_BUTTON_EFFECTPRESENT"))
+    {
+        if (CurrentSeqXmlFile != nullptr)
+        {
+            return "SUCCESS " + jukeboxPanel->GetEffectPresent();
+        }
+        else
+        {
+            logger_base.error("    Error - sequence not open.");
+            return "ERROR_SEQUENCE_NOT_OPEN";
+        }
+    }
+    else if (msg == "GET_SEQUENCE_NAME")
+    {
+        logger_base.debug("xFade getting sequence name.");
+
+        if (CurrentSeqXmlFile != nullptr)
+        {
+            return "SUCCESS " + CurrentSeqXmlFile->GetName();
+        }
+        else
+        {
+            logger_base.error("    Error - sequence not open.");
+            return "ERROR_SEQUENCE_NOT_OPEN";
+        }
+    }
+    else if (msg == "GET_E131_TAG")
+    {
+        logger_base.debug("xFade getting E1.31 tag.");
+
+        return "SUCCESS " + E131Output::GetTag();
+    }
+    else
+    {
+        logger_base.debug("xFade invalid request.");
+        return "ERROR_INVALID_REQUEST";
+    }
+
+    return "ERROR_NOT_IMPLEMENTED";
+}
+
+void xLightsFrame::StartxFadeListener()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_xFadeSocket != nullptr)
+    {
+        _xFadeSocket->Close();
+        delete _xFadeSocket;
+        _xFadeSocket = nullptr;
+    }
+
+    if (_xFadePort == 0) return;
+
+    //Local address to bind to
+    wxIPV4address addr;
+    addr.AnyAddress();
+    addr.Service(::GetxFadePort(_xFadePort));
+    //create and bind to the address above
+    _xFadeSocket = new wxSocketServer(addr);
+
+    if (!_xFadeSocket->Ok())
+    {
+        logger_base.debug("xLights xFade could not listen on %d", ::GetxFadePort(_xFadePort));
+
+        delete _xFadeSocket;
+        _xFadeSocket = nullptr;
+        return;
+    }
+
+    logger_base.debug("xLights xFade listening on %d", ::GetxFadePort(_xFadePort));
+
+    //enable event handling
+    _xFadeSocket->SetEventHandler(*this, ID_XFADESERVER);
+    //Notify us about incomming data
+    _xFadeSocket->SetNotify(wxSOCKET_CONNECTION_FLAG);
+    //enable event handling
+    _xFadeSocket->Notify(true);
+}

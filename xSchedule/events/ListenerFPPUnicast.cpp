@@ -4,6 +4,7 @@
 #include "ListenerManager.h"
 #include "../../xLights/outputs/IPOutput.h"
 #include "../Control.h"
+#include "../../xLights/UtilFunctions.h"
 
 bool ListenerFPPUnicast::IsValidHeader(wxByte* buffer)
 {
@@ -69,7 +70,7 @@ void ListenerFPPUnicast::StartProcess()
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for FPP Unicast reception. %d : %s", _socket->LastError(), (const char*)IPOutput::DecodeError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for FPP Unicast reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
         delete _socket;
         _socket = nullptr;
     }

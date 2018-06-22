@@ -259,7 +259,6 @@ class LayoutPanel: public wxPanel
         int mNumGroups;
         bool mPropGridActive;
         wxTreeListItem mSelectedGroup;
-        wxColour mDefaultSaveBtnColor;
 
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;

@@ -347,6 +347,7 @@
     <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="effects\WarpPanel.cpp" />
+    <ClCompile Include="xlLockButton.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -694,6 +695,7 @@
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="effects\WarpPanel.h" />
+    <ClInclude Include="xlLockButton.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

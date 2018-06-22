@@ -25,6 +25,8 @@ namespace
       return std::min( hi, std::max( lo, val ) );
    }
 
+   const float PI = 3.14159265359f;
+
    struct Vec2D
    {
       Vec2D( double i_x = 0., double i_y = 0. ) : x( i_x ), y( i_y ) {}
@@ -50,15 +52,30 @@ namespace
       bool     IsNormal() const { return fabs( Len2() - 1 ) < 1e-6; }
       Vec2D    Rotate( const double& fAngle ) const
       {
-         double cs = ::cos( fAngle );
-         double sn = ::sin( fAngle );
+         float cs = RenderBuffer::cos( fAngle );
+         float sn = RenderBuffer::sin( fAngle );
          return Vec2D( x*cs + y * sn, -x * sn + y * cs );
       }
-      Vec2D    Rotate( const Vec2D& p, const double& fAngle ) const { return ( *this - p ).Rotate( fAngle ) + p; }
-      Vec2D    Rotate90() const { return Vec2D( y, -x ); }
-
+      static Vec2D lerp( const Vec2D& a, const Vec2D& b, double progress )
+      {
+         double x = a.x + progress * ( b.x - a.x );
+         double y = a.y + progress * ( b.y - a.y );
+         return Vec2D( x, y );
+      }
       double x, y;
    };
+
+   struct LinearInterpolater
+   {
+      double operator()( double t ) const { return t; }
+   };
+
+   template <class T> double interpolate( double x, double loIn, double loOut, double hiIn, double hiOut, const T& interpolater )
+   {
+      return ( loIn != hiIn )
+         ? ( loOut + (hiOut - loOut) * interpolater( (x-loIn)/(hiIn-loIn) ) )
+         : ( (loOut + hiOut) / 2 );
+   }
 
    xlColor lerp( const xlColor& a, const xlColor& b, double progress )
    {
@@ -117,7 +134,7 @@ namespace
       float frequency;
    };
 
-   float genWave( float len, float speed, float time, float PI )
+   float genWave( float len, float speed, float time )
    {
       float wave = RenderBuffer::sin( speed * PI * len + time );
       wave = ( wave + 1.0 ) * 0.5;
@@ -128,13 +145,12 @@ namespace
 
    xlColor waterDrops( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
-      const float PI = 3.14159265359;
 #define time (-params.progress * 35.0)
       Vec2D pos2( Vec2D( s, t ) - params.xy );
       Vec2D pos2n( pos2.Norm() );
 
       double len = pos2.Len();
-      float wave = genWave( len, params.speed, time, PI );
+      float wave = genWave( len, params.speed, time );
 #undef time
       Vec2D uv2( -pos2n * wave / ( 1.0 + 5.0 * len ) );
 
@@ -256,6 +272,63 @@ namespace
       return lerp( c2, c1, params.progress );
    }
 
+   const float dropletExpandSpeed = 1.5;
+   const float dropletHeightFactor = 0.3;
+   const float dropletRipple = /*80.0*/60.0; // possible progress
+
+   float getDropletHeight( const Vec2D& uv, const Vec2D& dropletPosition, float time )
+   {
+      float decayRate = 0.5; // smaller = faster drops
+      float dropletStrength = 1.0; // larger = bigger impact (0.5 min)
+      float dropletStrengthBias = 0.6;
+      float dropFraction = time / decayRate;
+      float dummy;
+      dropFraction = std::modf( dropFraction, &dummy );
+
+      float ringRadius = dropletExpandSpeed * dropFraction * dropletStrength - dropletStrengthBias;
+      float distanceToDroplet = Vec2D( uv - dropletPosition ).Len();
+      float distanceToEdge = std::max(0.f, ringRadius - distanceToDroplet) / ringRadius;
+
+      float dropletHeight = distanceToDroplet > ringRadius ? 0.0 : distanceToDroplet;
+      dropletHeight = RenderBuffer::cos(PI + (dropletHeight - ringRadius) * dropletRipple * dropletStrength) * 0.5 + 0.5;
+      dropletHeight *= 1.0 - dropFraction;
+      dropletHeight *= distanceToDroplet > ringRadius ? 0.0 : distanceToDroplet / ringRadius;
+
+      return (1.0 - (RenderBuffer::cos(dropletHeight * PI) + 1.0) * 0.5) * dropletHeightFactor;
+   }
+
+   xlColor singleWaterDrop( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
+   {
+      Vec2D uv( s, t );
+      Vec2D pos2( uv - params.xy );
+      Vec2D pos2n( pos2.Norm() );
+
+      float dh = getDropletHeight( uv - Vec2D( 0.5,0.5 ), params.xy - Vec2D( 0.5, 0.5 ), params.progress );
+      Vec2D uv2 = -pos2n * dh / ( 1.0 + 3.0 * pos2.Len() );
+
+      return tex2D( cb, uv.x + uv2.x, uv.y + uv2.y );
+   }
+
+   xlColor circularSwirl( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
+   {
+      Vec2D uv( s, t );
+      Vec2D dir( uv - params.xy );
+      double len = dir.Len();
+
+      double radius = (1. - params.progress) * 0.70710678;
+      if ( len < radius )
+      {
+         Vec2D rotated( dir.Rotate( -params.speed * len * params.progress * PI ) );
+         Vec2D scaled( rotated * (1. - params.progress) + params.xy );
+
+         Vec2D newUV( Vec2D::lerp( params.xy, scaled, 1. - params.progress ) );
+
+         return tex2D( cb, newUV.x, newUV.y );
+      }
+
+      return xlBLACK;
+   }
+
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
 
    void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
@@ -293,64 +366,27 @@ wxPanel *WarpEffect::CreatePanel(wxWindow *parent)
 void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
+
+    p->BitmapButton_Warp_X->SetActive( false );
+    p->BitmapButton_Warp_Y->SetActive( false );
+
     p->Choice_Warp_Type->SetSelection( 0 );
     p->Choice_Warp_Treatment->SetSelection( 0 );
 
-    p->Slider_Warp_X->SetValue( 50 );
-    p->TextCtrl_Warp_X->SetValue( "50" );
+    SetSliderValue( p->Slider_Warp_X, 50 );
 
-    p->Slider_Warp_Y->SetValue( 50 );
-    p->TextCtrl_Warp_Y->SetValue( "50" );
+    SetSliderValue( p->Slider_Warp_Y, 50 );
 
-    p->Slider_Warp_Cycle_Count->SetValue( 1 );
-    p->TextCtrl_Warp_Cycle_Count->SetValue( "1" );
+    SetSliderValue( p->Slider_Warp_Cycle_Count, 1 );
 
-    p->Slider_Warp_Speed->SetValue( 20 );
-    p->TextCtrl_Warp_Speed->SetValue( "20" );
+    SetSliderValue( p->Slider_Warp_Speed, 20 );
 
-    p->Slider_Warp_Frequency->SetValue( 20 );
-    p->TextCtrl_Warp_Frequency->SetValue( "20" );
+    SetSliderValue( p->Slider_Warp_Frequency, 20 );
 
     // Turn on canvas mode as this really only makes sense in canvas mode
     xLightsFrame* frame = xLightsApp::GetFrame();
     TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
     layerBlendingPanel->CheckBox_Canvas->SetValue(true);
-}
-
-std::string WarpEffect::GetEffectString()
-{
-     WarpPanel *p = (WarpPanel *)panel;
-     std::stringstream ret;
-
-     wxString warpType( p->Choice_Warp_Type->GetStringSelection() );
-     if ( "water drops" != warpType )
-        ret << "E_CHOICE_Warp_Type=" << warpType.ToStdString() << ",";
-
-     wxString warpTreatment( p->Choice_Warp_Treatment->GetStringSelection() );
-     if ( "constant" != warpTreatment )
-        ret << "E_CHOICE_Warp_Treatment=" << warpTreatment.ToStdString() << ",";
-
-     int xvalue = p->Slider_Warp_X->GetValue();
-     if ( 50 != xvalue )
-        ret << "E_TEXTCTRL_Warp_X=" << p->TextCtrl_Warp_X->GetValue().ToStdString() << ",";
-
-     int yvalue = p->Slider_Warp_Y->GetValue();
-     if ( 50 != yvalue )
-        ret << "E_TEXTCTRL_Warp_Y=" << p->TextCtrl_Warp_Y->GetValue().ToStdString() << ",";
-
-     int cycleCount = p->Slider_Warp_Cycle_Count->GetValue();
-     if ( 1 != cycleCount )
-      ret << "E_TEXTCTRL_Warp_Cycle_Count=" << p->TextCtrl_Warp_Cycle_Count->GetValue().ToStdString() << ",";
-
-     int speed = p->Slider_Warp_Speed->GetValue();
-     if ( 20 != speed )
-        ret << "E_TEXTCTRL_Warp_Speed=" << p->TextCtrl_Warp_Speed->GetValue().ToStdString() << ",";
-
-     int freq = p->Slider_Warp_Frequency->GetValue();
-     if ( 20 != freq )
-       ret << "E_TEXTCTRL_Warp_Frequency=" << p->TextCtrl_Warp_Frequency->GetValue().ToStdString() << ",";
-
-     return ret.str();
 }
 
 void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
@@ -361,10 +397,6 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
       settingsMap.erase( "E_CHOICE_Warp_Type" );
     if ( settingsMap.Get( "E_CHOICE_Warp_Treatment", "" )== "constant" )
       settingsMap.erase( "E_CHOICE_Warp_Treatment" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_X", "" )== "50" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_X" );
-    if ( settingsMap.Get( "E_TEXTCTRL_Warp_Y", "" )== "50" )
-      settingsMap.erase( "E_TEXTCTRL_Warp_Y" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Cycle_Count", "" ) == "1" )
       settingsMap.erase( "E_TEXTCTRL_Warp_Cycle_Count" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Speed", "" )== "20" )
@@ -377,27 +409,43 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
 void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
+   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
+
    std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
    std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment", "constant");
-   std::string warpStrX = SettingsMap.Get( "TEXTCTRL_Warp_X", "50" );
-   std::string warpStrY = SettingsMap.Get( "TEXTCTRL_Warp_Y", "50" );
    std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
-   double x = 0.01 * std::stoi( warpStrX );
-   double y = 0.01f * std::stoi( warpStrY );
+   int xPercentage = GetValueCurveInt( "Warp_X", 0, SettingsMap, progress, 0, 100 );
+   int yPercentage = GetValueCurveInt( "Warp_Y", 0, SettingsMap, progress, 0, 100 );
+   double x = 0.01 * xPercentage;
+   double y = 0.01 * yPercentage;
    float speed = std::stof( speedStr );
    float frequency = std::stof( freqStr );
-   float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
    WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
    if ( warpType == "water drops" )
       RenderPixelTransform( waterDrops, buffer, params );
+   else if ( warpType == "single water drop" )
+   {
+      float cycleCount = std::stof( warpStrCycleCount );
+      float intervalLen = 1.f / cycleCount;
+      float scaledProgress = progress / intervalLen;
+      float intervalProgress, intervalIndex;
+      intervalProgress = std::modf( scaledProgress, &intervalIndex );
+
+      LinearInterpolater interpolater;
+      float interpolatedProgress = interpolate( intervalProgress, 0.0,0.20, 1.0,0.45, interpolater );
+
+      params.progress = interpolatedProgress;
+      RenderPixelTransform( singleWaterDrop, buffer, params );
+   }
    else
    {
       PixelTransform xform = nullptr;
       // the other warps were originally intended as transitions in or out... for constant
-      // treatment, we'll just cycle between progress of [0,1] and [1,0]
+      // treatment, we'll just cycle between progress of [0,1] and [1,0]. "constant" wasn't
+      // a very good description, maybe back-and-forth or something would be more accurate
       if ( warpTreatment == "constant" )
       {
          float cycleCount = std::stof( warpStrCycleCount );
@@ -407,8 +455,6 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
          intervalProgress = std::modf( scaledProgress, &intervalIndex );
          if ( int(intervalIndex) % 2 )
             intervalProgress = 1.f - intervalProgress;
-         //LinearInterpolater interpolater;
-         //float interpolatedProgress = interpolate( intervalProgress, 0.0,0.2, 1.0,0.8, interpolater );
          params.progress = intervalProgress;
          if ( warpType == "ripple" )
             xform = rippleIn;
@@ -418,6 +464,11 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             xform = bandedSwirlIn;
          else if ( warpType == "circle reveal" )
             xform = circleRevealIn;
+         else if ( warpType == "circular swirl" )
+         {
+            params.progress = 1. - params.progress;
+            xform = circularSwirl;
+         }
       }
       else
       {
@@ -429,7 +480,17 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             xform = ( warpTreatment == "in" ) ? bandedSwirlIn : bandedSwirlOut;
          else if ( warpType == "circle reveal" )
             xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
+         else if ( warpType == "circular swirl" )
+            xform = circularSwirl;
       }
+
+      if ( warpType == "circular swirl" )
+      {
+         params.speed = interpolate( params.speed, 0.0, 1.0, 40.0, 9.0, LinearInterpolater() );
+         if ( warpTreatment == "in" )
+            params.progress = 1. - params.progress;
+      }
+
       if ( xform != nullptr )
          RenderPixelTransform( xform, buffer, params );
    }

@@ -18,6 +18,7 @@ protected:
    void InitializeGLCanvas() override;
 };
 //(*Headers(WarpPanel)
+#include <wx/bmpbuttn.h>
 #include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -44,39 +45,45 @@ class WarpPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Warp_Speed;
 		BulkEditTextCtrl* TextCtrl_Warp_X;
 		BulkEditTextCtrl* TextCtrl_Warp_Y;
+		BulkEditValueCurveButton* BitmapButton_Warp_X;
+		BulkEditValueCurveButton* BitmapButton_Warp_Y;
 		wxChoice* Choice_Warp_Treatment;
 		wxChoice* Choice_Warp_Type;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText3;
-		wxStaticText* StaticText4;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText6;
-		wxStaticText* StaticText7;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
+		wxStaticText* StaticText13;
+		wxStaticText* StaticText14;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		wxTextCtrl* TextCtrl1;
 		//*)
+
+		void ValidateWindow();
 
 	protected:
 
 		//(*Identifiers(WarpPanel)
 		static const long ID_TEXTCTRL1;
-		static const long ID_STATICTEXT1;
+		static const long ID_STATICTEXT8;
 		static const long ID_CHOICE_Warp_Type;
-		static const long ID_STATICTEXT2;
+		static const long ID_STATICTEXT9;
 		static const long ID_CHOICE_Warp_Treatment;
-		static const long ID_STATICTEXT3;
+		static const long ID_STATICTEXT10;
 		static const long ID_SLIDER_Warp_X;
+		static const long ID_VALUECURVE_Warp_X;
 		static const long ID_TEXTCTRL_Warp_X;
-		static const long ID_STATICTEXT4;
+		static const long ID_STATICTEXT11;
 		static const long ID_SLIDER_Warp_Y;
+		static const long ID_VALUECURVE_Warp_Y;
 		static const long ID_TEXTCTRL_Warp_Y;
-		static const long ID_STATICTEXT7;
+		static const long ID_STATICTEXT12;
 		static const long ID_SLIDER_Warp_Cycle_Count;
 		static const long ID_TEXTCTRL_Warp_Cycle_Count;
-		static const long ID_STATICTEXT6;
+		static const long ID_STATICTEXT13;
 		static const long ID_SLIDER_Warp_Speed;
 		static const long ID_TEXTCTRL_Warp_Speed;
-		static const long ID_STATICTEXT5;
+		static const long ID_STATICTEXT14;
 		static const long ID_SLIDER_Warp_Frequency;
 		static const long ID_TEXTCTRL_Warp_Frequency;
 		//*)
@@ -84,7 +91,10 @@ class WarpPanel: public wxPanel
 	private:
 
 		//(*Handlers(WarpPanel)
+		void OnVCButtonClick(wxCommandEvent& event);
+		void OnVCChanged(wxCommandEvent& event);
 		void OnChoice_Warp_TypeSelect(wxCommandEvent& event);
+		void OnChoice_Warp_TreatmentSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

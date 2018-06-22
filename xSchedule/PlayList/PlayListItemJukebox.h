@@ -24,10 +24,12 @@ protected:
 
     #pragma region Member Variables
     int _jukeboxButton;
-    std::string _sequence;
+    std::string _port;
     bool _started;
     ENUMJUKEBOX _state;
     #pragma endregion Member Variables
+
+    int GetPort() const { if (_port == "A") return 1; else return 2; }
 
 public:
 
@@ -44,13 +46,13 @@ public:
     void SetButton(int button) {
         if (_jukeboxButton != button) { _jukeboxButton = button; _changeCount++; }
     }
-    void SetSequence(const std::string& sequence) {
-        if (_sequence != sequence) { _sequence = sequence; _changeCount++; }
+    void SetPortName(const std::string& port) {
+        if (_port != port) { _port = port; _changeCount++; }
     }
     int GetButton() const { return _jukeboxButton; }
     void SetEnumState(ENUMJUKEBOX state) { _state = state; }
     ENUMJUKEBOX GetEnumState() const { return _state; }
-    std::string GetSequence() const { return _sequence; }
+    std::string GetPortName() const { return _port; }
     virtual std::string GetTitle() const override;
 #pragma endregion Getters and Setters
 

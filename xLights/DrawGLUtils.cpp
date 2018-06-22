@@ -4,17 +4,15 @@
 
 
 #ifdef __WXMAC__
-  #include "OpenGL/gl.h"
+ #include "OpenGL/gl.h"
 #else
-  #include <GL/gl.h>
-  #ifdef _MSC_VER
-    #include "GL\glext.h"
-  #else
-    #include <GL/glext.h>
-  #endif
+ #include <GL/gl.h>
+ #ifdef _MSC_VER
+ #include "GL\glext.h"
+ #else
+ #include <GL/glext.h>
+ #endif
 #endif
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"

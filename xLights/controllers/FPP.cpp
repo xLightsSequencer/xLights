@@ -235,10 +235,10 @@ std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels) const
             name.Replace(" ", "_");
             if (model->GetNumStrands() > 0) {
                 channelmemorymaps.Write(wxString::Format("%s,%i,%ul,horizontal,TL,%i,%i\n",
-                    name,
+                    name.c_str(),
                     ch,
                     (unsigned long)model->GetActChanCount(),
-                    model->GetNumStrands(),
+                    (int)model->GetNumStrands(),
                     1));
             }
         }

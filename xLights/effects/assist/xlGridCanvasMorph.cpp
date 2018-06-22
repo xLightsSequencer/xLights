@@ -3,14 +3,15 @@
 #include "../../DrawGLUtils.h"
 
 #include "../../ValueCurveButton.h"
+#include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(xlGridCanvasMorph, xlGridCanvas)
-EVT_PAINT(xlGridCanvasMorph::render)
-EVT_MOTION(xlGridCanvasMorph::mouseMoved)
-EVT_LEFT_DOWN(xlGridCanvasMorph::mouseLeftDown)
-EVT_LEFT_UP(xlGridCanvasMorph::mouseLeftUp)
-EVT_RIGHT_DOWN(xlGridCanvasMorph::mouseRightDown)
-EVT_RIGHT_UP(xlGridCanvasMorph::mouseRightUp)
+    EVT_PAINT(xlGridCanvasMorph::render)
+    EVT_MOTION(xlGridCanvasMorph::mouseMoved)
+    EVT_LEFT_DOWN(xlGridCanvasMorph::mouseLeftDown)
+    EVT_LEFT_UP(xlGridCanvasMorph::mouseLeftUp)
+    EVT_RIGHT_DOWN(xlGridCanvasMorph::mouseRightDown)
+    EVT_RIGHT_UP(xlGridCanvasMorph::mouseRightUp)
 END_EVENT_TABLE()
 
 #define CORNER_NOT_SELECTED     0
@@ -73,7 +74,7 @@ int xlGridCanvasMorph::CheckForCornerHit(int x, int y)
 
 void xlGridCanvasMorph::mouseLeftDown(wxMouseEvent& event)
 {
-    if( mEffect == NULL ) return;
+    if( mEffect == nullptr ) return;
     mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
     if( mSelectedCorner == CORNER_NOT_SELECTED )
     {
@@ -91,7 +92,7 @@ void xlGridCanvasMorph::mouseLeftDown(wxMouseEvent& event)
 
 void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
 {
-    if( mEffect == NULL ) return;
+    if( mEffect == nullptr ) return;
     mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
     if( mSelectedCorner == CORNER_NOT_SELECTED )
     {
@@ -109,7 +110,8 @@ void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
 
 void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
 {
-    if( mEffect == NULL ) return;
+    if( mEffect == nullptr ) return;
+
     if( !mDragging )
     {
         if( CheckForCornerHit(event.GetX(), event.GetY()) == CORNER_NOT_SELECTED )
@@ -127,11 +129,14 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
         StoreUpdatedMorphPositions();
         Update();
     }
+
+    SetTooltip(event.GetX(), event.GetY());
 }
 
 void xlGridCanvasMorph::mouseLeftUp(wxMouseEvent& event)
 {
-    if( mEffect == NULL ) return;
+    SetTooltip(-1, -1);
+    if( mEffect == nullptr ) return;
     if( mDragging )
     {
         StoreUpdatedMorphPositions();
@@ -143,7 +148,8 @@ void xlGridCanvasMorph::mouseLeftUp(wxMouseEvent& event)
 
 void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
 {
-    if( mEffect == NULL ) return;
+    SetTooltip(-1, -1);
+    if( mEffect == nullptr ) return;
     if( mDragging )
     {
         StoreUpdatedMorphPositions();
@@ -317,6 +323,26 @@ void xlGridCanvasMorph::StoreUpdatedMorphPositions()
     wxCommandEvent eventEffectChanged(EVT_EFFECT_CHANGED);
     eventEffectChanged.SetClientData(mEffect);
     wxPostEvent(GetParent(), eventEffectChanged);
+}
+
+void xlGridCanvasMorph::SetTooltip(int x, int y)
+{
+    if (x == -1 && y == -1)
+    {
+        UnsetToolTip();
+        return;
+    }
+
+    if (x < mCellSize) x = mCellSize;
+    if (x > mColumns * mCellSize) x = mColumns * mCellSize;
+    if (y < mCellSize) y = mCellSize;
+    if (y > mRows * mCellSize) y = mRows * mCellSize;
+
+    x = x / mCellSize * 100 / mColumns;
+    y = 100 - y / mCellSize * 100 / mRows;
+
+    wxString tt = wxString::Format("%d%%, %d%%", x, y);
+    SetToolTip(tt);
 }
 
 void xlGridCanvasMorph::CreateCornerTextures()

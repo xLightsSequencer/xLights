@@ -32,6 +32,7 @@ public:
     ButtonControl(wxXmlNode* n);
     wxXmlNode* Save();
     void SelectEffect(MainSequencer* sequencer);
+    std::string GetTooltip() const { return _tooltip; }
 };
 
 class JukeboxPanel: public wxPanel
@@ -41,8 +42,7 @@ class JukeboxPanel: public wxPanel
     const int BUTTONHEIGHT = 20;
 
     std::map<int, ButtonControl*> _buttons;
-    wxColour _defaultColour;
-    
+
     void SetButtonTooltip(int b, std::string tooltip);
     void ValidateWindow();
 
@@ -53,6 +53,8 @@ class JukeboxPanel: public wxPanel
         wxXmlNode* Save();
         void Load(wxXmlNode* node);
         void PlayItem(int item);
+        wxString GetTooltips();
+        wxString GetEffectPresent() const;
 
 		//(*Declarations(JukeboxPanel)
 		wxGridSizer* GridSizer1;

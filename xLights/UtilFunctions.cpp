@@ -3,6 +3,38 @@
 #include <wx/regex.h>
 #include <wx/sckaddr.h>
 #include <wx/dir.h>
+#include <wx/socket.h>
+
+std::string DecodeIPError(wxSocketError err)
+{
+    switch (err)
+    {
+    case wxSOCKET_NOERROR:
+        return "No Error";
+    case wxSOCKET_INVOP:
+        return "Invalid Operation";
+    case wxSOCKET_IOERR:
+        return "IO Error";
+    case wxSOCKET_INVADDR:
+        return "Invalid Address";
+    case wxSOCKET_INVSOCK:
+        return "Invalid Socket";
+    case wxSOCKET_NOHOST:
+        return "No Host";
+    case wxSOCKET_INVPORT:
+        return "Invalid Port";
+    case wxSOCKET_WOULDBLOCK:
+        return "Would Block";
+    case wxSOCKET_TIMEDOUT:
+        return "Timeout";
+    case wxSOCKET_MEMERR:
+        return "Memory Error";
+    case wxSOCKET_OPTERR:
+        return "Option Error";
+    default:
+        return "God knows what happened";
+    }
+}
 
 #include "UtilFunctions.h"
 
@@ -641,4 +673,43 @@ bool IsIPValidOrHostname(const std::string &ip, bool iponly)
         }
     }
     return false;
+}
+
+int GetxFadePort(int xfp)
+{
+    if (xfp == 0) return 0;
+    return xfp + 49912;
+}
+
+wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxSocketClient socket;
+    wxIPV4address addr;
+    addr.Hostname(ipAddress);
+    addr.Service(GetxFadePort(xFadePort));
+
+    if (socket.Connect(addr))
+    {
+        logger_base.debug("Sending xLights message %s", (const char *)message.c_str());
+        socket.WriteMsg(message.c_str(), message.size() + 1);
+        wxByte buffer[1534];
+        memset(buffer, 0x00, sizeof(buffer));
+        int read = 0;
+        while (read == 0)
+        {
+            socket.ReadMsg(buffer, sizeof(buffer) - 1);
+            read = socket.LastReadCount();
+            if (read == 0) wxMilliSleep(2);
+        }
+        wxString msg((char *)buffer);
+        logger_base.debug("xLights sent response %s", (const char *)msg.c_str());
+        return msg;
+    }
+    else
+    {
+        logger_base.warn("Unable to connect to xLights on port %d", GetxFadePort(xFadePort));
+        return "ERROR_UNABLE_TO_CONNECT";
+    }
 }

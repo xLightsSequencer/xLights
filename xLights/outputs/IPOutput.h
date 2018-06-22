@@ -26,7 +26,6 @@ public:
     static std::string CleanupIP(const std::string &ip);
     static void SetLocalIP(const std::string& localIP) { __localIP = localIP; }
     static std::string GetLocalIP() { return __localIP; }
-    static std::string DecodeError(wxSocketError err);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters

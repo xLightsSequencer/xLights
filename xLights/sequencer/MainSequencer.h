@@ -47,8 +47,8 @@ class MainSequencer: public wxPanel
         void SelectEffectUsingDescription(std::string description);
         void SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
         std::list<std::string> GetAllEffectDescriptions();
-        std::list<std::string> GetAllElementNames();
-        int GetElementLayerCount(std::string elementName);
+        std::list<std::string> GetAllElementNamesWithEffects();
+        int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
         std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
         void SetChanged();
         void UnselectAllEffects();

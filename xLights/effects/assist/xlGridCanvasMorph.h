@@ -45,6 +45,7 @@ class xlGridCanvasMorph : public xlGridCanvas
         void SetMorphCorner2a(int x, int y);
         void SetMorphCorner2b(int x, int y);
         void StoreUpdatedMorphPositions();
+        void SetTooltip(int x, int y);
 
         int x1a, x1b, x2a, x2b, y1a, y1b, y2a, y2b;
         int mSelectedCorner;

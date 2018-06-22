@@ -119,6 +119,7 @@ void EffectsGrid::UnselectEffect(bool force) {
         mSelectedEffect = nullptr;
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         mParent->ProcessWindowEvent(eventUnSelected);
+        Refresh(false);
     }
 }
 

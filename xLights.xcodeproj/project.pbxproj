@@ -25,6 +25,38 @@
 		3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
 		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
+		67025C6E20D7E80900BF1AC6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67025C6D20D7E80900BF1AC6 /* Assets.xcassets */; };
+		67025C8C20D7E85100BF1AC6 /* SettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7920D7E84F00BF1AC6 /* SettingsDialog.cpp */; };
+		67025C8D20D7E85100BF1AC6 /* UniverseEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7B20D7E84F00BF1AC6 /* UniverseEntryDialog.cpp */; };
+		67025C8E20D7E85100BF1AC6 /* wxLED.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7D20D7E85000BF1AC6 /* wxLED.cpp */; };
+		67025C8F20D7E85100BF1AC6 /* Settings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7E20D7E85000BF1AC6 /* Settings.cpp */; };
+		67025C9020D7E85100BF1AC6 /* MIDIAssociateDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C8020D7E85000BF1AC6 /* MIDIAssociateDialog.cpp */; };
+		67025C9120D7E85100BF1AC6 /* xFadeMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C8120D7E85000BF1AC6 /* xFadeMain.cpp */; };
+		67025C9220D7E85100BF1AC6 /* MIDIListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C8220D7E85000BF1AC6 /* MIDIListener.cpp */; };
+		67025C9320D7E85100BF1AC6 /* xFadeApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C8320D7E85000BF1AC6 /* xFadeApp.cpp */; };
+		67025C9420D7E85100BF1AC6 /* Emitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C8A20D7E85100BF1AC6 /* Emitter.cpp */; };
+		67025C9520D7EBD400BF1AC6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
+		67025C9620D7EC1E00BF1AC6 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
+		67025C9820D7EC5900BF1AC6 /* libwx_baseu-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025C9720D7EC5900BF1AC6 /* libwx_baseu-3.1.dylib */; };
+		67025C9B20D7ECB800BF1AC6 /* libwx_baseu_xml-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025C9920D7ECB800BF1AC6 /* libwx_baseu_xml-3.1.dylib */; };
+		67025C9C20D7ECB800BF1AC6 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025C9A20D7ECB800BF1AC6 /* libwx_osx_cocoau_core-3.1.dylib */; };
+		67025C9E20D7ECD800BF1AC6 /* libwx_baseu_net-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025C9D20D7ECD800BF1AC6 /* libwx_baseu_net-3.1.dylib */; };
+		67025C9F20D7ED7800BF1AC6 /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
+		67025CA020D7ED7800BF1AC6 /* IPEntryDialog.h in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64F1E513B380096546A /* IPEntryDialog.h */; };
+		67025CA120D7EDB500BF1AC6 /* xLightsVersion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */; };
+		67025CA220D7EDC500BF1AC6 /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
+		67025CA320D7EE1700BF1AC6 /* libportmidi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F33E2040FB5100B847E0 /* libportmidi.a */; };
+		67025CA420D7EE4400BF1AC6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
+		67025CA520D7EE5F00BF1AC6 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3402040FB7800B847E0 /* CoreMIDI.framework */; };
+		67025CA620D7EE8100BF1AC6 /* xLightsTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5181CE7EC3B003B3F6E /* xLightsTimer.cpp */; };
+		67025CA720D7EE8100BF1AC6 /* xLightsTimer.h in Sources */ = {isa = PBXBuildFile; fileRef = 6767C5191CE7EC3B003B3F6E /* xLightsTimer.h */; };
+		67025CA820D7EEA300BF1AC6 /* wxMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F33A2040F66500B847E0 /* wxMidi.cpp */; };
+		67025CA920D7EEA300BF1AC6 /* wxMidi.h in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F33B2040F66500B847E0 /* wxMidi.h */; };
+		67025CAA20D7EEA300BF1AC6 /* wxMidiDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3392040F66500B847E0 /* wxMidiDatabase.cpp */; };
+		67025CAB20D7EEB900BF1AC6 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
+		67025CAC20D7EEF400BF1AC6 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
+		67025CAE20D7EF2E00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025CAD20D7EF2D00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib */; };
+		67025CAF20D7EF5400BF1AC6 /* liblog4cpp.5.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		6706BB0A1E9CFD8E00B44278 /* SequenceViewManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */; };
 		670827F62024C19D0002B617 /* LOROptimisedOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */; };
 		670827F72024C19D0002B617 /* LorControllers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EE2024C19A0002B617 /* LorControllers.cpp */; };
@@ -115,13 +147,13 @@
 		67480D252072578700B3ED60 /* UniverseEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D1F2072578600B3ED60 /* UniverseEntryDialog.cpp */; };
 		67480D262072578700B3ED60 /* xCaptureApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D202072578600B3ED60 /* xCaptureApp.cpp */; };
 		67480D272072578700B3ED60 /* ResultDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D222072578600B3ED60 /* ResultDialog.cpp */; };
-		67480D38207268F100B3ED60 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D28207268EF00B3ED60 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib */; };
-		67480D3A207268F100B3ED60 /* libwx_baseu-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D2A207268EF00B3ED60 /* libwx_baseu-3.1.1.0.0.dylib */; };
-		67480D41207268F100B3ED60 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D31207268F000B3ED60 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib */; };
-		67480D43207268F100B3ED60 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D33207268F000B3ED60 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib */; };
-		67480D44207268F100B3ED60 /* libwx_baseu_xml-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D34207268F000B3ED60 /* libwx_baseu_xml-3.1.1.0.0.dylib */; };
-		67480D46207268F100B3ED60 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D36207268F000B3ED60 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib */; };
-		67480D47207268F100B3ED60 /* libwx_baseu_net-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D37207268F100B3ED60 /* libwx_baseu_net-3.1.1.0.0.dylib */; };
+		67480D38207268F100B3ED60 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D28207268EF00B3ED60 /* libwx_osx_cocoau_core-3.1.dylib */; };
+		67480D3A207268F100B3ED60 /* libwx_baseu-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D2A207268EF00B3ED60 /* libwx_baseu-3.1.dylib */; };
+		67480D41207268F100B3ED60 /* libwx_osx_cocoau_adv-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D31207268F000B3ED60 /* libwx_osx_cocoau_adv-3.1.dylib */; };
+		67480D43207268F100B3ED60 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D33207268F000B3ED60 /* libwx_osx_cocoau_qa-3.1.dylib */; };
+		67480D44207268F100B3ED60 /* libwx_baseu_xml-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D34207268F000B3ED60 /* libwx_baseu_xml-3.1.dylib */; };
+		67480D46207268F100B3ED60 /* libwx_osx_cocoau_aui-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D36207268F000B3ED60 /* libwx_osx_cocoau_aui-3.1.dylib */; };
+		67480D47207268F100B3ED60 /* libwx_baseu_net-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67480D37207268F100B3ED60 /* libwx_baseu_net-3.1.dylib */; };
 		67480D482072691900B3ED60 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
 		67480D492072692500B3ED60 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67E7087017B51AB400A22034 /* Cocoa.framework */; };
 		67480D4A2072693A00B3ED60 /* liblog4cpp.5.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -540,17 +572,17 @@
 		67F23F661E329AD800F8B985 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4F1E329AD800F8B985 /* md5.cpp */; };
 		67F23F681E329AD800F8B985 /* ESEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F541E329AD800F8B985 /* ESEQFile.cpp */; };
 		67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F561E329AD800F8B985 /* FSEQFile.cpp */; };
-		67F23F7A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib */; };
-		67F23F7B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.1.0.0.dylib */; };
-		67F23F7C1E329DDC00F8B985 /* libwx_baseu-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.1.0.0.dylib */; };
-		67F23F7D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib */; };
-		67F23F7E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib */; };
-		67F23F7F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib */; };
-		67F23F801E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F701E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.1.0.0.dylib */; };
-		67F23F811E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F711E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.1.0.0.dylib */; };
-		67F23F821E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F721E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib */; };
-		67F23F831E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F731E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib */; };
-		67F23F841E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F741E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib */; };
+		67F23F7A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib */; };
+		67F23F7B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib */; };
+		67F23F7C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib */; };
+		67F23F7D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.dylib */; };
+		67F23F7E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.dylib */; };
+		67F23F7F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.dylib */; };
+		67F23F801E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F701E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.dylib */; };
+		67F23F811E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F711E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.dylib */; };
+		67F23F821E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F721E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.dylib */; };
+		67F23F831E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F731E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.dylib */; };
+		67F23F841E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F741E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.dylib */; };
 		67F23F8A1E329DF500F8B985 /* libavcodec.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; };
 		67F23F8B1E329DF500F8B985 /* libavformat.57.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.57.dylib */; };
 		67F23F8C1E329DF500F8B985 /* libavutil.55.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A01C7E372E001D2377 /* libavutil.55.dylib */; };
@@ -661,6 +693,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		67025CB020D7EF5500BF1AC6 /* Embed Libraries */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				67025CAF20D7EF5400BF1AC6 /* liblog4cpp.5.dylib in Embed Libraries */,
+			);
+			name = "Embed Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		67480D4B2072693A00B3ED60 /* Embed Libraries */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -742,6 +785,34 @@
 		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
+		67025C6820D7E80700BF1AC6 /* xFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		67025C6D20D7E80900BF1AC6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		67025C7220D7E80900BF1AC6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		67025C7520D7E80900BF1AC6 /* xFade.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = xFade.entitlements; sourceTree = "<group>"; };
+		67025C7920D7E84F00BF1AC6 /* SettingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SettingsDialog.cpp; sourceTree = "<group>"; };
+		67025C7A20D7E84F00BF1AC6 /* SettingsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsDialog.h; sourceTree = "<group>"; };
+		67025C7B20D7E84F00BF1AC6 /* UniverseEntryDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UniverseEntryDialog.cpp; sourceTree = "<group>"; };
+		67025C7C20D7E84F00BF1AC6 /* PacketData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketData.h; sourceTree = "<group>"; };
+		67025C7D20D7E85000BF1AC6 /* wxLED.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxLED.cpp; sourceTree = "<group>"; };
+		67025C7E20D7E85000BF1AC6 /* Settings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Settings.cpp; sourceTree = "<group>"; };
+		67025C7F20D7E85000BF1AC6 /* Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Settings.h; sourceTree = "<group>"; };
+		67025C8020D7E85000BF1AC6 /* MIDIAssociateDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MIDIAssociateDialog.cpp; sourceTree = "<group>"; };
+		67025C8120D7E85000BF1AC6 /* xFadeMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xFadeMain.cpp; sourceTree = "<group>"; };
+		67025C8220D7E85000BF1AC6 /* MIDIListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MIDIListener.cpp; sourceTree = "<group>"; };
+		67025C8320D7E85000BF1AC6 /* xFadeApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xFadeApp.cpp; sourceTree = "<group>"; };
+		67025C8420D7E85000BF1AC6 /* xFadeMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xFadeMain.h; sourceTree = "<group>"; };
+		67025C8520D7E85000BF1AC6 /* UniverseEntryDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UniverseEntryDialog.h; sourceTree = "<group>"; };
+		67025C8620D7E85000BF1AC6 /* wxLED.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxLED.h; sourceTree = "<group>"; };
+		67025C8720D7E85100BF1AC6 /* Emitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emitter.h; sourceTree = "<group>"; };
+		67025C8820D7E85100BF1AC6 /* MIDIAssociateDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MIDIAssociateDialog.h; sourceTree = "<group>"; };
+		67025C8920D7E85100BF1AC6 /* MIDIListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MIDIListener.h; sourceTree = "<group>"; };
+		67025C8A20D7E85100BF1AC6 /* Emitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Emitter.cpp; sourceTree = "<group>"; };
+		67025C8B20D7E85100BF1AC6 /* xFadeApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xFadeApp.h; sourceTree = "<group>"; };
+		67025C9720D7EC5900BF1AC6 /* libwx_baseu-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.1.dylib"; path = "../../../../opt/local/lib/libwx_baseu-3.1.dylib"; sourceTree = "<group>"; };
+		67025C9920D7ECB800BF1AC6 /* libwx_baseu_xml-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.dylib"; path = "../../../../opt/local/lib/libwx_baseu_xml-3.1.dylib"; sourceTree = "<group>"; };
+		67025C9A20D7ECB800BF1AC6 /* libwx_osx_cocoau_core-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_core-3.1.dylib"; sourceTree = "<group>"; };
+		67025C9D20D7ECD800BF1AC6 /* libwx_baseu_net-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.1.dylib"; path = "../../../../opt/local/lib/libwx_baseu_net-3.1.dylib"; sourceTree = "<group>"; };
+		67025CAD20D7EF2D00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_qa-3.1.dylib"; sourceTree = "<group>"; };
 		6706BB081E9CFD8E00B44278 /* SequenceViewManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceViewManager.cpp; sourceTree = "<group>"; };
 		6706BB091E9CFD8E00B44278 /* SequenceViewManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceViewManager.h; sourceTree = "<group>"; };
 		670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LOROptimisedOutput.cpp; path = outputs/LOROptimisedOutput.cpp; sourceTree = "<group>"; };
@@ -919,22 +990,22 @@
 		67480D212072578600B3ED60 /* UniverseEntryDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UniverseEntryDialog.h; sourceTree = "<group>"; };
 		67480D222072578600B3ED60 /* ResultDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResultDialog.cpp; sourceTree = "<group>"; };
 		67480D232072578700B3ED60 /* ResultDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResultDialog.h; sourceTree = "<group>"; };
-		67480D28207268EF00B3ED60 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_core-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D29207268EF00B3ED60 /* libwx_osx_cocoau_webview-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_webview-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_webview-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D2A207268EF00B3ED60 /* libwx_baseu-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_baseu-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D2B207268EF00B3ED60 /* libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D2C207268EF00B3ED60 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D2D207268F000B3ED60 /* libwx_osx_cocoau_xrc-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_xrc-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_xrc-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D2E207268F000B3ED60 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_media-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D2F207268F000B3ED60 /* libwx_osx_cocoau_html-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_html-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D30207268F000B3ED60 /* libwx_osx_cocoau_stc-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_stc-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_stc-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D31207268F000B3ED60 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_adv-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_adv-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D32207268F000B3ED60 /* libwx_osx_cocoau_gl-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_gl-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D33207268F000B3ED60 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_qa-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D34207268F000B3ED60 /* libwx_baseu_xml-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_baseu_xml-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D35207268F000B3ED60 /* libwx_osx_cocoau_richtext-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_richtext-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_richtext-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D36207268F000B3ED60 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_aui-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67480D37207268F100B3ED60 /* libwx_baseu_net-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.1.1.0.0.dylib"; path = "../../../../opt/local/lib/libwx_baseu_net-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
+		67480D28207268EF00B3ED60 /* libwx_osx_cocoau_core-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_core-3.1.dylib"; sourceTree = "<group>"; };
+		67480D29207268EF00B3ED60 /* libwx_osx_cocoau_webview-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_webview-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_webview-3.1.dylib"; sourceTree = "<group>"; };
+		67480D2A207268EF00B3ED60 /* libwx_baseu-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.1.dylib"; path = "../../../../opt/local/lib/libwx_baseu-3.1.dylib"; sourceTree = "<group>"; };
+		67480D2B207268EF00B3ED60 /* libwx_osx_cocoau_ribbon-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_ribbon-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_ribbon-3.1.dylib"; sourceTree = "<group>"; };
+		67480D2C207268EF00B3ED60 /* libwx_osx_cocoau_propgrid-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_propgrid-3.1.dylib"; sourceTree = "<group>"; };
+		67480D2D207268F000B3ED60 /* libwx_osx_cocoau_xrc-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_xrc-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_xrc-3.1.dylib"; sourceTree = "<group>"; };
+		67480D2E207268F000B3ED60 /* libwx_osx_cocoau_media-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_media-3.1.dylib"; sourceTree = "<group>"; };
+		67480D2F207268F000B3ED60 /* libwx_osx_cocoau_html-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_html-3.1.dylib"; sourceTree = "<group>"; };
+		67480D30207268F000B3ED60 /* libwx_osx_cocoau_stc-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_stc-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_stc-3.1.dylib"; sourceTree = "<group>"; };
+		67480D31207268F000B3ED60 /* libwx_osx_cocoau_adv-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_adv-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_adv-3.1.dylib"; sourceTree = "<group>"; };
+		67480D32207268F000B3ED60 /* libwx_osx_cocoau_gl-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_gl-3.1.dylib"; sourceTree = "<group>"; };
+		67480D33207268F000B3ED60 /* libwx_osx_cocoau_qa-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_qa-3.1.dylib"; sourceTree = "<group>"; };
+		67480D34207268F000B3ED60 /* libwx_baseu_xml-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.dylib"; path = "../../../../opt/local/lib/libwx_baseu_xml-3.1.dylib"; sourceTree = "<group>"; };
+		67480D35207268F000B3ED60 /* libwx_osx_cocoau_richtext-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_richtext-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_richtext-3.1.dylib"; sourceTree = "<group>"; };
+		67480D36207268F000B3ED60 /* libwx_osx_cocoau_aui-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.1.dylib"; path = "../../../../opt/local/lib/libwx_osx_cocoau_aui-3.1.dylib"; sourceTree = "<group>"; };
+		67480D37207268F100B3ED60 /* libwx_baseu_net-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.1.dylib"; path = "../../../../opt/local/lib/libwx_baseu_net-3.1.dylib"; sourceTree = "<group>"; };
 		67480D4F2072773E00B3ED60 /* EventPing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventPing.h; path = events/EventPing.h; sourceTree = "<group>"; };
 		67480D502072773F00B3ED60 /* EventPingPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventPingPanel.h; sourceTree = "<group>"; };
 		67480D512072773F00B3ED60 /* EventPingPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventPingPanel.cpp; sourceTree = "<group>"; };
@@ -1677,22 +1748,22 @@
 		67F23F561E329AD800F8B985 /* FSEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FSEQFile.cpp; sourceTree = "<group>"; };
 		67F23F571E329AD800F8B985 /* FSEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEQFile.h; sourceTree = "<group>"; };
 		67F23F581E329AD800F8B985 /* MyTreeItemData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyTreeItemData.h; sourceTree = "<group>"; };
-		67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_net-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_xml-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F6D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_adv-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_adv-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F6E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_aui-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F6F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_core-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F701E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_gl-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F711E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_html-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F721E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_media-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F731E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F741E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_qa-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F751E329DDC00F8B985 /* libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F761E329DDC00F8B985 /* libwx_osx_cocoau_richtext-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_richtext-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_richtext-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F771E329DDC00F8B985 /* libwx_osx_cocoau_stc-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_stc-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_stc-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F781E329DDC00F8B985 /* libwx_osx_cocoau_webview-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_webview-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_webview-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
-		67F23F791E329DDC00F8B985 /* libwx_osx_cocoau_xrc-3.1.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_xrc-3.1.1.0.0.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_xrc-3.1.1.0.0.dylib"; sourceTree = "<group>"; };
+		67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_net-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_xml-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F6D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_adv-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_adv-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F6E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_aui-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_aui-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F6F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_core-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_core-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F701E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_gl-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_gl-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F711E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_html-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_html-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F721E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_media-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_media-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F731E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_propgrid-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F741E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_qa-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F751E329DDC00F8B985 /* libwx_osx_cocoau_ribbon-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_ribbon-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_ribbon-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F761E329DDC00F8B985 /* libwx_osx_cocoau_richtext-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_richtext-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_richtext-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F771E329DDC00F8B985 /* libwx_osx_cocoau_stc-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_stc-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_stc-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F781E329DDC00F8B985 /* libwx_osx_cocoau_webview-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_webview-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_webview-3.1.dylib"; sourceTree = "<group>"; };
+		67F23F791E329DDC00F8B985 /* libwx_osx_cocoau_xrc-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_xrc-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_xrc-3.1.dylib"; sourceTree = "<group>"; };
 		67F23F951E329E3300F8B985 /* connection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = connection.cpp; path = wxHTTPServer/connection.cpp; sourceTree = "<group>"; };
 		67F23F961E329E3300F8B985 /* context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = context.cpp; path = wxHTTPServer/context.cpp; sourceTree = "<group>"; };
 		67F23F971E329E3300F8B985 /* message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = message.cpp; path = wxHTTPServer/message.cpp; sourceTree = "<group>"; };
@@ -1797,6 +1868,24 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		67025C6520D7E80700BF1AC6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				67025CAE20D7EF2E00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */,
+				67025CAC20D7EEF400BF1AC6 /* liblog4cpp.5.dylib in Frameworks */,
+				67025CA520D7EE5F00BF1AC6 /* CoreMIDI.framework in Frameworks */,
+				67025CA420D7EE4400BF1AC6 /* CoreAudio.framework in Frameworks */,
+				67025CA320D7EE1700BF1AC6 /* libportmidi.a in Frameworks */,
+				67025C9E20D7ECD800BF1AC6 /* libwx_baseu_net-3.1.dylib in Frameworks */,
+				67025C9B20D7ECB800BF1AC6 /* libwx_baseu_xml-3.1.dylib in Frameworks */,
+				67025C9C20D7ECB800BF1AC6 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */,
+				67025C9820D7EC5900BF1AC6 /* libwx_baseu-3.1.dylib in Frameworks */,
+				67025C9620D7EC1E00BF1AC6 /* IOKit.framework in Frameworks */,
+				67025C9520D7EBD400BF1AC6 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		67480D092072575400B3ED60 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1804,13 +1893,13 @@
 				67480D4C2072695600B3ED60 /* liblog4cpp.5.dylib in Frameworks */,
 				67480D492072692500B3ED60 /* Cocoa.framework in Frameworks */,
 				67480D482072691900B3ED60 /* IOKit.framework in Frameworks */,
-				67480D38207268F100B3ED60 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib in Frameworks */,
-				67480D3A207268F100B3ED60 /* libwx_baseu-3.1.1.0.0.dylib in Frameworks */,
-				67480D41207268F100B3ED60 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib in Frameworks */,
-				67480D43207268F100B3ED60 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib in Frameworks */,
-				67480D44207268F100B3ED60 /* libwx_baseu_xml-3.1.1.0.0.dylib in Frameworks */,
-				67480D46207268F100B3ED60 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib in Frameworks */,
-				67480D47207268F100B3ED60 /* libwx_baseu_net-3.1.1.0.0.dylib in Frameworks */,
+				67480D38207268F100B3ED60 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */,
+				67480D3A207268F100B3ED60 /* libwx_baseu-3.1.dylib in Frameworks */,
+				67480D41207268F100B3ED60 /* libwx_osx_cocoau_adv-3.1.dylib in Frameworks */,
+				67480D43207268F100B3ED60 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */,
+				67480D44207268F100B3ED60 /* libwx_baseu_xml-3.1.dylib in Frameworks */,
+				67480D46207268F100B3ED60 /* libwx_osx_cocoau_aui-3.1.dylib in Frameworks */,
+				67480D47207268F100B3ED60 /* libwx_baseu_net-3.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1861,17 +1950,17 @@
 				67F23F8D1E329DF500F8B985 /* libswresample.2.dylib in Frameworks */,
 				67F23F8E1E329DF500F8B985 /* libswscale.4.dylib in Frameworks */,
 				67F23F8F1E329DF500F8B985 /* liblog4cpp.5.dylib in Frameworks */,
-				67F23F7A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib in Frameworks */,
-				67F23F7B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.1.0.0.dylib in Frameworks */,
-				67F23F7C1E329DDC00F8B985 /* libwx_baseu-3.1.1.0.0.dylib in Frameworks */,
-				67F23F7D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib in Frameworks */,
-				67F23F7E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib in Frameworks */,
-				67F23F7F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib in Frameworks */,
-				67F23F801E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.1.0.0.dylib in Frameworks */,
-				67F23F811E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.1.0.0.dylib in Frameworks */,
-				67F23F821E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib in Frameworks */,
-				67F23F831E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib in Frameworks */,
-				67F23F841E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib in Frameworks */,
+				67F23F7A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib in Frameworks */,
+				67F23F7B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib in Frameworks */,
+				67F23F7C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib in Frameworks */,
+				67F23F7D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.dylib in Frameworks */,
+				67F23F7E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.dylib in Frameworks */,
+				67F23F7F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */,
+				67F23F801E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.dylib in Frameworks */,
+				67F23F811E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.dylib in Frameworks */,
+				67F23F821E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.dylib in Frameworks */,
+				67F23F831E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */,
+				67F23F841E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */,
 				67F23F361E329A1E00F8B985 /* AudioToolbox.framework in Frameworks */,
 				67F23F371E329A1E00F8B985 /* IOKit.framework in Frameworks */,
 				67F23F351E329A0000F8B985 /* Cocoa.framework in Frameworks */,
@@ -1882,6 +1971,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		67025C6920D7E80800BF1AC6 /* xFade */ = {
+			isa = PBXGroup;
+			children = (
+				67025C8A20D7E85100BF1AC6 /* Emitter.cpp */,
+				67025C8720D7E85100BF1AC6 /* Emitter.h */,
+				67025C8020D7E85000BF1AC6 /* MIDIAssociateDialog.cpp */,
+				67025C8820D7E85100BF1AC6 /* MIDIAssociateDialog.h */,
+				67025C8220D7E85000BF1AC6 /* MIDIListener.cpp */,
+				67025C8920D7E85100BF1AC6 /* MIDIListener.h */,
+				67025C7C20D7E84F00BF1AC6 /* PacketData.h */,
+				67025C7E20D7E85000BF1AC6 /* Settings.cpp */,
+				67025C7F20D7E85000BF1AC6 /* Settings.h */,
+				67025C7920D7E84F00BF1AC6 /* SettingsDialog.cpp */,
+				67025C7A20D7E84F00BF1AC6 /* SettingsDialog.h */,
+				67025C7B20D7E84F00BF1AC6 /* UniverseEntryDialog.cpp */,
+				67025C8520D7E85000BF1AC6 /* UniverseEntryDialog.h */,
+				67025C7D20D7E85000BF1AC6 /* wxLED.cpp */,
+				67025C8620D7E85000BF1AC6 /* wxLED.h */,
+				67025C8320D7E85000BF1AC6 /* xFadeApp.cpp */,
+				67025C8B20D7E85100BF1AC6 /* xFadeApp.h */,
+				67025C8120D7E85000BF1AC6 /* xFadeMain.cpp */,
+				67025C8420D7E85000BF1AC6 /* xFadeMain.h */,
+				67025C6D20D7E80900BF1AC6 /* Assets.xcassets */,
+				67025C7220D7E80900BF1AC6 /* Info.plist */,
+				67025C7520D7E80900BF1AC6 /* xFade.entitlements */,
+			);
+			path = xFade;
+			sourceTree = "<group>";
+		};
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -2485,6 +2603,7 @@
 				67BAE6E21A08252700CB7041 /* spxml-0.5 */,
 				67F23F221E32994400F8B985 /* xSchedule */,
 				67480D0D2072575400B3ED60 /* xCapture */,
+				67025C6920D7E80800BF1AC6 /* xFade */,
 				67E7086E17B51AB400A22034 /* Products */,
 				67E7086F17B51AB400A22034 /* Frameworks */,
 			);
@@ -2496,6 +2615,7 @@
 				67E7086D17B51AB400A22034 /* xLights.app */,
 				67F23F211E32994400F8B985 /* xSchedule.app */,
 				67480D0C2072575400B3ED60 /* xCapture.app */,
+				67025C6820D7E80700BF1AC6 /* xFade.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2503,44 +2623,49 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				67480D37207268F100B3ED60 /* libwx_baseu_net-3.1.1.0.0.dylib */,
-				67480D34207268F000B3ED60 /* libwx_baseu_xml-3.1.1.0.0.dylib */,
-				67480D2A207268EF00B3ED60 /* libwx_baseu-3.1.1.0.0.dylib */,
-				67480D31207268F000B3ED60 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib */,
-				67480D36207268F000B3ED60 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib */,
-				67480D28207268EF00B3ED60 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib */,
-				67480D32207268F000B3ED60 /* libwx_osx_cocoau_gl-3.1.1.0.0.dylib */,
-				67480D2F207268F000B3ED60 /* libwx_osx_cocoau_html-3.1.1.0.0.dylib */,
-				67480D2E207268F000B3ED60 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib */,
-				67480D2C207268EF00B3ED60 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib */,
-				67480D33207268F000B3ED60 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib */,
-				67480D2B207268EF00B3ED60 /* libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib */,
-				67480D35207268F000B3ED60 /* libwx_osx_cocoau_richtext-3.1.1.0.0.dylib */,
-				67480D30207268F000B3ED60 /* libwx_osx_cocoau_stc-3.1.1.0.0.dylib */,
-				67480D29207268EF00B3ED60 /* libwx_osx_cocoau_webview-3.1.1.0.0.dylib */,
-				67480D2D207268F000B3ED60 /* libwx_osx_cocoau_xrc-3.1.1.0.0.dylib */,
+				67025CAD20D7EF2D00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib */,
+				67025C9D20D7ECD800BF1AC6 /* libwx_baseu_net-3.1.dylib */,
+				67025C9920D7ECB800BF1AC6 /* libwx_baseu_xml-3.1.dylib */,
+				67025C9A20D7ECB800BF1AC6 /* libwx_osx_cocoau_core-3.1.dylib */,
+				67025C9720D7EC5900BF1AC6 /* libwx_baseu-3.1.dylib */,
+				67480D37207268F100B3ED60 /* libwx_baseu_net-3.1.dylib */,
+				67480D34207268F000B3ED60 /* libwx_baseu_xml-3.1.dylib */,
+				67480D2A207268EF00B3ED60 /* libwx_baseu-3.1.dylib */,
+				67480D31207268F000B3ED60 /* libwx_osx_cocoau_adv-3.1.dylib */,
+				67480D36207268F000B3ED60 /* libwx_osx_cocoau_aui-3.1.dylib */,
+				67480D28207268EF00B3ED60 /* libwx_osx_cocoau_core-3.1.dylib */,
+				67480D32207268F000B3ED60 /* libwx_osx_cocoau_gl-3.1.dylib */,
+				67480D2F207268F000B3ED60 /* libwx_osx_cocoau_html-3.1.dylib */,
+				67480D2E207268F000B3ED60 /* libwx_osx_cocoau_media-3.1.dylib */,
+				67480D2C207268EF00B3ED60 /* libwx_osx_cocoau_propgrid-3.1.dylib */,
+				67480D33207268F000B3ED60 /* libwx_osx_cocoau_qa-3.1.dylib */,
+				67480D2B207268EF00B3ED60 /* libwx_osx_cocoau_ribbon-3.1.dylib */,
+				67480D35207268F000B3ED60 /* libwx_osx_cocoau_richtext-3.1.dylib */,
+				67480D30207268F000B3ED60 /* libwx_osx_cocoau_stc-3.1.dylib */,
+				67480D29207268EF00B3ED60 /* libwx_osx_cocoau_webview-3.1.dylib */,
+				67480D2D207268F000B3ED60 /* libwx_osx_cocoau_xrc-3.1.dylib */,
 				6771B229204BA6AF00E90AC7 /* QuartzCore.framework */,
 				6771B227204BA69B00E90AC7 /* CoreImage.framework */,
 				67B6F3422040FBB600B847E0 /* CoreAudio.framework */,
 				67B6F3402040FB7800B847E0 /* CoreMIDI.framework */,
 				67B6F33E2040FB5100B847E0 /* libportmidi.a */,
 				675D404D1E896C620033C950 /* libliquidfun.a */,
-				67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.1.0.0.dylib */,
-				67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.1.0.0.dylib */,
-				67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.1.0.0.dylib */,
-				67F23F6D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.1.0.0.dylib */,
-				67F23F6E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.1.0.0.dylib */,
-				67F23F6F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.1.0.0.dylib */,
-				67F23F701E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.1.0.0.dylib */,
-				67F23F711E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.1.0.0.dylib */,
-				67F23F721E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.1.0.0.dylib */,
-				67F23F731E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.1.0.0.dylib */,
-				67F23F741E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.1.0.0.dylib */,
-				67F23F751E329DDC00F8B985 /* libwx_osx_cocoau_ribbon-3.1.1.0.0.dylib */,
-				67F23F761E329DDC00F8B985 /* libwx_osx_cocoau_richtext-3.1.1.0.0.dylib */,
-				67F23F771E329DDC00F8B985 /* libwx_osx_cocoau_stc-3.1.1.0.0.dylib */,
-				67F23F781E329DDC00F8B985 /* libwx_osx_cocoau_webview-3.1.1.0.0.dylib */,
-				67F23F791E329DDC00F8B985 /* libwx_osx_cocoau_xrc-3.1.1.0.0.dylib */,
+				67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib */,
+				67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib */,
+				67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib */,
+				67F23F6D1E329DDC00F8B985 /* libwx_osx_cocoau_adv-3.1.dylib */,
+				67F23F6E1E329DDC00F8B985 /* libwx_osx_cocoau_aui-3.1.dylib */,
+				67F23F6F1E329DDC00F8B985 /* libwx_osx_cocoau_core-3.1.dylib */,
+				67F23F701E329DDC00F8B985 /* libwx_osx_cocoau_gl-3.1.dylib */,
+				67F23F711E329DDC00F8B985 /* libwx_osx_cocoau_html-3.1.dylib */,
+				67F23F721E329DDC00F8B985 /* libwx_osx_cocoau_media-3.1.dylib */,
+				67F23F731E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.dylib */,
+				67F23F741E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.dylib */,
+				67F23F751E329DDC00F8B985 /* libwx_osx_cocoau_ribbon-3.1.dylib */,
+				67F23F761E329DDC00F8B985 /* libwx_osx_cocoau_richtext-3.1.dylib */,
+				67F23F771E329DDC00F8B985 /* libwx_osx_cocoau_stc-3.1.dylib */,
+				67F23F781E329DDC00F8B985 /* libwx_osx_cocoau_webview-3.1.dylib */,
+				67F23F791E329DDC00F8B985 /* libwx_osx_cocoau_xrc-3.1.dylib */,
 				676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */,
 				67AA37A01C7E372E001D2377 /* libavutil.55.dylib */,
 				67AA37A11C7E372E001D2377 /* libavformat.57.dylib */,
@@ -3178,6 +3303,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		67025C6720D7E80700BF1AC6 /* xFade */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 67025C7820D7E80900BF1AC6 /* Build configuration list for PBXNativeTarget "xFade" */;
+			buildPhases = (
+				67025C6420D7E80700BF1AC6 /* Sources */,
+				67025C6520D7E80700BF1AC6 /* Frameworks */,
+				67025C6620D7E80700BF1AC6 /* Resources */,
+				67025CB020D7EF5500BF1AC6 /* Embed Libraries */,
+				67025CB120D7EF8D00BF1AC6 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = xFade;
+			productName = xFade;
+			productReference = 67025C6820D7E80700BF1AC6 /* xFade.app */;
+			productType = "com.apple.product-type.application";
+		};
 		67480D0B2072575400B3ED60 /* xCapture */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 67480D1C2072575600B3ED60 /* Build configuration list for PBXNativeTarget "xCapture" */;
@@ -3186,7 +3330,7 @@
 				67480D092072575400B3ED60 /* Frameworks */,
 				67480D0A2072575400B3ED60 /* Resources */,
 				67480D4B2072693A00B3ED60 /* Embed Libraries */,
-				67480D4E20726AD300B3ED60 /* ShellScript */,
+				67480D4E20726AD300B3ED60 /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -3245,6 +3389,15 @@
 				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = "Daniel Kulp";
 				TargetAttributes = {
+					67025C6720D7E80700BF1AC6 = {
+						CreatedOnToolsVersion = 10.0;
+						ProvisioningStyle = Manual;
+						SystemCapabilities = {
+							com.apple.Sandbox = {
+								enabled = 0;
+							};
+						};
+					};
 					67480D0B2072575400B3ED60 = {
 						CreatedOnToolsVersion = 9.3;
 						DevelopmentTeam = U8ZT9RPC6S;
@@ -3285,11 +3438,20 @@
 				67E7086C17B51AB400A22034 /* xLights */,
 				67F23F201E32994400F8B985 /* xSchedule */,
 				67480D0B2072575400B3ED60 /* xCapture */,
+				67025C6720D7E80700BF1AC6 /* xFade */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		67025C6620D7E80700BF1AC6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				67025C6E20D7E80900BF1AC6 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		67480D0A2072575400B3ED60 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3329,6 +3491,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		67025CB120D7EF8D00BF1AC6 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "bin/mac_fix_dylibs\n";
+			showEnvVarsInLog = 0;
+		};
 		674298661C1FC3CC00B11478 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -3343,18 +3523,19 @@
 			shellScript = bin/mac_fix_dylibs;
 			showEnvVarsInLog = 0;
 		};
-		67480D4E20726AD300B3ED60 /* ShellScript */ = {
+		67480D4E20726AD300B3ED60 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = bin/mac_fix_dylibs;
+			shellScript = "bin/mac_fix_dylibs\n";
 			showEnvVarsInLog = 0;
 		};
 		67F240331E32A42600F8B985 /* ShellScript */ = {
@@ -3374,6 +3555,32 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		67025C6420D7E80700BF1AC6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				67025CAB20D7EEB900BF1AC6 /* xlMacUtils.mm in Sources */,
+				67025CA820D7EEA300BF1AC6 /* wxMidi.cpp in Sources */,
+				67025CA920D7EEA300BF1AC6 /* wxMidi.h in Sources */,
+				67025CAA20D7EEA300BF1AC6 /* wxMidiDatabase.cpp in Sources */,
+				67025CA620D7EE8100BF1AC6 /* xLightsTimer.cpp in Sources */,
+				67025CA720D7EE8100BF1AC6 /* xLightsTimer.h in Sources */,
+				67025CA220D7EDC500BF1AC6 /* UtilFunctions.cpp in Sources */,
+				67025CA120D7EDB500BF1AC6 /* xLightsVersion.cpp in Sources */,
+				67025C9F20D7ED7800BF1AC6 /* IPEntryDialog.cpp in Sources */,
+				67025CA020D7ED7800BF1AC6 /* IPEntryDialog.h in Sources */,
+				67025C9020D7E85100BF1AC6 /* MIDIAssociateDialog.cpp in Sources */,
+				67025C8C20D7E85100BF1AC6 /* SettingsDialog.cpp in Sources */,
+				67025C8E20D7E85100BF1AC6 /* wxLED.cpp in Sources */,
+				67025C9420D7E85100BF1AC6 /* Emitter.cpp in Sources */,
+				67025C8F20D7E85100BF1AC6 /* Settings.cpp in Sources */,
+				67025C8D20D7E85100BF1AC6 /* UniverseEntryDialog.cpp in Sources */,
+				67025C9220D7E85100BF1AC6 /* MIDIListener.cpp in Sources */,
+				67025C9320D7E85100BF1AC6 /* xFadeApp.cpp in Sources */,
+				67025C9120D7E85100BF1AC6 /* xFadeMain.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		67480D082072575400B3ED60 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3958,6 +4165,46 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		67025C7620D7E80900BF1AC6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = xFade/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+					"$(PROJECT_DIR)/lib/osx",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xFade;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+			};
+			name = Debug;
+		};
+		67025C7720D7E80900BF1AC6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = U8ZT9RPC6S;
+				INFOPLIST_FILE = xFade/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+					"$(PROJECT_DIR)/lib/osx",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xFade;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+			};
+			name = Release;
+		};
 		67480D1A2072575600B3ED60 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -4096,11 +4343,9 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = U8ZT9RPC6S;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/lib/osx";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -4232,6 +4477,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		67025C7820D7E80900BF1AC6 /* Build configuration list for PBXNativeTarget "xFade" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				67025C7620D7E80900BF1AC6 /* Debug */,
+				67025C7720D7E80900BF1AC6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		67480D1C2072575600B3ED60 /* Build configuration list for PBXNativeTarget "xCapture" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

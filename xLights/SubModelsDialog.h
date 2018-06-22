@@ -59,8 +59,16 @@ class SubModelsDialog : public wxDialog
     public:
         SubModelInfo() {}
         SubModelInfo(const wxString &n) : name(n), oldName(n) {}
-        SubModelInfo(SubModelInfo *n) : name(n->name), oldName(n->oldName),
-            vertical(n->vertical), isRanges(n->isRanges), subBuffer(n->subBuffer), strands(n->strands) {}
+		SubModelInfo(const SubModelInfo &n) : name(n.name), oldName(n.oldName),
+			vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer), strands(n.strands) {}
+
+		bool operator==(const SubModelInfo &n) const { 
+			return (name == n.name && oldName == n.oldName && vertical == n.vertical && 
+				isRanges == n.isRanges && subBuffer == n.subBuffer && strands == n.strands);
+		}
+		bool operator!=(const SubModelInfo &n) const {
+			return !(*this == n);
+		}
 
         wxString name;
         wxString oldName;

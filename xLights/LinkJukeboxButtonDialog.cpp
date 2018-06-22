@@ -22,6 +22,7 @@ const long LinkJukeboxButtonDialog::ID_CHOICE3 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_RADIOBUTTON1 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_STATICTEXT5 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_CHOICE4 = wxNewId();
+const long LinkJukeboxButtonDialog::ID_BUTTON3 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_BUTTON1 = wxNewId();
 const long LinkJukeboxButtonDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -39,13 +40,21 @@ void LinkJukeboxButtonDialog::ValidateWindow()
         Choice_Model->Disable();
         Choice_Layer->Disable();
         Choice_Time->Disable();
-        if (Choice_Description->GetCount() == 0 || Choice_Description->GetSelection() < 0)
+        if (Choice_Description->GetCount() == 0)
         {
             Button_Ok->Disable();
         }
         else
         {
             Button_Ok->Enable();
+        }
+        if (Choice_Description->GetSelection() >= 0)
+        {
+            Button_Unlink->Enable();
+        }
+        else 
+        {
+            Button_Unlink->Disable();
         }
     }
     else
@@ -67,6 +76,15 @@ void LinkJukeboxButtonDialog::ValidateWindow()
         {
             Button_Ok->Enable();
         }
+        if (Choice_Model->GetSelection() >= 0)
+        {
+            Button_Unlink->Enable();
+        }
+        else
+        {
+            Button_Unlink->Disable();
+            Button_Ok->Enable();
+        }
     }
 }
 
@@ -86,21 +104,33 @@ void LinkJukeboxButtonDialog::LoadChoices()
     {
         if (Choice_Model->GetCount() == 0)
         {
-            auto elements = _mainSequencer->GetAllElementNames();
+            auto elements = _mainSequencer->GetAllElementNamesWithEffects();
             elements.sort();
 
             for (auto it = elements.begin(); it != elements.end(); ++it)
             {
                 Choice_Model->Insert(*it, Choice_Model->GetCount());
             }
+            if (Choice_Model->GetCount() == 1)
+            {
+                Choice_Model->Select(0);
+            }
         }
 
         if (Choice_Model->GetCount() > 0 && Choice_Model->GetSelection() >= 0 && Choice_Layer->GetCount() == 0)
         {
-            int layerCount = _mainSequencer->GetElementLayerCount(Choice_Model->GetStringSelection().ToStdString());
+            std::list<int> layers;
+            int layerCount = _mainSequencer->GetElementLayerCount(Choice_Model->GetStringSelection().ToStdString(), &layers);
             for (int i = 1; i <= layerCount; i++)
             {
-                Choice_Layer->Insert(wxString::Format("%d", i), Choice_Layer->GetCount());
+                if (std::find(layers.begin(), layers.end(), i - 1) != layers.end())
+                {
+                    Choice_Layer->Insert(wxString::Format("%d", i), Choice_Layer->GetCount());
+                }
+            }
+            if (Choice_Layer->GetCount() == 1)
+            {
+                Choice_Layer->Select(0);
             }
         }
 
@@ -110,6 +140,10 @@ void LinkJukeboxButtonDialog::LoadChoices()
             for (auto it = effects.begin(); it != effects.end(); ++it)
             {
                 Choice_Time->Insert(wxString::Format("%d", (*it)->GetStartTimeMS()), Choice_Time->GetCount());
+            }
+            if (Choice_Time->GetCount() == 1)
+            {
+                Choice_Time->Select(0);
             }
         }
     }
@@ -168,6 +202,8 @@ LinkJukeboxButtonDialog::LinkJukeboxButtonDialog(wxWindow* parent, int button, B
 	Choice_Description = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
 	FlexGridSizer4->Add(Choice_Description, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
+	Button_Unlink = new wxButton(this, ID_BUTTON3, _("Unlink"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+	FlexGridSizer1->Add(Button_Unlink, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer5->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -184,6 +220,7 @@ LinkJukeboxButtonDialog::LinkJukeboxButtonDialog(wxWindow* parent, int button, B
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LinkJukeboxButtonDialog::OnChoice_TimeSelect);
 	Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&LinkJukeboxButtonDialog::OnRadioButton_Select);
 	Connect(ID_CHOICE4,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LinkJukeboxButtonDialog::OnChoice_DescriptionSelect);
+	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LinkJukeboxButtonDialog::OnButton_UnlinkClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LinkJukeboxButtonDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LinkJukeboxButtonDialog::OnButton_CancelClick);
 	//*)
@@ -263,6 +300,16 @@ void LinkJukeboxButtonDialog::OnChoice_ModelSelect(wxCommandEvent& event)
 
 void LinkJukeboxButtonDialog::OnRadioButton_Select(wxCommandEvent& event)
 {
+    LoadChoices();
+    ValidateWindow();
+}
+
+void LinkJukeboxButtonDialog::OnButton_UnlinkClick(wxCommandEvent& event)
+{
+    Choice_Model->Select(-1);
+    Choice_Layer->Clear();
+    Choice_Time->Clear();
+    Choice_Description->Select(-1);
     LoadChoices();
     ValidateWindow();
 }

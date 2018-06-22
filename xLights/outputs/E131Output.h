@@ -43,6 +43,7 @@ public:
     
     #pragma region Static Functions
     static void SendSync(int syncUniverse);
+    static std::string GetTag();
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters

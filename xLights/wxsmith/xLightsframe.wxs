@@ -1583,6 +1583,24 @@
 						<radio>1</radio>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MNU_XFADE" variable="MenuItem53" member="yes">
+					<label>xFade/xSchedule</label>
+					<object class="wxMenuItem" name="ID_MNU_XFADE_DISABLED" variable="MenuItem_xFade_Disabled" member="yes">
+						<label>Disabled</label>
+						<handler function="OnMenuItem_xFadeDisabledSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_XFADE_A" variable="MenuItem_xFade_A" member="yes">
+						<label>Port A</label>
+						<handler function="OnMenuItem_XFade_ASelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_XFADE_B" variable="MenuItem_xFade_B" member="yes">
+						<label>Port B</label>
+						<handler function="OnMenuItem_xFade_BSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+				</object>
 				<object class="wxMenu" name="ID_MNU_SUPPRESSDUPLICATES" variable="MenuItem29" member="yes">
 					<label>Duplicate Frames To Suppress</label>
 					<object class="wxMenuItem" name="ID_MNU_SD_None" variable="MenuItem_SD_None" member="yes">

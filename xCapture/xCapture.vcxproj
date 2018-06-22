@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Xlights</RootNamespace>
+    <RootNamespace>xCapture</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

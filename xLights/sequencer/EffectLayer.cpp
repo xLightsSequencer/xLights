@@ -407,6 +407,11 @@ bool EffectLayer::HasEffectsInTimeRange(int startTimeMS, int endTimeMS) {
     return false;
 }
 
+bool EffectLayer::HasEffects()
+{
+    return mEffects.size() > 0;
+}
+
 int EffectLayer::SelectEffectsInTimeRange(int startTimeMS, int endTimeMS)
 {
     int num_selected = 0;

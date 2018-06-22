@@ -19,7 +19,6 @@ StarModel::StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBase
 
 StarModel::~StarModel()
 {
-    //dtor
 }
 
 const std::vector<std::string> &StarModel::GetBufferStyles() const {
@@ -44,7 +43,8 @@ void StarModel::GetBufferSize(const std::string &type, const std::string &transf
             }
         }
         AdjustForTransform(transform, BufferWi, BufferHi);
-    } else {
+    }
+    else {
         Model::GetBufferSize(type, transform, BufferWi, BufferHi);
     }
 }
@@ -108,7 +108,7 @@ int StarModel::GetStrandLength(int strand) const {
 int StarModel::MapToNodeIndex(int strand, int node) const {
     int idx = 0;
     for (int x = 0; x < strand; x++) {
-        idx += GetStarSize(x);
+        idx += GetStrandLength(x);
     }
     idx += node;
     return idx;
@@ -263,7 +263,6 @@ void StarModel::InitModel() {
 }
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT;
-
 void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
         TOP_BOT_LEFT_RIGHT.Add("Top Ctr-CCW");
