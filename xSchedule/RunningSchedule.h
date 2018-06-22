@@ -11,6 +11,7 @@ class RunningSchedule
 {
     PlayList* _playlist;
     Schedule* _schedule;
+    bool _stop;
 
 public:
     RunningSchedule(PlayList* playlist, Schedule* schedule);
@@ -19,5 +20,8 @@ public:
     PlayList* GetPlayList() const { return _playlist; }
     Schedule* GetSchedule() const { return _schedule; }
     void Reset();
+    void Stop();
+    bool IsStopped() const { return _stop; }
+    bool ShouldBeRunning() const;
 };
 #endif

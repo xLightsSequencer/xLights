@@ -236,6 +236,10 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 
     SetEscapeId(Button_Cancel->GetId());
 
+#ifdef _DEBUG
+    Choice_FireFrequency->Append(_("Fire every 2 minutes"));
+#endif
+
     ValidateWindow();
 }
 

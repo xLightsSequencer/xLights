@@ -104,14 +104,14 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
     }
 
     PlayList* pl = scheduleManager->GetRunningPlayList();
-    if (_requiresPlayingPlaylist && pl == nullptr && scheduleManager->GetEventPlayLists().size() == 0)
+    if (_requiresPlayingPlaylist && pl == nullptr && scheduleManager->GetEventPlayLists().size() == 0 && scheduleManager->GetNonStoppedCount() == 0)
     {
         msg = "Playlist not playing.";
         return false;
     }
 
     RunningSchedule* sch = scheduleManager->GetRunningSchedule();
-    if (_requiresPlayingSchedule && sch == nullptr)
+    if (_requiresPlayingSchedule && sch == nullptr && scheduleManager->GetNonStoppedCount() == 0)
     {
         msg = "Schedule not playing.";
         return false;

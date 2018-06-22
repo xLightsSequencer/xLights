@@ -15,6 +15,66 @@ Schedule::Schedule(wxXmlNode* node)
     Schedule::Load(node);
 }
 
+wxDateTime Schedule::GetStartTime() const
+{
+    wxDateTime res = wxDateTime::Now();
+    SetTime(res, __city, _startTime, _startTimeString);
+    return res;
+}
+
+wxDateTime Schedule::GetNextFireTime() const
+{
+    // note if the next fire time is outside the current active window this isnt going to return a valid answer
+    wxDateTime start = GetStartTime();
+    wxDateTime now = wxDateTime::Now();
+    wxDateTime res = now;
+
+    int minute = now.GetMinute();
+
+    res.SetMinute(start.GetMinute());
+    if (_fireFrequency == "Fire every hour")
+    {
+        if (res <= now) res.Add(wxTimeSpan(1));
+    }
+    else if (_fireFrequency == "Fire every 30 minutes")
+    {
+        while (res <= now)
+        {
+            res.Add(wxTimeSpan(0, 30));
+        }
+    }
+    else if (_fireFrequency == "Fire every 20 minutes")
+    {
+        while (res <= now)
+        {
+            res.Add(wxTimeSpan(0, 20));
+        }
+    }
+    else if (_fireFrequency == "Fire every 15 minutes")
+    {
+        while (res <= now)
+        {
+            res.Add(wxTimeSpan(0, 15));
+        }
+    }
+    else if (_fireFrequency == "Fire every 10 minutes")
+    {
+        while (res <= now)
+        {
+            res.Add(wxTimeSpan(0, 10));
+        }
+    }
+    else if (_fireFrequency == "Fire every 2 minutes")
+    {
+        while (res <= now)
+        {
+            res.Add(wxTimeSpan(0, 2));
+        }
+    }
+
+    return res;
+}
+
 void Schedule::Load(wxXmlNode* node)
 {
     _changeCount = 0;
@@ -304,31 +364,44 @@ bool Schedule::CheckActive()
 
 bool Schedule::ShouldFire() const
 {
+    wxDateTime start = GetStartTime();
+
     int minute = wxDateTime::Now().GetMinute();
 
     if (_fireFrequency == "Fire every hour")
     {
-        if (minute == 0) return true;
+        if (minute == start.GetMinute()) return true;
         return false;
     }
     else if (_fireFrequency == "Fire every 30 minutes")
     {
-        if (minute == 0 || minute == 30) return true;
+        if (minute == start.GetMinute() || minute == (start.GetMinute() + 30) % 60) return true;
         return false;
     }
     else if (_fireFrequency == "Fire every 20 minutes")
     {
-        if (minute == 0 || minute == 20 || minute == 40) return true;
+        if (minute == start.GetMinute() || minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 40) % 60) return true;
         return false;
     }
     else if (_fireFrequency == "Fire every 15 minutes")
     {
-        if (minute == 0 || minute == 15 || minute == 30 || minute == 45) return true;
+        if (minute == start.GetMinute() || minute == (start.GetMinute() + 15) % 60 || 
+            minute == (start.GetMinute() + 30) % 60 || minute == (start.GetMinute() + 45) % 60) return true;
         return false;
     }
     else if (_fireFrequency == "Fire every 10 minutes")
     {
-        if (minute == 0 || minute == 10 || minute == 20 || minute == 30 || minute == 40 || minute == 50) return true;
+        if (minute == start.GetMinute() || minute == (start.GetMinute() + 10) % 60 || 
+            minute == (start.GetMinute() + 20) % 60 || minute == (start.GetMinute() + 30) % 60 || 
+            minute == (start.GetMinute() + 40) % 60 || minute == (start.GetMinute() + 50) % 60) return true;
+        return false;
+    }
+    else if (_fireFrequency == "Fire every 2 minutes")
+    {
+        for (int i = 0; i < 60; i += 2)
+        {
+            if (minute == (start.GetMinute() + i) % 60) return true;
+        }
         return false;
     }
 
@@ -577,7 +650,23 @@ std::string Schedule::GetNextTriggerTime()
     if (_everyYear) end.SetYear(wxDateTime::Now().GetYear() + 1);
 
     // deal with the simple cases
-    if (CheckActive()) return "NOW!";
+    if (CheckActive())
+    {
+        if (GetFireFrequency() == "Fire once")
+        {
+            return "NOW!";
+        }
+        else
+        {
+            wxDateTime nextFire = GetNextFireTime();
+            if (!CheckActiveAt(nextFire))
+            {
+                return "Done";
+            }
+            return nextFire.Format("%Y-%m-%d %H:%M").ToStdString();
+        }
+    }
+
     if (end < wxDateTime::Now()) return "Never";
 
     if (_startDate > wxDateTime::Now()) // tomorrow or later

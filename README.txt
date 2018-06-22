@@ -22,6 +22,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix blank city name sunrise/set crash
    -- enh (keith)  Recognise sunup and sundown and similies for sunset and sunrise
    -- enh (scott)  Submodel import should skip submodels that already exist in the model
+   -- enh (keith)  For multiple firing schedule make the fire time relative the the schedule start time.
+   -- bug (keith)  Fix some issues with multi-firing schedules.
 2018.16 June 17, 2018
    -- enh (kevin)  Added warp effect for use with canvas blend style 
    -- enh (scott)  Added Vixen FSEQ File Support to xSchedule

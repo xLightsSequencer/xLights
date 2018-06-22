@@ -73,6 +73,8 @@ class Schedule
         void SetDOW(bool mon, bool tue, bool wed, bool thu, bool fri, bool sat, bool sun);
         wxDateTime GetStartDate() const { return _startDate; }
         wxDateTime GetEndDate() const { return _endDate; }
+        wxDateTime GetStartTime() const;
+        wxDateTime GetNextFireTime() const;
         void SetStartDate(const wxDateTime& start) { if (_startDate != start) { _startDate = start; _changeCount++; } }
         void SetEndDate(const wxDateTime& end) { if (_endDate != end) { _endDate = end; _changeCount++; } }
         bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }

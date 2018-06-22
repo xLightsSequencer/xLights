@@ -1199,7 +1199,7 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
     {
         if ((*it)->GetSchedule()->GetId() == schedule->GetId())
         {
-            if (!(*it)->GetPlayList()->IsRunning())
+            if ((*it)->IsStopped())
             {
                 return schedule->GetName() + " [Stopped]";
             }
@@ -1302,7 +1302,7 @@ void xScheduleFrame::UpdateSchedule()
                 {
                     RunningSchedule* r = __schedule->GetRunningSchedule(schedule);
                     wxASSERT(r != nullptr);
-                    if (r == nullptr || !r->GetPlayList()->IsRunning())
+                    if (r == nullptr || r->IsStopped())
                     {
                         // stopped
                         TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(0xe7, 0x74, 0x71));
