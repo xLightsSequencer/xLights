@@ -25,6 +25,7 @@ class PreviewCamera
 public:
     PreviewCamera();
     virtual ~PreviewCamera();
+    PreviewCamera(const PreviewCamera &cam);
 
     float posX;
     float posY;
@@ -37,6 +38,8 @@ public:
     float zoom_corrx;
     float zoom_corry;
     bool is_3d;
+    std::string name;
+    const long menu_id;
 };
 
 class ModelPreview : public xlGLCanvas
@@ -113,6 +116,12 @@ public:
 
     DrawGLUtils::xlAccumulator &GetAccumulator() { return accumulator; }
     DrawGLUtils::xl3Accumulator &GetAccumulator3d() { return accumulator3d; }
+    int GetNum2DCameras() { return previewCameras2d.size(); }
+    int GetNum3DCameras() { return previewCameras3d.size(); }
+    PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i]; }
+    PreviewCamera* GetCamera3D(int i) { return previewCameras3d[i]; }
+    void SaveCurrentCameraPosition();
+
 protected:
     virtual void InitializeGLCanvas() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
@@ -171,7 +180,8 @@ private:
     glm::mat4 ProjMatrix;
     glm::mat4 ProjViewMatrix;
 
-    std::vector<PreviewCamera*> previewCameras;
+    std::vector<PreviewCamera*> previewCameras3d;
+    std::vector<PreviewCamera*> previewCameras2d;
     PreviewCamera* camera3d;
     PreviewCamera* camera2d;
 

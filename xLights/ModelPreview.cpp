@@ -36,21 +36,19 @@ END_EVENT_TABLE()
 static glm::mat4 Identity(glm::mat4(1.0f));
 
 PreviewCamera::PreviewCamera()
+: posX(-500.0f), posY(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
+  panx(0.0f), pany(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(true), name("Name Unspecified"), menu_id(wxNewId())
 {
-    angleX = 20.0f;
-    angleY = 5.0f;
-    distance = -2000.0f;
-    posX = -500.0f;
-    posY = 0.0f;
-    zoom = 1.0f;
-    panx = 0.0f;
-    pany = 0.0f;
-    zoom_corrx = 0.0f;
-    zoom_corry = 0.0f;
-    is_3d = true;
 }
 
 PreviewCamera::~PreviewCamera()
+{
+}
+
+// Copy constructor
+PreviewCamera::PreviewCamera(const PreviewCamera &cam)
+: posX(cam.posX), posY(cam.posY), angleX(cam.angleX), angleY(cam.angleY), distance(cam.distance), zoom(cam.zoom),
+  panx(cam.panx), pany(cam.pany), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d), name(cam.name), menu_id(cam.menu_id)
 {
 }
 
@@ -59,6 +57,23 @@ void ModelPreview::setupCameras()
     camera3d = new PreviewCamera();
     camera3d->is_3d = true;
     camera2d = new PreviewCamera();
+}
+
+void ModelPreview::SaveCurrentCameraPosition()
+{
+    PreviewCamera* current_camera = (is_3d ? camera3d : camera2d);
+    PreviewCamera* new_camera = new PreviewCamera(*current_camera);
+    wxTextEntryDialog dlg(this, "Enter a name for this ViewPoint", "ViewPoint Name", "");
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        new_camera->name = dlg.GetValue().ToStdString();
+    }
+    if (is_3d) {
+        previewCameras3d.push_back(new_camera);
+    }
+    else {
+        previewCameras2d.push_back(new_camera);
+    }
 }
 
 void ModelPreview::mouseMoved(wxMouseEvent& event) {

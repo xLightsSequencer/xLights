@@ -132,6 +132,9 @@ const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_SAVE_VIEWPOINT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -2723,6 +2726,30 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
 
+    // ViewPoint menus
+    mnu.AppendSeparator();
+    mnu.Append(ID_PREVIEW_SAVE_VIEWPOINT, _("Save Current ViewPoint"));
+    if (is_3d) {
+        if (modelPreview->GetNum3DCameras() > 0) {
+            wxMenu* mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < modelPreview->GetNum3DCameras(); ++i)
+            {
+                mnuViewPoint->Append(modelPreview->GetCamera3D(i)->menu_id, modelPreview->GetCamera3D(i)->name);
+            }
+            mnu.Append(ID_PREVIEW_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
+        }
+    }
+    else {
+        if (modelPreview->GetNum2DCameras() > 0) {
+            wxMenu* mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < modelPreview->GetNum2DCameras(); ++i)
+            {
+                mnuViewPoint->Append(modelPreview->GetCamera2D(i)->menu_id, modelPreview->GetCamera2D(i)->name);
+            }
+            mnu.Append(ID_PREVIEW_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+        }
+    }
+
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
     PopupMenu(&mnu);
     modelPreview->SetFocus();
@@ -2924,6 +2951,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         md->UpdateXmlWithScale();
         md->InitModel();
         UpdatePreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_SAVE_VIEWPOINT)
+    {
+        modelPreview->SaveCurrentCameraPosition();
     }
 }
 
