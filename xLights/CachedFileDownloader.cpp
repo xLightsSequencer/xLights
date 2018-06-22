@@ -7,6 +7,8 @@
 #include <wx/dir.h>
 #include <wx/xml/xml.h>
 
+#include <memory>
+
 #define LONGCACHEDAYS 5
 
 FileCacheItem::FileCacheItem(wxXmlNode* n)
@@ -297,7 +299,7 @@ bool CachedFileDownloader::Initialize() {
     _initialised = true;
 
     #ifdef LINUX
-    // On linux we disable caching because GetTempDir() fails spectacularly probably due to 
+    // On linux we disable caching because GetTempDir() fails spectacularly probably due to
     // a lack of wxWidgets initialisation when creating static objects
     _cacheFile="";
     logger_base.warn("CachedFileDownloaded disabled on Linux.");
