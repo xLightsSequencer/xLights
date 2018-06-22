@@ -25,6 +25,7 @@
 //(*Headers(xCaptureFrame)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/combobox.h>
 #include <wx/frame.h>
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
@@ -158,6 +159,8 @@ private:
         static const long ID_BUTTON3;
         static const long ID_BUTTON4;
         static const long ID_BUTTON5;
+        static const long ID_STATICTEXT9;
+        static const long ID_COMBOBOX1;
         static const long ID_BUTTON1;
         static const long ID_BUTTON8;
         static const long ID_BUTTON2;
@@ -179,6 +182,7 @@ private:
         wxCheckBox* CheckBox_ArtNET;
         wxCheckBox* CheckBox_E131;
         wxCheckBox* CheckBox_TriggerOnChannel;
+        wxComboBox* ComboBox1;
         wxListView* ListView_Universes;
         wxSpinCtrl* SpinCtrl_Channel;
         wxSpinCtrl* SpinCtrl_TriggerStart;
@@ -193,6 +197,7 @@ private:
         wxStaticText* StaticText5;
         wxStaticText* StaticText6;
         wxStaticText* StaticText7;
+        wxStaticText* StaticText8;
         wxStaticText* StaticText_IP;
         wxStatusBar* StatusBar1;
         wxTimer UITimer;
