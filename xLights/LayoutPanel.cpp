@@ -37,7 +37,7 @@
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
 #include "ColorManager.h"
-#include "VectorMath.h"
+#include "support/VectorMath.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {

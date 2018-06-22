@@ -336,7 +336,6 @@
     <ClCompile Include="..\xSchedule\wxJSON\jsonreader.cpp" />
     <ClCompile Include="LayerSelectDialog.cpp" />
     <ClCompile Include="FolderSelection.cpp" />
-    <ClCompile Include="support\VectorMath.cpp" />
     <ClCompile Include="..\xSchedule\md5.cpp" />
     <ClCompile Include="VendorMusicDialog.cpp" />
     <ClCompile Include="VendorMusicHelpers.cpp" />
@@ -348,6 +347,7 @@
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="effects\WarpPanel.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
+    <ClCompile Include="support\VectorMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -678,7 +678,6 @@
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="LayerSelectDialog.h" />
     <ClInclude Include="FolderSelection.h" />
-    <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="..\xSchedule\md5.h" />
     <ClInclude Include="VendorMusicDialog.h" />
     <ClInclude Include="VendorMusicHelpers.h" />
@@ -696,6 +695,7 @@
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="xlLockButton.h" />
+    <ClInclude Include="support\VectorMath.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
