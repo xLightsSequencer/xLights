@@ -24,6 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)  Submodel import should skip submodels that already exist in the model
    -- enh (keith)  For multiple firing schedule make the fire time relative the the schedule start time.
    -- bug (keith)  Fix some issues with multi-firing schedules.
+   -- enh (keith)  Add activate and deactivate a schedule via an API call to xSchedule
 2018.16 June 17, 2018
    -- enh (kevin)  Added warp effect for use with canvas blend style 
    -- enh (scott)  Added Vixen FSEQ File Support to xSchedule

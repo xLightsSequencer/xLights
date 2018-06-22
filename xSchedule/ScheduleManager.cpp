@@ -2154,6 +2154,40 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Activate specified schedule")
+                {
+                    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                    {
+                        auto schedules = (*it)->GetSchedules();
+                        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+                        {
+                            if ((*it2)->GetName() == parameters)
+                            {
+                                (*it2)->SetEnabled(true);
+                            }
+                        }
+                    }
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    scheduleChanged = true;
+                }
+                else if (command == "Deactivate specified schedule")
+                {
+                    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                    {
+                        auto schedules = (*it)->GetSchedules();
+                        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+                        {
+                            if ((*it2)->GetName() == parameters)
+                            {
+                                (*it2)->SetEnabled(false);
+                            }
+                        }
+                    }
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    scheduleChanged = true;
+                }
                 else if (command == "Restart playlist schedules")
                 {
                     auto plname = DecodePlayList(parameters);
