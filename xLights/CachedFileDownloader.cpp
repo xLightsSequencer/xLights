@@ -185,7 +185,7 @@ void CachedFileDownloader::SaveCache()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!_initialised)
+    if (!Initialize())
     {
         return;
     }
@@ -227,7 +227,7 @@ void CachedFileDownloader::LoadCache()
 
     _cacheItems.empty();
 
-    if (!_initialised)
+    if (!Initialize())
     {
         return;
     }
@@ -276,18 +276,32 @@ FileCacheItem* CachedFileDownloader::Find(wxURI url)
     return nullptr;
 }
 
-CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+static std::unique_ptr<CachedFileDownloader> _defaultCache(nullptr);
+CachedFileDownloader& CachedFileDownloader::GetDefaultCache() {
+    if (_defaultCache.get() == nullptr) {
+        std::unique_ptr<CachedFileDownloader> tmp(new CachedFileDownloader());
+        _defaultCache = std::move(tmp);
+    }
+    return *_defaultCache.get();
+}
 
+CachedFileDownloader::CachedFileDownloader(const std::string cacheDir) : _cacheDir(cacheDir)
+{
     _initialised = false;
+}
+bool CachedFileDownloader::Initialize() {
+    if (_initialised) {
+        return _enabled;
+    }
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _initialised = true;
+
     #ifdef LINUX
     // On linux we disable caching because GetTempDir() fails spectacularly probably due to 
     // a lack of wxWidgets initialisation when creating static objects
     _cacheFile="";
     logger_base.warn("CachedFileDownloaded disabled on Linux.");
     #else
-    _cacheDir = cacheDir;
     if (_cacheDir == "" || !wxDirExists(_cacheDir))
     {
         _cacheDir = wxFileName::GetTempDir();
@@ -296,7 +310,7 @@ CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
     if (_cacheDir != "")
     {
         _cacheFile = _cacheDir + "/xLightsCache.xml";
-        _initialised = true;
+        _enabled = true;
     }
     else
     {
@@ -306,6 +320,7 @@ CachedFileDownloader::CachedFileDownloader(const std::string cacheDir)
 
     LoadCache();
     PurgeAgedItems();
+    return _enabled;
 }
 
 CachedFileDownloader::~CachedFileDownloader()
@@ -336,11 +351,18 @@ void CachedFileDownloader::PurgeAgedItems()
     }
 }
 
+int CachedFileDownloader::size() {
+    if (!Initialize()) {
+        return 0;
+    }
+    return _cacheItems.size();
+}
+
 std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!_initialised)
+    if (!Initialize())
     {
         // because we dont have a valid place to save the cache we cant cache anything beyond this session
         cacheFor = CACHEFOR::CACHETIME_SESSION;

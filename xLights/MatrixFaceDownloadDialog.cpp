@@ -11,7 +11,9 @@
 #include <wx/log.h>
 #include <log4cpp/Category.hh>
 
-CachedFileDownloader MatrixFaceDownloadDialog::_cache;
+CachedFileDownloader& MatrixFaceDownloadDialog::GetCache() {
+    return CachedFileDownloader::GetDefaultCache();
+}
 
 class MFace
 {
@@ -383,7 +385,7 @@ MatrixFaceDownloadDialog::MatrixFaceDownloadDialog(wxWindow* parent, wxWindowID 
     SetSize(800, 600);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", _cache.size());
+    logger_base.debug("File cache size: %d", GetCache().size());
 
     PopulateFacePanel((MFace*)nullptr);
 
@@ -511,7 +513,7 @@ MatrixFaceDownloadDialog::~MatrixFaceDownloadDialog()
 	//(*Destroy(MatrixFaceDownloadDialog)
 	//*)
 
-    _cache.Save();
+    GetCache().Save();
 
     while (_faces.size() > 0)
     {

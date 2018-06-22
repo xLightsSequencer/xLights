@@ -28,7 +28,6 @@ class VendorMusicDialog: public wxDialog
     std::list<MSLVendor*> _vendors;
     std::string _showFolder;
     wxImage _vendorImage;
-    static CachedFileDownloader _cache;
 
     wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename) const;
     bool LoadTree(std::string hash);
@@ -45,7 +44,7 @@ class VendorMusicDialog: public wxDialog
 		VendorMusicDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VendorMusicDialog();
         bool DlgInit(std::string hash, std::string _showFolder);
-        static CachedFileDownloader& GetCache() { return _cache; }
+        static CachedFileDownloader& GetCache();
 
 		//(*Declarations(VendorMusicDialog)
 		wxButton* Button_Download;
