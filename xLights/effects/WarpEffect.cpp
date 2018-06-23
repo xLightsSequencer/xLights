@@ -95,7 +95,7 @@ namespace
          return ( x >= 0 && x < w && y >= 0 && y <h ) ? cv[y*w + x] : xlBLACK;
       }
 
-      const xlColorVector &cv;
+      const xlColorVector & cv;
       const int w;
       const int h;
    };
@@ -329,14 +329,12 @@ namespace
       return xlBLACK;
    }
 
-   xlColor dropFade( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
+   xlColor drop( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params )
    {
       const double notSoRandomY = 0.16;
-      float noise = dissolveTex( s, notSoRandomY ).red / 255.;
+      float noise = dissolveTex( s, notSoRandomY ).red / 255.f;
 
-      xlColor dropped = tex2D( cb, s, t + noise * params.progress );
-
-      return lerp( dropped, xlBLACK, params.progress );
+      return tex2D( cb, s, t + noise * params.progress );
    }
 
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
@@ -479,10 +477,10 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             params.progress = 1. - params.progress;
             xform = circularSwirl;
          }
-         else if ( warpType == "drop fade" )
+         else if ( warpType == "drop" )
          {
             params.progress = 1. - params.progress;
-            xform = dropFade;
+            xform = drop;
          }
       }
       else
@@ -497,9 +495,9 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
             xform = ( warpTreatment == "in" ) ? circleRevealIn : circleRevealOut;
          else if ( warpType == "circular swirl" )
             xform = circularSwirl;
-         else if ( warpType == "drop fade" )
+         else if ( warpType == "drop" )
          {
-            xform = dropFade;
+            xform = drop;
             if ( warpTreatment == "in" )
                params.progress = 1. - params.progress;
          }
