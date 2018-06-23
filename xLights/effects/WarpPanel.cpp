@@ -95,6 +95,8 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	Choice_Warp_Type->Append(_("ripple"));
 	Choice_Warp_Type->Append(_("single water drop"));
 	Choice_Warp_Type->Append(_("circular swirl"));
+	Choice_Warp_Type->Append(_("drop"));
+	Choice_Warp_Type->Append(_("wavy"));
 	FlexGridSizer5->Add(Choice_Warp_Type, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
@@ -212,7 +214,7 @@ void WarpPanel::ValidateWindow()
    wxString warpType = Choice_Warp_Type->GetStringSelection();
    wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
 
-   bool constantOnly = ( warpType == "water drops" || warpType == "single water drop" );
+   bool constantOnly = ( warpType == "water drops" || warpType == "single water drop" ) || warpType == "wavy";
    wxArrayString choices;
    choices.Add( "constant" );
    if ( constantOnly )
@@ -254,7 +256,7 @@ void WarpPanel::ValidateWindow()
       BitmapButton_Warp_Y->Enable();
    }
 
-   bool supportsCycleCount = ( warpType != "water drops" );
+   bool supportsCycleCount = !( warpType == "water drops" || warpType == "wavy" );
    if ( warpTreatment != "constant" )
       supportsCycleCount = false;
    if ( supportsCycleCount )
@@ -268,7 +270,7 @@ void WarpPanel::ValidateWindow()
       TextCtrl_Warp_Cycle_Count->Disable();
    }
 
-   bool supportsSpeed = ( warpType == "water drops" || warpType == "ripple" || warpType == "circular swirl" );
+   bool supportsSpeed = ( warpType == "water drops" || warpType == "ripple" || warpType == "circular swirl" || warpType == "wavy" );
    if ( supportsSpeed )
    {
       Slider_Warp_Speed->Enable();
