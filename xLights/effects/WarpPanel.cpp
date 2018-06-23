@@ -233,7 +233,7 @@ void WarpPanel::ValidateWindow()
          Choice_Warp_Treatment->SetSelection( index );
    }
 
-   if ( warpType == "dissolve" )
+   if ( warpType == "dissolve" || warpType == "drop" || warpType == "wavy" )
    {
       BitmapButton_Warp_X->SetActive( true ); // VC needs to be active in order to disable controls?
       Slider_Warp_X->Disable();
