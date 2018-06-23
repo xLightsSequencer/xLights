@@ -56,6 +56,7 @@
 										<item>single water drop</item>
 										<item>circular swirl</item>
 										<item>drop</item>
+										<item>wavy</item>
 									</content>
 									<handler function="OnChoice_Warp_TypeSelect" entry="EVT_CHOICE" />
 								</object>
