@@ -21,6 +21,7 @@
 #include "PlayListItemScreenMap.h"
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
+#include "PlayListItemMicrophone.h"
 #include "PlayListItemRDS.h"
 #include "PlayListItemAudio.h"
 #include "PlayListItemESEQ.h"
@@ -69,6 +70,7 @@ const long PlayListDialog::ID_MNU_ADDSCREENMAP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFILE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQVIDEO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEST = wxNewId();
+const long PlayListDialog::ID_MNU_ADDMICROPHONE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDRDS = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROJECTOR = wxNewId();
 const long PlayListDialog::ID_MNU_ADDALLOFF = wxNewId();
@@ -562,6 +564,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDRDS, "Add RDS");
     mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
     mnu.Append(ID_MNU_ADDTEST, "Add Test");
+    mnu.Append(ID_MNU_ADDMICROPHONE, "Add Microphone");
     mnu.Append(ID_MNU_ADDCURL, "Add CURL");
     mnu.Append(ID_MNU_ADDSERIAL, "Add Serial");
     mnu.Append(ID_MNU_ADDFPPEVENT, "Add FPP Event");
@@ -701,6 +704,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDTEST)
     {
         PlayListItemTest* pli = new PlayListItemTest(_outputManager);
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDMICROPHONE)
+    {
+        PlayListItemMicrophone* pli = new PlayListItemMicrophone(_outputManager);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDRDS)

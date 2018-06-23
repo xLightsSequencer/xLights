@@ -18,6 +18,8 @@ SDL __sdl;
 int __globalVolume = 100;
 int AudioData::__nextId = 0;
 
+#define SDL_INPUT_BUFFER_SIZE 8192
+
 #ifndef __WXOSX__
 #define DEFAULT_NUM_SAMPLES 1024
 #define RESAMPLE_RATE 44100
@@ -58,6 +60,7 @@ void fill_audio(void *udata, Uint8 *stream, int len)
 #ifdef __WXMSW__
             SDL_MixAudioFormat(stream, (*it)->_audio_pos, AUDIO_S16SYS, len, volume);
 #else
+            // TODO we need to replace this on OSX/Linux
             SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
 #endif
             (*it)->_audio_pos += len;
@@ -76,11 +79,12 @@ int SDL::GetGlobalVolume()
     return __globalVolume;
 }
 
-SDL::SDL(const std::string& device)
+SDL::SDL(const std::string& device, const std::string& inputDevice)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _dev = 0;
+    _inputdev = 0;
     _state = SDLSTATE::SDLUNINITIALISED;
     _playbackrate = 1.0f;
 
@@ -91,10 +95,17 @@ SDL::SDL(const std::string& device)
     }
 
 #ifndef __WXMSW__
+    // TODO we need to replace this on OSX/Linux
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
     _device = "";
 #else
+    // override the default driver on windows so we can access the microphone
+    if (SDL_AudioInit("directsound") != 0)
+    {
+        logger_base.error("Failed to access DirectSound ... Microphone wont be available.");
+    }
     _device = device;
+    _intputDevice = inputDevice;
 #endif
     _state = SDLSTATE::SDLINITIALISED;
     _initialisedRate = DEFAULT_RATE;
@@ -103,6 +114,11 @@ SDL::SDL(const std::string& device)
     {
         logger_base.error("Could not open SDL audio");
         return;
+    }
+
+    if (!OpenInputAudioDevice(inputDevice))
+    {
+        logger_base.error("Could not open SDL audio input");
     }
 
     logger_base.debug("SDL initialised");
@@ -117,10 +133,14 @@ SDL::~SDL()
         Stop();
     }
 
+    CloseInputAudioDevice();
     CloseAudioDevice();
 
     if (_state != SDLSTATE::SDLUNINITIALISED)
     {
+#ifdef __WXMSW__
+        SDL_AudioQuit();
+#endif
         SDL_Quit();
     }
 
@@ -168,6 +188,7 @@ std::list<std::string> SDL::GetAudioDevices()
     std::list<std::string> devices;
 
 #ifdef __WXMSW__
+    // TODO we need to this working on OSX/Linux
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
     int count = SDL_GetNumAudioDevices(0);
 
@@ -196,6 +217,7 @@ bool SDL::CloseAudioDevice()
         logger_base.debug("    Result '%s'", SDL_GetError());
         _dev = 0;
 #else
+        // TODO we need to replace this on OSX/Linux
         logger_base.debug("Closing default audio device.");
         SDL_ClearError();
         SDL_CloseAudio();
@@ -205,6 +227,186 @@ bool SDL::CloseAudioDevice()
     }
 
     return true;
+}
+
+bool SDL::CloseInputAudioDevice()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
+    {
+        if (_inputdev > 0)
+        {
+            logger_base.debug("Pausing audio input device %d.", _inputdev);
+            SDL_ClearError();
+            SDL_PauseAudioDevice(_inputdev, 1);
+            logger_base.debug("    Result '%s'", SDL_GetError());
+            logger_base.debug("Closing audio input device %d.", _inputdev);
+            SDL_ClearError();
+            SDL_CloseAudioDevice(_inputdev);
+            logger_base.debug("    Result '%s'", SDL_GetError());
+            _inputdev = 0;
+        }
+    }
+
+    return true;
+}
+
+void SDL::PurgeAllButInputAudio(int ms)
+{
+    wxByte buffer[8192];
+    int bytesNeeded = DEFAULT_RATE * ms / 1000 * 2;
+
+    while (SDL_GetQueuedAudioSize(_inputdev) > bytesNeeded)
+    {
+        int avail = SDL_GetQueuedAudioSize(_inputdev);
+        int toread = std::min(avail - bytesNeeded, (int)sizeof(buffer));
+        int read = SDL_DequeueAudio(_inputdev, buffer, toread);
+        wxASSERT(read == toread);
+    }
+}
+
+int SDL::GetInputMax(int ms)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    //DumpState("", _inputdev, &_wanted_inputspec, &_wanted_inputspec);
+
+    // Drop any audio less recent that the specified number of milliseconds ... this is necessary to make it responsive
+    PurgeAllButInputAudio(ms);
+
+    // grab the audio as an array of unsigned 16 bit values ... we will only look at the MSB
+    int samplesNeeded = DEFAULT_RATE * ms / 1000;
+    Uint8 buffer[SDL_INPUT_BUFFER_SIZE];
+    memset(buffer, 0x00, sizeof(buffer));
+    int read = 0;
+    SDL_ClearError();
+    read = SDL_DequeueAudio(_inputdev, buffer, sizeof(buffer));
+
+    // if we didnt get anything bailout
+    if (read == 0)
+    {
+        return -1;
+    }
+
+    // work out the maximum
+    int max = 0;
+    for (int i = std::max(0, read - samplesNeeded * 2); i < read - 1; i+= 2)
+    {
+        if (buffer[i+1] > max) max = buffer[i+1];
+        if (max == 255) break;
+    }
+
+    //logger_base.debug("samples needed %d, read %d, max %d", samplesNeeded, read / 2, max);
+
+    // return the output scaled from 0-127 to 0-255
+    return std::min((max - 127) * 2, 255);
+}
+
+std::list<float> SDL::GetInputSpectrum(int ms)
+{
+    std::list<float> res;
+
+    // Drop any audio less recent that the specified number of milliseconds ... this is necessary to make it responsive
+    PurgeAllButInputAudio(ms);
+
+    // grab the audio as an array of unsigned 16 bit values ... we will only look at the MSB
+    int samplesNeeded = DEFAULT_RATE * ms / 1000;
+    Uint8 buffer[SDL_INPUT_BUFFER_SIZE];
+    memset(buffer, 0x00, sizeof(buffer));
+    int read = 0;
+    SDL_ClearError();
+    read = SDL_DequeueAudio(_inputdev, buffer, sizeof(buffer));
+
+    // if we didnt get anything bailout
+    if (read == 0)
+    {
+        return res;
+    }
+
+    int n = std::min(read/2, samplesNeeded);
+    float* in = (float*)malloc(n * sizeof(float));
+    int j = 0;
+    for (int i = std::max(0, read - samplesNeeded * 2); i < read - 1; i += 2)
+    {
+        *(in + j) = (float)(((int)buffer[i + 1] << 8) + (int)buffer[i]) / (float)0xFFF;
+        j++;
+    }
+
+    // Now do the spectrum analysing
+    int outcount = n / 2 + 1;
+    kiss_fftr_cfg cfg;
+    kiss_fft_cpx* out = (kiss_fft_cpx*)malloc(sizeof(kiss_fft_cpx) * (outcount));
+    if (out != nullptr)
+    {
+        if ((cfg = kiss_fftr_alloc(outcount, 0/*is_inverse_fft*/, nullptr, nullptr)) != nullptr)
+        {
+            kiss_fftr(cfg, in, out);
+            free(cfg);
+        }
+
+        for (j = 0; j < 127; j++)
+        {
+            // choose the right bucket for this MIDI note
+            double freq = 440.0 * exp2f(((double)j - 69.0) / 12.0);
+            int start = freq * (double)n / (double)DEFAULT_RATE;
+            double freqnext = 440.0 * exp2f(((double)j + 1.0 - 69.0) / 12.0);
+            int end = freqnext * (double)n / (double)DEFAULT_RATE;
+
+            float val = 0.0;
+
+            // got through all buckets up to the next note and take the maximums
+            if (end < outcount - 1)
+            {
+                for (int k = start; k <= end; k++)
+                {
+                    kiss_fft_cpx* cur = out + k;
+                    val = std::max(val, sqrtf(cur->r * cur->r + cur->i * cur->i));
+                    //float valscaled = valnew * scaling;
+                }
+            }
+
+            float db = log10(val);
+            if (db < 0.0)
+            {
+                db = 0.0;
+            }
+
+            res.push_back(db);
+        }
+
+        free(out);
+    }
+
+    return res;
+}
+
+void SDL::PurgeInput()
+{
+    SDL_ClearQueuedAudio(_inputdev);
+}
+
+void SDL::DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Current audio driver %s", SDL_GetCurrentAudioDriver());
+    logger_base.debug("Output devices %d. Input devices %d.", SDL_GetNumAudioDevices(0), SDL_GetNumAudioDevices(1));
+    logger_base.debug("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)devid);
+#ifdef __WXMSW__
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(devid);
+    logger_base.debug("    Audio device status (%d) %s", (int)devid, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
+#endif
+    logger_base.debug("    Size Asked %d Received %d", wanted->size, actual->size);
+    logger_base.debug("    Channels Asked %d Received %d", wanted->channels, actual->channels);
+    logger_base.debug("    Format Asked 0x%x Received 0x%x", wanted->format, actual->format);
+    logger_base.debug("        Bitsize Asked %d Received %d", (int)SDL_AUDIO_BITSIZE(wanted->format), (int)SDL_AUDIO_BITSIZE(actual->format));
+    logger_base.debug("        Float Asked %s Received %s", SDL_AUDIO_ISFLOAT(wanted->format) ? "True" : "False", SDL_AUDIO_ISFLOAT(actual->format) ? "True" : "False");
+    logger_base.debug("        Big Endian Asked %s Received %s", SDL_AUDIO_ISBIGENDIAN(wanted->format) ? "True" : "False", SDL_AUDIO_ISBIGENDIAN(actual->format) ? "True" : "False");
+    logger_base.debug("        Signed Asked %s Received %s", SDL_AUDIO_ISSIGNED(wanted->format) ? "True" : "False", SDL_AUDIO_ISSIGNED(actual->format) ? "True" : "False");
+    logger_base.debug("    Frequency Asked %d Received %d", wanted->freq, actual->freq);
+    logger_base.debug("    Padding Asked %d Received %d", wanted->padding, actual->padding);
+    logger_base.debug("    Samples Asked %d Received %d", wanted->samples, actual->samples);
+    logger_base.debug("    Silence Asked %d Received %d", wanted->silence, actual->silence);
 }
 
 bool SDL::OpenAudioDevice(const std::string device)
@@ -229,6 +431,7 @@ bool SDL::OpenAudioDevice(const std::string device)
 
     SDL_AudioSpec actual_spec;
 #ifndef __WXMSW__
+    // TODO we need to replace this on OSX/Linux
     logger_base.debug("Opening default audio device.");
     SDL_ClearError();
     SDL_AudioDeviceID rc = SDL_OpenAudio(&_wanted_spec, &actual_spec);
@@ -259,27 +462,72 @@ bool SDL::OpenAudioDevice(const std::string device)
     logger_base.debug("    Result '%s'", SDL_GetError());
 #endif
 
-    logger_base.debug("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)rc);
-#ifdef __WXMSW__
-    logger_base.debug("    Current audio driver %s", SDL_GetCurrentAudioDriver());
-    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(rc);
-    logger_base.debug("    Audio device status (%d) %s", (int)rc, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
-    as = SDL_GetAudioDeviceStatus(1);
-    logger_base.debug("    Audio device status (1) %s", (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
-#endif
-    logger_base.debug("    Size Asked %d Received %d", _wanted_spec.size, actual_spec.size);
-    logger_base.debug("    Channels Asked %d Received %d", _wanted_spec.channels, actual_spec.channels);
-    logger_base.debug("    Format Asked 0x%x Received 0x%x", _wanted_spec.format, actual_spec.format);
-    logger_base.debug("        Bitsize Asked %d Received %d", (int)SDL_AUDIO_BITSIZE(_wanted_spec.format), (int)SDL_AUDIO_BITSIZE(actual_spec.format));
-    logger_base.debug("        Float Asked %s Received %s", SDL_AUDIO_ISFLOAT(_wanted_spec.format) ? "True" : "False", SDL_AUDIO_ISFLOAT(actual_spec.format) ? "True" : "False");
-    logger_base.debug("        Big Endian Asked %s Received %s", SDL_AUDIO_ISBIGENDIAN(_wanted_spec.format) ? "True" : "False", SDL_AUDIO_ISBIGENDIAN(actual_spec.format) ? "True" : "False");
-    logger_base.debug("        Signed Asked %s Received %s", SDL_AUDIO_ISSIGNED(_wanted_spec.format) ? "True" : "False", SDL_AUDIO_ISSIGNED(actual_spec.format) ? "True" : "False");
-    logger_base.debug("    Frequency Asked %d Received %d", _wanted_spec.freq, actual_spec.freq);
-    logger_base.debug("    Padding Asked %d Received %d", _wanted_spec.padding, actual_spec.padding);
-    logger_base.debug("    Samples Asked %d Received %d", _wanted_spec.samples, actual_spec.samples);
-    logger_base.debug("    Silence Asked %d Received %d", _wanted_spec.silence, actual_spec.silence);
+    logger_base.debug("Output audio device opened.");
+    DumpState(_device, rc, &_wanted_spec, &actual_spec);
 
     _state = SDLSTATE::SDLOPENED;
+    return true;
+}
+
+bool SDL::OpenInputAudioDevice(const std::string device)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    //SDL_AudioSpec
+    _wanted_inputspec.freq = DEFAULT_RATE;
+    _wanted_inputspec.format = AUDIO_U16SYS;
+    _wanted_inputspec.channels = 1;
+    _wanted_inputspec.silence = 0;
+    _wanted_inputspec.samples = SDL_INPUT_BUFFER_SIZE;
+    _wanted_inputspec.callback = nullptr;
+    _wanted_inputspec.userdata = nullptr;
+
+    SDL_AudioSpec actual_spec;
+#ifndef __WXMSW__
+    // TODO we need to replace this on OSX/Linux
+    logger_base.debug("Opening default audio input device.");
+    SDL_ClearError();
+    SDL_AudioDeviceID rc = SDL_OpenAudioDevice(nullptr, 1, &_wanted_inputspec, &actual_spec, 0);
+    logger_base.debug("    Result '%s'", SDL_GetError());
+    if (rc > 1000) // -1 would be a large number
+    {
+        return false;
+    }
+    _inputdev = rc;
+#else
+    logger_base.debug("Opening named audio input device. %s", (const char *)device.c_str());
+    const char* d = nullptr;
+    if (device != "")
+    {
+        d = device.c_str();
+    }
+    else
+    {
+        SDL_ClearError();
+        d = SDL_GetAudioDeviceName(0, 1);
+        if (d == nullptr)
+        {
+            logger_base.debug("Unable to get input audio device name. %s", SDL_GetError());
+        }
+    }
+    SDL_ClearError();
+    SDL_AudioDeviceID rc = SDL_OpenAudioDevice(d, 1, &_wanted_inputspec, &actual_spec, 0);
+    logger_base.debug("    Result '%s'", SDL_GetError());
+    if (rc < 2)
+    {
+        return false;
+    }
+    _inputdev = rc;
+
+    logger_base.debug("Unpausing audio input device %d.", _inputdev);
+    SDL_ClearError();
+    SDL_PauseAudioDevice(_inputdev, 0);
+    logger_base.debug("    Result '%s'", SDL_GetError());
+#endif
+
+    logger_base.debug("Input audio device opened.");
+    DumpState("", rc, &_wanted_inputspec, &actual_spec);
+
     return true;
 }
 
@@ -830,7 +1078,7 @@ std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n,
 	kiss_fft_cpx* out = (kiss_fft_cpx*)malloc(sizeof(kiss_fft_cpx) * (outcount));
 	if (out != nullptr)
 	{
-		if ((cfg = kiss_fftr_alloc(n, 0/*is_inverse_fft*/, NULL, nullptr)) != nullptr)
+		if ((cfg = kiss_fftr_alloc(n, 0/*is_inverse_fft*/, nullptr, nullptr)) != nullptr)
 		{
 			kiss_fftr(cfg, in, out);
 			free(cfg);
@@ -1950,6 +2198,11 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     logger_base.debug("DoLoadAudioData: Song data loaded in %ld.", sw.Time());
 }
 
+SDL* AudioManager::GetSDL()
+{
+    return &__sdl;
+}
+
 void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2357,6 +2610,7 @@ Vamp::Plugin* xLightsVamp::GetPlugin(std::string name)
 void SDL::SetAudioDevice(const std::string device)
 {
 #ifndef __WXMSW__
+    // TODO we need to replace this on OSX/Linux
     // Only windows supports multiple audio devices ... I think .. well at least I know Linux doesnt
     _device = "";
 #else
