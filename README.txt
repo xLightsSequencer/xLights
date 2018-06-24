@@ -29,6 +29,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add ability to make black transparent in video, pictures and matrix faces
    -- bug (keith)  Fix servo effect values incorrect
    -- bug (keith)  Fix bulk edit doesnt work on effects with two word names
+   -- bug (keith)  Loading sequence to non existing model wont map to strands or submodels
 2018.16 June 17, 2018
    -- enh (kevin)  Added warp effect for use with canvas blend style 
    -- enh (scott)  Added Vixen FSEQ File Support to xSchedule

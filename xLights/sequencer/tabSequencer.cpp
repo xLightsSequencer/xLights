@@ -469,6 +469,7 @@ void xLightsFrame::CheckForValidModels()
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
                     mSequenceElements.DeleteElement(newName); // delete the existing element
                     mSequenceElements.GetElement(x)->SetName(newName);
+                    ((ModelElement*)mSequenceElements.GetElement(x))->Init(*AllModels[newName]);
                     Remove(AllNames, newName);
                     Remove(ModelNames, newName);
                 }
