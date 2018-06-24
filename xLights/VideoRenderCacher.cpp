@@ -139,7 +139,7 @@ bool VideoRenderCacheItem::IsPropertyMatch(std::string propertyName, std::string
     return false;
 }
 
-void VideoRenderCacheItem::GetFrame(int frame, RenderBuffer& buffer)
+void VideoRenderCacheItem::GetFrame(int frame, RenderBuffer& buffer, bool transparentBlack, int transparentBlackLevel)
 {
     wxASSERT(_frameSize == buffer.BufferWi * buffer.BufferHt);
 
@@ -154,7 +154,19 @@ void VideoRenderCacheItem::GetFrame(int frame, RenderBuffer& buffer)
             {
                 xlColor c(*pc, *(pc + 1), *(pc + 2));
                 pc += 3;
-                buffer.SetPixel(x, y, c);
+
+                if (transparentBlack)
+                {
+                    int level = c.Red() + c.Green() + c.Blue();
+                    if (level > transparentBlackLevel)
+                    {
+                        buffer.SetPixel(x, y, c);
+                    }
+                }
+                else
+                {
+                    buffer.SetPixel(x, y, c);
+                }
             }
         }
     }

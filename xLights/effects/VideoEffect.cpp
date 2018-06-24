@@ -162,7 +162,9 @@ void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         std::min(SettingsMap.GetInt("TEXTCTRL_Video_CropTop", 100), SettingsMap.GetInt("TEXTCTRL_Video_CropBottom", 0)),
         SettingsMap.GetBool("CHECKBOX_Video_AspectRatio", false),
 		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
-        SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false)
+        SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
+        SettingsMap.GetBool("CHECKBOX_Video_TransparentBlack", false),
+        SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0)
 		);
 }
 
@@ -190,7 +192,7 @@ public:
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
-	double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio)
+	double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -389,7 +391,19 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                             // this shouldnt happen so make it stand out
                             c = xlRED;
                         }
-                        buffer.SetPixel(x + startx, y + starty, c);
+
+                        if (transparentBlack)
+                        {
+                            int level = c.Red() + c.Green() + c.Blue();
+                            if (level > transparentBlackLevel)
+                            {
+                                buffer.SetPixel(x + startx, y + starty, c);
+                            }
+                        }
+                        else
+                        {
+                            buffer.SetPixel(x + startx, y + starty, c);
+                        }
 
                         ptr += 3;
                     }
@@ -415,7 +429,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
         else
         {
-            rci->GetFrame(buffer.curPeriod - buffer.curEffStartPer, buffer);
+            rci->GetFrame(buffer.curPeriod - buffer.curEffStartPer, buffer, transparentBlack, transparentBlackLevel);
         }
 	}
     else

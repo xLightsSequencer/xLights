@@ -26,6 +26,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix some issues with multi-firing schedules.
    -- enh (keith)  Add activate and deactivate a schedule via an API call to xSchedule
    -- enh (keith)  Add a microphone playlist item to xSchedule to set pixel colors in real time
+   -- enh (keith)  Add ability to make black transparent in video, pictures and matrix faces
+   -- bug (keith)  Fix servo effect values incorrect
+   -- bug (keith)  Fix bulk edit doesnt work on effects with two word names
 2018.16 June 17, 2018
    -- enh (kevin)  Added warp effect for use with canvas blend style 
    -- enh (scott)  Added Vixen FSEQ File Support to xSchedule

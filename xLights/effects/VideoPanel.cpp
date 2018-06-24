@@ -34,6 +34,9 @@ const long VideoPanel::ID_TEXTCTRL_Video_CropTop = wxNewId();
 const long VideoPanel::ID_STATICTEXT_Video_CropBottom = wxNewId();
 const long VideoPanel::IDD_SLIDER_Video_CropBottom = wxNewId();
 const long VideoPanel::ID_TEXTCTRL_Video_CropBottom = wxNewId();
+const long VideoPanel::ID_CHECKBOX_Video_TransparentBlack = wxNewId();
+const long VideoPanel::IDD_SLIDER_Video_TransparentBlack = wxNewId();
+const long VideoPanel::ID_TEXTCTRL_Video_TransparentBlack = wxNewId();
 //*)
 
 wxDEFINE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
@@ -54,6 +57,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -119,6 +123,16 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	TextCtrl_Video_CropBottom = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_CropBottom, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_CropBottom"));
 	FlexGridSizer6->Add(TextCtrl_Video_CropBottom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer7->AddGrowableCol(1);
+	CheckBox_TransparentBlack = new BulkEditCheckBox(this, ID_CHECKBOX_Video_TransparentBlack, _("Transparent Black"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Video_TransparentBlack"));
+	CheckBox_TransparentBlack->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider1 = new BulkEditSlider(this, IDD_SLIDER_Video_TransparentBlack, 0, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Video_TransparentBlack"));
+	FlexGridSizer7->Add(Slider1, 1, wxALL|wxEXPAND, 5);
+	TextCtrl1 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Video_TransparentBlack, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Video_TransparentBlack"));
+	FlexGridSizer7->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxEXPAND, 2);
 	FlexGridSizer42->Add(FlexGridSizer3, 1, wxEXPAND, 2);
 	SetSizer(FlexGridSizer42);

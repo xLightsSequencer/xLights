@@ -128,6 +128,41 @@
 				<border>2</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+					<cols>3</cols>
+					<growablecols>1</growablecols>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_TransparentBlack" subclass="BulkEditCheckBox" variable="CheckBox_TransparentBlack" member="yes">
+							<label>Transparent Black</label>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="IDD_SLIDER_Faces_TransparentBlack" subclass="BulkEditSlider" variable="Slider1" member="yes">
+							<max>300</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Faces_TransparentBlack" subclass="BulkEditTextCtrl" variable="TextCtrl3" member="yes">
+							<value>0</value>
+							<size>40,-1d</size>
+							<style>wxTE_RIGHT</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

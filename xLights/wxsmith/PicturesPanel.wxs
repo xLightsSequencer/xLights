@@ -74,9 +74,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Pictures_Direction" variable="BitmapButton_PicturesDirection" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Pictures_Direction" subclass="xlLockButton" variable="BitmapButton_PicturesDirection" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -113,9 +113,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_Speed" variable="BitmapButton_PicturesSpeed" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_Speed" subclass="xlLockButton" variable="BitmapButton_PicturesSpeed" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -151,9 +151,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj" variable="BitmapButton_PicturesFrameRateAdj" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Pictures_FrameRateAdj" subclass="xlLockButton" variable="BitmapButton_PicturesFrameRateAdj" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
 							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -213,6 +213,41 @@
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+							<cols>3</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_Pictures_TransparentBlack" subclass="BulkEditCheckBox" variable="CheckBox_TransparentBlack" member="yes">
+									<label>Transparent Black</label>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSlider" name="IDD_SLIDER_Pictures_TransparentBlack" subclass="BulkEditSlider" variable="Slider1" member="yes">
+									<max>300</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL_Pictures_TransparentBlack" subclass="BulkEditTextCtrl" variable="TextCtrl3" member="yes">
+									<value>0</value>
+									<size>40,-1d</size>
+									<style>wxTE_RIGHT</style>
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
