@@ -11,7 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.17 June 24, 2018
    -- enh (kevin)  Add 'circular swirl' to warp effect
+   -- enh (kevin)  Add 'drop' to warp effect
+   -- enh (kevin)  Add 'wavy' to warp effect
    -- bug (kevin)  Fix issues with warp effect panel
    -- bug (keith)  Some xFade fixes and improved UI information
    -- bug (keith)  Fix layered RGB star doesnt render more than 1 node
