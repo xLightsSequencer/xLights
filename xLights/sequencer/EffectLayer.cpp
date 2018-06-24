@@ -1098,11 +1098,13 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
     return count;
 }
 
-void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager)
 {
     for (int i = 0; i<mEffects.size(); i++)
     {
-        if ((effectName == "" || effectName == mEffects[i]->GetEffectName()) &&
+        RenderableEffect* eff1 = effectManager.GetEffect(effectName);
+        RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
+        if ((eff1->GetId() == eff2->GetId()) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_SELECTED))

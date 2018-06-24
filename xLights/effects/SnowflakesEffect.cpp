@@ -125,7 +125,7 @@ static void set_pixel_if_not_color(RenderBuffer &buffer, int x, int y, xlColor t
 
 class SnowflakesRenderCache : public EffectRenderCache {
 public:
-    SnowflakesRenderCache() {};
+    SnowflakesRenderCache() : LastSnowflakeCount(0), LastSnowflakeType(0), LastFalling(""), effectState(0) {};
     virtual ~SnowflakesRenderCache() {};
 
     int LastSnowflakeCount;
@@ -162,8 +162,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
     const xlColor c1(0, 1, 0);
     const xlColor c2(0, 0, 1);
 
-    int i, x, y0, y, check;
-    xlColor color1, color2, color3;
+    int i, y0, check;
     bool wrapx = false; // set to true if you want snowflakes to draw wrapped around when near edges in the accumulate effect.
 
 
@@ -178,6 +177,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
     int &effectState = cache->effectState;
     std::string& LastFalling = cache->LastFalling;
 
+    xlColor color1, color2;
     buffer.palette.GetColor(0, color1);
     buffer.palette.GetColor(1, color2);
 
@@ -202,6 +202,9 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
 
             if (y0 + delta_y > buffer.BufferHt) delta_y = buffer.BufferHt - y0;
             if (delta_y < 1) delta_y = 1;
+
+            int x = 0;
+            int y = 0;
 
             // find unused space
             for (check = 0; check < 20; check++)
@@ -317,6 +320,8 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
             case 5:
                 // 45 nodes (not enabled)
                 break;
+            default:
+                break;
             }
         }
     }
@@ -330,29 +335,30 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
     }
 
     bool driving = falling == "Driving";
-    for (x = 0; x < buffer.BufferWi; x++) {
+    for (int x = 0; x < buffer.BufferWi; x++) {
         int new_x = (x + movement / 20) % buffer.BufferWi; // CW
         int new_x2 = (x - movement / 20) % buffer.BufferWi; // CCW
         if (new_x2 < 0) new_x2 += buffer.BufferWi;
 
-        for (y = starty; y < buffer.BufferHt; y++) {
+        for (int y = starty; y < buffer.BufferHt; y++) {
             if (!driving) {
 
                 // this controls the speed by skipping movement when slow
                 if (((buffer.curPeriod - buffer.curEffStartPer) * (sSpeed + 1)) / 30 != ((buffer.curPeriod - buffer.curEffStartPer - 1) * (sSpeed + 1)) / 30)
                 {
                     // if there is a flake to move
+                    xlColor color3;
                     buffer.GetTempPixel(x, y, color3);
                     if (color3 != xlBLACK) {
 
                         // check where we can move to?
                         int moves = possible_downward_moves(buffer, x, y);
-                        int x0 = x;
 
                         //we have something to move
                         // randomly move the flake left or right
                         if (moves > 0 || (falling == "Falling" && y == 0))
                         {
+                            int x0;
                             switch (rand() % 5)
                             {
                             case 0:
@@ -443,6 +449,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
             else {
                 int new_y = (y + movement / 10) % buffer.BufferHt;
                 int new_y2 = (new_y + buffer.BufferHt / 2) % buffer.BufferHt;
+                xlColor color3;
                 buffer.GetTempPixel(new_x, new_y, color3);
                 if (color3 == xlBLACK) buffer.GetTempPixel(new_x2, new_y2, color3);                // strip off the alpha channel
                 if (color3 == c1)
@@ -464,7 +471,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
         int placedFullCount = 0;
         while (effectState < Count && check < 20) {
             // find unused space
-            x = rand() % buffer.BufferWi;
+            int x = rand() % buffer.BufferWi;
             if (buffer.GetTempPixel(x, buffer.BufferHt - 1) == xlBLACK) {
                 effectState++;
                 buffer.SetTempPixel(x, buffer.BufferHt - 1, color1, SnowflakeType == 0 ? rand() % 5 : SnowflakeType - 1);
@@ -481,9 +488,9 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
         effectState -= placedFullCount;
 
         // paint my current state
-        for (y = 0; y < buffer.BufferHt; y++) {
-            for (x = 0; x < buffer.BufferWi; x++) {
-
+        for (int y = 0; y < buffer.BufferHt; y++) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
+                xlColor color3;
                 buffer.GetTempPixel(x, y, color3);
                 if (color3 != xlBLACK)
                 {
@@ -564,6 +571,8 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
                         break;
                     case 5:
                         // 45 nodes (not enabled)
+                        break;
+                    default:
                         break;
                     }
                 }

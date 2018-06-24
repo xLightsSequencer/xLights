@@ -82,7 +82,7 @@ class EffectLayer
         void ButtUpStretchAllSelectedEffects(bool right, int lengthMS, UndoManager& undo_mgr);
         void TagAllSelectedEffects();
         int GetSelectedEffectCount(const std::string effectName);
-        void ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
+        void ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager);
         void UnTagAllEffects();
         void DeleteSelectedEffects(UndoManager& undo_mgr);
         void DeleteEffect(int id);
