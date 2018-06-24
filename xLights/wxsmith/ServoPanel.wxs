@@ -50,7 +50,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Servo" subclass="BulkEditSlider" variable="Slider_Servo" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Servo" subclass="BulkEditSliderF1" variable="Slider_Servo" member="yes">
 							<max>1000</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -59,7 +59,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Servo" subclass="BulkEditValueCurveButton" variable="ValueCurve_Servo" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -70,7 +70,7 @@
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="ID_TEXTCTRL_Servo" subclass="BulkEditTextCtrl" variable="TextCtrl_Servo" member="no">
 							<value>0</value>
-							<size>20,-1d</size>
+							<size>25,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>

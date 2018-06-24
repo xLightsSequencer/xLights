@@ -56,11 +56,11 @@ ServoPanel::ServoPanel(wxWindow* parent)
 	FlexGridSizer1->AddGrowableCol(1);
 	Label_DMX1 = new wxStaticText(this, ID_STATICTEXT_Servo, _("Value:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Servo"));
 	FlexGridSizer1->Add(Label_DMX1, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Servo = new BulkEditSlider(this, IDD_SLIDER_Servo, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Servo"));
+	Slider_Servo = new BulkEditSliderF1(this, IDD_SLIDER_Servo, 0, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Servo"));
 	FlexGridSizer1->Add(Slider_Servo, 1, wxALL|wxEXPAND, 2);
 	ValueCurve_Servo = new BulkEditValueCurveButton(this, ID_VALUECURVE_Servo, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Servo"));
 	FlexGridSizer1->Add(ValueCurve_Servo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Servo = new BulkEditTextCtrl(this, ID_TEXTCTRL_Servo, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Servo"));
+	TextCtrl_Servo = new BulkEditTextCtrl(this, ID_TEXTCTRL_Servo, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_Servo"));
 	FlexGridSizer1->Add(TextCtrl_Servo, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer_Main->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer_Main);
@@ -75,7 +75,7 @@ ServoPanel::ServoPanel(wxWindow* parent)
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ServoPanel::OnVCChanged, nullptr, this);
     
     ValueCurve_Servo->GetValue()->SetLimits(SERVO_MIN, SERVO_MAX);
-
+    ValueCurve_Servo->GetValue()->SetDivisor(SERVO_DIVISOR);
 }
 
 ServoPanel::~ServoPanel()

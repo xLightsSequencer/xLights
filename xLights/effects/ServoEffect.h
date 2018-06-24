@@ -5,6 +5,7 @@
 
 #define SERVO_MIN 0
 #define SERVO_MAX 100
+#define SERVO_DIVISOR 10
 
 class ServoEffect : public RenderableEffect
 {
