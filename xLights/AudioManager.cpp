@@ -57,12 +57,12 @@ void fill_audio(void *udata, Uint8 *stream, int len)
             {
                 volume = (volume * __globalVolume) / 100;
             }
-#ifdef __WXMSW__
+//#ifdef __WXMSW__
             SDL_MixAudioFormat(stream, (*it)->_audio_pos, AUDIO_S16SYS, len, volume);
-#else
+//#else
             // TODO we need to replace this on OSX/Linux
-            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
-#endif
+//            SDL_MixAudio(stream, (*it)->_audio_pos, len, volume);
+//#endif
             (*it)->_audio_pos += len;
             (*it)->_audio_len -= len;
         }
@@ -206,23 +206,26 @@ bool SDL::CloseAudioDevice()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_state != SDLSTATE::SDLINITIALISED && _state != SDLSTATE::SDLUNINITIALISED)
     {
-#ifdef __WXMSW__
-        logger_base.debug("Pausing audio device %d.", _dev);
-        SDL_ClearError();
-        SDL_PauseAudioDevice(_dev, 1);
-        logger_base.debug("    Result '%s'", SDL_GetError());
-        logger_base.debug("Closing audio device %d.", _dev);
-        SDL_ClearError();
-        SDL_CloseAudioDevice(_dev);
-        logger_base.debug("    Result '%s'", SDL_GetError());
-        _dev = 0;
-#else
+//#ifdef __WXMSW__
+        if (_dev > 0)
+        {
+            logger_base.debug("Pausing audio device %d.", _dev);
+            SDL_ClearError();
+            SDL_PauseAudioDevice(_dev, 1);
+            logger_base.debug("    Result '%s'", SDL_GetError());
+            logger_base.debug("Closing audio device %d.", _dev);
+            SDL_ClearError();
+            SDL_CloseAudioDevice(_dev);
+            logger_base.debug("    Result '%s'", SDL_GetError());
+            _dev = 0;
+        }
+//#else
         // TODO we need to replace this on OSX/Linux
-        logger_base.debug("Closing default audio device.");
-        SDL_ClearError();
-        SDL_CloseAudio();
-        logger_base.debug("    Result '%s'", SDL_GetError());
-#endif
+//        logger_base.debug("Closing default audio device.");
+//        SDL_ClearError();
+//        SDL_CloseAudio();
+//        logger_base.debug("    Result '%s'", SDL_GetError());
+//#endif
         _state = SDLSTATE::SDLINITIALISED;
     }
 
@@ -392,10 +395,10 @@ void SDL::DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_Au
     logger_base.debug("Current audio driver %s", SDL_GetCurrentAudioDriver());
     logger_base.debug("Output devices %d. Input devices %d.", SDL_GetNumAudioDevices(0), SDL_GetNumAudioDevices(1));
     logger_base.debug("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)devid);
-#ifdef __WXMSW__
+//#ifdef __WXMSW__
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(devid);
     logger_base.debug("    Audio device status (%d) %s", (int)devid, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
-#endif
+//#endif
     logger_base.debug("    Size Asked %d Received %d", wanted->size, actual->size);
     logger_base.debug("    Channels Asked %d Received %d", wanted->channels, actual->channels);
     logger_base.debug("    Format Asked 0x%x Received 0x%x", wanted->format, actual->format);
@@ -430,17 +433,17 @@ bool SDL::OpenAudioDevice(const std::string device)
     _wanted_spec.userdata = &_audio_Lock;
 
     SDL_AudioSpec actual_spec;
-#ifndef __WXMSW__
-    // TODO we need to replace this on OSX/Linux
-    logger_base.debug("Opening default audio device.");
-    SDL_ClearError();
-    SDL_AudioDeviceID rc = SDL_OpenAudio(&_wanted_spec, &actual_spec);
-    logger_base.debug("    Result '%s'", SDL_GetError());
-    if (rc > 1000) // -1 would be a large number
-    {
-        return false;
-    }
-#else
+//#ifndef __WXMSW__
+//    // TODO we need to replace this on OSX/Linux
+//    logger_base.debug("Opening default audio device.");
+//    SDL_ClearError();
+//    SDL_AudioDeviceID rc = SDL_OpenAudio(&_wanted_spec, &actual_spec);
+//    logger_base.debug("    Result '%s'", SDL_GetError());
+//    if (rc > 1000) // -1 would be a large number
+//    {
+//        return false;
+//    }
+//#else
     logger_base.debug("Opening named audio device. %s", (const char *)device.c_str());
     SDL_ClearError();
     const char* d = nullptr;
@@ -460,7 +463,7 @@ bool SDL::OpenAudioDevice(const std::string device)
     SDL_ClearError();
     SDL_PauseAudioDevice(_dev, 0);
     logger_base.debug("    Result '%s'", SDL_GetError());
-#endif
+//#endif
 
     logger_base.debug("Output audio device opened.");
     DumpState(_device, rc, &_wanted_spec, &actual_spec);
@@ -483,18 +486,18 @@ bool SDL::OpenInputAudioDevice(const std::string device)
     _wanted_inputspec.userdata = nullptr;
 
     SDL_AudioSpec actual_spec;
-#ifndef __WXMSW__
-    // TODO we need to replace this on OSX/Linux
-    logger_base.debug("Opening default audio input device.");
-    SDL_ClearError();
-    SDL_AudioDeviceID rc = SDL_OpenAudioDevice(nullptr, 1, &_wanted_inputspec, &actual_spec, 0);
-    logger_base.debug("    Result '%s'", SDL_GetError());
-    if (rc > 1000) // -1 would be a large number
-    {
-        return false;
-    }
-    _inputdev = rc;
-#else
+//#ifndef __WXMSW__
+//    // TODO we need to replace this on OSX/Linux
+//    logger_base.debug("Opening default audio input device.");
+//    SDL_ClearError();
+//    SDL_AudioDeviceID rc = SDL_OpenAudioDevice(nullptr, 1, &_wanted_inputspec, &actual_spec, 0);
+//    logger_base.debug("    Result '%s'", SDL_GetError());
+//    if (rc > 1000) // -1 would be a large number
+//    {
+//        return false;
+//    }
+//    _inputdev = rc;
+//#else
     logger_base.debug("Opening named audio input device. %s", (const char *)device.c_str());
     const char* d = nullptr;
     if (device != "")
@@ -523,7 +526,7 @@ bool SDL::OpenInputAudioDevice(const std::string device)
     SDL_ClearError();
     SDL_PauseAudioDevice(_inputdev, 0);
     logger_base.debug("    Result '%s'", SDL_GetError());
-#endif
+//#endif
 
     logger_base.debug("Input audio device opened.");
     DumpState("", rc, &_wanted_inputspec, &actual_spec);
@@ -779,7 +782,7 @@ void SDL::Play()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Play.");
-    SDL_PauseAudio(0);
+    SDL_PauseAudioDevice(_dev, 0);
     _state = SDLSTATE::SDLPLAYING;
 }
 
@@ -787,7 +790,7 @@ void SDL::Pause()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Pause.");
-    SDL_PauseAudio(1);
+    SDL_PauseAudioDevice(_dev, 1);
     _state = SDLSTATE::SDLNOTPLAYING;
 }
 
@@ -795,7 +798,7 @@ void SDL::Unpause()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Unpause.");
-    SDL_PauseAudio(0);
+    SDL_PauseAudioDevice(_dev, 0);
     _state = SDLSTATE::SDLPLAYING;
 }
 
@@ -815,7 +818,7 @@ void SDL::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Stop.");
-    SDL_PauseAudio(1);
+    SDL_PauseAudioDevice(_dev, 1);
     _state = SDLSTATE::SDLNOTPLAYING;
 }
 
