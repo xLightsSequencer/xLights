@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.18 June 25, 2018
+   -- bug (keith)  Fix audio wont stop playing
+   -- enh (keith)  Add support for Falcon F48
 2018.17 June 24, 2018
    -- enh (kevin)  Add 'circular swirl' to warp effect
    -- enh (kevin)  Add 'drop' to warp effect
