@@ -14,8 +14,9 @@
 #include <wx/textctrl.h>
 //*)
 
-#include "BulkEditControls.h"
 #include <string>
+
+#include "BulkEditControls.h"
 
 class Model;
 class SubBufferPanel;
@@ -23,14 +24,6 @@ class SubBufferPanel;
 class BufferPanel: public wxPanel
 {
     void OnVCChanged(wxCommandEvent& event);
-
-    int __blur;
-    int __rotation;
-    float __rotations;
-    float __zoom;
-    int __zoomquality;
-    int __pivotpointx;
-    int __pivotpointy;
 
 public:
 
@@ -41,7 +34,7 @@ public:
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void UpdateBufferStyles(const Model* model);
         void ValidateWindow();
-    
+
 		//(*Declarations(BufferPanel)
 		BulkEditCheckBox* CheckBox_OverlayBkg;
 		BulkEditChoice* BufferStyleChoice;
