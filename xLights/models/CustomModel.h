@@ -49,8 +49,15 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
     private:
         int GetCustomMaxChannel(const std::string& customModel) const;
         void InitCustomMatrix(const std::string& customModel);
+        static std::string StartNodeAttrName(int idx)
+        {
+            return wxString::Format(wxT("StringNode%i"), idx + 1).ToStdString();  // a space between "String" and "%i" breaks the start channels listed in Indiv Start Chans
+        }
+        std::string ComputeStringStartNode(int x);
 
         std::string custom_background;
+        int _strings;
+        std::vector<int> stringStartNodes;
 };
 
 #endif // CUSTOMMODEL_H

@@ -73,15 +73,55 @@ protected:
     CustomModel *m_model;
 };
 
-
 void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
+    p = grid->AppendIn(p, new wxUIntProperty("Strings", "CustomModelStrings", _strings));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 30);
+    p->SetEditor("SpinCtrl");
+
+    if (_strings == 1)
+    {
+        // cant set start node
+    }
+    else
+    {
+        bool hasIndiv = ModelXml->GetAttribute("CustomStrings", "0") == "1";
+        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", hasIndiv));
+        p->SetAttribute("UseCheckbox", true);
+        p->Enable(_strings > 1);
+        p = grid->AppendIn(p, new wxUIntProperty("Start Node", "StringStartNode", wxAtoi(ModelXml->GetAttribute("StartNode", "1"))));
+        p->SetAttribute("Min", 1);
+        p->SetAttribute("Max", (int)GetNodeCount());
+        p->SetEditor("SpinCtrl");
+        if (hasIndiv) {
+            int c = _strings;
+            for (int x = 0; x < c; x++) {
+                wxString nm = StartNodeAttrName(x);
+                std::string val = ModelXml->GetAttribute(nm).ToStdString();
+                if (val == "") {
+                    val = ComputeStringStartNode(x);
+                    ModelXml->DeleteAttribute(nm);
+                    ModelXml->AddAttribute(nm, val);
+                }
+                if (x == 0) {
+                    p->SetLabel(nm);
+                    p->SetValue(val);
+                }
+                else {
+                    p = grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(val)));
+                }
+            }
+        }
+    }
+
     p = grid->Append(new wxImageFileProperty("Background Image",
                                              "CustomBkgImage",
                                              custom_background));
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
 }
+
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CustomData" == event.GetPropertyName()) {
         if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != custom_background)
@@ -97,9 +137,16 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
+    else if (event.GetPropertyName() == "ModelIndividualStartNodes" || event.GetPropertyName() == "ModelIndividualStartNodes.StringStartNode") {
+        if (ModelXml->GetAttribute("CustomStrings") == "1") {
+            ModelXml->DeleteAttribute(StartNodeAttrName(0));
+            ModelXml->AddAttribute(StartNodeAttrName(0), event.GetValue().GetString());
+        }
+        IncrementChangeCount();
+        return 3 | 0x0008;
+    }
     return Model::OnPropertyGridChange(grid, event);
 }
-
 
 int CustomModel::GetStrandLength(int strand) const {
     return Nodes.size();
@@ -115,6 +162,8 @@ void CustomModel::InitModel() {
     InitCustomMatrix(customModel);
     CopyBufCoord2ScreenCoord();
     custom_background = ModelXml->GetAttribute("CustomBkgImage").ToStdString();
+    _strings = wxAtoi(ModelXml->GetAttribute("xxxx").ToStdString());
+    xxx
 }
 
 void CustomModel::SetCustomWidth(long w) {
@@ -294,6 +343,18 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
 
     SetBufferSize(height,width);
 }
+
+std::string CustomModel::ComputeStringStartNode(int x)
+{
+    if (x == 0) return "1";
+
+    int strings = GetNumPhysicalStrings();
+    int nodes = GetNodeCount();
+    float nodesPerString = (float)nodes / (float)strings;
+
+    return wxString::Format("%d", (int)(x * nodesPerString + 1)).ToStdString();
+}
+
 std::string CustomModel::GetNodeName(size_t x, bool def) const {
     if (x < Nodes.size()) {
         return Nodes[x]->GetName();

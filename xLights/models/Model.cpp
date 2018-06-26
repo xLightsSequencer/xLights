@@ -437,6 +437,13 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("BRG Nodes");
         NODE_TYPES.push_back("BGR Nodes");
         
+        NODE_TYPES.push_back("3 Channel RGB");
+        NODE_TYPES.push_back("4 Channel RGBW");
+        NODE_TYPES.push_back("4 Channel WRGB");
+        NODE_TYPES.push_back("Strobes");
+        NODE_TYPES.push_back("Single Color");
+        NODE_TYPES.push_back("Single Color Intensity");
+        
         NODE_TYPES.push_back("WRGB Nodes");
         NODE_TYPES.push_back("WRBG Nodes");
         NODE_TYPES.push_back("WGBR Nodes");
@@ -451,14 +458,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("BRGW Nodes");
         NODE_TYPES.push_back("BGRW Nodes");
 
-        NODE_TYPES.push_back("3 Channel RGB");
-        NODE_TYPES.push_back("4 Channel RGBW");
-        NODE_TYPES.push_back("4 Channel WRGB");
-        NODE_TYPES.push_back("Strobes");
-        NODE_TYPES.push_back("Single Color");
-        NODE_TYPES.push_back("Single Color Intensity");
-        
-        
         RGBW_HANDLING.push_back("R=G=B -> W");
         RGBW_HANDLING.push_back("RGB Only");
         RGBW_HANDLING.push_back("White Only");
@@ -1344,7 +1343,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     }
     subModels.clear();
 
-    wxString tempstr,channelstr;
+    wxString channelstr;
 
     zeroBased = zb;
     ModelXml=ModelNode;
@@ -1378,7 +1377,7 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     }
     description = UnXmlSafe(ModelNode->GetAttribute("Description"));
 
-    tempstr=ModelNode->GetAttribute("parm1");
+    wxString tempstr = ModelNode->GetAttribute("parm1");
     tempstr.ToLong(&parm1);
     tempstr=ModelNode->GetAttribute("parm2");
     tempstr.ToLong(&parm2);
