@@ -1,15 +1,19 @@
+#ifndef RENDERUTILS_H
+#define RENDERUTILS_H
 
-
-#ifndef __XL_RENDERUTILS__
-#define __XL_RENDERUTILS__
-
-class NodeRange {
+class NodeRange 
+{
 public:
+
+    unsigned int start;
+    unsigned int end;
+
     NodeRange(unsigned int s, unsigned int e) : start(s), end(e) {}
     
     bool operator<(const NodeRange &r) const {
         return start < r.start;
     }
+
     bool Overlaps(const NodeRange &r) const {
         
         if (end < r.start) {
@@ -43,13 +47,6 @@ public:
         }
         return false;
     }
-    unsigned int start;
-    unsigned int end;
 };
 
-
-
-
 #endif
-
-
