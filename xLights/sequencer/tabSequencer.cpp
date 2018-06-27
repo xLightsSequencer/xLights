@@ -449,6 +449,16 @@ void xLightsFrame::CheckForValidModels()
 
                 dialog.StaticTextMessage->SetLabel("Model '" + name + "'\ndoes not exist in your list of models");
                 dialog.ChoiceModels->Set(ToArrayString(AllNames));
+                if (AllNames.size() > 0)
+                {
+                    dialog.ChoiceModels->SetSelection(0);
+                }
+                else
+                {
+                    dialog.ChoiceModels->Hide();
+                    dialog.RadioButtonRename->Hide();
+                    dialog.Layout();
+                }
                 dialog.Fit();
 
                 if (!cancelled && HasEffects(me))
