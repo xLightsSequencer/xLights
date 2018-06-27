@@ -1104,7 +1104,7 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
     {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
-        if ((eff1->GetId() == eff2->GetId()) &&
+        if ((effectName == "" || eff1->GetId() == eff2->GetId()) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_SELECTED))
