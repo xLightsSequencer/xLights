@@ -27,6 +27,7 @@
 #include "models/ModelManager.h"
 #include "xLightsMain.h"
 #include "LayoutPanel.h"
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -526,9 +527,19 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
 
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int r = event.GetRow();
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    sm->strands[sm->strands.size() - 1 - r] = NodesGrid->GetCellValue(r, 0);
+    if (sm != nullptr)
+    {
+        sm->strands[sm->strands.size() - 1 - r] = NodesGrid->GetCellValue(r, 0);
+    }
+    else
+    {
+        logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
+        wxASSERT(false);
+    }
     SelectRow(r);
     ValidateWindow();
 }
@@ -542,7 +553,10 @@ void SubModelsDialog::OnNodesGridCellSelect(wxGridEvent& event)
 void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 {
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    sm->vertical = LayoutCheckbox->GetValue();
+    if (sm != nullptr)
+    {
+        sm->vertical = LayoutCheckbox->GetValue();
+    }
 }
 
 void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
@@ -552,7 +566,10 @@ void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
         return;
     }
     SubModelInfo* sm = GetSubModelInfo(name);
-    sm->isRanges = TypeNotebook->GetSelection() == 0;
+    if (sm != nullptr)
+    {
+        sm->isRanges = TypeNotebook->GetSelection() == 0;
+    }
 }
 
 void SubModelsDialog::OnSubBufferRangeChange(wxCommandEvent& event)
