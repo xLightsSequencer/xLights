@@ -199,98 +199,94 @@ void WarpPanel::OnVCChanged(wxCommandEvent& event)
    EffectPanelUtils::OnVCChanged( event );
 }
 
+void WarpPanel::CheckTypeTreatment()
+{
+    wxString warpType = Choice_Warp_Type->GetStringSelection();
+    wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
+
+    bool constantOnly = (warpType == "water drops" || warpType == "single water drop") || warpType == "wavy";
+    if (constantOnly && warpTreatment != "constant")
+    {
+        Choice_Warp_Treatment->SetStringSelection("constant");
+        wxBell();
+    }
+}
+
 void WarpPanel::OnChoice_Warp_TypeSelect(wxCommandEvent& event)
 {
-   ValidateWindow();
+    CheckTypeTreatment();
+    ValidateWindow();
 }
 
 void WarpPanel::OnChoice_Warp_TreatmentSelect(wxCommandEvent& event)
 {
-   ValidateWindow();
+    CheckTypeTreatment();
+    ValidateWindow();
 }
 
 void WarpPanel::ValidateWindow()
 {
-   wxString warpType = Choice_Warp_Type->GetStringSelection();
-   wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
+    wxString warpType = Choice_Warp_Type->GetStringSelection();
+    wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
 
-   bool constantOnly = ( warpType == "water drops" || warpType == "single water drop" ) || warpType == "wavy";
-   wxArrayString choices;
-   choices.Add( "constant" );
-   if ( constantOnly )
-   {
-      Choice_Warp_Treatment->Set( choices );
-      Choice_Warp_Treatment->SetSelection( 0 );
-      warpTreatment = "constant";
-   }
-   else
-   {
-      choices.Add( "in" );
-      choices.Add( "out" );
-      Choice_Warp_Treatment->Set( choices );
-      int index = Choice_Warp_Treatment->FindString( warpTreatment );
-      if ( index != wxNOT_FOUND )
-         Choice_Warp_Treatment->SetSelection( index );
-   }
+    if (warpType == "dissolve" || warpType == "drop" || warpType == "wavy")
+    {
+        BitmapButton_Warp_X->SetActive(true); // VC needs to be active in order to disable controls?
+        Slider_Warp_X->Disable();
+        TextCtrl_Warp_X->Disable();
+        BitmapButton_Warp_X->Disable();
 
-   if ( warpType == "dissolve" || warpType == "drop" || warpType == "wavy" )
-   {
-      BitmapButton_Warp_X->SetActive( true ); // VC needs to be active in order to disable controls?
-      Slider_Warp_X->Disable();
-      TextCtrl_Warp_X->Disable();
-      BitmapButton_Warp_X->Disable();
+        BitmapButton_Warp_Y->SetActive(true); // VC needs to be active in order to disable controls?
+        Slider_Warp_Y->Disable();
+        TextCtrl_Warp_Y->Disable();
+        BitmapButton_Warp_Y->Disable();
+    }
+    else
+    {
+        Slider_Warp_X->Enable();
+        TextCtrl_Warp_X->Enable();
+        BitmapButton_Warp_X->Enable();
 
-      BitmapButton_Warp_Y->SetActive( true ); // VC needs to be active in order to disable controls?
-      Slider_Warp_Y->Disable();
-      TextCtrl_Warp_Y->Disable();
-      BitmapButton_Warp_Y->Disable();
-   }
-   else
-   {
-      Slider_Warp_X->Enable();
-      TextCtrl_Warp_X->Enable();
-      BitmapButton_Warp_X->Enable();
+        Slider_Warp_Y->Enable();
+        TextCtrl_Warp_Y->Enable();
+        BitmapButton_Warp_Y->Enable();
+    }
 
-      Slider_Warp_Y->Enable();
-      TextCtrl_Warp_Y->Enable();
-      BitmapButton_Warp_Y->Enable();
-   }
+    bool supportsCycleCount = !(warpType == "water drops" || warpType == "wavy");
+    if (warpTreatment != "constant")
+        supportsCycleCount = false;
+    if (supportsCycleCount)
+    {
+        Slider_Warp_Cycle_Count->Enable();
+        TextCtrl_Warp_Cycle_Count->Enable();
+    }
+    else
+    {
+        Slider_Warp_Cycle_Count->Disable();
+        TextCtrl_Warp_Cycle_Count->Disable();
+    }
 
-   bool supportsCycleCount = !( warpType == "water drops" || warpType == "wavy" );
-   if ( warpTreatment != "constant" )
-      supportsCycleCount = false;
-   if ( supportsCycleCount )
-   {
-      Slider_Warp_Cycle_Count->Enable();
-      TextCtrl_Warp_Cycle_Count->Enable();
-   }
-   else
-   {
-      Slider_Warp_Cycle_Count->Disable();
-      TextCtrl_Warp_Cycle_Count->Disable();
-   }
+    bool supportsSpeed = (warpType == "water drops" || warpType == "ripple" || warpType == "circular swirl" || warpType == "wavy");
+    if (supportsSpeed)
+    {
+        Slider_Warp_Speed->Enable();
+        TextCtrl_Warp_Speed->Enable();
+    }
+    else
+    {
+        Slider_Warp_Speed->Disable();
+        TextCtrl_Warp_Speed->Disable();
+    }
 
-   bool supportsSpeed = ( warpType == "water drops" || warpType == "ripple" || warpType == "circular swirl" || warpType == "wavy" );
-   if ( supportsSpeed )
-   {
-      Slider_Warp_Speed->Enable();
-      TextCtrl_Warp_Speed->Enable();
-   }
-   else
-   {
-      Slider_Warp_Speed->Disable();
-      TextCtrl_Warp_Speed->Disable();
-   }
-
-   bool supportsFrequency = ( warpType == "banded swirl" || warpType == "ripple" );
-   if ( supportsFrequency )
-   {
-      Slider_Warp_Frequency->Enable();
-      TextCtrl_Warp_Frequency->Enable();
-   }
-   else
-   {
-      Slider_Warp_Frequency->Disable();
-      TextCtrl_Warp_Frequency->Disable();
-   }
+    bool supportsFrequency = (warpType == "banded swirl" || warpType == "ripple");
+    if (supportsFrequency)
+    {
+        Slider_Warp_Frequency->Enable();
+        TextCtrl_Warp_Frequency->Enable();
+    }
+    else
+    {
+        Slider_Warp_Frequency->Disable();
+        TextCtrl_Warp_Frequency->Disable();
+    }
 }

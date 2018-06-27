@@ -60,6 +60,7 @@ class WarpPanel: public wxPanel
 		//*)
 
 		void ValidateWindow();
+        void CheckTypeTreatment();
 
 	protected:
 

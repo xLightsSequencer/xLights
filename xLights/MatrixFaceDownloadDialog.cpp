@@ -68,7 +68,9 @@ public:
 
     MFace(wxXmlNode* n)
     {
-		_width = -1;
+        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        
+        _width = -1;
 		_height = -1;
 		_minwidth = -1;
 		_minheight = -1;
@@ -105,6 +107,7 @@ public:
                 else if (nn == "id")
                 {
                     _id = l->GetNodeContent().ToStdString();
+                    //logger_base.debug("Face id %s", (const char *)_id.c_str());
                 }
                 else if (nn == "categoryid")
                 {
