@@ -395,10 +395,8 @@ void SDL::DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_Au
     logger_base.debug("Current audio driver %s", SDL_GetCurrentAudioDriver());
     logger_base.debug("Output devices %d. Input devices %d.", SDL_GetNumAudioDevices(0), SDL_GetNumAudioDevices(1));
     logger_base.debug("Audio device '%s' opened %d. Device specification:", (const char*)device.c_str(), (int)devid);
-//#ifdef __WXMSW__
     SDL_AudioStatus as = SDL_GetAudioDeviceStatus(devid);
     logger_base.debug("    Audio device status (%d) %s", (int)devid, (as == SDL_AUDIO_PAUSED) ? "Paused" : (as == SDL_AUDIO_PLAYING) ? "Playing" : "Stopped");
-//#endif
     logger_base.debug("    Size Asked %d Received %d", wanted->size, actual->size);
     logger_base.debug("    Channels Asked %d Received %d", wanted->channels, actual->channels);
     logger_base.debug("    Format Asked 0x%x Received 0x%x", wanted->format, actual->format);
@@ -782,7 +780,13 @@ void SDL::Play()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Play.");
-    SDL_PauseAudioDevice(_dev, 0);
+
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
+    if (as == SDL_AUDIO_PAUSED)
+    {
+        SDL_PauseAudioDevice(_dev, 0);
+    }
+
     _state = SDLSTATE::SDLPLAYING;
 }
 
@@ -790,7 +794,11 @@ void SDL::Pause()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Pause.");
-    SDL_PauseAudioDevice(_dev, 1);
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
+    if (as == SDL_AUDIO_PLAYING)
+    {
+        SDL_PauseAudioDevice(_dev, 1);
+    }
     _state = SDLSTATE::SDLNOTPLAYING;
 }
 
@@ -798,7 +806,11 @@ void SDL::Unpause()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Unpause.");
-    SDL_PauseAudioDevice(_dev, 0);
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
+    if (as == SDL_AUDIO_PAUSED)
+    {
+        SDL_PauseAudioDevice(_dev, 0);
+    }
     _state = SDLSTATE::SDLPLAYING;
 }
 
@@ -818,7 +830,11 @@ void SDL::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("SDL Audio Stop.");
-    SDL_PauseAudioDevice(_dev, 1);
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
+    if (as == SDL_AUDIO_PLAYING)
+    {
+        SDL_PauseAudioDevice(_dev, 1);
+    }
     _state = SDLSTATE::SDLNOTPLAYING;
 }
 
