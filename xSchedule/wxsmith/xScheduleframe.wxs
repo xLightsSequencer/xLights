@@ -288,7 +288,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText_PacketsPerSec" member="yes">
-								<label>Packets/Sec: 0</label>
+								<label>Packets/Sec: 0          </label>
 							</object>
 							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
