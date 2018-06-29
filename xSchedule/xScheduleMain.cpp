@@ -1235,11 +1235,8 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     if (__schedule == nullptr) return;
 
-    if (reentered)
-    {
-        logger_base.warn("Frame timer was re-entered ... dropping this frame.");
-        return;
-    }
+    wxDateTime frameStart = wxDateTime::UNow();
+
     reentered = true;
 
     int rate = __schedule->Frame(_timerOutputFrame);
@@ -1251,20 +1248,41 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         wxPostEvent(this, event2);
     }
 
-    _timerOutputFrame = !_timerOutputFrame;
-
-    StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
-
+    static bool webstate = false;
     if (__schedule->GetWebRequestToggle())
     {
-        StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+        if (!webstate)
+        {
+            StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+            webstate = true;
+        }
     }
     else
     {
-        StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+        if (webstate)
+        {
+            StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+            webstate = false;
+        }
     }
 
     CorrectTimer(rate);
+
+    wxDateTime frameEnd = wxDateTime::UNow();
+    long ms = (frameEnd - frameStart).GetMilliseconds().ToLong();
+    
+    if (ms > _timer.GetInterval() / 2)
+    {
+        // we took too long so next frame has to be an output frame
+        _timerOutputFrame = true;
+    }
+    else
+    {
+        // output only occurs on alternate timer events
+        _timerOutputFrame = !_timerOutputFrame;
+    }
+
+    logger_base.debug("Frame time %ld", ms);
 
     reentered = false;
 }
@@ -2368,6 +2386,8 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
 
 void xScheduleFrame::UpdateUI()
 {
+    StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
+
     UpdateStatus();
 
     Brightness->SetValue(__schedule->GetBrightness());
