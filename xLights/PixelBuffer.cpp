@@ -403,8 +403,11 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         HSVValue hsv1 = bg.asHSV();
         if (hsv0.value > layers[layer]->effectMixThreshold) {
             // if effect 1 is non black
-            hsv1.value = hsv0.value;
-            bg = hsv1;
+            if (bg != xlBLACK)
+            {
+                hsv1.value = hsv0.value;
+                bg = hsv1;
+            }
         } else {
             bg.Set(0, 0, 0);
         }
@@ -417,8 +420,15 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         HSVValue hsv1 = bg.asHSV();
         if (hsv1.value > layers[layer]->effectMixThreshold) {
             // if effect 2 is non black
-            hsv0.value = hsv1.value;
-            bg = hsv0;
+            if (fg != xlBLACK)
+            {
+                hsv0.value = hsv1.value;
+                bg = hsv0;
+            }
+            else
+            {
+                bg.Set(0, 0, 0);
+            }
         } else {
             bg.Set(0, 0, 0);
         }
