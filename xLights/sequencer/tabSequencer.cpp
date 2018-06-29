@@ -920,6 +920,8 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     // prevent re-entry notification of effect selected changed
     static bool reentry = false;
     if (reentry)
@@ -953,48 +955,97 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
     }
     else
     {
-        effect = event.effect;
-
-        // For canvas mode the timing panel needs to know how many layers are under this effect
-        int layers = effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
-        int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
-        if (start > layers) start = -1;
-        timingPanel->SetLayersBelow(start, layers);
-
-		bool resetStrings = false;
-        if ("Random" == effect->GetEffectName()) {
-            std::string settings, palette;
-            std::string effectName = CreateEffectStringRandom(settings, palette);
-            effect->SetPalette(palette);
-            effect->SetSettings(settings, false);
-            effect->SetEffectName(effectName);
-            effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
-            resetStrings = true;
+        Element* element = mSequenceElements.GetElement(event._elementName);
+        if (element != nullptr)
+        {
+            if (event._node != -1)
+            {
+                StrandElement* se = (StrandElement*)element;
+                NodeLayer* nodeLayer = se->GetNodeLayer(event._node); // not sure why -2
+                if (nodeLayer != nullptr)
+                {
+                    // The +1 guarantees we get the right one
+                    effect = nodeLayer->GetEffectAtTime(event._startTime + 1);
+                }
+                else
+                {
+                    logger_base.error("SelectedEffectChanged ... node layer no longer exists %s %d", (const char *)event._elementName.c_str(), event._node);
+                }
+            }
+            else
+            {
+                EffectLayer* effectLayer = element->GetEffectLayer(event._layer - 1);
+                if (effectLayer != nullptr)
+                {
+                    // The +1 guarantees we get the right one
+                    effect = effectLayer->GetEffectAtTime(event._startTime + 1);
+                }
+                else
+                {
+                    logger_base.error("SelectedEffectChanged ... element layer no longer exists %s %d", (const char *)event._elementName.c_str(), event._layer);
+                }
+            }
         }
-        SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
-                          effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
-                          !event.isNew);
-        selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
-        selectedEffect = effect;
-        if (effect->GetPaletteMap().empty() || resetStrings) {
-            effect->SetPalette(selectedEffectPalette);
-            effect->SetSettings(selectedEffectString, true);
-            RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
-                                 effect->GetStartTimeMS(),
-                                 effect->GetEndTimeMS());
+        else
+        {
+            logger_base.error("SelectedEffectChanged ... element no longer exists %s", (const char *)event._elementName.c_str());
         }
 
-        if (playType == PLAY_TYPE_MODEL_PAUSED) {
-            DoStopSequence();
-        }
+        //effect = event.effect;
+        wxASSERT(event.effect == effect);
 
-        if (playType != PLAY_TYPE_MODEL) {
-            playType = PLAY_TYPE_EFFECT;
-            playStartTime = effect->GetStartTimeMS();
-            playEndTime = effect->GetEndTimeMS();
-            playStartMS = -1;
-            playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName());
-			SetAudioControls();
+        if (effect == nullptr)
+        {
+            logger_base.error("SelectedEffectChanged ... effect no longer exists %s %d %dms", (const char *)event._elementName.c_str(), event._layer, event._startTime);
+        }
+        else
+        {
+            if (event.effect != effect)
+            {
+                logger_base.warn("SelectedEffectChanged ... effect didnt match");
+            }
+
+            // For canvas mode the timing panel needs to know how many layers are under this effect
+            int layers = effect->GetParentEffectLayer()->GetParentElement()->GetEffectLayerCount();
+            int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
+            if (start > layers) start = -1;
+            timingPanel->SetLayersBelow(start, layers);
+
+            bool resetStrings = false;
+            if ("Random" == effect->GetEffectName()) {
+                std::string settings, palette;
+                std::string effectName = CreateEffectStringRandom(settings, palette);
+                effect->SetPalette(palette);
+                effect->SetSettings(settings, false);
+                effect->SetEffectName(effectName);
+                effect->SetEffectIndex(effectManager.GetEffectIndex(effectName));
+                resetStrings = true;
+            }
+            SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                effect->GetEffectName(), effect->GetSettings(), effect->GetPaletteMap(),
+                !event.isNew);
+            selectedEffectString = GetEffectTextFromWindows(selectedEffectPalette);
+            selectedEffect = effect;
+            if (effect->GetPaletteMap().empty() || resetStrings) {
+                effect->SetPalette(selectedEffectPalette);
+                effect->SetSettings(selectedEffectString, true);
+                RenderEffectForModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName(),
+                    effect->GetStartTimeMS(),
+                    effect->GetEndTimeMS());
+            }
+
+            if (playType == PLAY_TYPE_MODEL_PAUSED) {
+                DoStopSequence();
+            }
+
+            if (playType != PLAY_TYPE_MODEL) {
+                playType = PLAY_TYPE_EFFECT;
+                playStartTime = effect->GetStartTimeMS();
+                playEndTime = effect->GetEndTimeMS();
+                playStartMS = -1;
+                playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName());
+                SetAudioControls();
+            }
         }
     }
     if (event.updateUI || event.updateBtn) {

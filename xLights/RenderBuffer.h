@@ -415,7 +415,7 @@ public:
     void CopyNodeColorsToPixels(std::vector<bool> &done);
     
     void CopyPixel(int srcx, int srcy, int destx, int desty);
-    void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x);
+    void ProcessPixel(int x, int y, const xlColor &color, bool wrap_x = false, bool wrap_y = false);
 
     void ClearTempBuf();
     const xlColor &GetTempPixelRGB(int x, int y);
