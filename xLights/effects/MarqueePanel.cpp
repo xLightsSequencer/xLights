@@ -1,6 +1,3 @@
-#include "MarqueePanel.h"
-#include "EffectPanelUtils.h"
-
 //(*InternalHeaders(MarqueePanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -19,39 +16,51 @@
 #include <wx/textctrl.h>
 //*)
 
+#include "MarqueePanel.h"
+#include "EffectPanelUtils.h"
+#include "MarqueeEffect.h"
+
 //(*IdInit(MarqueePanel)
 const long MarqueePanel::ID_STATICTEXT_Marquee_Band_Size = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_Band_Size = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_Band_Size = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_Band_Size = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_Marquee_Skip_Size = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_Skip_Size = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_Skip_Size = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_Skip_Size = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_Marquee_Thickness = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_Thickness = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_Thickness = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_Thickness = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_Thickness = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_Marquee_Stagger = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_Stagger = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_Stagger = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_Stagger = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_Stagger = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_Marquee_Speed = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_Speed = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_Speed = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_Speed = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_Speed = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_Marquee_Start = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_Start = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_Start = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_Start = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_Start = wxNewId();
 const long MarqueePanel::ID_CHECKBOX_Marquee_Reverse = wxNewId();
 const long MarqueePanel::ID_PANEL_Marquee_Settings = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_Marquee_ScaleX = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_ScaleX = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_ScaleX = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_ScaleX = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_Marquee_ScaleY = wxNewId();
 const long MarqueePanel::ID_SLIDER_Marquee_ScaleY = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_Marquee_ScaleY = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_Marquee_ScaleY = wxNewId();
 const long MarqueePanel::ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY = wxNewId();
 const long MarqueePanel::ID_STATICLINE1 = wxNewId();
@@ -60,9 +69,12 @@ const long MarqueePanel::ID_STATICTEXT_MarqueeXC = wxNewId();
 const long MarqueePanel::ID_SLIDER_MarqueeXC = wxNewId();
 const long MarqueePanel::ID_CHECKBOX_Marquee_WrapX = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_MarqueeXC = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_MarqueeXC = wxNewId();
 const long MarqueePanel::ID_STATICTEXT_MarqueeYC = wxNewId();
 const long MarqueePanel::IDD_TEXTCTRL_MarqueeYC = wxNewId();
 const long MarqueePanel::ID_SLIDER_MarqueeYC = wxNewId();
+const long MarqueePanel::ID_VALUECURVE_MarqueeYC = wxNewId();
+const long MarqueePanel::ID_CHECKBOX_Marquee_WrapY = wxNewId();
 const long MarqueePanel::ID_PANEL_Marquee_Position = wxNewId();
 const long MarqueePanel::ID_NOTEBOOK_Marquee = wxNewId();
 //*)
@@ -89,8 +101,16 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer136;
 	wxFlexGridSizer* FlexGridSizer137;
 	wxFlexGridSizer* FlexGridSizer138;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer23;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer58;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxGridBagSizer* GridBagSizer5;
 	xlLockButton* BitmapButton_Marquee_Band_Size;
 
@@ -103,8 +123,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer58->AddGrowableCol(1);
 	StaticText116 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Band_Size, _("Band Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Band_Size"));
 	FlexGridSizer58->Add(StaticText116, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
 	Slider_Marquee_Band_Size = new BulkEditSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Band_Size, 3, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Band_Size"));
-	FlexGridSizer58->Add(Slider_Marquee_Band_Size, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(Slider_Marquee_Band_Size, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_Band_SizeVC = new BulkEditValueCurveButton(Panel_Marquee_Settings, ID_VALUECURVE_Marquee_Band_Size, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_Band_Size"));
+	FlexGridSizer1->Add(BitmapButton_Marquee_Band_SizeVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Band_Size = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Band_Size, _("3"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Band_Size"));
 	TextCtrl_Marquee_Band_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Band_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -113,8 +138,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer58->Add(BitmapButton_Marquee_Band_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText194 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Skip_Size, _("Skip Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Skip_Size"));
 	FlexGridSizer58->Add(StaticText194, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer2->AddGrowableCol(0);
 	Slider_Marquee_Skip_Size = new BulkEditSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Skip_Size, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Skip_Size"));
-	FlexGridSizer58->Add(Slider_Marquee_Skip_Size, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(Slider_Marquee_Skip_Size, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_Skip_SizeVC = new BulkEditValueCurveButton(Panel_Marquee_Settings, ID_VALUECURVE_Marquee_Skip_Size, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_Skip_Size"));
+	FlexGridSizer2->Add(BitmapButton_Marquee_Skip_SizeVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Skip_Size = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Skip_Size, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Skip_Size"));
 	TextCtrl_Marquee_Skip_Size->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Skip_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -123,8 +153,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer58->Add(BitmapButton_Marquee_Skip_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText195 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Thickness, _("Thickness:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Thickness"));
 	FlexGridSizer58->Add(StaticText195, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
 	Slider_Marquee_Thickness = new BulkEditSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Thickness, 1, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Thickness"));
-	FlexGridSizer58->Add(Slider_Marquee_Thickness, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(Slider_Marquee_Thickness, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_ThicknessVC = new BulkEditValueCurveButton(Panel_Marquee_Settings, ID_VALUECURVE_Marquee_Thickness, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_Thickness"));
+	FlexGridSizer3->Add(BitmapButton_Marquee_ThicknessVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Thickness = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Thickness, _("1"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Thickness"));
 	TextCtrl_Marquee_Thickness->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -133,8 +168,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer58->Add(BitmapButton_Marquee_Thickness, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText62 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Stagger, _("Stagger:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Stagger"));
 	FlexGridSizer58->Add(StaticText62, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer4->AddGrowableCol(0);
 	Slider_Marquee_Stagger = new BulkEditSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Stagger, 0, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Stagger"));
-	FlexGridSizer58->Add(Slider_Marquee_Stagger, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4->Add(Slider_Marquee_Stagger, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_StaggerVC = new BulkEditValueCurveButton(Panel_Marquee_Settings, ID_VALUECURVE_Marquee_Stagger, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_Stagger"));
+	FlexGridSizer4->Add(BitmapButton_Marquee_StaggerVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Stagger = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Stagger, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Stagger"));
 	TextCtrl_Marquee_Stagger->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -143,8 +183,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer58->Add(BitmapButton_Marquee_Stagger, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText196 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Speed, _("Speed:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Speed"));
 	FlexGridSizer58->Add(StaticText196, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
 	Slider_Marquee_Speed = new BulkEditSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Speed, 3, 0, 50, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Speed"));
-	FlexGridSizer58->Add(Slider_Marquee_Speed, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5->Add(Slider_Marquee_Speed, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_SpeedVC = new BulkEditValueCurveButton(Panel_Marquee_Settings, ID_VALUECURVE_Marquee_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_Speed"));
+	FlexGridSizer5->Add(BitmapButton_Marquee_SpeedVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Speed = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Speed, _("3"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Speed"));
 	TextCtrl_Marquee_Speed->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -153,8 +198,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer58->Add(BitmapButton_Marquee_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText244 = new wxStaticText(Panel_Marquee_Settings, ID_STATICTEXT_Marquee_Start, _("Start Pos:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_Start"));
 	FlexGridSizer58->Add(StaticText244, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer6->AddGrowableCol(0);
 	Slider_Marquee_Start = new BulkEditSlider(Panel_Marquee_Settings, ID_SLIDER_Marquee_Start, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_Start"));
-	FlexGridSizer58->Add(Slider_Marquee_Start, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6->Add(Slider_Marquee_Start, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_StartVC = new BulkEditValueCurveButton(Panel_Marquee_Settings, ID_VALUECURVE_Marquee_Start, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_Start"));
+	FlexGridSizer6->Add(BitmapButton_Marquee_StartVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer58->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_Start = new BulkEditTextCtrl(Panel_Marquee_Settings, IDD_TEXTCTRL_Marquee_Start, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Settings,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_Start"));
 	TextCtrl_Marquee_Start->SetMaxLength(3);
 	FlexGridSizer58->Add(TextCtrl_Marquee_Start, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -174,8 +224,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer138->AddGrowableCol(1);
 	StaticText198 = new wxStaticText(Panel_Marquee_Position, ID_STATICTEXT_Marquee_ScaleX, _("Scale X:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_ScaleX"));
 	FlexGridSizer138->Add(StaticText198, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer7->AddGrowableCol(0);
 	Slider_Marquee_ScaleX = new BulkEditSlider(Panel_Marquee_Position, ID_SLIDER_Marquee_ScaleX, 100, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_ScaleX"));
-	FlexGridSizer138->Add(Slider_Marquee_ScaleX, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer7->Add(Slider_Marquee_ScaleX, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_ScaleXVC = new BulkEditValueCurveButton(Panel_Marquee_Position, ID_VALUECURVE_Marquee_ScaleX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_ScaleX"));
+	FlexGridSizer7->Add(BitmapButton_Marquee_ScaleXVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer138->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_ScaleX = new BulkEditTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_Marquee_ScaleX, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_ScaleX"));
 	TextCtrl_Marquee_ScaleX->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -184,8 +239,13 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer138->Add(BitmapButton_Marquee_ScaleX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText199 = new wxStaticText(Panel_Marquee_Position, ID_STATICTEXT_Marquee_ScaleY, _("Scale Y:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Marquee_ScaleY"));
 	FlexGridSizer138->Add(StaticText199, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer8->AddGrowableCol(0);
 	Slider_Marquee_ScaleY = new BulkEditSlider(Panel_Marquee_Position, ID_SLIDER_Marquee_ScaleY, 100, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Marquee_ScaleY"));
-	FlexGridSizer138->Add(Slider_Marquee_ScaleY, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(Slider_Marquee_ScaleY, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Marquee_ScaleYVC = new BulkEditValueCurveButton(Panel_Marquee_Position, ID_VALUECURVE_Marquee_ScaleY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Marquee_ScaleY"));
+	FlexGridSizer8->Add(BitmapButton_Marquee_ScaleYVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer138->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Marquee_ScaleY = new BulkEditTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_Marquee_ScaleY, _("100"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Marquee_ScaleY"));
 	TextCtrl_Marquee_ScaleY->SetMaxLength(3);
 	FlexGridSizer138->Add(TextCtrl_Marquee_ScaleY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -212,6 +272,9 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_MarqueeXC = new BulkEditTextCtrl(Panel_Marquee_Position, IDD_TEXTCTRL_MarqueeXC, _("0"), wxDefaultPosition, wxDLG_UNIT(Panel_Marquee_Position,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_MarqueeXC"));
 	TextCtrl_MarqueeXC->SetMaxLength(3);
 	FlexGridSizer137->Add(TextCtrl_MarqueeXC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer137->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BitmapButton_MarqueeXCVC = new BulkEditValueCurveButton(Panel_Marquee_Position, ID_VALUECURVE_MarqueeXC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_MarqueeXC"));
+	FlexGridSizer137->Add(BitmapButton_MarqueeXCVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer136->Add(FlexGridSizer137, 1, wxALL|wxEXPAND, 5);
 	GridBagSizer5 = new wxGridBagSizer(0, 0);
 	StaticText201 = new wxStaticText(Panel_Marquee_Position, ID_STATICTEXT_MarqueeYC, _("Y-axis Center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_MarqueeYC"));
@@ -220,7 +283,12 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	TextCtrl_MarqueeYC->SetMaxLength(3);
 	GridBagSizer5->Add(TextCtrl_MarqueeYC, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Slider_MarqueeYC = new BulkEditSlider(Panel_Marquee_Position, ID_SLIDER_MarqueeYC, 0, -100, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE, wxDefaultValidator, _T("ID_SLIDER_MarqueeYC"));
-	GridBagSizer5->Add(Slider_MarqueeYC, wxGBPosition(0, 1), wxGBSpan(4, 1), wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridBagSizer5->Add(Slider_MarqueeYC, wxGBPosition(0, 1), wxGBSpan(5, 1), wxALL|wxEXPAND, 5);
+	BitmapButton_MarqueeYCVC = new BulkEditValueCurveButton(Panel_Marquee_Position, ID_VALUECURVE_MarqueeYC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_MarqueeYC"));
+	GridBagSizer5->Add(BitmapButton_MarqueeYCVC, wxGBPosition(4, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox1 = new BulkEditCheckBox(Panel_Marquee_Position, ID_CHECKBOX_Marquee_WrapY, _("Wrap Y"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Marquee_WrapY"));
+	CheckBox1->SetValue(false);
+	GridBagSizer5->Add(CheckBox1, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer136->Add(GridBagSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer135->Add(FlexGridSizer136, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_Marquee_Position->SetSizer(FlexGridSizer135);
@@ -233,16 +301,39 @@ MarqueePanel::MarqueePanel(wxWindow* parent)
 	FlexGridSizer23->Fit(this);
 	FlexGridSizer23->SetSizeHints(this);
 
+	Connect(ID_VALUECURVE_Marquee_Band_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Marquee_Skip_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Marquee_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Marquee_Stagger,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_Stagger,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Marquee_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Marquee_Start,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_Start,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Marquee_ScaleX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Marquee_ScaleY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_MarqueeXC,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_MarqueeYC,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MarqueePanel::OnVCButtonClick);
 	//*)
     SetName("ID_PANEL_MARQUEE");
+
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&MarqueePanel::OnVCChanged, 0, this);
+
+    BitmapButton_MarqueeXCVC->GetValue()->SetLimits(MARQUEE_XC_MIN, MARQUEE_XC_MAX);
+    BitmapButton_MarqueeYCVC->GetValue()->SetLimits(MARQUEE_YC_MIN, MARQUEE_YC_MAX);
+    BitmapButton_Marquee_ScaleXVC->GetValue()->SetLimits(MARQUEE_SCALEX_MIN, MARQUEE_SCALEX_MAX);
+    BitmapButton_Marquee_ScaleYVC->GetValue()->SetLimits(MARQUEE_SCALEY_MIN, MARQUEE_SCALEY_MAX);
+    BitmapButton_Marquee_Band_SizeVC->GetValue()->SetLimits(MARQUEE_BAND_SIZE_MIN, MARQUEE_BAND_SIZE_MAX);
+    BitmapButton_Marquee_Skip_SizeVC->GetValue()->SetLimits(MARQUEE_SKIP_SIZE_MIN, MARQUEE_SKIP_SIZE_MAX);
+    BitmapButton_Marquee_SpeedVC->GetValue()->SetLimits(MARQUEE_SPEED_MIN, MARQUEE_SPEED_MAX);
+    BitmapButton_Marquee_StaggerVC->GetValue()->SetLimits(MARQUEE_STAGGER_MIN, MARQUEE_STAGGER_MAX);
+    BitmapButton_Marquee_StartVC->GetValue()->SetLimits(MARQUEE_START_MIN, MARQUEE_START_MAX);
+    BitmapButton_Marquee_ThicknessVC->GetValue()->SetLimits(MARQUEE_THICKNESS_MIN, MARQUEE_THICKNESS_MAX);
 }
 
 MarqueePanel::~MarqueePanel()

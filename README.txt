@@ -16,6 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix bulk edit crash
    -- bug (keith)  Fix submodel dialog crash
    -- bug (keith)  Fix mapping to strands does not work after a model is renamed
+   -- enh (keith)  Add value curves to marquee
 2018.18 June 25, 2018
    -- bug (keith)  Fix audio wont stop playing
    -- enh (keith)  Add support for Falcon F48
