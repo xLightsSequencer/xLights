@@ -1100,11 +1100,24 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
 
 void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     for (int i = 0; i<mEffects.size(); i++)
     {
         RenderableEffect* eff1 = effectManager.GetEffect(effectName);
+        if (eff1 == nullptr && effectName != "")
+        {
+            logger_base.error("Effect not found: '%s'", (const char *)effectName.c_str());
+            wxASSERT(false);
+        }
         RenderableEffect* eff2 = effectManager.GetEffect(mEffects[i]->GetEffectName());
-        if ((effectName == "" || eff1->GetId() == eff2->GetId()) &&
+        if (eff2 == nullptr)
+        {
+            // this cant happen
+            logger_base.error("Effect not found when scanning effects: '%s'", (const char *)mEffects[i]->GetEffectName().c_str());
+            wxASSERT(false);
+        }
+        if ((effectName == "" || eff1 == nullptr || eff1->GetId() == eff2->GetId()) &&
             ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
              (mEffects[i]->GetSelected() == EFFECT_SELECTED))
