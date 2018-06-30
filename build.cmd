@@ -8,7 +8,7 @@
 "C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=64bit_MinGW_Release xSchedule\xSchedule.cbp
 
 "C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=MinGW_Release xLights\xLights.cbp
-"C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build --target=64bit_MinGW_Release xLights\xLights.cbp
+"C:\Program Files (x86)\CodeBlocks\codeblocks.exe" --build "--target=64bit MinGW_Release" xLights\xLights.cbp
 
 if %1==1 goto exit
 

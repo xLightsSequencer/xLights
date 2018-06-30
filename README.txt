@@ -11,12 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (keith)  Optimise xSchedule performance
+2018.19 June 30, 2018
    -- bug (keith)  Fix warp treatment flips to constant
    -- bug (keith)  Fix bulk edit crash
    -- bug (keith)  Fix submodel dialog crash
    -- bug (keith)  Fix mapping to strands does not work after a model is renamed
+   -- bug (keith)  Fix unmask blend style so it doesnt turn black areas white
+   -- bug (keith)  Change the way rendering is triggered to try to stop some crashes
    -- enh (keith)  Add value curves to marquee
+   -- enh (keith)  Fully script the windows release process
+   -- enh (keith)  Optimise xSchedule performance
 2018.18 June 25, 2018
    -- bug (keith)  Fix audio wont stop playing
    -- enh (keith)  Add support for Falcon F48
