@@ -211,7 +211,11 @@ bool SDL::CloseAudioDevice()
         {
             logger_base.debug("Pausing audio device %d.", _dev);
             SDL_ClearError();
-            SDL_PauseAudioDevice(_dev, 1);
+            SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
+            if (as == SDL_AUDIO_PLAYING)
+            {
+                SDL_PauseAudioDevice(_dev, 1);
+            }
             logger_base.debug("    Result '%s'", SDL_GetError());
             logger_base.debug("Closing audio device %d.", _dev);
             SDL_ClearError();
@@ -241,7 +245,11 @@ bool SDL::CloseInputAudioDevice()
         {
             logger_base.debug("Pausing audio input device %d.", _inputdev);
             SDL_ClearError();
-            SDL_PauseAudioDevice(_inputdev, 1);
+            SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_inputdev);
+            if (as == SDL_AUDIO_PLAYING)
+            {
+                SDL_PauseAudioDevice(_inputdev, 1);
+            }
             logger_base.debug("    Result '%s'", SDL_GetError());
             logger_base.debug("Closing audio input device %d.", _inputdev);
             SDL_ClearError();
@@ -431,18 +439,7 @@ bool SDL::OpenAudioDevice(const std::string device)
     _wanted_spec.userdata = &_audio_Lock;
 
     SDL_AudioSpec actual_spec;
-//#ifndef __WXMSW__
-//    // TODO we need to replace this on OSX/Linux
-//    logger_base.debug("Opening default audio device.");
-//    SDL_ClearError();
-//    SDL_AudioDeviceID rc = SDL_OpenAudio(&_wanted_spec, &actual_spec);
-//    logger_base.debug("    Result '%s'", SDL_GetError());
-//    if (rc > 1000) // -1 would be a large number
-//    {
-//        return false;
-//    }
-//#else
-    logger_base.debug("Opening named audio device. %s", (const char *)device.c_str());
+    logger_base.debug("Opening audio device. '%s'", (const char *)device.c_str());
     SDL_ClearError();
     const char* d = nullptr;
     if (device != "")
@@ -457,11 +454,14 @@ bool SDL::OpenAudioDevice(const std::string device)
     }
     _dev = rc;
 
-    logger_base.debug("Unpausing audio device %d.", _dev);
+    logger_base.debug("Pausing audio device %d.", _dev);
     SDL_ClearError();
-    SDL_PauseAudioDevice(_dev, 0);
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_dev);
+    if (as == SDL_AUDIO_PLAYING)
+    {
+        SDL_PauseAudioDevice(_dev, 1);
+    }
     logger_base.debug("    Result '%s'", SDL_GetError());
-//#endif
 
     logger_base.debug("Output audio device opened.");
     DumpState(_device, rc, &_wanted_spec, &actual_spec);
@@ -522,7 +522,11 @@ bool SDL::OpenInputAudioDevice(const std::string device)
 
     logger_base.debug("Unpausing audio input device %d.", _inputdev);
     SDL_ClearError();
-    SDL_PauseAudioDevice(_inputdev, 0);
+    SDL_AudioStatus as = SDL_GetAudioDeviceStatus(_inputdev);
+    if (as == SDL_AUDIO_PAUSED)
+    {
+        SDL_PauseAudioDevice(_inputdev, 0);
+    }
     logger_base.debug("    Result '%s'", SDL_GetError());
 //#endif
 
