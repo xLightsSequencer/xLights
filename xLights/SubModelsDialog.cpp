@@ -758,6 +758,12 @@ void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
 
     wxString name = wxString(Model::SafeModelName(TextCtrl_Name->GetValue().ToStdString()));
 
+    if(name.IsEmpty())
+    {
+        TextCtrl_Name->SetBackgroundColour(*wxRED);
+        return;
+    }
+
     if (name != TextCtrl_Name->GetValue())
     {
         TextCtrl_Name->SetValue(name);
