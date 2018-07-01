@@ -450,6 +450,29 @@ wxPanel *WarpEffect::CreatePanel(wxWindow *parent)
     return new WarpPanel(parent);
 }
 
+bool WarpEffect::needToAdjustSettings(const std::string &version)
+{
+    return IsVersionOlder("2018.20", version);
+}
+
+void WarpEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
+{
+    SettingsMap &settings = effect->GetSettings();
+
+    auto treatment = settings.Get("E_CHOICE_Warp_Treatment", "");
+    if (treatment != "")
+    {
+        settings["E_CHOICE_Warp_Treatment_APPLYLAST"] = treatment;
+        settings.erase("E_CHOICE_Warp_Treatment");
+    }
+
+    // also give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+}
+
 void WarpEffect::SetDefaultParameters()
 {
     WarpPanel *p = (WarpPanel *)panel;
@@ -482,8 +505,8 @@ void WarpEffect::RemoveDefaults(const std::string &version, Effect *effect)
 
     if ( settingsMap.Get( "E_CHOICE_Warp_Type", "" )== "water drops" )
       settingsMap.erase( "E_CHOICE_Warp_Type" );
-    if ( settingsMap.Get( "E_CHOICE_Warp_Treatment", "" )== "constant" )
-      settingsMap.erase( "E_CHOICE_Warp_Treatment" );
+    if ( settingsMap.Get( "E_CHOICE_Warp_Treatment_APPLYLAST", "" )== "constant" )
+      settingsMap.erase( "E_CHOICE_Warp_Treatment_APPLYLAST" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Cycle_Count", "" ) == "1" )
       settingsMap.erase( "E_TEXTCTRL_Warp_Cycle_Count" );
     if ( settingsMap.Get( "E_TEXTCTRL_Warp_Speed", "" )== "20" )
@@ -499,7 +522,7 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
    std::string warpType = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
-   std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment", "constant");
+   std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment_APPLYLAST", "constant");
    std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );

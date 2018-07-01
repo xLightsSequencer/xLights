@@ -86,7 +86,7 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_Warp_Treatment" variable="Choice_Warp_Treatment" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_Warp_Treatment_APPLYLAST" variable="Choice_Warp_Treatment" member="yes">
 									<content>
 										<item>constant</item>
 										<item>in</item>

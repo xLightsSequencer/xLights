@@ -13,7 +13,7 @@ const long WarpPanel::ID_TEXTCTRL1 = wxNewId();
 const long WarpPanel::ID_STATICTEXT8 = wxNewId();
 const long WarpPanel::ID_CHOICE_Warp_Type = wxNewId();
 const long WarpPanel::ID_STATICTEXT9 = wxNewId();
-const long WarpPanel::ID_CHOICE_Warp_Treatment = wxNewId();
+const long WarpPanel::ID_CHOICE_Warp_Treatment_APPLYLAST = wxNewId();
 const long WarpPanel::ID_STATICTEXT10 = wxNewId();
 const long WarpPanel::ID_SLIDER_Warp_X = wxNewId();
 const long WarpPanel::ID_VALUECURVE_Warp_X = wxNewId();
@@ -104,7 +104,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer4->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
-	Choice_Warp_Treatment = new wxChoice(this, ID_CHOICE_Warp_Treatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Treatment"));
+	Choice_Warp_Treatment = new wxChoice(this, ID_CHOICE_Warp_Treatment_APPLYLAST, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Treatment_APPLYLAST"));
 	Choice_Warp_Treatment->Append(_("constant"));
 	Choice_Warp_Treatment->Append(_("in"));
 	Choice_Warp_Treatment->Append(_("out"));
@@ -166,7 +166,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE_Warp_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TypeSelect);
-	Connect(ID_CHOICE_Warp_Treatment,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TreatmentSelect);
+	Connect(ID_CHOICE_Warp_Treatment_APPLYLAST,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TreatmentSelect);
 	Connect(ID_VALUECURVE_Warp_X,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WarpPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Warp_Y,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WarpPanel::OnVCButtonClick);
 	//*)

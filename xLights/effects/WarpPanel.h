@@ -69,7 +69,7 @@ class WarpPanel: public wxPanel
 		static const long ID_STATICTEXT8;
 		static const long ID_CHOICE_Warp_Type;
 		static const long ID_STATICTEXT9;
-		static const long ID_CHOICE_Warp_Treatment;
+		static const long ID_CHOICE_Warp_Treatment_APPLYLAST;
 		static const long ID_STATICTEXT10;
 		static const long ID_SLIDER_Warp_X;
 		static const long ID_VALUECURVE_Warp_X;
