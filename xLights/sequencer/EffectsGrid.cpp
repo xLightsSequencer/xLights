@@ -1192,7 +1192,15 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string effectName, con
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
     {
-        mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, mSequenceElements->get_undo_mgr(), effectName, id, value, vc, vcid, xlights->GetEffectManager());
+        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            // skip timing rows
+        }
+        else
+        {
+            mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, mSequenceElements->get_undo_mgr(), effectName, id, value, vc, vcid, xlights->GetEffectManager());
+        }
     }
     sendRenderDirtyEvent();
 }
