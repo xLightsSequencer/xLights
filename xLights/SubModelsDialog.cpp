@@ -1481,6 +1481,8 @@ void SubModelsDialog::ImportSubModel(std::string filename)
 
 void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
 {
+    bool overRide = false;
+    bool showDialog = true;
     wxXmlNode * child = xmlData->GetChildren();
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
@@ -1503,19 +1505,35 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
                 x++;
             }
 
-			//cannot have duplicate names, generate new
-			if (GetSubModelInfoIndex(name) != -1)
-			{
-				SubModelInfo *prevSm = GetSubModelInfo(name);
-				if (*sm == *prevSm) //skip if exactly the same 
-				{
-					child = child->GetNext();
-					continue;
-				}
-				//rename and add if different
-				sm->oldName = sm->name = GenerateSubModelName(name);
-			}
-
+            //cannot have duplicate submodels names, what to do?
+            if (GetSubModelInfoIndex(name) != -1)
+            {
+                //Are the submodels The Same?
+                SubModelInfo *prevSm = GetSubModelInfo(name);
+                if (*sm == *prevSm) //skip if exactly the same 
+                {
+                    child = child->GetNext();
+                    continue;
+                }
+                //Ask User what to do if different
+                if(showDialog)
+                {
+                    wxMessageDialog confirm(this, _("SubModel(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override SubModels"), wxYES_NO);
+                    int returnCode = confirm.ShowModal();
+                    if(returnCode == wxID_YES)
+                        overRide = true;
+                     showDialog = false;
+                }
+                if (overRide)
+                {
+                    RemoveSubModelFromList(name);
+                }
+                else
+                {
+                    //rename and add if not override
+                    sm->oldName = sm->name = GenerateSubModelName(name);
+                }
+            }
             _subModels.push_back(sm);
         }
         child = child->GetNext();
