@@ -895,12 +895,18 @@ bool VendorModelDialog::LoadTree()
 
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
+    wxTreeItemId first = root;
     for (auto it = _vendors.begin(); it != _vendors.end(); ++it)
     {
         wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, (*it)->_name, -1, -1, new MVendorTreeItemData(*it));
+        if (first == root)
+        {
+            first = v;
+        }
         AddHierachy(v, *it, (*it)->_categories);
         TreeCtrl_Navigator->Expand(v);
     }
+    TreeCtrl_Navigator->EnsureVisible(first);
 
     if (_vendors.size() == 0)
     {

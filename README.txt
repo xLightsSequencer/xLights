@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.20 July 2, 2018
+   -- bug (keith)  Fix warp treatment flips to constant
+   -- bug (keith)  Fix bulk edit crash
+   -- bug (keith)  Fix changing audio speed starts audio playback
+   -- enh (scott)  Enhance submodel copy to prompt about overwriting like named submodels
+   -- bug (scott)  Prevent blank submodel names
 2018.19 June 30, 2018
    -- bug (keith)  Fix warp treatment flips to constant
    -- bug (keith)  Fix bulk edit crash
