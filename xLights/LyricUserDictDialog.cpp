@@ -198,7 +198,7 @@ void LyricUserDictDialog::WriteUserDictionary() const
 
     wxFile f(phonemeFile.GetFullPath());
 
-    if (f.Create(phonemeFile.GetFullPath(), true) && f.IsOpened())
+    if (f.Open(phonemeFile.GetFullPath(), wxFile::write))
     {
         for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
         {
