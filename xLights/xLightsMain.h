@@ -543,6 +543,7 @@ public:
     void OnMenuItem_xFadeDisabledSelected(wxCommandEvent& event);
     void OnMenuItem_XFade_ASelected(wxCommandEvent& event);
     void OnMenuItem_xFade_BSelected(wxCommandEvent& event);
+    void OnMenuItemUserDictSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -659,6 +660,7 @@ private:
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
+    static const long ID_MENU_USER_DICT;
     static const long ID_MNU_DOWNLOADSEQUENCES;
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
@@ -882,6 +884,7 @@ private:
     wxMenuItem* MenuItemShiftSelectedEffects;
     wxMenuItem* MenuItemTimingEditMode;
     wxMenuItem* MenuItemTimingPlayMode;
+    wxMenuItem* MenuItemUserDict;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;

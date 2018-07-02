@@ -173,3 +173,19 @@ void PhonemeDictionary::InsertSpacesAfterPunctuation(wxString& text)
         }
     }
 }
+
+void PhonemeDictionary::InsertPhoneme(const wxArrayString& phonemes)
+{
+    if (!phoneme_dict.count(phonemes[0]))
+    {
+        phoneme_dict.insert(std::pair<wxString, wxArrayString>(phonemes[0], phonemes));
+    }
+}
+
+std::vector<wxString> PhonemeDictionary::GetPhonemeList()
+{
+    std::vector<wxString> keys;
+    std::transform(std::begin(phoneme_dict), std::end(phoneme_dict), std::back_inserter(keys),
+        [](auto const& val) { return wxString(val.first); });
+    return keys;
+}

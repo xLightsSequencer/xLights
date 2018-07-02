@@ -16,6 +16,11 @@ class PhonemeDictionary
         void LoadDictionary(const wxString &filename, const wxString &showDir);
         void BreakdownWord(const wxString& text, wxArrayString& phonemes);
         void InsertSpacesAfterPunctuation(wxString& text);
+        void InsertPhoneme(const wxArrayString& phonemes);
+        bool ContainsPhoneme(const wxString& text) { return phoneme_dict.count(text); }
+        bool ContainsPhonemeMap(const wxString& text) { return phoneme_map.count(text); }
+        std::vector<wxString> GetPhonemeList();
+        wxArrayString GetPhoneme(const wxString& word) { return phoneme_dict[word.Upper()]; }
 
     protected:
     private:

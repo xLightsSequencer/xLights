@@ -65,6 +65,7 @@
 #include "LayoutGroup.h"
 #include "ModelPreview.h"
 #include "TopEffectsPanel.h"
+#include "LyricUserDictDialog.h"
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -212,6 +213,7 @@ const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
+const long xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const long xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
 const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
@@ -846,6 +848,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItem_FPP_Connect);
     MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PackageSequence);
+    MenuItemUserDict = new wxMenuItem(Menu1, ID_MENU_USER_DICT, _("Edit Lyric Dictionary"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemUserDict);
     MenuItem_DownloadSequences = new wxMenuItem(Menu1, ID_MNU_DOWNLOADSEQUENCES, _("Download Sequences/Lyrics"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_DownloadSequences);
     MenuItemBatchRender = new wxMenuItem(Menu1, ID_MENU_BATCH_RENDER, _("&Batch Render"), wxEmptyString, wxITEM_NORMAL);
@@ -1216,6 +1220,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
+    Connect(ID_MENU_USER_DICT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
     Connect(ID_MNU_DOWNLOADSEQUENCES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DownloadSequencesSelected);
     Connect(ID_MENU_BATCH_RENDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
@@ -8230,4 +8235,18 @@ void xLightsFrame::StartxFadeListener()
     _xFadeSocket->SetNotify(wxSOCKET_CONNECTION_FLAG);
     //enable event handling
     _xFadeSocket->Notify(true);
+}
+
+void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    dictionary.LoadDictionaries(CurrentDir);
+
+    LyricUserDictDialog dlg(&dictionary, this);
+
+    int res = dlg.ShowModal();
+
+    if (res == wxID_OK) {
+    }
 }

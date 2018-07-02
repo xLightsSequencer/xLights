@@ -1102,6 +1102,10 @@
 					<label>Package &amp;Sequence</label>
 					<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_USER_DICT" variable="MenuItemUserDict" member="yes">
+					<label>Edit Lyric Dictionary</label>
+					<handler function="OnMenuItemUserDictSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_DOWNLOADSEQUENCES" variable="MenuItem_DownloadSequences" member="yes">
 					<label>Download Sequences/Lyrics</label>
 					<handler function="OnMenuItem_DownloadSequencesSelected" entry="EVT_MENU" />

@@ -11,11 +11,13 @@
 #include <wx/textctrl.h>
 //*)
 
+class PhonemeDictionary;
+
 class LyricUserDictDialog: public wxDialog
 {
 	public:
 
-		LyricUserDictDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		LyricUserDictDialog(PhonemeDictionary* dictionary, wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~LyricUserDictDialog();
 
 		//(*Declarations(LyricUserDictDialog)
@@ -24,7 +26,7 @@ class LyricUserDictDialog: public wxDialog
 		wxButton* ButtonLyricCancel;
 		wxButton* ButtonLyricOK;
 		wxComboBox* ComboBoxOldLyric;
-		wxGrid* Grid1;
+		wxGrid* GridUserLyricDict;
 		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrlNewLyric;
 		//*)
@@ -36,13 +38,21 @@ class LyricUserDictDialog: public wxDialog
 		static const long ID_STATICTEXT1;
 		static const long ID_COMBOBOX_OLD_LYRIC;
 		static const long ID_BUTTON_ADD_LYRIC;
-		static const long ID_GRID1;
+		static const long ID_GRID_USER_LYRIC_DICT;
 		static const long ID_BUTTON_DELETE_ROW;
 		static const long ID_BUTTON_LYRIC_OK;
 		static const long ID_BUTTON_LYRIC_CANCEL;
 		//*)
 
 	private:
+
+        PhonemeDictionary * m_dictionary;
+
+        void ReadUserDictionary();
+        void WriteUserDictionary();
+        void InsertRow(const wxString& text, wxArrayString phonemeList);
+        bool DoesGridContain(const wxString& text);
+        bool IsValidPhoneme(const wxString& text);
 
 		//(*Handlers(LyricUserDictDialog)
 		void OnButtonAddLyricClick(wxCommandEvent& event);
