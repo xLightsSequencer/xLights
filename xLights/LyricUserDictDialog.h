@@ -17,7 +17,7 @@ class LyricUserDictDialog: public wxDialog
 {
 	public:
 
-		LyricUserDictDialog(PhonemeDictionary* dictionary, wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		LyricUserDictDialog(PhonemeDictionary* dictionary, const wxString &showDirectory, wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~LyricUserDictDialog();
 
 		//(*Declarations(LyricUserDictDialog)
@@ -47,12 +47,13 @@ class LyricUserDictDialog: public wxDialog
 	private:
 
         PhonemeDictionary * m_dictionary;
+        wxString m_showDirectory;
 
-        void ReadUserDictionary();
-        void WriteUserDictionary();
-        void InsertRow(const wxString& text, wxArrayString phonemeList);
-        bool DoesGridContain(const wxString& text);
-        bool IsValidPhoneme(const wxString& text);
+        void ReadUserDictionary() const;
+        void WriteUserDictionary() const;
+        void InsertRow(const wxString& text, wxArrayString phonemeList) const;
+        bool DoesGridContain(const wxString& text) const;
+        bool IsValidPhoneme(const wxString& text) const;
 
 		//(*Handlers(LyricUserDictDialog)
 		void OnButtonAddLyricClick(wxCommandEvent& event);

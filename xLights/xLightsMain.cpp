@@ -8239,14 +8239,8 @@ void xLightsFrame::StartxFadeListener()
 
 void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     dictionary.LoadDictionaries(CurrentDir);
 
-    LyricUserDictDialog dlg(&dictionary, this);
-
-    int res = dlg.ShowModal();
-
-    if (res == wxID_OK) {
-    }
+    LyricUserDictDialog dlg(&dictionary, showDirectory, this);
+    dlg.ShowModal();
 }
