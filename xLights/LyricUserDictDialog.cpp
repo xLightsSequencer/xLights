@@ -197,22 +197,25 @@ void LyricUserDictDialog::WriteUserDictionary() const
     phonemeFile.SetFullName(filename);
 
     wxFile f(phonemeFile.GetFullPath());
-    if (!f.Create(phonemeFile.GetFullPath(), true) || !f.IsOpened())
+
+    if (f.Create(phonemeFile.GetFullPath(), true) && f.IsOpened())
+    {
+        for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
+        {
+            wxArrayString str_list = wxSplit(GridUserLyricDict->GetCellValue(i, 1), ' ');
+            str_list.Insert("", 0);
+            str_list.Insert(GridUserLyricDict->GetCellValue(i, 0), 0);
+            f.Write(wxJoin(str_list, ' '));
+            f.Write('\n');
+            m_dictionary->InsertPhoneme(str_list);
+        }
+
+        f.Close();
+    }
+    else
     {
         logger_base.error("Could Not Save user_dictionary file");
-        return;
     }
-    for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
-    {
-        wxArrayString str_list = wxSplit(GridUserLyricDict->GetCellValue(i, 1), ' ');
-        str_list.Insert("", 0);
-        str_list.Insert(GridUserLyricDict->GetCellValue(i, 0), 0);
-        f.Write(wxJoin(str_list,' '));
-        f.Write('\n');
-        m_dictionary->InsertPhoneme(str_list);
-    }
-
-    f.Close();
 }
 
 void LyricUserDictDialog::InsertRow(const wxString & text, wxArrayString phonemeList) const
