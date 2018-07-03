@@ -3608,6 +3608,13 @@ int Model::GetPort() const
     return 0;
 }
 
+bool Model::IsPixelProtocol() const
+{
+    wxString protocol = GetProtocol();
+    protocol.MakeLower();
+    return (GetPort() != 0 && protocol != "dmx" && protocol != "pixelnet" && protocol != "renard");
+}
+
 void Model::SetControllerConnection(const std::string& controllerConnection)
 {
     controller_connection = controllerConnection;

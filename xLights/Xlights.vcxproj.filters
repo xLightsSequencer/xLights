@@ -348,6 +348,7 @@
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="Parallel.cpp" />
+    <ClCompile Include="controllers\ControllerUploadData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -696,6 +697,7 @@
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="RenderCache.h" />
     <ClInclude Include="Parallel.h" />
+    <ClInclude Include="controllers\ControllerUploadData.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
