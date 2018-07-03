@@ -286,12 +286,12 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	RotoZoomSizer->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer7->AddGrowableCol(0);
-	Slider_Zoom = new BulkEditSliderF1(ScrolledWindow2, ID_SLIDER_Zoom, 0, 0, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Zoom"));
+	Slider_Zoom = new BulkEditSliderF1(ScrolledWindow2, ID_SLIDER_Zoom, 10, 0, 30, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Zoom"));
 	Slider_Zoom->SetMinSize(wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)));
 	FlexGridSizer7->Add(Slider_Zoom, 1, wxALL|wxEXPAND, 1);
 	BitmapButton_VCZoom = new BulkEditValueCurveButton(ScrolledWindow2, ID_VALUECURVE_Zoom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Zoom"));
 	FlexGridSizer7->Add(BitmapButton_VCZoom, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	TextCtrl_Zoom = new BulkEditTextCtrlF1(ScrolledWindow2, IDD_TEXTCTRL_Zoom, _("0.0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Zoom"));
+	TextCtrl_Zoom = new BulkEditTextCtrlF1(ScrolledWindow2, IDD_TEXTCTRL_Zoom, _("1.0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindow2,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Zoom"));
 	FlexGridSizer7->Add(TextCtrl_Zoom, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	RotoZoomSizer->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
 	BitmapButton_Zoom = new xlLockButton(ScrolledWindow2, ID_BITMAPBUTTON_Zoom, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_Zoom"));
@@ -700,8 +700,8 @@ void BufferPanel::SetDefaultControls(const Model *model, bool optionbased) {
         BitmapButton_YPivot->GetValue()->SetDefault(0.0f, 100.0f);
         BitmapButton_YPivot->UpdateState();
 
-        Slider_Zoom->SetValue(1);
-        TextCtrl_Zoom->SetValue("1");
+        Slider_Zoom->SetValue(10);
+        TextCtrl_Zoom->SetValue("1.0");
         BitmapButton_VCZoom->GetValue()->SetDefault(0.0f, 30.0f);
         BitmapButton_VCZoom->GetValue()->SetDivisor(10);
         BitmapButton_VCZoom->UpdateState();
