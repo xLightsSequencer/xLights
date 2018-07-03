@@ -45,7 +45,7 @@ class LyricUserDictDialog: public wxDialog
 
 	private:
 
-        PhonemeDictionary * m_dictionary;
+        PhonemeDictionary* m_dictionary;
         wxString m_showDirectory;
         wxArrayString m_removeList;
 

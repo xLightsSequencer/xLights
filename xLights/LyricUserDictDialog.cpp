@@ -102,7 +102,12 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
 {
     if (TextCtrlNewLyric->GetValue().IsEmpty()) return;
 
-    if (m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper())
+    //check if word is "marked" to be removed from main dictionary
+    const bool found = (std::find(m_removeList.begin(), m_removeList.end(), TextCtrlNewLyric->GetValue().Upper()) != m_removeList.end());
+
+    //only error if word is in main dictionary and not marked to be removed 
+    // or its already populated in the dialog
+    if ((m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found)
         || DoesGridContain(TextCtrlNewLyric->GetValue().Upper()))
     {
         wxMessageBox("Word Already Exists In Phoneme Dictionary");
@@ -129,9 +134,12 @@ void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
     {
         auto i = indexs[x];
         wxString name = GridUserLyricDict->GetCellValue(i, 0);
+
+        //"marked" removeds word so they can be removed from the main dictionary on dialog save
         const bool found = (std::find(m_removeList.begin(), m_removeList.end(), name) != m_removeList.end());
         if(!found)
             m_removeList.Add(name);
+
         GridUserLyricDict->DeleteRows(i);
     }
 }
