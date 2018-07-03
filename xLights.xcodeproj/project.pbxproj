@@ -267,6 +267,7 @@
 		6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9261A5653670018EC0C /* tabSequencer.cpp */; };
 		6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9271A5653670018EC0C /* TimeLine.cpp */; };
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
+		6785922720F02CD9001C2929 /* LyricUserDictDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */; };
 		6786DC761D45D00100672F70 /* PolyLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6786DC741D45D00100672F70 /* PolyLineModel.cpp */; };
 		6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */; };
 		6792BF371D0B253B00A5A0CC /* SpinnerModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */; };
@@ -1204,6 +1205,8 @@
 		6784F9261A5653670018EC0C /* tabSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tabSequencer.cpp; path = sequencer/tabSequencer.cpp; sourceTree = "<group>"; };
 		6784F9271A5653670018EC0C /* TimeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimeLine.cpp; path = sequencer/TimeLine.cpp; sourceTree = "<group>"; };
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
+		6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LyricUserDictDialog.cpp; sourceTree = "<group>"; };
+		6785922620F02CD9001C2929 /* LyricUserDictDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricUserDictDialog.h; sourceTree = "<group>"; };
 		6786DC741D45D00100672F70 /* PolyLineModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PolyLineModel.cpp; path = models/PolyLineModel.cpp; sourceTree = "<group>"; };
 		6786DC751D45D00100672F70 /* PolyLineModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PolyLineModel.h; path = models/PolyLineModel.h; sourceTree = "<group>"; };
 		679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsImportChannelMapDialog.cpp; sourceTree = "<group>"; };
@@ -2769,6 +2772,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
+				6785922620F02CD9001C2929 /* LyricUserDictDialog.h */,
 				676507CB20D185F100532BA9 /* xlLockButton.cpp */,
 				676507CC20D185F100532BA9 /* xlLockButton.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -3827,6 +3832,7 @@
 				676603911D01CA2400589601 /* FillPanel.cpp in Sources */,
 				67B2CF841C39D98A003C17CA /* ShockwavePanel.cpp in Sources */,
 				67B2CF891C39D98A003C17CA /* SpirographPanel.cpp in Sources */,
+				6785922720F02CD9001C2929 /* LyricUserDictDialog.cpp in Sources */,
 				67DAFDDF1CA1A63C004B3237 /* MidiFile.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
 				67ACBAB51C63DAD400BFA7D6 /* WholeHouseModel.cpp in Sources */,
@@ -4353,7 +4359,7 @@
 					/opt/local/libdbg,
 					/opt/local/lib,
 				);
-				LLVM_LTO = YES_THIN;
+				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
@@ -4374,6 +4380,7 @@
 				);
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				OTHER_TAPI_FLAGS = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
@@ -4458,6 +4465,7 @@
 					"-lwxregexu-3.1",
 				);
 				OTHER_TAPI_FLAGS = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
