@@ -24,7 +24,7 @@ RESINC_LINUX_DEBUG = $(RESINC)
 RCFLAGS_LINUX_DEBUG = $(RCFLAGS)
 LIBDIR_LINUX_DEBUG = $(LIBDIR)
 LIB_LINUX_DEBUG = $(LIB)../lib/linux/libliquidfun.a
-LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_DEBUG =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl2-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_DEBUG = .objs_debug
 DEP_LINUX_DEBUG = 
 OUT_LINUX_DEBUG = ../bin/xLights
@@ -35,7 +35,7 @@ RESINC_LINUX_RELEASE = $(RESINC)
 RCFLAGS_LINUX_RELEASE = $(RCFLAGS) -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unknown-pragmas
 LIBDIR_LINUX_RELEASE = $(LIBDIR)
 LIB_LINUX_RELEASE = $(LIB)../lib/linux/libliquidfun.a
-LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
+LDFLAGS_LINUX_RELEASE =  -lGL -lGLU -lglut -ldl -lX11 `pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale` `pkg-config --libs log4cpp` `sdl2-config --libs` `wx-config --version=3.1 --libs std,media,gl,aui,propgrid` `pkg-config --libs gstreamer-1.0 gstreamer-video-1.0` -lexpat -rdynamic $(LDFLAGS)
 OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xLights
@@ -2320,7 +2320,7 @@ outputs/serial_posix.cpp: outputs/serial.h
 
 sequencer/DragEffectBitmapButton.cpp: sequencer/DragEffectBitmapButton.h BitmapCache.h xLightsMain.h effects/RenderableEffect.h RenderCommandEvent.h UtilFunctions.h
 
-RenderCommandEvent.h: sequencer/Effect.h
+RenderCommandEvent.h: sequencer/Element.h sequencer/Effect.h sequencer/EffectLayer.h
 
 sequencer/Effect.cpp: sequencer/Effect.h sequencer/EffectLayer.h sequencer/Element.h sequencer/SequenceElements.h effects/EffectManager.h ColorCurve.h UtilFunctions.h ValueCurve.h UtilClasses.h
 
@@ -2828,7 +2828,7 @@ AudioManager.cpp: AudioManager.h
 
 BatchRenderDialog.cpp: BatchRenderDialog.h ../include/globals.h
 
-BufferPanel.cpp: BufferPanel.h models/Model.h effects/EffectPanelUtils.h ValueCurveDialog.h SubBufferPanel.h
+BufferPanel.cpp: BufferPanel.h PixelBuffer.h models/Model.h effects/EffectPanelUtils.h ValueCurveDialog.h SubBufferPanel.h
 
 ValueCurveDialog.h: xlCustomControl.h ValueCurve.h
 
@@ -2936,7 +2936,7 @@ effects/MarqueeEffect.h: effects/RenderableEffect.h
 
 effects/MarqueePanel.h: BulkEditControls.h
 
-effects/MarqueePanel.cpp: effects/MarqueePanel.h effects/EffectPanelUtils.h
+effects/MarqueePanel.cpp: effects/MarqueePanel.h effects/EffectPanelUtils.h effects/MarqueeEffect.h
 
 effects/MeteorsEffect.cpp: effects/MeteorsEffect.h effects/MeteorsPanel.h sequencer/Effect.h RenderBuffer.h UtilClasses.h AudioManager.h models/Model.h UtilFunctions.h ../include/meteors-16.xpm ../include/meteors-24.xpm ../include/meteors-32.xpm ../include/meteors-48.xpm ../include/meteors-64.xpm
 
