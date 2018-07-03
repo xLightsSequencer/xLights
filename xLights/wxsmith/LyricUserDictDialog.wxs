@@ -26,7 +26,7 @@
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
-						<object class="wxComboBox" name="ID_COMBOBOX_OLD_LYRIC" variable="ComboBoxOldLyric" member="yes" />
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_OLD_LYRIC" variable="TextCtrlOldLyric" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
@@ -41,8 +41,9 @@
 						<border>5</border>
 					</object>
 				</object>
-				<flag>wxALL|wxFIXED_MINSIZE</flag>
+				<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 				<border>5</border>
+				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticBoxSizer" variable="StaticBoxSizer2" member="no">
@@ -71,7 +72,7 @@
 						<border>5</border>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND|wxSHAPED</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>3</option>
 			</object>
@@ -98,6 +99,7 @@
 				</object>
 				<flag>wxALL|wxFIXED_MINSIZE</flag>
 				<border>5</border>
+				<option>1</option>
 			</object>
 		</object>
 	</object>

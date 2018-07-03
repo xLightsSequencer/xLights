@@ -3,7 +3,6 @@
 
 //(*Headers(LyricUserDictDialog)
 #include <wx/button.h>
-#include <wx/combobox.h>
 #include <wx/dialog.h>
 #include <wx/grid.h>
 #include <wx/sizer.h>
@@ -25,10 +24,10 @@ class LyricUserDictDialog: public wxDialog
 		wxButton* ButtonDeleteRow;
 		wxButton* ButtonLyricCancel;
 		wxButton* ButtonLyricOK;
-		wxComboBox* ComboBoxOldLyric;
 		wxGrid* GridUserLyricDict;
 		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrlNewLyric;
+		wxTextCtrl* TextCtrlOldLyric;
 		//*)
 
 	protected:
@@ -36,7 +35,7 @@ class LyricUserDictDialog: public wxDialog
 		//(*Identifiers(LyricUserDictDialog)
 		static const long ID_TEXTCTRL_NEW_LYRIC;
 		static const long ID_STATICTEXT1;
-		static const long ID_COMBOBOX_OLD_LYRIC;
+		static const long ID_TEXTCTRL_OLD_LYRIC;
 		static const long ID_BUTTON_ADD_LYRIC;
 		static const long ID_GRID_USER_LYRIC_DICT;
 		static const long ID_BUTTON_DELETE_ROW;
@@ -48,6 +47,7 @@ class LyricUserDictDialog: public wxDialog
 
         PhonemeDictionary * m_dictionary;
         wxString m_showDirectory;
+        wxArrayString m_removeList;
 
         void ReadUserDictionary() const;
         void WriteUserDictionary() const;

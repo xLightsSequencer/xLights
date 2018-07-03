@@ -182,9 +182,14 @@ void PhonemeDictionary::InsertPhoneme(const wxArrayString& phonemes)
     }
 }
 
-std::vector<wxString> PhonemeDictionary::GetPhonemeList()
+void PhonemeDictionary::RemovePhoneme(const wxString & text)
 {
-    std::vector<wxString> keys;
+    phoneme_dict.erase(text);
+}
+
+wxArrayString PhonemeDictionary::GetPhonemeList()
+{
+    wxArrayString keys;
     std::transform(std::begin(phoneme_dict), std::end(phoneme_dict), std::back_inserter(keys),
         [](auto const& val) { return wxString(val.first); });
     return keys;
