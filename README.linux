@@ -10,13 +10,17 @@ xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
 of wxWidgets for xLights is v3.1.  This can be compiled from
 source or installed via packages if they are available for your distribution.
-The provided makefile will download and build wxWidgets if needed - including application of a small patch from the end of this file to fix the sizing of bitmap buttons.
-Please note that wxWidgets needs to use Gtk2 rather than Gtk3 currently due to issues in some controls.
-A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included for i686 and x86_64 - for other platforms it would need to be recompiled from https://github.com/google/liquidfun
+The provided makefile will download and build wxWidgets if needed - including
+application of a small patch from the end of this file to fix the sizing of
+bitmap buttons.
+SDL2 needs to be 2.0.5 or later.
+A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included for
+i686 and x86_64 - for other platforms it would need to be recompiled from
+https://github.com/google/liquidfun
 
 These instructions have been tested on the following distributions:
 
-  - Ubuntu 16.10
+  - Ubuntu 17.10
   - Fedora 24
 
 Instructions for other Linux distributions will vary. 
