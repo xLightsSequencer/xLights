@@ -275,38 +275,36 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         wxFileName fseq_file = selected_file;
         fseq_file.SetExt("fseq");
-        fseq_file.SetPath(fseqDirectory);
 
-        wxFileName fseq_fileShow = selected_file;
-        fseq_fileShow.SetExt("fseq");
+        wxFileName fseq_file_SEQ_fold = selected_file;
+		fseq_file_SEQ_fold.SetExt("fseq");
 
-        bool fseqFound = false;
-
-        if (fseq_file.FileExists()) {
-            //Found in FSEQ Folder
-            fseqFound = true;
-
-            /***************************/
-            //TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
-            if (fseq_fileShow.FileExists() && wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
-                //remove file from show directory
-                logger_base.debug("Deleting old FSEQ File: '%s'", (const char *)fseq_fileShow.GetPath().c_str());
-                wxRemoveFile(fseq_fileShow.GetFullPath());//
-            }
-            /***************************/
-        } else if(wxFileName(fseqDirectory) != wxFileName(showDirectory)) { // Only go in here if folder are unlinked
-            //file found in show folder
-            if (fseq_fileShow.FileExists()) {
-                //move file to fseq folder
-                logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_fileShow.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
-                fseqFound = wxRenameFile(fseq_fileShow.GetFullPath(), fseq_file.GetFullPath());
-            }
-        }
+		// Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
+		if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
+			fseq_file.SetPath(fseqDirectory);
+			if (!fseq_file.FileExists()) {
+				//no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
+				if (fseq_file_SEQ_fold.FileExists()) {
+					//if found, move file to fseq folder
+					logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
+					wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
+				}
+			} else {
+				//if FSEQ File is Found in FSEQ Folder, remove old file next to the Seq File
+				/***************************/
+				//TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
+				if (fseq_file_SEQ_fold.FileExists()) {
+					//remove FSEQ file next to seg file
+					logger_base.debug("Deleting old FSEQ File: '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str());
+					wxRemoveFile(fseq_file_SEQ_fold.GetFullPath());//
+				}
+			}
+		}
 
         xlightsFilename = fseq_file.GetFullPath(); //this need to be set , as it is checked when saving is triggered
 
         // load the fseq data file if it exists
-        if( fseq_file.FileExists() && fseqFound)
+        if( fseq_file.FileExists())
         {
             if (plog != nullptr)
             {
