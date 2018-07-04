@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.21 July 4, 2018
    -- bug (scott)  Fix Roto-Zoom reset bug
 2018.20 July 2, 2018
    -- bug (keith)  Fix warp treatment flips to constant
