@@ -497,6 +497,7 @@
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Zoom" subclass="BulkEditSliderF1" variable="Slider_Zoom" member="yes">
+															<value>10</value>
 															<max>30</max>
 															<minsize>20,-1d</minsize>
 														</object>
@@ -516,7 +517,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Zoom" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Zoom" member="yes">
-															<value>0.0</value>
+															<value>1.0</value>
 															<size>20,-1d</size>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
