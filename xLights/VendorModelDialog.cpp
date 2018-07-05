@@ -908,6 +908,12 @@ bool VendorModelDialog::LoadTree()
     }
     TreeCtrl_Navigator->EnsureVisible(first);
 
+    wxTreeItemIdValue cookie;
+    for (auto l1 = TreeCtrl_Navigator->GetFirstChild(root, cookie); l1.IsOk(); l1 = TreeCtrl_Navigator->GetNextChild(root, cookie))
+    {
+        DeleteEmptyCategories(l1);
+    }
+
     if (_vendors.size() == 0)
     {
         wxMessageBox("Unable to retrieve any vendor information", "Error");
@@ -915,6 +921,37 @@ bool VendorModelDialog::LoadTree()
     }
 
     return true;
+}
+
+bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
+{
+    VendorBaseTreeItemData* tid = (VendorBaseTreeItemData*)TreeCtrl_Navigator->GetItemData(parent);
+    if (tid->GetType() == "Category" && TreeCtrl_Navigator->GetChildrenCount(parent) == 0)
+    {
+        TreeCtrl_Navigator->Delete(parent);
+        return true;
+    }
+    else if (tid->GetType() == "Category" || tid->GetType() == "Vendor")
+    {
+        bool deleted;
+        do
+        {
+            deleted = false;
+            wxTreeItemIdValue cookie;
+            for (auto l1 = TreeCtrl_Navigator->GetFirstChild(parent, cookie);
+                l1.IsOk();
+                l1 = TreeCtrl_Navigator->GetNextChild(parent, cookie))
+            {
+                if (DeleteEmptyCategories(l1))
+                {
+                    // item was deleted
+                    deleted = true;
+                    break;
+                }
+            }
+        } while (deleted);
+    }
+    return false;
 }
 
 void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<MVendorCategory*> categories)

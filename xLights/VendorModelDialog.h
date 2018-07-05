@@ -46,6 +46,7 @@ class VendorModelDialog: public wxDialog
     void PopulateModelPanel(MModelWiring* vendor);
     void LoadModelImage(std::list<wxFileName> imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
+    bool DeleteEmptyCategories(wxTreeItemId& parent);
 
 	public:
 
