@@ -347,6 +347,7 @@
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="effects\WarpPanel.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
+    <ClCompile Include="LyricUserDictDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -694,6 +695,7 @@
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
     <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="xlLockButton.h" />
+    <ClInclude Include="LyricUserDictDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

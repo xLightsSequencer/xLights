@@ -465,6 +465,8 @@
 		<Unit filename="LinkJukeboxButtonDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
+		<Unit filename="LyricUserDictDialog.cpp" />
+		<Unit filename="LyricUserDictDialog.h" />
 		<Unit filename="LyricsDialog.cpp" />
 		<Unit filename="LyricsDialog.h" />
 		<Unit filename="MIDI/Binasc.cpp" />
@@ -1082,6 +1084,7 @@
 		<Unit filename="wxsmith/LorControllerDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/LorOptimisedDialog.wxs" />
+		<Unit filename="wxsmith/LyricUserDictDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
@@ -1327,6 +1330,7 @@
 					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -107,8 +107,10 @@ void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phone
     word.Replace(")", "");
     word.Replace("]", "");
     phonemes.Clear();
-	wxArrayString pronunciation;
-    pronunciation = phoneme_dict[word.Upper()];
+
+    if (!phoneme_dict.count(word.Upper()))
+        return;
+	wxArrayString pronunciation = phoneme_dict.at(word.Upper());
     if (pronunciation.size() > 1)
     {
         for (int i = 1; i < pronunciation.size(); i++)
@@ -172,4 +174,26 @@ void PhonemeDictionary::InsertSpacesAfterPunctuation(wxString& text)
             }
         }
     }
+}
+
+void PhonemeDictionary::InsertPhoneme(const wxArrayString& phonemes)
+{
+    if (phoneme_dict.count(phonemes[0]))
+    {
+        phoneme_dict.erase(phonemes[0]);
+    }
+    phoneme_dict.insert(std::pair<wxString, wxArrayString>(phonemes[0], phonemes));
+}
+
+void PhonemeDictionary::RemovePhoneme(const wxString & text)
+{
+    phoneme_dict.erase(text);
+}
+
+wxArrayString PhonemeDictionary::GetPhonemeList()
+{
+    wxArrayString keys;
+    std::transform(std::begin(phoneme_dict), std::end(phoneme_dict), std::back_inserter(keys),
+        [](auto const& val) { return wxString(val.first); });
+    return keys;
 }
