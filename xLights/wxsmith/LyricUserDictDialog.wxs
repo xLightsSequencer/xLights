@@ -26,7 +26,17 @@
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_OLD_LYRIC" variable="TextCtrlOldLyric" member="yes" />
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_OLD_LYRIC" variable="TextCtrlOldLyric" member="yes">
+							<handler function="OnTextCtrlOldLyricText" entry="EVT_TEXT" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_PHEMONES" variable="TextCtrlPhonems" member="yes">
+							<style>wxTE_READONLY</style>
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>

@@ -28,6 +28,7 @@ class LyricUserDictDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrlNewLyric;
 		wxTextCtrl* TextCtrlOldLyric;
+		wxTextCtrl* TextCtrlPhonems;
 		//*)
 
 	protected:
@@ -36,6 +37,7 @@ class LyricUserDictDialog: public wxDialog
 		static const long ID_TEXTCTRL_NEW_LYRIC;
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL_OLD_LYRIC;
+		static const long ID_TEXTCTRL_PHEMONES;
 		static const long ID_BUTTON_ADD_LYRIC;
 		static const long ID_GRID_USER_LYRIC_DICT;
 		static const long ID_BUTTON_DELETE_ROW;
@@ -60,6 +62,7 @@ class LyricUserDictDialog: public wxDialog
 		void OnButtonDeleteRowClick(wxCommandEvent& event);
 		void OnButtonLyricOKClick(wxCommandEvent& event);
 		void OnButtonLyricCancelClick(wxCommandEvent& event);
+		void OnTextCtrlOldLyricText(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

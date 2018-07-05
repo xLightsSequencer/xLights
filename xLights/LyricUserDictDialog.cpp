@@ -17,6 +17,7 @@
 const long LyricUserDictDialog::ID_TEXTCTRL_NEW_LYRIC = wxNewId();
 const long LyricUserDictDialog::ID_STATICTEXT1 = wxNewId();
 const long LyricUserDictDialog::ID_TEXTCTRL_OLD_LYRIC = wxNewId();
+const long LyricUserDictDialog::ID_TEXTCTRL_PHEMONES = wxNewId();
 const long LyricUserDictDialog::ID_BUTTON_ADD_LYRIC = wxNewId();
 const long LyricUserDictDialog::ID_GRID_USER_LYRIC_DICT = wxNewId();
 const long LyricUserDictDialog::ID_BUTTON_DELETE_ROW = wxNewId();
@@ -51,6 +52,8 @@ LyricUserDictDialog::LyricUserDictDialog(PhonemeDictionary* dictionary, const wx
 	StaticBoxSizer1->Add(StaticText1, 0, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	TextCtrlOldLyric = new wxTextCtrl(this, ID_TEXTCTRL_OLD_LYRIC, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_OLD_LYRIC"));
 	StaticBoxSizer1->Add(TextCtrlOldLyric, 1, wxALL|wxEXPAND, 5);
+	TextCtrlPhonems = new wxTextCtrl(this, ID_TEXTCTRL_PHEMONES, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_PHEMONES"));
+	StaticBoxSizer1->Add(TextCtrlPhonems, 1, wxALL|wxEXPAND, 5);
 	ButtonAddLyric = new wxButton(this, ID_BUTTON_ADD_LYRIC, _("Add"), wxDefaultPosition, wxSize(75,24), 0, wxDefaultValidator, _T("ID_BUTTON_ADD_LYRIC"));
 	StaticBoxSizer1->Add(ButtonAddLyric, 0, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
@@ -79,6 +82,7 @@ LyricUserDictDialog::LyricUserDictDialog(PhonemeDictionary* dictionary, const wx
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_TEXTCTRL_OLD_LYRIC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&LyricUserDictDialog::OnTextCtrlOldLyricText);
 	Connect(ID_BUTTON_ADD_LYRIC,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LyricUserDictDialog::OnButtonAddLyricClick);
 	Connect(ID_BUTTON_DELETE_ROW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LyricUserDictDialog::OnButtonDeleteRowClick);
 	Connect(ID_BUTTON_LYRIC_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LyricUserDictDialog::OnButtonLyricOKClick);
@@ -105,25 +109,26 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
     //check if word is "marked" to be removed from main dictionary
     const bool found = (std::find(m_removeList.begin(), m_removeList.end(), TextCtrlNewLyric->GetValue().Upper()) != m_removeList.end());
 
-    //only error if word is in main dictionary and not marked to be removed 
+    //only error if word is in main dictionary and not marked to be deleted on close
     // or its already populated in the dialog
     if ((m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found)
         || DoesGridContain(TextCtrlNewLyric->GetValue().Upper()))
     {
-        wxMessageBox("Word Already Exists In Phoneme Dictionary");
+        wxMessageBox("Word '" + TextCtrlNewLyric->GetValue() +"' Already Exists In Phoneme Dictionary");
         return;
     }
 
     InsertRow(TextCtrlNewLyric->GetValue().Upper(), m_dictionary->GetPhoneme(TextCtrlOldLyric->GetValue().Upper()));
     TextCtrlNewLyric->Clear();
     TextCtrlOldLyric->Clear();
+    TextCtrlPhonems->Clear();
 }
 
 void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
 {
     wxArrayInt indexs = GridUserLyricDict->GetSelectedRows();
     const wxString& msg = "Delete Select Phonemes";
-    const int answer = wxMessageBox(msg, "Delete Phoneme", wxYES_NO, this);
+    const int answer = wxMessageBox(msg, "Delete Phonemes", wxYES_NO, this);
 
     if (answer == wxNO)
     {
@@ -135,7 +140,7 @@ void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
         auto i = indexs[x];
         wxString name = GridUserLyricDict->GetCellValue(i, 0);
 
-        //"marked" removeds word so they can be removed from the main dictionary on dialog save
+        //"marked" removeds word so they can be removed from the main dictionary on dialog ok event
         const bool found = (std::find(m_removeList.begin(), m_removeList.end(), name) != m_removeList.end());
         if(!found)
             m_removeList.Add(name);
@@ -149,7 +154,7 @@ void LyricUserDictDialog::OnButtonLyricOKClick(wxCommandEvent& event)
     //check for valid Phonemes..
     for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
     {
-        if (GridUserLyricDict->GetCellValue(i, 1).IsEmpty() || !IsValidPhoneme(GridUserLyricDict->GetCellValue(i, 1)))
+        if (GridUserLyricDict->GetCellValue(i, 1).IsEmpty() || !IsValidPhoneme(GridUserLyricDict->GetCellValue(i, 1).Upper()))
         {
             const auto msg = "Invalid Phonemes for: " + GridUserLyricDict->GetCellValue(i, 0);
             wxMessageBox(msg,"Invalid Phonemes");
@@ -218,9 +223,9 @@ void LyricUserDictDialog::WriteUserDictionary() const
     {
         for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
         {
-            wxArrayString str_list = wxSplit(GridUserLyricDict->GetCellValue(i, 1), ' ');
+            wxArrayString str_list = wxSplit(GridUserLyricDict->GetCellValue(i, 1).Upper(), ' ');
             str_list.Insert("", 0);
-            str_list.Insert(GridUserLyricDict->GetCellValue(i, 0), 0);
+            str_list.Insert(GridUserLyricDict->GetCellValue(i, 0).Upper(), 0);
             f.Write(wxJoin(str_list, ' '));
             f.Write('\n');
             m_dictionary->InsertPhoneme(str_list);
@@ -272,4 +277,18 @@ bool LyricUserDictDialog::IsValidPhoneme(const wxString & text) const
             return false;
     }
     return true;
+}
+
+void LyricUserDictDialog::OnTextCtrlOldLyricText(wxCommandEvent& event)
+{
+    if ((m_dictionary->ContainsPhoneme(TextCtrlOldLyric->GetValue().Upper())))
+    {
+        wxArrayString  phenoms = m_dictionary->GetPhoneme(TextCtrlOldLyric->GetValue().Upper());
+        phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
+        TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
+    }
+    else
+    {
+        TextCtrlPhonems->Clear();
+    }
 }
