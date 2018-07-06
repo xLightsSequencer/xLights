@@ -10,7 +10,6 @@
 #include <wx/msgdlg.h>
 #include <wx/config.h>
 
-
 #include "TimingPanel.h"
 #include "models/Model.h"
 #include "effects/EffectPanelUtils.h"

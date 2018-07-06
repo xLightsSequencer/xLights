@@ -5491,6 +5491,13 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     float fadeout = sm.GetFloat("T_TEXTCTRL_Fadeout", 0.0);
     float efdur = (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 1000.0;
 
+    if (sm.Get("T_CHECKBOX_Canvas", "0") == "1" && name != "Off" && ef->GetEffectName() != "Warp" || (ef->GetEffectName() == "Off" && sm.Get("E_CHECKBOX_Off_Transparent", "0") == "0"))
+    {
+        wxString msg = wxString::Format("    WARN: Canvas mode enabled on an effect it is not normally used on or with unusual settings. If not required turn it off as it will slow down rendering. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+        LogAndWrite(f, msg.ToStdString());
+        warncount++;
+    }
+
     if (fadein > efdur)
     {
         wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
