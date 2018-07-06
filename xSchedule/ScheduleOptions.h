@@ -92,6 +92,7 @@ class ScheduleOptions
     int _port;
     std::string _wwwRoot;
     std::string _password;
+    std::string _crashBehaviour;
     int _passwordTimeout;
     std::vector<UserButton*> _buttons;
     std::list<MatrixMapper*> _matrices;
@@ -126,6 +127,8 @@ class ScheduleOptions
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
         void SetArtNetTimeCodeFormat(int artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
         int GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
+        std::string GetCrashBehaviour() const { return _crashBehaviour; }
+        void SetCrashBehaviour(std::string crashBehaviour) { if (crashBehaviour != _crashBehaviour) { _crashBehaviour = crashBehaviour; _changeCount++; } }
         std::vector<UserButton*> GetButtons() const;
         void ClearButtons();
         std::string GetButtonsJSON(const CommandManager &cmdMgr, const std::string& reference) const;

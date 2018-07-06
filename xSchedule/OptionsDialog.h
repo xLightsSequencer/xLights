@@ -50,6 +50,7 @@ class OptionsDialog: public wxDialog
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
 		wxChoice* Choice_Location;
+		wxChoice* Choice_OnCrash;
 		wxListView* ListView_Buttons;
 		wxSpinCtrl* SpinCtrl_PasswordTimeout;
 		wxSpinCtrl* SpinCtrl_WebServerPort;
@@ -61,6 +62,7 @@ class OptionsDialog: public wxDialog
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		wxTextCtrl* TextCtrl_Password;
 		wxTextCtrl* TextCtrl_wwwRoot;
 		//*)
@@ -94,6 +96,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_SPINCTRL2;
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE3;
+		static const long ID_STATICTEXT9;
+		static const long ID_CHOICE4;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

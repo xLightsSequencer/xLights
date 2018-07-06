@@ -158,6 +158,7 @@ const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
+const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
@@ -486,6 +487,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu3->Append(MenuItem_WebInterface);
     MenuItem_ImportxLights = new wxMenuItem(Menu3, ID_MNU_IMPORT, _("Import xLights Playlist"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ImportxLights);
+    MenuItem_Crash = new wxMenuItem(Menu3, ID_MNU_CRASH, _("Crash"), _("Crash xSchedule"), wxITEM_NORMAL);
+    Menu3->Append(MenuItem_Crash);
     MenuBar1->Append(Menu3, _("&Tools"));
     Menu4 = new wxMenu();
     MenuItem_Standalone = new wxMenuItem(Menu4, ID_MNU_MODENORMAL, _("Standalone"), wxEmptyString, wxITEM_RADIO);
@@ -566,6 +569,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
+    Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_OSCMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
@@ -707,6 +711,25 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     AddWindowsMenu();
 
     StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+
+    // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
+#ifndef NDEBUG
+    logger_base.debug("xSchedule Crash Menu item not removed.");
+    #ifdef _MSC_VER
+        SetBackgroundColour(*wxGREEN);
+    #endif
+#else
+    // only keep the crash option if the EnableCrash.txt file exists
+    if (!wxFile::Exists("EnableCrash.txt"))
+    {
+        MenuItem_Crash->GetMenu()->Remove(MenuItem_Crash);
+        MenuItem_Crash = nullptr;
+    }
+    else
+    {
+        logger_base.debug("xSchedule Crash Menu item not removed.");
+    }
+#endif
 
     UpdateUI();
     ValidateWindow();
@@ -1270,7 +1293,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     wxDateTime frameEnd = wxDateTime::UNow();
     long ms = (frameEnd - frameStart).GetMilliseconds().ToLong();
-    
+
     if (ms > _timer.GetInterval() / 2)
     {
         // we took too long so next frame has to be an output frame
@@ -2079,11 +2102,23 @@ void xScheduleFrame::OnBitmapButton_UnsavedClick(wxCommandEvent& event)
 }
 
 void xScheduleFrame::CreateDebugReport(wxDebugReportCompress *report) {
-    if (wxDebugReportPreviewStd().Show(*report)) {
-        report->Process();
-        SendReport("crashUpload", *report);
-        wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
+
+    std::string cb = "Prompt user";
+    if (__schedule != nullptr && __schedule->GetOptions() != nullptr)
+    {
+        cb = __schedule->GetOptions()->GetCrashBehaviour();
     }
+
+    report->Process();
+
+    if (cb == "Silently exit after sending crash log" || (cb == "Prompt user" && wxDebugReportPreviewStd().Show(*report))) {
+        if (cb != "Silently exit after sending crash log")
+        {
+            wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
+        }
+        SendReport("crashUpload", *report);
+    }
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
     delete report;
@@ -2844,4 +2879,12 @@ void xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& eve
 {
     __schedule->SetMode(SYNCMODE::ARTNETMASTER);
     UpdateUI();
+}
+
+void xScheduleFrame::OnMenuItem_CrashSelected(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("^^^^^ xSchedule crashing on purpose ... bye bye cruel world.");
+    int *p = nullptr;
+    *p = 0xFFFFFFFF;
 }

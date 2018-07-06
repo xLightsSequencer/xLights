@@ -181,6 +181,7 @@ public:
         void OnMenuItem_EditEventsSelected(wxCommandEvent& event);
         void OnMenuItem_ARTNetTimeCodeSlaveSelected(wxCommandEvent& event);
         void OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_CrashSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -245,6 +246,7 @@ public:
         static const long ID_MNU_CHECK_SCHEDULE;
         static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_IMPORT;
+        static const long ID_MNU_CRASH;
         static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPMASTER;
         static const long ID_MNU_OSCMASTER;
@@ -302,6 +304,7 @@ public:
         wxMenuItem* MenuItem_BackgroundPlaylist;
         wxMenuItem* MenuItem_CheckSchedule;
         wxMenuItem* MenuItem_ConfigureOSC;
+        wxMenuItem* MenuItem_Crash;
         wxMenuItem* MenuItem_EditEvents;
         wxMenuItem* MenuItem_EditFPPRemotes;
         wxMenuItem* MenuItem_FPPMaster;
