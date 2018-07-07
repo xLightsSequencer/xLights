@@ -158,7 +158,7 @@ void VsaImportDialog::Init(VSAFile* file, bool allModels) {
         if( tracks[i].enable ) {
             ChannelMapGrid->AppendRows(1);
             ChannelMapGrid->SetCellValue(_num_tracks, 0, tracks[i].name);
-            ChannelMapGrid->SetCellValue(_num_tracks, 3, wxString::Format("%d", _num_tracks));
+            ChannelMapGrid->SetCellValue(_num_tracks, 3, wxString::Format("%d", (int)_num_tracks));
             ChannelMapGrid->SetCellRenderer(_num_tracks, 1, new wxGridCellChoiceRenderer);
             ChannelMapGrid->SetCellEditor(_num_tracks, 1, new wxFastComboEditor(Convert(modelNames)));
             ChannelMapGrid->SetCellValue(_num_tracks, 1, modelNames[0]);
