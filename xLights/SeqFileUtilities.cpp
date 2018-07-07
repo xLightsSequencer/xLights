@@ -3073,7 +3073,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
             wxString speed = parms[5];
             wxString vcSpeed;
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX); 
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX);
             wxString colours = parms[6];
 
             if (style == "linear")
@@ -3213,11 +3213,11 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString speed = parms[4];
             speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)durationMS / 1000.0))));
             wxString vcSpeed;
-            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BARCYCLES_MIN, BARCYCLES_MAX);            
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BARCYCLES_MIN, BARCYCLES_MAX);
             wxString centre = parms[5];
             wxString vcCentre;
             centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BARCENTER_MIN, BARCENTER_MAX);
-                            
+
             settings += ",E_SLIDER_Bars_BarCount=" + repeat;
             settings += vcRepeat;
 
@@ -3534,7 +3534,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString y = parms[8];
             wxString vcY;
             y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
-            
+
             settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
             settings += ",E_SLIDER_Pinwheel_Thickness=" + width;
             settings += vcWidth;
@@ -3841,7 +3841,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
     int layer = 0;
     if (LPEHasEffects(input_xml, mapping, 0, true))
     {
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 left hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
     }
@@ -3852,7 +3852,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         {
             model->AddEffectLayer();
         }
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 right hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
     }
@@ -3863,7 +3863,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         {
             model->AddEffectLayer();
         }
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 left hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
     }
@@ -3874,7 +3874,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         {
             model->AddEffectLayer();
         }
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 right hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
     }
@@ -5216,7 +5216,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
 }
 
 static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, std::string name,
-    const std::vector< VSAFile::vsaEventRecord > &events, bool is_16bit = true)
+    const std::vector< VSAFile::vsaEventRecord > &events, int sequence_end_time, bool is_16bit = true)
 {
     float last_pos = -1.0;
     int last_time = 0;
@@ -5232,9 +5232,9 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             settings += "E_CHECKBOX_16bit=0,";
         }
         settings += "E_CHOICE_Channel=" + name + ",";
-        settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=100.00|";
+        settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=1000.00|";
         float start_pos = (events[i].start_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
-        settings += "P1=" + wxString::Format("%3.1f", start_pos).ToStdString() + "|";
+        settings += "P1=" + wxString::Format("%3.1f", start_pos * 10.0).ToStdString() + "|";
         float end_pos = (events[i].end_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
         if (start_pos < 0.0) {
             if (warn) {
@@ -5250,7 +5250,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             end_pos = 100.0;
         }
-        settings += "P2=" + wxString::Format("%3.1f", end_pos).ToStdString() + "|";
+        settings += "P2=" + wxString::Format("%3.1f", end_pos * 10.0).ToStdString() + "|RV=TRUE";
         if (last_pos == -1.0) {
             last_pos = start_pos;
         }
@@ -5264,12 +5264,27 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             settings2 += "E_CHOICE_Channel=" + name + ",";
             settings2 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
-            settings2 += "E_VALUECURVE_Servo=Active=FALSE|";
             layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * 33, false, false);
         }
         layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * 33, events[i].end_time * 33, false, false);
         last_pos = end_pos;
         last_time = events[i].end_time * 33;
+
+        // check for filling to end of sequence
+        if( i == events.size() - 1) {
+            if( last_time < sequence_end_time ) {
+                std::string settings3;
+                if (is_16bit) {
+                    settings3 += "E_CHECKBOX_16bit=1,";
+                }
+                else {
+                    settings3 += "E_CHECKBOX_16bit=0,";
+                }
+                settings3 += "E_CHOICE_Channel=" + name + ",";
+                settings3 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
+                layer->AddEffect(0, "Servo", settings3, palette, last_time, sequence_end_time, false, false);
+            }
+        }
     }
 }
 
@@ -5319,7 +5334,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                     default:
                         break;
                     }
-                    ImportServoData(tracks[m].min_limit, tracks[m].max_limit, layer, dlg.selectedChannels[m], events[m], is_16bit);
+                    ImportServoData(tracks[m].min_limit, tracks[m].max_limit, layer, dlg.selectedChannels[m], events[m], mSequenceElements.GetSequenceEnd(), is_16bit);
                 }
             }
         }
