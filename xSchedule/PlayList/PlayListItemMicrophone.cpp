@@ -137,7 +137,13 @@ void PlayListItemMicrophone::Frame(wxByte* buffer, size_t size, size_t ms, size_
 void PlayListItemMicrophone::Start(long stepLengthMS)
 {
     PlayListItem::Start(stepLengthMS);
+    AudioManager::GetSDL()->StartListening();
     AudioManager::GetSDL()->PurgeInput();
+}
+
+void PlayListItemMicrophone::Stop()
+{
+    AudioManager::GetSDL()->StopListening();
 }
 
 void PlayListItemMicrophone::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode)

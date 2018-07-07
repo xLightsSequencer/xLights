@@ -478,7 +478,7 @@
 			<interval>500000</interval>
 			<handler function="On_timerTrigger" entry="EVT_TIMER" />
 		</object>
-		<object class="wxTimer" name="ID_TIMER2" variable="_timerSchedule" member="yes">
+		<object class="wxTimer" name="ID_TIMER2" subclass="xLightsTimer" variable="_timerSchedule" member="yes">
 			<interval>50000</interval>
 			<handler function="On_timerScheduleTrigger" entry="EVT_TIMER" />
 		</object>

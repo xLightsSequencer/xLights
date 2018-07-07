@@ -146,7 +146,8 @@ class SDL
     SDL_AudioSpec _wanted_inputspec;
     int _initialisedRate;
     std::string _device;
-    std::string _intputDevice;
+    std::string _inputDevice;
+    int _listeners;
 
     void Reopen();
     AudioData* GetData(int id);
@@ -183,6 +184,8 @@ public:
     std::list<float> GetInputSpectrum(int ms);
     void PurgeInput();
     void DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual);
+    void StartListening();
+    void StopListening();
 };
 
 class AudioManager

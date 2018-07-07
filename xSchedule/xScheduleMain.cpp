@@ -324,6 +324,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _webServer = nullptr;
     _timerOutputFrame = false;
     _suspendOTL = false;
+    _nowebicon = wxBitmap(no_web_icon_24);
+    _webicon = wxBitmap(web_icon_24);
+    _webIconDisplayed = false;
 
     //(*Initialize(xScheduleFrame)
     wxBoxSizer* BoxSizer1;
@@ -710,7 +713,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     AddWindowsMenu();
 
-    StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+    StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+    _webIconDisplayed = false;
 
     // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
 #ifndef NDEBUG
@@ -1276,7 +1280,11 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     {
         if (!webstate)
         {
-            StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+            if (!_webIconDisplayed)
+            {
+                StaticBitmap_WebIcon->SetBitmap(_webicon);
+                _webIconDisplayed = true;
+            }
             webstate = true;
         }
     }
@@ -1284,7 +1292,11 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     {
         if (webstate)
         {
-            StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+            if (_webIconDisplayed)
+            {
+                StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+                _webIconDisplayed = false;
+            }
             webstate = false;
         }
     }
@@ -2429,11 +2441,19 @@ void xScheduleFrame::UpdateUI()
 
     if (__schedule->GetWebRequestToggle())
     {
-        StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+        if (!_webIconDisplayed)
+        {
+            StaticBitmap_WebIcon->SetBitmap(_webicon);
+            _webIconDisplayed = true;
+        }
     }
     else
     {
-        StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+        if (_webIconDisplayed)
+        {
+            StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+            _webIconDisplayed = false;
+        }
     }
 
     if (!_suspendOTL)

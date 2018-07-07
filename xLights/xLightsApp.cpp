@@ -15,10 +15,6 @@
 #include <wx/stdpaths.h>
 #include <wx/config.h>
 
-#ifdef _MSC_VER
-//#include <vld.h> // visual leak detector ... https://vld.codeplex.com/
-#endif
-
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
 

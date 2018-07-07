@@ -83,6 +83,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _listeners = 0;
     _dev = 0;
     _inputdev = 0;
     _state = SDLSTATE::SDLUNINITIALISED;
@@ -105,7 +106,7 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
         logger_base.error("Failed to access DirectSound ... Microphone wont be available.");
     }
     _device = device;
-    _intputDevice = inputDevice;
+    _inputDevice = inputDevice;
 #endif
     _state = SDLSTATE::SDLINITIALISED;
     _initialisedRate = DEFAULT_RATE;
@@ -116,12 +117,36 @@ SDL::SDL(const std::string& device, const std::string& inputDevice)
         return;
     }
 
-    if (!OpenInputAudioDevice(inputDevice))
+    logger_base.debug("SDL initialised");
+}
+
+void SDL::StartListening()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _listeners++;
+
+    if (_listeners == 1)
     {
-        logger_base.error("Could not open SDL audio input");
+        if (!OpenInputAudioDevice(_inputDevice))
+        {
+            logger_base.error("Could not open SDL audio input");
+        }
     }
 
-    logger_base.debug("SDL initialised");
+    logger_base.debug("SDL Starting listening - listeners %d", _listeners);
+}
+
+void SDL::StopListening()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    _listeners--;
+
+    if (_listeners == 0)
+    {
+        CloseInputAudioDevice();
+    }
+
+    logger_base.debug("SDL Stopping listening - listeners %d", _listeners);
 }
 
 SDL::~SDL()

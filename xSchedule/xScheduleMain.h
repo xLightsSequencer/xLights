@@ -72,6 +72,9 @@ class xScheduleFrame : public wxFrame
     bool _timerOutputFrame;
     bool _suspendOTL;
     Pinger* _pinger;
+    wxBitmap _nowebicon;
+    wxBitmap _webicon;
+    bool _webIconDisplayed;
 
     void AddIPs();
     void LoadShowDir();
@@ -339,9 +342,9 @@ public:
         wxStaticText* StaticText_ShowDir;
         wxStaticText* StaticText_Time;
         wxStatusBar* StatusBar1;
-        wxTimer _timerSchedule;
         wxTreeCtrl* TreeCtrl_PlayListsSchedules;
         xLightsTimer _timer;
+        xLightsTimer _timerSchedule;
         //*)
 
         DECLARE_EVENT_TABLE()
