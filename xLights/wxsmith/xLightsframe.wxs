@@ -1328,6 +1328,12 @@
 					<handler function="OnMenuItemRenderOnSave" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenuItem" name="ID_SAVE_FSEQ_ON_SAVE" variable="mSaveFseqOnSaveMenuItem" member="yes">
+					<label>Save FSEQ On Save</label>
+					<checked>1</checked>
+					<handler function="OnmSaveFseqOnSaveMenuItemSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
 				<object class="wxMenuItem" name="ID_BACKUP_ON_SAVE" variable="mBackupOnSaveMenuItem" member="yes">
 					<label>Backup On Save</label>
 					<handler function="OnmBackupOnSaveSelected" entry="EVT_MENU" />
