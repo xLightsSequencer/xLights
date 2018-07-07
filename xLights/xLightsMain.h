@@ -544,6 +544,7 @@ public:
     void OnMenuItem_XFade_ASelected(wxCommandEvent& event);
     void OnMenuItem_xFade_BSelected(wxCommandEvent& event);
     void OnMenuItemUserDictSelected(wxCommandEvent& event);
+    void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -706,6 +707,7 @@ private:
     static const long ID_IMPORT_EFFECTS;
     static const long ID_SEQ_SETTINGS;
     static const long ID_RENDER_ON_SAVE;
+    static const long ID_SAVE_FSEQ_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENU_BACKUP_ON_LAUNCH;
     static const long ID_MNU_BKPPURGE_NEVER;
@@ -951,6 +953,7 @@ private:
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenuItem* mExportModelsMenuItem;
     wxMenuItem* mRenderOnSaveMenuItem;
+    wxMenuItem* mSaveFseqOnSaveMenuItem;
     wxPanel* AUIStatusBar;
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
@@ -1269,6 +1272,7 @@ private:
     bool mGridNodeValues;
     int mEffectAssistMode;
 	bool mRendering;
+    bool mSaveFseqOnSave;
 
     class RenderTree {
     public:

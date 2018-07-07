@@ -259,6 +259,7 @@ const long xLightsFrame::ID_MNU_SUPERQUIET = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
+const long xLightsFrame::ID_SAVE_FSEQ_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENU_BACKUP_ON_LAUNCH = wxNewId();
 const long xLightsFrame::ID_MNU_BKPPURGE_NEVER = wxNewId();
@@ -958,6 +959,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     mRenderOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_RENDER_ON_SAVE, _("Render On Save"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(mRenderOnSaveMenuItem);
     mRenderOnSaveMenuItem->Check(true);
+    mSaveFseqOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_SAVE_FSEQ_ON_SAVE, _("Save FSEQ On Save"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(mSaveFseqOnSaveMenuItem);
+    mSaveFseqOnSaveMenuItem->Check(true);
     mBackupOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_BACKUP_ON_SAVE, _("Backup On Save"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(mBackupOnSaveMenuItem);
     MenuItem_BackupOnLaunch = new wxMenuItem(MenuSettings, ID_MENU_BACKUP_ON_LAUNCH, _("Backup On Launch"), _("Recommended."), wxITEM_CHECK);
@@ -1266,6 +1270,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
+    Connect(ID_SAVE_FSEQ_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected);
     Connect(ID_BACKUP_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmBackupOnSaveSelected);
     Connect(ID_MENU_BACKUP_ON_LAUNCH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupOnLaunchSelected);
     Connect(ID_MNU_BKPPURGE_NEVER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected);
@@ -1429,6 +1434,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     ButtonPasteByCell->SetValue(false);
     mResetToolbars = false;
     mRenderOnSave = true;
+    mSaveFseqOnSave = true;
     mBackupOnSave = false;
     mBackupOnLaunch = true;
     me131Sync = false;
@@ -1666,6 +1672,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
+
+    config->Read("xLightsSaveFseqOnSave", &mSaveFseqOnSave, true);
+    mSaveFseqOnSaveMenuItem->Check(mSaveFseqOnSave);
+    logger_base.debug("Save Fseq on save: %s.", mSaveFseqOnSave ? "true" : "false");
+
+    if(!mSaveFseqOnSave)
+    {
+        logger_base.debug("Render on save changed to false, because Save Fseq on save is false.");
+        mRenderOnSaveMenuItem->Check(false);
+        mRenderOnSaveMenuItem->Enable(false);
+        mRenderOnSave = false;
+    }
 
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
     mBackupOnSaveMenuItem->Check(mBackupOnSave);
@@ -2027,6 +2045,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsTimingPlayOnDClick", mTimingPlayOnDClick);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
+    config->Write("xLightsSaveFseqOnSave", mSaveFseqOnSave);
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
@@ -3326,6 +3345,21 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 void xLightsFrame::OnMenuItemRenderOnSave(wxCommandEvent& event)
 {
     mRenderOnSave = event.IsChecked();
+}
+
+void xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event)
+{
+    mSaveFseqOnSave = event.IsChecked();
+    if (mSaveFseqOnSave)
+    {
+        mRenderOnSaveMenuItem->Enable();
+    }
+    else
+    {
+        mRenderOnSaveMenuItem->Check(false);
+        mRenderOnSaveMenuItem->Enable(false);
+        mRenderOnSave = false;
+    }
 }
 
 void xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected(wxCommandEvent& event)
