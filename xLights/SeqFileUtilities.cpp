@@ -5327,14 +5327,15 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                 layer = model->GetEffectLayer(layer_number);
                 if( layer != nullptr && dlg.selectedChannels[m] != "" ) {
                     bool is_16bit = true;
-                    switch( (VSAFile::vsaControllers)(tracks[m].controller) )
+                    int idx = dlg.trackIndex[m];
+                    switch( (VSAFile::vsaControllers)(tracks[idx].controller) )
                     {
                     case VSAFile::DMX_DIMMER:
                         is_16bit = false;
                     default:
                         break;
                     }
-                    ImportServoData(tracks[m].min_limit, tracks[m].max_limit, layer, dlg.selectedChannels[m], events[m], mSequenceElements.GetSequenceEnd(), is_16bit);
+                    ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), is_16bit);
                 }
             }
         }

@@ -12,6 +12,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (gil)    Increase DMX Effect/Panel to 40 channels.
+   -- enh (gil)    Changed the default channel assignments for the Skulltronix Skull option so that you can set
+                   the start channel to 1 and the Power channel will start at channel 8, Jaw at 9, etc.
+   -- enh (gil)    Added the default Node Names for the Skulltronix Skull option.
+   -- bug (gil)    Corrected VSA import issue when there are inactive tracks mixed in with active tracks.  Fixes #1190.
 2018.22 July 8, 2018
    -- bug (scott)  Fix FSEQ not being saved by default in same folder as xml
    -- enh (scott)  Add custom papagayo dictionary editor
@@ -67,7 +71,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix bulk edit doesnt work on effects with two word names
    -- bug (keith)  Loading sequence to non existing model wont map to strands or submodels
 2018.16 June 17, 2018
-   -- enh (kevin)  Added warp effect for use with canvas blend style 
+   -- enh (kevin)  Added warp effect for use with canvas blend style
    -- enh (scott)  Added Vixen FSEQ File Support to xSchedule
    -- enh (dkulp)  Scale bitmap buttons for locks/value curves, color panels on HiDPI screens
    -- enh (dkulp)  New high-res lock/unlock icons
@@ -77,7 +81,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 					- Copy The Currently Selected SubModel.
 					- Import SubModels from another Model.
 					- Import SubModels from a xmodel files.
-   -- enh (keith)  Add xFade 
+   -- enh (keith)  Add xFade
    -- bug (keith)  Windows update does not directly download zip file
    -- bug (keith)  xCapture doesnt filter out non ArtDMX packets
 2018.15 June 10, 2018
@@ -130,14 +134,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix a bunch of problems with output id's such as not saving them, missing on LOR etc
    -- enh (keith)  Add the ability to save and load face mappings
    -- bug (keith)  Get xCapture working correctly with multicast data
-   -- enh (keith)  Rework PJLink. Existing PJLinks will stop working replaced by a new projector play list item which 
+   -- enh (keith)  Rework PJLink. Existing PJLinks will stop working replaced by a new projector play list item which
                    knows how to control many more projector models
    -- enh (keith)  Add support for sparse submodel buffers and label rows more clearly
-   -- bug (keith)  Some fixes to auto custom model that significantly improve the model generated ... reduce the 
+   -- bug (keith)  Some fixes to auto custom model that significantly improve the model generated ... reduce the
                    number of missed pixels and the ability to process poor video
    -- enh (keith)  Add jukebox
-   -- enh (keith)  Add lyric track and sequence download   
-   -- enh (keith)  Add random value curve setting. Convert to custom once you are happy with your curve or it will 
+   -- enh (keith)  Add lyric track and sequence download
+   -- enh (keith)  Add random value curve setting. Convert to custom once you are happy with your curve or it will
 				   keep changing every time the effect is rendered.
 2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
@@ -149,7 +153,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix some xSchedule crashes
 2018.10 Apr 9, 2018
    -- enh (cjd)    Add -c/-x options to run xCapture/xSchedule via main binary on linux
-   -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black 
+   -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black
    -- enh (keith)  Add xSchedule event which fires when a controller becomes unreachable
    -- bug (keith)  Some fixes to value curves with divisors
    -- bug (keith)  Fixes to x/y shape position value curves
