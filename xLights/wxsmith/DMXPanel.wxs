@@ -362,7 +362,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX10" subclass="ValueCurveButton" variable="ValueCurve_DMX10" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX10" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX10" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -398,7 +398,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX11" subclass="ValueCurveButton" variable="ValueCurve_DMX11" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX11" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX11" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -434,7 +434,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX12" subclass="ValueCurveButton" variable="ValueCurve_DMX12" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX12" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX12" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -470,7 +470,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX13" subclass="ValueCurveButton" variable="ValueCurve_DMX13" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX13" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX13" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -506,7 +506,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX14" subclass="ValueCurveButton" variable="ValueCurve_DMX14" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX14" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX14" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -542,7 +542,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX15" subclass="ValueCurveButton" variable="ValueCurve_DMX15" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX15" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX15" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -578,7 +578,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX16" subclass="ValueCurveButton" variable="ValueCurve_DMX16" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX16" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX16" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -614,7 +614,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX17" subclass="ValueCurveButton" variable="ValueCurve_DMX17" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX17" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX17" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -650,7 +650,7 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX18" subclass="ValueCurveButton" variable="ValueCurve_DMX18" member="yes">
+									<object class="wxBitmapButton" name="ID_VALUECURVE_DMX18" subclass="BulkEditValueCurveButton" variable="ValueCurve_DMX18" member="yes">
 										<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
@@ -666,7 +666,7 @@
 										<style>wxTE_PROCESS_ENTER</style>
 									</object>
 									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<border>2</border>
 									<option>1</option>
 								</object>
 							</object>

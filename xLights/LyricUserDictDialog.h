@@ -14,6 +14,8 @@ class PhonemeDictionary;
 
 class LyricUserDictDialog: public wxDialog
 {
+    void ValidateWindow();
+
 	public:
 
 		LyricUserDictDialog(PhonemeDictionary* dictionary, const wxString &showDirectory, wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
@@ -63,6 +65,10 @@ class LyricUserDictDialog: public wxDialog
 		void OnButtonLyricOKClick(wxCommandEvent& event);
 		void OnButtonLyricCancelClick(wxCommandEvent& event);
 		void OnTextCtrlOldLyricText(wxCommandEvent& event);
+		void OnGridUserLyricDictCellSelect(wxGridEvent& event);
+		void OnGridUserLyricDictCellChanged(wxGridEvent& event);
+		void OnTextCtrlNewLyricText(wxCommandEvent& event);
+		void OnGridUserLyricDictLabelLeftClick(wxGridEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

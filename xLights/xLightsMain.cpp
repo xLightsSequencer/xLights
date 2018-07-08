@@ -7673,13 +7673,14 @@ bool xLightsFrame::CheckForUpdate(bool force)
     MenuItem_Update->Enable(true);
 #else
     wxString hostname = _T("xlights.org");
-    //wxString path = _T("/downloads/");
-    wxString path = _T("/releases/");
-    //wxString downloadUrl = wxT("http://xlights.org/downloads/");
-    wxString downloadUrl = wxT("http://xlights.org/releases/");
+
+    wxString path = _T("/downloads/");
+    wxString downloadUrl = wxT("http://xlights.org/downloads/");
+    //wxString path = _T("/releases/");
+    //wxString downloadUrl = wxT("http://xlights.org/releases/");
+
     logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
     MenuItem_Update->Enable(true);
-    //return false; // No checking on windows yet
 #endif
 #endif
 
@@ -8283,8 +8284,12 @@ void xLightsFrame::StartxFadeListener()
 
 void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 {
+    SetCursor(wxCURSOR_WAIT);
+    SetStatusText(_("Loading dictionaries ..."));
     dictionary.LoadDictionaries(CurrentDir);
+    SetStatusText(_(""));
 
     LyricUserDictDialog dlg(&dictionary, showDirectory, this);
     dlg.ShowModal();
+    SetCursor(wxCURSOR_ARROW);
 }

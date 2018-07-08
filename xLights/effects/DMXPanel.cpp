@@ -210,7 +210,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX10, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX10 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX10, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX10"));
 	FlexGridSizer_Panel2->Add(Slider_DMX10, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX10 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX10, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX10"));
+	ValueCurve_DMX10 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX10, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX10"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX10 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX10, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX10"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -218,7 +218,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX11, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX11 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX11, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX11"));
 	FlexGridSizer_Panel2->Add(Slider_DMX11, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX11 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX11, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX11"));
+	ValueCurve_DMX11 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX11, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX11"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX11, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX11 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX11, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX11"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -226,7 +226,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX12 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX12, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX12"));
 	FlexGridSizer_Panel2->Add(Slider_DMX12, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX12 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX12, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX12"));
+	ValueCurve_DMX12 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX12, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX12"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX12, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX12 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX12, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX12"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -234,7 +234,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX13, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX13 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX13, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX13"));
 	FlexGridSizer_Panel2->Add(Slider_DMX13, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX13 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX13, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX13"));
+	ValueCurve_DMX13 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX13, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX13"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX13, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX13 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX13, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX13"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -242,7 +242,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX14, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX14 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX14, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX14"));
 	FlexGridSizer_Panel2->Add(Slider_DMX14, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX14 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX14, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX14"));
+	ValueCurve_DMX14 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX14, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX14"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX14, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX14 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX14, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX14"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX14, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -250,7 +250,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX15, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX15 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX15, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX15"));
 	FlexGridSizer_Panel2->Add(Slider_DMX15, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX15 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX15, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX15"));
+	ValueCurve_DMX15 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX15, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX15"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX15, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX15 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX15, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX15"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -258,7 +258,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX16, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX16 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX16, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX16"));
 	FlexGridSizer_Panel2->Add(Slider_DMX16, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX16 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX16, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX16"));
+	ValueCurve_DMX16 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX16, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX16"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX16, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX16 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX16, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX16"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX16, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -266,7 +266,7 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX17, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX17 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX17, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX17"));
 	FlexGridSizer_Panel2->Add(Slider_DMX17, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX17 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX17, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX17"));
+	ValueCurve_DMX17 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX17, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX17"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX17 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX17, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX17"));
 	FlexGridSizer_Panel2->Add(TextCtrl_DMX17, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -274,10 +274,10 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	FlexGridSizer_Panel2->Add(Label_DMX18, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	Slider_DMX18 = new BulkEditSlider(ChannelPanel2, ID_SLIDER_DMX18, 0, 0, 255, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_DMX18"));
 	FlexGridSizer_Panel2->Add(Slider_DMX18, 1, wxALL|wxEXPAND, 2);
-	ValueCurve_DMX18 = new ValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX18, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX18"));
+	ValueCurve_DMX18 = new BulkEditValueCurveButton(ChannelPanel2, ID_VALUECURVE_DMX18, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_DMX18"));
 	FlexGridSizer_Panel2->Add(ValueCurve_DMX18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	TextCtrl_DMX18 = new BulkEditTextCtrl(ChannelPanel2, IDD_TEXTCTRL_DMX18, _("0"), wxDefaultPosition, wxDLG_UNIT(ChannelPanel2,wxSize(20,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_DMX18"));
-	FlexGridSizer_Panel2->Add(TextCtrl_DMX18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer_Panel2->Add(TextCtrl_DMX18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	ChannelPanel2->SetSizer(FlexGridSizer_Panel2);
 	FlexGridSizer_Panel2->Fit(ChannelPanel2);
 	FlexGridSizer_Panel2->SetSizeHints(ChannelPanel2);

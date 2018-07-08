@@ -1,9 +1,12 @@
-#include "PhonemeDictionary.h"
 #include <wx/txtstrm.h>
 #include <wx/wfstream.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
 #include <wx/msgdlg.h>
+
+#include "PhonemeDictionary.h"
+
+#include <log4cpp/Category.hh>
 
 PhonemeDictionary::PhonemeDictionary()
 {
@@ -58,20 +61,31 @@ void PhonemeDictionary::LoadDictionaries(const wxString &showDir)
 
 void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString &showDir)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // start looking for dictionary in the show folder
     wxFileName phonemeFile = wxFileName::DirName(showDir);
     phonemeFile.SetFullName(filename);
+
+    // if not there then look were the exe is
     if (!wxFile::Exists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
         phonemeFile.SetFullName(filename);
     }
+
+    // if not there look in the resources location (OSX/Linux keeps it there)
     if (!wxFile::Exists(phonemeFile.GetFullPath())) {
         phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), filename);
     }
+
     if (!wxFile::Exists(phonemeFile.GetFullPath()))
     {
+        logger_base.warn("Failed to open phoneme dictionary. '%s'", (const char *)filename.c_str());
         wxMessageBox("Failed to open Phoneme dictionary!");
         return;
     }
+
+    logger_base.debug("Loading phoneme dictionary. '%s'", (const char *)phonemeFile.GetFullPath().c_str());
 
     wxFileInputStream input(phonemeFile.GetFullPath());
     wxTextInputStream text(input);

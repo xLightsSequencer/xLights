@@ -11,15 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.22 July 8, 2018
    -- bug (scott)  Fix FSEQ not being saved by default in same folder as xml
    -- enh (scott)  Add custom papagayo dictionary editor
    -- enh (keith)  Remove emptry vendor model categories
    -- bug (keith)  Fix memory leak impacting xschedule and xlights
    -- enh (keith)  Allow user to decide how interactively crashes are handled
    -- bug (keith)  Fix windows upgrade detection because xLights website page it was using is broken
+   -- enh (keith)  Add a library of DMX fixtures
    -- bug (keith)  Fix bug in spirals effect rotation value curve
    -- enh (keith)  Add checksequence check for spurious use of canvas blend style which slows down rendering
-   -- bug (keith)  Fix a crash in VSA import
+   -- bug (gil)    Fix VSA import.
 2018.21 July 4, 2018
    -- bug (scott)  Fix Roto-Zoom reset bug
 2018.20 July 2, 2018

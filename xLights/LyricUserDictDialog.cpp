@@ -30,6 +30,38 @@ BEGIN_EVENT_TABLE(LyricUserDictDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
+void LyricUserDictDialog::ValidateWindow()
+{
+    if (GridUserLyricDict->GetSelectedRows().size() == 0)
+    {
+        ButtonDeleteRow->Disable();
+    }
+    else
+    {
+        ButtonDeleteRow->Enable();
+    }
+    if (TextCtrlNewLyric->GetValue() == "")
+    {
+        ButtonAddLyric->Disable();
+    }
+    else
+    {
+        ButtonAddLyric->Enable();
+    }
+
+    bool allValid = true;
+    for (auto i = 0; i < GridUserLyricDict->GetNumberRows(); i++)
+    {
+        if (GridUserLyricDict->GetCellValue(i, 1).IsEmpty() || !IsValidPhoneme(GridUserLyricDict->GetCellValue(i, 1).Upper()))
+        {
+            allValid = false;
+            break;
+        }
+    }
+
+    ButtonLyricOK->Enable(allValid);
+}
+
 LyricUserDictDialog::LyricUserDictDialog(PhonemeDictionary* dictionary, const wxString &showDirectory, wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     m_dictionary = dictionary;
@@ -77,22 +109,28 @@ LyricUserDictDialog::LyricUserDictDialog(PhonemeDictionary* dictionary, const wx
 	BoxSizer1->Add(ButtonLyricOK, 1, wxALL, 5);
 	ButtonLyricCancel = new wxButton(this, ID_BUTTON_LYRIC_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LYRIC_CANCEL"));
 	BoxSizer1->Add(ButtonLyricCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxFIXED_MINSIZE, 5);
+	FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_RIGHT|wxFIXED_MINSIZE, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_TEXTCTRL_NEW_LYRIC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&LyricUserDictDialog::OnTextCtrlNewLyricText);
 	Connect(ID_TEXTCTRL_OLD_LYRIC,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&LyricUserDictDialog::OnTextCtrlOldLyricText);
 	Connect(ID_BUTTON_ADD_LYRIC,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LyricUserDictDialog::OnButtonAddLyricClick);
+	Connect(ID_GRID_USER_LYRIC_DICT,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&LyricUserDictDialog::OnGridUserLyricDictLabelLeftClick);
+	Connect(ID_GRID_USER_LYRIC_DICT,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&LyricUserDictDialog::OnGridUserLyricDictCellChanged);
+	Connect(ID_GRID_USER_LYRIC_DICT,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&LyricUserDictDialog::OnGridUserLyricDictCellSelect);
 	Connect(ID_BUTTON_DELETE_ROW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LyricUserDictDialog::OnButtonDeleteRowClick);
 	Connect(ID_BUTTON_LYRIC_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LyricUserDictDialog::OnButtonLyricOKClick);
 	Connect(ID_BUTTON_LYRIC_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LyricUserDictDialog::OnButtonLyricCancelClick);
 	//*)
 
-    //GridUserLyricDict->SetRowLabelSize(0);
+    GridUserLyricDict->HideRowLabels();
+    GridUserLyricDict->SetSelectionMode(wxGrid::wxGridSelectRows);
 
     TextCtrlOldLyric->AutoComplete(m_dictionary->GetPhonemeList());
     ReadUserDictionary();
+    ValidateWindow();
 }
 
 LyricUserDictDialog::~LyricUserDictDialog()
@@ -119,9 +157,12 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
     }
 
     InsertRow(TextCtrlNewLyric->GetValue().Upper(), m_dictionary->GetPhoneme(TextCtrlOldLyric->GetValue().Upper()));
+    GridUserLyricDict->SelectRow(GridUserLyricDict->GetNumberRows() - 1);
+    GridUserLyricDict->GoToCell(GridUserLyricDict->GetNumberRows() - 1, 1);
     TextCtrlNewLyric->Clear();
     TextCtrlOldLyric->Clear();
     TextCtrlPhonems->Clear();
+    ValidateWindow();
 }
 
 void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
@@ -147,6 +188,7 @@ void LyricUserDictDialog::OnButtonDeleteRowClick(wxCommandEvent& event)
 
         GridUserLyricDict->DeleteRows(i);
     }
+    ValidateWindow();
 }
 
 void LyricUserDictDialog::OnButtonLyricOKClick(wxCommandEvent& event)
@@ -284,11 +326,40 @@ void LyricUserDictDialog::OnTextCtrlOldLyricText(wxCommandEvent& event)
     if ((m_dictionary->ContainsPhoneme(TextCtrlOldLyric->GetValue().Upper())))
     {
         wxArrayString  phenoms = m_dictionary->GetPhoneme(TextCtrlOldLyric->GetValue().Upper());
-        phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
-        TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
+        if (phenoms.size() > 2)
+        {
+            phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
+            TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
+        }
+        else
+        {
+            TextCtrlPhonems->Clear();
+        }
     }
     else
     {
         TextCtrlPhonems->Clear();
     }
+    ValidateWindow();
+}
+
+void LyricUserDictDialog::OnGridUserLyricDictCellSelect(wxGridEvent& event)
+{
+    GridUserLyricDict->SelectRow(event.GetRow());
+    ValidateWindow();
+}
+
+void LyricUserDictDialog::OnGridUserLyricDictCellChanged(wxGridEvent& event)
+{
+    ValidateWindow();
+}
+
+void LyricUserDictDialog::OnTextCtrlNewLyricText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void LyricUserDictDialog::OnGridUserLyricDictLabelLeftClick(wxGridEvent& event)
+{
+    ValidateWindow();
 }
