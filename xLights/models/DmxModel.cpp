@@ -574,7 +574,7 @@ void DmxModel::InitModel() {
             if (wxMessageBox("Would you like to reset to default Skulltronix settings?", "Restore Defaults?", wxYES_NO | wxCENTER) == wxNO) {
                 style_changed = false;
             } else {
-                parm1 = 18;
+                parm1 = 26;
                 ModelXml->DeleteAttribute("parm1");
                 ModelXml->AddAttribute("parm1", wxString::Format("%d", parm1));
             }
@@ -645,69 +645,92 @@ void DmxModel::InitModel() {
     } else if( dmx_style == "Skulltronix Skull" ) {
         dmx_style_val = DMX_STYLE_SKULLTRONIX_SKULL;
         if( !style_changed ) {
-            pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "5"));
+            pan_channel = wxAtoi(ModelXml->GetAttribute("DmxPanChannel", "13"));
             pan_orient = wxAtoi(ModelXml->GetAttribute("DmxPanOrient", "90"));
             pan_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxPanDegOfRot", "180"));
             pan_slew_limit = wxAtof(ModelXml->GetAttribute("DmxPanSlewLimit", "0"));
-            tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "11"));
+            tilt_channel = wxAtoi(ModelXml->GetAttribute("DmxTiltChannel", "19"));
             tilt_orient = wxAtoi(ModelXml->GetAttribute("DmxTiltOrient", "315"));
             tilt_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxTiltDegOfRot", "90"));
             tilt_slew_limit = wxAtof(ModelXml->GetAttribute("DmxTiltSlewLimit", "0"));
-            red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "16"));
-            green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "17"));
-            blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "18"));
+            red_channel = wxAtoi(ModelXml->GetAttribute("DmxRedChannel", "24"));
+            green_channel = wxAtoi(ModelXml->GetAttribute("DmxGreenChannel", "25"));
+            blue_channel = wxAtoi(ModelXml->GetAttribute("DmxBlueChannel", "26"));
             white_channel = wxAtoi(ModelXml->GetAttribute("DmxWhiteChannel", "0"));
             tilt_min_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMinLimit", "442"));
             tilt_max_limit = wxAtoi(ModelXml->GetAttribute("DmxTiltMaxLimit", "836"));
             pan_min_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMinLimit", "250"));
             pan_max_limit = wxAtoi(ModelXml->GetAttribute("DmxPanMaxLimit", "1250"));
-            nod_channel = wxAtoi(ModelXml->GetAttribute("DmxNodChannel", "3"));
+            nod_channel = wxAtoi(ModelXml->GetAttribute("DmxNodChannel", "11"));
             nod_orient = wxAtoi(ModelXml->GetAttribute("DmxNodOrient", "331"));
             nod_deg_of_rot = wxAtoi(ModelXml->GetAttribute("DmxNodDegOfRot", "58"));
             nod_min_limit = wxAtoi(ModelXml->GetAttribute("DmxNodMinLimit", "452"));
             nod_max_limit = wxAtoi(ModelXml->GetAttribute("DmxNodMaxLimit", "745"));
-            jaw_channel = wxAtoi(ModelXml->GetAttribute("DmxJawChannel", "1"));
+            jaw_channel = wxAtoi(ModelXml->GetAttribute("DmxJawChannel", "9"));
             jaw_min_limit = wxAtoi(ModelXml->GetAttribute("DmxJawMinLimit", "500"));
             jaw_max_limit = wxAtoi(ModelXml->GetAttribute("DmxJawMaxLimit", "750"));
-            eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "15"));
-            eye_ud_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeUDChannel", "7"));
+            eye_brightness_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeBrtChannel", "23"));
+            eye_ud_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeUDChannel", "15"));
             eye_ud_min_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeUDMinLimit", "575"));
             eye_ud_max_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeUDMaxLimit", "1000"));
-            eye_lr_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeLRChannel", "9"));
+            eye_lr_channel = wxAtoi(ModelXml->GetAttribute("DmxEyeLRChannel", "17"));
             eye_lr_min_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeLRMinLimit", "499"));
             eye_lr_max_limit = wxAtoi(ModelXml->GetAttribute("DmxEyeLRMaxLimit", "878"));
         } else {
             style_changed = false;
-            pan_channel = 5;
+            pan_channel = 13;
             pan_orient = 90;
             pan_deg_of_rot = 180;
             pan_slew_limit = 0;
-            tilt_channel = 11;
+            tilt_channel = 19;
             tilt_orient = 315;
             tilt_deg_of_rot = 90;
             tilt_slew_limit = 0;
-            red_channel = 16;
-            green_channel = 17;
-            blue_channel = 18;
+            red_channel = 24;
+            green_channel = 25;
+            blue_channel = 26;
             white_channel = 0;
             tilt_min_limit = 442;
             tilt_max_limit = 836;
             pan_min_limit = 250;
             pan_max_limit = 1250;
-            nod_channel = 3;
+            nod_channel = 11;
             nod_orient = 331;
             nod_deg_of_rot = 58;
             nod_min_limit = 452;
             nod_max_limit = 745;
-            jaw_channel = 1;
+            jaw_channel = 9;
             jaw_min_limit = 500;
             jaw_max_limit = 750;
-            eye_ud_channel = 7;
+            eye_ud_channel = 15;
             eye_ud_min_limit = 575;
             eye_ud_max_limit = 1000;
-            eye_lr_channel = 9;
+            eye_lr_channel = 17;
             eye_lr_min_limit = 499;
             eye_lr_max_limit = 878;
+
+            // provide default node names
+            wxString nn = wxString::Format("%s", ",,,,,,,Power,Jaw,-Jaw Fine,Nod,-Nod Fine,Pan,-Pan Fine,Eye UD,-Eye UD Fine,Eye LR,-Eye LR Fine,Tilt,-Tilt Fine,-Torso,-Torso Fine,Eye Brightness,Eye Red,Eye Green,Eye Blue");
+            wxString tempstr = nn;
+            nodeNames.clear();
+            while (tempstr.size() > 0) {
+                std::string t2 = tempstr.ToStdString();
+                if (tempstr[0] == ',') {
+                    t2 = "";
+                    tempstr = tempstr(1, tempstr.length());
+                }
+                else if (tempstr.Contains(",")) {
+                    t2 = tempstr.SubString(0, tempstr.Find(",") - 1);
+                    tempstr = tempstr.SubString(tempstr.Find(",") + 1, tempstr.length());
+                }
+                else {
+                    tempstr = "";
+                }
+                nodeNames.push_back(t2);
+            }
+            SetProperty("NodeNames", nn);
+            ModelXml->DeleteAttribute("NodeNames");
+            ModelXml->AddAttribute("NodeNames", nn);
 
             ModelXml->DeleteAttribute("DmxPanChannel");
             ModelXml->AddAttribute("DmxPanChannel", wxString::Format("%d", pan_channel));
@@ -1886,34 +1909,34 @@ void DmxModel::ExportXlightsModel()
     // I need to do this because there are different defaults
     if (s == "Skulltronix Skull")
     {
-        pc = ModelXml->GetAttribute("DmxPanChannel", "5");
+        pc = ModelXml->GetAttribute("DmxPanChannel", "13");
         po = ModelXml->GetAttribute("DmxPanOrient", "90");
         pdr = ModelXml->GetAttribute("DmxPanDegOfRot", "180");
-        tc = ModelXml->GetAttribute("DmxTiltChannel", "11");
+        tc = ModelXml->GetAttribute("DmxTiltChannel", "19");
         to = ModelXml->GetAttribute("DmxTiltOrient", "315");
         tdr = ModelXml->GetAttribute("DmxTiltDegOfRot", "90");
-        rc = ModelXml->GetAttribute("DmxRedChannel", "16");
-        gc = ModelXml->GetAttribute("DmxGreenChannel", "17");
-        bc = ModelXml->GetAttribute("DmxBlueChannel", "18");
+        rc = ModelXml->GetAttribute("DmxRedChannel", "24");
+        gc = ModelXml->GetAttribute("DmxGreenChannel", "25");
+        bc = ModelXml->GetAttribute("DmxBlueChannel", "26");
     }
 
     wxString tml = ModelXml->GetAttribute("DmxTiltMinLimit", "442");
     wxString tmxl = ModelXml->GetAttribute("DmxTiltMaxLimit", "836");
     wxString pml = ModelXml->GetAttribute("DmxPanMinLimit", "250");
     wxString pmxl = ModelXml->GetAttribute("DmxPanMaxLimit", "1250");
-    wxString nc = ModelXml->GetAttribute("DmxNodChannel", "3");
+    wxString nc = ModelXml->GetAttribute("DmxNodChannel", "11");
     wxString no = ModelXml->GetAttribute("DmxNodOrient", "331");
     wxString ndr = ModelXml->GetAttribute("DmxNodDegOfRot", "58");
     wxString nml = ModelXml->GetAttribute("DmxNodMinLimit", "452");
     wxString nmxl = ModelXml->GetAttribute("DmxNodMaxLimit", "745");
-    wxString jc = ModelXml->GetAttribute("DmxJawChannel", "1");
+    wxString jc = ModelXml->GetAttribute("DmxJawChannel", "9");
     wxString jml = ModelXml->GetAttribute("DmxJawMinLimit", "500");
     wxString jmxl = ModelXml->GetAttribute("DmxJawMaxLimit", "750");
-    wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel","15");
-    wxString eudc = ModelXml->GetAttribute("DmxEyeUDChannel", "7");
+    wxString eb = ModelXml->GetAttribute("DmxEyeBrtChannel","23");
+    wxString eudc = ModelXml->GetAttribute("DmxEyeUDChannel", "15");
     wxString eudml = ModelXml->GetAttribute("DmxEyeUDMinLimit", "575");
     wxString eudmxl = ModelXml->GetAttribute("DmxEyeUDMaxLimit", "1000");
-    wxString elrc = ModelXml->GetAttribute("DmxEyeLRChannel", "9");
+    wxString elrc = ModelXml->GetAttribute("DmxEyeLRChannel", "17");
     wxString elml = ModelXml->GetAttribute("DmxEyeLRMinLimit", "499");
     wxString elrmxl = ModelXml->GetAttribute("DmxEyeLRMaxLimit", "878");
 
