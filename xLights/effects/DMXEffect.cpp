@@ -55,6 +55,28 @@ void DMXEffect::SetDefaultParameters() {
     dp->ValueCurve_DMX16->SetActive(false);
     dp->ValueCurve_DMX17->SetActive(false);
     dp->ValueCurve_DMX18->SetActive(false);
+    dp->ValueCurve_DMX19->SetActive(false);
+    dp->ValueCurve_DMX20->SetActive(false);
+    dp->ValueCurve_DMX21->SetActive(false);
+    dp->ValueCurve_DMX22->SetActive(false);
+    dp->ValueCurve_DMX23->SetActive(false);
+    dp->ValueCurve_DMX24->SetActive(false);
+    dp->ValueCurve_DMX25->SetActive(false);
+    dp->ValueCurve_DMX26->SetActive(false);
+    dp->ValueCurve_DMX27->SetActive(false);
+    dp->ValueCurve_DMX28->SetActive(false);
+    dp->ValueCurve_DMX29->SetActive(false);
+    dp->ValueCurve_DMX30->SetActive(false);
+    dp->ValueCurve_DMX31->SetActive(false);
+    dp->ValueCurve_DMX32->SetActive(false);
+    dp->ValueCurve_DMX33->SetActive(false);
+    dp->ValueCurve_DMX34->SetActive(false);
+    dp->ValueCurve_DMX35->SetActive(false);
+    dp->ValueCurve_DMX36->SetActive(false);
+    dp->ValueCurve_DMX37->SetActive(false);
+    dp->ValueCurve_DMX38->SetActive(false);
+    dp->ValueCurve_DMX39->SetActive(false);
+    dp->ValueCurve_DMX40->SetActive(false);
 
     SetSliderValue(dp->Slider_DMX1, 0);
     SetSliderValue(dp->Slider_DMX2, 0);
@@ -74,6 +96,28 @@ void DMXEffect::SetDefaultParameters() {
     SetSliderValue(dp->Slider_DMX16, 0);
     SetSliderValue(dp->Slider_DMX17, 0);
     SetSliderValue(dp->Slider_DMX18, 0);
+    SetSliderValue(dp->Slider_DMX19, 0);
+    SetSliderValue(dp->Slider_DMX20, 0);
+    SetSliderValue(dp->Slider_DMX21, 0);
+    SetSliderValue(dp->Slider_DMX22, 0);
+    SetSliderValue(dp->Slider_DMX23, 0);
+    SetSliderValue(dp->Slider_DMX24, 0);
+    SetSliderValue(dp->Slider_DMX25, 0);
+    SetSliderValue(dp->Slider_DMX26, 0);
+    SetSliderValue(dp->Slider_DMX27, 0);
+    SetSliderValue(dp->Slider_DMX28, 0);
+    SetSliderValue(dp->Slider_DMX29, 0);
+    SetSliderValue(dp->Slider_DMX30, 0);
+    SetSliderValue(dp->Slider_DMX31, 0);
+    SetSliderValue(dp->Slider_DMX32, 0);
+    SetSliderValue(dp->Slider_DMX33, 0);
+    SetSliderValue(dp->Slider_DMX34, 0);
+    SetSliderValue(dp->Slider_DMX35, 0);
+    SetSliderValue(dp->Slider_DMX36, 0);
+    SetSliderValue(dp->Slider_DMX37, 0);
+    SetSliderValue(dp->Slider_DMX38, 0);
+    SetSliderValue(dp->Slider_DMX39, 0);
+    SetSliderValue(dp->Slider_DMX40, 0);
 }
 
 void DMXEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
@@ -241,6 +285,28 @@ void DMXEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &b
         if( SetDMXSinglColorPixel(16, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
         if( SetDMXSinglColorPixel(17, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
         if( SetDMXSinglColorPixel(18, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(19, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(20, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(21, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(22, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(23, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(24, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(25, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(26, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(27, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(28, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(29, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(30, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(31, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(32, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(33, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(34, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(35, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(36, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(37, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(38, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(39, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
+        if( SetDMXSinglColorPixel(40, num_channels, SettingsMap, eff_pos, color, buffer) ) return;
    } else {
         // handle channels for 3 color nodes
         if( SetDMXRGBNode(1, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
@@ -249,6 +315,13 @@ void DMXEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &b
         if( SetDMXRGBNode(4, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
         if( SetDMXRGBNode(5, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
         if( SetDMXRGBNode(6, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        if( SetDMXRGBNode(7, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        if( SetDMXRGBNode(8, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        if( SetDMXRGBNode(9, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        if( SetDMXRGBNode(10, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        if( SetDMXRGBNode(11, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        if( SetDMXRGBNode(12, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
+        if( SetDMXRGBNode(13, num_channels, SettingsMap, eff_pos, color, buffer, string_type) ) return;
     }
 
 }
@@ -264,7 +337,7 @@ void DMXEffect::SetPanelStatus(Model *cls) {
 
     int num_channels = cls->GetNumChannels();
 
-    for(int i = 1; i <= 18; ++i) {
+    for(int i = 1; i <= 40; ++i) {
         wxString label_ctrl = wxString::Format("ID_STATICTEXT_DMX%d", i);
         std::string name = cls->GetNodeName(i-1);
         wxStaticText* label = (wxStaticText*)(p->FindWindowByName(label_ctrl));
