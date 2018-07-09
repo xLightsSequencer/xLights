@@ -15,6 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (gil)    Changed the default channel assignments for the Skulltronix Skull option so that you can set
                    the start channel to 1 and the Power channel will start at channel 8, Jaw at 9, etc.
    -- enh (gil)    Added the default Node Names for the Skulltronix Skull option.
+   -- enh (gil)    Timing during is now read from VSA file instead of a hard-coded 33ms.
    -- bug (gil)    Corrected VSA import issue when there are inactive tracks mixed in with active tracks.  Fixes #1190.
 2018.22 July 8, 2018
    -- bug (scott)  Fix FSEQ not being saved by default in same folder as xml

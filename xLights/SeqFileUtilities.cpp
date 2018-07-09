@@ -5216,7 +5216,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
 }
 
 static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, std::string name,
-    const std::vector< VSAFile::vsaEventRecord > &events, int sequence_end_time, bool is_16bit = true)
+    const std::vector< VSAFile::vsaEventRecord > &events, int sequence_end_time, uint32_t timing, bool is_16bit = true)
 {
     float last_pos = -1.0;
     int last_time = 0;
@@ -5264,11 +5264,11 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             settings2 += "E_CHOICE_Channel=" + name + ",";
             settings2 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
-            layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * 33, false, false);
+            layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * timing, false, false);
         }
-        layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * 33, events[i].end_time * 33, false, false);
+        layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * timing, events[i].end_time * timing, false, false);
         last_pos = end_pos;
-        last_time = events[i].end_time * 33;
+        last_time = events[i].end_time * timing;
 
         // check for filling to end of sequence
         if( i == events.size() - 1) {
@@ -5304,6 +5304,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
 
     const std::vector< VSAFile::vsaTrackRecord > &tracks = vsa.GetTrackInfo();
     const std::vector< std::vector< VSAFile::vsaEventRecord > > &events = vsa.GetEventInfo();
+    const uint32_t vsa_timing = vsa.GetTiming();
 
     for( int m = 0; m < dlg.selectedModels.size(); ++m ) {
         std::string modelName = dlg.selectedModels[m];
@@ -5335,7 +5336,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                     default:
                         break;
                     }
-                    ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), is_16bit);
+                    ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), vsa_timing, is_16bit );
                 }
             }
         }
