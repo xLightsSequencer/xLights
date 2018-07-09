@@ -17,6 +17,7 @@
 #include "../DissolveTransitionPattern.h"
 #include "../xLightsApp.h"
 #include "../TimingPanel.h"
+#include "UtilFunctions.h"
 
 namespace
 {
@@ -471,6 +472,18 @@ void WarpEffect::adjustSettings(const std::string &version, Effect *effect, bool
     {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
+}
+
+std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res; 
+    
+    if (settings.Get("T_CHECKBOX_Canvas", "0") == "0")
+    {
+        res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a warp effect. Without canvas mode warp won't do anything. Effect: Warp, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    return res;
 }
 
 void WarpEffect::SetDefaultParameters()
