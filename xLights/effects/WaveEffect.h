@@ -15,6 +15,9 @@
 #define WAVE_SPEED_MIN 0
 #define WAVE_SPEED_MAX 50
 
+#define WAVE_YOFFSET_MIN -250
+#define WAVE_YOFFSET_MAX 250
+
 class WaveEffect : public RenderableEffect
 {
     public:
