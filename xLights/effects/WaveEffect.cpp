@@ -121,20 +121,8 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     }
     std::vector<int> &WaveBuffer0 = cache->WaveBuffer;
 
-    /*
-     WaveType.Add("Sine");       // 0
-     WaveType.Add("Triangle");   // 1
-     WaveType.Add("Square");     //2
-     WaveType.Add("Decaying Sine"); //3
-     WaveType.Add("Ivy/fractal"); //4
-     FillColors.Add("None");     // 0
-     FillColors.Add("Rainbow");  // 1
-     FillColors.Add("Palette");  // 2
-     */
-
-    int x, y, ystart;
-    double r, yc, deltay;
-    double degree, radian, degree_per_x;
+    int y, ystart;
+    double deltay;
     static const double pi_180 = 0.01745329;
     xlColor color;
     HSVValue hsv, hsv0, hsv1;
@@ -146,8 +134,8 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     }
     int state = (buffer.curPeriod - buffer.curEffStartPer) * wspeed * buffer.frameTimeInMs / 50;
 
-    yc = buffer.BufferHt / 2.0;
-    r = yc;
+    double yc = buffer.BufferHt / 2.0;
+    double r = yc;
     if (WaveType == WAVETYPE_DECAYSINE) {
         r -= state / 4;
         //        if (r < 100./ThicknessWave) r = 100./ThicknessWave; //turn into straight line; don't completely disappear
@@ -174,16 +162,28 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             }
         }
     }
-    degree_per_x = NumberWaves / buffer.BufferWi;
+    double degree_per_x = NumberWaves / buffer.BufferWi;
     hsv.saturation = 1.0;
     hsv.value = 1.0;
     hsv.hue = 1.0;
-    for (x = 0; x < buffer.BufferWi; x++) {
+    for (int x = 0; x < buffer.BufferWi; x++) {
+        double degree;
         if (!WaveDirection)
             degree = x * degree_per_x + state; // state causes it to move
         else
             degree = x * degree_per_x - state; // state causes it to move
-        radian = degree * pi_180;
+        double radian = degree * pi_180;
+
+        double degreeMinus1;
+        if (!WaveDirection)
+            degreeMinus1 = (x - 1) * degree_per_x + state; // state causes it to move
+        else
+            degreeMinus1 = (x - 1) * degree_per_x - state; // state causes it to move
+        double radianMinus1 = degreeMinus1 * pi_180;
+
+        double sinrad = buffer.sin(radian);
+        double sinradMinus1 = buffer.sin(radianMinus1);
+
         if (WaveType == WAVETYPE_TRIANGLE) { // Triangle
             /*
              .
@@ -232,7 +232,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             ystart = WaveBuffer0[eff_x] / 2;
         }
         else {
-            ystart = (int)(r*(WaveHeight / 100.0) * buffer.sin(radian) + yc);
+            ystart = (int)(r*(WaveHeight / 100.0) * sinrad + yc);
         }
 
         if (x >= 0 && x < buffer.BufferWi && ystart >= 0 && ystart < buffer.BufferHt) {
@@ -264,23 +264,40 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             int y1 = (int)(ystart - (r*(ThicknessWave / 100.0)));
             int y2 = (int)(ystart + (r*(ThicknessWave / 100.0)));
             if (y2 <= y1) y2 = y1 + 1; //minimum height
+
+            //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
+
+            if (WaveType == WAVETYPE_SQUARE) { // Square Wave
+                if (signbit(sinrad) != signbit(sinradMinus1))
+                {
+                    y1 = yc - yc * (WaveHeight / 100.0);
+                    y2 = yc + yc * (WaveHeight / 100.0);
+                }
+                else if (sinrad > 0.0) {
+                    y1 = yc + 1 + yc * (WaveHeight / 100.0) * ((100.0 - ThicknessWave) / 100.0);
+                    y2 = yc + yc * (WaveHeight / 100.0);
+                }
+                else {
+                    y1 = yc - yc * (WaveHeight / 100.0);
+                    y2 = yc - yc * (WaveHeight / 100.0) * ((100.0 - ThicknessWave) / 100.0);
+                }
+
+                if (y1 < 0) y1 = 0;
+                if (y2 < 1) y2 = 1;
+                if (y1 > buffer.BufferHt - 1) y1 = buffer.BufferHt - 1;
+                if (y2 > buffer.BufferHt) y2 = buffer.BufferHt;
+
+                if (y2 <= y1)
+                {
+                    y2 = y1 + 1;
+                }
+            }
+
             int y1mirror = yc + (yc - y1);
             int y2mirror = yc + (yc - y2);
             deltay = y2 - y1;
             wxASSERT(deltay > 0);
 
-            //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
-
-            if (WaveType == WAVETYPE_SQUARE) { // Square Wave
-                if (buffer.sin(radian) > 0.0) {
-                    y1 = yc + 1;
-                    y2 = yc + yc * (WaveHeight / 100.0);
-                }
-                else {
-                    y1 = yc - yc * (WaveHeight / 100.0);
-                    y2 = yc;
-                }
-            }
             for (y = y1; y < y2; y++) {
                 int adjustedY = y + roundedWaveYOffset;
                 if (FillColor <= 0) { //default to this if no selection -DJ
@@ -300,6 +317,7 @@ void WaveEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
             }
 
             if (MirrorWave) {
+
                 if (y1mirror < y2mirror) {
                     y1 = y1mirror;
                     y2 = y2mirror;
