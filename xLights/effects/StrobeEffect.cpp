@@ -88,16 +88,16 @@ void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
 
     if (reactToMusic)
     {
-        if (buffer.GetMedia() != NULL)
+        float f = 0.0;
+        if (buffer.GetMedia() != nullptr)
         {
-            float f = 0.0;
             std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-            if (pf != NULL)
+            if (pf != nullptr)
             {
                 f = *pf->begin();
             }
-            Number_Strobes *= f;
         }
+        Number_Strobes *= f;
     }
 
     StrobeRenderCache *cache = (StrobeRenderCache*)buffer.infoCache[id];

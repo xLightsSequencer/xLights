@@ -170,15 +170,15 @@ void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
 
     if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false))
     {
+        float f = 0.0;
         if (buffer.GetMedia() != nullptr) {
-            float f = 0.0;
             std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
             if (pf != nullptr)
             {
                 f = *pf->begin();
             }
-            Count = (float)Count * f;
         }
+        Count = (float)Count * f;
     }
 
     MeteorsRenderCache *cache = GetCache(buffer, id);
