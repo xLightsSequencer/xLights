@@ -2431,6 +2431,7 @@ void xLightsFrame::EnableNetworkChanges()
     bool flag=(!_outputManager.IsOutputting() && !CurrentDir.IsEmpty());
     ButtonAddDongle->Enable(flag);
     ButtonAddE131->Enable(flag);
+    ButtonAddDDP->Enable(flag);
     ButtonArtNET->Enable(flag);
     ButtonAddNull->Enable(flag);
     ButtonAddLOR->Enable(flag);
