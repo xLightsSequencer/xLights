@@ -1066,6 +1066,8 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    logger_base.debug("Audio Manager Constructor start");
+
 	// save parameters and initialise defaults
     _ok = true;
     _hash = "";
@@ -1089,7 +1091,9 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	_extra = std::max(step, block) + 1;
 
 	// Open the media file
-	OpenMediaFile();
+    logger_base.debug("Audio Manager Constructor: Loading media file.");
+    OpenMediaFile();
+    logger_base.debug("Audio Manager Constructor: Media file loaded.");
 
     // if we didnt get a valid looking rate then we really are not ok
     if (_rate <= 0) _ok = false;
@@ -1097,8 +1101,14 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
 	// If we opened it successfully kick off the frame data extraction ... this will run on another thread
 	if (_intervalMS > 0 && _ok)
 	{
-		PrepareFrameData(true);
-	}
+        logger_base.debug("Audio Manager Constructor: Preparing frame data.");
+        PrepareFrameData(true);
+        logger_base.debug("Audio Manager Constructor: Preparing frame data done ... but maybe on a background thread.");
+    }
+    else if (_ok)
+    {
+        logger_base.debug("Audio Manager Constructor: Skipping preparing frame data as timing not known yet.");
+    }
 
 	// if we got here without setting state to zero then all must be good so set state to 1 success
 	if (_ok && _state == -1)
@@ -1340,7 +1350,11 @@ void AudioManager::DoPrepareFrameData()
     std::unique_lock<std::shared_timed_mutex> locker(_mutex);
     logger_base.info("DoPrepareFrameData: Got mutex.");
 
-    if (_data[0] == nullptr) return;
+    if (_data[0] == nullptr)
+    {
+        logger_base.warn("    DoPrepareFrameData: Exiting as there is no data.");
+        return;
+    }
 
     wxStopWatch sw;
 
@@ -1358,6 +1372,8 @@ void AudioManager::DoPrepareFrameData()
         wxMilliSleep(1000);
     }
 
+    logger_base.info("DoPrepareFrameData: Data is loaded.");
+
 	// samples per frame
 	int samplesperframe = _rate * _intervalMS / 1000;
 	int frames = _lengthMS / _intervalMS;
@@ -1366,6 +1382,12 @@ void AudioManager::DoPrepareFrameData()
 		frames++;
 	}
 	int totalsamples = frames * samplesperframe;
+
+    logger_base.info("    Length %ldms", _lengthMS);
+    logger_base.info("    Interval %dms", _intervalMS);
+    logger_base.info("    Samples per frame %d", samplesperframe);
+    logger_base.info("    Frames %d", frames);
+    logger_base.info("    Total samples %d", totalsamples);
 
 	// these are used to normalise output
 	_bigmax = -1;
@@ -1526,7 +1548,7 @@ void AudioManager::DoPrepareFrameData()
 	// flag the fact that the data is all ready
 	_frameDataPrepared = true;
 
-	logger_base.info("DoPrepareFrameData: Audio frame data processing complete in %ld.", sw.Time());
+	logger_base.info("DoPrepareFrameData: Audio frame data processing complete in %ld. Frames: %d", sw.Time(), frames);
 }
 
 // Called to trigger frame data creation
@@ -1840,9 +1862,13 @@ int AudioManager::decodesideinfosize(int version, int mono)
 // Set the frame interval we will be using
 void AudioManager::SetFrameInterval(int intervalMS)
 {
-	// If this is different from what it was previously
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    // If this is different from what it was previously
 	if (_intervalMS != intervalMS)
 	{
+        logger_base.debug("Changing frame interval to %d", intervalMS);
+
 		// save it and regenerate the frame data for effects that rely upon it ... but do it on a background thread
 		_intervalMS = intervalMS;
 		PrepareFrameData(true);
@@ -2243,7 +2269,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     avcodec_close(codecContext);
     avformat_close_input(&formatContext);
 
-    logger_base.debug("DoLoadAudioData: Song data loaded in %ld.", sw.Time());
+    logger_base.debug("DoLoadAudioData: Song data loaded in %ld. Read: %ld", sw.Time(), read);
 }
 
 SDL* AudioManager::GetSDL()

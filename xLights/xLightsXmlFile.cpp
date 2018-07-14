@@ -193,6 +193,8 @@ void xLightsXmlFile::SetSequenceTiming( const wxString& timing )
 
 void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags )
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     media_file = FixFile(ShowDir, filename);
 
     wxXmlNode* root=seqDocument.GetRoot();
@@ -220,7 +222,17 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
     ObtainAccessToURL(filename.ToStdString());
     if ((filename != wxEmptyString) && wxFileExists(filename) && wxIsReadable(filename))
     {
+        logger_base.debug("SetMediaFile: Creating audio manager");
         audio = new AudioManager(std::string(filename.c_str()), 4096, 32768);
+
+        if (audio != nullptr)
+        {
+            logger_base.info("SetMediaFile: Audio loaded. Audio frame interval %dms. Our frame interval %dms", audio->GetFrameInterval(), GetFrameMS());
+            if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0)
+            {
+                audio->SetFrameInterval(GetFrameMS());
+            }
+        }
     }
 
 	if( overwrite_tags )
@@ -1050,11 +1062,11 @@ void xLightsXmlFile::ConvertToFixedPointTiming()
 bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Loading sequence " + GetFullPath());
+    logger_base.info("LoadSequence: Loading sequence " + GetFullPath());
 
 	if (!seqDocument.Load(GetFullPath()))
 	{
-		logger_base.error("XML file load failed.");
+		logger_base.error("LoadSequence: XML file load failed.");
 		return false;
 	}
     is_open = true;
@@ -1114,6 +1126,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                 else if( element->GetName() == "sequenceTiming")
                 {
                     seq_timing = element->GetNodeContent();
+                    logger_base.debug("LoadSequence: Sequence timing loaded from XML file. %s", (const char *)seq_timing.c_str());
                 }
                 else if( element->GetName() == "sequenceType")
                 {
@@ -1123,17 +1136,33 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                 {
                     if( !ignore_audio )
                     {
+                        logger_base.debug("LoadSequence: mediaFile %s", (const char*)element->GetNodeContent().c_str());
                         media_file = FixFile(ShowDir, element->GetNodeContent());
+                        logger_base.debug("LoadSequence: mediaFile after fix %s", (const char*)media_file.c_str());
                         wxFileName mf = media_file;
                         if (audio != nullptr)
                         {
+                            logger_base.debug("LoadSequence: removing prior audio.");
                             delete audio;
                             audio = nullptr;
                         }
                         if( mf.FileExists() && mf.IsFileReadable() )
                         {
                             ObtainAccessToURL(media_file.ToStdString());
+                            logger_base.debug("LoadSequence: Creating audio manager");
                             audio = new AudioManager(media_file.ToStdString(), 4096, 32768);
+                            logger_base.debug("LoadSequence: audio manager creation done");
+                        }
+                        else
+                        {
+                            if (!mf.FileExists())
+                            {
+                                logger_base.error("LoadSequence: audio file does not exist.");
+                            }
+                            else if (!mf.IsFileReadable())
+                            {
+                                logger_base.error("LoadSequence: audio file not readable.");
+                            }
                         }
                     }
                 }
@@ -1200,13 +1229,19 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
 
 	if (audio != nullptr)
 	{
-		if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0)
+        logger_base.info("LoadSequence: Audio loaded. Audio frame interval %dms. Our frame interval %dms", audio->GetFrameInterval(), GetFrameMS());
+        if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0)
 		{
 			audio->SetFrameInterval(GetFrameMS());
 		}
 	}
-    logger_base.info("Sequence timing interval %dms.", GetFrameMS());
-	logger_base.info("Sequence loaded.");
+    else
+    {
+        logger_base.info("LoadSequence: No Audio loaded.");
+    }
+
+    logger_base.info("LoadSequence: Sequence timing interval %dms.", GetFrameMS());
+	logger_base.info("LoadSequence: Sequence loaded.");
 
 	return is_open;
 }
