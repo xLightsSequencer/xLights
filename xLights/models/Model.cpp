@@ -990,17 +990,17 @@ std::string Model::ComputeStringStartChannel(int i) {
                 Output* o = modelManager.GetOutputManager()->GetOutput(StringStartChanLong + ChannelsPerString + 1, ststch);
                 if (o != nullptr)
                 {
-                    return wxString::Format("%i:%i",o->GetOutputNumber(), ststch).ToStdString();
+                    return wxString::Format("%i:%ld",o->GetOutputNumber(), ststch).ToStdString();
                 }
             }
         } else if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
             long StringEndChan=StringStartChanLong + ChannelsPerString;
-            stch = sNet + wxString::Format(":%d", StringEndChan);
+            stch = sNet + wxString::Format(":%ld", StringEndChan);
         }
     }
     if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
         long StringEndChan=StringStartChanLong + ChannelsPerString;
-        stch = wxString::Format(wxT("%i"), StringEndChan);
+        stch = wxString::Format(wxT("%ld"), StringEndChan);
     }
     return stch.ToStdString();
 }
