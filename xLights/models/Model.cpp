@@ -3135,6 +3135,8 @@ void Model::SetTop(ModelPreview* preview,int y) {
 
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetTop(y);
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
     IncrementChangeCount();
 }
 
@@ -3144,6 +3146,8 @@ void Model::SetBottom(ModelPreview* preview,int y) {
 
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetBottom(y);
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
     IncrementChangeCount();
 }
 
@@ -3153,6 +3157,8 @@ void Model::SetLeft(ModelPreview* preview,int x) {
 
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetLeft(x);
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
     IncrementChangeCount();
 }
 
@@ -3162,6 +3168,8 @@ void Model::SetRight(ModelPreview* preview,int x) {
 
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetRight(x);
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
     IncrementChangeCount();
 }
 
@@ -3186,6 +3194,8 @@ void Model::SetWidth(ModelPreview* preview, int w) {
 
     SetMinMaxModelScreenCoordinates(preview);
     GetModelScreenLocation().SetMWidth(w);
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
     IncrementChangeCount();
 }
 
@@ -3230,6 +3240,10 @@ void Model::SetHcenterOffset(float offset) {
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetHcenterOffset(offset);
+
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
+
     IncrementChangeCount();
 }
 
@@ -3238,6 +3252,10 @@ void Model::SetVcenterOffset(float offset) {
     if (GetModelScreenLocation().IsLocked()) return;
 
     GetModelScreenLocation().SetVcenterOffset(offset);
+
+    GetModelScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
+
     IncrementChangeCount();
 }
 
