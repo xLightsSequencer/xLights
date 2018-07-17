@@ -318,6 +318,10 @@ class xLightsImportChannelMapDialog: public wxDialog
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
+    
+    void OnDragPossible(wxDataViewEvent& event);
+    void OnDragDrop(wxDataViewEvent& event);
+
     void OnBeginDrag(wxDataViewEvent& event);
     void Unmap(const wxDataViewItem& item);
     void Map(const wxDataViewItem& item, const std::string& mapping);

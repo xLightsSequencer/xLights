@@ -4376,7 +4376,6 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
 				);
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				OTHER_TAPI_FLAGS = "";
@@ -4454,7 +4453,6 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
 				);
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
