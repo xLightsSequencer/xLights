@@ -306,6 +306,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         // load the fseq data file if it exists
         if( fseq_file.FileExists())
         {
+            logger_base.debug("Opening FSEQ File at: '%s'", (const char *)fseq_file.GetPath().c_str());
             if (plog != nullptr)
             {
                 plog->Show(true);
@@ -330,6 +331,10 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             SeqChanCtrlBasic=false;
             SeqChanCtrlColor=false;
             loaded_fseq = true;
+        }
+        else
+        {
+            logger_base.debug("Could not Find FSEQ File at: '%s'", (const char *)fseq_file.GetPath().c_str());
         }
 
         // assign global xml file object
