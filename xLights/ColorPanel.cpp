@@ -397,7 +397,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 
     wxConfigBase* config = wxConfigBase::Get();
     bool reset;
-    config->Read("xLightsResetColorPanel", &reset, false);
+    config->Read("xLightsResetColorPanel", &reset, true);
     CheckBox_ResetColorPanel->SetValue(reset);
 
     ValidateWindow();

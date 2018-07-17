@@ -250,7 +250,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 
     wxConfigBase* config = wxConfigBase::Get();
     bool reset;
-    config->Read("xLightsResetTimingPanel", &reset, false);
+    config->Read("xLightsResetTimingPanel", &reset, true);
     CheckBox_ResetTimingPanel->SetValue(reset);
 
     ValidateWindow();

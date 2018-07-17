@@ -441,7 +441,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 
     wxConfigBase* config = wxConfigBase::Get();
     bool reset;
-    config->Read("xLightsResetBufferPanel", &reset, false);
+    config->Read("xLightsResetBufferPanel", &reset, true);
     CheckBox_ResetBufferPanel->SetValue(reset);
     
     FullBufferSizer->Layout();
