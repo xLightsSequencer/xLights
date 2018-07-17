@@ -294,7 +294,7 @@ std::string DDPOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += "DDP " + _ip + " {" + GetUniverseString() + "} ";
-    res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), (long)GetEndChannel())) + ") ";
+    res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetEndChannel())) + ") ";
     res += _description;
 
     return res;
