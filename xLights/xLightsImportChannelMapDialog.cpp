@@ -633,14 +633,8 @@ bool xLightsImportChannelMapDialog::InitImport() {
     // This does not work ... I suspect the control is not letting it through
     //Connect(ID_TREELISTCTRL1, wxEVT_KEY_DOWN, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnKeyDown);
 
-    
-#ifdef __WXOSX__
-    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDragPossible);
-    Connect(ID_TREELISTCTRL1, wxEVT_DATAVIEW_ITEM_DROP, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnDragDrop);
-#else
     MDTextDropTarget* mdt = new MDTextDropTarget(this, TreeListCtrl_Mapping, "Map");
     TreeListCtrl_Mapping->SetDropTarget(mdt);
-#endif
     TreeListCtrl_Mapping->SetIndent(8);
 
     int ms = 0;
@@ -1432,21 +1426,6 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& e
     dragSource.DoDragDrop(wxDrag_DefaultMove);
     SetCursor(wxCURSOR_ARROW);
 }
-void xLightsImportChannelMapDialog::OnDragPossible(wxDataViewEvent& event) {
-    if (event.GetItem().IsOk() && event.GetProposedDropIndex() == -1) {
-        event.Allow();
-        event.SetDropEffect(wxDragCopy);
-    }
-}
-void xLightsImportChannelMapDialog::OnDragDrop(wxDataViewEvent& event) {
-    if (event.GetItem().IsOk()) {
-        wxDataViewItem  item = event.GetItem();
-        wxDataObjectComposite *comp = (wxDataObjectComposite*)event.GetDataObject();
-        wxTextDataObject *obj = (wxTextDataObject*)comp->GetObject(wxDF_TEXT);
-        wxArrayString parms = wxSplit(obj->GetText(), ',');
-        Map(item, parms[1]);
-    }
-}
 
 void xLightsImportChannelMapDialog::OnBeginDrag(wxDataViewEvent& event)
 {
@@ -1698,7 +1677,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
         if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString()))
         {
             // not used
-            ListCtrl_Available->SetItemTextColour(i, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT));
+            ListCtrl_Available->SetItemTextColour(i, *wxBLACK);
         }
         else
         {
