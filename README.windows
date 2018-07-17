@@ -117,7 +117,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
      Download and install the codeblocks-17.12-setup.exe file from here:
         http://www.codeblocks.org/downloads/binaries
 
-  b) Install MinGW for Windows (currently using version 5.3)
+  b) Install MinGW for Windows (currently using version 7.2)
 
      Download and install the ming-w64-install.exe file from here:
         Navigate to: http://mingw-w64.org/doku.php/download
@@ -187,7 +187,7 @@ Here are the steps to compile xLights for Windows using the MinGW 64-bit compile
         example: C:\Program Files\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64\bin\gdb.exe
      9) Go back to Settings > Compiler > select gnu_gcc_64bit_compiler > select tab Toolchain executables
      10) Fill in the compiler's installation directory to your path to MinGW:
-         example: C:\Program Files (x86)\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64
+         example: C:\Program Files\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\mingw64
      11) Set C Compiler to gcc.exe, C++ compiler to g++.exe, Linker for dynamic libs to g++.exe,
          Linker for static libs to ar.exe, Debugger set to GDB64 you created in step 6..., resource compiler set to windres.exe,
          and Make program set to mingw32-make.exe.
