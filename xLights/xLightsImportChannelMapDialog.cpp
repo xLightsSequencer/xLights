@@ -1433,7 +1433,10 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& e
     SetCursor(wxCURSOR_ARROW);
 }
 void xLightsImportChannelMapDialog::OnDragPossible(wxDataViewEvent& event) {
-    if (event.GetItem().IsOk() && event.GetProposedDropIndex() == -1) {
+    if (event.GetItem().IsOk()) {
+#ifdef __WXOSX__
+        if (event.GetProposedDropIndex() != -1) return;
+#endif
         event.Allow();
         event.SetDropEffect(wxDragCopy);
     }
