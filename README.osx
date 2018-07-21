@@ -35,7 +35,7 @@ recommend using the wxWidgets code from github instead of the release tar.
 
 To get the latest code that we've tested, do:
 
-git clone https://github.com/wxWidgets/wxWidgets
+git clone --recurse-submodules https://github.com/wxWidgets/wxWidgets
 cd wxWidgets
 git reset --hard 85c2877a6c660c3b59c7a5400bab224374e3324a
 
