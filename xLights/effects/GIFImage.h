@@ -9,25 +9,28 @@
 
 class GIFImage
 {
-	wxSize _desiredSize;
 	wxGIFDecoder _gifDecoder;
 	wxImage _lastImage;
 	std::list<long> _frameTimes;
+    std::list<wxSize> _frameSizes;
+    std::list<wxPoint> _frameOffsets;
+    wxColour _backgroundColour;
+    wxSize _gifSize;
 	long _totalTime;
     int _lastFrame;
+    bool _suppressBackground;
     std::string _filename;
     wxAnimationDisposal _lastDispose;
     bool _ok;
 	
-	void ReadFrameTimes();
+	void ReadFrameProperties();
     int CalcFrameForTime(int msec, bool loop);
     wxPoint LoadRawImageFrame(wxImage& image, int frame, wxAnimationDisposal& disposal);
     void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay);
-    void DoCreate(const std::string& filename, wxSize desiredSize);
+    void DoCreate(const std::string& filename);
 
 	public:
-		GIFImage(const std::string& filename);
-		GIFImage(const std::string& filename, wxSize desiredSize);
+		GIFImage(const std::string& filename, bool suppressBackground = true);
 		virtual ~GIFImage();
 		wxImage GetFrame(int frame);
 		wxImage GetFrameForTime(int msec, bool loop);

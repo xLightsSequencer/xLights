@@ -387,8 +387,11 @@ void PicturesEffect::SetDefaultParameters() {
     SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
     SetCheckBoxValue(pp->CheckBox_LoopGIF, false);
+    SetCheckBoxValue(pp->CheckBox_SuppressGIFBackground, true);
 
     pp->FilePickerCtrl1->SetFileName(wxFileName());
+
+    pp->ValidateWindow();
 }
 
 std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap)
@@ -433,6 +436,7 @@ void PicturesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false),
            SettingsMap.GetBool("CHECKBOX_LoopGIF", false),
+           SettingsMap.GetBool("CHECKBOX_SuppressGIFBackground", true),
            SettingsMap.GetBool("CHECKBOX_Pictures_TransparentBlack", false),
            SettingsMap.GetInt("TEXTCTRL_Pictures_TransparentBlackLevel", 0)
     );
@@ -444,7 +448,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int xc_adj, int yc_adj,
     int xce_adj, int yce_adj,
     int start_scale, int end_scale, const std::string& scale_to_fit,
-    bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, 
+    bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, bool suppressGIFBackground, 
     bool transparentBlack, int transparentBlackLevel) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -570,7 +574,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 delete gifImage;
                 gifImage = nullptr;
             }
-            gifImage = new GIFImage(NewPictureName.ToStdString(), image.GetSize());
+            gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
 
             if (!gifImage->IsOk())
             {

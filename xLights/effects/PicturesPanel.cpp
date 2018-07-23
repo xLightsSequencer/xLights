@@ -1,6 +1,3 @@
-#include "PicturesPanel.h"
-#include "EffectPanelUtils.h"
-
 //(*InternalHeaders(PicturesPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -20,6 +17,10 @@
 #include <wx/textctrl.h>
 //*)
 
+#include "PicturesPanel.h"
+#include "EffectPanelUtils.h"
+#include "GIFImage.h"
+
 //(*IdInit(PicturesPanel)
 const long PicturesPanel::ID_FILEPICKER_Pictures_Filename = wxNewId();
 const long PicturesPanel::ID_STATICTEXT_Pictures_Direction = wxNewId();
@@ -37,6 +38,7 @@ const long PicturesPanel::ID_CHECKBOX_Pictures_PixelOffsets = wxNewId();
 const long PicturesPanel::ID_CHOICE_Scaling = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_Shimmer = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_LoopGIF = wxNewId();
+const long PicturesPanel::ID_CHECKBOX_SuppressGIFBackground = wxNewId();
 const long PicturesPanel::ID_CHECKBOX_Pictures_TransparentBlack = wxNewId();
 const long PicturesPanel::IDD_SLIDER_Pictures_TransparentBlack = wxNewId();
 const long PicturesPanel::ID_TEXTCTRL_Pictures_TransparentBlack = wxNewId();
@@ -181,6 +183,9 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	CheckBox_LoopGIF = new BulkEditCheckBox(this, ID_CHECKBOX_LoopGIF, _("Loop Animated GIF"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_LoopGIF"));
 	CheckBox_LoopGIF->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LoopGIF, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressGIFBackground = new BulkEditCheckBox(this, ID_CHECKBOX_SuppressGIFBackground, _("Suppress GIF Background"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_SuppressGIFBackground"));
+	CheckBox_SuppressGIFBackground->SetValue(true);
+	FlexGridSizer1->Add(CheckBox_SuppressGIFBackground, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer102->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer7->AddGrowableCol(1);
@@ -283,6 +288,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer42->Fit(this);
 	FlexGridSizer42->SetSizeHints(this);
 
+	Connect(ID_FILEPICKER_Pictures_Filename,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PicturesPanel::OnFilePickerCtrl1FileChanged);
 	Connect(ID_CHOICE_Pictures_Direction,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PicturesPanel::OnChoicePicturesDirectionSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_Pictures_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Pictures_Speed,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PicturesPanel::OnLockButtonClick);
@@ -306,14 +312,24 @@ static inline void EnableControl(wxWindow *w, int id, bool e) {
 
 void PicturesPanel::OnChoicePicturesDirectionSelect(wxCommandEvent& event)
 {
+    ValidateWindow();
+}
+
+void PicturesPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
+{
+    ValidateWindow();
+}
+
+void PicturesPanel::ValidateWindow()
+{
     bool enable = "vector" == Choice_Pictures_Direction->GetStringSelection();
     EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndXC, enable);
     EnableControl(Choice_Pictures_Direction->GetParent(), IDD_TEXTCTRL_PicturesEndYC, enable);
     EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndXC, enable);
     EnableControl(Choice_Pictures_Direction->GetParent(), ID_SLIDER_PicturesEndYC, enable);
     PictureEndPositionPanel->Enable(enable);
-}
 
-void PicturesPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
-{
+    enable = GIFImage::IsGIF(FilePickerCtrl1->GetFileName().GetFullPath().ToStdString());
+    CheckBox_LoopGIF->Enable(enable);
+    CheckBox_SuppressGIFBackground->Enable(enable);
 }

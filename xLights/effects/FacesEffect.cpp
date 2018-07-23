@@ -914,7 +914,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         if (crb == nullptr)
         {
             crb = new RenderBuffer(buffer);
-            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, false, false, 0);  // set for scale to fit
+            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, true, false, false, 0);  // set for scale to fit
             cache->AddImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf), crb);
         }
 

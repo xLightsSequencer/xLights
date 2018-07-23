@@ -13,6 +13,7 @@
 						<object class="wxFilePickerCtrl" name="ID_FILEPICKER_Pictures_Filename" subclass="xlPictureFilePickerCtrl" variable="FilePickerCtrl1" member="yes">
 							<message></message>
 							<wildcard></wildcard>
+							<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<option>1</option>
@@ -206,6 +207,15 @@
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX_LoopGIF" subclass="BulkEditCheckBox" variable="CheckBox_LoopGIF" member="yes">
 									<label>Loop Animated GIF</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxCheckBox" name="ID_CHECKBOX_SuppressGIFBackground" subclass="BulkEditCheckBox" variable="CheckBox_SuppressGIFBackground" member="yes">
+									<label>Suppress GIF Background</label>
+									<checked>1</checked>
 								</object>
 								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>

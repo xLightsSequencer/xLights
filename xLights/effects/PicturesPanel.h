@@ -43,12 +43,14 @@ class PicturesPanel: public wxPanel
 
 		PicturesPanel(wxWindow* parent);
 		virtual ~PicturesPanel();
+        void ValidateWindow();
 
 		//(*Declarations(PicturesPanel)
 		BulkEditCheckBox* CheckBox_LoopGIF;
 		BulkEditCheckBox* CheckBox_Pictures_PixelOffsets;
 		BulkEditCheckBox* CheckBox_Pictures_Shimmer;
 		BulkEditCheckBox* CheckBox_Pictures_WrapX;
+		BulkEditCheckBox* CheckBox_SuppressGIFBackground;
 		BulkEditCheckBox* CheckBox_TransparentBlack;
 		BulkEditChoice* Choice_Pictures_Direction;
 		BulkEditChoice* Choice_Scaling;
@@ -97,6 +99,7 @@ class PicturesPanel: public wxPanel
 		static const long ID_CHOICE_Scaling;
 		static const long ID_CHECKBOX_Pictures_Shimmer;
 		static const long ID_CHECKBOX_LoopGIF;
+		static const long ID_CHECKBOX_SuppressGIFBackground;
 		static const long ID_CHECKBOX_Pictures_TransparentBlack;
 		static const long IDD_SLIDER_Pictures_TransparentBlack;
 		static const long ID_TEXTCTRL_Pictures_TransparentBlack;
