@@ -126,8 +126,8 @@ void GIFImage::DoCreate(const std::string& filename)
                 if (its->GetWidth() + ito->x > _gifSize.GetWidth() ||
                     its->GetHeight() + ito->y > _gifSize.GetHeight())
                 {
-                    _gifSize = wxSize(max(_gifSize.GetWidth(), its->GetWidth() + ito->x),
-                        max(_gifSize.GetHeight(), its->GetHeight() + ito->y));
+                    _gifSize = wxSize(std::max(_gifSize.GetWidth(), its->GetWidth() + ito->x),
+                                      std::max(_gifSize.GetHeight(), its->GetHeight() + ito->y));
                 }
                 ++its;
                 ++ito;
