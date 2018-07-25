@@ -3025,10 +3025,11 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     if (CurrentSeqXmlFile == nullptr || frameCount == 0)
         return;
 
-    bool visible = m_mgr->GetPane("HousePreview").IsShown();
+    wxAuiPaneInfo& pi = m_mgr->GetPane("HousePreview");
+    bool visible = pi.IsShown();
     if (!visible)
     {
-        m_mgr->GetPane("HousePreview").Show();
+        pi.Show();
         m_mgr->Update();
     }
 
@@ -3076,14 +3077,20 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         int trackSize = audioMgr->GetTrackSize();
         int clampedSize = std::min(frameSize, trackSize - audioFrameIndex);
 
-        const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
-        const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
+        if (clampedSize > 0)
+        {
+            const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
+            const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
 
-        memcpy(samples, leftptr, clampedSize * sizeof(float));
-        samples += clampedSize;
-        memcpy(samples, rightptr, clampedSize * sizeof(float));
+            if (leftptr != nullptr)
+            {
+                memcpy(samples, leftptr, clampedSize * sizeof(float));
+                samples += clampedSize;
+                memcpy(samples, rightptr, clampedSize * sizeof(float));
+                audioFrameIndex += frameSize;
+            }
+        }
 
-        audioFrameIndex += frameSize;
         return true;
     }
     );
