@@ -17,21 +17,22 @@ public:
     static bool IsVideoFile(const std::string &filename);
 	VideoReader(const std::string& filename, int width, int height, bool keepaspectratio, bool usenativeresolution=false);
 	~VideoReader();
-	int GetLengthMS() { return _lengthMS; };
+	int GetLengthMS() const { return (int)_lengthMS; };
 	void Seek(int timestampMS);
 	AVFrame* GetNextFrame(int timestampMS, int gracetime = 0); // grace time is the minimum the video must be ahead before we bother to seek back to a frame
-	bool IsValid() { return _valid; };
-	int GetWidth() { return _width; };
-	int GetHeight() { return _height; };
-	bool AtEnd() { return _atEnd; };
+	bool IsValid() const { return _valid; };
+	int GetWidth() const { return _width; };
+	int GetHeight() const { return _height; };
+	bool AtEnd() const { return _atEnd; };
     int GetPos();
     std::string GetFilename() const { return _filename; }
 
 private:
 	bool _valid;
-    int _lengthMS;
-    int _dtspersec;
+    double _lengthMS;
+    double _dtspersec;
     long _frames;
+    int _frameMS;
 	AVFormatContext* _formatContext;
 	AVCodecContext* _codecContext;
 	AVStream* _videoStream;

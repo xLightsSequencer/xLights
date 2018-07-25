@@ -15,6 +15,8 @@ VideoRenderCacher::~VideoRenderCacher()
 
 void VideoRenderCacheItem::Save()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     char zero = 0x00;
     wxASSERT(_frameSize >= 0);
 
@@ -25,6 +27,8 @@ void VideoRenderCacheItem::Save()
 
     if (_file.Create(_cacheFile, true))
     {
+        logger_base.debug("Saving video cache %s.", (const char*)_cacheFile.c_str());
+
         // write the header fields
         for (auto it = _properties.begin(); it != _properties.end(); ++it)
         {
@@ -51,6 +55,8 @@ void VideoRenderCacheItem::Save()
 
 VideoRenderCacheItem::VideoRenderCacheItem(const std::string& file)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     _cacheFile = file;
     wxFileName fn(_cacheFile);
     _created = false;
@@ -58,6 +64,8 @@ VideoRenderCacheItem::VideoRenderCacheItem(const std::string& file)
 
     if (_file.Open(_cacheFile))
     {
+        logger_base.debug("Reading video cache %s.", (const char*)_cacheFile.c_str());
+
         char headerBuffer[4096];
         memset(headerBuffer, 0x00, sizeof(headerBuffer));
         _file.Read(headerBuffer, sizeof(headerBuffer));
@@ -325,4 +333,3 @@ VideoRenderCacheItem* VideoRenderCacher::Get(const std::string& videoFile, int a
     _cache.push_back(item);
     return item;
 }
-
