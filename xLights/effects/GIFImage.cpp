@@ -1,6 +1,10 @@
 #include "GIFImage.h"
-#include <wx/filename.h>
+
 #include <log4cpp/Category.hh>
+
+#include <wx/filename.h>
+
+#undef max
 
 //#define DEBUG_GIF
 
