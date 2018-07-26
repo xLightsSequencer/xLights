@@ -67,9 +67,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" subclass="xlLockButton" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -117,9 +117,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" subclass="xlLockButton" variable="BitmapButton_EffectLayerMix" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -130,7 +130,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_Canvas" variable="CheckBox_Canvas" member="yes">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Canvas" subclass="BulkEditCheckBox" variable="CheckBox_Canvas" member="yes">
 													<label>Canvas</label>
 													<handler function="OnCheckBox_CanvasClick" entry="EVT_CHECKBOX" />
 												</object>

@@ -37,6 +37,7 @@ class TimingPanel: public wxPanel
         void SetLayersSelected(std::string layersSelected) { _layersSelected = layersSelected; }
 
 		//(*Declarations(TimingPanel)
+		BulkEditCheckBox* CheckBox_Canvas;
 		BulkEditCheckBox* CheckBox_In_Reverse;
 		BulkEditCheckBox* CheckBox_Out_Reverse;
 		BulkEditChoice* Choice_In_Transition_Type;
@@ -51,7 +52,6 @@ class TimingPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
 		wxButton* Button_Layers;
-		wxCheckBox* CheckBox_Canvas;
 		wxCheckBox* CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_ResetTimingPanel;
 		wxNotebook* Notebook1;

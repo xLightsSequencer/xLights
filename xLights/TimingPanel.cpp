@@ -128,7 +128,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	BitmapButton_EffectLayerMix->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	BitmapButton_EffectLayerMix->SetToolTip(_("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value."));
 	FlexGridSizer2->Add(BitmapButton_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	CheckBox_Canvas = new wxCheckBox(ScrolledWindowTiming, ID_CHECKBOX_Canvas, _("Canvas"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Canvas"));
+	CheckBox_Canvas = new BulkEditCheckBox(ScrolledWindowTiming, ID_CHECKBOX_Canvas, _("Canvas"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Canvas"));
 	CheckBox_Canvas->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_Canvas, 1, wxALL|wxEXPAND, 5);
 	Button_Layers = new wxButton(ScrolledWindowTiming, ID_BUTTON1, _("Layers ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
