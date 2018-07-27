@@ -878,11 +878,15 @@ void ModelFaceDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
 void ModelFaceDialog::OnMatrixModelsGridCellSelect(wxGridEvent& event)
 {
     UpdatePreview("", *wxWHITE);
+    event.ResumePropagation(1);
+    event.Skip();
 }
 
 void ModelFaceDialog::OnMatrixModelsGridCellLeftClick1(wxGridEvent& event)
 {
     UpdatePreview("", *wxWHITE);
+    event.ResumePropagation(1);
+    event.Skip();
 }
 
 void ModelFaceDialog::OnSingleNodeGridCellSelect(wxGridEvent& event)
