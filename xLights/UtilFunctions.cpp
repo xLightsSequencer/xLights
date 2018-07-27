@@ -445,11 +445,12 @@ void LoadWindowPosition(const std::string tag, wxSize& size, wxPoint& position)
 std::string BeforeInt(std::string& s)
 {
     int i = 0;
-    while (i < s.size() && (s[i] > '9' || s[i] < '0'))
-    {
+    while (i < s.size() && (s[i] > '9' || s[i] < '0')) {
         i++;
     }
-    if (i == 0) return "";
+    if (i == 0) {
+        return "";
+    }
 
     std::string res = s.substr(0, i);
     s = s.substr(i);
@@ -460,14 +461,15 @@ std::string BeforeInt(std::string& s)
 int ExtractInt(std::string& s)
 {
     int i = 0;
-    while (i < s.size() && s[i] <= '9' && s[i] >= '0')
-    {
+    while (i < s.size() && s[i] <= '9' && s[i] >= '0') {
         i++;
     }
 
-    if (i == 0) return -1;
+    if (i == 0) {
+        return -1;
+    }
 
-    int res = wxAtoi(s.substr(0, i));
+    int res = std::stoi(s.substr(0, i));
     s = s.substr(i);
     return res;
 }
@@ -477,36 +479,26 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b)
     std::string aa = a;
     std::string bb = b;
 
-    while (true)
-    {
+    while (true) {
         std::string abi = BeforeInt(aa);
         std::string bbi = BeforeInt(bb);
 
-        if (abi == bbi)
-        {
+        if (abi == bbi) {
             int ia = ExtractInt(aa);
             int ib = ExtractInt(bb);
 
-            if (ia == ib)
-            {
-                if (aa == bb)
-                {
+            if (ia == ib) {
+                if (aa == bb) {
                     return 0;
                 }
-            }
-            else
-            {
-                if (ia < ib)
-                {
+            } else {
+                if (ia < ib) {
                     return -1;
                 }
                 return 1;
             }
-        }
-        else
-        {
-            if (abi < bbi)
-            {
+        } else {
+            if (abi < bbi) {
                 return -1;
             }
             return 1;
