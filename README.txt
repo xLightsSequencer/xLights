@@ -17,6 +17,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (gil)    Added the default Node Names for the Skulltronix Skull option.
    -- enh (gil)    Timing duration is now read from VSA file instead of a hard-coded 33ms.
    -- bug (gil)    Corrected VSA import issue when there are inactive tracks mixed in with active tracks.  Fixes #1190.
+   -- bug (keith)  Add in bulk edit for canvas mode
+   -- bug (keith)  Fix bug which crashed house video export when writing last frame
+   -- bug (keith)  Fix audio/video sync for some video files
+   -- bug (keith)  Fix crash due to some GIF files where first frame was not the full frame size. Include support for GIF backgrounds
+   -- bug (keith)  Fix check sequence Canvas mode checks
+   -- enh (keith)  Add Y offset to wave effect
+   -- bug (keith)  Fix square wave to make it recognise thickness and mirror properties
+   -- bug (keith)  Fix strobe and meteors incorrectly drawing when responding to music but no music present
+   -- bug (keith)  Fix Add DDP not disabled when outputting to lights
+   -- bug (keith)  Fix align models does not save positions correctly.
+   -- bug (keith)  Fix audio frame data not always prepared correctly leading to audio dependent effects not working as expected
+   -- bug (scott)  Fix crash if new group name is blank
+   -- bug (cjd)    Revert to GTK2 due to ongoing instability in GTK3/wxWidgets support
 2018.22 July 8, 2018
    -- bug (scott)  Fix FSEQ not being saved by default in same folder as xml
    -- enh (scott)  Add custom papagayo dictionary editor
