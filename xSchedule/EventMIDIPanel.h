@@ -4,10 +4,11 @@
 #include "EventPanel.h"
 
 //(*Headers(EventMIDIPanel)
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class EventMIDIPanel: public EventPanel
@@ -21,13 +22,14 @@ class EventMIDIPanel: public EventPanel
         virtual void Load(EventBase* event) override;
 
 		//(*Declarations(EventMIDIPanel)
-		wxChoice* Choice_Status;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxChoice* Choice_Data1;
+		wxButton* Button_Scan;
 		wxChoice* Choice_Channel;
+		wxChoice* Choice_Data1;
 		wxChoice* Choice_Devices;
+		wxChoice* Choice_Status;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
 		//*)
 
@@ -42,12 +44,16 @@ class EventMIDIPanel: public EventPanel
 		static const long ID_CHOICE4;
 		static const long ID_STATICTEXT3;
 		static const long ID_CHOICE3;
+		static const long ID_BUTTON1;
 		//*)
 
 	private:
 
 		//(*Handlers(EventMIDIPanel)
+		void OnButton_ScanClick(wxCommandEvent& event);
 		//*)
+
+        void OnMIDIEvent(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

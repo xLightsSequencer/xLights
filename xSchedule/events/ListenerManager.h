@@ -6,6 +6,8 @@
 #include "ListenerBase.h"
 #include <list>
 
+wxDECLARE_EVENT(EVT_MIDI, wxCommandEvent);
+
 class ScheduleManager;
 
 class ListenerManager
@@ -16,6 +18,7 @@ class ListenerManager
 	    bool _stop;
 		bool _pause;
         ScheduleManager* _scheduleManager;
+        wxWindow* _notifyScan;
 
 	public:
         ListenerManager(ScheduleManager* scheduleManager);
@@ -35,6 +38,7 @@ class ListenerManager
         void SetRemoteFPPUnicast();
         void SetRemoteNone();
         void SetRemoteArtNet();
+        void MidiRedirect(wxWindow* notify, int deviceId);
         int Sync(const std::string filename, long ms, const std::string& type);
         ScheduleManager* GetScheduleManager() const { return _scheduleManager; }
 };

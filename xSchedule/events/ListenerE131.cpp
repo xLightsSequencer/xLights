@@ -37,11 +37,11 @@ void ListenerE131::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("E131 listener stopping.");
-    _stop = true;
+    if (_socket != nullptr)
+        _socket->SetTimeout(0);
     if (_thread != nullptr)
     {
-        if (_socket != nullptr)
-            _socket->SetTimeout(0);
+        _stop = true;
         _thread->Stop();
     }
 }

@@ -1,10 +1,14 @@
-#include "EventMIDIPanel.h"
-#include "events/EventMIDI.h"
-
 //(*InternalHeaders(EventMIDIPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+#include "EventMIDIPanel.h"
+#include "events/EventMIDI.h"
+#include "xScheduleMain.h"
+#include "ScheduleManager.h"
+#include "events/ListenerManager.h"
+#include "EventDialog.h"
 
 //(*IdInit(EventMIDIPanel)
 const long EventMIDIPanel::ID_STATICTEXT1 = wxNewId();
@@ -15,11 +19,13 @@ const long EventMIDIPanel::ID_STATICTEXT4 = wxNewId();
 const long EventMIDIPanel::ID_CHOICE4 = wxNewId();
 const long EventMIDIPanel::ID_STATICTEXT3 = wxNewId();
 const long EventMIDIPanel::ID_CHOICE3 = wxNewId();
+const long EventMIDIPanel::ID_BUTTON1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EventMIDIPanel,wxPanel)
 	//(*EventTable(EventMIDIPanel)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_MIDI, EventMIDIPanel::OnMIDIEvent)
 END_EVENT_TABLE()
 
 EventMIDIPanel::EventMIDIPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -46,9 +52,14 @@ EventMIDIPanel::EventMIDIPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Data1 = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	FlexGridSizer1->Add(Choice_Data1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Scan = new wxButton(this, ID_BUTTON1, _("Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer1->Add(Button_Scan, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EventMIDIPanel::OnButton_ScanClick);
 	//*)
 
     auto devices = EventMIDI::GetDevices();
@@ -56,7 +67,14 @@ EventMIDIPanel::EventMIDIPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos
     {
         Choice_Devices->Append(*it);
     }
-    Choice_Devices->SetSelection(0);
+    if (Choice_Devices->GetCount() > 0)
+    {
+        Choice_Devices->SetSelection(0);
+    }
+    else
+    {
+        Button_Scan->Enable(false);
+    }
 
     Choice_Status->Append("0x8n - Note Off");
     Choice_Status->Append("0x9n - Note On");
@@ -85,11 +103,12 @@ EventMIDIPanel::~EventMIDIPanel()
 {
 	//(*Destroy(EventMIDIPanel)
 	//*)
+    xScheduleFrame::GetScheduleManager()->GetListenerManager()->MidiRedirect(nullptr, -1);
 }
 
 bool EventMIDIPanel::ValidateWindow()
 {
-    return Choice_Devices->GetStringSelection() != "";
+    return Choice_Devices->GetStringSelection() != "" && Button_Scan->IsEnabled();
 }
 
 void EventMIDIPanel::Save(EventBase* event)
@@ -108,4 +127,33 @@ void EventMIDIPanel::Load(EventBase* event)
     Choice_Status->SetStringSelection(e->GetStatus());
     Choice_Channel->SetStringSelection(e->GetChannel());
     Choice_Data1->SetStringSelection(e->GetData1());
+}
+
+void EventMIDIPanel::OnButton_ScanClick(wxCommandEvent& event)
+{
+    xScheduleFrame::GetScheduleManager()->GetListenerManager()->MidiRedirect(this, wxAtoi(Choice_Devices->GetStringSelection().AfterLast(' ')));
+    Button_Scan->Enable(false);
+}
+
+void EventMIDIPanel::OnMIDIEvent(wxCommandEvent& event)
+{
+    if (Button_Scan->IsEnabled()) {
+        event.Skip();
+        return;
+    }
+
+    Button_Scan->Enable();
+
+    xScheduleFrame::GetScheduleManager()->GetListenerManager()->MidiRedirect(nullptr, -1);
+
+    wxByte status = (event.GetInt() >> 24) & 0xFF;
+    wxByte channel = (event.GetInt() >> 16) & 0xFF;
+    wxByte data1 = (event.GetInt() >> 8) & 0xFF;
+    wxByte data2 = event.GetInt() & 0xFF;
+
+    Choice_Status->SetSelection(((status & 0xF0) >> 4) - 8);
+    Choice_Channel->SetSelection(channel);
+    Choice_Data1->SetSelection(data1);
+
+    ((EventDialog*)GetParent()->GetParent()->GetParent()->GetParent())->ValidateWindow();
 }

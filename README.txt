@@ -28,6 +28,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix Add DDP not disabled when outputting to lights
    -- bug (keith)  Fix align models does not save positions correctly.
    -- bug (keith)  Fix audio frame data not always prepared correctly leading to audio dependent effects not working as expected
+   -- enh (keith)  Add MIDI scan to setup of MIDI triggered events in xSchedule
    -- bug (scott)  Fix crash if new group name is blank
    -- bug (cjd)    Revert to GTK2 due to ongoing instability in GTK3/wxWidgets support
 2018.22 July 8, 2018

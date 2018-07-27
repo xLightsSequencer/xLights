@@ -21,9 +21,9 @@ void ListenerMIDI::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("MIDI listener stopping.");
-    _stop = true;
     if (_thread != nullptr)
     {
+        _stop = true;
         _thread->Stop();
     }
 }
@@ -51,9 +51,12 @@ void ListenerMIDI::StartProcess()
 void ListenerMIDI::StopProcess()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    _midiIn->Close();
-    delete _midiIn;
-    _midiIn = nullptr;
+    if (_midiIn != nullptr)
+    {
+        _midiIn->Close();
+        delete _midiIn;
+        _midiIn = nullptr;
+    }
     _isOk = false;
 }
 
@@ -61,12 +64,12 @@ void ListenerMIDI::Poll()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_midiIn == nullptr) return;
+    if (_midiIn == nullptr || _stop) return;
 
     wxMidiError error;
     wxMidiMessage* message = _midiIn->Read(&error);
 
-    if (error == wxMIDI_NO_ERROR && message != nullptr)
+    if (error == wxMIDI_NO_ERROR && message != nullptr && !_stop)
     {
         if (message->GetType() == wxMIDI_SHORT_MSG)
         {
