@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (keith)  Allow exclusion of channels in xFade from blending/brightness control
+   -- enh (keith)  Add a sample on warp mode which samples a pixel from the underlying layer and sets the whole model to that colour
 2018.23 July 27, 2018
    -- enh (gil)    Increase DMX Effect/Panel to 40 channels.
    -- enh (gil)    Changed the default channel assignments for the Skulltronix Skull option so that you can set

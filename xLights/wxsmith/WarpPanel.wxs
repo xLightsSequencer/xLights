@@ -57,6 +57,7 @@
 										<item>circular swirl</item>
 										<item>drop</item>
 										<item>wavy</item>
+										<item>sample on</item>
 									</content>
 									<handler function="OnChoice_Warp_TypeSelect" entry="EVT_CHOICE" />
 								</object>

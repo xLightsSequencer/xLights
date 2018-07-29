@@ -419,6 +419,21 @@ namespace
 
    typedef xlColor( *PixelTransform ) ( const ColorBuffer& cb, double s, double t, const WarpEffectParams& params );
 
+   void RenderSampleOn(RenderBuffer& rb, double x, double y)
+   {
+       int xx = x * (rb.BufferWi - 1);
+       int yy = y * (rb.BufferHt - 1);
+       xlColor c = rb.GetPixel(xx, yy);
+
+       for (int yyy = 0; yyy < rb.BufferHt; ++yyy)
+       {
+           for (int xxx = 0; xxx < rb.BufferWi; ++xxx)
+           {
+               rb.SetPixel(xxx, yyy, c);
+           }
+       }
+   }
+
    void RenderPixelTransform( PixelTransform transform, RenderBuffer& rb, const WarpEffectParams& params )
    {
       xlColorVector cvOrig( rb.pixels );
@@ -549,6 +564,10 @@ void WarpEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buf
    WarpEffectParams params( progress, Vec2D( x, y ), speed, frequency );
    if ( warpType == "water drops" )
       RenderPixelTransform( waterDrops, buffer, params );
+   else if (warpType == "sample on")
+   {
+       RenderSampleOn(buffer, x, y);
+   }
    else if ( warpType == "wavy" )
    {
       LinearInterpolater interpolater;
