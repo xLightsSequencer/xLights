@@ -106,7 +106,7 @@ public:
                 dc.SetTextForeground(*wxBLACK);
                 dc.DrawText(s, rect.GetLeft() + 2, rect.GetTop() + (rect.GetHeight() - fm.height) / 2);
             }
-            //SetToolTip("");
+            GetVListBoxComboPopup()->UnsetToolTip();
         }
         else
         {
@@ -137,7 +137,7 @@ public:
             if (flags & wxODCB_PAINTING_SELECTED)
             {
                 wxString file = as.back();
-                //SetToolTip(file);
+                GetVListBoxComboPopup()->SetToolTip(file);
             }
         }
     }

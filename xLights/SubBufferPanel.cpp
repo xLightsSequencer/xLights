@@ -177,15 +177,20 @@ void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
     menu.Append(wxNewId(), "Full Buffer");
     menu.AppendSeparator();
     wxMenu* halves = new wxMenu();
-    halves->Append(wxNewId(), "Top Half");
-    halves->Append(wxNewId(), "Bottom Half");
     halves->Append(wxNewId(), "Left Half");
     halves->Append(wxNewId(), "Right Half");
+    halves->AppendSeparator();
+    halves->Append(wxNewId(), "Top Half");
+    halves->Append(wxNewId(), "Bottom Half");
     menu.AppendSubMenu(halves, "Halves");
     wxMenu* thirds = new wxMenu();
     thirds->Append(wxNewId(), "Left Third");
     thirds->Append(wxNewId(), "Middle Third");
     thirds->Append(wxNewId(), "Right Third");
+    thirds->AppendSeparator();
+    thirds->Append(wxNewId(), "Top Third");
+    thirds->Append(wxNewId(), "Center Third");
+    thirds->Append(wxNewId(), "Bottom Third");
     menu.AppendSubMenu(thirds, "Thirds");
     wxMenu* quarters = new wxMenu();
     quarters->Append(wxNewId(), "Top Left");
@@ -262,6 +267,16 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
             y1vc = "";
             y2vc = "";
         }
+        else if (nm == "Top Third") {
+            x1 = 0.0f;
+            y1 = 66.66f;
+            x2 = 100.0f;
+            y2 = 100.0f;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
+        }
         else if (nm == "Middle Third") {
             x1 = 33.33f;
             y1 = 0.0;
@@ -272,10 +287,29 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
             y1vc = "";
             y2vc = "";
         }
+        else if (nm == "Center Third") {
+            y1 = 33.33f;
+            x1 = 0.0;
+            x2 = 100.0;
+            y2 = 66.66f;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
+        }
         else if (nm == "Right Third") {
             x1 = 66.66f;
             y1 = 0.0;
             x2 = y2 = 100.0;
+            x1vc = "";
+            x2vc = "";
+            y1vc = "";
+            y2vc = "";
+        }
+        else if (nm == "Bottom Third") {
+            y2 = 33.33f;
+            x1 = y1 = 0.0;
+            x2 = 100.0;
             x1vc = "";
             x2vc = "";
             y1vc = "";

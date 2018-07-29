@@ -839,7 +839,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItemCheckSequence);
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
-    MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
+    MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log Files"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
     Menu1->Append(MenuItem38);
     mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(mExportModelsMenuItem);
