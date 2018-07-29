@@ -31,6 +31,13 @@ ListenerThread::ListenerThread(ListenerBase* listener)
 void* ListenerThread::Entry()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_listener == nullptr)
+    {
+        logger_base.info("Listener thread started but listener was null. Exiting.");
+        return nullptr;
+    }
+
     _running = true;
     logger_base.info("Listener thread for %s running.", (const char *)_listener->GetType().c_str());
 

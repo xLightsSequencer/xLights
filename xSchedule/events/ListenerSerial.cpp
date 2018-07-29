@@ -25,11 +25,14 @@ void ListenerSerial::Start()
 void ListenerSerial::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Serial listener stopping.");
-    if (_thread != nullptr)
+    if (!_stop)
     {
-        _stop = true;
-        _thread->Stop();
+        logger_base.debug("Serial listener stopping.");
+        if (_thread != nullptr)
+        {
+            _stop = true;
+            _thread->Stop();
+        }
     }
 }
 

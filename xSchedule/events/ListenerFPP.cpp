@@ -30,13 +30,16 @@ void ListenerFPP::Start()
 void ListenerFPP::Stop()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("FPP listener stopping.");
-    if (_socket != nullptr)
-        _socket->SetTimeout(0);
-    if (_thread != nullptr)
+    if (!_stop)
     {
-        _stop = true;
-        _thread->Stop();
+        logger_base.debug("FPP listener stopping.");
+        if (_socket != nullptr)
+            _socket->SetTimeout(0);
+        if (_thread != nullptr)
+        {
+            _stop = true;
+            _thread->Stop();
+        }
     }
 }
 
@@ -110,7 +113,9 @@ void ListenerFPP::Poll()
 
         if (_socket->GetLastIOReadSize() == 0)
         {
-            _socket->WaitForRead(0, 500);
+            //logger_base.debug("Waiting for read.");
+            _socket->WaitForRead(0, 50);
+            //logger_base.debug("Waiting for read done.");
         }
         else
         {
