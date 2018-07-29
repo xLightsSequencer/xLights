@@ -490,7 +490,7 @@ void ModelFaceDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
 void ModelFaceDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-    int i = wxMessageBox("Delete face definion?", "Are you sure you want to delete " + name + "?",
+    int i = wxMessageBox("Delete face definition?", "Are you sure you want to delete " + name + "?",
                          wxICON_WARNING | wxOK , this);
     if (i == wxID_OK || i == wxOK) {
 
