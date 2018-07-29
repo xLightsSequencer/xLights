@@ -37,7 +37,7 @@ public:
     void SetLocalIP(std::string localIP) { _localIP = localIP; }
     int GetSequenceNum() const;
     void InitialiseLength(long type, int length, int universe);
-    void ApplyBrightness(int brightness);
+    void ApplyBrightness(int brightness, std::list<int> excludeChannels);
 };
 
 #endif 

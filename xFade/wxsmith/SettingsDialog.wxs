@@ -162,7 +162,20 @@
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
 					<cols>2</cols>
 					<growablecols>0</growablecols>
-					<growablerows>0</growablerows>
+					<growablerows>1</growablerows>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText3" member="yes">
+							<label>Universes:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 					<object class="sizeritem">
 						<object class="wxListView" name="ID_LISTVIEW_UNIVERSES" variable="ListView_Universes" member="yes">
 							<style>wxLC_REPORT</style>
@@ -205,6 +218,75 @@
 							</object>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<growablerows>1</growablerows>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText4" member="yes">
+							<label>Channel Fade Exclude:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxListView" name="ID_LISTVIEW1" variable="ListViewFadeExclude" member="yes">
+							<style>wxLC_REPORT</style>
+							<handler function="OnListViewFadeExcludeItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+							<handler function="OnListViewFadeExcludeItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON8" variable="ButtonAddFE" member="yes">
+									<label>Add</label>
+									<handler function="OnButtonAddFEClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON10" variable="Button_EditFE" member="yes">
+									<label>Edit</label>
+									<handler function="OnButton_EditFEClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON11" variable="Button_DeleteFE" member="yes">
+									<label>Delete</label>
+									<handler function="OnButton_DeleteFEClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

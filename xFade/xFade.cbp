@@ -238,6 +238,8 @@
 		<Unit filename="../xSchedule/wxMIDI/src/wxMidiDatabase.cpp" />
 		<Unit filename="Emitter.cpp" />
 		<Unit filename="Emitter.h" />
+		<Unit filename="FadeExcludeDialog.cpp" />
+		<Unit filename="FadeExcludeDialog.h" />
 		<Unit filename="MIDIAssociateDialog.cpp" />
 		<Unit filename="MIDIAssociateDialog.h" />
 		<Unit filename="MIDIListener.cpp" />
@@ -256,6 +258,7 @@
 		</Unit>
 		<Unit filename="wxLED.cpp" />
 		<Unit filename="wxLED.h" />
+		<Unit filename="wxsmith/FadeExcludeDialog.wxs" />
 		<Unit filename="wxsmith/MIDIAssociateDialog.wxs" />
 		<Unit filename="wxsmith/SettingsDialog.wxs" />
 		<Unit filename="wxsmith/xFadeframe.wxs" />
@@ -275,6 +278,7 @@
 					<wxDialog wxs="wxsmith/UniverseEntryDialog.wxs" src="UniverseEntryDialog.cpp" hdr="UniverseEntryDialog.h" fwddecl="0" i18n="1" name="UniverseEntryDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SettingsDialog.wxs" src="SettingsDialog.cpp" hdr="SettingsDialog.h" fwddecl="0" i18n="1" name="SettingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MIDIAssociateDialog.wxs" src="MIDIAssociateDialog.cpp" hdr="MIDIAssociateDialog.h" fwddecl="0" i18n="1" name="MIDIAssociateDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FadeExcludeDialog.wxs" src="FadeExcludeDialog.cpp" hdr="FadeExcludeDialog.h" fwddecl="0" i18n="1" name="FadeExcludeDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

@@ -11,6 +11,7 @@
 #include "UniverseEntryDialog.h"
 #include "../xLights/IPEntryDialog.h"
 #include "../xSchedule/wxMIDI/src/wxMidi.h"
+#include "FadeExcludeDialog.h"
 
 //(*IdInit(SettingsDialog)
 const long SettingsDialog::ID_STATICTEXT5 = wxNewId();
@@ -26,10 +27,16 @@ const long SettingsDialog::ID_STATICTEXT9 = wxNewId();
 const long SettingsDialog::ID_CHOICE1 = wxNewId();
 const long SettingsDialog::ID_STATICTEXT1 = wxNewId();
 const long SettingsDialog::ID_CHOICE2 = wxNewId();
+const long SettingsDialog::ID_STATICTEXT4 = wxNewId();
 const long SettingsDialog::ID_LISTVIEW_UNIVERSES = wxNewId();
 const long SettingsDialog::ID_BUTTON3 = wxNewId();
 const long SettingsDialog::ID_BUTTON4 = wxNewId();
 const long SettingsDialog::ID_BUTTON5 = wxNewId();
+const long SettingsDialog::ID_STATICTEXT6 = wxNewId();
+const long SettingsDialog::ID_LISTVIEW1 = wxNewId();
+const long SettingsDialog::ID_BUTTON8 = wxNewId();
+const long SettingsDialog::ID_BUTTON10 = wxNewId();
+const long SettingsDialog::ID_BUTTON11 = wxNewId();
 const long SettingsDialog::ID_BUTTON6 = wxNewId();
 const long SettingsDialog::ID_BUTTON7 = wxNewId();
 const long SettingsDialog::ID_BUTTON1 = wxNewId();
@@ -46,6 +53,7 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     _settings = settings;
 
     //(*Initialize(SettingsDialog)
+    wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
@@ -54,97 +62,124 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
 
-    Create(parent, wxID_ANY, _("xFade Settings"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER | wxMAXIMIZE_BOX, _T("wxID_ANY"));
+    Create(parent, wxID_ANY, _("xFade Settings"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
     FlexGridSizer1->AddGrowableRow(2);
     FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer6->AddGrowableCol(1);
     StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Protocols:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-    FlexGridSizer6->Add(StaticText5, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
     CheckBox_E131 = new wxCheckBox(this, ID_CHECKBOX_E131, _("E131"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_E131"));
     CheckBox_E131->SetValue(true);
-    FlexGridSizer7->Add(CheckBox_E131, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(CheckBox_E131, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_ArtNET = new wxCheckBox(this, ID_CHECKBOX_ARTNET, _("ArtNET"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ARTNET"));
     CheckBox_ArtNET->SetValue(false);
-    FlexGridSizer7->Add(CheckBox_ArtNET, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer6->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer7->Add(CheckBox_ArtNET, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Input Interface:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-    FlexGridSizer6->Add(StaticText7, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_InputIP = new wxStaticText(this, ID_STATICTEXT8, _("UNKNOWN"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-    FlexGridSizer6->Add(StaticText_InputIP, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(StaticText_InputIP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ForceInput = new wxButton(this, ID_BUTTON9, _("Force"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
-    FlexGridSizer6->Add(Button_ForceInput, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(Button_ForceInput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Output Interface:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer6->Add(StaticText2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_OutputIP = new wxStaticText(this, ID_STATICTEXT3, _("UNKNOWN"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer6->Add(StaticText_OutputIP, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(StaticText_OutputIP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ForceOutput = new wxButton(this, ID_BUTTON12, _("Force"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
-    FlexGridSizer6->Add(Button_ForceOutput, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(Button_ForceOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT9, _("Frame Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
-    FlexGridSizer6->Add(StaticText6, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_FrameTiming = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
     Choice_FrameTiming->Append(_("25ms"));
     Choice_FrameTiming->Append(_("30ms"));
-    Choice_FrameTiming->SetSelection(Choice_FrameTiming->Append(_("50ms")));
+    Choice_FrameTiming->SetSelection( Choice_FrameTiming->Append(_("50ms")) );
     Choice_FrameTiming->Append(_("100ms"));
-    FlexGridSizer6->Add(Choice_FrameTiming, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer6->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer6->Add(Choice_FrameTiming, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer3->AddGrowableCol(1);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("MIDI Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer3->Add(StaticText1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Choice1 = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-    FlexGridSizer3->Add(Choice1, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer3->Add(Choice1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(0);
-    FlexGridSizer4->AddGrowableRow(0);
+    FlexGridSizer4->AddGrowableRow(1);
+    StaticText3 = new wxStaticText(this, ID_STATICTEXT4, _("Universes:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ListView_Universes = new wxListView(this, ID_LISTVIEW_UNIVERSES, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_UNIVERSES"));
-    FlexGridSizer4->Add(ListView_Universes, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer4->Add(ListView_Universes, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
     Button_Add = new wxButton(this, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    FlexGridSizer5->Add(Button_Add, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(Button_Add, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Edit = new wxButton(this, ID_BUTTON4, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer5->Add(Button_Edit, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer5->Add(Button_Edit, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Delete = new wxButton(this, ID_BUTTON5, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer5->Add(Button_Delete, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer5->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer9->AddGrowableCol(0);
+    FlexGridSizer9->AddGrowableRow(1);
+    StaticText4 = new wxStaticText(this, ID_STATICTEXT6, _("Channel Fade Exclude:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+    FlexGridSizer9->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ListViewFadeExclude = new wxListView(this, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW1"));
+    FlexGridSizer9->Add(ListViewFadeExclude, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer10->AddGrowableCol(0);
+    ButtonAddFE = new wxButton(this, ID_BUTTON8, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
+    FlexGridSizer10->Add(ButtonAddFE, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_EditFE = new wxButton(this, ID_BUTTON10, _("Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
+    FlexGridSizer10->Add(Button_EditFE, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_DeleteFE = new wxButton(this, ID_BUTTON11, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
+    FlexGridSizer10->Add(Button_DeleteFE, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer8 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_ExportSettings = new wxButton(this, ID_BUTTON6, _("Apply and Export Settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-    FlexGridSizer8->Add(Button_ExportSettings, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer8->Add(Button_ExportSettings, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ImportSettings = new wxButton(this, ID_BUTTON7, _("Import Settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
-    FlexGridSizer8->Add(Button_ImportSettings, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer8->Add(Button_ImportSettings, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer2->Add(Button_Ok, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizer2->Add(Button_Cancel, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer2->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_CHECKBOX_E131, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnCheckBox_E131Click);
-    Connect(ID_CHECKBOX_ARTNET, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnCheckBox_ArtNETClick);
-    Connect(ID_BUTTON9, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_ForceInputClick);
-    Connect(ID_BUTTON12, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_ForceOutputClick);
-    Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&SettingsDialog::OnChoice_FrameTimingSelect);
-    Connect(ID_LISTVIEW_UNIVERSES, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&SettingsDialog::OnListView_UniversesItemSelect);
-    Connect(ID_LISTVIEW_UNIVERSES, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&SettingsDialog::OnListView_UniversesItemActivated);
-    Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_AddClick);
-    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_EditClick);
-    Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_DeleteClick);
-    Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_ExportSettingsClick);
-    Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_ImportSettingsClick);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_OkClick);
-    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SettingsDialog::OnButton_CancelClick);
+    Connect(ID_CHECKBOX_E131,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnCheckBox_E131Click);
+    Connect(ID_CHECKBOX_ARTNET,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnCheckBox_ArtNETClick);
+    Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_ForceInputClick);
+    Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_ForceOutputClick);
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SettingsDialog::OnChoice_FrameTimingSelect);
+    Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SettingsDialog::OnListView_UniversesItemSelect);
+    Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&SettingsDialog::OnListView_UniversesItemActivated);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_AddClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_EditClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_DeleteClick);
+    Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SettingsDialog::OnListViewFadeExcludeItemSelect);
+    Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&SettingsDialog::OnListViewFadeExcludeItemActivated);
+    Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButtonAddFEClick);
+    Connect(ID_BUTTON10,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_EditFEClick);
+    Connect(ID_BUTTON11,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_DeleteFEClick);
+    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_ExportSettingsClick);
+    Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_ImportSettingsClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_OkClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_CancelClick);
     //*)
 
     ListView_Universes->AppendColumn("Start");
@@ -152,6 +187,8 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     ListView_Universes->AppendColumn("IP Address");
     ListView_Universes->AppendColumn("Description");
     ListView_Universes->AppendColumn("Protocol");
+
+    ListViewFadeExclude->AppendColumn("Channel");
 
     PopulateFields();
 
@@ -197,6 +234,17 @@ void SettingsDialog::ValidateWindow()
     {
         Button_Edit->Enable(true);
         Button_Delete->Enable(true);
+    }
+
+    if (ListViewFadeExclude->GetSelectedItemCount() == 0)
+    {
+        Button_EditFE->Enable(false);
+        Button_DeleteFE->Enable(false);
+    }
+    else
+    {
+        Button_EditFE->Enable(true);
+        Button_DeleteFE->Enable(true);
     }
 
     if (!CheckBox_ArtNET->GetValue() && !CheckBox_E131->GetValue())
@@ -336,6 +384,7 @@ void SettingsDialog::PopulateFields()
     _localInputIPCopy = _settings->_localInputIP;
 
     LoadUniverses();
+    LoadFadeExclude();
 
     auto devices = GetMIDIDevices();
     for (auto it = devices.begin(); it != devices.end(); ++it)
@@ -369,7 +418,14 @@ void SettingsDialog::OnListView_UniversesItemActivated(wxListEvent& event)
         UniverseEntryDialog dlg(this, start, end, ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 2), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 3), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 4));
         if (dlg.ShowModal() == wxID_OK)
         {
+            for (int i = start; i <= end; i++)
+            {
+                _targetIPCopy.erase(i);
+                _targetDescCopy.erase(i);
+                _targetProtocolCopy.erase(i);
+            }
             AddUniverseRange(dlg.SpinCtrl_Start->GetValue(), dlg.SpinCtrl_End->GetValue(), dlg.TextCtrl_IPAddress->GetValue().ToStdString(), dlg.TextCtrl_Description->GetValue().ToStdString(), dlg.Choice_Protocol->GetStringSelection().ToStdString());
+            LoadUniverses();
         }
     }
     ValidateWindow();
@@ -445,7 +501,14 @@ void SettingsDialog::OnButton_EditClick(wxCommandEvent& event)
         UniverseEntryDialog dlg(this, start, end, ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 2), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 3), ListView_Universes->GetItemText(ListView_Universes->GetFirstSelected(), 4));
         if (dlg.ShowModal() == wxID_OK)
         {
+            for (int i = start; i <= end; i++)
+            {
+                _targetIPCopy.erase(i);
+                _targetDescCopy.erase(i);
+                _targetProtocolCopy.erase(i);
+            }
             AddUniverseRange(dlg.SpinCtrl_Start->GetValue(), dlg.SpinCtrl_End->GetValue(), dlg.TextCtrl_IPAddress->GetValue().ToStdString(), dlg.TextCtrl_Description->GetValue().ToStdString(), dlg.Choice_Protocol->GetStringSelection().ToStdString());
+            LoadUniverses();
         }
     }
 }
@@ -508,4 +571,80 @@ void SettingsDialog::OnButton_ExportSettingsClick(wxCommandEvent& event)
     Apply();
     f.Write(_settings->Serialise());
     f.Close();
+}
+
+void SettingsDialog::OnButtonAddFEClick(wxCommandEvent& event)
+{
+    FadeExcludeDialog dlg(this, _settings, "");
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        _settings->AddFadeExclude(dlg.GetChannel());
+        LoadFadeExclude();
+        ValidateWindow();
+    }
+}
+
+void SettingsDialog::OnButton_EditFEClick(wxCommandEvent& event)
+{
+    if (ListViewFadeExclude->GetSelectedItemCount() > 0)
+    {
+        std::string old = ListViewFadeExclude->GetItemText(ListViewFadeExclude->GetFirstSelected()).ToStdString();
+        FadeExcludeDialog dlg(this, _settings, old);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            _settings->DeleteFadeExclude(old);
+            _settings->AddFadeExclude(dlg.GetChannel());
+            LoadFadeExclude();
+            ValidateWindow();
+        }
+    }
+}
+
+void SettingsDialog::OnButton_DeleteFEClick(wxCommandEvent& event)
+{
+    if (ListViewFadeExclude->GetSelectedItemCount() > 0)
+    {
+        _settings->DeleteFadeExclude(ListViewFadeExclude->GetItemText(ListViewFadeExclude->GetFirstSelected()).ToStdString());
+        LoadFadeExclude();
+        ValidateWindow();
+    }
+}
+
+void SettingsDialog::OnListViewFadeExcludeItemSelect(wxListEvent& event)
+{
+    ValidateWindow();
+}
+
+void SettingsDialog::OnListViewFadeExcludeItemActivated(wxListEvent& event)
+{
+    if (ListViewFadeExclude->GetSelectedItemCount() > 0)
+    {
+        std::string old = ListViewFadeExclude->GetItemText(ListViewFadeExclude->GetFirstSelected()).ToStdString();
+        FadeExcludeDialog dlg(this, _settings, old);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            _settings->DeleteFadeExclude(old);
+            _settings->AddFadeExclude(dlg.GetChannel());
+            LoadFadeExclude();
+        }
+    }
+    ValidateWindow();
+}
+
+void SettingsDialog::LoadFadeExclude()
+{
+    int sel = ListViewFadeExclude->GetFirstSelected();
+
+    ListViewFadeExclude->Freeze();
+
+    ListViewFadeExclude->DeleteAllItems();
+
+    for (auto it = _settings->GetFadeExclude().begin(); it != _settings->GetFadeExclude().end(); ++it)
+    {
+        ListViewFadeExclude->InsertItem(ListViewFadeExclude->GetItemCount(), *it);
+    }
+
+    ListViewFadeExclude->Select(sel);
+
+    ListViewFadeExclude->Thaw();
 }

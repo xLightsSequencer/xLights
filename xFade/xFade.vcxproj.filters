@@ -16,6 +16,7 @@
     <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidiDatabase.cpp" />
     <ClCompile Include="wxLED.cpp" />
     <ClCompile Include="MIDIAssociateDialog.cpp" />
+    <ClCompile Include="FadeExcludeDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\xLightsVersion.h" />
@@ -33,6 +34,7 @@
     <ClInclude Include="..\xSchedule\wxMIDI\src\wxMidi.h" />
     <ClInclude Include="wxLED.h" />
     <ClInclude Include="MIDIAssociateDialog.h" />
+    <ClInclude Include="FadeExcludeDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -450,7 +450,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     _leftReceived = 0;
     _rightReceived = 0;
 
-    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP);
+    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP, &_settings);
 
     for (int i = 0; i < JUKEBOXBUTTONS; i++)
     {
@@ -871,15 +871,14 @@ void PacketData::InitialiseE131Header()
 
     // CID/UUID
 
-    wxChar msb, lsb;
     wxString id = XLIGHTS_UUID;
     id.Replace("-", "");
     id.MakeLower();
     if (id.Len() != 32) throw "invalid CID";
     for (int i = 0, j = 22; i < 32; i += 2)
     {
-        msb = id.GetChar(i);
-        lsb = id.GetChar(i + 1);
+        wxChar msb = id.GetChar(i);
+        wxChar lsb = id.GetChar(i + 1);
         msb -= isdigit(msb) ? 0x30 : 0x57;
         lsb -= isdigit(lsb) ? 0x30 : 0x57;
         _data[j++] = (wxByte)((msb << 4) | lsb);
@@ -961,20 +960,34 @@ void PacketData::InitialiseLength(long type, int length, int universe)
     }
 }
 
-void PacketData::ApplyBrightness(int brightness)
+void PacketData::ApplyBrightness(int brightness, std::list<int> excludeChannels)
 {
     if (brightness == 100) return;
 
-    if (brightness == 0)
+    if (excludeChannels.size() == 0)
     {
-        memset(GetDataPtr(), 0x00, GetDataLength());
+        if (brightness == 0)
+        {
+            memset(GetDataPtr(), 0x00, GetDataLength());
+        }
+        else
+        {
+            wxByte* p = GetDataPtr();
+            for (int i = 0; i < GetDataLength(); i++)
+            {
+                *(p + i) = (wxByte)((int)*(p + i) * brightness / 100);
+            }
+        }
     }
     else
     {
         wxByte* p = GetDataPtr();
         for (int i = 0; i < GetDataLength(); i++)
         {
-            *(p + i) = (wxByte)((int)*(p+i) * brightness / 100);
+            if (std::find(excludeChannels.begin(), excludeChannels.end(), i + 1) == excludeChannels.end())
+            {
+                *(p + i) = (wxByte)((int)*(p + i) * brightness / 100);
+            }
         }
     }
 }
@@ -1834,7 +1847,7 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
         SaveState();
     }
 
-    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP);
+    _emitter = new Emitter(&_settings._targetIP, &_leftData, &_rightData, &_settings._targetProtocol, &_lock, _settings._localOutputIP, &_settings);
     _emitter->SetLeftBrightness(Slider_LeftBrightness->GetValue());
     _emitter->SetRightBrightness(Slider_RightBrightness->GetValue());
     SetTiming();
