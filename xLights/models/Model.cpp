@@ -1499,16 +1499,29 @@ void Model::InitModel() {
 }
 
 void Model::GetNodeChannelValues(size_t nodenum, unsigned char *buf) {
-    Nodes[nodenum]->GetForChannels(buf);
+    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
+    if (nodenum < Nodes.size()) {
+        Nodes[nodenum]->GetForChannels(buf);
+    }
 }
 
 void Model::SetNodeChannelValues(size_t nodenum, const unsigned char *buf) {
-    Nodes[nodenum]->SetFromChannels(buf);
+    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
+    if (nodenum < Nodes.size()) {
+        Nodes[nodenum]->SetFromChannels(buf);
+    }
 }
 
 xlColor Model::GetNodeColor(size_t nodenum) const {
+    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
     xlColor color;
-    Nodes[nodenum]->GetColor(color);
+    if (nodenum < Nodes.size()) {
+        Nodes[nodenum]->GetColor(color);
+    }
+    else
+    {
+        color = xlWHITE;
+    }
     return color;
 }
 
@@ -1520,7 +1533,10 @@ xlColor Model::GetNodeMaskColor(size_t nodenum) const {
 }
 
 void Model::SetNodeColor(size_t nodenum, const xlColor &c) {
-    Nodes[nodenum]->SetColor(c);
+    wxASSERT(nodenum < Nodes.size()); // trying to catch an error i can see in crash reports
+    if (nodenum < Nodes.size()) {
+        Nodes[nodenum]->SetColor(c);
+    }
 }
 
 bool Model::IsNodeInBufferRange(size_t nodeNum, int x1, int y1, int x2, int y2) {

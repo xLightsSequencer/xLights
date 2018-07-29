@@ -1953,7 +1953,7 @@ void LayoutPanel::FinalizeModel()
             float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
             bool cancelled = false;
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download");
-            if (cancelled) {
+            if (cancelled || newModel == nullptr) {
                 newModel = nullptr;
                 m_over_handle = -1;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
@@ -1979,13 +1979,11 @@ void LayoutPanel::FinalizeModel()
 
         m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
-        if (selectedButton->GetState() == 1) {
+        if (selectedButton != nullptr && selectedButton->GetState() == 1) {
             std::string name = newModel->name;
             newModel = nullptr;
-            if (selectedButton != nullptr) {
-                selectedButton->SetState(0);
-                selectedButton = nullptr;
-            }
+            selectedButton->SetState(0);
+            selectedButton = nullptr;
             xlights->UpdateModelsList();
             UpdatePreview();
             SelectModel(name);
