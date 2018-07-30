@@ -66,8 +66,10 @@ enum MixTypes
     Mix_Effect2, /**<  Effect 2 only */
     Mix_Mask1,   /**<  Effect 2 color shows where Effect 1 is black */
     Mix_Mask2,   /**<  Effect 1 color shows where Effect 2 is black */
-    Mix_Unmask1, /**<  Effect 2 color shows where Effect 1 is not black */
-    Mix_Unmask2, /**<  Effect 1 color shows where Effect 2 is black */
+    Mix_Unmask1, /**<  Effect 2 color shows where Effect 1 is not black but with no fade ... black becomes white*/
+    Mix_Unmask2, /**<  Effect 1 color shows where Effect 2 is not black but with no fade ... black becomes white*/
+    Mix_TrueUnmask1, /**<  Effect 2 color shows where Effect 1 is not black */
+    Mix_TrueUnmask2, /**<  Effect 1 color shows where Effect 2 is black */
     Mix_1_reveals_2,  /**<  Effect 2 color only shows if Effect 1 is black  1 reveals 2 */
     Mix_2_reveals_1,  /**<  Effect 1 color only shows if Effect 2 is black */
     Mix_Layered, /**<  Effect 1 is back ground and shows only when effect 2 is black */
