@@ -703,6 +703,7 @@
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
 		67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D181F4D21EB00983072 /* ShapePanel.cpp */; };
 		67FB9D1C1F4D21EB00983072 /* ShapeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */; };
+		67FDFA36210EA77A001587BC /* FadeExcludeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */; };
 		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
@@ -1881,6 +1882,8 @@
 		67FB9D181F4D21EB00983072 /* ShapePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShapePanel.cpp; path = effects/ShapePanel.cpp; sourceTree = "<group>"; };
 		67FB9D191F4D21EB00983072 /* ShapeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShapeEffect.h; path = effects/ShapeEffect.h; sourceTree = "<group>"; };
 		67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShapeEffect.cpp; path = effects/ShapeEffect.cpp; sourceTree = "<group>"; };
+		67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FadeExcludeDialog.cpp; sourceTree = "<group>"; };
+		67FDFA35210EA77A001587BC /* FadeExcludeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FadeExcludeDialog.h; sourceTree = "<group>"; };
 		67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsModelsPanel.cpp; sourceTree = "<group>"; };
 		67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsModelsPanel.h; sourceTree = "<group>"; };
 		67FF398B1D57F54D00290DB4 /* Shapes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shapes.cpp; path = models/Shapes.cpp; sourceTree = "<group>"; };
@@ -2026,6 +2029,8 @@
 		67025C6920D7E80800BF1AC6 /* xFade */ = {
 			isa = PBXGroup;
 			children = (
+				67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */,
+				67FDFA35210EA77A001587BC /* FadeExcludeDialog.h */,
 				67025C8A20D7E85100BF1AC6 /* Emitter.cpp */,
 				67025C8720D7E85100BF1AC6 /* Emitter.h */,
 				67025C8020D7E85000BF1AC6 /* MIDIAssociateDialog.cpp */,
@@ -3639,6 +3644,7 @@
 				67025C9420D7E85100BF1AC6 /* Emitter.cpp in Sources */,
 				67025C8F20D7E85100BF1AC6 /* Settings.cpp in Sources */,
 				67025C8D20D7E85100BF1AC6 /* UniverseEntryDialog.cpp in Sources */,
+				67FDFA36210EA77A001587BC /* FadeExcludeDialog.cpp in Sources */,
 				67025C9220D7E85100BF1AC6 /* MIDIListener.cpp in Sources */,
 				67025C9320D7E85100BF1AC6 /* xFadeApp.cpp in Sources */,
 				67025C9120D7E85100BF1AC6 /* xFadeMain.cpp in Sources */,
@@ -4374,9 +4380,7 @@
 					"-DwxDEBUG_LEVEL=1",
 					"-Iinclude",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-				);
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				OTHER_TAPI_FLAGS = "";
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
@@ -4451,9 +4455,7 @@
 					"-DwxDEBUG_LEVEL=0",
 					"-Iinclude",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-				);
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
 					"-lwxexpat-3.1",
