@@ -139,6 +139,7 @@ void xLightsFrame::NewSequence()
     MenuItem_GenerateLyrics->Enable(true);
     MenuItem_ExportEffects->Enable(true);
     MenuItem_ImportEffects->Enable(true);
+    MenuItem_PurgeRenderCache->Enable(true);
 
     unsigned int max = GetMaxNumChannels();
     if (max >= 999999) {
@@ -342,6 +343,8 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         // open the xml file so we can see if it has media
         CurrentSeqXmlFile->Open(GetShowDirectory());
+
+        _renderCache.SetSequence(CurrentSeqXmlFile->GetFullPath());
 
         // if fseq didn't have media check xml
         if (CurrentSeqXmlFile->GetMediaFile() != "")
@@ -592,6 +595,9 @@ bool xLightsFrame::CloseSequence()
     // just in case there is still rendering going on
     AbortRender();
 
+    _renderCache.CleanupCache(&mSequenceElements);
+    _renderCache.SetSequence("");
+
     // clear everything to prepare for new sequence
     displayElementsPanel->Clear();
     sEffectAssist->SetPanel(nullptr);
@@ -607,6 +613,7 @@ bool xLightsFrame::CloseSequence()
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = nullptr;
     }
+
     mSequenceElements.Clear();
     mSavedChangeCount = mSequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;

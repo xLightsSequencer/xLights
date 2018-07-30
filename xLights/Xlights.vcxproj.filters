@@ -341,13 +341,13 @@
     <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
-    <ClCompile Include="VideoRenderCacher.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="effects\WarpPanel.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
+    <ClCompile Include="RenderCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -684,7 +684,6 @@
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
     <ClInclude Include="RenderUtils.h" />
-    <ClInclude Include="VideoRenderCacher.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="OpenGLShaders.h" />
@@ -696,6 +695,7 @@
     <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
+    <ClInclude Include="RenderCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

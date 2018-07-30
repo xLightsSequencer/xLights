@@ -1056,6 +1056,7 @@ void xLightsFrame::SaveSequence()
         }
         while (!ok);
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
+        _renderCache.SetSequence(xmlFileName.GetFullPath());
         xmlFileName.SetExt("xml");
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
@@ -1304,6 +1305,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_PackageSequence->Enable(false);
         MenuItem_GenerateLyrics->Enable(false);
         MenuItem_ExportEffects->Enable(false);
+        MenuItem_PurgeRenderCache->Enable(false);
         MenuItem_ImportEffects->Enable(false);
         MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
     }

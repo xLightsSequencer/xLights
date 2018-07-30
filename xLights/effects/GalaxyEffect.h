@@ -44,6 +44,7 @@ class GalaxyEffect : public RenderableEffect
                                          DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
+        virtual bool SupportsRenderCache() const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
