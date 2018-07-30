@@ -975,34 +975,55 @@ std::string Model::ComputeStringStartChannel(int i) {
     if (i == 0) {
         return ModelXml->GetAttribute("StartChannel", "1").ToStdString();
     }
-    wxString stch = ModelXml->GetAttribute(StartChanAttrName(i - 1));
+    wxString stch = ModelXml->GetAttribute("StartChannel", "1");
     int ChannelsPerString = CalcCannelsPerString();
-    long StringStartChanLong = 0;
     if (stch.Contains(":")) {
-        wxString sNet = stch.SubString(0, stch.Find(":")-1);
-        stch = stch.SubString(stch.Find(":") + 1, stch.size());
-        long startNetwork;
-        if (sNet.ToLong(&startNetwork) && startNetwork > 0) {
-            startNetwork--; // Zero based index
-            if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
-                // get the string end channel
-                long ststch;
-                Output* o = modelManager.GetOutputManager()->GetOutput(StringStartChanLong + ChannelsPerString + 1, ststch);
+        auto comps = wxSplit(stch, ':');
+        if (comps[0].StartsWith("#"))
+        {
+            long ststch;
+            Output* o = modelManager.GetOutputManager()->GetOutput(GetFirstChannel() + ChannelsPerString * i + 1, ststch);
+            if (comps.size() == 2)
+            {
                 if (o != nullptr)
                 {
-                    return wxString::Format("%i:%ld",o->GetOutputNumber(), ststch).ToStdString();
+                    return wxString::Format("#%i:%ld", o->GetUniverse(), ststch).ToStdString();
+                }
+                else
+                {
+                    return wxString::Format("%ld", GetFirstChannel() + ChannelsPerString * i + 1);
                 }
             }
-        } else if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
-            long StringEndChan=StringStartChanLong + ChannelsPerString;
-            stch = sNet + wxString::Format(":%ld", StringEndChan);
+            else
+            {
+                if (o != nullptr)
+                {
+                    return wxString::Format("%s:i:%ld", comps[0], o->GetUniverse(), ststch).ToStdString();
+                }
+                else
+                {
+                    return wxString::Format("%ld", GetFirstChannel() + ChannelsPerString * i + 1);
+                }
+            }
+        }
+        else if (comps[0].StartsWith(">") || comps[0].StartsWith("@"))
+        {
+            return wxString::Format("%s:%ld", comps[0], wxAtol(comps[1]) + ChannelsPerString * i);
+        }
+        else {
+            long ststch;
+            Output* o = modelManager.GetOutputManager()->GetOutput(GetFirstChannel() + ChannelsPerString * i + 1, ststch);
+            if (o != nullptr)
+            {
+                return wxString::Format("%i:%ld", o->GetOutputNumber(), ststch).ToStdString();
+            }
+            else
+            {
+                return wxString::Format("%ld", GetFirstChannel() + ChannelsPerString * i + 1);
+            }
         }
     }
-    if (stch.ToLong(&StringStartChanLong) && StringStartChanLong > 0) {
-        long StringEndChan=StringStartChanLong + ChannelsPerString;
-        stch = wxString::Format(wxT("%ld"), StringEndChan);
-    }
-    return stch.ToStdString();
+    return wxString::Format("%ld", GetFirstChannel() + ChannelsPerString * i + 1);
 }
 
 int Model::GetNumStrands() const {
