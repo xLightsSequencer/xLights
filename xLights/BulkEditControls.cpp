@@ -759,7 +759,8 @@ bool IsBulkEditAvailable(wxWindow* w)
     }
 
     // i should only display the menu if more than one effect is selected
-    if (xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("") < 2)
+    int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
+    if (alleffects < 2)
     {
         logger_base.debug("Bulk edit refused ... insufficent effects selected.");
         return false;
@@ -770,11 +771,14 @@ bool IsBulkEditAvailable(wxWindow* w)
     {
         std::string effect = xLightsApp::GetFrame()->GetEffectManager().GetEffectName(((EffectsPanel*)GetPanel(w))->EffectChoicebook->GetSelection());
 
-        if (xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect) < 2)
+        int thiseffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount(effect);
+        if (thiseffect < 2)
         {
             logger_base.debug("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
             return false;
         }
+
+        // mixed effect types is ok ... we will just skip those that dont match the current effect panel
     }
 
     return true;

@@ -7,8 +7,10 @@
 #include <wx/intl.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 //(*IdInit(FacesPanel)
@@ -21,6 +23,9 @@ const long FacesPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
 const long FacesPanel::ID_STATICTEXT_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
+const long FacesPanel::ID_CHECKBOX_Faces_TransparentBlack = wxNewId();
+const long FacesPanel::IDD_SLIDER_Faces_TransparentBlack = wxNewId();
+const long FacesPanel::ID_TEXTCTRL_Faces_TransparentBlack = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(FacesPanel,wxPanel)
@@ -32,6 +37,7 @@ FacesPanel::FacesPanel(wxWindow* parent)
 {
 	//(*Initialize(FacesPanel)
 	wxFlexGridSizer* FlexGridSizer47;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer97;
 	wxFlexGridSizer* FlexGridSizer98;
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -84,6 +90,16 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer7->AddGrowableCol(1);
+	CheckBox_TransparentBlack = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_TransparentBlack, _("Transparent Black"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_TransparentBlack"));
+	CheckBox_TransparentBlack->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider1 = new BulkEditSlider(this, IDD_SLIDER_Faces_TransparentBlack, 0, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Faces_TransparentBlack"));
+	FlexGridSizer7->Add(Slider1, 1, wxALL|wxEXPAND, 5);
+	TextCtrl3 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Faces_TransparentBlack, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Faces_TransparentBlack"));
+	FlexGridSizer7->Add(TextCtrl3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer47->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer47);
 	FlexGridSizer47->Fit(this);
 	FlexGridSizer47->SetSizeHints(this);

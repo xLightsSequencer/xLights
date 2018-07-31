@@ -3,6 +3,7 @@
 #include <wx/wx.h>
 #include <wx/thread.h>
 #include "xFadeMain.h"
+#include "Settings.h"
 
 class EmitterThread : public wxThread
 {
@@ -34,12 +35,26 @@ public:
         _stop = true;
     }
     
-    void Blend(wxByte* buffer, wxByte* blendBuffer, size_t channels, float pos)
+    void Blend(wxByte* buffer, wxByte* blendBuffer, size_t channels, float pos, std::list<int> excludeChannels)
     {
         float inv = 1.0 - pos;
         for (size_t i = 0; i < channels; ++i)
         {
-            *(buffer + i) = (wxByte)((float)*(buffer + i) * inv + (float)*(blendBuffer + i) * pos);
+            if (std::find(excludeChannels.begin(), excludeChannels.end(), i+1) != excludeChannels.end())
+            {
+                if (pos < 0.5)
+                {
+                    // dont change anything
+                }
+                else
+                {
+                    *(buffer + i) = *(blendBuffer + i);
+                }
+            }
+            else
+            {
+                *(buffer + i) = (wxByte)((float)*(buffer + i) * inv + (float)*(blendBuffer + i) * pos);
+            }
         }
     }
 
@@ -76,6 +91,8 @@ public:
 
                 for (auto it = ips.begin(); it != ips.end(); ++it)
                 {
+                    std::list<int> excludeChannels = _emitter->GetSettings()->GetExcludeChannels(it->first);
+
                     auto l = _emitter->GetLeft(it->first);
                     auto r = _emitter->GetRight(it->first);
 
@@ -95,21 +112,21 @@ public:
                     if (pos == 0.0)
                     {
                         PrepareData(&sendData, &l, protocol);
-                        sendData.ApplyBrightness(_emitter->GetLeftBrightness());
+                        sendData.ApplyBrightness(_emitter->GetLeftBrightness(), excludeChannels);
                     }
                     else if (pos == 1.0)
                     {
                         PrepareData(&sendData, &r, protocol);
-                        sendData.ApplyBrightness(_emitter->GetRightBrightness());
+                        sendData.ApplyBrightness(_emitter->GetRightBrightness(), excludeChannels);
                     }
                     else
                     {
                         int sz = std::min(l.GetDataLength(), r.GetDataLength());
 
-                        l.ApplyBrightness(_emitter->GetLeftBrightness());
-                        r.ApplyBrightness(_emitter->GetRightBrightness());
+                        l.ApplyBrightness(_emitter->GetLeftBrightness(), excludeChannels);
+                        r.ApplyBrightness(_emitter->GetRightBrightness(), excludeChannels);
 
-                        Blend(l.GetDataPtr(), r.GetDataPtr(), sz, pos);
+                        Blend(l.GetDataPtr(), r.GetDataPtr(), sz, pos, excludeChannels);
                         PrepareData(&sendData, &l, protocol);
                     }
 
@@ -131,8 +148,9 @@ public:
     }
 };
 
-Emitter::Emitter(std::map<int, std::string>* ip, std::map<int, PacketData>* left, std::map<int, PacketData>* right, std::map<int, std::string>* protocol, std::mutex* lock, std::string localIP)
+Emitter::Emitter(std::map<int, std::string>* ip, std::map<int, PacketData>* left, std::map<int, PacketData>* right, std::map<int, std::string>* protocol, std::mutex* lock, std::string localIP, Settings* settings)
 {
+    _settings = settings;
     _sent = 0;
     _localIP = localIP;
     _stop = false;

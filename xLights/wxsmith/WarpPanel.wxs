@@ -55,6 +55,9 @@
 										<item>ripple</item>
 										<item>single water drop</item>
 										<item>circular swirl</item>
+										<item>drop</item>
+										<item>wavy</item>
+										<item>sample on</item>
 									</content>
 									<handler function="OnChoice_Warp_TypeSelect" entry="EVT_CHOICE" />
 								</object>
@@ -84,7 +87,7 @@
 							<cols>2</cols>
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_Warp_Treatment" variable="Choice_Warp_Treatment" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_Warp_Treatment_APPLYLAST" variable="Choice_Warp_Treatment" member="yes">
 									<content>
 										<item>constant</item>
 										<item>in</item>

@@ -543,6 +543,8 @@ public:
     void OnMenuItem_xFadeDisabledSelected(wxCommandEvent& event);
     void OnMenuItem_XFade_ASelected(wxCommandEvent& event);
     void OnMenuItem_xFade_BSelected(wxCommandEvent& event);
+    void OnMenuItemUserDictSelected(wxCommandEvent& event);
+    void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -659,6 +661,7 @@ private:
     static const long ID_MNU_EXPORT_EFFECTS;
     static const long ID_MENU_FPP_CONNECT;
     static const long ID_MNU_PACKAGESEQUENCE;
+    static const long ID_MENU_USER_DICT;
     static const long ID_MNU_DOWNLOADSEQUENCES;
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
@@ -704,6 +707,7 @@ private:
     static const long ID_IMPORT_EFFECTS;
     static const long ID_SEQ_SETTINGS;
     static const long ID_RENDER_ON_SAVE;
+    static const long ID_SAVE_FSEQ_ON_SAVE;
     static const long ID_BACKUP_ON_SAVE;
     static const long ID_MENU_BACKUP_ON_LAUNCH;
     static const long ID_MNU_BKPPURGE_NEVER;
@@ -882,6 +886,7 @@ private:
     wxMenuItem* MenuItemShiftSelectedEffects;
     wxMenuItem* MenuItemTimingEditMode;
     wxMenuItem* MenuItemTimingPlayMode;
+    wxMenuItem* MenuItemUserDict;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;
@@ -948,6 +953,7 @@ private:
     wxMenuItem* mBackupOnSaveMenuItem;
     wxMenuItem* mExportModelsMenuItem;
     wxMenuItem* mRenderOnSaveMenuItem;
+    wxMenuItem* mSaveFseqOnSaveMenuItem;
     wxPanel* AUIStatusBar;
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
@@ -1266,6 +1272,7 @@ private:
     bool mGridNodeValues;
     int mEffectAssistMode;
 	bool mRendering;
+    bool mSaveFseqOnSave;
 
     class RenderTree {
     public:

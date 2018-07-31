@@ -7,8 +7,10 @@ class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
 class wxRadioButton;
+class wxSlider;
 class wxStaticBoxSizer;
 class wxStaticText;
+class wxTextCtrl;
 //*)
 
 #include "../BulkEditControls.h"
@@ -22,7 +24,10 @@ class FacesPanel: public wxPanel
 
 		//(*Declarations(FacesPanel)
 		BulkEditCheckBox* CheckBox_Faces_Outline;
+		BulkEditCheckBox* CheckBox_TransparentBlack;
 		BulkEditChoice* Choice_Faces_Eyes;
+		BulkEditSlider* Slider1;
+		BulkEditTextCtrl* TextCtrl3;
 		wxChoice* Choice_Faces_Phoneme;
 		wxChoice* Choice_Faces_TimingTrack;
 		wxChoice* Face_FaceDefinitonChoice;
@@ -44,6 +49,9 @@ class FacesPanel: public wxPanel
 		static const long ID_STATICTEXT_Faces_Eyes;
 		static const long ID_CHOICE_Faces_Eyes;
 		static const long ID_CHECKBOX_Faces_Outline;
+		static const long ID_CHECKBOX_Faces_TransparentBlack;
+		static const long IDD_SLIDER_Faces_TransparentBlack;
+		static const long ID_TEXTCTRL_Faces_TransparentBlack;
 		//*)
 
 	public:

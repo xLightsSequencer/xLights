@@ -162,6 +162,26 @@ std::string Settings::Serialise()
         res += "|ARTNET:";
     }
 
+    if (_fadeExclude.size() > 0)
+    {
+        res += "|FE:";
+        bool first = true;
+        for (auto it = _fadeExclude.begin(); it != _fadeExclude.end(); ++it)
+        {
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                res += ",";
+            }
+            wxString fix = *it;
+            fix.Replace(":", ";");
+            res += fix.ToStdString();
+        }
+    }
+
     return res;
 }
 
@@ -215,6 +235,16 @@ void Settings::Load(std::string settings)
                     }
                 }
             }
+            else if (s2[0] == "FE")
+            {
+                auto s4 = wxSplit(s2[1], ',');
+                for (auto it = s4.begin(); it != s4.end(); ++it)
+                {
+                    wxString fix = *it;
+                    fix.Replace(";", ":");
+                    _fadeExclude.push_back(fix.ToStdString());
+                }
+            }
             else if (s2[0] == "FRM")
             {
                 _frameMS = wxAtoi(s2[1]);
@@ -248,4 +278,82 @@ int Settings::GetMIDIDeviceId()
 {
     if (_midiDevice == "") return -1;
     return wxAtoi(wxString(_midiDevice).AfterLast(' '));
+}
+
+bool Settings::IsFadeExclude(std::string ch)
+{
+    for (auto it = _fadeExclude.begin(); it != _fadeExclude.end(); ++it)
+    {
+        if (*it == ch)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool sortusc(const std::string& first, const std::string& second)
+{
+    int fu, fsc;
+    Settings::DecodeUSC(first, fu, fsc);
+    int su, ssc;
+    Settings::DecodeUSC(second, su, ssc);
+
+    if (fu == su)
+    {
+        return fsc < ssc;
+    }
+    return fu < su;
+}
+
+void Settings::DecodeUSC(std::string ch, int& u, int &sc)
+{
+    auto f = wxSplit(ch, ':');
+    if (f.size() == 2)
+    {
+        u = wxAtoi(f[0].substr(1));
+        sc = wxAtoi(f[1]);
+    }
+}
+
+void Settings::AddFadeExclude(std::string ch)
+{
+    if (!IsFadeExclude(ch))
+    {
+        _fadeExclude.push_back(ch);
+        _fadeExclude.sort(sortusc);
+    }
+}
+
+void Settings::DeleteFadeExclude(std::string ch)
+{
+    if (IsFadeExclude(ch))
+    {
+        for (auto it = _fadeExclude.begin(); it != _fadeExclude.end(); ++it)
+        {
+            if (*it == ch)
+            {
+                _fadeExclude.erase(it);
+                return;
+            }
+        }
+    }
+}
+
+std::list<int> Settings::GetExcludeChannels(int u)
+{
+    std::list<int> res;
+
+    for (auto it = _fadeExclude.begin(); it != _fadeExclude.end(); ++it)
+    {
+        int uu, sc;
+        Settings::DecodeUSC(*it, uu, sc);
+        if (u == uu)
+        {
+            res.push_back(sc);
+        }
+    }
+
+    return res;
 }

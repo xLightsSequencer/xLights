@@ -158,6 +158,7 @@ const long xScheduleFrame::ID_MNU_VIEW_LOG = wxNewId();
 const long xScheduleFrame::ID_MNU_CHECK_SCHEDULE = wxNewId();
 const long xScheduleFrame::ID_MNU_WEBINTERFACE = wxNewId();
 const long xScheduleFrame::ID_MNU_IMPORT = wxNewId();
+const long xScheduleFrame::ID_MNU_CRASH = wxNewId();
 const long xScheduleFrame::ID_MNU_MODENORMAL = wxNewId();
 const long xScheduleFrame::ID_MNU_FPPMASTER = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCMASTER = wxNewId();
@@ -323,6 +324,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _webServer = nullptr;
     _timerOutputFrame = false;
     _suspendOTL = false;
+    _nowebicon = wxBitmap(no_web_icon_24);
+    _webicon = wxBitmap(web_icon_24);
+    _webIconDisplayed = false;
 
     //(*Initialize(xScheduleFrame)
     wxBoxSizer* BoxSizer1;
@@ -439,7 +443,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer6->Add(StaticText_ShowDir, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_IP = new wxStaticText(Panel4, ID_STATICTEXT3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer6->Add(StaticText_IP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_PacketsPerSec = new wxStaticText(Panel4, ID_STATICTEXT4, _("Packets/Sec: 0"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    StaticText_PacketsPerSec = new wxStaticText(Panel4, ID_STATICTEXT4, _("Packets/Sec: 0          "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer6->Add(StaticText_PacketsPerSec, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText2 = new wxStaticText(Panel4, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
     FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -486,6 +490,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu3->Append(MenuItem_WebInterface);
     MenuItem_ImportxLights = new wxMenuItem(Menu3, ID_MNU_IMPORT, _("Import xLights Playlist"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ImportxLights);
+    MenuItem_Crash = new wxMenuItem(Menu3, ID_MNU_CRASH, _("Crash"), _("Crash xSchedule"), wxITEM_NORMAL);
+    Menu3->Append(MenuItem_Crash);
     MenuBar1->Append(Menu3, _("&Tools"));
     Menu4 = new wxMenu();
     MenuItem_Standalone = new wxMenuItem(Menu4, ID_MNU_MODENORMAL, _("Standalone"), wxEmptyString, wxITEM_RADIO);
@@ -566,6 +572,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_CHECK_SCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CheckScheduleSelected);
     Connect(ID_MNU_WEBINTERFACE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_WebInterfaceSelected);
     Connect(ID_MNU_IMPORT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ImportxLightsSelected);
+    Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_CrashSelected);
     Connect(ID_MNU_MODENORMAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_StandaloneSelected);
     Connect(ID_MNU_FPPMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_FPPMasterSelected);
     Connect(ID_MNU_OSCMASTER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCMasterSelected);
@@ -706,7 +713,27 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     AddWindowsMenu();
 
-    StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+    StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+    _webIconDisplayed = false;
+
+    // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
+#ifndef NDEBUG
+    logger_base.debug("xSchedule Crash Menu item not removed.");
+    #ifdef _MSC_VER
+        SetBackgroundColour(*wxGREEN);
+    #endif
+#else
+    // only keep the crash option if the EnableCrash.txt file exists
+    if (!wxFile::Exists("EnableCrash.txt"))
+    {
+        MenuItem_Crash->GetMenu()->Remove(MenuItem_Crash);
+        MenuItem_Crash = nullptr;
+    }
+    else
+    {
+        logger_base.debug("xSchedule Crash Menu item not removed.");
+    }
+#endif
 
     UpdateUI();
     ValidateWindow();
@@ -1199,7 +1226,7 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
     {
         if ((*it)->GetSchedule()->GetId() == schedule->GetId())
         {
-            if (!(*it)->GetPlayList()->IsRunning())
+            if ((*it)->IsStopped())
             {
                 return schedule->GetName() + " [Stopped]";
             }
@@ -1235,11 +1262,8 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     if (__schedule == nullptr) return;
 
-    if (reentered)
-    {
-        logger_base.warn("Frame timer was re-entered ... dropping this frame.");
-        return;
-    }
+    wxDateTime frameStart = wxDateTime::UNow();
+
     reentered = true;
 
     int rate = __schedule->Frame(_timerOutputFrame);
@@ -1251,20 +1275,49 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         wxPostEvent(this, event2);
     }
 
-    _timerOutputFrame = !_timerOutputFrame;
-
-    StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
-
+    static bool webstate = false;
     if (__schedule->GetWebRequestToggle())
     {
-        StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+        if (!webstate)
+        {
+            if (!_webIconDisplayed)
+            {
+                StaticBitmap_WebIcon->SetBitmap(_webicon);
+                _webIconDisplayed = true;
+            }
+            webstate = true;
+        }
     }
     else
     {
-        StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+        if (webstate)
+        {
+            if (_webIconDisplayed)
+            {
+                StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+                _webIconDisplayed = false;
+            }
+            webstate = false;
+        }
     }
 
     CorrectTimer(rate);
+
+    wxDateTime frameEnd = wxDateTime::UNow();
+    long ms = (frameEnd - frameStart).GetMilliseconds().ToLong();
+
+    if (ms > _timer.GetInterval() / 2)
+    {
+        // we took too long so next frame has to be an output frame
+        _timerOutputFrame = true;
+    }
+    else
+    {
+        // output only occurs on alternate timer events
+        _timerOutputFrame = !_timerOutputFrame;
+    }
+
+    //logger_base.debug("Frame time %ld", ms);
 
     reentered = false;
 }
@@ -1302,7 +1355,7 @@ void xScheduleFrame::UpdateSchedule()
                 {
                     RunningSchedule* r = __schedule->GetRunningSchedule(schedule);
                     wxASSERT(r != nullptr);
-                    if (r == nullptr || !r->GetPlayList()->IsRunning())
+                    if (r == nullptr || r->IsStopped())
                     {
                         // stopped
                         TreeCtrl_PlayListsSchedules->SetItemBackgroundColour(it2, wxColor(0xe7, 0x74, 0x71));
@@ -2061,11 +2114,23 @@ void xScheduleFrame::OnBitmapButton_UnsavedClick(wxCommandEvent& event)
 }
 
 void xScheduleFrame::CreateDebugReport(wxDebugReportCompress *report) {
-    if (wxDebugReportPreviewStd().Show(*report)) {
-        report->Process();
-        SendReport("crashUpload", *report);
-        wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
+
+    std::string cb = "Prompt user";
+    if (__schedule != nullptr && __schedule->GetOptions() != nullptr)
+    {
+        cb = __schedule->GetOptions()->GetCrashBehaviour();
     }
+
+    report->Process();
+
+    if (cb == "Silently exit after sending crash log" || (cb == "Prompt user" && wxDebugReportPreviewStd().Show(*report))) {
+        if (cb != "Silently exit after sending crash log")
+        {
+            wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
+        }
+        SendReport("crashUpload", *report);
+    }
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Exiting after creating debug report: " + report->GetCompressedFileName());
     delete report;
@@ -2368,17 +2433,27 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
 
 void xScheduleFrame::UpdateUI()
 {
+    StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
+
     UpdateStatus();
 
     Brightness->SetValue(__schedule->GetBrightness());
 
     if (__schedule->GetWebRequestToggle())
     {
-        StaticBitmap_WebIcon->SetBitmap(web_icon_24);
+        if (!_webIconDisplayed)
+        {
+            StaticBitmap_WebIcon->SetBitmap(_webicon);
+            _webIconDisplayed = true;
+        }
     }
     else
     {
-        StaticBitmap_WebIcon->SetBitmap(no_web_icon_24);
+        if (_webIconDisplayed)
+        {
+            StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+            _webIconDisplayed = false;
+        }
     }
 
     if (!_suspendOTL)
@@ -2824,4 +2899,12 @@ void xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& eve
 {
     __schedule->SetMode(SYNCMODE::ARTNETMASTER);
     UpdateUI();
+}
+
+void xScheduleFrame::OnMenuItem_CrashSelected(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.crit("^^^^^ xSchedule crashing on purpose ... bye bye cruel world.");
+    int *p = nullptr;
+    *p = 0xFFFFFFFF;
 }

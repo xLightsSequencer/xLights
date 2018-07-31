@@ -1508,6 +1508,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         mia->Enable(false);
         mid->Enable(false);
         mide->Enable(false);
+        mideu->Enable(false);
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);

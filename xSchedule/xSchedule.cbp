@@ -47,7 +47,7 @@
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/swresample.lib" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
@@ -106,7 +106,7 @@
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avcodec.lib" />
 					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/imagehlp.lib" />
@@ -145,7 +145,7 @@
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`sdl-config --libs`" />
+					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
@@ -180,7 +180,7 @@
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`sdl-config --libs`" />
+					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
@@ -232,7 +232,7 @@
 					<Add library="../lib/windows64/avformat.lib" />
 					<Add library="../lib/windows64/avcodec.lib" />
 					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/SDL2.lib" />
+					<Add library="../lib/windows64/libSDL2.dll.a" />
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
 					<Add library="../lib/windows64/libimagehlp.a" />
@@ -504,6 +504,10 @@
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemTestPanel.h" />
+		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophone.h" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemText.cpp" />
 		<Unit filename="PlayList/PlayListItemText.h" />
 		<Unit filename="PlayList/PlayListItemTextPanel.cpp" />
@@ -668,6 +672,7 @@
 		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemSetColourPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
@@ -726,6 +731,7 @@
 					<wxDialog wxs="wxsmith/ButtonDetailsDialog.wxs" src="ButtonDetailsDialog.cpp" hdr="ButtonDetailsDialog.h" fwddecl="0" i18n="1" name="ButtonDetailsDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemRDSPanel.wxs" src="PlayList/PlayListItemRDSPanel.cpp" hdr="PlayList/PlayListItemRDSPanel.h" fwddecl="0" i18n="1" name="PlayListItemRDSPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemTestPanel.wxs" src="PlayList/PlayListItemTestPanel.cpp" hdr="PlayList/PlayListItemTestPanel.h" fwddecl="0" i18n="1" name="PlayListItemTestPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemMicrophonePanel.wxs" src="PlayList/PlayListItemMicrophonePanel.cpp" hdr="PlayList/PlayListItemMicrophonePanel.h" fwddecl="0" i18n="1" name="PlayListItemMicrophonePanel" language="CPP" />
 					<wxDialog wxs="wxsmith/OutputProcessingDialog.wxs" src="OutputProcessingDialog.cpp" hdr="OutputProcessingDialog.h" fwddecl="0" i18n="1" name="OutputProcessingDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DimDialog.wxs" src="DimDialog.cpp" hdr="DimDialog.h" fwddecl="0" i18n="1" name="DimDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DimWhiteDialog.wxs" src="DimWhiteDialog.cpp" hdr="DimWhiteDialog.h" fwddecl="0" i18n="1" name="DimWhiteDialog" language="CPP" />

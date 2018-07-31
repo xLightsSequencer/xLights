@@ -137,19 +137,23 @@ class AudioData
 class SDL
 {
     SDL_AudioDeviceID _dev;
+    SDL_AudioDeviceID _inputdev;
     SDLSTATE _state;
     std::list<AudioData*> _audioData;
     std::mutex _audio_Lock;
     float _playbackrate;
     SDL_AudioSpec _wanted_spec;
+    SDL_AudioSpec _wanted_inputspec;
     int _initialisedRate;
     std::string _device;
+    std::string _inputDevice;
+    int _listeners;
 
     void Reopen();
     AudioData* GetData(int id);
 
 public:
-    SDL(const std::string& device = "");
+    SDL(const std::string& device = "", const std::string& inputDevice = "");
     virtual ~SDL();
     std::list<AudioData*> GetAudio() const { return _audioData; }
     long Tell(int id);
@@ -171,8 +175,17 @@ public:
     bool HasAudio(int id);
     static std::list<std::string> GetAudioDevices();
     bool OpenAudioDevice(const std::string device);
+    bool OpenInputAudioDevice(const std::string device);
     void SetAudioDevice(const std::string device);
     bool CloseAudioDevice();
+    bool CloseInputAudioDevice();
+    int GetInputMax(int ms);
+    void PurgeAllButInputAudio(int ms);
+    std::list<float> GetInputSpectrum(int ms);
+    void PurgeInput();
+    void DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_AudioSpec* actual);
+    void StartListening();
+    void StopListening();
 };
 
 class AudioManager
@@ -273,6 +286,7 @@ public:
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+    static SDL* GetSDL();
 };
 
 #endif

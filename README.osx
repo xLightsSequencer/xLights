@@ -21,32 +21,32 @@ is required for xLights.  You must build wxWidgets from source.
 On OS/X, compilation is done using Xcode. Code::Blocks is not used.
 Xcode can be downloaded from the Apple developer web site. Make
 sure you install the version of Xcode that matches your version of
-OS/X. For example, I use OS/X 10.8, so I installed Xcode 9.2.
+OS/X. For example, I use OS/X 10.8, so I installed Xcode 9.4.
 Instructions are here:
 
   http://wiki.wxwidgets.org/Installing_Xcode
 
 
+The latest wxWidgets release (3.1.1) will "mostly work", but does contain several
+bugs that are fixed in the latest master code.   Specifically, support for OSX Mojave
+and a bunch of drag/drop fixes for the outline views (used for the Import Effects
+dialog) are included in master, but not in the last release.   Thus, I highly
+recommend using the wxWidgets code from github instead of the release tar.
 
-First, download the source package for wxWidgets from:
-https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2
-and unpack it.
+To get the latest code that we've tested, do:
 
-Alternatively, if you would like to build wxWidgets with support for
-OSX Mojave's "Dark Mode", you will need to build it from git sources.   This is a
-'work in progress' as a bunch of UI parts are being re-done to handle the
-darker colors and other UI updates.    To do so, instead of using the above tar.bz2,
-git clone https://github.com/dkulp/wxWidgets
-and then folow the instructions below.
+git clone --recurse-submodules https://github.com/wxWidgets/wxWidgets
+cd wxWidgets
+git reset --hard 85c2877a6c660c3b59c7a5400bab224374e3324a
 
 
 Then, from inside a Terminal window:
 
   cd <wxMac base dir>
   cd build
-  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -g -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export CPPFLAGS="-stdlib=libc++ -g -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -g"
+  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14"
+  export CPPFLAGS="-stdlib=libc++ -g"
   export LDFLAGS="-stdlib=libc++"
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
@@ -65,10 +65,10 @@ Then, from inside a Terminal window:
 
 If you are planning on being able to build Release builds, you will ALSO need to do:
 
-  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14 -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export CPPFLAGS="-stdlib=libc++ -DwxHAS_GENERIC_DATAVIEWCTRL=1"
-  export LDFLAGS="-stdlib=libc++ -DwxHAS_GENERIC_DATAVIEWCTRL=1"
+  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14"
+  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14"
+  export CPPFLAGS="-stdlib=libc++ -flto=thin"
+  export LDFLAGS="-stdlib=libc++ -flto=thin"
   export CXX=clang++ 
   export CXXCPP="clang++ -E" 
   export CC=clang 
@@ -78,7 +78,7 @@ If you are planning on being able to build Release builds, you will ALSO need to
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
                 --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin \
                 --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
-                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
+                --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --disable-shared
   make 
   make install
 
@@ -126,3 +126,4 @@ Jan 24, 2018 - d8b3fc84c2239effb1824e7094c7bf24db45a7ba Fixes sorting in TreeLis
              --enable-std_containers  --enable-std_string_conv_in_wxstring
 Feb 26, 2018 - switch to 3.1.1 release tar.bz2
 June 17, 2018 - add notes about wxWidgets for OSX Mojave
+July 16, 2018 - 85c2877a6c660c3b59c7a5400bab224374e3324a Fixes the native wxDataViewCtrl drag/drop

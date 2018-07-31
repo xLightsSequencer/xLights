@@ -42,7 +42,7 @@ class VideoRenderCacheItem
 		void SetProperty(const std::string& propertyName, const std::string& value);
 		bool IsPropertyMatch(std::string propertyName, long value);
 		bool IsPropertyMatch(std::string propertyName, std::string value);
-		void GetFrame(int frame, RenderBuffer &buffer);
+		void GetFrame(int frame, RenderBuffer &buffer, bool transparentBlack, int transparentBlackLevel);
 		void AddFrame(int frame, RenderBuffer &buffer);
 		void Finished();
 		bool WasCreated() const { return _created; }

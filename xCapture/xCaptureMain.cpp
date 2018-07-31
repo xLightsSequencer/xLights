@@ -93,6 +93,8 @@ const long xCaptureFrame::ID_BUTTON6 = wxNewId();
 const long xCaptureFrame::ID_BUTTON3 = wxNewId();
 const long xCaptureFrame::ID_BUTTON4 = wxNewId();
 const long xCaptureFrame::ID_BUTTON5 = wxNewId();
+const long xCaptureFrame::ID_STATICTEXT9 = wxNewId();
+const long xCaptureFrame::ID_COMBOBOX1 = wxNewId();
 const long xCaptureFrame::ID_BUTTON1 = wxNewId();
 const long xCaptureFrame::ID_BUTTON8 = wxNewId();
 const long xCaptureFrame::ID_BUTTON2 = wxNewId();
@@ -247,6 +249,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer7;
 
     Create(parent, id, _("xLights Capture"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, _T("id"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -317,6 +320,19 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     FlexGridSizer5->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer7->AddGrowableCol(1);
+    StaticText8 = new wxStaticText(this, ID_STATICTEXT9, _("Frame timing (ms):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+    FlexGridSizer7->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ComboBox1 = new wxComboBox(this, ID_COMBOBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_COMBOBOX1"));
+    ComboBox1->Append(_("25"));
+    ComboBox1->Append(_("30"));
+    ComboBox1->Append(_("33"));
+    ComboBox1->Append(_("50"));
+    ComboBox1->Append(_("100"));
+    ComboBox1->SetSelection( ComboBox1->Append(_("xCapture Detected (rounded to nearest 5ms)")) );
+    FlexGridSizer7->Add(ComboBox1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
     Button_StartStop = new wxButton(this, ID_BUTTON1, _("Start Capture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer2->Add(Button_StartStop, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1304,6 +1320,14 @@ void xCaptureFrame::SaveFSEQ(wxString file, int frameMS, long channelsPerFrame, 
     wxUint8 gamma = 1;
     wxUint8 colorEncoding = 2;
 
+    int overrideFrameMS = wxAtoi(ComboBox1->GetValue());
+    if (overrideFrameMS != 0)
+    {
+        logger_base.debug("Frame time overriden to %s->%d. It was %d.", (const char*)ComboBox1->GetValue().c_str(), overrideFrameMS, stepTime);
+        log += "Frame time override to " + wxString::Format("%d", overrideFrameMS) + "ms";
+        stepTime = overrideFrameMS;
+    }
+
     wxFile f;
 
     if (f.Create(file, true))
@@ -1415,6 +1439,14 @@ void xCaptureFrame::SaveESEQ(wxString file, int frameMS, long channelsPerFrame, 
     if (startAddr == -1)
     {
         startAddr = 1;
+    }
+
+    int overrideFrameMS = wxAtoi(ComboBox1->GetValue());
+    if (overrideFrameMS != 0)
+    {
+        logger_base.debug("Frame time overriden to %s->%d. It was detected as %d", (const char*)ComboBox1->GetValue().c_str(), overrideFrameMS, frameMS);
+        log += "Frame time override to " + wxString::Format("%d", overrideFrameMS) + "ms";
+        frameMS = overrideFrameMS;
     }
 
     wxUint16 fixedHeaderLength = 20;

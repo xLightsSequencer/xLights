@@ -31,7 +31,7 @@ protected:
         void RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string& eyes, bool face_outline);
         void RenderCoroFacesFromPGO(RenderBuffer &buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline);
         void RenderFaces(RenderBuffer &buffer, SequenceElements *elements, const std::string &faceDefintion,
-                         const std::string &Phoneme, const std::string &track, const std::string& eyes, bool face_outline);
+                         const std::string &Phoneme, const std::string &track, const std::string& eyes, bool face_outline, bool transparentBlack, int transparentBlackLevel);
         std::string MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf);
 };
 

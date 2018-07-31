@@ -1,7 +1,10 @@
+#include <sstream>
+
 #include "OffEffect.h"
 #include "OffPanel.h"
 #include "../RenderBuffer.h"
-#include <sstream>
+#include "UtilFunctions.h"
+#include "models/Model.h"
 
 #include "../../include/Off.xpm"
 
@@ -13,6 +16,24 @@ OffEffect::OffEffect(int i) : RenderableEffect(i, "Off", Off, Off, Off, Off, Off
 OffEffect::~OffEffect()
 {
     //dtor
+}
+
+std::list<std::string> OffEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+{
+    std::list<std::string> res;
+
+    if (settings.Get("T_CHECKBOX_Canvas", "0") == "1" && 
+        settings.Get("E_CHECKBOX_Off_Transparent", "0") == "0")
+    {
+        res.push_back(wxString::Format("    WARN: Canvas mode enabled on a off effect but effect is not transparent. This does nothing and slows down rendering. Effect: Off, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+    else if (settings.Get("T_CHECKBOX_Canvas", "0") == "0" &&
+            settings.Get("E_CHECKBOX_Off_Transparent", "0") == "1")
+    {
+        res.push_back(wxString::Format("    WARN: Canvas mode not enabled on a off effect and effect is transparent. This does not do anything useful. Effect: Off, Model: %s, Start %s", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    return res;
 }
 
 wxPanel *OffEffect::CreatePanel(wxWindow *parent) {

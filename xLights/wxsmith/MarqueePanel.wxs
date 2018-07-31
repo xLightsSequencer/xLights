@@ -21,9 +21,28 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" subclass="BulkEditSlider" variable="Slider_Marquee_Band_Size" member="yes">
-										<value>3</value>
-										<min>1</min>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_Band_Size" subclass="BulkEditSlider" variable="Slider_Marquee_Band_Size" member="yes">
+												<value>3</value>
+												<min>1</min>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_Band_Size" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_Band_SizeVC" member="yes">
+												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -40,9 +59,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size" variable="BitmapButton_Marquee_Band_Size" member="no">
-                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                        <size>14,14</size>
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Band_Size" subclass="xlLockButton" variable="BitmapButton_Marquee_Band_Size" member="no">
+										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -60,7 +79,26 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" subclass="BulkEditSlider" variable="Slider_Marquee_Skip_Size" member="yes" />
+									<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_Skip_Size" subclass="BulkEditSlider" variable="Slider_Marquee_Skip_Size" member="yes" />
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_Skip_Size" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_Skip_SizeVC" member="yes">
+												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
@@ -76,9 +114,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size" variable="BitmapButton_Marquee_Skip_Size" member="yes">
-                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                        <size>14,14</size>
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Skip_Size" subclass="xlLockButton" variable="BitmapButton_Marquee_Skip_Size" member="yes">
+										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -96,9 +134,28 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" subclass="BulkEditSlider" variable="Slider_Marquee_Thickness" member="yes">
-										<value>1</value>
-										<min>1</min>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_Thickness" subclass="BulkEditSlider" variable="Slider_Marquee_Thickness" member="yes">
+												<value>1</value>
+												<min>1</min>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_ThicknessVC" member="yes">
+												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -115,9 +172,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Thickness" variable="BitmapButton_Marquee_Thickness" member="yes">
-                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                        <size>14,14</size>
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Thickness" subclass="xlLockButton" variable="BitmapButton_Marquee_Thickness" member="yes">
+										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -135,8 +192,27 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Stagger" subclass="BulkEditSlider" variable="Slider_Marquee_Stagger" member="yes">
-										<max>50</max>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_Stagger" subclass="BulkEditSlider" variable="Slider_Marquee_Stagger" member="yes">
+												<max>50</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_Stagger" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_StaggerVC" member="yes">
+												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -153,9 +229,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Stagger" variable="BitmapButton_Marquee_Stagger" member="yes">
-                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                        <size>14,14</size>
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Stagger" subclass="xlLockButton" variable="BitmapButton_Marquee_Stagger" member="yes">
+										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -173,9 +249,28 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" subclass="BulkEditSlider" variable="Slider_Marquee_Speed" member="yes">
-										<value>3</value>
-										<max>50</max>
+									<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_Speed" subclass="BulkEditSlider" variable="Slider_Marquee_Speed" member="yes">
+												<value>3</value>
+												<max>50</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_SpeedVC" member="yes">
+												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
@@ -192,9 +287,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Speed" variable="BitmapButton_Marquee_Speed" member="yes">
-                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                        <size>14,14</size>
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Speed" subclass="xlLockButton" variable="BitmapButton_Marquee_Speed" member="yes">
+										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -212,7 +307,26 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxSlider" name="ID_SLIDER_Marquee_Start" subclass="BulkEditSlider" variable="Slider_Marquee_Start" member="yes" />
+									<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
+										<cols>2</cols>
+										<growablecols>0</growablecols>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_Marquee_Start" subclass="BulkEditSlider" variable="Slider_Marquee_Start" member="yes" />
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_Start" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_StartVC" member="yes">
+												<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+												<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
@@ -228,9 +342,9 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Start" variable="BitmapButton_Marquee_Start" member="yes">
-                                        <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                        <size>14,14</size>
+									<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_Start" subclass="xlLockButton" variable="BitmapButton_Marquee_Start" member="yes">
+										<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+										<size>14,14</size>
 										<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 										<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 										<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -274,9 +388,28 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" subclass="BulkEditSlider" variable="Slider_Marquee_ScaleX" member="yes">
-												<value>100</value>
-												<min>1</min>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+												<cols>2</cols>
+												<growablecols>0</growablecols>
+												<object class="sizeritem">
+													<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleX" subclass="BulkEditSlider" variable="Slider_Marquee_ScaleX" member="yes">
+														<value>100</value>
+														<min>1</min>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_ScaleX" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_ScaleXVC" member="yes">
+														<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+														<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+														<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -293,9 +426,9 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX" variable="BitmapButton_Marquee_ScaleX" member="yes">
-                                                <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                <size>14,14</size>
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_ScaleX" subclass="xlLockButton" variable="BitmapButton_Marquee_ScaleX" member="yes">
+												<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+												<size>14,14</size>
 												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -313,9 +446,28 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleY" subclass="BulkEditSlider" variable="Slider_Marquee_ScaleY" member="yes">
-												<value>100</value>
-												<min>1</min>
+											<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+												<cols>2</cols>
+												<growablecols>0</growablecols>
+												<object class="sizeritem">
+													<object class="wxSlider" name="ID_SLIDER_Marquee_ScaleY" subclass="BulkEditSlider" variable="Slider_Marquee_ScaleY" member="yes">
+														<value>100</value>
+														<min>1</min>
+													</object>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxBitmapButton" name="ID_VALUECURVE_Marquee_ScaleY" subclass="BulkEditValueCurveButton" variable="BitmapButton_Marquee_ScaleYVC" member="yes">
+														<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+														<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+														<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -332,9 +484,9 @@
 											<option>1</option>
 										</object>
 										<object class="sizeritem">
-											<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY" variable="BitmapButton_Marquee_ScaleY" member="yes">
-                                                <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                <size>14,14</size>
+											<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Marquee_ScaleY" subclass="xlLockButton" variable="BitmapButton_Marquee_ScaleY" member="yes">
+												<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+												<size>14,14</size>
 												<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 												<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 												<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -405,6 +557,21 @@
 													<border>5</border>
 													<option>1</option>
 												</object>
+												<object class="spacer">
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxBitmapButton" name="ID_VALUECURVE_MarqueeXC" subclass="BulkEditValueCurveButton" variable="BitmapButton_MarqueeXCVC" member="yes">
+														<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+														<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+														<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
 											</object>
 											<flag>wxALL|wxEXPAND</flag>
 											<border>5</border>
@@ -440,9 +607,31 @@
 														<min>-100</min>
 														<style>wxSL_VERTICAL|wxSL_INVERSE</style>
 													</object>
-													<rowspan>4</rowspan>
+													<rowspan>5</rowspan>
 													<col>1</col>
 													<row>0</row>
+													<flag>wxALL|wxEXPAND</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxBitmapButton" name="ID_VALUECURVE_MarqueeYC" subclass="BulkEditValueCurveButton" variable="BitmapButton_MarqueeYCVC" member="yes">
+														<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+														<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+														<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+													</object>
+													<col>0</col>
+													<row>4</row>
+													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+													<border>5</border>
+													<option>1</option>
+												</object>
+												<object class="sizeritem">
+													<object class="wxCheckBox" name="ID_CHECKBOX_Marquee_WrapY" subclass="BulkEditCheckBox" variable="CheckBox1" member="yes">
+														<label>Wrap Y</label>
+													</object>
+													<col>0</col>
+													<row>3</row>
 													<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 													<border>5</border>
 													<option>1</option>

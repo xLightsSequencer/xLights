@@ -333,6 +333,38 @@ void PicturesEffect::LoadPixelsFromTextFile(RenderBuffer &buffer, wxFile& debug,
     cache->PictureName = filename;
 }
 
+void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool transparentBlack, int transparentBlackLevel)
+{
+    if (transparentBlack)
+    {
+        int level = c.Red() + c.Green() + c.Blue();
+        if (level > transparentBlackLevel)
+        {
+            buffer.SetPixel(x, y, c);
+        }
+    }
+    else
+    {
+        buffer.SetPixel(x, y, c);
+    }
+}
+
+void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y, xlColor c, bool wrap, bool transparentBlack, int transparentBlackLevel)
+{
+    if (transparentBlack)
+    {
+        int level = c.Red() + c.Green() + c.Blue();
+        if (level > transparentBlackLevel)
+        {
+            buffer.ProcessPixel(x, y, c, wrap);
+        }
+    }
+    else
+    {
+        buffer.ProcessPixel(x, y, c, wrap);
+    }
+}
+
 void PicturesEffect::SetDefaultParameters() {
     PicturesPanel *pp = (PicturesPanel*)panel;
     if (pp == nullptr) {
@@ -355,8 +387,11 @@ void PicturesEffect::SetDefaultParameters() {
     SetCheckBoxValue(pp->CheckBox_Pictures_WrapX, false);
     SetCheckBoxValue(pp->CheckBox_Pictures_Shimmer, false);
     SetCheckBoxValue(pp->CheckBox_LoopGIF, false);
+    SetCheckBoxValue(pp->CheckBox_SuppressGIFBackground, true);
 
     pp->FilePickerCtrl1->SetFileName(wxFileName());
+
+    pp->ValidateWindow();
 }
 
 std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap)
@@ -400,7 +435,10 @@ void PicturesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
            SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
            SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false),
-           SettingsMap.GetBool("CHECKBOX_LoopGIF", false)
+           SettingsMap.GetBool("CHECKBOX_LoopGIF", false),
+           SettingsMap.GetBool("CHECKBOX_SuppressGIFBackground", true),
+           SettingsMap.GetBool("CHECKBOX_Pictures_TransparentBlack", false),
+           SettingsMap.GetInt("TEXTCTRL_Pictures_TransparentBlackLevel", 0)
     );
 }
 
@@ -410,7 +448,8 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int xc_adj, int yc_adj,
     int xce_adj, int yce_adj,
     int start_scale, int end_scale, const std::string& scale_to_fit,
-    bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF) {
+    bool pixelOffsets, bool wrap_x, bool shimmer, bool loopGIF, bool suppressGIFBackground, 
+    bool transparentBlack, int transparentBlackLevel) {
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -491,7 +530,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
         if (idx < PixelsByFrame.size()) //TODO: wrap?
             for (auto /*std::vector<std::pair<wxPoint, xlColour>>::iterator*/ it = PixelsByFrame[idx].begin(); it != PixelsByFrame[idx].end(); ++it)
             {
-                buffer.SetPixel(it->first.x, it->first.y, it->second);
+                SetTransparentBlackPixel(buffer, it->first.x, it->first.y, it->second, transparentBlack, transparentBlackLevel);
             }
         return;
     }
@@ -535,7 +574,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 delete gifImage;
                 gifImage = nullptr;
             }
-            gifImage = new GIFImage(NewPictureName.ToStdString(), image.GetSize());
+            gifImage = new GIFImage(NewPictureName.ToStdString(), suppressGIFBackground);
 
             if (!gifImage->IsOk())
             {
@@ -706,47 +745,47 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                 switch (dir)
                 {
                 case RENDER_PICTURE_LEFT: //0:
-                    buffer.ProcessPixel(x + xoffset_adj + BufferWi - calc_position_wi, yoffset - y - yoffset_adj - 1, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, yoffset - y - yoffset_adj - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // left
                 case RENDER_PICTURE_RIGHT: //1:
-                    buffer.ProcessPixel(x + xoffset_adj + calc_position_wi - imgwidth, yoffset - y - yoffset_adj - 1, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, yoffset - y - yoffset_adj - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // right
                 case RENDER_PICTURE_UP: //2:
                 case RENDER_PICTURE_UPONCE: //18
-                    buffer.ProcessPixel(x - xoffset + xoffset_adj, calc_position_ht - y - yoffset_adj, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, calc_position_ht - y - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // up
                 case RENDER_PICTURE_DOWN: //3:
                 case RENDER_PICTURE_DOWNONCE: //19
-                    buffer.ProcessPixel(x - xoffset + xoffset_adj, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // down
                 case RENDER_PICTURE_UPLEFT: //5:
-                    buffer.ProcessPixel(x + xoffset_adj + BufferWi - calc_position_wi, calc_position_ht - y - yoffset_adj, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, calc_position_ht - y - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // up-left
                 case RENDER_PICTURE_DOWNLEFT: //6:
-                    buffer.ProcessPixel(x + xoffset_adj + BufferWi - calc_position_wi, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x + xoffset_adj + BufferWi - calc_position_wi, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // down-left
                 case RENDER_PICTURE_UPRIGHT: //7:
-                    buffer.ProcessPixel(x + xoffset_adj + calc_position_wi - imgwidth, calc_position_ht - y - yoffset_adj, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, calc_position_ht - y - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // up-right
                 case RENDER_PICTURE_DOWNRIGHT: //8:
-                    buffer.ProcessPixel(x + xoffset_adj + calc_position_wi - imgwidth, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x + xoffset_adj + calc_position_wi - imgwidth, BufferHt + imght - y - yoffset_adj - calc_position_ht, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // down-right
 
                 case RENDER_PICTURE_PEEKABOO_0: //10: //up+down 1x (peekaboo) -DJ
-                    buffer.ProcessPixel(x - xoffset + xoffset_adj, BufferHt + yoffset - y - yoffset_adj - 1, c, wrap_x); // - BufferHt, c);
+                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, BufferHt + yoffset - y - yoffset_adj - 1, c, wrap_x, transparentBlack, transparentBlackLevel); // - BufferHt, c);
                     break;
                 case RENDER_PICTURE_ZOOMIN: //12: //zoom in (explode) -DJ
                     //TODO: use rescale or resize?
-                    buffer.ProcessPixel((x + xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, c, wrap_x); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
+                    SetTransparentBlackPixel(buffer ,(x + xoffset_adj) * xscale, (BufferHt - 1 - y - yoffset_adj) * yscale, c, wrap_x, transparentBlack, transparentBlackLevel); //CAUTION: y inverted?; TODO: anti-aliasing, averaging, etc.
                     break;
                 case RENDER_PICTURE_PEEKABOO_90: //13: //peekaboo 90 -DJ
-                    buffer.ProcessPixel(BufferWi + xoffset - y + xoffset_adj, x - yoffset - yoffset_adj, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, BufferWi + xoffset - y + xoffset_adj, x - yoffset - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break;
                 case RENDER_PICTURE_PEEKABOO_180: //14: //peekaboo 180 -DJ
-                    buffer.ProcessPixel(x - xoffset + xoffset_adj, y - yoffset - yoffset_adj, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, y - yoffset - yoffset_adj, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break;
                 case RENDER_PICTURE_PEEKABOO_270: //15: //peekabo 270 -DJ
-                    buffer.ProcessPixel(y - xoffset + xoffset_adj, BufferHt + yoffset + yoffset_adj - x, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, y - xoffset + xoffset_adj, BufferHt + yoffset + yoffset_adj - x, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break;
                 case RENDER_PICTURE_FLAGWAVE: //17: //flag wave in wind -DJ
                 {
@@ -761,7 +800,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                         waveY = !x ? 0 : (waveN & 1) ? 0 : (waveN & 2) ? -1 : +1;
                         if (waveX < 0) waveY *= -1;
                     }
-                    buffer.ProcessPixel(x - xoffset + xoffset_adj, yoffset - y - yoffset_adj + waveY - 1, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, yoffset - y - yoffset_adj + waveY - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
                 }
                 break;
                 case RENDER_PICTURE_TILE_LEFT: // 21
@@ -774,8 +813,8 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     {
                         for (int yy = 0; yy < ymult; ++yy)
                         {
-                            buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false);
+                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                c, false, transparentBlack, transparentBlackLevel);
                         }
                     }
                 }
@@ -790,8 +829,8 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     {
                         for (int yy = 0; yy < ymult; ++yy)
                         {
-                            buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false);
+                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                c, false, transparentBlack, transparentBlackLevel);
                         }
                     }
                 }
@@ -806,8 +845,8 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     {
                         for (int yy = 0; yy < ymult; ++yy)
                         {
-                            buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false);
+                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                c, false, transparentBlack, transparentBlackLevel);
                         }
                     }
                 }
@@ -822,8 +861,8 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     {
                         for (int yy = 0; yy < ymult; ++yy)
                         {
-                            buffer.ProcessPixel(xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
-                                c, false);
+                            SetTransparentBlackPixel(buffer, xx * imgwidth + x + startx, yy * imght + (imght - y - 1) + starty,
+                                c, false, transparentBlack, transparentBlackLevel);
                         }
                     }
                 }
@@ -832,7 +871,7 @@ void PicturesEffect::Render(RenderBuffer &buffer,
                     //                    ProcessPixel(x + xoffset+xoffset_adj, yoffset - y - yoffset_adj, c, wrap_x);
                     //                    break;
                 default:
-                    buffer.ProcessPixel(x - xoffset + xoffset_adj, yoffset + yoffset_adj - y - 1, c, wrap_x);
+                    SetTransparentBlackPixel(buffer, x - xoffset + xoffset_adj, yoffset + yoffset_adj - y - 1, c, wrap_x, transparentBlack, transparentBlackLevel);
                     break; // no movement - centered
                 }
             }

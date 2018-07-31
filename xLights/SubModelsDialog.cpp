@@ -27,6 +27,7 @@
 #include "models/ModelManager.h"
 #include "xLightsMain.h"
 #include "LayoutPanel.h"
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
@@ -526,9 +527,19 @@ void SubModelsDialog::OnDeleteButtonClick(wxCommandEvent& event)
 
 void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     int r = event.GetRow();
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    sm->strands[sm->strands.size() - 1 - r] = NodesGrid->GetCellValue(r, 0);
+    if (sm != nullptr)
+    {
+        sm->strands[sm->strands.size() - 1 - r] = NodesGrid->GetCellValue(r, 0);
+    }
+    else
+    {
+        logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
+        wxASSERT(false);
+    }
     SelectRow(r);
     ValidateWindow();
 }
@@ -542,7 +553,10 @@ void SubModelsDialog::OnNodesGridCellSelect(wxGridEvent& event)
 void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 {
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
-    sm->vertical = LayoutCheckbox->GetValue();
+    if (sm != nullptr)
+    {
+        sm->vertical = LayoutCheckbox->GetValue();
+    }
 }
 
 void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
@@ -552,7 +566,10 @@ void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
         return;
     }
     SubModelInfo* sm = GetSubModelInfo(name);
-    sm->isRanges = TypeNotebook->GetSelection() == 0;
+    if (sm != nullptr)
+    {
+        sm->isRanges = TypeNotebook->GetSelection() == 0;
+    }
 }
 
 void SubModelsDialog::OnSubBufferRangeChange(wxCommandEvent& event)
@@ -740,6 +757,12 @@ void SubModelsDialog::OnTextCtrl_NameText_Change(wxCommandEvent& event)
     wxASSERT(index >= 0);
 
     wxString name = wxString(Model::SafeModelName(TextCtrl_Name->GetValue().ToStdString()));
+
+    if(name.IsEmpty())
+    {
+        TextCtrl_Name->SetBackgroundColour(*wxRED);
+        return;
+    }
 
     if (name != TextCtrl_Name->GetValue())
     {
@@ -1464,6 +1487,8 @@ void SubModelsDialog::ImportSubModel(std::string filename)
 
 void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
 {
+    bool overRide = false;
+    bool showDialog = true;
     wxXmlNode * child = xmlData->GetChildren();
     while (child != nullptr) {
         if (child->GetName() == "subModel") {
@@ -1486,19 +1511,35 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
                 x++;
             }
 
-			//cannot have duplicate names, generate new
-			if (GetSubModelInfoIndex(name) != -1)
-			{
-				SubModelInfo *prevSm = GetSubModelInfo(name);
-				if (*sm == *prevSm) //skip if exactly the same 
-				{
-					child = child->GetNext();
-					continue;
-				}
-				//rename and add if different
-				sm->oldName = sm->name = GenerateSubModelName(name);
-			}
-
+            //cannot have duplicate submodels names, what to do?
+            if (GetSubModelInfoIndex(name) != -1)
+            {
+                //Are the submodels The Same?
+                SubModelInfo *prevSm = GetSubModelInfo(name);
+                if (*sm == *prevSm) //skip if exactly the same 
+                {
+                    child = child->GetNext();
+                    continue;
+                }
+                //Ask User what to do if different
+                if(showDialog)
+                {
+                    wxMessageDialog confirm(this, _("SubModel(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override SubModels"), wxYES_NO);
+                    int returnCode = confirm.ShowModal();
+                    if(returnCode == wxID_YES)
+                        overRide = true;
+                     showDialog = false;
+                }
+                if (overRide)
+                {
+                    RemoveSubModelFromList(name);
+                }
+                else
+                {
+                    //rename and add if not override
+                    sm->oldName = sm->name = GenerateSubModelName(name);
+                }
+            }
             _subModels.push_back(sm);
         }
         child = child->GetNext();

@@ -37,6 +37,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
 #endif
     _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
+    _crashBehaviour = node->GetAttribute("CrashBehaviour", "Prompt user");
     _artNetTimeCodeFormat = wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1"));
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
@@ -157,6 +158,7 @@ ScheduleOptions::ScheduleOptions()
     _sendOffWhenNotRunning = false;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
+    _crashBehaviour = "Prompt user";
 }
 
 ScheduleOptions::~ScheduleOptions()
@@ -175,6 +177,7 @@ wxXmlNode* ScheduleOptions::Save()
 
     res->AddAttribute("AudioDevice", _audioDevice);
     res->AddAttribute("WWWRoot", _wwwRoot);
+    res->AddAttribute("CrashBehaviour", _crashBehaviour);
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
     if (IsSync())

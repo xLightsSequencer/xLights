@@ -168,6 +168,7 @@
     <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidi.cpp" />
     <ClCompile Include="..\xSchedule\wxMIDI\src\wxMidiDatabase.cpp" />
     <ClCompile Include="Emitter.cpp" />
+    <ClCompile Include="FadeExcludeDialog.cpp" />
     <ClCompile Include="MIDIAssociateDialog.cpp" />
     <ClCompile Include="MIDIListener.cpp" />
     <ClCompile Include="Settings.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="..\xLights\xLightsVersion.h" />
     <ClInclude Include="..\xSchedule\wxMIDI\src\wxMidi.h" />
     <ClInclude Include="Emitter.h" />
+    <ClInclude Include="FadeExcludeDialog.h" />
     <ClInclude Include="MIDIAssociateDialog.h" />
     <ClInclude Include="MIDIListener.h" />
     <ClInclude Include="PacketData.h" />

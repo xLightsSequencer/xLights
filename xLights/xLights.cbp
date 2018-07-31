@@ -61,7 +61,7 @@
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/libliquidfund.a" />
@@ -127,7 +127,7 @@
 					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/SDL2.lib" />
+					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/swscale.lib" />
 					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/libliquidfun.a" />
@@ -175,7 +175,7 @@
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`sdl-config --libs`" />
+					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
@@ -219,7 +219,7 @@
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
-					<Add option="`sdl-config --libs`" />
+					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
@@ -281,7 +281,7 @@
 					<Add library="../lib/windows64/avformat.lib" />
 					<Add library="../lib/windows64/avutil.lib" />
 					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/SDL2.lib" />
+					<Add library="../lib/windows64/libSDL2.dll.a" />
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cpp.a" />
 					<Add library="../lib/windows64/libliquidfun.a" />
@@ -342,7 +342,7 @@
 					<Add library="../lib/windows64/avcodec.lib" />
 					<Add library="../lib/windows64/avformat.lib" />
 					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/SDL2.lib" />
+					<Add library="../lib/windows64/libSDL2.dll.a" />
 					<Add library="../lib/windows64/swresample.lib" />
 					<Add library="../lib/windows64/swscale.lib" />
 					<Add library="../lib/windows64/liblog4cppd.a" />
@@ -471,6 +471,8 @@
 		<Unit filename="LinkJukeboxButtonDialog.h" />
 		<Unit filename="LorConvertDialog.cpp" />
 		<Unit filename="LorConvertDialog.h" />
+		<Unit filename="LyricUserDictDialog.cpp" />
+		<Unit filename="LyricUserDictDialog.h" />
 		<Unit filename="LyricsDialog.cpp" />
 		<Unit filename="LyricsDialog.h" />
 		<Unit filename="MIDI/Binasc.cpp" />
@@ -1094,6 +1096,7 @@
 		<Unit filename="wxsmith/LorControllerDialog.wxs" />
 		<Unit filename="wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="wxsmith/LorOptimisedDialog.wxs" />
+		<Unit filename="wxsmith/LyricUserDictDialog.wxs" />
 		<Unit filename="wxsmith/LyricsDialog.wxs" />
 		<Unit filename="wxsmith/MainSequencer.wxs" />
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
@@ -1341,6 +1344,7 @@
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/ViewpointDialog.wxs" src="ViewpointDialog.cpp" hdr="ViewpointDialog.h" fwddecl="0" i18n="1" name="ViewpointDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

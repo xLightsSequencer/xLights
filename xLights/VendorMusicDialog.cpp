@@ -10,7 +10,9 @@
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
 
-CachedFileDownloader VendorMusicDialog::_cache;
+CachedFileDownloader& VendorMusicDialog::GetCache() {
+    return CachedFileDownloader::GetDefaultCache();
+}
 
 //(*IdInit(VendorMusicDialog)
 const long VendorMusicDialog::ID_TREECTRL1 = wxNewId();
@@ -165,7 +167,7 @@ VendorMusicDialog::VendorMusicDialog(wxWindow* parent,wxWindowID id,const wxPoin
     SetSize(800, 600);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("File cache size: %d", _cache.size());
+    logger_base.debug("File cache size: %d", GetCache().size());
 
     PopulateSequenceLyricPanel((MSLSequenceLyric*)nullptr);
     PopulateVendorPanel(nullptr);
@@ -357,7 +359,7 @@ VendorMusicDialog::~VendorMusicDialog()
 	//(*Destroy(VendorMusicDialog)
 	//*)
 
-    _cache.Save();
+    GetCache().Save();
 
     for (auto it = _vendors.begin(); it != _vendors.end(); ++it)
     {

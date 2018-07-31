@@ -232,9 +232,13 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
     SpinCtrl_NthDayOffset->SetValue(schedule->GetNthDayOffset());
     Choice_FireFrequency->SetStringSelection(schedule->GetFireFrequency());
 
-    Choice_FireFrequency->SetToolTip("Times are not relative to schedule start time ... but relative to the top of the hour");
+    Choice_FireFrequency->SetToolTip("Times are relative to schedule start time.");
 
     SetEscapeId(Button_Cancel->GetId());
+
+#ifdef _DEBUG
+    Choice_FireFrequency->Append(_("Fire every 2 minutes"));
+#endif
 
     ValidateWindow();
 }

@@ -30,7 +30,6 @@ class MatrixFaceDownloadDialog: public wxDialog
     std::string _faceFile;
     int _currImage = -1;
     wxImage _faceImage;
-    static CachedFileDownloader _cache;
     int _width;
     int _height;
 
@@ -50,7 +49,7 @@ class MatrixFaceDownloadDialog: public wxDialog
 		virtual ~MatrixFaceDownloadDialog();
         std::string GetFaceFile() const { return _faceFile; }
         bool DlgInit(int width, int height);
-        static CachedFileDownloader& GetCache() { return _cache; }
+        static CachedFileDownloader& GetCache();
 
 		//(*Declarations(MatrixFaceDownloadDialog)
 		wxButton* Button_InsertFace;

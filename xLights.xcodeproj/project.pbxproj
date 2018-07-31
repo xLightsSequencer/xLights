@@ -126,6 +126,8 @@
 		672E62B01C4D2FCF006A4966 /* TendrilEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AC1C4D2FCF006A4966 /* TendrilEffect.cpp */; };
 		672E62B11C4D2FCF006A4966 /* TendrilPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E62AE1C4D2FCF006A4966 /* TendrilPanel.cpp */; };
 		672E7C621B4B6B3700409549 /* xlGridCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */; };
+		672F88C820E10BD1005BE1F4 /* PlayListItemMicrophonePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F88C420E10BD0005BE1F4 /* PlayListItemMicrophonePanel.cpp */; };
+		672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F88C620E10BD0005BE1F4 /* PlayListItemMicrophone.cpp */; };
 		672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */; };
 		6730747C208E737800D57F99 /* FolderSelection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6730747A208E737800D57F99 /* FolderSelection.cpp */; };
 		6733CF051E60659F00B97F60 /* xschedule.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 6733CF041E60659E00B97F60 /* xschedule.mac.properties */; };
@@ -265,6 +267,7 @@
 		6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9261A5653670018EC0C /* tabSequencer.cpp */; };
 		6784F9301A5653670018EC0C /* TimeLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9271A5653670018EC0C /* TimeLine.cpp */; };
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
+		6785922720F02CD9001C2929 /* LyricUserDictDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */; };
 		6786DC761D45D00100672F70 /* PolyLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6786DC741D45D00100672F70 /* PolyLineModel.cpp */; };
 		6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */; };
 		6792BF371D0B253B00A5A0CC /* SpinnerModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */; };
@@ -283,6 +286,25 @@
 		679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3401C375D9F000539FE /* OnEffect.cpp */; };
 		679DD28C1DDE3FC800A389E6 /* TouchBars.mm in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28B1DDE3FC800A389E6 /* TouchBars.mm */; };
 		679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28D1DDE493900A389E6 /* TouchBars.cpp */; };
+		67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7720DD313D006EFCFA /* Carbon.framework */; };
+		67A14C7A20DD31D6006EFCFA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7920DD31D6006EFCFA /* WebKit.framework */; };
+		67A14C7C20DD31E4006EFCFA /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7B20DD31E3006EFCFA /* AGL.framework */; };
+		67A14C7E20DD324D006EFCFA /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7D20DD324D006EFCFA /* libiconv.tbd */; };
+		67A14C8020DD328A006EFCFA /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7F20DD3289006EFCFA /* ImageIO.framework */; };
+		67A14C8220DD3345006EFCFA /* libSystem.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C8120DD3345006EFCFA /* libSystem.tbd */; };
+		67A14C8420DD336E006EFCFA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C8320DD336E006EFCFA /* libz.tbd */; };
+		67A14C8620DD337E006EFCFA /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C8520DD337E006EFCFA /* Security.framework */; };
+		67A14C8720DD4874006EFCFA /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7720DD313D006EFCFA /* Carbon.framework */; };
+		67A14C8820DD487D006EFCFA /* libSystem.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C8120DD3345006EFCFA /* libSystem.tbd */; };
+		67A14C8920DD488C006EFCFA /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7F20DD3289006EFCFA /* ImageIO.framework */; };
+		67A14C8A20DD48A1006EFCFA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C8320DD336E006EFCFA /* libz.tbd */; };
+		67A14C8B20DD48DF006EFCFA /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7D20DD324D006EFCFA /* libiconv.tbd */; };
+		67A14C8C20DD4916006EFCFA /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7720DD313D006EFCFA /* Carbon.framework */; };
+		67A14C8D20DD497C006EFCFA /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7D20DD324D006EFCFA /* libiconv.tbd */; };
+		67A14C8E20DD4985006EFCFA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C8320DD336E006EFCFA /* libz.tbd */; };
+		67A14C8F20DD49C1006EFCFA /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7720DD313D006EFCFA /* Carbon.framework */; };
+		67A14C9020DD49C7006EFCFA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C8320DD336E006EFCFA /* libz.tbd */; };
+		67A14C9120DD49CE006EFCFA /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7D20DD324D006EFCFA /* libiconv.tbd */; };
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
 		67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */; };
@@ -933,6 +955,10 @@
 		672E7C5C1B4B6B3700409549 /* xlGridCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlGridCanvas.h; sourceTree = "<group>"; };
 		672E7C5F1B4B6B3700409549 /* xlGridCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xlGridCanvas.cpp; sourceTree = "<group>"; };
 		672E7C601B4B6B3700409549 /* OptionChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionChooser.h; sourceTree = "<group>"; };
+		672F88C420E10BD0005BE1F4 /* PlayListItemMicrophonePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemMicrophonePanel.cpp; path = PlayList/PlayListItemMicrophonePanel.cpp; sourceTree = "<group>"; };
+		672F88C520E10BD0005BE1F4 /* PlayListItemMicrophonePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemMicrophonePanel.h; path = PlayList/PlayListItemMicrophonePanel.h; sourceTree = "<group>"; };
+		672F88C620E10BD0005BE1F4 /* PlayListItemMicrophone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemMicrophone.cpp; path = PlayList/PlayListItemMicrophone.cpp; sourceTree = "<group>"; };
+		672F88C720E10BD1005BE1F4 /* PlayListItemMicrophone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemMicrophone.h; path = PlayList/PlayListItemMicrophone.h; sourceTree = "<group>"; };
 		672F950D1A7A6619005FF8BF /* SeqSettingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = SeqSettingsDialog.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		672F950E1A7A6619005FF8BF /* SeqSettingsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = SeqSettingsDialog.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		672F950F1A7A6619005FF8BF /* xLightsXmlFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsXmlFile.h; sourceTree = "<group>"; };
@@ -1180,6 +1206,8 @@
 		6784F9261A5653670018EC0C /* tabSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tabSequencer.cpp; path = sequencer/tabSequencer.cpp; sourceTree = "<group>"; };
 		6784F9271A5653670018EC0C /* TimeLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TimeLine.cpp; path = sequencer/TimeLine.cpp; sourceTree = "<group>"; };
 		6784F9281A5653670018EC0C /* Waveform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Waveform.cpp; path = sequencer/Waveform.cpp; sourceTree = "<group>"; };
+		6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LyricUserDictDialog.cpp; sourceTree = "<group>"; };
+		6785922620F02CD9001C2929 /* LyricUserDictDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricUserDictDialog.h; sourceTree = "<group>"; };
 		6786DC741D45D00100672F70 /* PolyLineModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PolyLineModel.cpp; path = models/PolyLineModel.cpp; sourceTree = "<group>"; };
 		6786DC751D45D00100672F70 /* PolyLineModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PolyLineModel.h; path = models/PolyLineModel.h; sourceTree = "<group>"; };
 		679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsImportChannelMapDialog.cpp; sourceTree = "<group>"; };
@@ -1215,6 +1243,14 @@
 		679DD2851DDE3BA000A389E6 /* TouchBars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchBars.h; path = osx_utils/TouchBars.h; sourceTree = "<group>"; };
 		679DD28B1DDE3FC800A389E6 /* TouchBars.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = TouchBars.mm; path = osx_utils/TouchBars.mm; sourceTree = "<group>"; };
 		679DD28D1DDE493900A389E6 /* TouchBars.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchBars.cpp; path = osx_utils/TouchBars.cpp; sourceTree = "<group>"; };
+		67A14C7720DD313D006EFCFA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		67A14C7920DD31D6006EFCFA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		67A14C7B20DD31E3006EFCFA /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = System/Library/Frameworks/AGL.framework; sourceTree = SDKROOT; };
+		67A14C7D20DD324D006EFCFA /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
+		67A14C7F20DD3289006EFCFA /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		67A14C8120DD3345006EFCFA /* libSystem.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libSystem.tbd; path = usr/lib/libSystem.tbd; sourceTree = SDKROOT; };
+		67A14C8320DD336E006EFCFA /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		67A14C8520DD337E006EFCFA /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		67A1CE421D5B4C5D00999746 /* xLights.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = xLights.entitlements; sourceTree = "<group>"; };
 		67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils.cpp; sourceTree = "<group>"; };
 		67A260ED1AB71EE3006B140D /* DrawGLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DrawGLUtils.h; sourceTree = "<group>"; };
@@ -1872,6 +1908,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67A14C9120DD49CE006EFCFA /* libiconv.tbd in Frameworks */,
+				67A14C9020DD49C7006EFCFA /* libz.tbd in Frameworks */,
+				67A14C8F20DD49C1006EFCFA /* Carbon.framework in Frameworks */,
 				67025CAE20D7EF2E00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */,
 				67025CAC20D7EEF400BF1AC6 /* liblog4cpp.5.dylib in Frameworks */,
 				67025CA520D7EE5F00BF1AC6 /* CoreMIDI.framework in Frameworks */,
@@ -1890,6 +1929,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67A14C8E20DD4985006EFCFA /* libz.tbd in Frameworks */,
+				67A14C8D20DD497C006EFCFA /* libiconv.tbd in Frameworks */,
+				67A14C8C20DD4916006EFCFA /* Carbon.framework in Frameworks */,
 				67480D4C2072695600B3ED60 /* liblog4cpp.5.dylib in Frameworks */,
 				67480D492072692500B3ED60 /* Cocoa.framework in Frameworks */,
 				67480D482072691900B3ED60 /* IOKit.framework in Frameworks */,
@@ -1907,9 +1949,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				675FD840204C3C0B003D280F /* CoreImage.framework in Frameworks */,
 				675D404E1E896C620033C950 /* libliquidfun.a in Frameworks */,
-				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
 				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,
 				67EE95B51C848BF000C62C95 /* libswscale.4.dylib in Frameworks */,
 				67AA37AD1C7E40D3001D2377 /* libswresample.2.dylib in Frameworks */,
@@ -1923,15 +1963,25 @@
 				672BD4F61C207D2E008F8B36 /* libwx_osx_cocoau_gl-3.1.dylib in Frameworks */,
 				672BD4FD1C207D2E008F8B36 /* libwx_baseu_net-3.1.dylib in Frameworks */,
 				674E9C641C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */,
-				67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */,
 				672BD4FE1C207D2E008F8B36 /* libwx_baseu-3.1.dylib in Frameworks */,
 				672BD4FF1C207D2E008F8B36 /* libwx_osx_cocoau_adv-3.1.dylib in Frameworks */,
 				672BD5001C207D2E008F8B36 /* libwx_osx_cocoau_core-3.1.dylib in Frameworks */,
 				672BD5021C207D2E008F8B36 /* libwx_osx_cocoau_media-3.1.dylib in Frameworks */,
+				67AA379E1C7E3703001D2377 /* SDL2.framework in Frameworks */,
 				674D3D261C207C25000D632B /* libpthread.tbd in Frameworks */,
-				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
+				67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */,
+				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
+				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
+				67A14C8220DD3345006EFCFA /* libSystem.tbd in Frameworks */,
 				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,
+				67A14C7E20DD324D006EFCFA /* libiconv.tbd in Frameworks */,
+				675FD840204C3C0B003D280F /* CoreImage.framework in Frameworks */,
+				67A14C7C20DD31E4006EFCFA /* AGL.framework in Frameworks */,
+				67A14C7A20DD31D6006EFCFA /* WebKit.framework in Frameworks */,
+				67A14C8020DD328A006EFCFA /* ImageIO.framework in Frameworks */,
+				67A14C8420DD336E006EFCFA /* libz.tbd in Frameworks */,
+				67A14C8620DD337E006EFCFA /* Security.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1939,10 +1989,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6771B22A204BA6AF00E90AC7 /* QuartzCore.framework in Frameworks */,
-				6771B228204BA69C00E90AC7 /* CoreImage.framework in Frameworks */,
-				67B6F3432040FBB600B847E0 /* CoreAudio.framework in Frameworks */,
-				67B6F3412040FB7900B847E0 /* CoreMIDI.framework in Frameworks */,
 				67B6F33F2040FB5200B847E0 /* libportmidi.a in Frameworks */,
 				67F23F8A1E329DF500F8B985 /* libavcodec.57.dylib in Frameworks */,
 				67F23F8B1E329DF500F8B985 /* libavformat.57.dylib in Frameworks */,
@@ -1962,9 +2008,18 @@
 				67F23F831E329DDC00F8B985 /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */,
 				67F23F841E329DDC00F8B985 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */,
 				67F23F361E329A1E00F8B985 /* AudioToolbox.framework in Frameworks */,
+				67A14C8720DD4874006EFCFA /* Carbon.framework in Frameworks */,
+				6771B22A204BA6AF00E90AC7 /* QuartzCore.framework in Frameworks */,
+				67B6F3432040FBB600B847E0 /* CoreAudio.framework in Frameworks */,
+				67B6F3412040FB7900B847E0 /* CoreMIDI.framework in Frameworks */,
+				6771B228204BA69C00E90AC7 /* CoreImage.framework in Frameworks */,
+				67A14C8920DD488C006EFCFA /* ImageIO.framework in Frameworks */,
+				67A14C8B20DD48DF006EFCFA /* libiconv.tbd in Frameworks */,
 				67F23F371E329A1E00F8B985 /* IOKit.framework in Frameworks */,
 				67F23F351E329A0000F8B985 /* Cocoa.framework in Frameworks */,
 				67F23F321E3299D700F8B985 /* SDL2.framework in Frameworks */,
+				67A14C8A20DD48A1006EFCFA /* libz.tbd in Frameworks */,
+				67A14C8820DD487D006EFCFA /* libSystem.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2623,6 +2678,14 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67A14C8520DD337E006EFCFA /* Security.framework */,
+				67A14C8320DD336E006EFCFA /* libz.tbd */,
+				67A14C8120DD3345006EFCFA /* libSystem.tbd */,
+				67A14C7F20DD3289006EFCFA /* ImageIO.framework */,
+				67A14C7D20DD324D006EFCFA /* libiconv.tbd */,
+				67A14C7B20DD31E3006EFCFA /* AGL.framework */,
+				67A14C7920DD31D6006EFCFA /* WebKit.framework */,
+				67A14C7720DD313D006EFCFA /* Carbon.framework */,
 				67025CAD20D7EF2D00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib */,
 				67025C9D20D7ECD800BF1AC6 /* libwx_baseu_net-3.1.dylib */,
 				67025C9920D7ECB800BF1AC6 /* libwx_baseu_xml-3.1.dylib */,
@@ -2714,6 +2777,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
+				6785922620F02CD9001C2929 /* LyricUserDictDialog.h */,
 				676507CB20D185F100532BA9 /* xlLockButton.cpp */,
 				676507CC20D185F100532BA9 /* xlLockButton.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
@@ -3189,45 +3254,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
-				67FF749320BD82B5000EA3A3 /* PlayListItemJukebox.cpp */,
-				67FF749620BD82B5000EA3A3 /* PlayListItemJukebox.h */,
-				67FF749520BD82B5000EA3A3 /* PlayListItemJukeboxPanel.cpp */,
-				67FF749420BD82B5000EA3A3 /* PlayListItemJukeboxPanel.h */,
-				6783D017209758BF00C6F51D /* PlayListItemProjector.cpp */,
-				6783D019209758BF00C6F51D /* PlayListItemProjector.h */,
-				6783D018209758BF00C6F51D /* PlayListItemProjectorPanel.cpp */,
-				6783D016209758BF00C6F51D /* PlayListItemProjectorPanel.h */,
-				671142E5207BAB9C00F45296 /* PlayListItemSetColour.cpp */,
-				671142E7207BAB9D00F45296 /* PlayListItemSetColour.h */,
-				671142E6207BAB9C00F45296 /* PlayListItemSetColourPanel.cpp */,
-				671142E4207BAB9C00F45296 /* PlayListItemSetColourPanel.h */,
-				674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */,
-				674B81512028EDA3002A97A6 /* PlayListItemScreenMap.h */,
-				674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */,
-				674B814E2028EDA2002A97A6 /* PlayListItemScreenMapPanel.h */,
-				67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */,
-				67D75E632020ED94005BAC6E /* PlayListItemFPPEvent.h */,
-				67D75E692020ED95005BAC6E /* PlayListItemFPPEventPanel.cpp */,
-				67D75E662020ED95005BAC6E /* PlayListItemFPPEventPanel.h */,
-				67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */,
-				67D75E682020ED95005BAC6E /* PlayListItemSerial.h */,
-				67D75E642020ED94005BAC6E /* PlayListItemSerialPanel.cpp */,
-				67D75E672020ED95005BAC6E /* PlayListItemSerialPanel.h */,
-				67D75E652020ED94005BAC6E /* PlayListItemSerialSend.h */,
-				6763C55E1F701E87006616FF /* PlayListItemFilePanel.h */,
-				6763C55F1F701E87006616FF /* PlayListItemFilePanel.cpp */,
-				6763C5601F701E87006616FF /* PlayListItemFile.h */,
-				6763C5611F701E87006616FF /* PlayListItemFile.cpp */,
-				67C581561E4B95CA00932DFA /* PlayListItemText.cpp */,
-				67C581571E4B95CA00932DFA /* PlayListItemText.h */,
-				67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */,
-				67C581591E4B95CA00932DFA /* PlayListItemTextPanel.h */,
-				67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */,
-				67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */,
-				67D640EC1E41169F00381DDA /* PlayListItemFSEQVideo.h */,
-				67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */,
-				67D640EE1E41169F00381DDA /* PlayListItemFSEQVideoPanel.h */,
-				67D640EF1E41169F00381DDA /* PlayListSimpleDialog.h */,
+				672F88C620E10BD0005BE1F4 /* PlayListItemMicrophone.cpp */,
+				672F88C720E10BD1005BE1F4 /* PlayListItemMicrophone.h */,
+				672F88C420E10BD0005BE1F4 /* PlayListItemMicrophonePanel.cpp */,
+				672F88C520E10BD0005BE1F4 /* PlayListItemMicrophonePanel.h */,
 				67F23FAA1E329E7400F8B985 /* PlayerWindow.cpp */,
 				67F23FAB1E329E7400F8B985 /* PlayerWindow.h */,
 				67F23FAC1E329E7400F8B985 /* PlayList.cpp */,
@@ -3237,10 +3267,6 @@
 				67F23FB01E329E7400F8B985 /* PlayListItem.cpp */,
 				67F23FB11E329E7400F8B985 /* PlayListItem.h */,
 				67F23FB21E329E7400F8B985 /* PlayListItemAllOff.cpp */,
-				1ECB4F771FF635EC006D57AA /* PlayListItemOSC.cpp */,
-				1ECB4F781FF635EC006D57AA /* PlayListItemOSC.h */,
-				1ECB4F791FF635ED006D57AA /* PlayListItemOSCPanel.cpp */,
-				1ECB4F7A1FF635ED006D57AA /* PlayListItemOSCPanel.h */,
 				67F23FB31E329E7400F8B985 /* PlayListItemAllOff.h */,
 				67F23FB41E329E7400F8B985 /* PlayListItemAllOffPanel.cpp */,
 				67F23FB51E329E7400F8B985 /* PlayListItemAllOffPanel.h */,
@@ -3260,14 +3286,38 @@
 				67F23FBF1E329E7400F8B985 /* PlayListItemESEQ.h */,
 				67F23FC01E329E7400F8B985 /* PlayListItemESEQPanel.cpp */,
 				67F23FC11E329E7400F8B985 /* PlayListItemESEQPanel.h */,
+				6763C5611F701E87006616FF /* PlayListItemFile.cpp */,
+				6763C5601F701E87006616FF /* PlayListItemFile.h */,
+				6763C55F1F701E87006616FF /* PlayListItemFilePanel.cpp */,
+				6763C55E1F701E87006616FF /* PlayListItemFilePanel.h */,
+				67D75E6B2020ED96005BAC6E /* PlayListItemFPPEvent.cpp */,
+				67D75E632020ED94005BAC6E /* PlayListItemFPPEvent.h */,
+				67D75E692020ED95005BAC6E /* PlayListItemFPPEventPanel.cpp */,
+				67D75E662020ED95005BAC6E /* PlayListItemFPPEventPanel.h */,
 				67F23FC21E329E7400F8B985 /* PlayListItemFSEQ.cpp */,
 				67F23FC31E329E7400F8B985 /* PlayListItemFSEQ.h */,
 				67F23FC41E329E7400F8B985 /* PlayListItemFSEQPanel.cpp */,
 				67F23FC51E329E7400F8B985 /* PlayListItemFSEQPanel.h */,
+				67D640EB1E41169F00381DDA /* PlayListItemFSEQVideo.cpp */,
+				67D640EC1E41169F00381DDA /* PlayListItemFSEQVideo.h */,
+				67D640ED1E41169F00381DDA /* PlayListItemFSEQVideoPanel.cpp */,
+				67D640EE1E41169F00381DDA /* PlayListItemFSEQVideoPanel.h */,
 				67F23FC61E329E7400F8B985 /* PlayListItemImage.cpp */,
 				67F23FC71E329E7400F8B985 /* PlayListItemImage.h */,
 				67F23FC81E329E7400F8B985 /* PlayListItemImagePanel.cpp */,
 				67F23FC91E329E7400F8B985 /* PlayListItemImagePanel.h */,
+				67FF749320BD82B5000EA3A3 /* PlayListItemJukebox.cpp */,
+				67FF749620BD82B5000EA3A3 /* PlayListItemJukebox.h */,
+				67FF749520BD82B5000EA3A3 /* PlayListItemJukeboxPanel.cpp */,
+				67FF749420BD82B5000EA3A3 /* PlayListItemJukeboxPanel.h */,
+				1ECB4F771FF635EC006D57AA /* PlayListItemOSC.cpp */,
+				1ECB4F781FF635EC006D57AA /* PlayListItemOSC.h */,
+				1ECB4F791FF635ED006D57AA /* PlayListItemOSCPanel.cpp */,
+				1ECB4F7A1FF635ED006D57AA /* PlayListItemOSCPanel.h */,
+				6783D017209758BF00C6F51D /* PlayListItemProjector.cpp */,
+				6783D019209758BF00C6F51D /* PlayListItemProjector.h */,
+				6783D018209758BF00C6F51D /* PlayListItemProjectorPanel.cpp */,
+				6783D016209758BF00C6F51D /* PlayListItemProjectorPanel.h */,
 				67F23FCE1E329E7400F8B985 /* PlayListItemRDS.cpp */,
 				67F23FCF1E329E7400F8B985 /* PlayListItemRDS.h */,
 				67F23FD01E329E7400F8B985 /* PlayListItemRDSPanel.cpp */,
@@ -3280,16 +3330,35 @@
 				67F23FD71E329E7400F8B985 /* PlayListItemRunProcess.h */,
 				67F23FD81E329E7400F8B985 /* PlayListItemRunProcessPanel.cpp */,
 				67F23FD91E329E7400F8B985 /* PlayListItemRunProcessPanel.h */,
+				674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */,
+				674B81512028EDA3002A97A6 /* PlayListItemScreenMap.h */,
+				674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */,
+				674B814E2028EDA2002A97A6 /* PlayListItemScreenMapPanel.h */,
+				67D75E6A2020ED96005BAC6E /* PlayListItemSerial.cpp */,
+				67D75E682020ED95005BAC6E /* PlayListItemSerial.h */,
+				67D75E642020ED94005BAC6E /* PlayListItemSerialPanel.cpp */,
+				67D75E672020ED95005BAC6E /* PlayListItemSerialPanel.h */,
+				67D75E652020ED94005BAC6E /* PlayListItemSerialSend.h */,
+				671142E5207BAB9C00F45296 /* PlayListItemSetColour.cpp */,
+				671142E7207BAB9D00F45296 /* PlayListItemSetColour.h */,
+				671142E6207BAB9C00F45296 /* PlayListItemSetColourPanel.cpp */,
+				671142E4207BAB9C00F45296 /* PlayListItemSetColourPanel.h */,
 				1E3E25021E3716CF001D48E3 /* PlayListItemTest.cpp */,
 				1E3E25031E3716CF001D48E3 /* PlayListItemTest.h */,
 				1E3E25041E3716CF001D48E3 /* PlayListItemTestPanel.cpp */,
 				1E3E25051E3716CF001D48E3 /* PlayListItemTestPanel.h */,
+				67C581561E4B95CA00932DFA /* PlayListItemText.cpp */,
+				67C581571E4B95CA00932DFA /* PlayListItemText.h */,
+				67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */,
+				67C581591E4B95CA00932DFA /* PlayListItemTextPanel.h */,
 				67F23FDA1E329E7400F8B985 /* PlayListItemVideo.cpp */,
 				67F23FDB1E329E7400F8B985 /* PlayListItemVideo.h */,
 				67F23FDC1E329E7400F8B985 /* PlayListItemVideoPanel.cpp */,
 				67F23FDD1E329E7400F8B985 /* PlayListItemVideoPanel.h */,
 				67F23FDE1E329E7400F8B985 /* PlayListPanel.cpp */,
 				67F23FDF1E329E7400F8B985 /* PlayListPanel.h */,
+				67D640EA1E41169F00381DDA /* PlayListSimpleDialog.cpp */,
+				67D640EF1E41169F00381DDA /* PlayListSimpleDialog.h */,
 				67F23FE01E329E7400F8B985 /* PlayListStep.cpp */,
 				67F23FE11E329E7400F8B985 /* PlayListStep.h */,
 				67F23FE21E329E7400F8B985 /* PlayListStepPanel.cpp */,
@@ -3768,6 +3837,7 @@
 				676603911D01CA2400589601 /* FillPanel.cpp in Sources */,
 				67B2CF841C39D98A003C17CA /* ShockwavePanel.cpp in Sources */,
 				67B2CF891C39D98A003C17CA /* SpirographPanel.cpp in Sources */,
+				6785922720F02CD9001C2929 /* LyricUserDictDialog.cpp in Sources */,
 				67DAFDDF1CA1A63C004B3237 /* MidiFile.cpp in Sources */,
 				677421D71A68ACDA0082DA5B /* JobPool.cpp in Sources */,
 				67ACBAB51C63DAD400BFA7D6 /* WholeHouseModel.cpp in Sources */,
@@ -3957,6 +4027,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */,
 				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,
 				67FF749720BD82B6000EA3A3 /* PlayListItemJukebox.cpp in Sources */,
 				670827FF2024C39C0002B617 /* LorControllerDialog.cpp in Sources */,
@@ -3995,6 +4066,7 @@
 				6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
 				67F2401C1E32A09E00F8B985 /* PluginBufferingAdapter.cpp in Sources */,
+				672F88C820E10BD1005BE1F4 /* PlayListItemMicrophonePanel.cpp in Sources */,
 				67F2401D1E32A09E00F8B985 /* Files.cpp in Sources */,
 				67B6F3332040F59500B847E0 /* ListenerMIDI.cpp in Sources */,
 				67DA0AFF1E39C8EB00E2A859 /* OutputProcessSet.cpp in Sources */,
@@ -4293,6 +4365,7 @@
 					/opt/local/libdbg,
 					/opt/local/lib,
 				);
+				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
@@ -4309,10 +4382,10 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
 				);
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				OTHER_TAPI_FLAGS = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";
@@ -4386,10 +4459,17 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-DwxHAS_GENERIC_DATAVIEWCTRL=1",
 				);
-				OTHER_LDFLAGS = "-headerpad_max_install_names";
+				OTHER_LDFLAGS = (
+					"-headerpad_max_install_names",
+					"-lwxexpat-3.1",
+					"-lwxjpeg-3.1",
+					"-lwxpng-3.1",
+					"-lwxtiff-3.1",
+					"-lwxregexu-3.1",
+				);
 				OTHER_TAPI_FLAGS = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
 				SDKROOT = macosx;
 				VALID_ARCHS = x86_64;
 				WARNING_LDFLAGS = "-headerpad_max_install_names";

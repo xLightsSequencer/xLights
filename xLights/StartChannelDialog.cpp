@@ -118,11 +118,13 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
         }
     }
 
+    OutputChoice->Freeze();
     OutputChoice->Clear();
     for (int i = 1; i <= models.GetOutputManager()->GetOutputCount(); i++)
     {
         OutputChoice->AppendString(wxString::Format(wxT("%i"), i));
     }
+    OutputChoice->Thaw();
 
     ipChoice->Clear();
     ipChoice->AppendString("ANY");

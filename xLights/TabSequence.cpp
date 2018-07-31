@@ -1060,13 +1060,13 @@ void xLightsFrame::SaveSequence()
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
 
-        wxFileName fseqFileName(NewFilename);//create FSEQ file name in fseq folder
-        fseqFileName.SetPath(fseqDirectory);
+        wxFileName fseqFileName(NewFilename);//create FSEQ file name in seq folder
         fseqFileName.SetExt("fseq");
         DisplayXlightsFilename(fseqFileName.GetFullPath());
     }
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
+	// Only Change FSEQ save folder if the FSEQ Folder Setting is NOT the Show Dir
     if (fseqDirectory != showDirectory)
     {
         wxFileName fn(xlightsFilename);
@@ -1076,7 +1076,7 @@ void xLightsFrame::SaveSequence()
 
     EnableSequenceControls(false);
     wxStopWatch sw; // start a stopwatch timer
-    SetStatusText(_("Saving ")+xlightsFilename+_(" ... Saving xml."));
+    SetStatusText(_("Saving ") + CurrentSeqXmlFile->GetFullPath() + _(" ... Saving xml."));
     logger_base.info("Saving XML file.");
     CurrentSeqXmlFile->AddJukebox(jukeboxPanel->Save());
     CurrentSeqXmlFile->Save(mSequenceElements);
@@ -1133,12 +1133,21 @@ void xLightsFrame::SaveSequence()
         } );
         return;
     }
-    SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
-    WriteFalconPiFile(xlightsFilename);
-    logger_base.info("fseq file done.");
-    DisplayXlightsFilename(xlightsFilename);
-    float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
-    wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
+    wxString display_name;
+    if (mSaveFseqOnSave)
+    {
+        SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
+        WriteFalconPiFile(xlightsFilename);
+        logger_base.info("fseq file done.");
+        DisplayXlightsFilename(xlightsFilename);
+        display_name = xlightsFilename;
+    }
+    else
+    {
+        display_name = CurrentSeqXmlFile->GetFullPath();
+    }
+    float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
+    wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), display_name, elapsedTime);
     logger_base.info("%s", (const char *)displayBuff.c_str());
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
@@ -1313,6 +1322,11 @@ void xLightsFrame::EnableSequenceControls(bool enable)
     if (MenuItem_LogRenderState != nullptr)
     {
         MenuItem_LogRenderState->Enable();
+    }
+
+    if (!mSaveFseqOnSave)
+    {
+        mRenderOnSaveMenuItem->Enable(false);
     }
 }
 

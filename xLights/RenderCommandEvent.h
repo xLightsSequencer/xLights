@@ -10,7 +10,9 @@
 #define xLights_RenderCommandEvent_h
 
 #include <string>
+#include "sequencer/Element.h"
 #include "sequencer/Effect.h"
+#include "sequencer/EffectLayer.h"
 
 class RenderCommandEvent;
 class SelectedEffectChangedEvent;
@@ -55,10 +57,34 @@ public:
     SelectedEffectChangedEvent(Effect *e, bool n, bool uui = true, bool ubtn = false)
         : wxCommandEvent(EVT_SELECTED_EFFECT_CHANGED),
             effect(e), isNew(n), updateUI(uui), updateBtn(ubtn) {
-
+        if (e != nullptr)
+        {
+            // save the necessary details to identify the effect
+            _elementName = e->GetParentEffectLayer()->GetParentElement()->GetFullName();
+            NodeLayer*  nodeLayer = dynamic_cast<NodeLayer*>(e->GetParentEffectLayer());
+            if (nodeLayer != nullptr)
+            {
+                StrandElement* se = (StrandElement*)e->GetParentEffectLayer()->GetParentElement();
+                ModelElement* me = se->GetModelElement();
+                _node = (nodeLayer->GetIndex() - me->GetSubModelCount() - se->GetStrand() - 1 - 1) % se->GetNodeLayerCount();
+            }
+            else
+            {
+                _node = -1;
+            }
+            _layer = e->GetParentEffectLayer()->GetLayerNumber();
+            _startTime = e->GetStartTimeMS();
+        }
+        else
+        {
+            _elementName = "";
+            _node = -1;
+            _layer = -1;
+            _startTime = -100;
+        }
     }
     SelectedEffectChangedEvent(const SelectedEffectChangedEvent &evt)
-    : wxCommandEvent(evt), effect(evt.effect), isNew(evt.isNew), updateUI(evt.updateUI), updateBtn(evt.updateBtn) {
+    : wxCommandEvent(evt), effect(evt.effect), isNew(evt.isNew), updateUI(evt.updateUI), updateBtn(evt.updateBtn), _elementName(evt._elementName), _layer(evt._layer), _startTime(evt._startTime), _node(evt._node) {
     }
 
     virtual ~SelectedEffectChangedEvent() {}
@@ -69,7 +95,10 @@ public:
     bool isNew;
     bool updateUI;
     bool updateBtn;
-
+    std::string _elementName;
+    int _node;
+    int _layer;
+    int _startTime;
     DECLARE_DYNAMIC_CLASS( SelectedEffectChangedEvent )
 
 protected:

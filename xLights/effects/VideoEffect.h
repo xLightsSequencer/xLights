@@ -12,7 +12,7 @@ class VideoEffect : public RenderableEffect
         virtual ~VideoEffect();
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         void Render(RenderBuffer &buffer,
-					std::string filename, double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool keepaspectratio, std::string durationTreatment, bool synchroniseAudio);
+					std::string filename, double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool keepaspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack ,int transparentBlackLevel);
         virtual bool CanBeRandom() override {return false;}
         virtual void SetDefaultParameters() override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;

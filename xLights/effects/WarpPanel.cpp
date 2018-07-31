@@ -13,7 +13,7 @@ const long WarpPanel::ID_TEXTCTRL1 = wxNewId();
 const long WarpPanel::ID_STATICTEXT8 = wxNewId();
 const long WarpPanel::ID_CHOICE_Warp_Type = wxNewId();
 const long WarpPanel::ID_STATICTEXT9 = wxNewId();
-const long WarpPanel::ID_CHOICE_Warp_Treatment = wxNewId();
+const long WarpPanel::ID_CHOICE_Warp_Treatment_APPLYLAST = wxNewId();
 const long WarpPanel::ID_STATICTEXT10 = wxNewId();
 const long WarpPanel::ID_SLIDER_Warp_X = wxNewId();
 const long WarpPanel::ID_VALUECURVE_Warp_X = wxNewId();
@@ -95,6 +95,9 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	Choice_Warp_Type->Append(_("ripple"));
 	Choice_Warp_Type->Append(_("single water drop"));
 	Choice_Warp_Type->Append(_("circular swirl"));
+	Choice_Warp_Type->Append(_("drop"));
+	Choice_Warp_Type->Append(_("wavy"));
+	Choice_Warp_Type->Append(_("sample on"));
 	FlexGridSizer5->Add(Choice_Warp_Type, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer5->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 0);
@@ -102,7 +105,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer4->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer6->AddGrowableCol(0);
-	Choice_Warp_Treatment = new wxChoice(this, ID_CHOICE_Warp_Treatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Treatment"));
+	Choice_Warp_Treatment = new wxChoice(this, ID_CHOICE_Warp_Treatment_APPLYLAST, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Warp_Treatment_APPLYLAST"));
 	Choice_Warp_Treatment->Append(_("constant"));
 	Choice_Warp_Treatment->Append(_("in"));
 	Choice_Warp_Treatment->Append(_("out"));
@@ -164,7 +167,7 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_CHOICE_Warp_Type,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TypeSelect);
-	Connect(ID_CHOICE_Warp_Treatment,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TreatmentSelect);
+	Connect(ID_CHOICE_Warp_Treatment_APPLYLAST,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&WarpPanel::OnChoice_Warp_TreatmentSelect);
 	Connect(ID_VALUECURVE_Warp_X,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WarpPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Warp_Y,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&WarpPanel::OnVCButtonClick);
 	//*)
@@ -197,98 +200,94 @@ void WarpPanel::OnVCChanged(wxCommandEvent& event)
    EffectPanelUtils::OnVCChanged( event );
 }
 
+void WarpPanel::CheckTypeTreatment()
+{
+    wxString warpType = Choice_Warp_Type->GetStringSelection();
+    wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
+
+    bool constantOnly = warpType == "water drops" || warpType == "single water drop" || warpType == "wavy" || warpType == "sample on";
+    if (constantOnly && warpTreatment != "constant")
+    {
+        Choice_Warp_Treatment->SetStringSelection("constant");
+        wxBell();
+    }
+}
+
 void WarpPanel::OnChoice_Warp_TypeSelect(wxCommandEvent& event)
 {
-   ValidateWindow();
+    CheckTypeTreatment();
+    ValidateWindow();
 }
 
 void WarpPanel::OnChoice_Warp_TreatmentSelect(wxCommandEvent& event)
 {
-   ValidateWindow();
+    CheckTypeTreatment();
+    ValidateWindow();
 }
 
 void WarpPanel::ValidateWindow()
 {
-   wxString warpType = Choice_Warp_Type->GetStringSelection();
-   wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
+    wxString warpType = Choice_Warp_Type->GetStringSelection();
+    wxString warpTreatment = Choice_Warp_Treatment->GetStringSelection();
 
-   bool constantOnly = ( warpType == "water drops" || warpType == "single water drop" );
-   wxArrayString choices;
-   choices.Add( "constant" );
-   if ( constantOnly )
-   {
-      Choice_Warp_Treatment->Set( choices );
-      Choice_Warp_Treatment->SetSelection( 0 );
-      warpTreatment = "constant";
-   }
-   else
-   {
-      choices.Add( "in" );
-      choices.Add( "out" );
-      Choice_Warp_Treatment->Set( choices );
-      int index = Choice_Warp_Treatment->FindString( warpTreatment );
-      if ( index != wxNOT_FOUND )
-         Choice_Warp_Treatment->SetSelection( index );
-   }
+    if (warpType == "dissolve" || warpType == "drop" || warpType == "wavy")
+    {
+        BitmapButton_Warp_X->SetActive(true); // VC needs to be active in order to disable controls?
+        Slider_Warp_X->Disable();
+        TextCtrl_Warp_X->Disable();
+        BitmapButton_Warp_X->Disable();
 
-   if ( warpType == "dissolve" )
-   {
-      BitmapButton_Warp_X->SetActive( true ); // VC needs to be active in order to disable controls?
-      Slider_Warp_X->Disable();
-      TextCtrl_Warp_X->Disable();
-      BitmapButton_Warp_X->Disable();
+        BitmapButton_Warp_Y->SetActive(true); // VC needs to be active in order to disable controls?
+        Slider_Warp_Y->Disable();
+        TextCtrl_Warp_Y->Disable();
+        BitmapButton_Warp_Y->Disable();
+    }
+    else
+    {
+        Slider_Warp_X->Enable();
+        TextCtrl_Warp_X->Enable();
+        BitmapButton_Warp_X->Enable();
 
-      BitmapButton_Warp_Y->SetActive( true ); // VC needs to be active in order to disable controls?
-      Slider_Warp_Y->Disable();
-      TextCtrl_Warp_Y->Disable();
-      BitmapButton_Warp_Y->Disable();
-   }
-   else
-   {
-      Slider_Warp_X->Enable();
-      TextCtrl_Warp_X->Enable();
-      BitmapButton_Warp_X->Enable();
+        Slider_Warp_Y->Enable();
+        TextCtrl_Warp_Y->Enable();
+        BitmapButton_Warp_Y->Enable();
+    }
 
-      Slider_Warp_Y->Enable();
-      TextCtrl_Warp_Y->Enable();
-      BitmapButton_Warp_Y->Enable();
-   }
+    bool supportsCycleCount = !(warpType == "water drops" || warpType == "wavy" || warpType == "sample on");
+    if (warpTreatment != "constant")
+        supportsCycleCount = false;
+    if (supportsCycleCount)
+    {
+        Slider_Warp_Cycle_Count->Enable();
+        TextCtrl_Warp_Cycle_Count->Enable();
+    }
+    else
+    {
+        Slider_Warp_Cycle_Count->Disable();
+        TextCtrl_Warp_Cycle_Count->Disable();
+    }
 
-   bool supportsCycleCount = ( warpType != "water drops" );
-   if ( warpTreatment != "constant" )
-      supportsCycleCount = false;
-   if ( supportsCycleCount )
-   {
-      Slider_Warp_Cycle_Count->Enable();
-      TextCtrl_Warp_Cycle_Count->Enable();
-   }
-   else
-   {
-      Slider_Warp_Cycle_Count->Disable();
-      TextCtrl_Warp_Cycle_Count->Disable();
-   }
+    bool supportsSpeed = (warpType == "water drops" || warpType == "ripple" || warpType == "circular swirl" || warpType == "wavy");
+    if (supportsSpeed)
+    {
+        Slider_Warp_Speed->Enable();
+        TextCtrl_Warp_Speed->Enable();
+    }
+    else
+    {
+        Slider_Warp_Speed->Disable();
+        TextCtrl_Warp_Speed->Disable();
+    }
 
-   bool supportsSpeed = ( warpType == "water drops" || warpType == "ripple" || warpType == "circular swirl" );
-   if ( supportsSpeed )
-   {
-      Slider_Warp_Speed->Enable();
-      TextCtrl_Warp_Speed->Enable();
-   }
-   else
-   {
-      Slider_Warp_Speed->Disable();
-      TextCtrl_Warp_Speed->Disable();
-   }
-
-   bool supportsFrequency = ( warpType == "banded swirl" || warpType == "ripple" );
-   if ( supportsFrequency )
-   {
-      Slider_Warp_Frequency->Enable();
-      TextCtrl_Warp_Frequency->Enable();
-   }
-   else
-   {
-      Slider_Warp_Frequency->Disable();
-      TextCtrl_Warp_Frequency->Disable();
-   }
+    bool supportsFrequency = (warpType == "banded swirl" || warpType == "ripple");
+    if (supportsFrequency)
+    {
+        Slider_Warp_Frequency->Enable();
+        TextCtrl_Warp_Frequency->Enable();
+    }
+    else
+    {
+        Slider_Warp_Frequency->Disable();
+        TextCtrl_Warp_Frequency->Disable();
+    }
 }

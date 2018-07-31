@@ -10,13 +10,17 @@ xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
 of wxWidgets for xLights is v3.1.  This can be compiled from
 source or installed via packages if they are available for your distribution.
-The provided makefile will download and build wxWidgets if needed - including application of a small patch from the end of this file to fix the sizing of bitmap buttons.
-Please note that wxWidgets needs to use Gtk2 rather than Gtk3 currently due to issues in some controls.
-A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included for i686 and x86_64 - for other platforms it would need to be recompiled from https://github.com/google/liquidfun
+The provided makefile will download and build wxWidgets if needed - including
+application of a small patch from the end of this file to fix the sizing of
+bitmap buttons.
+SDL2 needs to be 2.0.5 or later.
+A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included for
+i686 and x86_64 - for other platforms it would need to be recompiled from
+https://github.com/google/liquidfun
 
 These instructions have been tested on the following distributions:
 
-  - Ubuntu 16.10
+  - Ubuntu 17.10
   - Fedora 24
 
 Instructions for other Linux distributions will vary. 
@@ -26,26 +30,26 @@ Instructions for other Linux distributions will vary.
      in their name)
 
      build-essential
-     libgtk-3-dev
+     libgtk2.0-dev
      libgstreamer1.0-dev
      libgstreamer-plugins-base1.0-dev
      freeglut3-dev
      libavcodec-dev
      libavformat-dev
      libswscale-dev
-     libsdl1.2-dev
+     libsdl2-dev
      liblog4cpp5-dev
      libportmidi-dev
      cbp2make (optional but recommended if compiling from git)
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl1.2-dev liblog4cpp5-dev libportmidi-dev cbp2make
+     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev liblog4cpp5-dev libportmidi-dev cbp2make
 
      Example commands to install packages on Fedora 24
 
      sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-     sudo dnf install gcc-c++ gtk3-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL-devel log4cpp-devel portmidi-devel
+     sudo dnf install gcc-c++ gtk2-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL-devel log4cpp-devel portmidi-devel
 
 
   b) Get the xLights source code by opening a terminal window and

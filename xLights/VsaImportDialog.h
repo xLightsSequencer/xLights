@@ -43,6 +43,7 @@ class VsaImportDialog: public wxDialog
         std::vector<std::string> modelNames;
 
         std::vector<std::string> trackNames;
+        std::vector<size_t> trackIndex;
         std::vector<std::string> selectedModels;
         std::vector<std::string> selectedChannels;
         std::vector<size_t> selectedLayers;

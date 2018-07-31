@@ -1082,7 +1082,7 @@
 					<handler function="OnMenuItem_ViewLogSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM18" variable="MenuItem38" member="yes">
-					<label>&amp;Package Log FIles</label>
+					<label>&amp;Package Log Files</label>
 					<help>Packages up current configuration, logs and sequence for reporting a problem to development team.</help>
 					<handler function="OnMenuItemPackageDebugFiles" entry="EVT_MENU" />
 				</object>
@@ -1101,6 +1101,10 @@
 				<object class="wxMenuItem" name="ID_MNU_PACKAGESEQUENCE" variable="MenuItem_PackageSequence" member="yes">
 					<label>Package &amp;Sequence</label>
 					<handler function="OnMenuItem_PackageSequenceSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENU_USER_DICT" variable="MenuItemUserDict" member="yes">
+					<label>User Lyric Dictionary</label>
+					<handler function="OnMenuItemUserDictSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_DOWNLOADSEQUENCES" variable="MenuItem_DownloadSequences" member="yes">
 					<label>Download Sequences/Lyrics</label>
@@ -1322,6 +1326,12 @@
 					<label>Render On Save</label>
 					<checked>1</checked>
 					<handler function="OnMenuItemRenderOnSave" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="ID_SAVE_FSEQ_ON_SAVE" variable="mSaveFseqOnSaveMenuItem" member="yes">
+					<label>Save FSEQ On Save</label>
+					<checked>1</checked>
+					<handler function="OnmSaveFseqOnSaveMenuItemSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
 				<object class="wxMenuItem" name="ID_BACKUP_ON_SAVE" variable="mBackupOnSaveMenuItem" member="yes">

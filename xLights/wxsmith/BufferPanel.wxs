@@ -56,9 +56,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_BufferStyle" variable="BitmapButtonBufferStyle" member="no">
-                                                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                            <size>14,14</size>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_BufferStyle" subclass="xlLockButton" variable="BitmapButtonBufferStyle" member="no">
+															<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+															<size>14,14</size>
 															<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -94,9 +94,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_BufferTransform" variable="BitmapButton_BufferTransform" member="no">
-                                                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                            <size>14,14</size>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_BufferTransform" subclass="xlLockButton" variable="BitmapButton_BufferTransform" member="no">
+															<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+															<size>14,14</size>
 															<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -130,7 +130,7 @@
 															</object>
 															<object class="sizeritem">
 																<object class="wxBitmapButton" name="ID_VALUECURVE_Blur" subclass="BulkEditValueCurveButton" variable="BitmapButton_Blur" member="yes">
-                                                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+																	<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 																	<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 																	<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 																</object>
@@ -151,9 +151,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_EffectBlur" variable="BitmapButton_EffectBlur" member="yes">
-                                                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                            <size>14,14</size>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectBlur" subclass="xlLockButton" variable="BitmapButton_EffectBlur" member="yes">
+															<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+															<size>14,14</size>
 															<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -177,9 +177,9 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_OverlayBkg" variable="BitmapButton_OverlayBkg" member="yes">
-                                                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                            <size>14,14</size>
+														<object class="wxBitmapButton" name="ID_BITMAPBUTTON_OverlayBkg" subclass="xlLockButton" variable="BitmapButton_OverlayBkg" member="yes">
+															<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+															<size>14,14</size>
 															<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 															<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -277,7 +277,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Rotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCRotation" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -290,7 +290,6 @@
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
-															<validator>__rotation</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -301,9 +300,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_Rotation" variable="BitmapButton_Rotation" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Rotation" subclass="xlLockButton" variable="BitmapButton_Rotation" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -336,7 +335,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Rotations" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCRotations" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -348,7 +347,6 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Rotations" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Rotations" member="yes">
 															<value>0.0</value>
 															<size>20,-1d</size>
-															<validator>__rotations</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>
@@ -359,9 +357,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_Rotations" variable="BitmapButton_Rotations" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Rotations" subclass="xlLockButton" variable="BitmapButton_Rotations" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -394,7 +392,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_PivotPointX" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCPivotPointX" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -406,7 +404,6 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_PivotPointX" subclass="BulkEditTextCtrl" variable="TextCtrl_PivotPointX" member="yes">
 															<value>50</value>
 															<size>20,-1d</size>
-															<validator>__pivotpointx</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -417,9 +414,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_PivotPointX" variable="BitmapButton_PivotPointX" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_PivotPointX" subclass="xlLockButton" variable="BitmapButton_PivotPointX" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -452,7 +449,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_PivotPointY" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCPivotPointY" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -464,7 +461,6 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_PivotPointY" subclass="BulkEditTextCtrl" variable="TextCtrl_PivotPointY" member="yes">
 															<value>50</value>
 															<size>20,-1d</size>
-															<validator>__pivotpointy</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -475,9 +471,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_PivotPointY" variable="BitmapButton_PivotPointY" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_PivotPointY" subclass="xlLockButton" variable="BitmapButton_PivotPointY" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -501,6 +497,7 @@
 													<growablecols>0</growablecols>
 													<object class="sizeritem">
 														<object class="wxSlider" name="ID_SLIDER_Zoom" subclass="BulkEditSliderF1" variable="Slider_Zoom" member="yes">
+															<value>10</value>
 															<max>30</max>
 															<minsize>20,-1d</minsize>
 														</object>
@@ -510,7 +507,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_Zoom" subclass="BulkEditValueCurveButton" variable="BitmapButton_VCZoom" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -520,9 +517,8 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_Zoom" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Zoom" member="yes">
-															<value>0.0</value>
+															<value>1.0</value>
 															<size>20,-1d</size>
-															<validator>__zoom</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -533,9 +529,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_Zoom" variable="BitmapButton_Zoom" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Zoom" subclass="xlLockButton" variable="BitmapButton_Zoom" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -572,7 +568,6 @@
 														<object class="wxTextCtrl" name="IDD_TEXTCTRL_ZoomQuality" subclass="BulkEditTextCtrl" variable="TextCtrl_ZoomQuality" member="yes">
 															<value>1</value>
 															<size>20,-1d</size>
-															<validator>__zoomquality</validator>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>2</border>
@@ -583,9 +578,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_ZoomQuality" variable="BitmapButton_ZoomQuality" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_ZoomQuality" subclass="xlLockButton" variable="BitmapButton_ZoomQuality" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -618,7 +613,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_XRotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_XRotation" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -667,7 +662,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_XPivot" subclass="BulkEditValueCurveButton" variable="BitmapButton_XPivot" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -717,7 +712,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_YRotation" subclass="BulkEditValueCurveButton" variable="BitmapButton_YRotation" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>
@@ -766,7 +761,7 @@
 													</object>
 													<object class="sizeritem">
 														<object class="wxBitmapButton" name="ID_VALUECURVE_YPivot" subclass="BulkEditValueCurveButton" variable="BitmapButton_YPivot" member="yes">
-                                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+															<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 														</object>

@@ -22,5 +22,6 @@ class ListenerMIDI : public ListenerBase
         virtual void StartProcess() override;
         virtual void StopProcess() override;
         virtual void Poll() override;
+        int GetDeviceId() const { return _deviceId; }
 };
 #endif

@@ -12,6 +12,7 @@
 class OutputManager;
 class EmitterThread;
 class ListenerManager;
+class Settings;
 
 class Emitter
 {
@@ -28,10 +29,11 @@ class Emitter
     std::string _localIP;
     int _leftBrightness;
     int _rightBrightness;
+    Settings* _settings;
 
     public:
 
-	Emitter(std::map<int, std::string>* ip, std::map<int, PacketData>* left, std::map<int, PacketData>* right, std::map<int, std::string>* protocol, std::mutex* mutex, std::string localIP);
+	Emitter(std::map<int, std::string>* ip, std::map<int, PacketData>* left, std::map<int, PacketData>* right, std::map<int, std::string>* protocol, std::mutex* mutex, std::string localIP, Settings* settings);
 	virtual ~Emitter();
     void Stop();
     void Restart();
@@ -52,6 +54,7 @@ class Emitter
     unsigned long GetSent() const { return _sent; }
     void IncrementSent() { _sent++; }
     void ZeroSent() { _sent = 0; }
+    Settings* GetSettings() const { return _settings; }
 };
 
 #endif 

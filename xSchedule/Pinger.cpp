@@ -192,7 +192,7 @@ Pinger::Pinger(ListenerManager* listenerManager, OutputManager* outputManager)
 
     for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
-        if ((*it)->CanPing())
+        if ((*it)->CanPing() && (*it)->IsEnabled())
         {
             // check if we have already seen it
             bool found = false;

@@ -188,9 +188,9 @@ SpiralsPanel::SpiralsPanel(wxWindow* parent)
 
     BitmapButton_VCSpiralsCount->GetValue()->SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
     BitmapButton_VCSpirals_Movement->GetValue()->SetLimits(SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX);
-    BitmapButton_VCSpirals_Movement->GetValue()->SetDivisor(10);
+    BitmapButton_VCSpirals_Movement->GetValue()->SetDivisor(SPIRALS_MOVEMENT_DIVISOR);
     BitmapButton_VCSpirals_Rotation->GetValue()->SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
-    BitmapButton_VCSpirals_Rotation->GetValue()->SetDivisor(10);
+    BitmapButton_VCSpirals_Rotation->GetValue()->SetDivisor(SPIRALS_ROTATION_DIVISOR);
     BitmapButton_VCSpirals_Thickness->GetValue()->SetLimits(SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
 }
 

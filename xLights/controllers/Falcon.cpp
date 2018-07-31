@@ -58,16 +58,30 @@ Falcon::Falcon(const std::string& ip)
             _modelString = modelstringregex.GetMatch(wxString(version), 2).ToStdString();
         }
 
-        static wxRegEx versionregex("(F[0-9]+V)([0-9]+)", wxRE_ADVANCED);
-        if (versionregex.Matches(wxString(version)))
+        if (_modelString == "")
         {
-            _version = wxAtoi(versionregex.GetMatch(wxString(version), 2).ToStdString());
+            static wxRegEx modelstringregex2("(SW Version:.*?\\>)(F[0-9]+)[^0-9]", wxRE_ADVANCED);
+            if (modelstringregex2.Matches(wxString(version)))
+            {
+                _modelString = modelstringregex2.GetMatch(wxString(version), 2).ToStdString();
+            }
         }
 
-        static wxRegEx modelregex("(F)([0-9]+)V", wxRE_ADVANCED);
-        if (modelregex.Matches(wxString(version)))
+        static wxRegEx versionregex("(F[0-9]+V)([0-9]+)$", wxRE_ADVANCED);
+        if (versionregex.Matches(wxString(_modelString)))
         {
-            _model = wxAtoi(modelregex.GetMatch(wxString(version), 2).ToStdString());
+            _version = wxAtoi(versionregex.GetMatch(wxString(_modelString), 2));
+        }
+
+        if (_version == 0)
+        {
+            _version = 3;
+        }
+
+        static wxRegEx modelregex2("(F)([0-9]+)(V|$)", wxRE_ADVANCED);
+        if (modelregex2.Matches(wxString(_modelString)))
+        {
+            _model = wxAtoi(modelregex2.GetMatch(wxString(_modelString), 2));
         }
 
         logger_base.debug("Connected to falcon - Model: %s Firmware Version %s. %d:%d", _modelString.c_str(), _firmwareVersion.c_str(), _model, _version);
@@ -97,6 +111,10 @@ int Falcon::GetMaxStringOutputs() const
     {
         return 48;
     }
+    else if (IsF48())
+    {
+        return 48;
+    }
     return 100;
 }
 
@@ -106,7 +124,7 @@ int Falcon::GetMaxSerialOutputs() const
     {
         return 1;
     }
-    else if (IsF16())
+    else if (IsF16() || IsF48())
     {
         return 4;
     }

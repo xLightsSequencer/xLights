@@ -288,7 +288,7 @@
 						</object>
 						<object class="sizeritem">
 							<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText_PacketsPerSec" member="yes">
-								<label>Packets/Sec: 0</label>
+								<label>Packets/Sec: 0          </label>
 							</object>
 							<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 							<border>5</border>
@@ -393,6 +393,11 @@
 					<label>Import xLights Playlist</label>
 					<handler function="OnMenuItem_ImportxLightsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_Crash" member="yes">
+					<label>Crash</label>
+					<help>Crash xSchedule</help>
+					<handler function="OnMenuItem_CrashSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu4" member="yes">
 				<label>&amp;Modes</label>
@@ -473,7 +478,7 @@
 			<interval>500000</interval>
 			<handler function="On_timerTrigger" entry="EVT_TIMER" />
 		</object>
-		<object class="wxTimer" name="ID_TIMER2" variable="_timerSchedule" member="yes">
+		<object class="wxTimer" name="ID_TIMER2" subclass="xLightsTimer" variable="_timerSchedule" member="yes">
 			<interval>50000</interval>
 			<handler function="On_timerScheduleTrigger" entry="EVT_TIMER" />
 		</object>

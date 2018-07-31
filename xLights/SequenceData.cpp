@@ -1,16 +1,17 @@
 //  SequenceData.cpp
 //  xLights
-//
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <cstddef>
+//#include <stdlib.h>
+//#include <string.h>
+//#include <stdio.h>
+//#include <cstddef>
+
+#include <wx/wx.h>
 
 #include "SequenceData.h"
-#include <wx/wx.h>
-#include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 const unsigned char FrameData::_constzero = 0;
 
@@ -57,10 +58,6 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
     _bytesPerFrame = roundTo4(numChannels);
 
     if (numFrames > 0 && numChannels > 0) {
-        //unsigned long tmp = bytesPerFrame;
-        //tmp *= numFrames;
-        //size_t sz = tmp;
-        //wxASSERT((unsigned long)sz == tmp); // if this fails then we are asking for more memory than the system can address
         size_t sz = (size_t)_bytesPerFrame * (size_t)_numFrames;
         _data = (unsigned char *)calloc(1, sz);
         wxASSERT(_data != nullptr); // if this fails then we have a memory allocation error
@@ -101,6 +98,7 @@ const FrameData SequenceData::operator[](unsigned int frame) const {
     return FrameData(_numChannels, &_data[offset]);
 }
 
+// This encodes the sequence data grouped by channel
 wxString SequenceData::base64_encode()
 {
     static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

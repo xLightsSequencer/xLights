@@ -32,6 +32,29 @@
 #include "ValueCurve.h"
 #include "RenderUtils.h"
 
+#define BLUR_MIN 1
+#define BLUR_MAX 15
+#define RZ_ROTATION_MIN 0
+#define RZ_ROTATION_MAX 100
+#define RZ_ZOOM_MIN 0
+#define RZ_ZOOM_MAX 30
+#define RZ_ZOOM_DIVISOR 10
+#define RZ_ROTATIONS_MIN 0
+#define RZ_ROTATIONS_MAX 200
+#define RZ_ROTATIONS_DIVISOR 10
+#define RZ_PIVOTX_MIN 0
+#define RZ_PIVOTX_MAX 100
+#define RZ_PIVOTY_MIN 0
+#define RZ_PIVOTY_MAX 100
+#define RZ_XROTATION_MIN 0
+#define RZ_XROTATION_MAX 360
+#define RZ_YROTATION_MIN 0
+#define RZ_YROTATION_MAX 360
+#define RZ_XPIVOT_MIN 0
+#define RZ_XPIVOT_MAX 100
+#define RZ_YPIVOT_MIN 0
+#define RZ_YPIVOT_MAX 100
+
 /**
  * \brief enumeration of the different techniques used in layering effects
  */
@@ -43,8 +66,10 @@ enum MixTypes
     Mix_Effect2, /**<  Effect 2 only */
     Mix_Mask1,   /**<  Effect 2 color shows where Effect 1 is black */
     Mix_Mask2,   /**<  Effect 1 color shows where Effect 2 is black */
-    Mix_Unmask1, /**<  Effect 2 color shows where Effect 1 is not black */
-    Mix_Unmask2, /**<  Effect 1 color shows where Effect 2 is black */
+    Mix_Unmask1, /**<  Effect 2 color shows where Effect 1 is not black but with no fade ... black becomes white*/
+    Mix_Unmask2, /**<  Effect 1 color shows where Effect 2 is not black but with no fade ... black becomes white*/
+    Mix_TrueUnmask1, /**<  Effect 2 color shows where Effect 1 is not black */
+    Mix_TrueUnmask2, /**<  Effect 1 color shows where Effect 2 is black */
     Mix_1_reveals_2,  /**<  Effect 2 color only shows if Effect 1 is black  1 reveals 2 */
     Mix_2_reveals_1,  /**<  Effect 1 color only shows if Effect 2 is black */
     Mix_Layered, /**<  Effect 1 is back ground and shows only when effect 2 is black */

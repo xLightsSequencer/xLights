@@ -149,6 +149,3 @@ std::vector<RenderableEffect*>::const_iterator EffectManager::begin() const {
 std::vector<RenderableEffect*>::const_iterator EffectManager::end() const {
     return effects.end();
 }
-
-
-

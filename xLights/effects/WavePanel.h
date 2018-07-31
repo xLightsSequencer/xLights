@@ -32,11 +32,14 @@ class WavePanel: public wxPanel
 		BulkEditSlider* Slider_Thickness_Percentage;
 		BulkEditSlider* Slider_Wave_Height;
 		BulkEditSlider* Slider_Wave_Speed;
+		BulkEditSlider* Slider_Y_Offset;
 		BulkEditValueCurveButton* BitmapButton_Number_WavesVC;
 		BulkEditValueCurveButton* BitmapButton_Thickness_PercentageVC;
 		BulkEditValueCurveButton* BitmapButton_Wave_HeightVC;
 		BulkEditValueCurveButton* BitmapButton_Wave_SpeedVC;
+		BulkEditValueCurveButton* BitmapButton_Wave_YOffsetVC;
 		wxStaticText* StaticText189;
+		wxStaticText* StaticText1;
 		wxStaticText* StaticText47;
 		wxStaticText* StaticText48;
 		wxStaticText* StaticText50;
@@ -51,6 +54,7 @@ class WavePanel: public wxPanel
 		xlLockButton* BitmapButton_Wave_Height;
 		xlLockButton* BitmapButton_Wave_MirrorWave;
 		xlLockButton* BitmapButton_Wave_Thickness;
+		xlLockButton* BitmapButton_YOffset;
 		//*)
 
 	protected:
@@ -87,6 +91,11 @@ class WavePanel: public wxPanel
 		static const long ID_STATICTEXT_Wave_Direction;
 		static const long ID_CHOICE_Wave_Direction;
 		static const long ID_BITMAPBUTTON_CHOICE_Wave_Direction;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_Wave_YOffset;
+		static const long ID_VALUECURVE_Wave_YOffset;
+		static const long IDD_TEXTCTRL_Wave_YOffset;
+		static const long ID_BITMAPBUTTON_Wave_YOffset;
 		//*)
 
 	public:

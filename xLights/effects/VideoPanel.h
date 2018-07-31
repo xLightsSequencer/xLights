@@ -52,13 +52,16 @@ class VideoPanel: public wxPanel
 
         //(*Declarations(VideoPanel)
         BulkEditCheckBox* CheckBox_SynchroniseWithAudio;
+        BulkEditCheckBox* CheckBox_TransparentBlack;
         BulkEditCheckBox* CheckBox_Video_AspectRatio;
         BulkEditChoice* Choice_Video_DurationTreatment;
+        BulkEditSlider* Slider1;
         BulkEditSlider* Slider_Video_CropBottom;
         BulkEditSlider* Slider_Video_CropLeft;
         BulkEditSlider* Slider_Video_CropRight;
         BulkEditSlider* Slider_Video_CropTop;
         BulkEditSliderF2* Slider_Video_Starttime;
+        BulkEditTextCtrl* TextCtrl1;
         BulkEditTextCtrl* TextCtrl_Video_CropBottom;
         BulkEditTextCtrl* TextCtrl_Video_CropLeft;
         BulkEditTextCtrl* TextCtrl_Video_CropRight;
@@ -99,6 +102,9 @@ protected:
 		static const long ID_STATICTEXT_Video_CropBottom;
 		static const long IDD_SLIDER_Video_CropBottom;
 		static const long ID_TEXTCTRL_Video_CropBottom;
+		static const long ID_CHECKBOX_Video_TransparentBlack;
+		static const long IDD_SLIDER_Video_TransparentBlack;
+		static const long ID_TEXTCTRL_Video_TransparentBlack;
 		//*)
 
 	public:

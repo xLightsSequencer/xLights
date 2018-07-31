@@ -203,7 +203,10 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     SettingsMap["CHOICE_Faces_Phoneme"],
                     SettingsMap["CHOICE_Faces_TimingTrack"],
                     SettingsMap["CHOICE_Faces_Eyes"],
-                    SettingsMap.GetBool("CHECKBOX_Faces_Outline"));
+                    SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
+                    SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
+                    SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0)
+            );
     }
 }
 
@@ -629,7 +632,7 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 void FacesEffect::RenderFaces(RenderBuffer &buffer,
     SequenceElements *elements, const std::string &faceDefinition,
     const std::string& Phoneme, const std::string &trackName,
-    const std::string& eyesIn, bool face_outline)
+    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel)
 {
     FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -911,7 +914,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         if (crb == nullptr)
         {
             crb = new RenderBuffer(buffer);
-            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, false);  // set for scale to fit
+            PicturesEffect::Render(*crb, dirstr, picture, 0, 0, 0, 0, 0, 0, 100, 100, stf, false, false, false, true, false, false, 0);  // set for scale to fit
             cache->AddImage(MakeKey(buffer.BufferWi, buffer.BufferHt, dirstr, picture, stf), crb);
         }
 
@@ -919,7 +922,19 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
         {
             for (int x = 0; x < buffer.BufferWi; x++)
             {
-                buffer.SetPixel(x, y, crb->GetPixel(x, y));
+                if (transparentBlack)
+                {
+                    auto c = crb->GetPixel(x, y);
+                    int level = c.Red() + c.Green() + c.Blue();
+                    if (level > transparentBlackLevel)
+                    {
+                        buffer.SetPixel(x, y, c);
+                    }
+                }
+                else
+                {
+                    buffer.SetPixel(x, y, crb->GetPixel(x, y));
+                }
             }
         }
     }

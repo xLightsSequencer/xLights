@@ -1,10 +1,10 @@
-#include "BackgroundPlaylistDialog.h"
-#include "PlayList/PlayList.h"
-
 //(*InternalHeaders(BackgroundPlaylistDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+
+#include "BackgroundPlaylistDialog.h"
+#include "PlayList/PlayList.h"
 
 //(*IdInit(BackgroundPlaylistDialog)
 const long BackgroundPlaylistDialog::ID_LISTVIEW1 = wxNewId();

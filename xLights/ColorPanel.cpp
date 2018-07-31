@@ -106,7 +106,7 @@ public:
                 dc.SetTextForeground(*wxBLACK);
                 dc.DrawText(s, rect.GetLeft() + 2, rect.GetTop() + (rect.GetHeight() - fm.height) / 2);
             }
-            //SetToolTip("");
+            GetVListBoxComboPopup()->UnsetToolTip();
         }
         else
         {
@@ -137,7 +137,7 @@ public:
             if (flags & wxODCB_PAINTING_SELECTED)
             {
                 wxString file = as.back();
-                //SetToolTip(file);
+                GetVListBoxComboPopup()->SetToolTip(file);
             }
         }
     }
@@ -397,7 +397,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID id,const wxPoint& pos,const 
 
     wxConfigBase* config = wxConfigBase::Get();
     bool reset;
-    config->Read("xLightsResetColorPanel", &reset, false);
+    config->Read("xLightsResetColorPanel", &reset, true);
     CheckBox_ResetColorPanel->SetValue(reset);
 
     ValidateWindow();

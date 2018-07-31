@@ -45,10 +45,12 @@ class CachedFileDownloader
     std::list<FileCacheItem*> _cacheItems;
     std::string _cacheFile;
     bool _initialised;
+    bool _enabled;
 
     void PurgeAgedItems();
     void SaveCache();
     void LoadCache();
+    bool Initialize();
     FileCacheItem* Find(wxURI url);
 
 public:
@@ -60,7 +62,10 @@ public:
     void Save() { SaveCache(); }
     // retrieve a file from cache … if not present filename will be “”
     std::string GetFile(wxURI url, CACHEFOR cacheFor);
-    int size() const { return _cacheItems.size(); }
+    int size();
+    
+    
+    static CachedFileDownloader& GetDefaultCache();
 };
 
 #endif

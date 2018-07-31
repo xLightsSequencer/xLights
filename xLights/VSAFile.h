@@ -81,6 +81,7 @@ class VSAFile
         };
 
         uint32_t GetNumActiveTracks() { return _num_active_tracks; }
+        uint32_t GetTiming() { return _timing; }
 
         const std::vector< vsaTrackRecord > & GetTrackInfo() { return _tracks; }
         const std::vector< std::vector< vsaEventRecord > > & GetEventInfo() { return _events; }
@@ -98,6 +99,7 @@ class VSAFile
         uint32_t _num_tracks;
         uint32_t _num_audio;
         uint32_t _num_active_tracks;
+        uint32_t _timing;
         std::vector< std::vector< vsaEventRecord > > _events;
         std::vector< vsaAudioRecord > _audio;
         std::vector< vsaVideoRecord > _video;

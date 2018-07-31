@@ -42,8 +42,8 @@ Library:     SDL
 Usage:       Audio playback
 Link:        https://www.libsdl.org/
 Source:      http://hg.libsdl.org/SDL
-Last Pulled: ?
-Version:     ?
+Last Pulled: 23/6/2018
+Version:     2.0.8
 License:     zlib
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 

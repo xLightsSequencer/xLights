@@ -202,6 +202,15 @@ void VSAFile::Load(const std::string& filename)
             // Read track data2
             _fh->Read(&trk.data2, 12);
         }
+        uint32_t unknown_word1;
+        uint32_t unknown_word2;
+        uint32_t unknown_word3;
+        uint32_t unknown_word4;
+        _fh->Read(&unknown_word1, 4);
+        _fh->Read(&unknown_word2, 4);
+        _fh->Read(&unknown_word3, 4);
+        _fh->Read(&_timing, 4);
+        _fh->Read(&unknown_word4, 4);
     }
     else
     {

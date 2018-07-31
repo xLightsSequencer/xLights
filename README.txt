@@ -11,7 +11,65 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Allow exclusion of channels in xFade from blending/brightness control
+   -- enh (keith)  Add a sample on warp mode which samples a pixel from the underlying layer and sets the whole model to that colour
+2018.23 July 27, 2018
+   -- enh (gil)    Increase DMX Effect/Panel to 40 channels.
+   -- enh (gil)    Changed the default channel assignments for the Skulltronix Skull option so that you can set
+                   the start channel to 1 and the Power channel will start at channel 8, Jaw at 9, etc.
+   -- enh (gil)    Added the default Node Names for the Skulltronix Skull option.
+   -- enh (gil)    Timing duration is now read from VSA file instead of a hard-coded 33ms.
+   -- bug (gil)    Corrected VSA import issue when there are inactive tracks mixed in with active tracks.  Fixes #1190.
+   -- bug (keith)  Add in bulk edit for canvas mode
+   -- bug (keith)  Fix bug which crashed house video export when writing last frame
+   -- bug (keith)  Fix audio/video sync for some video files
+   -- bug (keith)  Fix crash due to some GIF files where first frame was not the full frame size. Include support for GIF backgrounds
+   -- bug (keith)  Fix check sequence Canvas mode checks
+   -- enh (keith)  Add Y offset to wave effect
+   -- bug (keith)  Fix square wave to make it recognise thickness and mirror properties
+   -- bug (keith)  Fix strobe and meteors incorrectly drawing when responding to music but no music present
+   -- bug (keith)  Fix Add DDP not disabled when outputting to lights
+   -- bug (keith)  Fix align models does not save positions correctly.
+   -- bug (keith)  Fix audio frame data not always prepared correctly leading to audio dependent effects not working as expected
+   -- enh (keith)  Add MIDI scan to setup of MIDI triggered events in xSchedule
+   -- bug (scott)  Fix crash if new group name is blank
+   -- bug (cjd)    Revert to GTK2 due to ongoing instability in GTK3/wxWidgets support
+2018.22 July 8, 2018
+   -- bug (scott)  Fix FSEQ not being saved by default in same folder as xml
+   -- enh (scott)  Add custom papagayo dictionary editor
+   -- enh (keith)  Remove emptry vendor model categories
+   -- bug (keith)  Fix memory leak impacting xschedule and xlights
+   -- enh (keith)  Allow user to decide how interactively crashes are handled
+   -- bug (keith)  Fix windows upgrade detection because xLights website page it was using is broken
+   -- enh (keith)  Add a library of DMX fixtures
+   -- bug (keith)  Fix bug in spirals effect rotation value curve
+   -- enh (keith)  Add checksequence check for spurious use of canvas blend style which slows down rendering
+   -- bug (gil)    Fix VSA import.
+2018.21 July 4, 2018
+   -- bug (scott)  Fix Roto-Zoom reset bug
+2018.20 July 2, 2018
+   -- bug (keith)  Fix warp treatment flips to constant
+   -- bug (keith)  Fix bulk edit crash
+   -- bug (keith)  Fix changing audio speed starts audio playback
+   -- enh (scott)  Enhance submodel copy to prompt about overwriting like named submodels
+   -- bug (scott)  Prevent blank submodel names
+2018.19 June 30, 2018
+   -- bug (keith)  Fix warp treatment flips to constant
+   -- bug (keith)  Fix bulk edit crash
+   -- bug (keith)  Fix submodel dialog crash
+   -- bug (keith)  Fix mapping to strands does not work after a model is renamed
+   -- bug (keith)  Fix unmask blend style so it doesnt turn black areas white
+   -- bug (keith)  Change the way rendering is triggered to try to stop some crashes
+   -- enh (keith)  Add value curves to marquee
+   -- enh (keith)  Fully script the windows release process
+   -- enh (keith)  Optimise xSchedule performance
+2018.18 June 25, 2018
+   -- bug (keith)  Fix audio wont stop playing
+   -- enh (keith)  Add support for Falcon F48
+2018.17 June 24, 2018
    -- enh (kevin)  Add 'circular swirl' to warp effect
+   -- enh (kevin)  Add 'drop' to warp effect
+   -- enh (kevin)  Add 'wavy' to warp effect
    -- bug (kevin)  Fix issues with warp effect panel
    -- bug (keith)  Some xFade fixes and improved UI information
    -- bug (keith)  Fix layered RGB star doesnt render more than 1 node
@@ -22,8 +80,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix blank city name sunrise/set crash
    -- enh (keith)  Recognise sunup and sundown and similies for sunset and sunrise
    -- enh (scott)  Submodel import should skip submodels that already exist in the model
+   -- enh (keith)  For multiple firing schedule make the fire time relative the the schedule start time.
+   -- bug (keith)  Fix some issues with multi-firing schedules.
+   -- enh (keith)  Add activate and deactivate a schedule via an API call to xSchedule
+   -- enh (keith)  Add a microphone playlist item to xSchedule to set pixel colors in real time
+   -- enh (keith)  Add ability to make black transparent in video, pictures and matrix faces
+   -- bug (keith)  Fix servo effect values incorrect
+   -- bug (keith)  Fix bulk edit doesnt work on effects with two word names
+   -- bug (keith)  Loading sequence to non existing model wont map to strands or submodels
 2018.16 June 17, 2018
-   -- enh (kevin)  Added warp effect for use with canvas blend style 
+   -- enh (kevin)  Added warp effect for use with canvas blend style
    -- enh (scott)  Added Vixen FSEQ File Support to xSchedule
    -- enh (dkulp)  Scale bitmap buttons for locks/value curves, color panels on HiDPI screens
    -- enh (dkulp)  New high-res lock/unlock icons
@@ -33,7 +99,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 					- Copy The Currently Selected SubModel.
 					- Import SubModels from another Model.
 					- Import SubModels from a xmodel files.
-   -- enh (keith)  Add xFade 
+   -- enh (keith)  Add xFade
    -- bug (keith)  Windows update does not directly download zip file
    -- bug (keith)  xCapture doesnt filter out non ArtDMX packets
 2018.15 June 10, 2018
@@ -86,14 +152,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix a bunch of problems with output id's such as not saving them, missing on LOR etc
    -- enh (keith)  Add the ability to save and load face mappings
    -- bug (keith)  Get xCapture working correctly with multicast data
-   -- enh (keith)  Rework PJLink. Existing PJLinks will stop working replaced by a new projector play list item which 
+   -- enh (keith)  Rework PJLink. Existing PJLinks will stop working replaced by a new projector play list item which
                    knows how to control many more projector models
    -- enh (keith)  Add support for sparse submodel buffers and label rows more clearly
-   -- bug (keith)  Some fixes to auto custom model that significantly improve the model generated ... reduce the 
+   -- bug (keith)  Some fixes to auto custom model that significantly improve the model generated ... reduce the
                    number of missed pixels and the ability to process poor video
    -- enh (keith)  Add jukebox
-   -- enh (keith)  Add lyric track and sequence download   
-   -- enh (keith)  Add random value curve setting. Convert to custom once you are happy with your curve or it will 
+   -- enh (keith)  Add lyric track and sequence download
+   -- enh (keith)  Add random value curve setting. Convert to custom once you are happy with your curve or it will
 				   keep changing every time the effect is rendered.
 2018.11 Apr 14, 2018
    -- enh (dkulp)  Add ability to upload string/dmx configs for various FPP v2 Capes/Hats
@@ -105,7 +171,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix some xSchedule crashes
 2018.10 Apr 9, 2018
    -- enh (cjd)    Add -c/-x options to run xCapture/xSchedule via main binary on linux
-   -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black 
+   -- bug (dkulp)  The "skips" in the Marquee effect should be "clear", not black
    -- enh (keith)  Add xSchedule event which fires when a controller becomes unreachable
    -- bug (keith)  Some fixes to value curves with divisors
    -- bug (keith)  Fixes to x/y shape position value curves

@@ -24,7 +24,7 @@ class ServoPanel: public wxPanel
 		//(*Declarations(ServoPanel)
 		BulkEditCheckBox* CheckBox_16bit;
 		BulkEditChoice* Choice_Channel;
-		BulkEditSlider* Slider_Servo;
+		BulkEditSliderF1* Slider_Servo;
 		BulkEditValueCurveButton* ValueCurve_Servo;
 		wxFlexGridSizer* FlexGridSizer_Main;
 		wxStaticText* Label_DMX1;

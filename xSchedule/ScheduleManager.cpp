@@ -608,7 +608,7 @@ void ScheduleManager::StopAll()
 
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        (*it)->GetPlayList()->Stop();
+        (*it)->Stop();
     }
 
     while (_eventPlayLists.size() > 0)
@@ -1155,7 +1155,6 @@ int ScheduleManager::CheckSchedule()
     {
         if (!(*it)->GetSchedule()->CheckActive())
         {
-
             if (!(*it)->GetPlayList()->IsRunning())
             {
                 logger_base.info("   Scheduler removing playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
@@ -1169,18 +1168,6 @@ int ScheduleManager::CheckSchedule()
                     logger_base.info("   Scheduler telling playlist %s due to schedule %s it is time to finish up.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                     (*it)->GetPlayList()->JumpToEndStepsAtEndOfCurrentStep();
                 }
-            }
-        }
-        else
-        {
-            // stopped but should be running
-
-            // if it shouldnt fire then that means it may fire again so we need to remove it
-            if (!(*it)->GetSchedule()->ShouldFire())
-            {
-                logger_base.info("   Scheduler removing playlist %s as it will fire again %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetFireFrequency().c_str());
-                // this shouldnt be in the list any longer
-                todelete.push_back(*it);
             }
         }
     }
@@ -1211,10 +1198,15 @@ int ScheduleManager::CheckSchedule()
             {
                 if (first)
                 {
-                    if ((*it)->GetPlayList()->IsRunning())
+                    if (!(*it)->IsStopped() && ((*it)->GetPlayList()->IsRunning() || ((*it)->GetSchedule()->GetFireFrequency() != "Fire once" && (*it)->GetSchedule()->ShouldFire())))
                     {
                         first = false;
-                        if ((*it)->GetPlayList()->IsSuspended())
+                        if (!(*it)->GetPlayList()->IsRunning() && (*it)->GetSchedule()->GetFireFrequency() != "Fire once" && (*it)->GetSchedule()->ShouldFire())
+                        {
+                            (*it)->GetPlayList()->StartSuspended();
+                            toUnsuspend = *it;
+                        }
+                        else if ((*it)->GetPlayList()->IsSuspended())
                         {
                             toUnsuspend = *it;
                         }
@@ -1289,6 +1281,11 @@ int ScheduleManager::CheckSchedule()
     }
 
     logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
+    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+    {
+        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s", (const char *)(*it)->GetPlayList()->GetName().c_str(), 
+            (const char *)(*it)->GetSchedule()->GetName().c_str(), (*it)->GetSchedule()->GetPriority(), (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")));
+    }
 
     return framems;
 }
@@ -2155,6 +2152,40 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         wxCommandEvent event2(EVT_SCHEDULECHANGED);
                         wxPostEvent(wxGetApp().GetTopWindow(), event2);
                     }
+                    scheduleChanged = true;
+                }
+                else if (command == "Activate specified schedule")
+                {
+                    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                    {
+                        auto schedules = (*it)->GetSchedules();
+                        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+                        {
+                            if ((*it2)->GetName() == parameters)
+                            {
+                                (*it2)->SetEnabled(true);
+                            }
+                        }
+                    }
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    scheduleChanged = true;
+                }
+                else if (command == "Deactivate specified schedule")
+                {
+                    for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
+                    {
+                        auto schedules = (*it)->GetSchedules();
+                        for (auto it2 = schedules.begin(); it2 != schedules.end(); ++it2)
+                        {
+                            if ((*it2)->GetName() == parameters)
+                            {
+                                (*it2)->SetEnabled(false);
+                            }
+                        }
+                    }
+                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
                     scheduleChanged = true;
                 }
                 else if (command == "Restart playlist schedules")
@@ -3064,6 +3095,19 @@ bool ScheduleManager::ToggleCurrentPlayListStepLoop(std::string& msg)
 bool ScheduleManager::IsOutputToLights() const
 {
     return _outputManager != nullptr && _outputManager->IsOutputting();
+}
+
+int ScheduleManager::GetNonStoppedCount() const
+{
+    int count = 0;
+    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+    {
+        if (!(*it)->IsStopped())
+        {
+            count++;
+        }
+    }
+    return count;
 }
 
 RunningSchedule* ScheduleManager::GetRunningSchedule() const

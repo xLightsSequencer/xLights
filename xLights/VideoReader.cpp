@@ -13,7 +13,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _filename = filename;
     _valid = false;
-	_lengthMS = 0;
+	_lengthMS = 0.0;
 	_formatContext = nullptr;
 	_codecContext = nullptr;
 	_videoStream = nullptr;
@@ -22,7 +22,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_pixelFmt = AVPixelFormat::AV_PIX_FMT_RGB24;
 	_atEnd = false;
 	_swsCtx = nullptr;
-    _dtspersec = 1;
+    _dtspersec = 1.0;
     _frames = 0;
 
 	av_register_all();
@@ -93,22 +93,29 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	// get the video length in MS
 	// Use the number of frames as the best possible way to calculate length
 	_frames = (long)_videoStream->nb_frames;
-    if (_frames == 0 || _videoStream->avg_frame_rate.den == 0)
+    if (_videoStream->time_base.num != 0)
     {
-        logger_base.warn("VideoReader: dtspersec calc error _videoStream->nb_frames %d and _videoStream->avg_frame_rate.den %d cannot be zero. %s", (int)_videoStream->nb_frames, (int)_videoStream->avg_frame_rate.den, (const char *)filename.c_str());
-        logger_base.warn("VideoReader: Video seeking will only work back to the start of the video.");
-        _dtspersec = 1;
+        _dtspersec = (double)_videoStream->time_base.den / (double)_videoStream->time_base.num;
     }
     else
     {
-        _dtspersec = (int)(((int64_t)_videoStream->duration * (int64_t)_videoStream->avg_frame_rate.num) / ((int64_t)_frames * (int64_t)_videoStream->avg_frame_rate.den));
+        if (_frames == 0 || _videoStream->avg_frame_rate.den == 0)
+        {
+            logger_base.warn("VideoReader: dtspersec calc error _videoStream->nb_frames %d and _videoStream->avg_frame_rate.den %d cannot be zero. %s", (int)_videoStream->nb_frames, (int)_videoStream->avg_frame_rate.den, (const char *)filename.c_str());
+            logger_base.warn("VideoReader: Video seeking will only work back to the start of the video.");
+            _dtspersec = 1.0;
+        }
+        else
+        {
+            _dtspersec = (((double)_videoStream->duration * (double)_videoStream->avg_frame_rate.num) / ((double)_frames * (double)_videoStream->avg_frame_rate.den));
+        }
     }
 
     if (_frames > 0)
 	{
         if (_videoStream->avg_frame_rate.num != 0)
         {
-            _lengthMS = (int)(((uint64_t)_frames * (uint64_t)_videoStream->avg_frame_rate.den * 1000) / (uint64_t)_videoStream->avg_frame_rate.num);
+            _lengthMS = ((double)_frames * (double)_videoStream->avg_frame_rate.den * 1000.0) / (double)_videoStream->avg_frame_rate.num;
         }
         else
         {
@@ -121,8 +128,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	{
         if (_videoStream->avg_frame_rate.den != 0)
         {
-            _lengthMS = (int)((uint64_t)_formatContext->duration * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)_videoStream->avg_frame_rate.den);
-            _frames = _lengthMS  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+            _lengthMS = (double)_formatContext->duration * (double)_videoStream->avg_frame_rate.num / (double)_videoStream->avg_frame_rate.den;
+            _frames = (long)(_lengthMS  * (double)_videoStream->avg_frame_rate.num / (double)(_videoStream->avg_frame_rate.den) / 1000.0);
         }
         else
         {
@@ -136,8 +143,8 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
         if (_videoStream->avg_frame_rate.den != 0)
         {
             // This seems to work for .asf, .mkv, .flv
-            _lengthMS = (long)(_formatContext->duration / 1000);
-            _frames = _lengthMS  * (uint64_t)_videoStream->avg_frame_rate.num / (uint64_t)(_videoStream->avg_frame_rate.den) / 1000;
+            _lengthMS = (double)_formatContext->duration / 1000.0;
+            _frames = (long)(_lengthMS  * (double)_videoStream->avg_frame_rate.num / (double)(_videoStream->avg_frame_rate.den) / 1000.0);
         }
     }
 
@@ -164,33 +171,39 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	_valid = true;
 
     logger_base.info("Video loaded: " + filename);
-    logger_base.info("      Length MS: %d", _lengthMS);
+    logger_base.info("      Length MS: %.2f", _lengthMS);
+    logger_base.info("      _videoStream->time_base.num: %d", _videoStream->time_base.num);
+    logger_base.info("      _videoStream->time_base.den: %d", _videoStream->time_base.den);
     logger_base.info("      _videoStream->avg_frame_rate.num: %d", _videoStream->avg_frame_rate.num);
     logger_base.info("      _videoStream->avg_frame_rate.den: %d", _videoStream->avg_frame_rate.den);
-    logger_base.info("      DTS per sec: %d", _dtspersec);
+    logger_base.info("      DTS per sec: %f", _dtspersec);
     logger_base.info("      _videoStream->nb_frames: %d", _videoStream->nb_frames);
     logger_base.info("      _frames: %d", _frames);
+    logger_base.info("      Frames per second %.2f", (double)_frames * 1000.0 / _lengthMS);
     logger_base.info("      Source size: %dx%d", _codecContext->width, _codecContext->height);
     logger_base.info("      Source coded size: %dx%d", _codecContext->coded_width, _codecContext->coded_height);
     logger_base.info("      Output size: %dx%d", _width, _height);
     if (_frames != 0)
     {
-        logger_base.info("      Frame ms %d", _lengthMS / _frames);
+        logger_base.info("      Frame ms %f", _lengthMS / (double)_frames);
+        _frameMS = _lengthMS / _frames;
+        logger_base.info("      Used frame ms %d", _frameMS);
     }
     else
     {
         logger_base.warn("      Frame ms <unknown as _frames is 0>");
+        _frameMS = 0;
     }
 }
 
-static int64_t MStoDTS(int ms, int dtspersec)
+static int64_t MStoDTS(int ms, double dtspersec)
 {
-    return (((int64_t)ms * (int64_t)dtspersec) / (int64_t)1000);
+    return (int64_t)(((double)ms * dtspersec) / 1000.0);
 }
 
-static int DTStoMS(int64_t dts , int dtspersec)
+static int DTStoMS(int64_t dts , double dtspersec)
 {
-    return (int)(((int64_t)1000 * dts) / (int64_t)dtspersec);
+    return (int)((1000.0 * (double)dts) / dtspersec);
 }
 
 int VideoReader::GetPos()
@@ -254,11 +267,14 @@ VideoReader::~VideoReader()
 
 void VideoReader::Seek(int timestampMS)
 {
-	// we have to be valid
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    // we have to be valid
 	if (_valid)
 	{
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        //logger_base.info("       VideoReader: Seeking to %d ms.", timestampMS);
+#ifdef VIDEO_EXTRALOGGING
+        logger_base.info("VideoReader: Seeking to %d ms.", timestampMS);
+#endif
         if (timestampMS < _lengthMS)
 		{
 			_atEnd = false;
@@ -283,7 +299,7 @@ void VideoReader::Seek(int timestampMS)
 
         AVPacket pkt2;
         // Stop seeking 100ms before where we need ... that way we can read up to the frame we need
-        while (currenttime < timestampMS - 100 && av_read_frame(_formatContext, &_packet) >= 0)
+        while (currenttime + (_frameMS / 2.0) < timestampMS - 100 && av_read_frame(_formatContext, &_packet) >= 0)
 		{
 
 			// Is this a packet from the video stream?
@@ -302,10 +318,10 @@ void VideoReader::Seek(int timestampMS)
                         currenttime = GetPos();
 
                         // only prepare the image if we are close to the desired frame
-                        if (currenttime / _frames >= (timestampMS / _frames) - 2)
+                        if ((double)currenttime / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0)
                         {
 #ifdef VIDEO_EXTRALOGGING
-                            logger_base.debug("Seek video %s decoding frame %d.", (const char *)_filename.c_str(), currenttime);
+                            logger_base.debug("    Seek video %s decoding frame %d.", (const char *)_filename.c_str(), currenttime);
 #endif
 
                             sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,
@@ -332,6 +348,8 @@ void VideoReader::Seek(int timestampMS)
 
 AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!_valid)
     {
         return nullptr;
@@ -344,7 +362,6 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     }
 
 #ifdef VIDEO_EXTRALOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Video %s getting frame %d.", (const char *)_filename.c_str(), timestampMS);
 #endif
 
@@ -353,7 +370,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     if (currenttime > timestampMS + gracetime)
     {
 #ifdef VIDEO_EXTRALOGGING
-        logger_base.debug("Video %s seeking back from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
+        logger_base.debug("    Video %s seeking back from %d to %d.", (const char *)_filename.c_str(), currenttime, timestampMS);
 #endif
         Seek(timestampMS);
         currenttime = GetPos();
@@ -364,7 +381,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 		AVPacket pkt2;
 
         int rc;
-		while (currenttime <= timestampMS && (rc = av_read_frame(_formatContext, &_packet)) >= 0 &&  currenttime <= _lengthMS)
+		while (currenttime + (_frameMS / 2.0) < timestampMS && (rc = av_read_frame(_formatContext, &_packet)) >= 0 &&  currenttime <= _lengthMS)
 		{
             // Is this a packet from the video stream?
 			if (_packet.stream_index == _streamIndex)
@@ -381,10 +398,10 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                     {
                         currenttime = GetPos();
                         // only prepare the image if we are close to the desired frame
-                        if (currenttime / _frames >= (timestampMS / _frames) - 2)
+                        if ((double)currenttime / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0)
                         {
 #ifdef VIDEO_EXTRALOGGING
-                            logger_base.debug("Video %s decoding frame %d.", (const char *)_filename.c_str(), currenttime);
+                            logger_base.debug("    Decoding video frame %d.", currenttime);
 #endif
 
                             sws_scale(_swsCtx, _srcFrame->data, _srcFrame->linesize, 0,

@@ -166,10 +166,9 @@ int CustomModel::NodesPerString()
 
 inline void split(std::string frag, char splitBy, std::vector<std::string>& tokens)
 {
-    size_t splitAt;
     // Loop infinitely - break is internal.
     while(true) {
-        splitAt = frag.find(splitBy);
+        size_t splitAt = frag.find(splitBy);
         // If we didn't find a new split point...
         if (splitAt == std::string::npos) {
             tokens.push_back(frag);

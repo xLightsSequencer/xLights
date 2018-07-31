@@ -5,6 +5,7 @@
 
 RunningSchedule::RunningSchedule(PlayList* playlist, Schedule* schedule)
 {
+    _stop = false;
     _playlist = new PlayList(*playlist);
     _schedule = new Schedule(*schedule);
 
@@ -33,6 +34,7 @@ bool RunningSchedule::operator<(const RunningSchedule& rs) const
 
 void RunningSchedule::Reset()
 {
+    _stop = false;
     if (!_playlist->IsRunning())
     {
         _playlist->StartSuspended(_schedule->GetLoop(), _schedule->GetRandom(), _schedule->GetLoops());
@@ -46,4 +48,15 @@ void RunningSchedule::Reset()
     {
         _playlist->TogglePause();
     }
+}
+
+void RunningSchedule::Stop()
+{
+    _stop = true;
+    _playlist->Stop();
+}
+
+bool RunningSchedule::ShouldBeRunning() const
+{
+    return !_stop && _schedule->CheckActive();
 }

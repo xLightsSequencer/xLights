@@ -969,7 +969,10 @@ void LayoutPanel::UpdateModelList(bool full_refresh) {
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
 
     TreeListViewModels->Freeze();
-
+    unsigned sortcol;
+    bool ascending;
+    bool sorted = TreeListViewModels->GetSortColumn(&sortcol, &ascending);
+    
     if (full_refresh) {
         UnSelectAllModels();
     }
@@ -981,9 +984,8 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         dummy_models.clear();
         if (grp->GetName() == currentLayoutGroup) {
             UpdateModelsForPreview(currentLayoutGroup, grp, models, true);
-        }
-        else {
-            UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
+        } else {
+             UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
         }
     }
 
@@ -996,22 +998,33 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         int width = 0;
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
+        //turn off the sorting as that is ALSO really slow
+        TreeListViewModels->SetItemComparator(nullptr);
+        if (sorted) {
+            //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
+            //sort column to 0 which is faster due to straight string compare
+            TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
+        }
+        
         //delete all items will atempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
-        TreeListViewModels->SetItemComparator(nullptr);
         wxTreeListItem child = TreeListViewModels->GetFirstItem();
         std::list<std::string> expanded;
         while (child.IsOk()) {
-            if (TreeListViewModels->IsExpanded(child))
-            {
-                ModelTreeData *mitem = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(child));
+            if (TreeListViewModels->IsExpanded(child)) {
                 expanded.push_back(TreeListViewModels->GetItemText(child));
             }
             TreeListViewModels->DeleteItem(child);
             child = TreeListViewModels->GetFirstItem();
         }
         TreeListViewModels->DeleteAllItems();
-        TreeListViewModels->SetItemComparator(&comparator);
+        if (sorted) {
+            //UnsetAsSortKey may be unimplemented on all  platforms so we'll set a
+            //sort column to 0 which is faster due to straight string compare
+            TreeListViewModels->SetSortColumn(0, true);
+            //then turn it off again so platforms that DO support this can benefit
+            TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
+        }
 
         wxTreeListItem root = TreeListViewModels->GetRootItem();
         // add all the model groups
@@ -1036,8 +1049,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         }
 
         // Only set the column sizes the very first time we load it
-        if (_firstTreeLoad)
-        {
+        if (_firstTreeLoad) {
             _firstTreeLoad = false;
             width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
             TreeListViewModels->SetColumnWidth(2, width);
@@ -1055,6 +1067,11 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
 #endif
         if (i > 10) {
             TreeListViewModels->SetColumnWidth(0, i);
+        }
+        //turn the sorting back on
+        TreeListViewModels->SetItemComparator(&comparator);
+        if (sorted) {
+            TreeListViewModels->SetSortColumn(sortcol, ascending);
         }
     }
     modelPreview->SetModels(models);
@@ -2270,7 +2287,7 @@ void LayoutPanel::FinalizeModel()
             float max_y = (float)(newModel->GetModelScreenLocation().GetTop());
             bool cancelled = false;
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download");
-            if (cancelled) {
+            if (cancelled || newModel == nullptr) {
                 newModel = nullptr;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 if (selectedButton != nullptr) {
@@ -2294,7 +2311,7 @@ void LayoutPanel::FinalizeModel()
         newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
 
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
-        if (selectedButton->GetState() == 1) {
+        if (selectedButton != nullptr && selectedButton->GetState() == 1) {
             std::string name = newModel->name;
             newModel = nullptr;
             if (selectedButton != nullptr) {
@@ -3474,7 +3491,7 @@ void LayoutPanel::OnChar(wxKeyEvent& event) {
 }
 void LayoutPanel::OnCharHook(wxKeyEvent& event) {
 
-    wxChar uc = event.GetKeyCode();
+  wxChar uc = event.GetKeyCode();
 
     switch(uc) {
 #ifdef __WXMSW__
@@ -4072,7 +4089,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     {
         logger_base.debug("LayoutPanel::OnModelsPopup ADD_MODEL_GROUP");
         wxTextEntryDialog dlg(this, "Enter name for new group", "Enter name for new group");
-        if (dlg.ShowModal() == wxID_OK) {
+        if (dlg.ShowModal() == wxID_OK && !Model::SafeModelName(dlg.GetValue().ToStdString()).empty()) {
             wxString name = wxString(Model::SafeModelName(dlg.GetValue().ToStdString()));
             while (xlights->AllModels.GetModel(name.ToStdString()) != nullptr) {
                 wxTextEntryDialog dlg2(this, "Model of name " + name + " already exists. Enter name for new group", "Enter name for new group");

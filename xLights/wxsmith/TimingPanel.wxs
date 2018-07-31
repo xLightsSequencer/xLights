@@ -67,9 +67,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_LayerMorph" subclass="xlLockButton" variable="BitmapButton_CheckBox_LayerMorph" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -89,6 +89,8 @@
 														<item>2 is Mask</item>
 														<item>1 is Unmask</item>
 														<item>2 is Unmask</item>
+														<item>1 is True Unmask</item>
+														<item>2 is True Unmask</item>
 														<item>1 reveals 2</item>
 														<item>2 reveals 1</item>
 														<item>Shadow 1 on 2</item>
@@ -103,7 +105,7 @@
 														<item>Min</item>
 													</content>
 													<selection>0</selection>
-													<tooltip>Layering defines how Effect 1 and Effect 2 will be mixed together.&#x0A;Here are the Choices&#x0A;* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. &#x0A;* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.&#x0A;* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.&#x0A;* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.&#x0A;* 1 is UnMask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.&#x0A;* 2 is UnMask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.&#x0A;* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2&#x0A;* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1&#x0A;* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2&#x0A;* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1&#x0A;* Layered: Effect 1 only shows in black regions of Effect 2.&#x0A;* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum&#x0A;* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display&#x0A;* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.&#x0A;* Additive -  Take value of Effect 1  and Add it to Value from Effect 2.&#x0A;* Subtractive -  Take value of Effect 1  and Subtract it from the Value from Effect 2.&#x0A;* Max - Take the maximum value for each channel from both effects&#x0A;* Min - Take the minimum value for each channel from both effects&#x0A;* Canvas - Blend the selected layers into this layer</tooltip>
+													<tooltip>Layering defines how Effect 1 and Effect 2 will be mixed together.&#x0A;Here are the Choices&#x0A;* Effect 1: Shows only Effect 1. Slide the slider to the right to blend in some Effect 2. &#x0A;* Effect 2: Shows only Effect 2. Slide the slider to the right to blend in some Effect 1.&#x0A;* 1 is Mask: (Shadow) Effect 1 will cast a shadow onto Effect 2 for every Effect 1 pixel that has a non-black value.&#x0A;* 2 is Mask: (Shadow) Effect 2 will cast a shadow onto Effect 1 for every Effect 2 pixel that has a non-black value.&#x0A;* 1 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.&#x0A;* 2 is Unmask: Unmask like but colours are revealed with no fade. Black becomes white.&#x0A;* 1 is True Unmask:  (Mask) Only allow Effect 2 to show through when Effect 1 has a non-black pixel.&#x0A;* 2 is True Unmask:  (Mask) Only allow Effect 1 to show through when Effect 2 has a non-black pixel.&#x0A;* Shadow 1 on 2: Take brightness and Saturation from 1, use hue from 2&#x0A;* Shadow 2 on 1: Take brightness and Saturation from 2, use hue from 1&#x0A;* 1 reveals 2: (Superimpose) Effect 1 reveals Effect 2&#x0A;* 2 reveals 1: (Superimpose) Effect 2 reveals Effect 1&#x0A;* Layered: Effect 1 only shows in black regions of Effect 2.&#x0A;* Average: Take value of Effect  and Add it to Value from Effect 2. Average the sum&#x0A;* Bottom-top: Effect 1 is put on bottom of model, Effect 2 is put on top in a plit screen display&#x0A;* Left-Right: Effect goes 1 goes on the left side, Effect 2 on the right. Split screen goes down middle of model.&#x0A;* Additive -  Take value of Effect 1  and Add it to Value from Effect 2.&#x0A;* Subtractive -  Take value of Effect 1  and Subtract it from the Value from Effect 2.&#x0A;* Max - Take the maximum value for each channel from both effects&#x0A;* Min - Take the minimum value for each channel from both effects&#x0A;* Canvas - Blend the selected layers into this layer</tooltip>
 													<style>wxFULL_REPAINT_ON_RESIZE</style>
 													<handler function="OnChoice_LayerMethodSelect" entry="EVT_CHOICE" />
 												</object>
@@ -117,9 +119,9 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" variable="BitmapButton_EffectLayerMix" member="yes">
-                                                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                                                    <size>14,14</size>
+												<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_EffectLayerMix" subclass="xlLockButton" variable="BitmapButton_EffectLayerMix" member="yes">
+													<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+													<size>14,14</size>
 													<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 													<tooltip>Lock/Unlock. If Locked then a &quot;Create Random Effects&quot; will NOT change this value.</tooltip>
 													<style>wxBU_AUTODRAW|wxNO_BORDER</style>
@@ -130,7 +132,7 @@
 												<option>1</option>
 											</object>
 											<object class="sizeritem">
-												<object class="wxCheckBox" name="ID_CHECKBOX_Canvas" variable="CheckBox_Canvas" member="yes">
+												<object class="wxCheckBox" name="ID_CHECKBOX_Canvas" subclass="BulkEditCheckBox" variable="CheckBox_Canvas" member="yes">
 													<label>Canvas</label>
 													<handler function="OnCheckBox_CanvasClick" entry="EVT_CHECKBOX" />
 												</object>

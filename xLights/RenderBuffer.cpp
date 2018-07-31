@@ -812,15 +812,21 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
     }
 }
 
-void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColor &color, bool wrap_x)
+void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColor &color, bool wrap_x, bool wrap_y)
 {
     int x_value = x_pos;
-    if( wrap_x )  // if set wrap image at boundary
+    if (wrap_x)  // if set wrap image at boundary
     {
         x_value %= BufferWi;
         x_value = (x_value >= 0) ? (x_value) : (BufferWi + x_value);
     }
-    SetPixel(x_value,y_pos,color);
+    int y_value = y_pos;
+    if (wrap_y)
+    {
+        y_value %= BufferHt;
+        y_value = (y_value >= 0) ? (y_value) : (BufferHt + y_value);
+    }
+    SetPixel(x_value, y_value, color);
 }
 
 // 0,0 is lower left

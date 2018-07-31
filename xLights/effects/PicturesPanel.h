@@ -43,14 +43,18 @@ class PicturesPanel: public wxPanel
 
 		PicturesPanel(wxWindow* parent);
 		virtual ~PicturesPanel();
+        void ValidateWindow();
 
 		//(*Declarations(PicturesPanel)
 		BulkEditCheckBox* CheckBox_LoopGIF;
 		BulkEditCheckBox* CheckBox_Pictures_PixelOffsets;
 		BulkEditCheckBox* CheckBox_Pictures_Shimmer;
 		BulkEditCheckBox* CheckBox_Pictures_WrapX;
+		BulkEditCheckBox* CheckBox_SuppressGIFBackground;
+		BulkEditCheckBox* CheckBox_TransparentBlack;
 		BulkEditChoice* Choice_Pictures_Direction;
 		BulkEditChoice* Choice_Scaling;
+		BulkEditSlider* Slider1;
 		BulkEditSlider* Slider_PicturesEndXC;
 		BulkEditSlider* Slider_PicturesEndYC;
 		BulkEditSlider* Slider_PicturesXC;
@@ -59,6 +63,7 @@ class PicturesPanel: public wxPanel
 		BulkEditSlider* Slider_Pictures_StartScale;
 		BulkEditSliderF1* Slider_Pictures_FR;
 		BulkEditSliderF1* Slider_Pictures_Speed;
+		BulkEditTextCtrl* TextCtrl3;
 		wxPanel* PictureEndPositionPanel;
 		wxStaticText* StaticText160;
 		wxStaticText* StaticText161;
@@ -94,6 +99,10 @@ class PicturesPanel: public wxPanel
 		static const long ID_CHOICE_Scaling;
 		static const long ID_CHECKBOX_Pictures_Shimmer;
 		static const long ID_CHECKBOX_LoopGIF;
+		static const long ID_CHECKBOX_SuppressGIFBackground;
+		static const long ID_CHECKBOX_Pictures_TransparentBlack;
+		static const long IDD_SLIDER_Pictures_TransparentBlack;
+		static const long ID_TEXTCTRL_Pictures_TransparentBlack;
 		static const long ID_STATICTEXT_PicturesXC;
 		static const long ID_SLIDER_PicturesXC;
 		static const long ID_CHECKBOX_Pictures_WrapX;

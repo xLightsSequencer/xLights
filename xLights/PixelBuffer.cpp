@@ -260,6 +260,14 @@ void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
     {
         MixType=Mix_Unmask2;
     }
+    else if (MixName == "1 is True Unmask")
+    {
+        MixType=Mix_TrueUnmask1;
+    }
+    else if (MixName == "2 is True Unmask")
+    {
+        MixType=Mix_TrueUnmask2;
+    }
     else if (MixName == "1 reveals 2")
     {
         MixType=Mix_1_reveals_2;
@@ -402,8 +410,19 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         HSVValue hsv0 = fg.asHSV();
         HSVValue hsv1 = bg.asHSV();
         if (hsv0.value > layers[layer]->effectMixThreshold) {
-            // if effect 1 is non black
             hsv1.value = hsv0.value;
+            bg = hsv1;
+        } else {
+            bg.Set(0, 0, 0);
+        }
+        break;
+    }
+    case Mix_TrueUnmask1:
+    {
+        // first unmasks second
+        HSVValue hsv0 = fg.asHSV();
+        HSVValue hsv1 = bg.asHSV();
+        if (hsv0.value > layers[layer]->effectMixThreshold) {
             bg = hsv1;
         } else {
             bg.Set(0, 0, 0);
@@ -418,6 +437,19 @@ void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg
         if (hsv1.value > layers[layer]->effectMixThreshold) {
             // if effect 2 is non black
             hsv0.value = hsv1.value;
+            bg = hsv0;
+        } else {
+            bg.Set(0, 0, 0);
+        }
+        break;
+    }
+    case Mix_TrueUnmask2:
+    {
+        // second unmasks first
+        HSVValue hsv0 = fg.asHSV();
+        HSVValue hsv1 = bg.asHSV();
+        if (hsv1.value > layers[layer]->effectMixThreshold) {
+            // if effect 2 is non black
             bg = hsv0;
         } else {
             bg.Set(0, 0, 0);

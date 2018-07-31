@@ -34,9 +34,9 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Wave_Type" variable="BitmapButton_WaveType" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Wave_Type" subclass="xlLockButton" variable="BitmapButton_WaveType" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -72,9 +72,9 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Fill_Colors" variable="BitmapButton_Wave_FillColors" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Fill_Colors" subclass="xlLockButton" variable="BitmapButton_Wave_FillColors" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -102,9 +102,9 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_Mirror_Wave" variable="BitmapButton_Wave_MirrorWave" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_Mirror_Wave" subclass="xlLockButton" variable="BitmapButton_Wave_MirrorWave" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -137,7 +137,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Number_Waves" subclass="BulkEditValueCurveButton" variable="BitmapButton_Number_WavesVC" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -154,16 +154,16 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Number_Waves" subclass="BulkEditTextCtrl" variable="TextCtrl75" member="no">
 					<value>900</value>
 					<maxlength>4</maxlength>
-					<size>20,-1d</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Number_Waves" variable="BitmapButton_NumberWaves" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Number_Waves" subclass="xlLockButton" variable="BitmapButton_NumberWaves" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -194,7 +194,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Thickness_Percentage" subclass="BulkEditValueCurveButton" variable="BitmapButton_Thickness_PercentageVC" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -211,16 +211,16 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Thickness_Percentage" subclass="BulkEditTextCtrl" variable="TextCtrl76" member="no">
 					<value>5</value>
 					<maxlength>3</maxlength>
-					<size>20,-1d</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Thickness_Percentage" variable="BitmapButton_Wave_Thickness" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Thickness_Percentage" subclass="xlLockButton" variable="BitmapButton_Wave_Thickness" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -251,7 +251,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Wave_Height" subclass="BulkEditValueCurveButton" variable="BitmapButton_Wave_HeightVC" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -268,16 +268,16 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Wave_Height" subclass="BulkEditTextCtrl" variable="TextCtrl77" member="no">
 					<value>50</value>
 					<maxlength>3</maxlength>
-					<size>20,-1d</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Wave_Height" variable="BitmapButton_Wave_Height" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Wave_Height" subclass="xlLockButton" variable="BitmapButton_Wave_Height" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -309,7 +309,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxBitmapButton" name="ID_VALUECURVE_Wave_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Wave_SpeedVC" member="yes">
-                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -326,16 +326,16 @@
 				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Wave_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl78" member="no">
 					<value>10</value>
 					<maxlength>3</maxlength>
-					<size>20,-1d</size>
+					<size>25,-1d</size>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Wave_Speed" variable="BitmapButton_WaveSpeed" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_Wave_Speed" subclass="xlLockButton" variable="BitmapButton_WaveSpeed" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
@@ -370,15 +370,73 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_Wave_Direction" variable="BitmapButton_Wave_Direction" member="yes">
-                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                    <size>14,14</size>
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_Wave_Direction" subclass="xlLockButton" variable="BitmapButton_Wave_Direction" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
 					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+					<label>Y Offset</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Wave_YOffset" subclass="BulkEditSlider" variable="Slider_Y_Offset" member="yes">
+							<min>-250</min>
+							<max>250</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Wave_YOffset" subclass="BulkEditValueCurveButton" variable="BitmapButton_Wave_YOffsetVC" member="yes">
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="IDD_TEXTCTRL_Wave_YOffset" subclass="BulkEditTextCtrl" variable="TextCtrl1" member="no">
+					<value>0</value>
+					<maxlength>4</maxlength>
+					<size>25,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxBitmapButton" name="ID_BITMAPBUTTON_Wave_YOffset" subclass="xlLockButton" variable="BitmapButton_YOffset" member="yes">
+					<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+					<size>14,14</size>
+					<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+					<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+					<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
 				<option>1</option>
 			</object>
 		</object>

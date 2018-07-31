@@ -12,6 +12,9 @@ class WarpEffect : public RenderableEffect
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) override { return false; }
         virtual void SetDefaultParameters() override;
+        virtual bool needToAdjustSettings(const std::string &version) override;
+        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
 
     protected:
         virtual void RemoveDefaults(const std::string &version, Effect *effect) override;

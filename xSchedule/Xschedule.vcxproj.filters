@@ -453,6 +453,12 @@
     <ClCompile Include="PlayList\PlayListItemJukebox.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemMicrophonePanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemMicrophone.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -882,6 +888,12 @@
       <Filter>PlayList</Filter>
     </ClInclude>
     <ClInclude Include="PlayList\PlayListItemJukebox.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemMicrophonePanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemMicrophone.h">
       <Filter>PlayList</Filter>
     </ClInclude>
   </ItemGroup>

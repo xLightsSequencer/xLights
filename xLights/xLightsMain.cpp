@@ -65,6 +65,7 @@
 #include "LayoutGroup.h"
 #include "ModelPreview.h"
 #include "TopEffectsPanel.h"
+#include "LyricUserDictDialog.h"
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -212,6 +213,7 @@ const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
 const long xLightsFrame::ID_MNU_EXPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_MENU_FPP_CONNECT = wxNewId();
 const long xLightsFrame::ID_MNU_PACKAGESEQUENCE = wxNewId();
+const long xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const long xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
 const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
@@ -257,6 +259,7 @@ const long xLightsFrame::ID_MNU_SUPERQUIET = wxNewId();
 const long xLightsFrame::ID_IMPORT_EFFECTS = wxNewId();
 const long xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
 const long xLightsFrame::ID_RENDER_ON_SAVE = wxNewId();
+const long xLightsFrame::ID_SAVE_FSEQ_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_BACKUP_ON_SAVE = wxNewId();
 const long xLightsFrame::ID_MENU_BACKUP_ON_LAUNCH = wxNewId();
 const long xLightsFrame::ID_MNU_BKPPURGE_NEVER = wxNewId();
@@ -836,7 +839,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItemCheckSequence);
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
-    MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log FIles"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
+    MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log Files"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
     Menu1->Append(MenuItem38);
     mExportModelsMenuItem = new wxMenuItem(Menu1, ID_EXPORT_MODELS, _("E&xport Models"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(mExportModelsMenuItem);
@@ -846,6 +849,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItem_FPP_Connect);
     MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PackageSequence);
+    MenuItemUserDict = new wxMenuItem(Menu1, ID_MENU_USER_DICT, _("User Lyric Dictionary"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItemUserDict);
     MenuItem_DownloadSequences = new wxMenuItem(Menu1, ID_MNU_DOWNLOADSEQUENCES, _("Download Sequences/Lyrics"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_DownloadSequences);
     MenuItemBatchRender = new wxMenuItem(Menu1, ID_MENU_BATCH_RENDER, _("&Batch Render"), wxEmptyString, wxITEM_NORMAL);
@@ -954,6 +959,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     mRenderOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_RENDER_ON_SAVE, _("Render On Save"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(mRenderOnSaveMenuItem);
     mRenderOnSaveMenuItem->Check(true);
+    mSaveFseqOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_SAVE_FSEQ_ON_SAVE, _("Save FSEQ On Save"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(mSaveFseqOnSaveMenuItem);
+    mSaveFseqOnSaveMenuItem->Check(true);
     mBackupOnSaveMenuItem = new wxMenuItem(MenuSettings, ID_BACKUP_ON_SAVE, _("Backup On Save"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(mBackupOnSaveMenuItem);
     MenuItem_BackupOnLaunch = new wxMenuItem(MenuSettings, ID_MENU_BACKUP_ON_LAUNCH, _("Backup On Launch"), _("Recommended."), wxITEM_CHECK);
@@ -1216,6 +1224,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_EXPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ExportEffectsSelected);
     Connect(ID_MENU_FPP_CONNECT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_MNU_PACKAGESEQUENCE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PackageSequenceSelected);
+    Connect(ID_MENU_USER_DICT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
     Connect(ID_MNU_DOWNLOADSEQUENCES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_DownloadSequencesSelected);
     Connect(ID_MENU_BATCH_RENDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
@@ -1261,6 +1270,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_IMPORT_EFFECTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemImportEffects);
     Connect(ID_SEQ_SETTINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_RENDER_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderOnSave);
+    Connect(ID_SAVE_FSEQ_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected);
     Connect(ID_BACKUP_ON_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmBackupOnSaveSelected);
     Connect(ID_MENU_BACKUP_ON_LAUNCH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupOnLaunchSelected);
     Connect(ID_MNU_BKPPURGE_NEVER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_BackupPurgeIntervalSelected);
@@ -1424,6 +1434,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     ButtonPasteByCell->SetValue(false);
     mResetToolbars = false;
     mRenderOnSave = true;
+    mSaveFseqOnSave = true;
     mBackupOnSave = false;
     mBackupOnLaunch = true;
     me131Sync = false;
@@ -1661,6 +1672,18 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsRenderOnSave", &mRenderOnSave, true);
     mRenderOnSaveMenuItem->Check(mRenderOnSave);
     logger_base.debug("Render on save: %s.", mRenderOnSave? "true" : "false");
+
+    config->Read("xLightsSaveFseqOnSave", &mSaveFseqOnSave, true);
+    mSaveFseqOnSaveMenuItem->Check(mSaveFseqOnSave);
+    logger_base.debug("Save Fseq on save: %s.", mSaveFseqOnSave ? "true" : "false");
+
+    if(!mSaveFseqOnSave)
+    {
+        logger_base.debug("Render on save changed to false, because Save Fseq on save is false.");
+        mRenderOnSaveMenuItem->Check(false);
+        mRenderOnSaveMenuItem->Enable(false);
+        mRenderOnSave = false;
+    }
 
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
     mBackupOnSaveMenuItem->Check(mBackupOnSave);
@@ -2022,6 +2045,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsTimingPlayOnDClick", mTimingPlayOnDClick);
     config->Write("xLightsGridNodeValues", mGridNodeValues);
     config->Write("xLightsRenderOnSave", mRenderOnSave);
+    config->Write("xLightsSaveFseqOnSave", mSaveFseqOnSave);
     config->Write("xLightsBackupSubdirectories", _backupSubfolders);
     config->Write("xLightsExcludePresetsPkgSeq", _excludePresetsFromPackagedSequences);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
@@ -2407,6 +2431,7 @@ void xLightsFrame::EnableNetworkChanges()
     bool flag=(!_outputManager.IsOutputting() && !CurrentDir.IsEmpty());
     ButtonAddDongle->Enable(flag);
     ButtonAddE131->Enable(flag);
+    ButtonAddDDP->Enable(flag);
     ButtonArtNET->Enable(flag);
     ButtonAddNull->Enable(flag);
     ButtonAddLOR->Enable(flag);
@@ -3000,10 +3025,11 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     if (CurrentSeqXmlFile == nullptr || frameCount == 0)
         return;
 
-    bool visible = m_mgr->GetPane("HousePreview").IsShown();
+    wxAuiPaneInfo& pi = m_mgr->GetPane("HousePreview");
+    bool visible = pi.IsShown();
     if (!visible)
     {
-        m_mgr->GetPane("HousePreview").Show();
+        pi.Show();
         m_mgr->Update();
     }
 
@@ -3051,14 +3077,20 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         int trackSize = audioMgr->GetTrackSize();
         int clampedSize = std::min(frameSize, trackSize - audioFrameIndex);
 
-        const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
-        const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
+        if (clampedSize > 0)
+        {
+            const float *leftptr = audioMgr->GetLeftDataPtr(audioFrameIndex);
+            const float *rightptr = audioMgr->GetRightDataPtr(audioFrameIndex);
 
-        memcpy(samples, leftptr, clampedSize * sizeof(float));
-        samples += clampedSize;
-        memcpy(samples, rightptr, clampedSize * sizeof(float));
+            if (leftptr != nullptr)
+            {
+                memcpy(samples, leftptr, clampedSize * sizeof(float));
+                samples += clampedSize;
+                memcpy(samples, rightptr, clampedSize * sizeof(float));
+                audioFrameIndex += frameSize;
+            }
+        }
 
-        audioFrameIndex += frameSize;
         return true;
     }
     );
@@ -3321,6 +3353,21 @@ void xLightsFrame::SetPlaySpeed(wxCommandEvent& event)
 void xLightsFrame::OnMenuItemRenderOnSave(wxCommandEvent& event)
 {
     mRenderOnSave = event.IsChecked();
+}
+
+void xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event)
+{
+    mSaveFseqOnSave = event.IsChecked();
+    if (mSaveFseqOnSave)
+    {
+        mRenderOnSaveMenuItem->Enable();
+    }
+    else
+    {
+        mRenderOnSaveMenuItem->Check(false);
+        mRenderOnSaveMenuItem->Enable(false);
+        mRenderOnSave = false;
+    }
 }
 
 void xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected(wxCommandEvent& event)
@@ -5486,6 +5533,17 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     float fadeout = sm.GetFloat("T_TEXTCTRL_Fadeout", 0.0);
     float efdur = (ef->GetEndTimeMS() - ef->GetStartTimeMS()) / 1000.0;
 
+    if (sm.Get("T_CHECKBOX_Canvas", "0") == "1")
+    {
+        // Warp and off have more complicated logic which is implemented in those effects
+        if ((ef->GetEffectName() != "Off" && ef->GetEffectName() != "Warp"))
+        {
+            wxString msg = wxString::Format("    WARN: Canvas mode enabled on an effect it is not normally used on. This will slow down rendering. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
+
     if (fadein > efdur)
     {
         wxString msg = wxString::Format("    WARN: Transition in time %.2f on effect %s at start time %s  on Model '%s' is greater than effect duration %.2f.", fadein, ef->GetEffectName(), FORMATTIME(ef->GetStartTimeMS()), name, efdur);
@@ -7627,10 +7685,14 @@ bool xLightsFrame::CheckForUpdate(bool force)
     MenuItem_Update->Enable(true);
 #else
     wxString hostname = _T("xlights.org");
+
     wxString path = _T("/downloads/");
     wxString downloadUrl = wxT("http://xlights.org/downloads/");
+    //wxString path = _T("/releases/");
+    //wxString downloadUrl = wxT("http://xlights.org/releases/");
+
+    logger_base.debug("Downloading %s", (const char*)downloadUrl.c_str());
     MenuItem_Update->Enable(true);
-    //return false; // No checking on windows yet
 #endif
 #endif
 
@@ -8230,4 +8292,16 @@ void xLightsFrame::StartxFadeListener()
     _xFadeSocket->SetNotify(wxSOCKET_CONNECTION_FLAG);
     //enable event handling
     _xFadeSocket->Notify(true);
+}
+
+void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
+{
+    SetCursor(wxCURSOR_WAIT);
+    SetStatusText(_("Loading dictionaries ..."));
+    dictionary.LoadDictionaries(CurrentDir);
+    SetStatusText(_(""));
+
+    LyricUserDictDialog dlg(&dictionary, showDirectory, this);
+    dlg.ShowModal();
+    SetCursor(wxCURSOR_ARROW);
 }

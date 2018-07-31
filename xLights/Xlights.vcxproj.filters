@@ -350,6 +350,7 @@
     <ClCompile Include="support\VectorMath.cpp" />
     <ClCompile Include="ViewpointDialog.cpp" />
     <ClCompile Include="ViewpointMgr.cpp" />
+    <ClCompile Include="LyricUserDictDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -700,6 +701,7 @@
     <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="ViewpointDialog.h" />
     <ClInclude Include="ViewpointMgr.h" />
+    <ClInclude Include="LyricUserDictDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

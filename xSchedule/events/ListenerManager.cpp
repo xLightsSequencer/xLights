@@ -16,11 +16,14 @@
 #include "ListenerOSC.h"
 #include "EventMIDI.h"
 
+wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
+
 ListenerManager::ListenerManager(ScheduleManager* scheduleManager) :
     _scheduleManager(scheduleManager),
     _pause(false),
     _stop(false),
-    _sync(0)
+    _sync(0),
+    _notifyScan(nullptr)
 {
     StartListeners();
 }
@@ -488,6 +491,44 @@ void ListenerManager::SetRemoteArtNet()
     StartListeners();
 }
 
+void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
+{
+    if (notify == nullptr && _notifyScan == nullptr)
+    {
+        // nothing to do
+    }
+    else if (notify == nullptr && _notifyScan != nullptr)
+    {
+        _notifyScan = nullptr;
+        // this will stop the MIDI if it isnt meant to be running
+        StartListeners();
+    }
+    else if (_notifyScan == nullptr && notify != nullptr)
+    {
+        _notifyScan = notify;
+        bool found = false;
+        for (auto it = _listeners.begin(); it != _listeners.end(); ++it)
+        {
+            if ((*it)->GetType() == "MIDI" && ((ListenerMIDI*)(*it))->GetDeviceId() == deviceId)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            ListenerMIDI* lm = new ListenerMIDI(deviceId, this);
+            _listeners.push_back(lm);
+            lm->Start();
+        }
+    }
+    else
+    {
+        wxASSERT(false);
+    }
+}
+
 int ListenerManager::Sync(const std::string filename, long ms, const std::string& type)
 {
     if ((_sync == 3 && type == "ARTNet") ||
@@ -547,6 +588,18 @@ void ListenerManager::ProcessPacket(const std::string& source, int universe, wxB
 
 void ListenerManager::ProcessPacket(const std::string& source, wxByte status, wxByte channel, wxByte data1, wxByte data2)
 {
+    if (_notifyScan != nullptr && source == "MIDI")
+    {
+        wxCommandEvent event(EVT_MIDI);
+        int value = (((int)status & 0xF0) << 24) +
+            (((int)channel & 0x0F) << 16) +
+            ((int)data1 << 8) +
+            (int)data2;
+        event.SetInt(value);
+        wxPostEvent(_notifyScan, event);
+        return;
+    }
+
     if (_pause || _stop) return;
 
     for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)

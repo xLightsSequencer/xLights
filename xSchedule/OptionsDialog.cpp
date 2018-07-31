@@ -42,6 +42,8 @@ const long OptionsDialog::ID_STATICTEXT6 = wxNewId();
 const long OptionsDialog::ID_SPINCTRL2 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
 const long OptionsDialog::ID_CHOICE3 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT9 = wxNewId();
+const long OptionsDialog::ID_CHOICE4 = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -144,6 +146,13 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	FlexGridSizer8->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_Location = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
 	FlexGridSizer8->Add(Choice_Location, 1, wxALL|wxEXPAND, 5);
+	StaticText9 = new wxStaticText(this, ID_STATICTEXT9, _("Behaviour on crash:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
+	FlexGridSizer8->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_OnCrash = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
+	Choice_OnCrash->SetSelection( Choice_OnCrash->Append(_("Prompt user")) );
+	Choice_OnCrash->Append(_("Silently exit after sending crash log"));
+	Choice_OnCrash->Append(_("Silently exit without sending crash log"));
+	FlexGridSizer8->Add(Choice_OnCrash, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -188,6 +197,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     ListView_Buttons->AppendColumn("Hotkey");
     ListView_Buttons->AppendColumn("Web Color");
 
+    Choice_OnCrash->SetStringSelection(options->GetCrashBehaviour());
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     Choice_ARTNetTimeCodeFormat->SetSelection(options->GetARTNetTimeCodeFormat());
     CheckBox_RunBackground->SetValue(options->IsSendBackgroundWhenNotRunning());
@@ -272,6 +282,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
     _options->SetArtNetTimeCodeFormat(Choice_ARTNetTimeCodeFormat->GetSelection());
     _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
+    _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {

@@ -6,12 +6,17 @@
 //  Copyright (c) 2015 Daniel Kulp. All rights reserved.
 //
 
-#ifndef xLights_SequenceData_h
-#define xLights_SequenceData_h
+#ifndef SEQUENCEDATA_H
+#define SEQUENCEDATA_H
 
 #include <wx/wx.h>
 
 class FrameData {
+    static const unsigned char _constzero;
+    unsigned char _zero;
+    unsigned int _numChannels;
+    unsigned char* _data;
+
 public:
     void Zero()
     {
@@ -24,7 +29,7 @@ public:
     }
     
     unsigned char &operator[](unsigned int channel) {
-        _zero = 0;
+        wxASSERT(_zero == 0);
         return channel < _numChannels ? _data[channel] : _zero;
     }
     
@@ -32,21 +37,24 @@ public:
         const unsigned char* cdata = _data;
         return channel < _numChannels ? &cdata[channel] : &_constzero;
     }
-private:
-    unsigned char _zero;
-    unsigned int _numChannels;
-    unsigned char* _data;
-    
-    static const unsigned char _constzero;
 };
 
 class SequenceData {
+    unsigned char *_invalidData;
+    unsigned char *_data;
+    unsigned int _bytesPerFrame;
+    unsigned int _numChannels;
+    unsigned int _numFrames;
+    unsigned int _frameTime;
+
+    SequenceData(const SequenceData&);  //make sure we cannot "copy" these
+    SequenceData &operator=(const SequenceData& rgb);
+
 public:
     SequenceData();
     virtual ~SequenceData();
     
     void init(unsigned int numChannels, unsigned int numFrames, unsigned int frameTime, bool roundto4 = true);
-
     unsigned int TotalTime() const { return _numFrames * _frameTime; }
     bool OK(unsigned int frame, unsigned int channel) const { return frame < _numFrames && channel < _numChannels; }
     
@@ -60,16 +68,5 @@ public:
 
     // encodes contents of SeqData in channel order
     wxString base64_encode();
-
-private:
-    SequenceData(const SequenceData&);  //make sure we cannot "copy" these
-    SequenceData &operator=(const SequenceData& rgb);
-    
-    unsigned char *_invalidData;
-    unsigned char *_data;
-    unsigned int _bytesPerFrame;
-    unsigned int _numChannels;
-    unsigned int _numFrames;
-    unsigned int _frameTime;
 };
 #endif

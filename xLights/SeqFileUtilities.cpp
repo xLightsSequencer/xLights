@@ -275,39 +275,38 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
 
         wxFileName fseq_file = selected_file;
         fseq_file.SetExt("fseq");
-        fseq_file.SetPath(fseqDirectory);
 
-        wxFileName fseq_fileShow = selected_file;
-        fseq_fileShow.SetExt("fseq");
+        wxFileName fseq_file_SEQ_fold = selected_file;
+		fseq_file_SEQ_fold.SetExt("fseq");
 
-        bool fseqFound = false;
-
-        if (fseq_file.FileExists()) {
-            //Found in FSEQ Folder
-            fseqFound = true;
-
-            /***************************/
-            //TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
-            if (fseq_fileShow.FileExists() && wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
-                //remove file from show directory
-                logger_base.debug("Deleting old FSEQ File: '%s'", (const char *)fseq_fileShow.GetPath().c_str());
-                wxRemoveFile(fseq_fileShow.GetFullPath());//
-            }
-            /***************************/
-        } else if(wxFileName(fseqDirectory) != wxFileName(showDirectory)) { // Only go in here if folder are unlinked
-            //file found in show folder
-            if (fseq_fileShow.FileExists()) {
-                //move file to fseq folder
-                logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_fileShow.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
-                fseqFound = wxRenameFile(fseq_fileShow.GetFullPath(), fseq_file.GetFullPath());
-            }
-        }
+		// Only Look for FSEQ file in FSEQ FOLDER, if folder are unlinked
+		if (wxFileName(fseqDirectory) != wxFileName(showDirectory)) {
+			fseq_file.SetPath(fseqDirectory);
+			if (!fseq_file.FileExists()) {
+				//no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
+				if (fseq_file_SEQ_fold.FileExists()) {
+					//if found, move file to fseq folder
+					logger_base.debug("Moving FSEQ File: '%s' to '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str(), (const char *)fseq_file.GetPath().c_str());
+					wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
+				}
+			} else {
+				//if FSEQ File is Found in FSEQ Folder, remove old file next to the Seq File
+				/***************************/
+				//TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
+				if (fseq_file_SEQ_fold.FileExists()) {
+					//remove FSEQ file next to seg file
+					logger_base.debug("Deleting old FSEQ File: '%s'", (const char *)fseq_file_SEQ_fold.GetPath().c_str());
+					wxRemoveFile(fseq_file_SEQ_fold.GetFullPath());//
+				}
+			}
+		}
 
         xlightsFilename = fseq_file.GetFullPath(); //this need to be set , as it is checked when saving is triggered
 
         // load the fseq data file if it exists
-        if( fseq_file.FileExists() && fseqFound)
+        if( fseq_file.FileExists())
         {
+            logger_base.debug("Opening FSEQ File at: '%s'", (const char *)fseq_file.GetPath().c_str());
             if (plog != nullptr)
             {
                 plog->Show(true);
@@ -332,6 +331,10 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             SeqChanCtrlBasic=false;
             SeqChanCtrlColor=false;
             loaded_fseq = true;
+        }
+        else
+        {
+            logger_base.debug("Could not Find FSEQ File at: '%s'", (const char *)fseq_file.GetPath().c_str());
         }
 
         // assign global xml file object
@@ -3075,7 +3078,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
             wxString speed = parms[5];
             wxString vcSpeed;
-            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX); 
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX);
             wxString colours = parms[6];
 
             if (style == "linear")
@@ -3215,11 +3218,11 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString speed = parms[4];
             speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)durationMS / 1000.0))));
             wxString vcSpeed;
-            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BARCYCLES_MIN, BARCYCLES_MAX);            
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BARCYCLES_MIN, BARCYCLES_MAX);
             wxString centre = parms[5];
             wxString vcCentre;
             centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BARCENTER_MIN, BARCENTER_MAX);
-                            
+
             settings += ",E_SLIDER_Bars_BarCount=" + repeat;
             settings += vcRepeat;
 
@@ -3536,7 +3539,7 @@ std::string LPEParseEffectSettings(const wxString& effectType, const wxArrayStri
             wxString y = parms[8];
             wxString vcY;
             y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
-            
+
             settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
             settings += ",E_SLIDER_Pinwheel_Thickness=" + width;
             settings += vcWidth;
@@ -3843,7 +3846,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
     int layer = 0;
     if (LPEHasEffects(input_xml, mapping, 0, true))
     {
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 left hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
     }
@@ -3854,7 +3857,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         {
             model->AddEffectLayer();
         }
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 right hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 0 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
     }
@@ -3865,7 +3868,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         {
             model->AddEffectLayer();
         }
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 left hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 left hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, true, frequency);
     }
@@ -3876,7 +3879,7 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const wxX
         {
             model->AddEffectLayer();
         }
-        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 right hand side", 
+        logger_base.debug("Creating effects on model %s layer %d from %s layer 1 right hand side",
             (const char *)model->GetFullName().c_str(), layer + 1, (const char *)mapping.c_str());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency);
     }
@@ -5218,7 +5221,7 @@ void xLightsFrame::ImportLSP(const wxFileName &filename) {
 }
 
 static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, std::string name,
-    const std::vector< VSAFile::vsaEventRecord > &events, bool is_16bit = true)
+    const std::vector< VSAFile::vsaEventRecord > &events, int sequence_end_time, uint32_t timing, bool is_16bit = true)
 {
     float last_pos = -1.0;
     int last_time = 0;
@@ -5234,9 +5237,9 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             settings += "E_CHECKBOX_16bit=0,";
         }
         settings += "E_CHOICE_Channel=" + name + ",";
-        settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=100.00|";
+        settings += "E_VALUECURVE_Servo=Active=TRUE|Id=ID_VALUECURVE_Servo|Type=Ramp|Min=0.00|Max=1000.00|";
         float start_pos = (events[i].start_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
-        settings += "P1=" + wxString::Format("%3.1f", start_pos).ToStdString() + "|";
+        settings += "P1=" + wxString::Format("%3.1f", start_pos * 10.0).ToStdString() + "|";
         float end_pos = (events[i].end_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
         if (start_pos < 0.0) {
             if (warn) {
@@ -5252,7 +5255,7 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             end_pos = 100.0;
         }
-        settings += "P2=" + wxString::Format("%3.1f", end_pos).ToStdString() + "|";
+        settings += "P2=" + wxString::Format("%3.1f", end_pos * 10.0).ToStdString() + "|RV=TRUE";
         if (last_pos == -1.0) {
             last_pos = start_pos;
         }
@@ -5266,12 +5269,27 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
             }
             settings2 += "E_CHOICE_Channel=" + name + ",";
             settings2 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
-            settings2 += "E_VALUECURVE_Servo=Active=FALSE|";
-            layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * 33, false, false);
+            layer->AddEffect(0, "Servo", settings2, palette, last_time, events[i].start_time * timing, false, false);
         }
-        layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * 33, events[i].end_time * 33, false, false);
+        layer->AddEffect(0, "Servo", settings, palette, events[i].start_time * timing, events[i].end_time * timing, false, false);
         last_pos = end_pos;
-        last_time = events[i].end_time * 33;
+        last_time = events[i].end_time * timing;
+
+        // check for filling to end of sequence
+        if( i == events.size() - 1) {
+            if( last_time < sequence_end_time ) {
+                std::string settings3;
+                if (is_16bit) {
+                    settings3 += "E_CHECKBOX_16bit=1,";
+                }
+                else {
+                    settings3 += "E_CHECKBOX_16bit=0,";
+                }
+                settings3 += "E_CHOICE_Channel=" + name + ",";
+                settings3 += "E_TEXTCTRL_Servo=" + wxString::Format("%3.1f", last_pos).ToStdString() + ",";
+                layer->AddEffect(0, "Servo", settings3, palette, last_time, sequence_end_time, false, false);
+            }
+        }
     }
 }
 
@@ -5291,6 +5309,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
 
     const std::vector< VSAFile::vsaTrackRecord > &tracks = vsa.GetTrackInfo();
     const std::vector< std::vector< VSAFile::vsaEventRecord > > &events = vsa.GetEventInfo();
+    const uint32_t vsa_timing = vsa.GetTiming();
 
     for( int m = 0; m < dlg.selectedModels.size(); ++m ) {
         std::string modelName = dlg.selectedModels[m];
@@ -5314,14 +5333,15 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                 layer = model->GetEffectLayer(layer_number);
                 if( layer != nullptr && dlg.selectedChannels[m] != "" ) {
                     bool is_16bit = true;
-                    switch( (VSAFile::vsaControllers)(tracks[m].controller) )
+                    int idx = dlg.trackIndex[m];
+                    switch( (VSAFile::vsaControllers)(tracks[idx].controller) )
                     {
                     case VSAFile::DMX_DIMMER:
                         is_16bit = false;
                     default:
                         break;
                     }
-                    ImportServoData(tracks[m].min_limit, tracks[m].max_limit, layer, dlg.selectedChannels[m], events[m], is_16bit);
+                    ImportServoData(tracks[idx].min_limit, tracks[idx].max_limit, layer, dlg.selectedChannels[m], events[idx], mSequenceElements.GetSequenceEnd(), vsa_timing, is_16bit );
                 }
             }
         }
