@@ -23,7 +23,7 @@ class xlVertex3Accumulator;
 class PreviewCamera
 {
 public:
-    PreviewCamera();
+    PreviewCamera(bool is_3d_);
     virtual ~PreviewCamera();
     PreviewCamera(const PreviewCamera &cam);
 
@@ -121,6 +121,8 @@ public:
     PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i]; }
     PreviewCamera* GetCamera3D(int i) { return previewCameras3d[i]; }
     void SaveCurrentCameraPosition();
+    void SetCamera2D(int i);
+    void SetCamera3D(int i);
 
 protected:
     virtual void InitializeGLCanvas() override;
@@ -184,6 +186,8 @@ private:
     std::vector<PreviewCamera*> previewCameras2d;
     PreviewCamera* camera3d;
     PreviewCamera* camera2d;
+    static const long ID_VIEWPOINT2D;
+    static const long ID_VIEWPOINT3D;
 
     double currentPixelScaleFactor = 1.0;
 

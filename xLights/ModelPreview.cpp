@@ -33,11 +33,14 @@ EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
 EVT_PAINT(ModelPreview::render)
 END_EVENT_TABLE()
 
+const long ModelPreview::ID_VIEWPOINT2D = wxNewId();
+const long ModelPreview::ID_VIEWPOINT3D = wxNewId();
+
 static glm::mat4 Identity(glm::mat4(1.0f));
 
-PreviewCamera::PreviewCamera()
+PreviewCamera::PreviewCamera(bool is_3d_)
 : posX(-500.0f), posY(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
-  panx(0.0f), pany(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(true), name("Name Unspecified"), menu_id(wxNewId())
+  panx(0.0f), pany(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_), name("Name Unspecified"), menu_id(wxNewId())
 {
 }
 
@@ -48,15 +51,24 @@ PreviewCamera::~PreviewCamera()
 // Copy constructor
 PreviewCamera::PreviewCamera(const PreviewCamera &cam)
 : posX(cam.posX), posY(cam.posY), angleX(cam.angleX), angleY(cam.angleY), distance(cam.distance), zoom(cam.zoom),
-  panx(cam.panx), pany(cam.pany), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d), name(cam.name), menu_id(cam.menu_id)
+  panx(cam.panx), pany(cam.pany), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d), name(cam.name), menu_id(wxNewId())
 {
 }
 
 void ModelPreview::setupCameras()
 {
-    camera3d = new PreviewCamera();
-    camera3d->is_3d = true;
-    camera2d = new PreviewCamera();
+    camera3d = new PreviewCamera(true);
+    camera2d = new PreviewCamera(false);
+}
+
+void ModelPreview::SetCamera2D(int i)
+{
+    camera2d = previewCameras2d[i];
+}
+
+void ModelPreview::SetCamera3D(int i)
+{
+    camera3d = previewCameras3d[i];
 }
 
 void ModelPreview::SaveCurrentCameraPosition()
@@ -67,6 +79,9 @@ void ModelPreview::SaveCurrentCameraPosition()
     if (dlg.ShowModal() == wxID_OK)
     {
         new_camera->name = dlg.GetValue().ToStdString();
+        if (new_camera->name == "") {
+            new_camera->name = "...";  // avoid exception that occurs if menu name is blank
+        }
     }
     if (is_3d) {
         previewCameras3d.push_back(new_camera);
@@ -236,18 +251,40 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
 
 void ModelPreview::rightClick(wxMouseEvent& event) {
     if (allowPreviewChange && xlights != nullptr) {
-        wxMenu mnuSelectPreview;
-        wxMenuItem* item = mnuSelectPreview.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
+        wxMenu mnu;
+        wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
         item->Check(is_3d);
-        mnuSelectPreview.AppendSeparator();
-        mnuSelectPreview.Append(1, "House Preview");
+        mnu.AppendSeparator();
+        mnu.Append(1, "House Preview");
         int index = 2;
         for (auto it = LayoutGroups->begin(); it != LayoutGroups->end(); ++it) {
             LayoutGroup* grp = (LayoutGroup*)(*it);
-            mnuSelectPreview.Append(index++, grp->GetName());
+            mnu.Append(index++, grp->GetName());
         }
-        mnuSelectPreview.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
-        PopupMenu(&mnuSelectPreview);
+        // ViewPoint menus
+        mnu.AppendSeparator();
+        if (is_3d) {
+            if (GetNum3DCameras() > 0) {
+                wxMenu* mnuViewPoint = new wxMenu();
+                for (size_t i = 0; i < GetNum3DCameras(); ++i)
+                {
+                    mnuViewPoint->Append(GetCamera3D(i)->menu_id, GetCamera3D(i)->name);
+                }
+                mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
+            }
+        }
+        else {
+            if (GetNum2DCameras() > 0) {
+                wxMenu* mnuViewPoint = new wxMenu();
+                for (size_t i = 0; i < GetNum2DCameras(); ++i)
+                {
+                    mnuViewPoint->Append(GetCamera2D(i)->menu_id, GetCamera2D(i)->name);
+                }
+                mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+            }
+        }
+        mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
+        PopupMenu(&mnu);
     }
 }
 
@@ -266,6 +303,30 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     }
     else if (id == 0x1000) {
         is_3d = !is_3d;
+    }
+    else if (is_3d) {
+        if (GetNum3DCameras() > 0) {
+            for (size_t i = 0; i < GetNum3DCameras(); ++i)
+            {
+                if (event.GetId() == GetCamera3D(i)->menu_id)
+                {
+                    SetCamera3D(i);
+                    break;
+                }
+            }
+        }
+    }
+    else {
+        if (GetNum2DCameras() > 0) {
+            for (size_t i = 0; i < GetNum2DCameras(); ++i)
+            {
+                if (event.GetId() == GetCamera2D(i)->menu_id)
+                {
+                    SetCamera2D(i);
+                    break;
+                }
+            }
+        }
     }
     Refresh();
     Update();
@@ -300,8 +361,6 @@ ModelPreview::ModelPreview(wxPanel* parent)
     setupCameras();
     image = nullptr;
     sprite = nullptr;
-    camera3d = nullptr;
-    camera2d = new PreviewCamera();
     xlights = nullptr;
 }
 

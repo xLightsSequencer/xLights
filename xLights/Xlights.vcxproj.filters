@@ -348,6 +348,8 @@
     <ClCompile Include="effects\WarpPanel.cpp" />
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="support\VectorMath.cpp" />
+    <ClCompile Include="ViewpointDialog.cpp" />
+    <ClCompile Include="ViewpointMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -696,6 +698,8 @@
     <ClInclude Include="effects\WarpPanel.h" />
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="support\VectorMath.h" />
+    <ClInclude Include="ViewpointDialog.h" />
+    <ClInclude Include="ViewpointMgr.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

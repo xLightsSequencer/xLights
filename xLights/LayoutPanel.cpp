@@ -2956,6 +2956,32 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         modelPreview->SaveCurrentCameraPosition();
     }
+    else if (is_3d) {
+        if (modelPreview->GetNum3DCameras() > 0) {
+            for (size_t i = 0; i < modelPreview->GetNum3DCameras(); ++i)
+            {
+                if (event.GetId() == modelPreview->GetCamera3D(i)->menu_id)
+                {
+                    modelPreview->SetCamera3D(i);
+                    UpdatePreview();
+                    break;
+                }
+            }
+        }
+    }
+    else {
+        if (modelPreview->GetNum2DCameras() > 0) {
+            for (size_t i = 0; i < modelPreview->GetNum2DCameras(); ++i)
+            {
+                if (event.GetId() == modelPreview->GetCamera2D(i)->menu_id)
+                {
+                    modelPreview->SetCamera2D(i);
+                    UpdatePreview();
+                    break;
+                }
+            }
+        }
+    }
 }
 
 #define retmsg(msg)  \

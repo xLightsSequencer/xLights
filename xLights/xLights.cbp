@@ -41,6 +41,7 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -105,6 +106,7 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -167,6 +169,7 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -210,6 +213,7 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -257,6 +261,7 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -319,6 +324,7 @@
 					<Add directory="../include" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -598,6 +604,10 @@
 		<Unit filename="VideoReader.h" />
 		<Unit filename="VideoRenderCacher.cpp" />
 		<Unit filename="VideoRenderCacher.h" />
+		<Unit filename="ViewpointDialog.cpp" />
+		<Unit filename="ViewpointDialog.h" />
+		<Unit filename="ViewpointMgr.cpp" />
+		<Unit filename="ViewpointMgr.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />
@@ -1152,6 +1162,7 @@
 		<Unit filename="wxsmith/VendorModelDialog.wxs" />
 		<Unit filename="wxsmith/VendorMusicDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
+		<Unit filename="wxsmith/ViewpointDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
 		<Unit filename="wxsmith/VsaImportDialog.wxs" />
@@ -1329,6 +1340,7 @@
 					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/ViewpointDialog.wxs" src="ViewpointDialog.cpp" hdr="ViewpointDialog.h" fwddecl="0" i18n="1" name="ViewpointDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>
