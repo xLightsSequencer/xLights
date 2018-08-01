@@ -1829,7 +1829,26 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, b)) {
                 wxStopWatch sw;
 
-                reff->Render(effectObj, SettingsMap, b);
+                RenderCacheItem* rci = nullptr;
+                
+                if (reff->SupportsRenderCache())
+                {
+                    rci = _renderCache.GetItem(effectObj, &b);
+                }
+
+                if (rci == nullptr || !rci->IsDone(&b))
+                {
+                    reff->Render(effectObj, SettingsMap, b);
+                    if (rci != nullptr)
+                    {
+                        rci->AddFrame(&b);
+                    }
+                }
+                else
+                {
+                    rci->GetFrame(&b);
+                }
+
                 // Log slow render frames ... this takes time but at this point it is already slow
                 if (sw.Time() > 150)
                 {

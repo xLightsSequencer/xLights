@@ -420,6 +420,7 @@
     <ClCompile Include="RenameTextDialog.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RenderBuffer.cpp" />
+    <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="RenderProgressDialog.cpp" />
     <ClCompile Include="ResizeImageDialog.cpp" />
     <ClCompile Include="SaveChangesDialog.cpp" />
@@ -489,7 +490,6 @@
     <ClCompile Include="VideoExporter.cpp" />
     <ClCompile Include="VendorModelDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
-    <ClCompile Include="VideoRenderCacher.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
@@ -760,6 +760,7 @@
     <ClInclude Include="PreviewPane.h" />
     <ClInclude Include="RenameTextDialog.h" />
     <ClInclude Include="RenderBuffer.h" />
+    <ClInclude Include="RenderCache.h" />
     <ClInclude Include="RenderCommandEvent.h" />
     <ClInclude Include="RenderProgressDialog.h" />
     <ClInclude Include="RenderUtils.h" />
@@ -835,7 +836,6 @@
     <ClInclude Include="VideoExporter.h" />
     <ClInclude Include="VendorModelDialog.h" />
     <ClInclude Include="VideoReader.h" />
-    <ClInclude Include="VideoRenderCacher.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />

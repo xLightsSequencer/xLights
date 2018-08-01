@@ -1122,6 +1122,10 @@
 					<label>Purge Download Cache</label>
 					<handler function="OnMenuItem_PurgeVendorCacheSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_PURGERENDERCACHE" variable="MenuItem_PurgeRenderCache" member="yes">
+					<label>Purge Render Cache</label>
+					<handler function="OnMenuItem_PurgeRenderCacheSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_CrashXLights" member="yes">
 					<label>Crash xLights</label>
 					<handler function="OnMenuItem_CrashXLightsSelected" entry="EVT_MENU" />
@@ -1480,6 +1484,12 @@
 				<object class="wxMenuItem" name="ID_COLOR_MANAGER" variable="MenuItemColorManager" member="yes">
 					<label>Color Manager</label>
 					<handler function="OnMenuItemColorManagerSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_ENABLERENDERCACHE" variable="MenuItem_EnableRenderCache" member="yes">
+					<label>Enable Render Cache</label>
+					<checked>1</checked>
+					<handler function="OnMenuItem_EnableRenderCacheSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM_RENDER_MODE" variable="MenuItemRenderMode" member="yes">
 					<label>Render Mode</label>

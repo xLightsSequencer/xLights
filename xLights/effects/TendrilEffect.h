@@ -89,6 +89,7 @@ class TendrilEffect : public RenderableEffect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false;}
 #endif
         virtual bool AppropriateOnNodes() const override { return false; }
+        virtual bool SupportsRenderCache() const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

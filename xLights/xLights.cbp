@@ -521,6 +521,8 @@
 		<Unit filename="Render.cpp" />
 		<Unit filename="RenderBuffer.cpp" />
 		<Unit filename="RenderBuffer.h" />
+		<Unit filename="RenderCache.cpp" />
+		<Unit filename="RenderCache.h" />
 		<Unit filename="RenderCommandEvent.h" />
 		<Unit filename="RenderProgressDialog.cpp" />
 		<Unit filename="RenderProgressDialog.h" />
@@ -598,8 +600,6 @@
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
-		<Unit filename="VideoRenderCacher.cpp" />
-		<Unit filename="VideoRenderCacher.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />

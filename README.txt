@@ -13,6 +13,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (keith)  Allow exclusion of channels in xFade from blending/brightness control
    -- enh (keith)  Add a sample on warp mode which samples a pixel from the underlying layer and sets the whole model to that colour
+   -- enh (keith)  Add optional render cache ... likely to improve average render times by 30-50%.
+   -- bug (keith)  Fix initialisation of model individual start channels
+   -- bug (keith)  Rework unmask again as the last rework only handled pure black ... this version restores the old unmask which doesnt really unmask and adds a true unmask.
 2018.23 July 27, 2018
    -- enh (gil)    Increase DMX Effect/Panel to 40 channels.
    -- enh (gil)    Changed the default channel assignments for the Skulltronix Skull option so that you can set

@@ -68,6 +68,7 @@
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
+#include "RenderCache.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -283,6 +284,7 @@ public:
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt, TxOverflowTotal;
     std::mutex saveLock;
+    RenderCache _renderCache;
 
     PhonemeDictionary dictionary;
 
@@ -545,6 +547,8 @@ public:
     void OnMenuItem_xFade_BSelected(wxCommandEvent& event);
     void OnMenuItemUserDictSelected(wxCommandEvent& event);
     void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
+    void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
+    void OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -666,6 +670,7 @@ private:
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
     static const long iD_MNU_VENDORCACHEPURGE;
+    static const long ID_MNU_PURGERENDERCACHE;
     static const long ID_MNU_CRASH;
     static const long ID_MNU_DUMPRENDERSTATE;
     static const long ID_MENUITEM5;
@@ -738,6 +743,7 @@ private:
     static const long ID_MENUITEM_GRID_NODE_VALUES_OFF;
     static const long ID_MENUITEM8;
     static const long ID_COLOR_MANAGER;
+    static const long ID_MNU_ENABLERENDERCACHE;
     static const long ID_MENU_CANVAS_ERASE_MODE;
     static const long ID_MENU_CANVAS_CANVAS_MODE;
     static const long ID_MENUITEM_RENDER_MODE;
@@ -901,6 +907,7 @@ private:
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
+    wxMenuItem* MenuItem_EnableRenderCache;
     wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
     wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
     wxMenuItem* MenuItem_ExportEffects;
@@ -926,6 +933,7 @@ private:
     wxMenuItem* MenuItem_PackageSequence;
     wxMenuItem* MenuItem_PerspectiveAutosave;
     wxMenuItem* MenuItem_PlayControlsOnPreview;
+    wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
     wxMenuItem* MenuItem_SD_10;
@@ -1020,6 +1028,7 @@ private:
     bool _excludeAudioFromPackagedSequences;
     bool _showACLights;
     bool _showACRamps;
+    bool _enableRenderCache;
     bool _playControlsOnPreview;
     bool _autoShowHousePreview;
     bool _smallWaveform;
