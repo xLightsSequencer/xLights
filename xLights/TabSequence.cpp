@@ -1056,7 +1056,7 @@ void xLightsFrame::SaveSequence()
         }
         while (!ok);
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
-        _renderCache.SetSequence(xmlFileName.GetFullPath());
+        _renderCache.SetSequence(fseqDirectory.ToStdString(), xmlFileName.GetName());
         xmlFileName.SetExt("xml");
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());

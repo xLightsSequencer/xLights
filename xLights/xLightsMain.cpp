@@ -8324,7 +8324,7 @@ void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event)
 {
-    _renderCache.Purge(true);
+    _renderCache.Purge(&mSequenceElements, true);
 }
 
 void xLightsFrame::OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event)

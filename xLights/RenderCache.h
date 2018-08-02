@@ -4,6 +4,8 @@
 #include <string>
 #include <list>
 #include <map>
+#include <vector>
+#include <mutex>
 
 class Effect;
 class RenderCache;
@@ -12,21 +14,23 @@ class RenderBuffer;
 
 class RenderCacheItem
 {
+        RenderCache* _renderCache;
 		std::string _cacheFile;
 		std::map<std::string, std::string> _properties;
-        std::map<int, unsigned char *> _frames;
+        std::vector<unsigned char *> _frames;
         bool _purged;
         long _frameSize;
         bool _dirty;
 
-        void PurgeFrames();
 
 	public:
-		RenderCacheItem(const std::string& file);
+		RenderCacheItem(RenderCache* renderCache, const std::string& file);
 		RenderCacheItem(RenderCache* renderCache, Effect* effect, RenderBuffer* buffer);
 		virtual ~RenderCacheItem();
-		void GetFrame(RenderBuffer* buffer);
+		bool GetFrame(RenderBuffer* buffer);
 		void AddFrame(RenderBuffer* buffer);
+        void PurgeFrames();
+
         bool IsMatch(Effect* effect, RenderBuffer* buffer);
         void Delete();
         void Save();
@@ -35,6 +39,7 @@ class RenderCacheItem
 
 class RenderCache
 {
+    std::recursive_mutex  _cacheLock;
 	std::string _cacheFolder;
 	std::list<RenderCacheItem*> _cache;
     bool _enabled;
@@ -44,11 +49,12 @@ class RenderCache
     public:
 		RenderCache();
 		virtual ~RenderCache();
-		void SetSequence(const std::string& sequenceFile);
+		void SetSequence(const std::string& path, const std::string& sequenceFile);
 		RenderCacheItem* GetItem(Effect* effect, RenderBuffer* buffer);
+        void RemoveItem(RenderCacheItem *item);
         std::string GetCacheFolder() const { return _cacheFolder; }
         void CleanupCache(SequenceElements* sequenceElements);
-        void Purge(bool dodelete);
+        void Purge(SequenceElements* sequenceElements, bool dodelete);
         void Enable(bool enabled) { _enabled = enabled; }
 };
 

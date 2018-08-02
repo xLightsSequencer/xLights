@@ -19,15 +19,14 @@ RenderCache::~RenderCache()
     Close();
 }
 
-void RenderCache::SetSequence(const std::string& sequenceFile)
+void RenderCache::SetSequence(const std::string& path, const std::string& sequenceFile)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     Close();
     if (sequenceFile != "")
     {
-        wxFileName fn(sequenceFile);
-        _cacheFolder = fn.GetPath() + fn.GetPathSeparator() + fn.GetName() + "_RENDER_CACHE";
+        this->_cacheFolder = path + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
 
         if (!wxDir::Exists(_cacheFolder))
         {
@@ -43,9 +42,11 @@ void RenderCache::SetSequence(const std::string& sequenceFile)
         wxArrayString files;
         dir.GetAllFiles(_cacheFolder, &files, "*.cache");
 
+        std::unique_lock<std::recursive_mutex> lock(_cacheLock);
+
         for (auto it = files.begin(); it != files.end(); ++it)
         {
-            auto rci = new RenderCacheItem(*it);
+            auto rci = new RenderCacheItem(this, *it);
             if (rci != nullptr)
             {
                 _cache.push_back(rci);
@@ -59,38 +60,37 @@ void RenderCache::SetSequence(const std::string& sequenceFile)
         logger_base.debug("Cache contained %d files.", (int)files.size());
     }
 }
+void RenderCache::RemoveItem(RenderCacheItem *item) {
+    delete item;
+}
 
 RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
 {
     if (!_enabled) return nullptr;
     if (_cacheFolder == "") return nullptr;
 
-    for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it)
-    {
+    for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it) {
         // we cant cache effects with canvas turned on
-        if (it->first == "T_CHECKBOX_Canvas" && it->second == "1")
-        {
+        if (it->first == "T_CHECKBOX_Canvas" && it->second == "1") {
             return nullptr;
         }
 
         // we also can't handle per model render styles ... as the buffers keep changing
-        if (it->first == "B_CHOICE_BufferStyle" && wxString(it->second).StartsWith("Per Model"))
-        {
+        if (it->first == "B_CHOICE_BufferStyle" && wxString(it->second).StartsWith("Per Model")) {
             return nullptr;
         }
     }
-
-    for (auto it = _cache.begin(); it != _cache.end(); ++it)
-    {
-        if ((*it)->IsMatch(effect, buffer))
-        {
-            return *it;
+ 
+    std::unique_lock<std::recursive_mutex> lock(_cacheLock);
+    for (auto it = _cache.begin(); it != _cache.end(); ++it) {
+        if ((*it)->IsMatch(effect, buffer)) {
+            RenderCacheItem *item = *it;
+            _cache.erase(it);
+            return item;
         }
     }
 
-    auto rci = new RenderCacheItem(this, effect, buffer);
-    _cache.push_back(rci);
-    return rci;
+    return new RenderCacheItem(this, effect, buffer);
 }
 
 
@@ -100,41 +100,69 @@ void RenderCache::Close()
 
     logger_base.debug("Closing render cache folder %s.", (const char *)_cacheFolder.c_str());
 
-    Purge(false);
+    Purge(nullptr, false);
     _cacheFolder = "";
 }
 
-void RenderCache::CleanupCache(SequenceElements* sequenceElements)
-{
-    // clean up cache but only for missing effects or wrong start times
-    for (auto it = _cache.begin(); it != _cache.end(); ++it)
-    {
-        bool found = false;
 
-        for (int i = 0; i < sequenceElements->GetElementCount() && !found; i++)
-        {
-            Element* em = sequenceElements->GetElement(i);
-            for (int l = 0; l < em->GetEffectLayerCount() && !found; l++)
-            {
-                EffectLayer* el = em->GetEffectLayer(l);
-                for (int e = 0; e < el->GetEffectCount() && !found; e++)
-                {
-                    if ((*it)->IsMatch(el->GetEffect(e), nullptr))
-                    {
-                        found = true;
-                    }
-                }
-            }
+static void purgeCache(Element *em, bool del) {
+    for (int l = 0; l < em->GetEffectLayerCount(); l++) {
+        EffectLayer* el = em->GetEffectLayer(l);
+        for (int e = 0; e < el->GetEffectCount(); e++) {
+            el->GetEffect(e)->PurgeCache(del);
         }
-
-        if (!found)
-        {
-            (*it)->Delete();
+    }
+    if (em->GetType() == ELEMENT_TYPE_MODEL) {
+        ModelElement *me = (ModelElement*)em;
+        for (int x = 0; x < me->GetSubModelCount(); x++) {
+            purgeCache(me->GetSubModel(x), del);
         }
     }
 }
+static bool findMatch(Element *em, RenderCacheItem* item) {
+    for (int l = 0; l < em->GetEffectLayerCount(); l++) {
+        EffectLayer* el = em->GetEffectLayer(l);
+        for (int e = 0; e < el->GetEffectCount(); e++) {
+            if (item->IsMatch(el->GetEffect(e), nullptr)) {
+                return true;
+            }
+        }
+    }
+    if (em->GetType() == ELEMENT_TYPE_MODEL) {
+        ModelElement *me = (ModelElement*)em;
+        for (int x = 0; x < me->GetSubModelCount(); x++) {
+            if (findMatch(me->GetSubModel(x), item)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+void RenderCache::CleanupCache(SequenceElements* sequenceElements)
+{
+    // clean up cache but only for missing effects or wrong start times
+    std::unique_lock<std::recursive_mutex> lock(_cacheLock);
+    for (auto it = _cache.begin(); it != _cache.end(); ++it) {
+        bool found = false;
 
-void RenderCache::Purge(bool dodelete)
+        for (int i = 0; i < sequenceElements->GetElementCount() && !found; i++) {
+            Element* em = sequenceElements->GetElement(i);
+            found = findMatch(em, *it);
+        }
+
+        if (!found) {
+            (*it)->Delete();
+        }
+    }
+    
+    for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+        Element* em = sequenceElements->GetElement(i);
+        purgeCache(em, false);
+    }
+
+}
+
+void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -143,6 +171,7 @@ void RenderCache::Purge(bool dodelete)
         logger_base.debug("Purging render cache folder %s.", (const char *)_cacheFolder.c_str());
     }
 
+    std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     while (_cache.size() > 0)
     {
         if (dodelete)
@@ -152,9 +181,15 @@ void RenderCache::Purge(bool dodelete)
         else
         {
             _cache.front()->Save();
+            delete _cache.front();
+            _cache.pop_front();
         }
-        delete _cache.front();
-        _cache.pop_front();
+    }
+    if (sequenceElements) {
+        for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+            Element* em = sequenceElements->GetElement(i);
+            purgeCache(em, dodelete);
+        }
     }
 }
 
@@ -170,22 +205,19 @@ RenderCacheItem::~RenderCacheItem()
 void RenderCacheItem::PurgeFrames()
 {
     _purged = true;
-    for (auto it = _frames.begin(); it != _frames.end(); ++it)
-    {
-        if (it->second != nullptr)
-        {
-            free(it->second);
-            it->second = nullptr;
+    for (int x = _frames.size() - 1; x >= 0; --x) {
+        if (_frames[x]) {
+            free(_frames[x]);
+            _frames[x] = nullptr;
         }
     }
-    _frames.empty();
 }
 
-RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, RenderBuffer* buffer)
+RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, RenderBuffer* buffer) : _renderCache(renderCache)
 {
     _purged = false;
     _dirty = true;
-    _frameSize = buffer->BufferWi * buffer->BufferHt;
+    _frameSize = sizeof(xlColor) * buffer->pixels.size() ;
     wxString elname = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
     elname.Replace("/", "_");
     elname.Replace("\\", "_");
@@ -260,59 +292,38 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
         }
     }
 
-    if (!ok)
-    {
-        // this should have matched but didnt so this cache item has expired
-        Delete();
-    }
-
     return ok;
 }
 
 void RenderCacheItem::Delete()
 {
-    if (wxFile::Exists(_cacheFile))
-    {
+    if (!_purged && wxFile::Exists(_cacheFile)) {
         wxRemoveFile(_cacheFile);
     }
     PurgeFrames();
+    _renderCache->RemoveItem(this);
 }
 
 void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 {
     int frame = buffer->curPeriod - buffer->curEffStartPer;
-    wxASSERT(_frameSize == buffer->BufferWi * buffer->BufferHt);
-
-    unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize * 4);
-    unsigned char* pc = frameBuffer;
-
-    for (int y = 0; y < buffer->BufferHt; y++)
-    {
-        for (int x = 0; x < buffer->BufferWi; x++)
-        {
-            xlColor c = buffer->GetPixel(x, y);
-            *pc = c.red;
-            ++pc;
-            *pc = c.green;
-            ++pc;
-            *pc = c.blue;
-            ++pc;
-            *pc = c.alpha;
-            ++pc;
-        }
+    wxASSERT(_frameSize == (sizeof(xlColor) * buffer->pixels.size()));
+    _frameSize = sizeof(xlColor) * buffer->pixels.size();
+    
+    if (frame >= _frames.size()) {
+        int maxframe = buffer->curEffEndPer - buffer->curEffStartPer + 1;
+        _frames.resize(maxframe);
     }
-
-    if (_frames.find(frame) != _frames.end())
-    {
-        if (_frames[frame] != nullptr)
-        {
-            free(_frames[frame]);
-            _frames[frame] = nullptr;
-        }
+    
+    unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize);
+    memcpy(frameBuffer, &buffer->pixels[0], _frameSize);
+    
+    if (_frames[frame]) {
+        free(_frames[frame]);
+        _frames[frame] = nullptr;
     }
 
     _frames[frame] = frameBuffer;
-
     _dirty = true;
 
     if (buffer->curPeriod == buffer->curEffEndPer)
@@ -321,31 +332,18 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     }
 }
 
-void RenderCacheItem::GetFrame(RenderBuffer* buffer)
+bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
 {
     int frame = buffer->curPeriod - buffer->curEffStartPer;
-    wxASSERT(_frameSize == buffer->BufferWi * buffer->BufferHt);
+    wxASSERT(_frameSize == (sizeof(xlColor) * buffer->pixels.size()));
 
-    if (_frames.find(frame) != _frames.end())
-    {
+    if (frame < _frames.size() && _frames[frame]) {
         // its in memory ... read it from there
-        unsigned char* pc = _frames.find(frame)->second;
-
-        for (int y = 0; y < buffer->BufferHt; y++)
-        {
-            for (int x = 0; x < buffer->BufferWi; x++)
-            {
-                xlColor c(*pc, *(pc + 1), *(pc + 2), *(pc + 3));
-                pc += 4;
-                buffer->SetPixel(x, y, c);
-            }
-        }
+        unsigned char* pc = _frames[frame];
+        memcpy(&buffer->pixels[0], pc, _frameSize);
+        return true;
     }
-    else
-    {
-        // this should never happen if we are done
-        wxASSERT(false);
-    }
+    return false;
 }
 
 void RenderCacheItem::Save()
@@ -378,7 +376,7 @@ void RenderCacheItem::Save()
         // write the frames
         for (auto it = _frames.begin(); it != _frames.end(); ++it)
         {
-            file.Write(it->second, _frameSize * 4);
+            file.Write(*it, _frameSize);
         }
         file.Close();
     }
@@ -391,11 +389,10 @@ void RenderCacheItem::Save()
 bool RenderCacheItem::IsDone(RenderBuffer* buffer) const
 {
     int frame = buffer->curPeriod - buffer->curEffStartPer;
-
-    return _frames.find(frame) != _frames.end();
+    return _frames[frame];
 }
 
-RenderCacheItem::RenderCacheItem(const std::string& filename)
+RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& filename) : _renderCache(renderCache)
 {
     _cacheFile = filename;
     wxFileName fn(_cacheFile);
@@ -404,16 +401,14 @@ RenderCacheItem::RenderCacheItem(const std::string& filename)
 
     wxFile file;
 
-    if (file.Open(_cacheFile))
-    {
+    if (file.Open(_cacheFile)) {
         char headerBuffer[8192];
         memset(headerBuffer, 0x00, sizeof(headerBuffer));
         file.Read(headerBuffer, sizeof(headerBuffer));
 
         char* ps = headerBuffer;
 
-        while (strcmp(ps, "RC_HEADEREND") != 0)
-        {
+        while (strcmp(ps, "RC_HEADEREND") != 0) {
             std::string key(ps);
             ps += strlen(ps) + 1;
             std::string value(ps);
@@ -423,16 +418,16 @@ RenderCacheItem::RenderCacheItem(const std::string& filename)
         }
         ps += strlen(ps) + 1;
 
-        _frameSize = wxAtoi(_properties["Width"]) * wxAtoi(_properties["Height"]);
+        _frameSize = wxAtoi(_properties["Width"]) * wxAtoi(_properties["Height"]) * sizeof(xlColor);
         long frames = wxAtoi(_properties["Frames"]);
+        _frames.resize(frames);
         long firstFrameOffset = ps - headerBuffer;
 
         file.Seek(firstFrameOffset);
 
-        for (int i = 0; i < frames; i++)
-        {
-            unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize * 4);
-            file.Read(frameBuffer, _frameSize * 4);
+        for (int i = 0; i < frames; i++) {
+            unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize);
+            file.Read(frameBuffer, _frameSize);
             _frames[i] = frameBuffer;
         }
 

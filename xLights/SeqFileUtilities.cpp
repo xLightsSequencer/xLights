@@ -344,7 +344,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
         // open the xml file so we can see if it has media
         CurrentSeqXmlFile->Open(GetShowDirectory());
 
-        _renderCache.SetSequence(CurrentSeqXmlFile->GetFullPath());
+        _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
 
         // if fseq didn't have media check xml
         if (CurrentSeqXmlFile->GetMediaFile() != "")
@@ -596,7 +596,7 @@ bool xLightsFrame::CloseSequence()
     AbortRender();
 
     _renderCache.CleanupCache(&mSequenceElements);
-    _renderCache.SetSequence("");
+    _renderCache.SetSequence(fseqDirectory.ToStdString(), "");
 
     // clear everything to prepare for new sequence
     displayElementsPanel->Clear();

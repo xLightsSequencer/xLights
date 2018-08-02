@@ -1188,7 +1188,8 @@ void xLightsFrame::BuildRenderTree() {
     }
 }
 
-void xLightsFrame::Render(std::list<Model*> models, std::list<Model *> &restrictToModels,
+void xLightsFrame::Render(const std::list<Model*> models,
+                          const std::list<Model *> &restrictToModels,
                           int startFrame, int endFrame,
                           bool progressDialog, bool clear,
                           std::function<void()>&& callback) {
@@ -1520,7 +1521,23 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 
     logger_base.debug("Rendering %d models %d frames.", models.size(), SeqData.NumFrames());
 
+#ifdef DOTIMING
+    wxStopWatch sw;
+    Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw, callback] {
+        printf("%s  Render 1:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw.Time());
+        wxStopWatch sw2;
+        Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw2, callback] {
+            printf("%s  Render 2:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw2.Time());
+            wxStopWatch sw3;
+            Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, [sw3, callback] {
+                printf("%s  Render 3:  %ld ms\n", (const char *)xlightsFilename.c_str(), sw3.Time());
+                callback();
+            } );
+        });
+    });
+#else
     Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, std::move(callback));
+#endif
 }
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
@@ -1829,26 +1846,14 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, b)) {
                 wxStopWatch sw;
 
-                RenderCacheItem* rci = nullptr;
-                
-                if (reff->SupportsRenderCache())
-                {
-                    rci = _renderCache.GetItem(effectObj, &b);
-                }
-
-                if (rci == nullptr || !rci->IsDone(&b))
-                {
-                    reff->Render(effectObj, SettingsMap, b);
-                    if (rci != nullptr)
-                    {
-                        rci->AddFrame(&b);
+                if (effectObj != nullptr && reff->SupportsRenderCache()) {
+                    if (!effectObj->GetFrame(b, _renderCache)) {
+                        reff->Render(effectObj, SettingsMap, b);
+                        effectObj->AddFrame(b, _renderCache);
                     }
+                } else {
+                    reff->Render(effectObj, SettingsMap, b);
                 }
-                else
-                {
-                    rci->GetFrame(&b);
-                }
-
                 // Log slow render frames ... this takes time but at this point it is already slow
                 if (sw.Time() > 150)
                 {

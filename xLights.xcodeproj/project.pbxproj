@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1E1EC9C620B00617007C28F2 /* VideoRenderCacher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */; };
 		1E3E24F81E371555001D48E3 /* UserButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F61E371555001D48E3 /* UserButton.cpp */; };
 		1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */; };
 		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
@@ -494,6 +493,7 @@
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
+		67CE7B522111E02E004005BC /* RenderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CE7B502111E02D004005BC /* RenderCache.cpp */; };
 		67CF20CF1C3D8D71000FCDF7 /* RenderBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CF20CE1C3D8D71000FCDF7 /* RenderBuffer.cpp */; };
 		67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */; };
 		67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C781BEA691900000A7F /* DimmingCurve.cpp */; };
@@ -774,8 +774,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1E1EC9C420B00617007C28F2 /* VideoRenderCacher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoRenderCacher.h; sourceTree = "<group>"; };
-		1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoRenderCacher.cpp; sourceTree = "<group>"; };
 		1E3E24F61E371555001D48E3 /* UserButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserButton.cpp; sourceTree = "<group>"; };
 		1E3E24F71E371555001D48E3 /* UserButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserButton.h; sourceTree = "<group>"; };
 		1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemCURL.cpp; path = PlayList/PlayListItemCURL.cpp; sourceTree = "<group>"; };
@@ -1602,6 +1600,8 @@
 		67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VUMeterPanel.cpp; path = effects/VUMeterPanel.cpp; sourceTree = "<group>"; };
 		67CB9F291C6E1FF400390753 /* VUMeterEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VUMeterEffect.h; path = effects/VUMeterEffect.h; sourceTree = "<group>"; };
 		67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VUMeterEffect.cpp; path = effects/VUMeterEffect.cpp; sourceTree = "<group>"; };
+		67CE7B502111E02D004005BC /* RenderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCache.cpp; sourceTree = "<group>"; };
+		67CE7B512111E02D004005BC /* RenderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderCache.h; sourceTree = "<group>"; };
 		67CF20CD1C3D8D71000FCDF7 /* RenderBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderBuffer.h; sourceTree = "<group>"; };
 		67CF20CE1C3D8D71000FCDF7 /* RenderBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBuffer.cpp; sourceTree = "<group>"; };
 		67D11C741BEA691900000A7F /* ModelDimmingCurveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelDimmingCurveDialog.h; sourceTree = "<group>"; };
@@ -2777,6 +2777,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67CE7B502111E02D004005BC /* RenderCache.cpp */,
+				67CE7B512111E02D004005BC /* RenderCache.h */,
 				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
 				6785922620F02CD9001C2929 /* LyricUserDictDialog.h */,
 				676507CB20D185F100532BA9 /* xlLockButton.cpp */,
@@ -2976,8 +2978,6 @@
 				67C31166200506B2005A12D0 /* VideoExporter.h */,
 				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
 				679484AC1CD8E998001A7B4F /* VideoReader.h */,
-				1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */,
-				1E1EC9C420B00617007C28F2 /* VideoRenderCacher.h */,
 				67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */,
 				67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */,
 				671130AF1E4EB18100AF09A7 /* VSAFile.cpp */,
@@ -3779,7 +3779,6 @@
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */,
 				67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */,
-				1E1EC9C620B00617007C28F2 /* VideoRenderCacher.cpp in Sources */,
 				6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
 				67BF80041F278956002F118D /* Pixlite16.cpp in Sources */,
@@ -3945,6 +3944,7 @@
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
 				67B71D251EC09FDB00690109 /* ColorManagerDialog.cpp in Sources */,
+				67CE7B522111E02E004005BC /* RenderCache.cpp in Sources */,
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,

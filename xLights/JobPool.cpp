@@ -304,9 +304,15 @@ void JobPool::Stop()
         JobPoolWorker *worker = threads.at(i);
         worker->Stop();
     }
+    
     while (!threads.empty()) {
         locker.unlock();
-        wxThread::Sleep(5);
+
+        std::unique_lock<std::mutex> qlocker(queueLock);
+        signal.notify_all();
+        qlocker.unlock();
+        
+        wxThread::Sleep(1);
         locker.lock();
     }
 }

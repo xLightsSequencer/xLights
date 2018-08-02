@@ -7,6 +7,7 @@
 #include "../UtilFunctions.h"
 #include "../ValueCurve.h"
 #include "../UtilClasses.h"
+#include "../RenderCache.h"
 
 #include <unordered_map>
 
@@ -117,7 +118,7 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
 Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected)
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
-      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected)
+      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr), searchedForCache(false)
 {
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
@@ -169,6 +170,10 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
 
 Effect::~Effect()
 {
+    if (mCache) {
+        mCache->Delete();
+        mCache = nullptr;
+    }
     if (mName != nullptr)
     {
         delete mName;
@@ -227,7 +232,7 @@ void Effect::SetEffectName(const std::string & name)
 
 wxString Effect::GetDescription() const
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (mSettings.Contains("X_Effect_Description"))
     {
         return mSettings["X_Effect_Description"];
@@ -274,13 +279,13 @@ bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
 
 bool Effect::IsLocked() const
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
     return mSettings.Contains("X_Effect_Locked");
 }
 
 void Effect::SetLocked(bool lock)
 {
-    std::unique_lock<std::mutex> getlock(settingsLock);
+    std::unique_lock<std::recursive_mutex> getlock(settingsLock);
     if (lock)
     {
         mSettings["X_Effect_Locked"] = "True";
@@ -294,17 +299,22 @@ void Effect::SetLocked(bool lock)
 void Effect::IncrementChangeCount()
 {
     mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    mCache->Delete();
+    searchedForCache = false;
+    mCache = nullptr;
+
 }
 
 std::string Effect::GetSettingsAsString() const
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
     return mSettings.AsString();
 }
 
 void Effect::SetSettings(const std::string &settings, bool keepxsettings)
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     SettingsMap x;
     if (keepxsettings)
@@ -360,7 +370,7 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
 
 void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
 
     for (std::map<std::string,std::string>::const_iterator it=mSettings.begin(); it!=mSettings.end(); ++it)
     {
@@ -384,13 +394,13 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
 
 std::string Effect::GetPaletteAsString() const
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
     return mPaletteMap.AsString();
 }
 
 void Effect::SetPalette(const std::string& i)
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
     mPaletteMap.Parse(i);
     mColors.clear();
     mCC.clear();
@@ -404,13 +414,13 @@ void Effect::SetPalette(const std::string& i)
 
 void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
 {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
     target = mColors;
     newcc = mCC;
 }
 
 void Effect::PaletteMapUpdated() {
-    std::unique_lock<std::mutex> lock(settingsLock);
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
     mColors.clear();
     mCC.clear();
     IncrementChangeCount();
@@ -428,4 +438,31 @@ bool operator<(const Effect &e1, const Effect &e2)
         return true;
     }
     return false;
+}
+
+bool Effect::GetFrame(RenderBuffer &buffer, RenderCache &renderCache) {
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (mCache == nullptr && !searchedForCache) {
+        mCache = renderCache.GetItem(this, &buffer);
+        searchedForCache = true;
+    }
+    return mCache && mCache->GetFrame(&buffer);
+}
+
+void Effect::AddFrame(RenderBuffer &buffer, RenderCache &renderCache) {
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (mCache) {
+        mCache->AddFrame(&buffer);
+    }
+}
+void Effect::PurgeCache(bool deleteCache) {
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    if (mCache) {
+        if (!deleteCache) {
+            mCache->PurgeFrames();
+        }
+        mCache->Delete();
+        mCache = nullptr;
+        searchedForCache = false;
+    }
 }
