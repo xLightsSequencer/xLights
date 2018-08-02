@@ -165,6 +165,7 @@
 		674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674ACA7B1C5ADE4000B54B32 /* Node.cpp */; };
 		674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */; };
 		674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */; };
+		674C7C7B21132E3E0056FB9D /* Parallel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674C7C7921132E3E0056FB9D /* Parallel.cpp */; };
 		674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D1C1C207B9F000D632B /* OpenGL.framework */; };
 		674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
 		674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D231C207BD7000D632B /* AudioToolbox.framework */; };
@@ -1039,6 +1040,8 @@
 		674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemScreenMap.cpp; path = PlayList/PlayListItemScreenMap.cpp; sourceTree = "<group>"; };
 		674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemScreenMapPanel.cpp; path = PlayList/PlayListItemScreenMapPanel.cpp; sourceTree = "<group>"; };
 		674B81512028EDA3002A97A6 /* PlayListItemScreenMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemScreenMap.h; path = PlayList/PlayListItemScreenMap.h; sourceTree = "<group>"; };
+		674C7C7921132E3E0056FB9D /* Parallel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Parallel.cpp; sourceTree = "<group>"; };
+		674C7C7A21132E3E0056FB9D /* Parallel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Parallel.h; sourceTree = "<group>"; };
 		674D3D1C1C207B9F000D632B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		674D3D211C207BCC000D632B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		674D3D231C207BD7000D632B /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -3005,6 +3008,8 @@
 				67BCD1541E6DAF9100F99935 /* xLightsVersion.h */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
 				675DE2651B53381800A9BB44 /* xlSlider.cpp */,
+				674C7C7921132E3E0056FB9D /* Parallel.cpp */,
+				674C7C7A21132E3E0056FB9D /* Parallel.h */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -3679,6 +3684,7 @@
 				67BF80061F278956002F118D /* Falcon.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67BF80081F278956002F118D /* FPP.cpp in Sources */,
+				674C7C7B21132E3E0056FB9D /* Parallel.cpp in Sources */,
 				67B2CFD81C3A186A003C17CA /* SpiralsEffect.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */,

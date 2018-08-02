@@ -1063,6 +1063,7 @@ bool AudioManager::IsDataLoaded(long pos)
 }
 
 AudioManager::AudioManager(const std::string& audio_file, int step, int block)
+    :  _jobPool("AudioManager")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

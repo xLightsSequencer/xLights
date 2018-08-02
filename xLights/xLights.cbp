@@ -501,6 +501,8 @@
 		<Unit filename="OptionChooser.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
+		<Unit filename="Parallel.cpp" />
+		<Unit filename="Parallel.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />

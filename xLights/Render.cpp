@@ -1521,6 +1521,7 @@ void xLightsFrame::RenderGridToSeqData(std::function<void()>&& callback) {
 
     logger_base.debug("Rendering %d models %d frames.", models.size(), SeqData.NumFrames());
 
+    
 #ifdef DOTIMING
     wxStopWatch sw;
     Render(models, restricts, 0, SeqData.NumFrames() - 1, true, false, [this, models, restricts, sw, callback] {
