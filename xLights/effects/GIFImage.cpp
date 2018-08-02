@@ -16,7 +16,8 @@ bool GIFImage::IsGIF(const std::string& filename)
 
 GIFImage::~GIFImage()
 {
-	_gifDecoder.Destroy();
+    wxLogNull logNo;  // suppress popups from gif images.
+    _gifDecoder.Destroy();
 }
 
 GIFImage::GIFImage(const std::string& filename, bool suppressBackground)
@@ -82,7 +83,8 @@ int GIFImage::CalcFrameForTime(int msec, bool loop)
 
 void GIFImage::ReadFrameProperties()
 {
-	_totalTime = 0;
+    wxLogNull logNo;  // suppress popups from gif images.
+    _totalTime = 0;
 	for (size_t i = 0; i < _gifDecoder.GetFrameCount(); ++i)
 	{
 		long frametime = _gifDecoder.GetDelay(i);
@@ -103,6 +105,9 @@ void GIFImage::ReadFrameProperties()
 void GIFImage::DoCreate(const std::string& filename)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxLogNull logNo;  // suppress popups from gif images.
+
 #ifdef DEBUG_GIF
     logger_base.debug("Loading gif %s.", (const char*)filename.c_str());
 #endif
@@ -195,6 +200,8 @@ void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool
 
 wxPoint GIFImage::LoadRawImageFrame(wxImage& image, int frame, wxAnimationDisposal& disposal)
 {
+    wxLogNull logNo;  // suppress popups from gif images.
+
 	#ifdef DEBUG_GIF
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Frame %d loaded actual image size (%d,%d)", frame, image.GetWidth(), image.GetHeight());
