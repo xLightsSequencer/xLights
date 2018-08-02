@@ -300,10 +300,11 @@ void Effect::IncrementChangeCount()
 {
     mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    mCache->Delete();
+    if (mCache) {
+        mCache->Delete();
+        mCache = nullptr;
+    }
     searchedForCache = false;
-    mCache = nullptr;
-
 }
 
 std::string Effect::GetSettingsAsString() const
