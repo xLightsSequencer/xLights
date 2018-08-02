@@ -1674,10 +1674,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_ShowACRamps->Check(_showACRamps);
     logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
 
-    config->Read("xLightsEnableRenderCache", &_enableRenderCache, true);
-    MenuItem_EnableRenderCache->Check(_enableRenderCache);
-    logger_base.debug("Enable Render Cache: %s.", _enableRenderCache ? "true" : "false");
-    _renderCache.Enable(_enableRenderCache);
+    bool bit64 = GetBitness() == "64bit";
+    config->Read("xLightsEnableRenderCache", &_enableRenderCache, bit64);
+
+    // Dont enable render caching in 32 bit ... there just isnt enough memory
+    if (!bit64)
+    {
+        logger_base.debug("Enable Render Cache: false due to running 32 bit.");
+        MenuItem_EnableRenderCache->Check(false);
+        MenuItem_EnableRenderCache->Enable(false);
+        MenuItem_PurgeRenderCache->Enable(false);
+    }
+    else
+    {
+        MenuItem_EnableRenderCache->Check(_enableRenderCache);
+        logger_base.debug("Enable Render Cache: %s.", _enableRenderCache ? "true" : "false");
+        _renderCache.Enable(_enableRenderCache);
+    }
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);

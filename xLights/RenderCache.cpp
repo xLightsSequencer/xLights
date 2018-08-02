@@ -61,6 +61,14 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
     }
 }
 void RenderCache::RemoveItem(RenderCacheItem *item) {
+    for (auto it = _cache.begin(); it != _cache.end(); ++it)
+    {
+        if (item == *it)
+        {
+            _cache.erase(it);
+            break;
+        }
+    }
     delete item;
 }
 
