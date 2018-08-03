@@ -90,7 +90,7 @@ RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
             return nullptr;
         }
     }
- 
+
     std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     for (auto it = _cache.begin(); it != _cache.end(); ++it) {
         if ((*it)->IsMatch(effect, buffer)) {
@@ -114,7 +114,6 @@ void RenderCache::Close()
     _cacheFolder = "";
 }
 
-
 static void purgeCache(Element *em, bool del) {
     for (int l = 0; l < em->GetEffectLayerCount(); l++) {
         EffectLayer* el = em->GetEffectLayer(l);
@@ -129,6 +128,22 @@ static void purgeCache(Element *em, bool del) {
         }
     }
 }
+
+static void ResetEffectCache(Element *em) {
+    for (int l = 0; l < em->GetEffectLayerCount(); l++) {
+        EffectLayer* el = em->GetEffectLayer(l);
+        for (int e = 0; e < el->GetEffectCount(); e++) {
+            el->GetEffect(e)->ResetCache();
+        }
+    }
+    if (em->GetType() == ELEMENT_TYPE_MODEL) {
+        ModelElement *me = (ModelElement*)em;
+        for (int x = 0; x < me->GetSubModelCount(); x++) {
+            ResetEffectCache(me->GetSubModel(x));
+        }
+    }
+}
+
 static bool findMatch(Element *em, RenderCacheItem* item) {
     for (int l = 0; l < em->GetEffectLayerCount(); l++) {
         EffectLayer* el = em->GetEffectLayer(l);
@@ -148,6 +163,7 @@ static bool findMatch(Element *em, RenderCacheItem* item) {
     }
     return false;
 }
+
 void RenderCache::CleanupCache(SequenceElements* sequenceElements)
 {
     // clean up cache but only for missing effects or wrong start times
@@ -164,7 +180,7 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
             (*it)->Delete();
         }
     }
-    
+
     for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
         Element* em = sequenceElements->GetElement(i);
         purgeCache(em, false);
@@ -199,6 +215,16 @@ void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
         for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
             Element* em = sequenceElements->GetElement(i);
             purgeCache(em, dodelete);
+        }
+    }
+}
+
+void RenderCache::ResetEffects(SequenceElements* sequenceElements)
+{
+    if (sequenceElements) {
+        for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
+            Element* em = sequenceElements->GetElement(i);
+            ResetEffectCache(em);
         }
     }
 }
@@ -319,15 +345,15 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     int frame = buffer->curPeriod - buffer->curEffStartPer;
     wxASSERT(_frameSize == (sizeof(xlColor) * buffer->pixels.size()));
     _frameSize = sizeof(xlColor) * buffer->pixels.size();
-    
+
     if (frame >= _frames.size()) {
         int maxframe = buffer->curEffEndPer - buffer->curEffStartPer + 1;
         _frames.resize(maxframe);
     }
-    
+
     unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize);
     memcpy(frameBuffer, &buffer->pixels[0], _frameSize);
-    
+
     if (_frames[frame]) {
         free(_frames[frame]);
         _frames[frame] = nullptr;

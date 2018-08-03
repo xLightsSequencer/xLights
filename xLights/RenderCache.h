@@ -55,6 +55,7 @@ class RenderCache
         std::string GetCacheFolder() const { return _cacheFolder; }
         void CleanupCache(SequenceElements* sequenceElements);
         void Purge(SequenceElements* sequenceElements, bool dodelete);
+        void ResetEffects(SequenceElements* sequenceElements);
         void Enable(bool enabled) { _enabled = enabled; }
 };
 

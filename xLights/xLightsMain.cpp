@@ -8350,5 +8350,6 @@ void xLightsFrame::OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event)
     {
         // this will force a reload of the cache
         _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.ResetEffects(&mSequenceElements);
     }
 }

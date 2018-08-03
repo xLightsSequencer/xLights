@@ -456,6 +456,7 @@ void Effect::AddFrame(RenderBuffer &buffer, RenderCache &renderCache) {
         mCache->AddFrame(&buffer);
     }
 }
+
 void Effect::PurgeCache(bool deleteCache) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (mCache) {
@@ -466,4 +467,10 @@ void Effect::PurgeCache(bool deleteCache) {
         mCache = nullptr;
         searchedForCache = false;
     }
+}
+
+void Effect::ResetCache() {
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    searchedForCache = false;
+    mCache = nullptr;
 }
