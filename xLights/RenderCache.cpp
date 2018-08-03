@@ -7,6 +7,7 @@
 
 #include <wx/filename.h>
 #include <wx/dir.h>
+#include <functional>
 
 #pragma region RenderCache
 
@@ -122,26 +123,12 @@ void RenderCache::Close()
     _cacheFolder = "";
 }
 
-static void purgeCache(Element *em, bool del) {
+static bool doOnEffectsInternal(Element *em, std::function<bool(Effect*)>& func) {
     for (int l = 0; l < em->GetEffectLayerCount(); l++) {
         EffectLayer* el = em->GetEffectLayer(l);
         for (int e = 0; e < el->GetEffectCount(); e++) {
-            el->GetEffect(e)->PurgeCache(del);
-        }
-    }
-    if (em->GetType() == ELEMENT_TYPE_MODEL) {
-        ModelElement *me = (ModelElement*)em;
-        for (int x = 0; x < me->GetSubModelCount(); x++) {
-            purgeCache(me->GetSubModel(x), del);
-        }
-    }
-}
-
-static bool findMatch(Element *em, RenderCacheItem* item) {
-    for (int l = 0; l < em->GetEffectLayerCount(); l++) {
-        EffectLayer* el = em->GetEffectLayer(l);
-        for (int e = 0; e < el->GetEffectCount(); e++) {
-            if (item->IsMatch(el->GetEffect(e), nullptr)) {
+            Effect *eff = el->GetEffect(e);
+            if (func(eff)) {
                 return true;
             }
         }
@@ -149,12 +136,40 @@ static bool findMatch(Element *em, RenderCacheItem* item) {
     if (em->GetType() == ELEMENT_TYPE_MODEL) {
         ModelElement *me = (ModelElement*)em;
         for (int x = 0; x < me->GetSubModelCount(); x++) {
-            if (findMatch(me->GetSubModel(x), item)) {
+            if (doOnEffectsInternal(me->GetSubModel(x), func)) {
                 return true;
+            }
+        }
+    } else if (em->GetType() == ELEMENT_TYPE_STRAND) {
+        StrandElement *se = (StrandElement*)em;
+        for (int x = 0; x < se->GetNodeLayerCount(); x++) {
+            NodeLayer* el = se->GetNodeLayer(x);
+            for (int e = 0; e < el->GetEffectCount(); e++) {
+                Effect *eff = el->GetEffect(e);
+                if (func(eff)) {
+                    return true;
+                }
             }
         }
     }
     return false;
+}
+static bool doOnEffects(Element *em, std::function<bool(Effect*)>&& f) {
+    std::function<bool(Effect*)> func = f;
+    return doOnEffectsInternal(em, func);
+}
+
+static void purgeCache(Element *em, bool del) {
+    doOnEffects(em, [del] (Effect* e) {
+        e->PurgeCache(del);
+        return false;
+    });
+}
+
+static bool findMatch(Element *em, RenderCacheItem* item) {
+    return doOnEffects(em, [item] (Effect* e) {
+        return item->IsMatch(e, nullptr);
+    });
 }
 
 void RenderCache::CleanupCache(SequenceElements* sequenceElements)
