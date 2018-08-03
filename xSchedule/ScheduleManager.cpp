@@ -1424,6 +1424,52 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Play specified playlist if not running")
+                {
+                    PlayList* running = GetRunningPlayList();
+                    PlayList* p = GetPlayList(DecodePlayList(parameters));
+
+                    if (p != nullptr)
+                    {
+                        if (running == nullptr || running->GetId() != p->GetId())
+                        {
+                            if (!PlayPlayList(p, rate))
+                            {
+                                result = false;
+                                msg = "Unable to start playlist.";
+                            }
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Playlist not started as it is already runnning.";
+                        }
+                    }
+                    scheduleChanged = true;
+                }
+                else if (command == "Play specified playlist if nothing running")
+                {
+                    PlayList* running = GetRunningPlayList();
+                    PlayList* p = GetPlayList(DecodePlayList(parameters));
+
+                    if (p != nullptr)
+                    {
+                        if (running == nullptr)
+                        {
+                            if (!PlayPlayList(p, rate))
+                            {
+                                result = false;
+                                msg = "Unable to start playlist.";
+                            }
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Playlist not started as something is already runnning.";
+                        }
+                    }
+                    scheduleChanged = true;
+                }
                 else if (command == "Play specified playlist looped")
                 {
                     PlayList* p = GetPlayList(DecodePlayList(parameters));
