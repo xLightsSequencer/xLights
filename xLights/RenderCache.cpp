@@ -84,9 +84,9 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect)
         }
 
         // we also can't handle per model render styles ... as the buffers keep changing
-        //if (it->first == "B_CHOICE_BufferStyle" && wxString(it->second).StartsWith("Per Model")) {
-        //    return false;
-        //}
+        if (it->first == "B_CHOICE_BufferStyle" && wxString(it->second).StartsWith("Per Model")) {
+            return false;
+        }
     }
 
     return true;
@@ -133,21 +133,6 @@ static void purgeCache(Element *em, bool del) {
         ModelElement *me = (ModelElement*)em;
         for (int x = 0; x < me->GetSubModelCount(); x++) {
             purgeCache(me->GetSubModel(x), del);
-        }
-    }
-}
-
-static void ResetEffectCache(Element *em) {
-    for (int l = 0; l < em->GetEffectLayerCount(); l++) {
-        EffectLayer* el = em->GetEffectLayer(l);
-        for (int e = 0; e < el->GetEffectCount(); e++) {
-            el->GetEffect(e)->ResetCache();
-        }
-    }
-    if (em->GetType() == ELEMENT_TYPE_MODEL) {
-        ModelElement *me = (ModelElement*)em;
-        for (int x = 0; x < me->GetSubModelCount(); x++) {
-            ResetEffectCache(me->GetSubModel(x));
         }
     }
 }
@@ -227,16 +212,6 @@ void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
     }
 }
 
-void RenderCache::ResetEffects(SequenceElements* sequenceElements)
-{
-    if (sequenceElements) {
-        for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
-            Element* em = sequenceElements->GetElement(i);
-            ResetEffectCache(em);
-        }
-    }
-}
-
 #pragma endregion RenderCache
 
 #pragma region RenderCacheItem
@@ -269,7 +244,32 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     elname.Replace("?", "_");
     elname.Replace("*", "_");
     elname.Replace("$", "_");
-    std::string file = wxString::Format("%s_%s_%d_%d.cache", effect->GetEffectName(), elname, effect->GetParentEffectLayer()->GetLayerNumber(), effect->GetStartTimeMS()).ToStdString();
+    wxString mname = buffer->GetModel()->GetFullName();
+    mname.Replace("/", "_");
+    mname.Replace("\\", "_");
+    mname.Replace(":", "_");
+    mname.Replace("?", "_");
+    mname.Replace("*", "_");
+    mname.Replace("$", "_");
+
+    std::string file;
+    if (elname == mname)
+    {
+        file = wxString::Format("%s_%s_%d_%d.cache",
+            effect->GetEffectName(),
+            elname,
+            effect->GetParentEffectLayer()->GetLayerNumber(),
+            effect->GetStartTimeMS()).ToStdString();
+    }
+    else
+    {
+        file = wxString::Format("%s_%s_%s_%d_%d.cache", 
+            effect->GetEffectName(), 
+            elname, 
+            mname, 
+            effect->GetParentEffectLayer()->GetLayerNumber(), 
+            effect->GetStartTimeMS()).ToStdString();
+    }
     _cacheFile = renderCache->GetCacheFolder() + wxFileName::GetPathSeparator() + file;
     _properties["Effect"] = effect->GetEffectName();
     _properties["Element"] = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
@@ -303,6 +303,8 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     Element* e = el->GetParentElement();
     if (_properties.at("Element") != e->GetFullName()) return false;
 
+    if (buffer == nullptr) return true;
+
     if (_properties.at("Model") != buffer->GetModel()->GetFullName()) return false;
 
     // at this point it is the right element ... just has something may have changed
@@ -310,8 +312,6 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 
     if (wxAtoi(_properties.at("EndMS")) != effect->GetEndTimeMS()) ok = false;
     if (_properties.at("Effect") != effect->GetEffectName()) ok = false;
-
-    if (buffer == nullptr) return true;
 
     if (wxAtoi(_properties.at("Width")) != buffer->BufferWi) ok = false;
     if (wxAtoi(_properties.at("Height")) != buffer->BufferHt) ok = false;

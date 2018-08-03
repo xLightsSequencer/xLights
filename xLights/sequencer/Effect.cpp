@@ -118,7 +118,7 @@ void Effect::ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColor
 Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette,
                int startTimeMS, int endTimeMS, int Selected, bool Protected)
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
-      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr), searchedForCache(false)
+      mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
 {
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
@@ -304,7 +304,6 @@ void Effect::IncrementChangeCount()
         mCache->Delete();
         mCache = nullptr;
     }
-    searchedForCache = false;
 }
 
 std::string Effect::GetSettingsAsString() const
@@ -443,9 +442,8 @@ bool operator<(const Effect &e1, const Effect &e2)
 
 bool Effect::GetFrame(RenderBuffer &buffer, RenderCache &renderCache) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    if (mCache == nullptr && !searchedForCache) {
+    if (mCache == nullptr) {
         mCache = renderCache.GetItem(this, &buffer);
-        searchedForCache = true;
     }
     return mCache && mCache->GetFrame(&buffer);
 }
@@ -465,12 +463,5 @@ void Effect::PurgeCache(bool deleteCache) {
         }
         mCache->Delete();
         mCache = nullptr;
-        searchedForCache = false;
     }
-}
-
-void Effect::ResetCache() {
-    std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    searchedForCache = false;
-    mCache = nullptr;
 }
