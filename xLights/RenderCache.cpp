@@ -260,8 +260,10 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     elname.Replace("*", "_");
     elname.Replace("$", "_");
     wxString mname = elname;
+    wxString mFullName;
     if (buffer->GetModel()) {
-        mname = buffer->GetModel()->GetFullName();
+        mFullName = buffer->GetModel()->GetFullName();
+        mname = mFullName;
         mname.Replace("/", "_");
         mname.Replace("\\", "_");
         mname.Replace(":", "_");
@@ -291,7 +293,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     _cacheFile = renderCache->GetCacheFolder() + wxFileName::GetPathSeparator() + file;
     _properties["Effect"] = effect->GetEffectName();
     _properties["Element"] = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
-    _properties["Model"] = buffer->GetModel()->GetFullName();
+    _properties["Model"] = mFullName;
     _properties["EffectLayer"] = wxString::Format("%d", effect->GetParentEffectLayer()->GetLayerNumber());
     _properties["StartMS"] = wxString::Format("%d", effect->GetStartTimeMS());
     _properties["EndMS"] = wxString::Format("%d", effect->GetEndTimeMS());
@@ -323,7 +325,9 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 
     if (buffer == nullptr) return true;
 
-    if (_properties.at("Model") != buffer->GetModel()->GetFullName()) return false;
+    if (buffer->GetModel()) {
+        if (_properties.at("Model") != buffer->GetModel()->GetFullName()) return false;
+    }
 
     // at this point it is the right element ... just has something may have changed
     bool ok = true;
