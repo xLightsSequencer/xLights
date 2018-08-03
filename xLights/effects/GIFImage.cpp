@@ -189,6 +189,10 @@ void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool
                 {
                     to.SetRGB(x + offset.x, y + offset.y, from.GetRed(x, y), from.GetGreen(x, y), from.GetBlue(x, y));
                 }
+                else
+                {
+                    to.SetAlpha(x + offset.x, y + offset.y, 0);
+                }
             }
         }
     }
@@ -230,6 +234,7 @@ wxPoint GIFImage::LoadRawImageFrame(wxImage& image, int frame, wxAnimationDispos
 wxImage GIFImage::GetFrame(int frame)
 {
     wxImage image(_gifSize);
+    image.InitAlpha();
 
     int startframe = 0;
     if (_lastFrame < 0)

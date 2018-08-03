@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix initialisation of model individual start channels
    -- bug (keith)  Rework unmask again as the last rework only handled pure black ... this version restores the old unmask which doesnt really unmask and adds a true unmask.
    -- enh (keith)  Add ESC key to cancel of render all
+   -- bug (keith)  Fix transparent GIFs not rendering correctly
 2018.23 July 27, 2018
    -- enh (gil)    Increase DMX Effect/Panel to 40 channels.
    -- enh (gil)    Changed the default channel assignments for the Skulltronix Skull option so that you can set
