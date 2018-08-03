@@ -348,6 +348,7 @@
     <ClCompile Include="xlLockButton.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="RenderCache.cpp" />
+    <ClCompile Include="Parallel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -696,6 +697,7 @@
     <ClInclude Include="xlLockButton.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="RenderCache.h" />
+    <ClInclude Include="Parallel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

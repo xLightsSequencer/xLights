@@ -24,6 +24,9 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     Close();
+
+    if (!_enabled) return;
+
     if (sequenceFile != "")
     {
         this->_cacheFolder = path + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";

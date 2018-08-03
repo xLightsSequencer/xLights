@@ -115,6 +115,8 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
+      <LanguageStandard>
+      </LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -410,6 +412,7 @@
     <ClCompile Include="outputs\SerialOutput.cpp" />
     <ClCompile Include="outputs\TestPreset.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
+    <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelAppearanceDlg.cpp" />
@@ -751,6 +754,7 @@
     <ClInclude Include="outputs\SerialOutput.h" />
     <ClInclude Include="outputs\TestPreset.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
+    <ClInclude Include="Parallel.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelAppearanceDlg.h" />

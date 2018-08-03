@@ -699,6 +699,21 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 event.StopPropagation();
             }
             break;
+        case WXK_ESCAPE:
+        {
+            static bool escapeReenter = false;
+
+            if (!escapeReenter)
+            {
+                escapeReenter = true;
+                if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr)
+                {
+                    mSequenceElements->GetXLightsFrame()->AbortRender();
+                }
+                escapeReenter = false;
+            }
+        }
+            break;
         case 'a':
         case 'A':
         case WXK_CONTROL_A:

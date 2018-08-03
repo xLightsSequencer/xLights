@@ -2,6 +2,8 @@
 //  JobPool.cpp
 //  xLights
 
+// needed to ensure the __WXMSW__ is defined
+#include <wx/wx.h>
 
 #include <string>
 #include <mutex>
@@ -107,7 +109,6 @@ void JobPoolWorker::Stop()
     pool->signal.notify_all();
 }
 
-
 #ifndef __WXMSW__
 static std::string OriginalThreadName() {
     char buf[256];
@@ -157,7 +158,7 @@ void JobPoolWorker::Entry()
                 ProcessJob(job);
                 logger_jobpool.debug("JobPoolWorker::Entry processed job.");
                 status = IDLE;
-                pool->inFlight--;
+                --pool->inFlight;
             } else if (pool->idleThreads > 12) {
                 break;
             }
@@ -166,7 +167,7 @@ void JobPoolWorker::Entry()
         //ignore
     }
     logger_jobpool.debug("JobPoolWorker::Entry exiting.");
-    pool->numThreads--;
+    --pool->numThreads;
     status = STOPPED;
 }
 

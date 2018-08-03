@@ -8346,4 +8346,9 @@ void xLightsFrame::OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event)
 {
     _enableRenderCache = MenuItem_EnableRenderCache->IsChecked();
     _renderCache.Enable(_enableRenderCache);
+    if (_enableRenderCache)
+    {
+        // this will force a reload of the cache
+        _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+    }
 }
