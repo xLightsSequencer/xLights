@@ -259,13 +259,16 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     elname.Replace("?", "_");
     elname.Replace("*", "_");
     elname.Replace("$", "_");
-    wxString mname = buffer->GetModel()->GetFullName();
-    mname.Replace("/", "_");
-    mname.Replace("\\", "_");
-    mname.Replace(":", "_");
-    mname.Replace("?", "_");
-    mname.Replace("*", "_");
-    mname.Replace("$", "_");
+    wxString mname = elname;
+    if (buffer->GetModel()) {
+        mname = buffer->GetModel()->GetFullName();
+        mname.Replace("/", "_");
+        mname.Replace("\\", "_");
+        mname.Replace(":", "_");
+        mname.Replace("?", "_");
+        mname.Replace("*", "_");
+        mname.Replace("$", "_");
+    }
 
     std::string file;
     if (elname == mname)
