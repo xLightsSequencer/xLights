@@ -1,6 +1,7 @@
 #include "RenderCache.h"
 #include "sequencer/SequenceElements.h"
 #include "RenderBuffer.h"
+#include "models/Model.h"
 
 #include <log4cpp/Category.hh>
 
@@ -74,22 +75,29 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
     delete item;
 }
 
+bool RenderCache::IsEffectOkForCaching(Effect* effect)
+{
+    for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it) {
+        // we cant cache effects with canvas turned on
+        if (it->first == "T_CHECKBOX_Canvas" && it->second == "1") {
+            return false;
+        }
+
+        // we also can't handle per model render styles ... as the buffers keep changing
+        //if (it->first == "B_CHOICE_BufferStyle" && wxString(it->second).StartsWith("Per Model")) {
+        //    return false;
+        //}
+    }
+
+    return true;
+}
+
 RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
 {
     if (!_enabled) return nullptr;
     if (_cacheFolder == "") return nullptr;
 
-    for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it) {
-        // we cant cache effects with canvas turned on
-        if (it->first == "T_CHECKBOX_Canvas" && it->second == "1") {
-            return nullptr;
-        }
-
-        // we also can't handle per model render styles ... as the buffers keep changing
-        if (it->first == "B_CHOICE_BufferStyle" && wxString(it->second).StartsWith("Per Model")) {
-            return nullptr;
-        }
-    }
+    if (!RenderCache::IsEffectOkForCaching(effect)) return nullptr;
 
     std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     for (auto it = _cache.begin(); it != _cache.end(); ++it) {
@@ -265,6 +273,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     _cacheFile = renderCache->GetCacheFolder() + wxFileName::GetPathSeparator() + file;
     _properties["Effect"] = effect->GetEffectName();
     _properties["Element"] = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
+    _properties["Model"] = buffer->GetModel()->GetFullName();
     _properties["EffectLayer"] = wxString::Format("%d", effect->GetParentEffectLayer()->GetLayerNumber());
     _properties["StartMS"] = wxString::Format("%d", effect->GetStartTimeMS());
     _properties["EndMS"] = wxString::Format("%d", effect->GetEndTimeMS());
@@ -284,6 +293,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
 bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 {
     if (_purged) return false;
+    if (!RenderCache::IsEffectOkForCaching(effect)) return false;
 
     if (wxAtoi(_properties.at("StartMS")) != effect->GetStartTimeMS()) return false;
 
@@ -292,6 +302,8 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 
     Element* e = el->GetParentElement();
     if (_properties.at("Element") != e->GetFullName()) return false;
+
+    if (_properties.at("Model") != buffer->GetModel()->GetFullName()) return false;
 
     // at this point it is the right element ... just has something may have changed
     bool ok = true;
@@ -304,7 +316,7 @@ bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
     if (wxAtoi(_properties.at("Width")) != buffer->BufferWi) ok = false;
     if (wxAtoi(_properties.at("Height")) != buffer->BufferHt) ok = false;
 
-    if (_properties.size() - 8 != effect->GetSettings().size() + effect->GetPaletteMap().size()) ok = false;
+    if (_properties.size() - 9 != effect->GetSettings().size() + effect->GetPaletteMap().size()) ok = false;
 
     for (auto it = effect->GetSettings().begin(); ok && it != effect->GetSettings().end(); ++it)
     {

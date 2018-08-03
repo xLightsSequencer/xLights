@@ -30,7 +30,6 @@ class RenderCacheItem
 		bool GetFrame(RenderBuffer* buffer);
 		void AddFrame(RenderBuffer* buffer);
         void PurgeFrames();
-
         bool IsMatch(Effect* effect, RenderBuffer* buffer);
         void Delete();
         void Save();
@@ -57,6 +56,7 @@ class RenderCache
         void Purge(SequenceElements* sequenceElements, bool dodelete);
         void ResetEffects(SequenceElements* sequenceElements);
         void Enable(bool enabled) { _enabled = enabled; }
+    static bool IsEffectOkForCaching(Effect* effect);
 };
 
 #endif // RENDERCACHE_H
