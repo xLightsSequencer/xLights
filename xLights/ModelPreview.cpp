@@ -38,23 +38,6 @@ const long ModelPreview::ID_VIEWPOINT3D = wxNewId();
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
-PreviewCamera::PreviewCamera(bool is_3d_)
-: posX(-500.0f), posY(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
-  panx(0.0f), pany(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_), name("Name Unspecified"), menu_id(wxNewId())
-{
-}
-
-PreviewCamera::~PreviewCamera()
-{
-}
-
-// Copy constructor
-PreviewCamera::PreviewCamera(const PreviewCamera &cam)
-: posX(cam.posX), posY(cam.posY), angleX(cam.angleX), angleY(cam.angleY), distance(cam.distance), zoom(cam.zoom),
-  panx(cam.panx), pany(cam.pany), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d), name(cam.name), menu_id(wxNewId())
-{
-}
-
 void ModelPreview::setupCameras()
 {
     camera3d = new PreviewCamera(true);
@@ -63,31 +46,23 @@ void ModelPreview::setupCameras()
 
 void ModelPreview::SetCamera2D(int i)
 {
-    camera2d = previewCameras2d[i];
+    *camera2d = *(xlights->viewpoint_mgr.GetCamera2D(i));
 }
 
 void ModelPreview::SetCamera3D(int i)
 {
-    camera3d = previewCameras3d[i];
+    *camera3d = *(xlights->viewpoint_mgr.GetCamera3D(i));
+    SetCameraPos(0,0,false,true);
+    SetCameraView(0,0,false,true);
 }
 
 void ModelPreview::SaveCurrentCameraPosition()
 {
-    PreviewCamera* current_camera = (is_3d ? camera3d : camera2d);
-    PreviewCamera* new_camera = new PreviewCamera(*current_camera);
     wxTextEntryDialog dlg(this, "Enter a name for this ViewPoint", "ViewPoint Name", "");
     if (dlg.ShowModal() == wxID_OK)
     {
-        new_camera->name = dlg.GetValue().ToStdString();
-        if (new_camera->name == "") {
-            new_camera->name = "...";  // avoid exception that occurs if menu name is blank
-        }
-    }
-    if (is_3d) {
-        previewCameras3d.push_back(new_camera);
-    }
-    else {
-        previewCameras2d.push_back(new_camera);
+        PreviewCamera* current_camera = (is_3d ? camera3d : camera2d);
+        xlights->viewpoint_mgr.AddCamera( dlg.GetValue().ToStdString(), current_camera, is_3d );
     }
 }
 
@@ -101,8 +76,8 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
     else if (m_wheel_down) {
         float delta_x = event.GetX() - m_last_mouse_x;
         float delta_y = -(event.GetY() - m_last_mouse_y);
-        delta_x /= GetZoom();
-        delta_y /= GetZoom();
+        delta_x *= GetZoom() * 2.0f;
+        delta_y *= GetZoom() * 2.0f;
         SetPan(delta_x, delta_y);
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
@@ -264,21 +239,23 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
         // ViewPoint menus
         mnu.AppendSeparator();
         if (is_3d) {
-            if (GetNum3DCameras() > 0) {
+            if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
                 wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < GetNum3DCameras(); ++i)
+                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
                 {
-                    mnuViewPoint->Append(GetCamera3D(i)->menu_id, GetCamera3D(i)->name);
+                    PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
+                    mnuViewPoint->Append(camera->menu_id, camera->name);
                 }
                 mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
             }
         }
         else {
-            if (GetNum2DCameras() > 0) {
+            if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
                 wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < GetNum2DCameras(); ++i)
+                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
                 {
-                    mnuViewPoint->Append(GetCamera2D(i)->menu_id, GetCamera2D(i)->name);
+                    PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
+                    mnuViewPoint->Append(camera->menu_id, camera->name);
                 }
                 mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
             }
@@ -305,10 +282,10 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         is_3d = !is_3d;
     }
     else if (is_3d) {
-        if (GetNum3DCameras() > 0) {
-            for (size_t i = 0; i < GetNum3DCameras(); ++i)
+        if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
-                if (event.GetId() == GetCamera3D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->menu_id)
                 {
                     SetCamera3D(i);
                     break;
@@ -317,10 +294,10 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         }
     }
     else {
-        if (GetNum2DCameras() > 0) {
-            for (size_t i = 0; i < GetNum2DCameras(); ++i)
+        if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
-                if (event.GetId() == GetCamera2D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->menu_id)
                 {
                     SetCamera2D(i);
                     break;
@@ -523,47 +500,61 @@ void ModelPreview::SetActive(bool show) {
     }
 }
 
-void ModelPreview::SetCameraView(int camerax, int cameray, bool latch)
+void ModelPreview::SetCameraView(int camerax, int cameray, bool latch, bool reset)
 {
 	static int last_offsetx = 0;
 	static int last_offsety = 0;
 	static int latched_x = camera3d->angleX;
 	static int latched_y = camera3d->angleY;
 
-	if (latch) {
-        camera3d->angleX = latched_x + last_offsetx;
-        camera3d->angleY = latched_y + last_offsety;
-		latched_x = camera3d->angleX;
-		latched_y = camera3d->angleY;
+	if( reset ) {
         last_offsetx = 0;
         last_offsety = 0;
-    }
-	else {
-        camera3d->angleX = latched_x + cameray / 2;
-        camera3d->angleY = latched_y + camerax / 2;
-		last_offsetx = cameray / 2;
-		last_offsety = camerax / 2;
+        latched_x = camera3d->angleX;
+        latched_y = camera3d->angleY;
+	} else {
+        if (latch) {
+            camera3d->angleX = latched_x + last_offsetx;
+            camera3d->angleY = latched_y + last_offsety;
+            latched_x = camera3d->angleX;
+            latched_y = camera3d->angleY;
+            last_offsetx = 0;
+            last_offsety = 0;
+        }
+        else {
+            camera3d->angleX = latched_x + cameray / 2;
+            camera3d->angleY = latched_y + camerax / 2;
+            last_offsetx = cameray / 2;
+            last_offsety = camerax / 2;
+        }
 	}
 }
 
-void ModelPreview::SetCameraPos(int camerax, int cameray, bool latch)
+void ModelPreview::SetCameraPos(int camerax, int cameraz, bool latch, bool reset)
 {
 	static int last_offsetx = 0;
 	static int last_offsety = 0;
 	static int latched_x = camera3d->posX;
 	static int latched_y = camera3d->posY;
 
-	if (latch) {
-        camera3d->posX = latched_x + last_offsetx;
-        camera3d->posY = latched_y + last_offsety;
-		latched_x = camera3d->posX;
-		latched_y = camera3d->posY;
-	}
-	else {
-        camera3d->posX = latched_x + camerax;
-        camera3d->posY = latched_y + cameray;
-		last_offsetx = camerax;
-		last_offsety = cameray;
+	if( reset ) {
+        last_offsetx = 0;
+        last_offsety = 0;
+        latched_x = camera3d->posX;
+        latched_y = camera3d->posY;
+	} else {
+        if (latch) {
+            camera3d->posX = latched_x + last_offsetx;
+            camera3d->posY = latched_y + last_offsety;
+            latched_x = camera3d->posX;
+            latched_y = camera3d->posY;
+        }
+        else {
+            camera3d->posX = latched_x + camerax;
+            camera3d->posY = latched_y + cameraz;
+            last_offsetx = camerax;
+            last_offsety = cameraz;
+        }
 	}
 }
 
@@ -651,11 +642,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 
     /*****************************   3D   ********************************/
     if (is_3d) {
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->posX + (camera3d->panx * camera3d->zoom), camera3d->posY + (camera3d->pany * camera3d->zoom), camera3d->distance * camera3d->zoom));
+        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->posX + camera3d->panx, 1.0f, camera3d->posY + camera3d->pany));
+        glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->distance * camera3d->zoom));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->angleX), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->angleY), glm::vec3(0.0f, 1.0f, 0.0f));
-        ViewMatrix = ViewTranslate * ViewRotateX * ViewRotateY;
-        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 10000.0f);  // this must match prepare3DViewport call
+        ViewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;
+        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 20000.0f);  // this must match prepare3DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;
 
         // FIXME: commented out for debugging speed
@@ -664,7 +656,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         //glEnable(GL_DEPTH_TEST);
         //LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         //glDepthFunc(GL_LESS);
-        
+
         prepare3DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
