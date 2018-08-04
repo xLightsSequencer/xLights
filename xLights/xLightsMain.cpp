@@ -8354,5 +8354,6 @@ void xLightsFrame::OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event)
     else
     {
         _renderCache.SetSequence("", "");
+        _renderCache.ForgetCache(&mSequenceElements);
     }
 }

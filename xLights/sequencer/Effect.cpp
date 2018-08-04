@@ -465,3 +465,8 @@ void Effect::PurgeCache(bool deleteCache) {
         mCache = nullptr;
     }
 }
+
+void Effect::ForgetCache() {
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+    mCache = nullptr;
+}

@@ -11,29 +11,31 @@ class Effect;
 class RenderCache;
 class SequenceElements;
 class RenderBuffer;
+class RenderCacheLoadThread;
 
 class RenderCacheItem
 {
-        RenderCache* _renderCache;
-		std::string _cacheFile;
-		std::map<std::string, std::string> _properties;
-        std::vector<unsigned char *> _frames;
-        bool _purged;
-        long _frameSize;
-        bool _dirty;
+    RenderCache* _renderCache;
+    std::string _cacheFile;
+    std::map<std::string, std::string> _properties;
+    std::map<std::string, std::vector<unsigned char *>> _frames;
+    std::map<std::string, long> _frameSize;
+    bool _purged;
+    bool _dirty;
+    std::string GetModelName(RenderBuffer* buffer) const;
 
-
-	public:
-		RenderCacheItem(RenderCache* renderCache, const std::string& file);
-		RenderCacheItem(RenderCache* renderCache, Effect* effect, RenderBuffer* buffer);
-		virtual ~RenderCacheItem();
-		bool GetFrame(RenderBuffer* buffer);
-		void AddFrame(RenderBuffer* buffer);
-        void PurgeFrames();
-        bool IsMatch(Effect* effect, RenderBuffer* buffer);
-        void Delete();
-        void Save();
-        bool IsDone(RenderBuffer* buffer) const;
+public:
+    RenderCacheItem(RenderCache* renderCache, const std::string& file);
+    RenderCacheItem(RenderCache* renderCache, Effect* effect, RenderBuffer* buffer);
+    virtual ~RenderCacheItem();
+    bool GetFrame(RenderBuffer* buffer);
+    void AddFrame(RenderBuffer* buffer);
+    void PurgeFrames();
+    bool IsPurged() const { return _purged; }
+    bool IsMatch(Effect* effect, RenderBuffer* buffer);
+    void Delete();
+    void Save();
+    bool IsDone(RenderBuffer* buffer) const;
 };
 
 class RenderCache
@@ -42,8 +44,10 @@ class RenderCache
 	std::string _cacheFolder;
 	std::list<RenderCacheItem*> _cache;
     bool _enabled;
-	
+    std::mutex _loadMutex;
+
     void Close();
+    void LoadCache();
 
     public:
 		RenderCache();
@@ -54,9 +58,11 @@ class RenderCache
         std::string GetCacheFolder() const { return _cacheFolder; }
         void CleanupCache(SequenceElements* sequenceElements);
         void Purge(SequenceElements* sequenceElements, bool dodelete);
-        void ResetEffects(SequenceElements* sequenceElements);
+        void ForgetCache(SequenceElements* sequenceElements);
         void Enable(bool enabled) { _enabled = enabled; }
-    static bool IsEffectOkForCaching(Effect* effect);
+        std::mutex& GetLoadMutex() { return _loadMutex; }
+        void AddCacheItem(RenderCacheItem* rci);
+        static bool IsEffectOkForCaching(Effect* effect);
 };
 
 #endif // RENDERCACHE_H

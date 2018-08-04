@@ -130,6 +130,7 @@ public:
     bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void PurgeCache(bool deleteCachefile = false);
+    void ForgetCache();
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

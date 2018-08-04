@@ -1198,6 +1198,7 @@ void xLightsFrame::SaveAsSequence()
     oName.SetExt("xml");
     CurrentSeqXmlFile->SetPath(oName.GetPath());
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
+    _renderCache.SetSequence(fseqDirectory.ToStdString(), oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + " - " + NewFilename);
 }
