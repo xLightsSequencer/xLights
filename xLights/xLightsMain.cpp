@@ -4540,6 +4540,20 @@ void xLightsFrame::CheckSequence(bool display)
     }
 
     LogAndWrite(f, "Checking sequence.");
+    LogAndWrite(f, "");
+
+    LogAndWrite(f, "Show folder: " + GetShowDirectory());
+    LogAndWrite(f, "");
+
+    if (CurrentSeqXmlFile != nullptr)
+    {
+        LogAndWrite(f, "Sequence: " + CurrentSeqXmlFile->GetFullPath());
+    }
+    else
+    {
+        LogAndWrite(f, "Sequence: No sequence open.");
+    }
+
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
     wxString fullhostname = wxGetFullHostName();
