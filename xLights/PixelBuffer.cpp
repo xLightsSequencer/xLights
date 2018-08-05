@@ -2189,7 +2189,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             // set color for physical output
             layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
         }
-    }, std::max( 5000 / countValid, 500));
+    }, std::max( 5000 / std::max(countValid, 1), 500));
 }
 
 static int DecodeType(const std::string &type)
