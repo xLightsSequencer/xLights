@@ -595,7 +595,9 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     if (newrange > oldrange)
     {
         // this is suspicious ... generally ranges increase with versions not decrease so I am going to ignore this request
-        return;
+        wxASSERT(false);
+        // continue otherwise it doesnt stop it happening in future
+        // return;
     }
 
     // now handle custom
@@ -1140,18 +1142,18 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
                         // otherwise use the scale of this VC ... this is not great ... if the VC range has been expanded then
                         // it isnt going to convert correctly
 
-                        // this is actually checking for something .25 or newer
+                        // this is actually checking for something 2018.23 or newer
                         // this should be updated every release by 1 until we decide to change a slider range for the first time
-                        // at that point we are going to need to force people to go back to a version after .24 but before the
+                        // at that point we are going to need to force people to go back to a version after 2017.24 but before the
                         // first version with the change
-                        if (!::IsVersionOlder("2018.1", xlights_version_string.ToStdString()))
+                        if (!::IsVersionOlder("2018.24", xlights_version_string.ToStdString()))
                         {
                             static std::string warnedfile = "";
 
                             if (xLightsFrame::CurrentSeqXmlFile != nullptr && warnedfile != xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString())
                             {
                                 warnedfile = xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString();
-                                wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2017.45 before proceeding.");
+                                wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2018.23 before proceeding.");
                             }
                         }
                         FixChangedScale(oldmin, oldmax, _divisor);
