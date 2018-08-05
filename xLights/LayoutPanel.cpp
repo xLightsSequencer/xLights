@@ -2372,8 +2372,12 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     }
     else if (m_wheel_down)
     {
-        float delta_x = event.GetX() - m_previous_mouse_x;
-        float delta_y = event.GetY() - m_previous_mouse_y;
+        float new_x = event.GetX() - m_previous_mouse_x;
+        float new_y = event.GetY() - m_previous_mouse_y;
+        // account for grid rotation
+        float angle = glm::radians(modelPreview->GetCameraRotation());
+        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
         delta_x *= modelPreview->GetZoom() * 2.0f;
         delta_y *= modelPreview->GetZoom() * 2.0f;
         modelPreview->SetPan(delta_x, delta_y);
@@ -2569,7 +2573,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         float delta_y = event.GetY() - m_previous_mouse_y;
         delta_x /= modelPreview->GetZoom();
         delta_y /= modelPreview->GetZoom();
-        modelPreview->SetPan(delta_x, delta_y);
+        modelPreview->SetPan(delta_x, -delta_y);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
         UpdatePreview();

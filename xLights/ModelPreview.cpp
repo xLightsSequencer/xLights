@@ -75,7 +75,10 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
     }
     else if (m_wheel_down) {
         float delta_x = event.GetX() - m_last_mouse_x;
-        float delta_y = -(event.GetY() - m_last_mouse_y);
+        float delta_y = event.GetY() - m_last_mouse_y;
+        if (!is_3d) {
+            delta_y *= -1.0f;
+        }
         delta_x *= GetZoom() * 2.0f;
         delta_y *= GetZoom() * 2.0f;
         SetPan(delta_x, delta_y);

@@ -86,6 +86,7 @@ public:
     void SetActive(bool show);
     bool GetActive();
     float GetZoom() { return (is_3d ? camera3d->zoom : camera2d->zoom); }
+    float GetCameraRotation() { return (is_3d ? camera3d->angleY : camera2d->angleY); }
     void SetPan(float deltax, float deltay);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
