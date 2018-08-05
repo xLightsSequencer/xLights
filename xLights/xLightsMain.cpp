@@ -291,7 +291,10 @@ const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM8 = wxNewId();
 const long xLightsFrame::ID_COLOR_MANAGER = wxNewId();
-const long xLightsFrame::ID_MNU_ENABLERENDERCACHE = wxNewId();
+const long xLightsFrame::ID_MNU_RC_ENABLE = wxNewId();
+const long xLightsFrame::ID_MNU_RC_LOCKEDONLY = wxNewId();
+const long xLightsFrame::ID_MNU_RC_DISABLED = wxNewId();
+const long xLightsFrame::ID_MNU_RENDERCACHE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_ERASE_MODE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_CANVAS_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RENDER_MODE = wxNewId();
@@ -1029,9 +1032,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(ID_MENUITEM8, _("Grid Node Values"), MenuItem1, wxEmptyString);
     MenuItemColorManager = new wxMenuItem(MenuSettings, ID_COLOR_MANAGER, _("Color Manager"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItemColorManager);
-    MenuItem_EnableRenderCache = new wxMenuItem(MenuSettings, ID_MNU_ENABLERENDERCACHE, _("Enable Render Cache"), wxEmptyString, wxITEM_CHECK);
-    MenuSettings->Append(MenuItem_EnableRenderCache);
-    MenuItem_EnableRenderCache->Check(true);
+    MenuItem_EnableRenderCache = new wxMenu();
+    MenuItem_RC_Enable = new wxMenuItem(MenuItem_EnableRenderCache, ID_MNU_RC_ENABLE, _("Enable"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_EnableRenderCache->Append(MenuItem_RC_Enable);
+    MenuItem_RC_LockedOnly = new wxMenuItem(MenuItem_EnableRenderCache, ID_MNU_RC_LOCKEDONLY, _("Locked Effects Only"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_EnableRenderCache->Append(MenuItem_RC_LockedOnly);
+    MenuItem_RC_Disable = new wxMenuItem(MenuItem_EnableRenderCache, ID_MNU_RC_DISABLED, _("Disable"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_EnableRenderCache->Append(MenuItem_RC_Disable);
+    MenuSettings->Append(ID_MNU_RENDERCACHE, _("Render Cache"), MenuItem_EnableRenderCache, wxEmptyString);
     MenuItemRenderMode = new wxMenu();
     MenuItemRenderEraseMode = new wxMenuItem(MenuItemRenderMode, ID_MENU_CANVAS_ERASE_MODE, _("Erase Mode"), wxEmptyString, wxITEM_CHECK);
     MenuItemRenderMode->Append(MenuItemRenderEraseMode);
@@ -1304,7 +1312,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_GRID_NODE_VALUES_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
     Connect(ID_MENUITEM_GRID_NODE_VALUES_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
     Connect(ID_COLOR_MANAGER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemColorManagerSelected);
-    Connect(ID_MNU_ENABLERENDERCACHE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_EnableRenderCacheSelected);
+    Connect(ID_MNU_RC_ENABLE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_RenderCache);
+    Connect(ID_MNU_RC_LOCKEDONLY,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_RenderCache);
+    Connect(ID_MNU_RC_DISABLED,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_RenderCache);
     Connect(ID_MENU_CANVAS_ERASE_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderEraseModeSelected);
     Connect(ID_MENU_CANVAS_CANVAS_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderCanvasModeSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected);
@@ -1675,20 +1685,34 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
 
     bool bit64 = GetBitness() == "64bit";
-    config->Read("xLightsEnableRenderCache", &_enableRenderCache, bit64);
+    config->Read(_("xLightsEnableRenderCache"), &_enableRenderCache, _("Locked Only"));
 
     // Dont enable render caching in 32 bit ... there just isnt enough memory
     if (!bit64)
     {
         logger_base.debug("Enable Render Cache: false due to running 32 bit.");
-        MenuItem_EnableRenderCache->Check(false);
-        MenuItem_EnableRenderCache->Enable(false);
+        MenuItem_RC_Disable->Check(true);
+        MenuItem_RC_Disable->Enable(false);
+        MenuItem_RC_Enable->Enable(false);
+        MenuItem_RC_LockedOnly->Enable(false);
         MenuItem_PurgeRenderCache->Enable(false);
     }
     else
     {
-        MenuItem_EnableRenderCache->Check(_enableRenderCache);
-        logger_base.debug("Enable Render Cache: %s.", _enableRenderCache ? "true" : "false");
+        if (_enableRenderCache == "Disabled")
+        {
+            MenuItem_RC_Disable->Check(true);
+        }
+        else if (_enableRenderCache == "Enabled")
+        {
+            MenuItem_RC_Enable->Check(true);
+        }
+        else 
+        {
+            _enableRenderCache = "Locked Only";
+            MenuItem_RC_LockedOnly->Check(true);
+        }
+        logger_base.debug("Enable Render Cache: %s.", _enableRenderCache);
         _renderCache.Enable(_enableRenderCache);
     }
 
@@ -8342,11 +8366,26 @@ void xLightsFrame::OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event)
     _renderCache.Purge(&mSequenceElements, true);
 }
 
-void xLightsFrame::OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event)
+void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
 {
-    _enableRenderCache = MenuItem_EnableRenderCache->IsChecked();
+    if (MenuItem_RC_Disable->IsChecked())
+    {
+        _enableRenderCache = "Disabled";
+    }
+    else if (MenuItem_RC_Enable->IsChecked())
+    {
+        _enableRenderCache = "Enabled";
+    }
+    else
+    {
+        _enableRenderCache = "Locked Only";
+    }
+
+
     _renderCache.Enable(_enableRenderCache);
-    if (_enableRenderCache)
+    _renderCache.CleanupCache(&mSequenceElements); // purge anything the cache no longer needs
+
+    if (_renderCache.IsEnabled())
     {
         // this will force a reload of the cache
         _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());

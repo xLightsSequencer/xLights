@@ -1485,11 +1485,23 @@
 					<label>Color Manager</label>
 					<handler function="OnMenuItemColorManagerSelected" entry="EVT_MENU" />
 				</object>
-				<object class="wxMenuItem" name="ID_MNU_ENABLERENDERCACHE" variable="MenuItem_EnableRenderCache" member="yes">
-					<label>Enable Render Cache</label>
-					<checked>1</checked>
-					<handler function="OnMenuItem_EnableRenderCacheSelected" entry="EVT_MENU" />
-					<checkable>1</checkable>
+				<object class="wxMenu" name="ID_MNU_RENDERCACHE" variable="MenuItem_EnableRenderCache" member="yes">
+					<label>Render Cache</label>
+					<object class="wxMenuItem" name="ID_MNU_RC_ENABLE" variable="MenuItem_RC_Enable" member="yes">
+						<label>Enable</label>
+						<handler function="OnMenuItem_RenderCache" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_RC_LOCKEDONLY" variable="MenuItem_RC_LockedOnly" member="yes">
+						<label>Locked Effects Only</label>
+						<handler function="OnMenuItem_RenderCache" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_RC_DISABLED" variable="MenuItem_RC_Disable" member="yes">
+						<label>Disable</label>
+						<handler function="OnMenuItem_RenderCache" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM_RENDER_MODE" variable="MenuItemRenderMode" member="yes">
 					<label>Render Mode</label>

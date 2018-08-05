@@ -734,10 +734,12 @@ public:
                 }
             }
         } catch ( std::exception &ex) {
+            wxASSERT(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
 			renderLog.error("Caught an exception on rendering thread: " + std::string(ex.what()));
             logger_base.error("Caught an exception on rendering thread: %s", ex.what());
 		} catch ( ... ) {
+            wxASSERT(false); // so when we debug we catch them
             printf("Caught an unknown exception");
 			renderLog.error("Caught an unknown exception on rendering thread.");
             logger_base.error("Caught an unknown exception on rendering thread.");

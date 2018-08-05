@@ -86,7 +86,7 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
 
     Close();
 
-    if (!_enabled) return;
+    if (!IsEnabled()) return;
 
     if (sequenceFile != "")
     {
@@ -119,16 +119,27 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
 
 bool RenderCache::IsEffectOkForCaching(Effect* effect)
 {
+    if (!IsEnabled()) return false;
+
+    bool locked = false;
+
     for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it) {
         // we cant cache effects with canvas turned on
         if (it->first == "T_CHECKBOX_Canvas" && it->second == "1") {
             return false;
         }
 
-        // we also can't handle per model render styles ... as the buffers keep changing
-        //if (it->first == "B_CHOICE_BufferStyle" && wxString(it->second).StartsWith("Per Model")) {
-        //    return false;
-        //}
+        if (_enabled == "Locked Only")
+        {
+            if (it->first == "X_Effect_Locked" && it->second == "True") {
+                locked = true;
+            }
+        }
+    }
+
+    if (_enabled == "Locked Only" && !locked)
+    {
+        return false;
     }
 
     return true;
@@ -136,10 +147,10 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect)
 
 RenderCacheItem* RenderCache::GetItem(Effect* effect, RenderBuffer* buffer)
 {
-    if (!_enabled) return nullptr;
+    if (!IsEnabled()) return nullptr;
     if (_cacheFolder == "") return nullptr;
 
-    if (!RenderCache::IsEffectOkForCaching(effect)) return nullptr;
+    if (!IsEffectOkForCaching(effect)) return nullptr;
 
     {
         // wait for the cache to finish loading
@@ -236,6 +247,8 @@ void RenderCache::CleanupCache(SequenceElements* sequenceElements)
     logger_base.debug("Cleaning up the cache.");
 
     // clean up cache
+    // Because effects are removed from the cache then if you go from cache enabled to cache disabled this wont actually
+    // clean out all the cache items ... as we dont know about them.
     std::unique_lock<std::recursive_mutex> lock(_cacheLock);
     int deleted = 0;
     auto it = _cache.begin();
@@ -397,7 +410,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
 bool RenderCacheItem::IsMatch(Effect* effect, RenderBuffer* buffer)
 {
     if (_purged) return false;
-    if (!RenderCache::IsEffectOkForCaching(effect)) return false;
+    if (!_renderCache->IsEffectOkForCaching(effect)) return false;
 
     if (wxAtoi(_properties.at("StartMS")) != effect->GetStartTimeMS()) return false;
 

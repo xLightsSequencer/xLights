@@ -549,6 +549,7 @@ public:
     void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
     void OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event);
+    void OnMenuItem_RenderCache(wxCommandEvent& event);
     //*)
 private:
 
@@ -743,7 +744,10 @@ private:
     static const long ID_MENUITEM_GRID_NODE_VALUES_OFF;
     static const long ID_MENUITEM8;
     static const long ID_COLOR_MANAGER;
-    static const long ID_MNU_ENABLERENDERCACHE;
+    static const long ID_MNU_RC_ENABLE;
+    static const long ID_MNU_RC_LOCKEDONLY;
+    static const long ID_MNU_RC_DISABLED;
+    static const long ID_MNU_RENDERCACHE;
     static const long ID_MENU_CANVAS_ERASE_MODE;
     static const long ID_MENU_CANVAS_CANVAS_MODE;
     static const long ID_MENUITEM_RENDER_MODE;
@@ -848,6 +852,7 @@ private:
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
     wxMenu* MenuItem_BackupPurge;
+    wxMenu* MenuItem_EnableRenderCache;
     wxMenu* MenuSettings;
     wxMenu* MenuView;
     wxMenu* OpenGLMenu;
@@ -907,7 +912,6 @@ private:
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
-    wxMenuItem* MenuItem_EnableRenderCache;
     wxMenuItem* MenuItem_ExcludeAudioPackagedSequence;
     wxMenuItem* MenuItem_ExcludePresetsFromPackagedSequences;
     wxMenuItem* MenuItem_ExportEffects;
@@ -936,6 +940,9 @@ private:
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
+    wxMenuItem* MenuItem_RC_Disable;
+    wxMenuItem* MenuItem_RC_Enable;
+    wxMenuItem* MenuItem_RC_LockedOnly;
     wxMenuItem* MenuItem_SD_10;
     wxMenuItem* MenuItem_SD_20;
     wxMenuItem* MenuItem_SD_40;
@@ -1028,7 +1035,7 @@ private:
     bool _excludeAudioFromPackagedSequences;
     bool _showACLights;
     bool _showACRamps;
-    bool _enableRenderCache;
+    wxString _enableRenderCache;
     bool _playControlsOnPreview;
     bool _autoShowHousePreview;
     bool _smallWaveform;
