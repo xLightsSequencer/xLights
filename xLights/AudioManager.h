@@ -276,6 +276,7 @@ public:
 	long LengthMS() const { return _lengthMS; };
 	float GetRightData(long offset);
 	float GetLeftData(long offset);
+    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum);
 	float* GetRightDataPtr(long offset);
 	float* GetLeftDataPtr(long offset);
 	void SetStepBlock(int step, int block);
