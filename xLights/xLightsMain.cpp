@@ -8385,7 +8385,7 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
     _renderCache.Enable(_enableRenderCache);
     _renderCache.CleanupCache(&mSequenceElements); // purge anything the cache no longer needs
 
-    if (_renderCache.IsEnabled())
+    if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr)
     {
         // this will force a reload of the cache
         _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
