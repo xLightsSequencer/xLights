@@ -98,6 +98,12 @@ http://<host:port>/xScheduleCommand?Command-<command>&Parameters=<parameters>
 		Play specified playlist <playlist name>
 			This plays the specified playlist once.
 			
+		Play specified playlist if not playing <playlist name>
+			This plays the specified playlist once but only if that playlist is not already playing.
+			
+		Play specified playlist if nothing playing <playlist name>
+			This plays the specified playlist once but only if no other playlist is already playing.
+			
 		Play specified playlist looped <playlist name>
 			This plays the specified playlist and loops it.
 			

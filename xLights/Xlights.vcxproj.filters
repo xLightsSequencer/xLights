@@ -341,7 +341,6 @@
     <ClCompile Include="VendorMusicHelpers.cpp" />
     <ClCompile Include="JukeboxPanel.cpp" />
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
-    <ClCompile Include="VideoRenderCacher.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
     <ClCompile Include="effects\WarpEffect.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
@@ -351,6 +350,8 @@
     <ClCompile Include="ViewpointDialog.cpp" />
     <ClCompile Include="ViewpointMgr.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
+    <ClCompile Include="RenderCache.cpp" />
+    <ClCompile Include="Parallel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -687,7 +688,6 @@
     <ClInclude Include="JukeboxPanel.h" />
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
     <ClInclude Include="RenderUtils.h" />
-    <ClInclude Include="VideoRenderCacher.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="effects\WarpEffect.h" />
     <ClInclude Include="OpenGLShaders.h" />
@@ -702,6 +702,8 @@
     <ClInclude Include="ViewpointDialog.h" />
     <ClInclude Include="ViewpointMgr.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
+    <ClInclude Include="RenderCache.h" />
+    <ClInclude Include="Parallel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -69,6 +69,7 @@
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
+#include "RenderCache.h"
 
 class EffectTreeDialog;
 class ConvertDialog;
@@ -284,6 +285,7 @@ public:
     long SecondsRemaining, EndTimeSec;
     int TxOverflowCnt, TxOverflowTotal;
     std::mutex saveLock;
+    RenderCache _renderCache;
 
     PhonemeDictionary dictionary;
 
@@ -546,6 +548,9 @@ public:
     void OnMenuItem_xFade_BSelected(wxCommandEvent& event);
     void OnMenuItemUserDictSelected(wxCommandEvent& event);
     void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
+    void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
+    void OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event);
+    void OnMenuItem_RenderCache(wxCommandEvent& event);
     //*)
 private:
 
@@ -667,6 +672,7 @@ private:
     static const long ID_MENU_BATCH_RENDER;
     static const long ID_MNU_XSCHEDULE;
     static const long iD_MNU_VENDORCACHEPURGE;
+    static const long ID_MNU_PURGERENDERCACHE;
     static const long ID_MNU_CRASH;
     static const long ID_MNU_DUMPRENDERSTATE;
     static const long ID_MENUITEM5;
@@ -739,6 +745,10 @@ private:
     static const long ID_MENUITEM_GRID_NODE_VALUES_OFF;
     static const long ID_MENUITEM8;
     static const long ID_COLOR_MANAGER;
+    static const long ID_MNU_RC_ENABLE;
+    static const long ID_MNU_RC_LOCKEDONLY;
+    static const long ID_MNU_RC_DISABLED;
+    static const long ID_MNU_RENDERCACHE;
     static const long ID_MENU_CANVAS_ERASE_MODE;
     static const long ID_MENU_CANVAS_CANVAS_MODE;
     static const long ID_MENUITEM_RENDER_MODE;
@@ -843,6 +853,7 @@ private:
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
     wxMenu* MenuItem_BackupPurge;
+    wxMenu* MenuItem_EnableRenderCache;
     wxMenu* MenuSettings;
     wxMenu* MenuView;
     wxMenu* OpenGLMenu;
@@ -927,8 +938,12 @@ private:
     wxMenuItem* MenuItem_PackageSequence;
     wxMenuItem* MenuItem_PerspectiveAutosave;
     wxMenuItem* MenuItem_PlayControlsOnPreview;
+    wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
+    wxMenuItem* MenuItem_RC_Disable;
+    wxMenuItem* MenuItem_RC_Enable;
+    wxMenuItem* MenuItem_RC_LockedOnly;
     wxMenuItem* MenuItem_SD_10;
     wxMenuItem* MenuItem_SD_20;
     wxMenuItem* MenuItem_SD_40;
@@ -1021,6 +1036,7 @@ private:
     bool _excludeAudioFromPackagedSequences;
     bool _showACLights;
     bool _showACRamps;
+    wxString _enableRenderCache;
     bool _playControlsOnPreview;
     bool _autoShowHousePreview;
     bool _smallWaveform;
@@ -1171,7 +1187,8 @@ public:
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false);
     void RenderDirtyModels();
     void RenderTimeSlice(int startms, int endms, bool clear);
-    void Render(std::list<Model*> models, std::list<Model *> &restrictToModels,
+    void Render(const std::list<Model*> models,
+                const std::list<Model *> &restrictToModels,
                 int startFrame, int endFrame,
                 bool progressDialog, bool clear,
                 std::function<void()>&& callback);

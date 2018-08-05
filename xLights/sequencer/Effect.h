@@ -14,6 +14,9 @@
 
 class EffectLayer;
 class ValueCurve;
+class RenderCacheItem;
+class RenderBuffer;
+class RenderCache;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -35,12 +38,13 @@ class Effect
     bool mProtected;
     EffectLayer* mParentLayer;
     xlColor mColorMask;
-    mutable std::mutex settingsLock;
+    mutable std::recursive_mutex settingsLock;
     SettingsMap mSettings;
     SettingsMap mPaletteMap;
     xlColorVector mColors;
     xlColorCurveVector mCC;
     DrawGLUtils::xlDisplayList background;
+    RenderCacheItem *mCache;
 
     Effect() {}  //don't allow default or copy constructor
     Effect(const Effect &e) {}
@@ -121,6 +125,12 @@ public:
         return &mColorMask;
     }
     void SetColorMask(xlColor colorMask) { mColorMask = colorMask; }
+    
+    //gets the cached frame.   Returns true if the frame was filled into the buffer
+    bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
+    void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);
+    void PurgeCache(bool deleteCachefile = false);
+    void ForgetCache();
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

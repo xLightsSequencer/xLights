@@ -127,3 +127,4 @@ Jan 24, 2018 - d8b3fc84c2239effb1824e7094c7bf24db45a7ba Fixes sorting in TreeLis
 Feb 26, 2018 - switch to 3.1.1 release tar.bz2
 June 17, 2018 - add notes about wxWidgets for OSX Mojave
 July 16, 2018 - 85c2877a6c660c3b59c7a5400bab224374e3324a Fixes the native wxDataViewCtrl drag/drop
+Aug  1, 2018 - c83f3b39424fd0d6690a64ba05277c77c077b861 Fixes sRGB <-> RGB color space issues

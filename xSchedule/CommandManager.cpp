@@ -273,6 +273,8 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Play selected playlist", 0, {}, true, false, false, false, false, true, true, true));
     _commands.push_back(new Command("Play selected playlist looped", 0, {}, true, false, false, false, false, true, true, true));
     _commands.push_back(new Command("Play specified playlist", 1, pl, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Play specified playlist if not running", 1, pl, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Play specified playlist if nothing running", 1, pl, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Play specified playlist looped", 1, pl, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Stop specified playlist", 1, pl, false, false, true, false, false, false, true, false));
     _commands.push_back(new Command("Stop specified playlist at end of current step", 1, pl, false, false, true, false, false, false, true, false));

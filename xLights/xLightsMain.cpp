@@ -218,6 +218,7 @@ const long xLightsFrame::ID_MNU_DOWNLOADSEQUENCES = wxNewId();
 const long xLightsFrame::ID_MENU_BATCH_RENDER = wxNewId();
 const long xLightsFrame::ID_MNU_XSCHEDULE = wxNewId();
 const long xLightsFrame::iD_MNU_VENDORCACHEPURGE = wxNewId();
+const long xLightsFrame::ID_MNU_PURGERENDERCACHE = wxNewId();
 const long xLightsFrame::ID_MNU_CRASH = wxNewId();
 const long xLightsFrame::ID_MNU_DUMPRENDERSTATE = wxNewId();
 const long xLightsFrame::ID_MENUITEM5 = wxNewId();
@@ -290,6 +291,10 @@ const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_NODE_VALUES_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM8 = wxNewId();
 const long xLightsFrame::ID_COLOR_MANAGER = wxNewId();
+const long xLightsFrame::ID_MNU_RC_ENABLE = wxNewId();
+const long xLightsFrame::ID_MNU_RC_LOCKEDONLY = wxNewId();
+const long xLightsFrame::ID_MNU_RC_DISABLED = wxNewId();
+const long xLightsFrame::ID_MNU_RENDERCACHE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_ERASE_MODE = wxNewId();
 const long xLightsFrame::ID_MENU_CANVAS_CANVAS_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_RENDER_MODE = wxNewId();
@@ -495,7 +500,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
 }
 
 xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
-    layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr)
+    layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr), jobPool("RenderPool")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
@@ -859,6 +864,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItem_xSchedule);
     MenuItem_PurgeVendorCache = new wxMenuItem(Menu1, iD_MNU_VENDORCACHEPURGE, _("Purge Download Cache"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PurgeVendorCache);
+    MenuItem_PurgeRenderCache = new wxMenuItem(Menu1, ID_MNU_PURGERENDERCACHE, _("Purge Render Cache"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_PurgeRenderCache);
     MenuItem_CrashXLights = new wxMenuItem(Menu1, ID_MNU_CRASH, _("Crash xLights"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_CrashXLights);
     MenuItem_LogRenderState = new wxMenuItem(Menu1, ID_MNU_DUMPRENDERSTATE, _("Log Render State"), wxEmptyString, wxITEM_NORMAL);
@@ -1025,6 +1032,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(ID_MENUITEM8, _("Grid Node Values"), MenuItem1, wxEmptyString);
     MenuItemColorManager = new wxMenuItem(MenuSettings, ID_COLOR_MANAGER, _("Color Manager"), wxEmptyString, wxITEM_NORMAL);
     MenuSettings->Append(MenuItemColorManager);
+    MenuItem_EnableRenderCache = new wxMenu();
+    MenuItem_RC_Enable = new wxMenuItem(MenuItem_EnableRenderCache, ID_MNU_RC_ENABLE, _("Enable"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_EnableRenderCache->Append(MenuItem_RC_Enable);
+    MenuItem_RC_LockedOnly = new wxMenuItem(MenuItem_EnableRenderCache, ID_MNU_RC_LOCKEDONLY, _("Locked Effects Only"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_EnableRenderCache->Append(MenuItem_RC_LockedOnly);
+    MenuItem_RC_Disable = new wxMenuItem(MenuItem_EnableRenderCache, ID_MNU_RC_DISABLED, _("Disable"), wxEmptyString, wxITEM_RADIO);
+    MenuItem_EnableRenderCache->Append(MenuItem_RC_Disable);
+    MenuSettings->Append(ID_MNU_RENDERCACHE, _("Render Cache"), MenuItem_EnableRenderCache, wxEmptyString);
     MenuItemRenderMode = new wxMenu();
     MenuItemRenderEraseMode = new wxMenuItem(MenuItemRenderMode, ID_MENU_CANVAS_ERASE_MODE, _("Erase Mode"), wxEmptyString, wxITEM_CHECK);
     MenuItemRenderMode->Append(MenuItemRenderEraseMode);
@@ -1229,6 +1244,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENU_BATCH_RENDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemBatchRenderSelected);
     Connect(ID_MNU_XSCHEDULE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_xScheduleSelected);
     Connect(iD_MNU_VENDORCACHEPURGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PurgeVendorCacheSelected);
+    Connect(ID_MNU_PURGERENDERCACHE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PurgeRenderCacheSelected);
     Connect(ID_MNU_CRASH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CrashXLightsSelected);
     Connect(ID_MNU_DUMPRENDERSTATE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_LogRenderStateSelected);
     Connect(wxID_ZOOM_IN,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
@@ -1296,6 +1312,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_GRID_NODE_VALUES_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
     Connect(ID_MENUITEM_GRID_NODE_VALUES_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
     Connect(ID_COLOR_MANAGER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemColorManagerSelected);
+    Connect(ID_MNU_RC_ENABLE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_RenderCache);
+    Connect(ID_MNU_RC_LOCKEDONLY,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_RenderCache);
+    Connect(ID_MNU_RC_DISABLED,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_RenderCache);
     Connect(ID_MENU_CANVAS_ERASE_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderEraseModeSelected);
     Connect(ID_MENU_CANVAS_CANVAS_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemRenderCanvasModeSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_ALWAYS_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemEffectAssistAlwaysOnSelected);
@@ -1665,6 +1684,38 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem_ShowACRamps->Check(_showACRamps);
     logger_base.debug("Show AC Ramps: %s.", _showACRamps ? "true" : "false");
 
+    bool bit64 = GetBitness() == "64bit";
+    config->Read(_("xLightsEnableRenderCache"), &_enableRenderCache, _("Locked Only"));
+
+    // Dont enable render caching in 32 bit ... there just isnt enough memory
+    if (!bit64)
+    {
+        logger_base.debug("Enable Render Cache: false due to running 32 bit.");
+        MenuItem_RC_Disable->Check(true);
+        MenuItem_RC_Disable->Enable(false);
+        MenuItem_RC_Enable->Enable(false);
+        MenuItem_RC_LockedOnly->Enable(false);
+        MenuItem_PurgeRenderCache->Enable(false);
+    }
+    else
+    {
+        if (_enableRenderCache == "Disabled")
+        {
+            MenuItem_RC_Disable->Check(true);
+        }
+        else if (_enableRenderCache == "Enabled")
+        {
+            MenuItem_RC_Enable->Check(true);
+        }
+        else 
+        {
+            _enableRenderCache = "Locked Only";
+            MenuItem_RC_LockedOnly->Check(true);
+        }
+        logger_base.debug("Enable Render Cache: %s.", _enableRenderCache);
+        _renderCache.Enable(_enableRenderCache);
+    }
+
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
     logger_base.debug("Autosave perspectives: %s.", _autoSavePerspecive ? "true" : "false");
@@ -1972,9 +2023,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
     // threads ... a minor loss of efficiency ... I think the one thread blocks the others is more common.
     // Dan is concerned on 32 bit windows 10 will chew up too much heap memory ... so splitting the difference we get 7
-
-    // CAUTION ... if this results in a value < 20 then it will set it to 20. If > 250 then it will set it to 250 ... that is not obvious until you step into the code
-    jobPool.Start(wxThread::GetCPUCount() * 7);
+    int threadCount = wxThread::GetCPUCount() * 7;
+    if (threadCount < 20) {
+        threadCount = 20;
+    }
+    jobPool.Start(threadCount);
 
     if (!xLightsApp::sequenceFiles.IsEmpty())
     {
@@ -2051,6 +2104,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
+    config->Write("xLightsEnableRenderCache", _enableRenderCache);
     config->Write("xLightsPlayControlsOnPreview", _playControlsOnPreview);
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
@@ -3708,6 +3762,7 @@ void xLightsFrame::MaybePackageAndSendDebugFiles() {
         wxRemoveFile(report.GetCompressedFileName());
     }
 }
+
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4485,6 +4540,20 @@ void xLightsFrame::CheckSequence(bool display)
     }
 
     LogAndWrite(f, "Checking sequence.");
+    LogAndWrite(f, "");
+
+    LogAndWrite(f, "Show folder: " + GetShowDirectory());
+    LogAndWrite(f, "");
+
+    if (CurrentSeqXmlFile != nullptr)
+    {
+        LogAndWrite(f, "Sequence: " + CurrentSeqXmlFile->GetFullPath());
+    }
+    else
+    {
+        LogAndWrite(f, "Sequence: No sequence open.");
+    }
+
     wxDatagramSocket *testSocket;
     wxIPV4address addr;
     wxString fullhostname = wxGetFullHostName();
@@ -8304,4 +8373,40 @@ void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
     LyricUserDictDialog dlg(&dictionary, showDirectory, this);
     dlg.ShowModal();
     SetCursor(wxCURSOR_ARROW);
+}
+
+void xLightsFrame::OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event)
+{
+    _renderCache.Purge(&mSequenceElements, true);
+}
+
+void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
+{
+    if (MenuItem_RC_Disable->IsChecked())
+    {
+        _enableRenderCache = "Disabled";
+    }
+    else if (MenuItem_RC_Enable->IsChecked())
+    {
+        _enableRenderCache = "Enabled";
+    }
+    else
+    {
+        _enableRenderCache = "Locked Only";
+    }
+
+
+    _renderCache.Enable(_enableRenderCache);
+    _renderCache.CleanupCache(&mSequenceElements); // purge anything the cache no longer needs
+
+    if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr)
+    {
+        // this will force a reload of the cache
+        _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+    }
+    else
+    {
+        _renderCache.SetSequence("", "");
+        _renderCache.ForgetCache(&mSequenceElements);
+    }
 }
