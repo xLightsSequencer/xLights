@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.24 August 5, 2018
    -- enh (keith)  Allow exclusion of channels in xFade from blending/brightness control
    -- enh (keith)  Add a sample on warp mode which samples a pixel from the underlying layer and sets the whole model to that colour
    -- enh (keith)  Add optional render cache ... likely to improve average render times by 30-50%.
