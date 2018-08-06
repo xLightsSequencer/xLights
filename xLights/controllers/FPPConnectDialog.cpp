@@ -697,8 +697,7 @@ bool FPPConnectDialog::USBUpload()
             }
         }
         wxFileName fn(file);
-        wxString fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
-
+        wxString fseq;
         if (xLightsFrame::CurrentDir == xLightsFrame::FseqDir)
             fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
         else
