@@ -1,22 +1,22 @@
-#include "FPP.h"
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
 #include <wx/file.h>
 #include <wx/filename.h>
 #include <wx/wfstream.h>
+
+#include "../xSchedule/wxJSON/jsonreader.h"
+#include "../xSchedule/wxJSON/jsonwriter.h"
+
+#include "FPP.h"
 #include "xLightsXmlFile.h"
 #include "models/Model.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include "outputs/DDPOutput.h"
-#include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
-#include <wx/msgdlg.h>
 
-
-#include "../xSchedule/wxJSON/jsonreader.h"
-#include "../xSchedule/wxJSON/jsonwriter.h"
+#include <log4cpp/Category.hh>
 
 FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
 {
@@ -263,7 +263,6 @@ std::string FPP::SaveFPPUniversesV2(const std::string& onlyip, const std::list<i
     root["startChannel"] = 1;
     root["channelCount"] = -1;
     
-
     wxJSONValue universes;
     
     // Get universes based on IP

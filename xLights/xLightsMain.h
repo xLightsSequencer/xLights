@@ -334,10 +334,12 @@ public:
     };
 
     static wxString CurrentDir; //expose current folder name -DJ
+    static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static xLightsXmlFile* CurrentSeqXmlFile; // global object for currently opened XML file
     const wxString &GetShowDirectory() const { return showDirectory; }
+    const wxString &GetFseqDirectory() const { return fseqDirectory; }
     static wxString GetFilename() { return xlightsFilename; }
     void ConversionInit();
     void ConversionError(const wxString& msg);

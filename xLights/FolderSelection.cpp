@@ -120,7 +120,6 @@ FolderSelection::FolderSelection(wxWindow* parent, const wxString &showDirectory
     AltBackupDirectory = altBackupDirectory;
     LinkMediaDir = 1;
 
-
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr)
     {

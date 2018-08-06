@@ -265,6 +265,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         SetXmlSetting("fseqDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
     }
+    FseqDir = fseqDirectory;
     if (!wxDir::Exists(backupDirectory))
     {
         logger_base.warn("Backup Directory not Found ... switching to Show Directory.");

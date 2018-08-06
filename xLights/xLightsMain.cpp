@@ -2565,6 +2565,7 @@ void xLightsFrame::OnButtonStopNowClick(wxCommandEvent& event)
 //make these static so they can be accessed outside of xLightsFrame: -DJ
 //NOTE: this assumes there will only be one xLightsMain object
 wxString xLightsFrame::CurrentDir = "";
+wxString xLightsFrame::FseqDir = "";
 wxString xLightsFrame::PlaybackMarker = "";
 wxString xLightsFrame::xlightsFilename = "";
 xLightsXmlFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
@@ -7999,6 +8000,7 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         mediaDirectory = dlg.MediaDirectory;
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
         fseqDirectory = dlg.FseqDirectory;
+        FseqDir = fseqDirectory;
         logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
         backupDirectory = dlg.BackupDirectory;
         logger_base.debug("Backup directory set to : %s.", (const char *)backupDirectory.c_str());

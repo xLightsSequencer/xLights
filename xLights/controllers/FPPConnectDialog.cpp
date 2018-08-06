@@ -386,6 +386,8 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char *)dir.c_str());
 
+    wxString fseqDir = xLightsFrame::FseqDir;
+
     wxDir directory;
     directory.Open(dir);
 
@@ -405,7 +407,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
                 {
                     // now check the fseq file exists
                     wxFileName fn(dir + wxFileName::GetPathSeparator() + file);
-                    wxString fseq = dir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+                    wxString fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
 
                     if (wxFile::Exists(fseq))
                     {
