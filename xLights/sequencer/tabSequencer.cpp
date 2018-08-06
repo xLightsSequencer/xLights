@@ -2431,7 +2431,8 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
     }
 
     m_mgr->LoadPerspective(settings, true);
-    logger_base.debug("Loaded perspective");
+    ShowHideAllSequencerWindows(true);
+    logger_base.debug("Loaded perspective %s", (const char *)name.c_str());
     LogPerspective(settings);
 
     if (perspective->GetAttribute("version", "1.0") == "1.0") {
