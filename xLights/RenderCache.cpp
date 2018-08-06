@@ -335,21 +335,14 @@ std::string RenderCacheItem::GetModelName(RenderBuffer* buffer)
     }
     else
     {
-        if (buffer->GetModel() == nullptr)
-        {
-            return "";
-        }
-        else
-        {
-            wxString mname = buffer->GetModel()->GetFullName();
-            mname.Replace("/", "_");
-            mname.Replace("\\", "_");
-            mname.Replace(":", "_");
-            mname.Replace("?", "_");
-            mname.Replace("*", "_");
-            mname.Replace("$", "_");
-            return mname.ToStdString();
-        }
+        wxString mname = buffer->GetModelName();
+        mname.Replace("/", "_");
+        mname.Replace("\\", "_");
+        mname.Replace(":", "_");
+        mname.Replace("?", "_");
+        mname.Replace("*", "_");
+        mname.Replace("$", "_");
+        return mname.ToStdString();
     }
 }
 
@@ -358,6 +351,7 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, Effect* effect, Rende
     _purged = false;
     _dirty = true;
     std::string mname = GetModelName(buffer);
+    wxASSERT(mname != "");
     _frameSize[mname] = sizeof(xlColor) * buffer->pixels.size();
     wxString elname = effect->GetParentEffectLayer()->GetParentElement()->GetFullName();
     elname.Replace("/", "_");

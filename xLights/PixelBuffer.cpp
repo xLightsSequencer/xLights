@@ -29,6 +29,7 @@
 #include "models/ModelGroup.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
+#include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 
 #include <random>
@@ -1782,12 +1783,20 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
 void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState)
 {
     CurrentLayer=newlayer;
+    wxASSERT(frame->AllModels[modelName] != nullptr);
     layers[CurrentLayer]->buffer.SetState(period, resetState, modelName);
     if (layers[CurrentLayer]->usingModelBuffers) {
         int cnt = 0;
         const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[CurrentLayer]->modelBuffers.begin(); it != layers[CurrentLayer]->modelBuffers.end(); it++, cnt++)  {
-            (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+        for (auto it = layers[CurrentLayer]->modelBuffers.begin(); it != layers[CurrentLayer]->modelBuffers.end(); ++it, cnt++)  {
+            if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr)
+            {
+                (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
+            }
+            else
+            {
+                (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+            }
         }
     }
 }

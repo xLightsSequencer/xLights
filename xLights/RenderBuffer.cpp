@@ -197,6 +197,18 @@ Model* RenderBuffer::GetModel() const
     return frame->AllModels[cur_model];
 }
 
+std::string RenderBuffer::GetModelName() const
+{
+    Model* m = GetModel();
+
+    if (m != nullptr)
+    {
+        return m->GetFullName();
+    }
+
+    return cur_model;
+}
+
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 
