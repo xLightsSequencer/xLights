@@ -2,8 +2,7 @@
 <wxsmith>
 	<object class="wxDialog" name="FPPConnectDialog">
 		<title>FPP Upload</title>
-		<pos_arg>1</pos_arg>
-		<size_arg>1</size_arg>
+		<id_arg>0</id_arg>
 		<style>wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
@@ -141,7 +140,22 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE_Drives" variable="Choice_Drives" member="yes" />
+									<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+										<object class="sizeritem">
+											<object class="wxChoice" name="ID_CHOICE_Drives" variable="Choice_Drives" member="yes" />
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_REFRESH_DRIVES" variable="Button_Refresh_Drives" member="yes">
+												<label>Refresh</label>
+												<handler function="OnButton_Refresh_DrivesClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+										</object>
+									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
 									<option>1</option>
@@ -157,7 +171,6 @@
 								<object class="sizeritem">
 									<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL1" variable="DirPickerCtrl_FPPMedia" member="yes">
 										<message>Select FPP Media Directory on a USB Stick</message>
-										<handler function="OnFilePickerCtrl_MediaFolderFileChanged" entry="EVT_DIRPICKER_CHANGED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
