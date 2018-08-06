@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Remove flag that prevents effects grid paste until a copy has been performed
+   -- bug (keith)  Fix non default perspective with floating windows does not load correctly
 2018.24 August 5, 2018
    -- enh (keith)  Allow exclusion of channels in xFade from blending/brightness control
    -- enh (keith)  Add a sample on warp mode which samples a pixel from the underlying layer and sets the whole model to that colour

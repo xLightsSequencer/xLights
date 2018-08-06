@@ -1077,9 +1077,7 @@ bool MainSequencer::CopySelectedEffects() {
 }
 
 void MainSequencer::Copy() {
-    if (CopySelectedEffects()) {
-        PanelEffectGrid->SetCanPaste();
-    }
+    CopySelectedEffects();
 }
 
 void MainSequencer::Cut() {
