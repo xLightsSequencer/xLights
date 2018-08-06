@@ -171,6 +171,7 @@
 								<object class="sizeritem">
 									<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL1" variable="DirPickerCtrl_FPPMedia" member="yes">
 										<message>Select FPP Media Directory on a USB Stick</message>
+										<handler function="OnFilePickerCtrl_MediaFolderFileChanged" entry="EVT_DIRPICKER_CHANGED" />
 									</object>
 									<flag>wxALL|wxEXPAND</flag>
 									<border>5</border>
