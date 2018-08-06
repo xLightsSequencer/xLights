@@ -5043,7 +5043,7 @@ void xLightsFrame::CheckSequence(bool display)
                 long sc;
                 Output* o = _outputManager.GetOutput(start, sc);
 
-                if (o != nullptr && o->IsIpOutput())
+                if (o != nullptr && o->IsIpOutput() && o->GetIP() != "MULTICAST")
                 {
                     std::string key = o->GetIP() + it->second->GetControllerConnection();
                     if (modelsByPort.find(key) == modelsByPort.end())
