@@ -9,6 +9,7 @@
 #include "XlightsDrawable.h"
 #include "Color.h"
 #include "xlGLCanvas.h"
+#include "ViewpointMgr.h"
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -19,28 +20,6 @@ class PreviewPane;
 class LayoutGroup;
 class xLightsFrame;
 class xlVertex3Accumulator;
-
-class PreviewCamera
-{
-public:
-    PreviewCamera(bool is_3d_);
-    virtual ~PreviewCamera();
-    PreviewCamera(const PreviewCamera &cam);
-
-    float posX;
-    float posY;
-    float angleX;
-    float angleY;
-    float distance;
-    float zoom;
-    float panx;
-    float pany;
-    float zoom_corrx;
-    float zoom_corry;
-    bool is_3d;
-    std::string name;
-    const long menu_id;
-};
 
 class ModelPreview : public xlGLCanvas
 {
@@ -82,8 +61,8 @@ public:
     void SetScaleBackgroundImage(bool b);
     bool GetScaleBackgroundImage() const { return scaleImage; }
 
-	void SetCameraView(int camerax, int cameray, bool latch);
-	void SetCameraPos(int camerax, int cameray, bool latch);
+	void SetCameraView(int camerax, int cameray, bool latch, bool reset = false);
+	void SetCameraPos(int camerax, int cameray, bool latch, bool reset = false);
     void SetZoomDelta(float delta);
 
     void Render();
@@ -107,6 +86,7 @@ public:
     void SetActive(bool show);
     bool GetActive();
     float GetZoom() { return (is_3d ? camera3d->zoom : camera2d->zoom); }
+    float GetCameraRotation() { return (is_3d ? camera3d->angleY : camera2d->angleY); }
     void SetPan(float deltax, float deltay);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
@@ -116,10 +96,6 @@ public:
 
     DrawGLUtils::xlAccumulator &GetAccumulator() { return accumulator; }
     DrawGLUtils::xl3Accumulator &GetAccumulator3d() { return accumulator3d; }
-    int GetNum2DCameras() { return previewCameras2d.size(); }
-    int GetNum3DCameras() { return previewCameras3d.size(); }
-    PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i]; }
-    PreviewCamera* GetCamera3D(int i) { return previewCameras3d[i]; }
     void SaveCurrentCameraPosition();
     void SetCamera2D(int i);
     void SetCamera3D(int i);
@@ -182,8 +158,6 @@ private:
     glm::mat4 ProjMatrix;
     glm::mat4 ProjViewMatrix;
 
-    std::vector<PreviewCamera*> previewCameras3d;
-    std::vector<PreviewCamera*> previewCameras2d;
     PreviewCamera* camera3d;
     PreviewCamera* camera2d;
     static const long ID_VIEWPOINT2D;

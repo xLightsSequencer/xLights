@@ -65,6 +65,7 @@
 #include "JobPool.h"
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
+#include "ViewpointMgr.h"
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
@@ -199,7 +200,7 @@ public:
                  wxWindowID id = wxID_ANY,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 long style = wxAUI_TB_DEFAULT_STYLE); 
+                 long style = wxAUI_TB_DEFAULT_STYLE);
     virtual ~xlAuiToolBar() {}
 
     wxSize &GetAbsoluteMinSize() {return m_absoluteMinSize;}
@@ -803,7 +804,7 @@ private:
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL_EFFECTS;
     static const long ID_NOTEBOOK_EFFECTS;
-    
+
     static const long ID_XFADESOCKET;
     static const long ID_XFADESERVER;
 
@@ -1533,6 +1534,7 @@ public:
     std::vector<ModelPreview *> PreviewWindows;
     ModelManager AllModels;
     ColorManager color_mgr;
+    ViewpointMgr viewpoint_mgr;
     EffectTreeDialog *EffectTreeDlg;
 
     void LoadJukebox(wxXmlNode* node);

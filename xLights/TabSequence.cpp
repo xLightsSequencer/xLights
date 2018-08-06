@@ -148,6 +148,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     ModelsNode = EffectsNode = PalettesNode = ModelGroupsNode = LayoutGroupsNode = SettingsNode = PerspectivesNode = nullptr;
 	wxXmlNode* viewsNode = nullptr;
 	wxXmlNode* colorsNode = nullptr;
+	wxXmlNode* viewpointsNode = nullptr;
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "models") ModelsNode=e;
@@ -155,6 +156,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         if (e->GetName() == "palettes") PalettesNode=e;
 		if (e->GetName() == "views") viewsNode = e;
 		if (e->GetName() == "colors") colorsNode = e;
+		if (e->GetName() == "Viewpoints") viewpointsNode = e;
         if (e->GetName() == "modelGroups") ModelGroupsNode=e;
         if (e->GetName() == "layoutGroups") LayoutGroupsNode=e;
         if (e->GetName() == "settings") SettingsNode=e;
@@ -192,6 +194,11 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     if (colorsNode != nullptr)
     {
 		color_mgr.Load(colorsNode);
+	}
+
+    if (viewpointsNode != nullptr)
+    {
+		viewpoint_mgr.Load(viewpointsNode);
 	}
 
     if (ModelGroupsNode == nullptr)
@@ -609,6 +616,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 	_sequenceViewManager.Save(&EffectsXml);
 
 	color_mgr.Save(&EffectsXml);
+
+	viewpoint_mgr.Save(&EffectsXml);
 
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );

@@ -972,7 +972,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     unsigned sortcol;
     bool ascending;
     bool sorted = TreeListViewModels->GetSortColumn(&sortcol, &ascending);
-    
+
     if (full_refresh) {
         UnSelectAllModels();
     }
@@ -1005,7 +1005,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             //sort column to 0 which is faster due to straight string compare
             TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
         }
-        
+
         //delete all items will atempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
         wxTreeListItem child = TreeListViewModels->GetFirstItem();
@@ -2372,10 +2372,14 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     }
     else if (m_wheel_down)
     {
-        float delta_x = event.GetX() - m_previous_mouse_x;
-        float delta_y = -(event.GetY() - m_previous_mouse_y);
-        delta_x /= modelPreview->GetZoom();
-        delta_y /= modelPreview->GetZoom();
+        float new_x = event.GetX() - m_previous_mouse_x;
+        float new_y = event.GetY() - m_previous_mouse_y;
+        // account for grid rotation
+        float angle = glm::radians(modelPreview->GetCameraRotation());
+        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+        delta_x *= modelPreview->GetZoom() * 2.0f;
+        delta_y *= modelPreview->GetZoom() * 2.0f;
         modelPreview->SetPan(delta_x, delta_y);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
@@ -2566,10 +2570,10 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     else if (m_wheel_down)
     {
         float delta_x = event.GetX() - m_previous_mouse_x;
-        float delta_y = -(event.GetY() - m_previous_mouse_y);
+        float delta_y = event.GetY() - m_previous_mouse_y;
         delta_x /= modelPreview->GetZoom();
         delta_y /= modelPreview->GetZoom();
-        modelPreview->SetPan(delta_x, delta_y);
+        modelPreview->SetPan(delta_x, -delta_y);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
         UpdatePreview();
@@ -2747,21 +2751,21 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     mnu.AppendSeparator();
     mnu.Append(ID_PREVIEW_SAVE_VIEWPOINT, _("Save Current ViewPoint"));
     if (is_3d) {
-        if (modelPreview->GetNum3DCameras() > 0) {
+        if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
             wxMenu* mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < modelPreview->GetNum3DCameras(); ++i)
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
-                mnuViewPoint->Append(modelPreview->GetCamera3D(i)->menu_id, modelPreview->GetCamera3D(i)->name);
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->menu_id, xlights->viewpoint_mgr.GetCamera3D(i)->name);
             }
             mnu.Append(ID_PREVIEW_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
         }
     }
     else {
-        if (modelPreview->GetNum2DCameras() > 0) {
+        if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
             wxMenu* mnuViewPoint = new wxMenu();
-            for (size_t i = 0; i < modelPreview->GetNum2DCameras(); ++i)
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
-                mnuViewPoint->Append(modelPreview->GetCamera2D(i)->menu_id, modelPreview->GetCamera2D(i)->name);
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->menu_id, xlights->viewpoint_mgr.GetCamera2D(i)->name);
             }
             mnu.Append(ID_PREVIEW_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
         }
@@ -2974,10 +2978,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         modelPreview->SaveCurrentCameraPosition();
     }
     else if (is_3d) {
-        if (modelPreview->GetNum3DCameras() > 0) {
-            for (size_t i = 0; i < modelPreview->GetNum3DCameras(); ++i)
+        if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
-                if (event.GetId() == modelPreview->GetCamera3D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->menu_id)
                 {
                     modelPreview->SetCamera3D(i);
                     UpdatePreview();
@@ -2987,10 +2991,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         }
     }
     else {
-        if (modelPreview->GetNum2DCameras() > 0) {
-            for (size_t i = 0; i < modelPreview->GetNum2DCameras(); ++i)
+        if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
-                if (event.GetId() == modelPreview->GetCamera2D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->menu_id)
                 {
                     modelPreview->SetCamera2D(i);
                     UpdatePreview();
@@ -4583,7 +4587,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         if (data != nullptr && data->GetModel() != nullptr) {
-            if (data->GetModel()->GetFullName() == grp->GetFullName()) 
+            if (data->GetModel()->GetFullName() == grp->GetFullName())
             {
                 bool expanded = TreeListViewModels->IsExpanded(item);
                 wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
@@ -4596,9 +4600,9 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                     Model *m = xlights->AllModels[*it];
                     if (m != nullptr)
                     {
-                        if (currentLayoutGroup == "All Models" || 
+                        if (currentLayoutGroup == "All Models" ||
                             m->GetLayoutGroup() == currentLayoutGroup ||
-                            (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) 
+                            (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned"))
                         {
                             AddModelToTree(m, &item, false, i, true);
                         }
