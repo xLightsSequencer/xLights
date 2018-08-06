@@ -68,7 +68,8 @@ RenderCache::~RenderCache()
 
 void RenderCache::LoadCache()
 {
-    auto t = new RenderCacheLoadThread(this);
+    // the thread self deletes so we dont need to track it
+    new RenderCacheLoadThread(this);
 }
 
 void RenderCache::AddCacheItem(RenderCacheItem* rci)
@@ -117,7 +118,7 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
     delete item;
 }
 
-bool RenderCache::IsEffectOkForCaching(Effect* effect)
+bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 {
     if (!IsEnabled()) return false;
 
@@ -227,13 +228,6 @@ static void purgeCache(Element *em, bool del) {
     });
 }
 
-static void forgetCache(Element *em) {
-    doOnEffects(em, [] (Effect* e) {
-        e->ForgetCache();
-        return false;
-    });
-}
-
 static bool findMatch(Element *em, RenderCacheItem* item) {
     return doOnEffects(em, [item] (Effect* e) {
         return item->IsMatch(e, nullptr);
@@ -311,21 +305,9 @@ void RenderCache::Purge(SequenceElements* sequenceElements, bool dodelete)
         }
     }
 }
-
-void RenderCache::ForgetCache(SequenceElements* sequenceElements)
-{
-    std::unique_lock<std::recursive_mutex> lock(_cacheLock);
-    if (sequenceElements) {
-        for (int i = 0; i < sequenceElements->GetElementCount(); i++) {
-            Element* em = sequenceElements->GetElement(i);
-            forgetCache(em);
-        }
-    }
-}
 #pragma endregion RenderCache
 
 #pragma region RenderCacheItem
-
 RenderCacheItem::~RenderCacheItem()
 {
     PurgeFrames();
@@ -345,7 +327,7 @@ void RenderCacheItem::PurgeFrames()
     }
 }
 
-std::string RenderCacheItem::GetModelName(RenderBuffer* buffer) const
+std::string RenderCacheItem::GetModelName(RenderBuffer* buffer)
 {
     if (buffer == nullptr)
     {
@@ -647,7 +629,6 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
         }
         ps += strlen(ps) + 1;
 
-        long frames = wxAtoi(_properties["Frames"]);
         long firstFrameOffset = ps - headerBuffer;
 
         file.Seek(firstFrameOffset);

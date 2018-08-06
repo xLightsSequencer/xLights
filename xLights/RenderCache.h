@@ -22,7 +22,7 @@ class RenderCacheItem
     std::map<std::string, long> _frameSize;
     bool _purged;
     bool _dirty;
-    std::string GetModelName(RenderBuffer* buffer) const;
+    static std::string GetModelName(RenderBuffer* buffer);
 
 public:
     RenderCacheItem(RenderCache* renderCache, const std::string& file);
@@ -59,11 +59,10 @@ class RenderCache
         std::string GetCacheFolder() const { return _cacheFolder; }
         void CleanupCache(SequenceElements* sequenceElements);
         void Purge(SequenceElements* sequenceElements, bool dodelete);
-        void ForgetCache(SequenceElements* sequenceElements);
         void Enable(std::string enabled) { _enabled = enabled; }
         std::mutex& GetLoadMutex() { return _loadMutex; }
         void AddCacheItem(RenderCacheItem* rci);
-        bool IsEffectOkForCaching(Effect* effect);
+        bool IsEffectOkForCaching(Effect* effect) const;
 };
 
 #endif // RENDERCACHE_H
