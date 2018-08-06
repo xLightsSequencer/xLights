@@ -187,6 +187,7 @@ void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool
             {
                 if (!from.IsTransparent(x, y))
                 {
+                    to.SetAlpha(x + offset.x, y + offset.y, 255);
                     to.SetRGB(x + offset.x, y + offset.y, from.GetRed(x, y), from.GetGreen(x, y), from.GetBlue(x, y));
                 }
                 else
