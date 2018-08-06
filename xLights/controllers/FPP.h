@@ -39,7 +39,7 @@ public:
     std::string SaveFPPUniversesV1(const std::string& onlyip, const std::list<int>& selected, bool onebased) const;
     std::string SaveFPPUniversesV2(const std::string& onlyip, const std::list<int>& selected, bool onebased, bool input) const;
     std::string SaveFPPChannelMemoryMaps(ModelManager* allmodels) const;
-    bool UploadSequence(std::string file, wxWindow* parent);
+    bool UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent);
     static bool IsDefaultPassword(const std::string& user, const std::string& password);
     static bool Exists(const std::string& ip);
     

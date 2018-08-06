@@ -373,7 +373,7 @@ std::string FPP::SaveFPPUniversesV1(const std::string& onlyip, const std::list<i
     return file;
 }
 
-bool FPP::UploadSequence(std::string file, wxWindow* parent)
+bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent)
 {
     bool cancelled = false;
     wxString media = "";
@@ -397,7 +397,7 @@ bool FPP::UploadSequence(std::string file, wxWindow* parent)
     }
 
     wxFileName fn(file);
-    wxString fseq = fn.GetPath() + "/" + fn.GetName() + ".fseq";
+    wxString fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
     if (wxFile::Exists(fseq)) {
         cancelled = _ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, parent);
     } else {

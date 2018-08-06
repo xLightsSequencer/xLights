@@ -407,7 +407,12 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
                 {
                     // now check the fseq file exists
                     wxFileName fn(dir + wxFileName::GetPathSeparator() + file);
-                    wxString fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+
+                    wxString fseq;
+                    if(xLightsFrame::CurrentDir == fseqDir)
+                        fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+                    else
+                        fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
 
                     if (wxFile::Exists(fseq))
                     {
@@ -605,7 +610,13 @@ bool FPPConnectDialog::FTPUpload()
         {
             wxString file = CheckListBox_Sequences->GetString(*it);
 
-            cancelled = fpp.UploadSequence(file.ToStdString(), this);
+            if (xLightsFrame::CurrentDir == xLightsFrame::FseqDir) {
+                wxFileName fn(file);
+                cancelled = fpp.UploadSequence(file.ToStdString(), fn.GetPath().ToStdString(), this);
+            }
+            else {
+                cancelled = fpp.UploadSequence(file.ToStdString(), xLightsFrame::FseqDir.ToStdString(), this);
+            }
         }
     }
 
@@ -687,6 +698,11 @@ bool FPPConnectDialog::USBUpload()
         }
         wxFileName fn(file);
         wxString fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+
+        if (xLightsFrame::CurrentDir == xLightsFrame::FseqDir)
+            fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+        else
+            fseq = xLightsFrame::FseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
 
         int start = count * 1000 / total;
         count++;
