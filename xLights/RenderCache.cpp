@@ -453,7 +453,19 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     int frame = buffer->curPeriod - buffer->curEffStartPer;
 
     std::string mname = GetModelName(buffer);
-    _frameSize[mname] = sizeof(xlColor) * buffer->pixels.size();
+
+    if (_frameSize.find(mname) == _frameSize.end())
+    {
+        _frameSize[mname] = sizeof(xlColor) * buffer->pixels.size();
+    }
+    else
+    {
+        if (_frameSize[mname] != sizeof(xlColor) * buffer->pixels.size())
+        {
+            // the buffer size has changed ... we dont support this.
+            return;
+        }
+    }
 
     if (_frames.find(mname) == _frames.end())
     {
@@ -494,10 +506,13 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
     std::string mname = GetModelName(buffer);
     if (_frameSize.find(mname) == _frameSize.end()) return false;
 
-    int frame = buffer->curPeriod - buffer->curEffStartPer;
-
     auto modelFrames = _frames[mname];
-    wxASSERT(_frameSize.at(mname) == (sizeof(xlColor) * buffer->pixels.size()));
+    if (_frameSize.at(mname) != (sizeof(xlColor) * buffer->pixels.size()))
+    {
+        return false;
+    }
+
+    int frame = buffer->curPeriod - buffer->curEffStartPer;
 
     if (frame < modelFrames.size() && modelFrames[frame]) {
         // its in memory ... read it from there
@@ -505,6 +520,7 @@ bool RenderCacheItem::GetFrame(RenderBuffer* buffer)
         memcpy(&buffer->pixels[0], pc, _frameSize.at(mname));
         return true;
     }
+
     return false;
 }
 
