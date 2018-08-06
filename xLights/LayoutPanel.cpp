@@ -570,8 +570,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
             xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong());
          } else {
-            pGrp->SetBackgroundBrightness(wxAtoi(event.GetValue().GetString()));
-            modelPreview->SetBackgroundBrightness(wxAtoi(event.GetValue().GetString()));
+            pGrp->SetBackgroundBrightness(event.GetValue().GetLong());
+            modelPreview->SetBackgroundBrightness(event.GetValue().GetLong());
             xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
@@ -1447,7 +1447,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
             prop->SetAttribute("Max", 4096);
             prop->SetEditor("SpinCtrl");
         }
-        wxPGProperty* prop = propertyEditor->Append(new wxStringProperty("Brightness", "BkgBrightness", wxString::Format("%d", previewBackgroundBrightness)));
+        wxPGProperty* prop = propertyEditor->Append(new wxUIntProperty("Brightness", "BkgBrightness",  previewBackgroundBrightness));
         prop->SetAttribute("Min", 0);
         prop->SetAttribute("Max", 100);
         prop->SetEditor("SpinCtrl");
