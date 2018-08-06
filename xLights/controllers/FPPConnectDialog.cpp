@@ -33,6 +33,7 @@ const long FPPConnectDialog::ID_BUTTON_Console = wxNewId();
 const long FPPConnectDialog::ID_PANEL_FTP = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT4 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_Drives = wxNewId();
+const long FPPConnectDialog::ID_BUTTON_REFRESH_DRIVES = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT5 = wxNewId();
 const long FPPConnectDialog::ID_DIRPICKERCTRL1 = wxNewId();
 const long FPPConnectDialog::ID_PANEL_USB = wxNewId();
@@ -57,15 +58,14 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     _outputManager = outputManager;
 
 	//(*Initialize(FPPConnectDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
 
-	Create(parent, id, _("FPP Upload"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
-	SetClientSize(wxDefaultSize);
-	Move(wxDefaultPosition);
+	Create(parent, wxID_ANY, _("FPP Upload"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(3);
@@ -105,8 +105,12 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer3->AddGrowableCol(1);
 	StaticText4 = new wxStaticText(Panel_USB, ID_STATICTEXT4, _("Drive"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	Choice_Drives = new wxChoice(Panel_USB, ID_CHOICE_Drives, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Drives"));
-	FlexGridSizer3->Add(Choice_Drives, 1, wxALL|wxEXPAND, 5);
+	BoxSizer1->Add(Choice_Drives, 1, wxALL|wxEXPAND, 5);
+	Button_Refresh_Drives = new wxButton(Panel_USB, ID_BUTTON_REFRESH_DRIVES, _("Refresh"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_REFRESH_DRIVES"));
+	BoxSizer1->Add(Button_Refresh_Drives, 0, wxALL|wxFIXED_MINSIZE, 5);
+	FlexGridSizer3->Add(BoxSizer1, 1, wxALL|wxEXPAND, 5);
 	StaticText5 = new wxStaticText(Panel_USB, ID_STATICTEXT5, _("FPP Media Directory"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer3->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	DirPickerCtrl_FPPMedia = new wxDirPickerCtrl(Panel_USB, ID_DIRPICKERCTRL1, wxEmptyString, _("Select FPP Media Directory on a USB Stick"), wxDefaultPosition, wxDefaultSize, wxDIRP_DIR_MUST_EXIST|wxDIRP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_DIRPICKERCTRL1"));
@@ -147,6 +151,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_TEXTCTRL_Password,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_PasswordTextEnter);
 	Connect(ID_BUTTON_Console,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_ConsoleClick);
 	Connect(ID_DIRPICKERCTRL1,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnFilePickerCtrl_MediaFolderFileChanged);
+	Connect(ID_BUTTON_REFRESH_DRIVES,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_Refresh_DrivesClick);
 	Connect(ID_NOTEBOOK_FPP,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnNotebook_FPPPageChanged);
 	Connect(ID_CHECKBOX_UploadController,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_UploadControllerClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_UploadModelsClick);
@@ -159,67 +164,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
     Connect(ID_COMBOBOX_IPAddress, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&FPPConnectDialog::OnComboBox_IPAddressTextUpdate);
 
-#ifdef __WXMSW__
-    wxArrayString drives = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
-    for (auto it = drives.begin(); it != drives.end(); ++it)
-    {
-        Choice_Drives->AppendString(*it);
-    }
-    if (Choice_Drives->GetCount() > 0)
-    {
-        Choice_Drives->SetSelection(0);
-    }
-    DirPickerCtrl_FPPMedia->Hide();
-    StaticText5->Hide();
-#else
-    Choice_Drives->Hide();
-    StaticText4->Hide();
-    #ifdef __WXOSX__
-        wxDir d;
-        d.Open("/Volumes");
-        wxString dir;
-        bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
-        while (fcont)
-        {
-            if (wxDir::Exists("/Volumes/" + dir + "/sequences")) //raw USB drive mounted
-            {
-                DirPickerCtrl_FPPMedia->SetPath("/Volumes/" + dir + "/");
-                break;
-            }
-            else if (wxDir::Exists("/Volumes/" + dir + "/media/sequences")) // Mounted via SMB/NFS
-            {
-                DirPickerCtrl_FPPMedia->SetPath("/Volumes/" + dir + "/media/");
-                break;
-            }
-            fcont = d.GetNext(&dir);
-        }
-    #else
-    bool done = false;
-    wxDir d;
-    d.Open("/media");
-    wxString dir;
-    bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
-    while (fcont)
-    {
-        wxDir d2;
-        d2.Open("/media/" + dir);
-        wxString dir2;
-        bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
-        while (fcont2)
-        {
-            if (wxDir::Exists("/media/" + dir + "/" + dir2 + "/sequences"))
-            {
-                DirPickerCtrl_FPPMedia->SetPath("/media/" + dir + "/" + dir2);
-                done = true;
-                break;
-            }
-            fcont2 = d2.GetNext(&dir2);
-        }
-        if (done) break;
-        fcont = d.GetNext(&dir);
-    }
-    #endif
-#endif
+    CreateDriveList();
 
     LoadSequences();
 
@@ -386,6 +331,8 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char *)dir.c_str());
 
+    wxString fseqDir = xLightsFrame::FseqDir;
+
     wxDir directory;
     directory.Open(dir);
 
@@ -405,7 +352,12 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
                 {
                     // now check the fseq file exists
                     wxFileName fn(dir + wxFileName::GetPathSeparator() + file);
-                    wxString fseq = dir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+
+                    wxString fseq;
+                    if(xLightsFrame::CurrentDir == fseqDir)
+                        fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+                    else
+                        fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
 
                     if (wxFile::Exists(fseq))
                     {
@@ -603,7 +555,13 @@ bool FPPConnectDialog::FTPUpload()
         {
             wxString file = CheckListBox_Sequences->GetString(*it);
 
-            cancelled = fpp.UploadSequence(file.ToStdString(), this);
+            if (xLightsFrame::CurrentDir == xLightsFrame::FseqDir) {
+                wxFileName fn(file);
+                cancelled = fpp.UploadSequence(file.ToStdString(), fn.GetPath().ToStdString(), this);
+            }
+            else {
+                cancelled = fpp.UploadSequence(file.ToStdString(), xLightsFrame::FseqDir.ToStdString(), this);
+            }
         }
     }
 
@@ -684,7 +642,11 @@ bool FPPConnectDialog::USBUpload()
             }
         }
         wxFileName fn(file);
-        wxString fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+        wxString fseq;
+        if (xLightsFrame::CurrentDir == xLightsFrame::FseqDir)
+            fseq = fn.GetPath() + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
+        else
+            fseq = xLightsFrame::FseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
 
         int start = count * 1000 / total;
         count++;
@@ -728,6 +690,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     TextCtrl_Password->Disable();
     CheckListBox_Sequences->Disable();
     Choice_Drives->Disable();
+    Button_Refresh_Drives->Disable();
     CheckBox_UploadController->Disable();
     CheckBox_UploadModels->Disable();
 
@@ -747,6 +710,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     TextCtrl_Password->Enable();
     CheckListBox_Sequences->Enable();
     Choice_Drives->Enable();
+    Button_Refresh_Drives->Enable();
     CheckBox_UploadController->Enable();
     CheckBox_UploadModels->Enable();
 
@@ -854,6 +818,73 @@ bool FPPConnectDialog::CopyFile(std::string source, std::string target, bool bac
     return cancelled;
 }
 
+void FPPConnectDialog::CreateDriveList()
+{
+    Choice_Drives->Clear();
+#ifdef __WXMSW__
+    wxArrayString drives = wxFSVolume::GetVolumes(wxFS_VOL_REMOVABLE | wxFS_VOL_MOUNTED, 0);
+    for (auto it = drives.begin(); it != drives.end(); ++it)
+    {
+        Choice_Drives->AppendString(*it);
+    }
+    if (Choice_Drives->GetCount() > 0)
+    {
+        Choice_Drives->SetSelection(0);
+    }
+    DirPickerCtrl_FPPMedia->Hide();
+    StaticText5->Hide();
+#else
+    Choice_Drives->Hide();
+    StaticText4->Hide();
+#ifdef __WXOSX__
+    wxDir d;
+    d.Open("/Volumes");
+    wxString dir;
+    bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
+    while (fcont)
+    {
+        if (wxDir::Exists("/Volumes/" + dir + "/sequences")) //raw USB drive mounted
+        {
+            DirPickerCtrl_FPPMedia->SetPath("/Volumes/" + dir + "/");
+            break;
+        }
+        else if (wxDir::Exists("/Volumes/" + dir + "/media/sequences")) // Mounted via SMB/NFS
+        {
+            DirPickerCtrl_FPPMedia->SetPath("/Volumes/" + dir + "/media/");
+            break;
+        }
+        fcont = d.GetNext(&dir);
+    }
+#else
+    bool done = false;
+    wxDir d;
+    d.Open("/media");
+    wxString dir;
+    bool fcont = d.GetFirst(&dir, wxEmptyString, wxDIR_DIRS);
+    while (fcont)
+    {
+        wxDir d2;
+        d2.Open("/media/" + dir);
+        wxString dir2;
+        bool fcont2 = d2.GetFirst(&dir2, wxEmptyString, wxDIR_DIRS);
+        while (fcont2)
+        {
+            if (wxDir::Exists("/media/" + dir + "/" + dir2 + "/sequences"))
+            {
+                DirPickerCtrl_FPPMedia->SetPath("/media/" + dir + "/" + dir2);
+                done = true;
+                break;
+            }
+            fcont2 = d2.GetNext(&dir2);
+        }
+        if (done) break;
+        fcont = d.GetNext(&dir);
+    }
+#endif
+#endif
+
+}
+
 void FPPConnectDialog::OnCheckListBox_SequencesToggled(wxCommandEvent& event)
 {
     ValidateWindow();
@@ -935,6 +966,7 @@ void FPPConnectDialog::OnButton_UploadToAllClick(wxCommandEvent& event)
     TextCtrl_Password->Disable();
     CheckListBox_Sequences->Disable();
     Choice_Drives->Disable();
+    Button_Refresh_Drives->Disable();
     CheckBox_UploadController->Disable();
     CheckBox_UploadModels->Disable();
 
@@ -962,6 +994,7 @@ void FPPConnectDialog::OnButton_UploadToAllClick(wxCommandEvent& event)
     TextCtrl_Password->Enable();
     CheckListBox_Sequences->Enable();
     Choice_Drives->Enable();
+    Button_Refresh_Drives->Enable();
     CheckBox_UploadController->Enable();
     CheckBox_UploadModels->Enable();
 
@@ -1026,4 +1059,9 @@ void FPPConnectDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 {
     // remember user name and ip address
     SaveConnectionDetails();
+}
+
+void FPPConnectDialog::OnButton_Refresh_DrivesClick(wxCommandEvent& event)
+{
+    CreateDriveList();
 }

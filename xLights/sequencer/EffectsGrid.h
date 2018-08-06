@@ -104,7 +104,6 @@ public:
 
     void OldPaste(const wxString &data, const wxString &pasteDataVer);
     void Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
-    void SetCanPaste() { mCanPaste = true; }
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
     int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
@@ -118,7 +117,7 @@ public:
         xlights = xl;
     }
 
-    void ClearSelection(bool keepCanPaste = false);
+    void ClearSelection();
 
     static EffectLayer* FindOpenLayer(Element* elem, int startTimeMS, int endTimeMS);
 
@@ -205,7 +204,6 @@ private:
     bool mGridIconBackgrounds;
     bool mTimingPlayOnDClick;
     bool mGridNodeValues = true;
-    bool mCanPaste;
 
     //~ Need to see why I cannot access xLightsFrame::GB_EFFECTS_e from xLightsMain.h
     // for effect count

@@ -507,6 +507,8 @@
 		<Unit filename="OptionChooser.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
+		<Unit filename="Parallel.cpp" />
+		<Unit filename="Parallel.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />
@@ -527,6 +529,8 @@
 		<Unit filename="Render.cpp" />
 		<Unit filename="RenderBuffer.cpp" />
 		<Unit filename="RenderBuffer.h" />
+		<Unit filename="RenderCache.cpp" />
+		<Unit filename="RenderCache.h" />
 		<Unit filename="RenderCommandEvent.h" />
 		<Unit filename="RenderProgressDialog.cpp" />
 		<Unit filename="RenderProgressDialog.h" />
@@ -604,8 +608,6 @@
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
-		<Unit filename="VideoRenderCacher.cpp" />
-		<Unit filename="VideoRenderCacher.h" />
 		<Unit filename="ViewpointDialog.cpp" />
 		<Unit filename="ViewpointDialog.h" />
 		<Unit filename="ViewpointMgr.cpp" />

@@ -24,6 +24,7 @@ public:
     
     virtual bool DeleteWhenComplete() = 0;
     
+    virtual bool SetThreadName() { return true; }
     virtual const std::string GetName() const = 0;
 };
 
@@ -40,13 +41,15 @@ class JobPool
     std::atomic_int maxNumThreads;
     std::atomic_int idleThreads;
     std::atomic_int inFlight;
+    std::string threadNameBase;
     
 public:
-    JobPool();
+    JobPool(const std::string &threadNameBase);
     virtual ~JobPool();
     
     virtual void PushJob(Job *job);
     int size() const { return (int)threads.size(); }
+    int maxSize() const { return maxNumThreads; }
     virtual void Start(size_t poolSize = 1);
     virtual void Stop();
     

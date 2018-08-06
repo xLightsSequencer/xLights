@@ -594,6 +594,7 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         for (int x = 0; x < num_segments; x++) {
             std::string val = ModelXml->GetAttribute(SegAttrName(x)).ToStdString();
             if (val == "") {
+                //TODO this needs to be improved like the model individual start channels code
                 val = wxString::Format("%d", polyLineSizes[x]);
                 ModelXml->DeleteAttribute(SegAttrName(x));
                 ModelXml->AddAttribute(SegAttrName(x), val);
@@ -605,7 +606,14 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
             grid->Collapse(p);
         }
     }
+    else
+    {
+        for (int x = 0; x < 100; x++) {
+            ModelXml->DeleteAttribute(SegAttrName(x));
+        }
+    }
 }
+
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("PolyLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
@@ -632,11 +640,16 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
             for (int x = 0; x < count; x++) {
                 if (ModelXml->GetAttribute(SegAttrName(x)) == "") {
                     ModelXml->DeleteAttribute(SegAttrName(x));
+                    //TODO This needs to be immproved like the individual start channels code in model
                     ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", polyLineSizes[x]));
                 }
             }
-        } else {
+        }
+        else {
             hasIndivSeg = false;
+            for (int x = 0; x < 100; x++) {
+                ModelXml->DeleteAttribute(SegAttrName(x));
+            }
         }
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
@@ -775,6 +788,7 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
                 for (int x = 0; x < num_segments; x++) {
                     ModelXml->DeleteAttribute(SegAttrName(x));
                     wxString seg = root->GetAttribute(SegAttrName(x), "");
+                    // TODO this needs to be fixed like the individual start channel code in model
                     int seg_length = wxAtoi(seg);
                     ModelXml->AddAttribute(SegAttrName(x), wxString::Format("%d", seg_length));
                 }

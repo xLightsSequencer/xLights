@@ -29,10 +29,11 @@
 #include "models/ModelGroup.h"
 #include "UtilClasses.h"
 #include "AudioManager.h"
+#include "xLightsMain.h"
 #include <log4cpp/Category.hh>
 
 #include <random>
-
+#include "Parallel.h"
 
 // This is needed for visual studio
 #ifdef _MSC_VER
@@ -1782,12 +1783,20 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
 void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState)
 {
     CurrentLayer=newlayer;
+    wxASSERT(frame->AllModels[modelName] != nullptr);
     layers[CurrentLayer]->buffer.SetState(period, resetState, modelName);
     if (layers[CurrentLayer]->usingModelBuffers) {
         int cnt = 0;
         const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[CurrentLayer]->modelBuffers.begin(); it != layers[CurrentLayer]->modelBuffers.end(); it++, cnt++)  {
-            (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+        for (auto it = layers[CurrentLayer]->modelBuffers.begin(); it != layers[CurrentLayer]->modelBuffers.end(); ++it, cnt++)  {
+            if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr)
+            {
+                (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
+            }
+            else
+            {
+                (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
+            }
         }
     }
 }
@@ -2098,8 +2107,13 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
 
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers, int saveLayer)
 {
-    xlColor color;
     int curStep;
+    int countValid = 0;
+    for (auto x : validLayers) {
+        if (x) {
+            ++countValid;
+        }
+    }
 
     // blur all the layers if necessary ... before the merge?
     for (int layer = 0; layer < numLayers; layer++)
@@ -2170,27 +2184,22 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
     // layer calculation and map to output
     size_t NodeCount = layers[0]->buffer.Nodes.size();
-    for(size_t i = 0; i < NodeCount; i++)
-    {
-        if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible())
-        {
+    parallel_for(0, NodeCount, [this, saveLayer, validLayers, EffectPeriod] (int i) {
+        if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
             layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
-        }
-        else
-        {
+        } else {
             // get blend of two effects
+            xlColor color;
             GetMixedColor(i,
                           color,
                           validLayers, EffectPeriod);
 
-
             // set color for physical output
             layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
         }
-    }
+    }, std::max( 5000 / std::max(countValid, 1), 500));
 }
-
 
 static int DecodeType(const std::string &type)
 {

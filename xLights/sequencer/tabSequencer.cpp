@@ -774,9 +774,8 @@ void xLightsFrame::Scroll( wxCommandEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(position);
     wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
     mainSequencer->HorizontalScrollChanged(eventScroll);
-    mainSequencer->PanelEffectGrid->ClearSelection(true);
+    mainSequencer->PanelEffectGrid->ClearSelection();
 }
-
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
@@ -853,7 +852,6 @@ void xLightsFrame::ResizeAndMakeEffectsScroll()
 
 void xLightsFrame::ResizeMainSequencer()
 {
-
     // Set max rows to determine correct row information size
     mSequenceElements.SetMaxRowsDisplayed(mainSequencer->PanelRowHeadings->GetMaxRows());
     mSequenceElements.PopulateVisibleRowInformation();
@@ -875,10 +873,10 @@ void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
     mainSequencer->ScrollBarEffectsHorizontal->Update();
 }
 
-
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
     UnselectEffect();
 }
+
 void xLightsFrame::UnselectEffect(){
     if (playType != PLAY_TYPE_MODEL && playType != PLAY_TYPE_MODEL_PAUSED) {
         playType = PLAY_TYPE_STOPPED;
@@ -2431,7 +2429,8 @@ void xLightsFrame::DoLoadPerspective(wxXmlNode *perspective)
     }
 
     m_mgr->LoadPerspective(settings, true);
-    logger_base.debug("Loaded perspective");
+    ShowHideAllSequencerWindows(true);
+    logger_base.debug("Loaded perspective %s", (const char *)name.c_str());
     LogPerspective(settings);
 
     if (perspective->GetAttribute("version", "1.0") == "1.0") {

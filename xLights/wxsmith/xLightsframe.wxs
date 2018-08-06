@@ -1122,6 +1122,10 @@
 					<label>Purge Download Cache</label>
 					<handler function="OnMenuItem_PurgeVendorCacheSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_PURGERENDERCACHE" variable="MenuItem_PurgeRenderCache" member="yes">
+					<label>Purge Render Cache</label>
+					<handler function="OnMenuItem_PurgeRenderCacheSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CRASH" variable="MenuItem_CrashXLights" member="yes">
 					<label>Crash xLights</label>
 					<handler function="OnMenuItem_CrashXLightsSelected" entry="EVT_MENU" />
@@ -1480,6 +1484,24 @@
 				<object class="wxMenuItem" name="ID_COLOR_MANAGER" variable="MenuItemColorManager" member="yes">
 					<label>Color Manager</label>
 					<handler function="OnMenuItemColorManagerSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenu" name="ID_MNU_RENDERCACHE" variable="MenuItem_EnableRenderCache" member="yes">
+					<label>Render Cache</label>
+					<object class="wxMenuItem" name="ID_MNU_RC_ENABLE" variable="MenuItem_RC_Enable" member="yes">
+						<label>Enable</label>
+						<handler function="OnMenuItem_RenderCache" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_RC_LOCKEDONLY" variable="MenuItem_RC_LockedOnly" member="yes">
+						<label>Locked Effects Only</label>
+						<handler function="OnMenuItem_RenderCache" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_RC_DISABLED" variable="MenuItem_RC_Disable" member="yes">
+						<label>Disable</label>
+						<handler function="OnMenuItem_RenderCache" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM_RENDER_MODE" variable="MenuItemRenderMode" member="yes">
 					<label>Render Mode</label>

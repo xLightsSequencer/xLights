@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1E1EC9C620B00617007C28F2 /* VideoRenderCacher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */; };
 		1E3E24F81E371555001D48E3 /* UserButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F61E371555001D48E3 /* UserButton.cpp */; };
 		1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */; };
 		1E3E24FE1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E3E24FB1E3715BB001D48E3 /* PlayListItemCURLPanel.cpp */; };
@@ -166,6 +165,7 @@
 		674ACA7C1C5ADE4000B54B32 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674ACA7B1C5ADE4000B54B32 /* Node.cpp */; };
 		674B81522028EDA3002A97A6 /* PlayListItemScreenMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */; };
 		674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */; };
+		674C7C7B21132E3E0056FB9D /* Parallel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674C7C7921132E3E0056FB9D /* Parallel.cpp */; };
 		674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D1C1C207B9F000D632B /* OpenGL.framework */; };
 		674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D211C207BCC000D632B /* IOKit.framework */; };
 		674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 674D3D231C207BD7000D632B /* AudioToolbox.framework */; };
@@ -494,6 +494,7 @@
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
+		67CE7B522111E02E004005BC /* RenderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CE7B502111E02D004005BC /* RenderCache.cpp */; };
 		67CF20CF1C3D8D71000FCDF7 /* RenderBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CF20CE1C3D8D71000FCDF7 /* RenderBuffer.cpp */; };
 		67D11C791BEA691900000A7F /* ModelDimmingCurveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C751BEA691900000A7F /* ModelDimmingCurveDialog.cpp */; };
 		67D11C7A1BEA691900000A7F /* DimmingCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67D11C781BEA691900000A7F /* DimmingCurve.cpp */; };
@@ -703,6 +704,7 @@
 		67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FA9FD21C67837500FED13B /* AudioManager.cpp */; };
 		67FB9D1B1F4D21EB00983072 /* ShapePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D181F4D21EB00983072 /* ShapePanel.cpp */; };
 		67FB9D1C1F4D21EB00983072 /* ShapeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */; };
+		67FDFA36210EA77A001587BC /* FadeExcludeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */; };
 		67FE98551EB8C9BF00C5E804 /* ViewsModelsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */; };
 		67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398B1D57F54D00290DB4 /* Shapes.cpp */; };
 		67FF398F1D57F5C000290DB4 /* MusicXML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67FF398E1D57F5C000290DB4 /* MusicXML.cpp */; };
@@ -774,8 +776,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1E1EC9C420B00617007C28F2 /* VideoRenderCacher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoRenderCacher.h; sourceTree = "<group>"; };
-		1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoRenderCacher.cpp; sourceTree = "<group>"; };
 		1E3E24F61E371555001D48E3 /* UserButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserButton.cpp; sourceTree = "<group>"; };
 		1E3E24F71E371555001D48E3 /* UserButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserButton.h; sourceTree = "<group>"; };
 		1E3E24F91E3715BB001D48E3 /* PlayListItemCURL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemCURL.cpp; path = PlayList/PlayListItemCURL.cpp; sourceTree = "<group>"; };
@@ -1041,6 +1041,8 @@
 		674B814F2028EDA3002A97A6 /* PlayListItemScreenMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemScreenMap.cpp; path = PlayList/PlayListItemScreenMap.cpp; sourceTree = "<group>"; };
 		674B81502028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemScreenMapPanel.cpp; path = PlayList/PlayListItemScreenMapPanel.cpp; sourceTree = "<group>"; };
 		674B81512028EDA3002A97A6 /* PlayListItemScreenMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemScreenMap.h; path = PlayList/PlayListItemScreenMap.h; sourceTree = "<group>"; };
+		674C7C7921132E3E0056FB9D /* Parallel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Parallel.cpp; sourceTree = "<group>"; };
+		674C7C7A21132E3E0056FB9D /* Parallel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Parallel.h; sourceTree = "<group>"; };
 		674D3D1C1C207B9F000D632B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		674D3D211C207BCC000D632B /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		674D3D231C207BD7000D632B /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -1602,6 +1604,8 @@
 		67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VUMeterPanel.cpp; path = effects/VUMeterPanel.cpp; sourceTree = "<group>"; };
 		67CB9F291C6E1FF400390753 /* VUMeterEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VUMeterEffect.h; path = effects/VUMeterEffect.h; sourceTree = "<group>"; };
 		67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VUMeterEffect.cpp; path = effects/VUMeterEffect.cpp; sourceTree = "<group>"; };
+		67CE7B502111E02D004005BC /* RenderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderCache.cpp; sourceTree = "<group>"; };
+		67CE7B512111E02D004005BC /* RenderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderCache.h; sourceTree = "<group>"; };
 		67CF20CD1C3D8D71000FCDF7 /* RenderBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderBuffer.h; sourceTree = "<group>"; };
 		67CF20CE1C3D8D71000FCDF7 /* RenderBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderBuffer.cpp; sourceTree = "<group>"; };
 		67D11C741BEA691900000A7F /* ModelDimmingCurveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelDimmingCurveDialog.h; sourceTree = "<group>"; };
@@ -1882,6 +1886,8 @@
 		67FB9D181F4D21EB00983072 /* ShapePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShapePanel.cpp; path = effects/ShapePanel.cpp; sourceTree = "<group>"; };
 		67FB9D191F4D21EB00983072 /* ShapeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShapeEffect.h; path = effects/ShapeEffect.h; sourceTree = "<group>"; };
 		67FB9D1A1F4D21EB00983072 /* ShapeEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShapeEffect.cpp; path = effects/ShapeEffect.cpp; sourceTree = "<group>"; };
+		67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FadeExcludeDialog.cpp; sourceTree = "<group>"; };
+		67FDFA35210EA77A001587BC /* FadeExcludeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FadeExcludeDialog.h; sourceTree = "<group>"; };
 		67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewsModelsPanel.cpp; sourceTree = "<group>"; };
 		67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewsModelsPanel.h; sourceTree = "<group>"; };
 		67FF398B1D57F54D00290DB4 /* Shapes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shapes.cpp; path = models/Shapes.cpp; sourceTree = "<group>"; };
@@ -2029,6 +2035,8 @@
 		67025C6920D7E80800BF1AC6 /* xFade */ = {
 			isa = PBXGroup;
 			children = (
+				67FDFA34210EA77A001587BC /* FadeExcludeDialog.cpp */,
+				67FDFA35210EA77A001587BC /* FadeExcludeDialog.h */,
 				67025C8A20D7E85100BF1AC6 /* Emitter.cpp */,
 				67025C8720D7E85100BF1AC6 /* Emitter.h */,
 				67025C8020D7E85000BF1AC6 /* MIDIAssociateDialog.cpp */,
@@ -2777,6 +2785,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67CE7B502111E02D004005BC /* RenderCache.cpp */,
+				67CE7B512111E02D004005BC /* RenderCache.h */,
 				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
 				6785922620F02CD9001C2929 /* LyricUserDictDialog.h */,
 				676507CB20D185F100532BA9 /* xlLockButton.cpp */,
@@ -2976,8 +2986,6 @@
 				67C31166200506B2005A12D0 /* VideoExporter.h */,
 				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
 				679484AC1CD8E998001A7B4F /* VideoReader.h */,
-				1E1EC9C520B00617007C28F2 /* VideoRenderCacher.cpp */,
-				1E1EC9C420B00617007C28F2 /* VideoRenderCacher.h */,
 				67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */,
 				67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */,
 				671130AF1E4EB18100AF09A7 /* VSAFile.cpp */,
@@ -3005,6 +3013,8 @@
 				67BCD1541E6DAF9100F99935 /* xLightsVersion.h */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
 				675DE2651B53381800A9BB44 /* xlSlider.cpp */,
+				674C7C7921132E3E0056FB9D /* Parallel.cpp */,
+				674C7C7A21132E3E0056FB9D /* Parallel.h */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -3644,6 +3654,7 @@
 				67025C9420D7E85100BF1AC6 /* Emitter.cpp in Sources */,
 				67025C8F20D7E85100BF1AC6 /* Settings.cpp in Sources */,
 				67025C8D20D7E85100BF1AC6 /* UniverseEntryDialog.cpp in Sources */,
+				67FDFA36210EA77A001587BC /* FadeExcludeDialog.cpp in Sources */,
 				67025C9220D7E85100BF1AC6 /* MIDIListener.cpp in Sources */,
 				67025C9320D7E85100BF1AC6 /* xFadeApp.cpp in Sources */,
 				67025C9120D7E85100BF1AC6 /* xFadeMain.cpp in Sources */,
@@ -3678,6 +3689,7 @@
 				67BF80061F278956002F118D /* Falcon.cpp in Sources */,
 				67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */,
 				67BF80081F278956002F118D /* FPP.cpp in Sources */,
+				674C7C7B21132E3E0056FB9D /* Parallel.cpp in Sources */,
 				67B2CFD81C3A186A003C17CA /* SpiralsEffect.cpp in Sources */,
 				67E9F6F818887898000D8182 /* TabConvert.cpp in Sources */,
 				67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */,
@@ -3778,7 +3790,6 @@
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */,
 				67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */,
-				1E1EC9C620B00617007C28F2 /* VideoRenderCacher.cpp in Sources */,
 				6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */,
 				67B2CF761C39D98A003C17CA /* GalaxyPanel.cpp in Sources */,
 				67BF80041F278956002F118D /* Pixlite16.cpp in Sources */,
@@ -3945,6 +3956,7 @@
 				676D0F801C72BEBD009C66FC /* kiss_fftnd.c in Sources */,
 				673C45571C79570B00FDED47 /* BufferPanel.cpp in Sources */,
 				67B71D251EC09FDB00690109 /* ColorManagerDialog.cpp in Sources */,
+				67CE7B522111E02E004005BC /* RenderCache.cpp in Sources */,
 				67B2CFE71C3A186A003C17CA /* MorphEffect.cpp in Sources */,
 				670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */,
 				6784F92F1A5653670018EC0C /* tabSequencer.cpp in Sources */,
@@ -4380,9 +4392,7 @@
 					"-DwxDEBUG_LEVEL=1",
 					"-Iinclude",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-				);
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "-headerpad_max_install_names";
 				OTHER_TAPI_FLAGS = "";
 				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = YES;
@@ -4457,9 +4467,7 @@
 					"-DwxDEBUG_LEVEL=0",
 					"-Iinclude",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-				);
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-headerpad_max_install_names",
 					"-lwxexpat-3.1",

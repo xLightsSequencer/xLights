@@ -30,6 +30,7 @@ class PicturesEffect : public RenderableEffect
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
         static bool IsPictureFile(std::string filename);
+        virtual bool SupportsRenderCache() const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

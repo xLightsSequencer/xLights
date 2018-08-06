@@ -265,6 +265,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         SetXmlSetting("fseqDir", showDirectory);
         UnsavedRgbEffectsChanges = true;
     }
+    FseqDir = fseqDirectory;
     if (!wxDir::Exists(backupDirectory))
     {
         logger_base.warn("Backup Directory not Found ... switching to Show Directory.");
@@ -1056,6 +1057,7 @@ void xLightsFrame::SaveSequence()
         }
         while (!ok);
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
+        _renderCache.SetSequence(fseqDirectory.ToStdString(), xmlFileName.GetName());
         xmlFileName.SetExt("xml");
         CurrentSeqXmlFile->SetPath(xmlFileName.GetPath());
         CurrentSeqXmlFile->SetFullName(xmlFileName.GetFullName());
@@ -1197,6 +1199,7 @@ void xLightsFrame::SaveAsSequence()
     oName.SetExt("xml");
     CurrentSeqXmlFile->SetPath(oName.GetPath());
     CurrentSeqXmlFile->SetFullName(oName.GetFullName());
+    _renderCache.SetSequence(fseqDirectory.ToStdString(), oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + " - " + NewFilename);
 }
@@ -1304,6 +1307,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_PackageSequence->Enable(false);
         MenuItem_GenerateLyrics->Enable(false);
         MenuItem_ExportEffects->Enable(false);
+        MenuItem_PurgeRenderCache->Enable(false);
         MenuItem_ImportEffects->Enable(false);
         MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, false);
     }

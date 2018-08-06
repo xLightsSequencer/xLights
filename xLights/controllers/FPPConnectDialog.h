@@ -5,18 +5,18 @@
 #include <list>
 
 //(*Headers(FPPConnectDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/checklst.h>
+#include <wx/choice.h>
+#include <wx/combobox.h>
+#include <wx/dialog.h>
+#include <wx/filepicker.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checklst.h>
-#include <wx/checkbox.h>
-#include <wx/filepicker.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/combobox.h>
 //*)
 
 class OutputManager;
@@ -53,6 +53,7 @@ class FPPConnectDialog: public wxDialog
     void OnPopup(wxCommandEvent &event);
     void SaveConnectionDetails();
     void LoadConnectionDetails();
+    void CreateDriveList();
 
 	public:
 
@@ -60,28 +61,29 @@ class FPPConnectDialog: public wxDialog
 		virtual ~FPPConnectDialog();
 
 		//(*Declarations(FPPConnectDialog)
-		wxNotebook* Notebook_FPP;
-		wxCheckBox* CheckBox_UploadModels;
-		wxButton* Button_Upload;
-		wxTextCtrl* TextCtrl_Description;
-		wxStaticText* StaticText2;
-		wxPanel* Panel_USB;
-		wxChoice* Choice_Drives;
-		wxDirPickerCtrl* DirPickerCtrl_FPPMedia;
-		wxStaticText* StaticText6;
-		wxComboBox* ComboBox_IPAddress;
 		wxButton* Button_Console;
-		wxStaticText* StaticText1;
-		wxCheckBox* CheckBox_UploadController;
-		wxStaticText* StaticText3;
 		wxButton* Button_Forget;
-		wxStaticText* StaticText5;
-		wxCheckListBox* CheckListBox_Sequences;
-		wxPanel* Panel_FTP;
-		wxStaticText* StaticText4;
-		wxTextCtrl* TextCtrl_Password;
+		wxButton* Button_Refresh_Drives;
+		wxButton* Button_Upload;
 		wxButton* Button_UploadToAll;
+		wxCheckBox* CheckBox_UploadController;
+		wxCheckBox* CheckBox_UploadModels;
+		wxCheckListBox* CheckListBox_Sequences;
+		wxChoice* Choice_Drives;
+		wxComboBox* ComboBox_IPAddress;
+		wxDirPickerCtrl* DirPickerCtrl_FPPMedia;
+		wxNotebook* Notebook_FPP;
+		wxPanel* Panel_FTP;
+		wxPanel* Panel_USB;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtr_Username;
+		wxTextCtrl* TextCtrl_Description;
+		wxTextCtrl* TextCtrl_Password;
 		//*)
 
 	protected:
@@ -100,6 +102,7 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_PANEL_FTP;
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE_Drives;
+		static const long ID_BUTTON_REFRESH_DRIVES;
 		static const long ID_STATICTEXT5;
 		static const long ID_DIRPICKERCTRL1;
 		static const long ID_PANEL_USB;
@@ -135,6 +138,7 @@ class FPPConnectDialog: public wxDialog
 		void OnTextCtrl_PasswordTextEnter(wxCommandEvent& event);
 		void OnComboBox_IPAddressTextEnter(wxCommandEvent& event);
 		void OnTextCtrl_DescriptionText(wxCommandEvent& event);
+		void OnButton_Refresh_DrivesClick(wxCommandEvent& event);
 		//*)
 
         void OnComboBox_IPAddressTextUpdate(wxCommandEvent& event);

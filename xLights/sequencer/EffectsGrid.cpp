@@ -89,7 +89,6 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint &po
     mDragStartRow = 0;
     mDragStartX = -1;
     mDragStartY = -1;
-    mCanPaste = false;
     mSelectedEffect = nullptr;
     mRangeStartRow = -1;
     mRangeEndRow = -1;
@@ -262,7 +261,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_copy->Enable(false);
             menu_delete->Enable(false);
         }
-        if( !mCanPaste || !(mCellRangeSelected || mPartialCellSelected) ) {
+        if (!(mCellRangeSelected || mPartialCellSelected) ) {
             menu_paste->Enable(false);
         }
 
@@ -363,7 +362,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
             menu_copy->Enable(false);
             menu_delete->Enable(false);
         }
-        if( !mCanPaste || !(mCellRangeSelected || mPartialCellSelected) ) {
+        if (!(mCellRangeSelected || mPartialCellSelected) ) {
             menu_paste->Enable(false);
         }
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
@@ -392,7 +391,6 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     {
         logger_base.debug("OnGridPopup - COPY");
         ((MainSequencer*)mParent)->CopySelectedEffects();
-        mCanPaste = true;
     }
     else if(id == ID_GRID_MNU_PASTE)
     {
@@ -985,7 +983,7 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
     return eff;
 }
 
-void EffectsGrid::ClearSelection(bool keepCanPaste)
+void EffectsGrid::ClearSelection()
 {
     mDragging = false;
     mResizing = false;
@@ -997,10 +995,6 @@ void EffectsGrid::ClearSelection(bool keepCanPaste)
     mDragStartRow = 0;
     mDragStartX = -1;
     mDragStartY = -1;
-    if (!keepCanPaste)
-    {
-        mCanPaste = false;
-    }
     UnselectEffect();
     mSelectedEffect = nullptr;
     mRangeCursorRow = mRangeStartRow;
@@ -6134,7 +6128,6 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
             mRangeEndRow = -1;
             mSequenceElements->SelectVisibleEffectsInRowAndTimeRange(row_number, row_number, mDropStartTimeMS, mSequenceElements->GetSequenceEnd());
             ((MainSequencer*)mParent)->CopySelectedEffects();
-            mCanPaste = true;
             effectLayer->UnSelectAllEffects();
             mPartialCellSelected = true;
             mCellRangeSelected = false;
@@ -6154,7 +6147,6 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
             e->GetEffectLayer(i)->SelectAllEffects();
         }
         ((MainSequencer*)mParent)->CopySelectedEffects();
-        mCanPaste = true;
         mSequenceElements->UnSelectAllEffects();
         mPartialCellSelected = true;
         mCellRangeSelected = false;

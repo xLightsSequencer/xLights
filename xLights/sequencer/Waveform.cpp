@@ -579,21 +579,13 @@ void Waveform::WaveView::SetMinMaxSampleSet(float SamplesPerPixel, AudioManager*
 			if (start >= trackSize) {
 				return;
 			}
-			int end = start + SamplesPerPixel;
+			long end = start + SamplesPerPixel;
 			if (end >= trackSize) {
 				end = trackSize;
 			}
 			minimum = 1;
 			maximum = -1;
-			for (int j = start; j < end; j++) {
-				float data = media->GetLeftData(j);
-				if (data < minimum) {
-					minimum = data;
-				}
-				if (data > maximum) {
-					maximum = data;
-				}
-			}
+            media->GetLeftDataMinMax(start, end, minimum, maximum);
 			MINMAX mm;
 			mm.min = minimum;
 			mm.max = maximum;

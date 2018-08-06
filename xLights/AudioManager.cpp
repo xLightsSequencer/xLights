@@ -1063,6 +1063,7 @@ bool AudioManager::IsDataLoaded(long pos)
 }
 
 AudioManager::AudioManager(const std::string& audio_file, int step, int block)
+    :  _jobPool("AudioManager")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -2398,6 +2399,35 @@ float AudioManager::GetLeftData(long offset)
 		return 0;
 	}
 	return _data[0][offset];
+}
+
+void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    while (!IsDataLoaded(end-1))
+    {
+        logger_base.debug("GetLeftDataMinMax waiting for data to be loaded.");
+        wxMilliSleep(100);
+    }
+
+    minimum = 0;
+    maximum = 0;
+
+    if (_data[0] == nullptr)
+    {
+        return;
+    }
+
+    for (int j = start; j < std::min(end, _trackSize); j++) {
+
+        float data = _data[0][j];
+        if (data < minimum) {
+            minimum = data;
+        }
+        if (data > maximum) {
+            maximum = data;
+        }
+    }
 }
 
 // Access a single piece of track data
