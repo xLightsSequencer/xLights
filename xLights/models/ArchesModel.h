@@ -10,9 +10,9 @@ class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
         ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~ArchesModel();
     
-        virtual void GetBufferSize(const std::string &type, const std::string &transform,
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
 

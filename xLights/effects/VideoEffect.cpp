@@ -72,8 +72,9 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 
     wxString bufferstyle = settings.Get("B_CHOICE_BufferStyle", "Default");
     wxString transform = settings.Get("B_CHOICE_BufferTransform", "None");
+    wxString camera = settings.Get("B_CHOICE_PerPreviewCamera", "2D");
     int w, h;
-    model->GetBufferSize(bufferstyle.ToStdString(), transform.ToStdString(), w, h);
+    model->GetBufferSize(bufferstyle.ToStdString(), camera.ToStdString(), transform.ToStdString(), w, h);
 
     if (w < 2 || h < 2)
     {

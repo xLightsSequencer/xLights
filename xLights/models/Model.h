@@ -91,8 +91,8 @@ public:
     wxString SerialiseSubmodel() const;
 
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
-    virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;
-    virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+    virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const;
+    virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                        std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
     const ModelManager &GetModelManager() const {
         return modelManager;

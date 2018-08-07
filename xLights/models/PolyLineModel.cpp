@@ -49,7 +49,7 @@ const std::vector<std::string> &PolyLineModel::GetBufferStyles() const {
     return POLYLINE_BUFFER_STYLES;
 }
 
-void PolyLineModel::InitRenderBufferNodes(const std::string &type,
+void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::string &camera,
                                           const std::string &transform,
                                           std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     if (type == "Line Segments" && hasIndivSeg) {
@@ -85,7 +85,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type,
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     } else {
-        Model::InitRenderBufferNodes(type, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
 

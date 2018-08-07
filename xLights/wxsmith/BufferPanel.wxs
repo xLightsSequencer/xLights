@@ -50,6 +50,7 @@
 																<item>Per Preview</item>
 															</content>
 															<selection>0</selection>
+															<handler function="OnBufferStyleChoiceSelect" entry="EVT_CHOICE" />
 														</object>
 														<flag>wxALL|wxEXPAND</flag>
 														<border>2</border>
@@ -64,6 +65,30 @@
 															<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 															<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 														</object>
+														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+														<border>5</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText16" member="yes">
+															<label>Camera</label>
+														</object>
+														<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="sizeritem">
+														<object class="wxChoice" name="ID_CHOICE_PerPreviewCamera" variable="Choice_PerPreviewCamera" member="yes">
+															<content>
+																<item>2D</item>
+															</content>
+															<selection>0</selection>
+														</object>
+														<flag>wxALL|wxEXPAND</flag>
+														<border>2</border>
+														<option>1</option>
+													</object>
+													<object class="spacer">
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>5</border>
 														<option>1</option>

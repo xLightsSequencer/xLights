@@ -10,9 +10,9 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         ImageModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~ImageModel();
 
-        virtual void GetBufferSize(const std::string &type, const std::string &transform,
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
 
         virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
