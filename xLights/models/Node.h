@@ -34,7 +34,7 @@ public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct
     {
-        unsigned short bufX, bufY, bufZ;
+        int bufX, bufY, bufZ;
         float screenX, screenY, screenZ;
     };
 
