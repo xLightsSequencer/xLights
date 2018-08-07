@@ -78,7 +78,7 @@
 														<option>1</option>
 													</object>
 													<object class="sizeritem">
-														<object class="wxChoice" name="ID_CHOICE_PerPreviewCamera" variable="Choice_PerPreviewCamera" member="yes">
+														<object class="wxChoice" name="ID_CHOICE_PerPreviewCamera" subclass="BulkEditChoice" variable="Choice_PerPreviewCamera" member="yes">
 															<content>
 																<item>2D</item>
 															</content>

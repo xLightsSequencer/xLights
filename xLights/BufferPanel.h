@@ -40,6 +40,7 @@ public:
 		BulkEditChoice* BufferStyleChoice;
 		BulkEditChoice* BufferTransform;
 		BulkEditChoice* ChoiceRotateOrder;
+		BulkEditChoice* Choice_PerPreviewCamera;
 		BulkEditSlider* Slider_EffectBlur;
 		BulkEditSlider* Slider_PivotPointX;
 		BulkEditSlider* Slider_PivotPointY;
@@ -73,7 +74,6 @@ public:
 		BulkEditValueCurveButton* BitmapButton_YPivot;
 		BulkEditValueCurveButton* BitmapButton_YRotation;
 		wxCheckBox* CheckBox_ResetBufferPanel;
-		wxChoice* Choice_PerPreviewCamera;
 		wxChoice* Choice_Preset;
 		wxFlexGridSizer* BufferSizer;
 		wxFlexGridSizer* FullBufferSizer;

@@ -151,10 +151,10 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
 	BufferSizer->Add(BitmapButtonBufferStyle, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText16 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT2, _("Camera"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	BufferSizer->Add(StaticText16, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Choice_PerPreviewCamera = new wxChoice(ScrolledWindow1, ID_CHOICE_PerPreviewCamera, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PerPreviewCamera"));
+	Choice_PerPreviewCamera = new BulkEditChoice(ScrolledWindow1, ID_CHOICE_PerPreviewCamera, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PerPreviewCamera"));
 	Choice_PerPreviewCamera->SetSelection( Choice_PerPreviewCamera->Append(_("2D")) );
 	BufferSizer->Add(Choice_PerPreviewCamera, 1, wxALL|wxEXPAND, 2);
-	BufferSizer->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	BufferSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(ScrolledWindow1, ID_STATICTEXT_BufferTransform, _("Transformation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BufferTransform"));
 	BufferSizer->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	BufferTransform = new BulkEditChoice(ScrolledWindow1, ID_CHOICE_BufferTransform, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_BufferTransform"));
