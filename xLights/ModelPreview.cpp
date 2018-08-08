@@ -247,7 +247,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                 for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
                 {
                     PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
-                    mnuViewPoint->Append(camera->menu_id, camera->name);
+                    mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
                 }
                 mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
             }
@@ -258,7 +258,7 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                 for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
                 {
                     PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
-                    mnuViewPoint->Append(camera->menu_id, camera->name);
+                    mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
                 }
                 mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
             }
@@ -288,7 +288,7 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
             for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId())
                 {
                     SetCamera3D(i);
                     break;
@@ -300,7 +300,7 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
             for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId())
                 {
                     SetCamera2D(i);
                     break;
@@ -507,26 +507,26 @@ void ModelPreview::SetCameraView(int camerax, int cameray, bool latch, bool rese
 {
 	static int last_offsetx = 0;
 	static int last_offsety = 0;
-	static int latched_x = camera3d->angleX;
-	static int latched_y = camera3d->angleY;
+	static int latched_x = camera3d->GetAngleX();
+	static int latched_y = camera3d->GetAngleY();
 
 	if( reset ) {
         last_offsetx = 0;
         last_offsety = 0;
-        latched_x = camera3d->angleX;
-        latched_y = camera3d->angleY;
+        latched_x = camera3d->GetAngleX();
+        latched_y = camera3d->GetAngleY();
 	} else {
         if (latch) {
-            camera3d->angleX = latched_x + last_offsetx;
-            camera3d->angleY = latched_y + last_offsety;
-            latched_x = camera3d->angleX;
-            latched_y = camera3d->angleY;
+            camera3d->SetAngleX(latched_x + last_offsetx);
+            camera3d->SetAngleY(latched_y + last_offsety);
+            latched_x = camera3d->GetAngleX();
+            latched_y = camera3d->GetAngleY();
             last_offsetx = 0;
             last_offsety = 0;
         }
         else {
-            camera3d->angleX = latched_x + cameray / 2;
-            camera3d->angleY = latched_y + camerax / 2;
+            camera3d->SetAngleX(latched_x + cameray / 2);
+            camera3d->SetAngleY(latched_y + camerax / 2);
             last_offsetx = cameray / 2;
             last_offsety = camerax / 2;
         }
@@ -537,24 +537,24 @@ void ModelPreview::SetCameraPos(int camerax, int cameraz, bool latch, bool reset
 {
 	static int last_offsetx = 0;
 	static int last_offsety = 0;
-	static int latched_x = camera3d->posX;
-	static int latched_y = camera3d->posY;
+	static int latched_x = camera3d->GetPosX();
+	static int latched_y = camera3d->GetPosY();
 
 	if( reset ) {
         last_offsetx = 0;
         last_offsety = 0;
-        latched_x = camera3d->posX;
-        latched_y = camera3d->posY;
+        latched_x = camera3d->GetPosX();
+        latched_y = camera3d->GetPosY();
 	} else {
         if (latch) {
-            camera3d->posX = latched_x + last_offsetx;
-            camera3d->posY = latched_y + last_offsety;
-            latched_x = camera3d->posX;
-            latched_y = camera3d->posY;
+            camera3d->SetPosX(latched_x + last_offsetx);
+            camera3d->SetPosY(latched_y + last_offsety);
+            latched_x = camera3d->GetPosX();
+            latched_y = camera3d->GetPosY();
         }
         else {
-            camera3d->posX = latched_x + camerax;
-            camera3d->posY = latched_y + cameraz;
+            camera3d->SetPosX(latched_x + camerax);
+            camera3d->SetPosY(latched_y + cameraz);
             last_offsetx = camerax;
             last_offsety = cameraz;
         }
@@ -564,24 +564,24 @@ void ModelPreview::SetCameraPos(int camerax, int cameraz, bool latch, bool reset
 void ModelPreview::SetZoomDelta(float delta)
 {
     if (is_3d) {
-        camera3d->zoom *= 1.0f + delta;
+        camera3d->SetZoom( camera3d->GetZoom() * (1.0f + delta));
     }
     else {
-        camera2d->zoom *= 1.0f - delta;
-        camera2d->zoom_corrx = ((mWindowWidth * camera2d->zoom) - mWindowWidth) / 2.0f;
-        camera2d->zoom_corry = ((mWindowHeight * camera2d->zoom) - mWindowHeight) / 2.0f;
+        camera2d->SetZoom(camera2d->GetZoom() * (1.0f - delta));
+        camera2d->SetZoomCorrX(((mWindowWidth * camera2d->GetZoom()) - mWindowWidth) / 2.0f);
+        camera2d->SetZoomCorrY(((mWindowHeight * camera2d->GetZoom()) - mWindowHeight) / 2.0f);
     }
 }
 
 void ModelPreview::SetPan(float deltax, float deltay)
 {
     if (is_3d) {
-        camera3d->panx += deltax;
-        camera3d->pany += deltay;
+        camera3d->SetPanX(camera3d->GetPanX() + deltax);
+        camera3d->SetPanY(camera3d->GetPanY() + deltay);
     }
     else {
-        camera2d->panx += deltax;
-        camera2d->pany += deltay;
+        camera2d->SetPanX(camera2d->GetPanX() + deltax);
+        camera2d->SetPanY(camera2d->GetPanY() + deltay);
     }
 }
 
@@ -608,15 +608,15 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             // centers the direction that is smaller
             if (scale2dh < scale2dw) {
                 scale2d = scale2dh;
-                scale_corrx = ((scale2dw*(float)virtualWidth - (scale2d*(float)virtualWidth)) * camera2d->zoom) / 2.0f;
+                scale_corrx = ((scale2dw*(float)virtualWidth - (scale2d*(float)virtualWidth)) * camera2d->GetZoom()) / 2.0f;
             }
             else {
                 scale2d = scale2dw;
-                scale_corry = ((scale2dh*(float)virtualHeight - (scale2d*(float)virtualHeight)) * camera2d->zoom) / 2.0f;
+                scale_corry = ((scale2dh*(float)virtualHeight - (scale2d*(float)virtualHeight)) * camera2d->GetZoom()) / 2.0f;
             }
         }
-        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(camera2d->zoom * scale2d, camera2d->zoom * scale2d, 1.0f));
-        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(camera2d->panx*camera2d->zoom - camera2d->zoom_corrx + scale_corrx, camera2d->pany*camera2d->zoom - camera2d->zoom_corry + scale_corry, 0.0f));
+        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(camera2d->GetZoom() * scale2d, camera2d->GetZoom() * scale2d, 1.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(camera2d->GetPanX()*camera2d->GetZoom() - camera2d->GetZoomCorrX() + scale_corrx, camera2d->GetPanY()*camera2d->GetZoom() - camera2d->GetZoomCorrY() + scale_corry, 0.0f));
         ViewMatrix = ViewTranslate * ViewScale;
         ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);  // this must match prepare2DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;
@@ -645,10 +645,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 
     /*****************************   3D   ********************************/
     if (is_3d) {
-        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->posX + camera3d->panx, 1.0f, camera3d->posY + camera3d->pany));
-        glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->distance * camera3d->zoom));
-        glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->angleX), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->angleY), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), 1.0f, camera3d->GetPosY() + camera3d->GetPanY()));
+        glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
+        glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;
         ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 20000.0f);  // this must match prepare3DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;

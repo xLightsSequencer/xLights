@@ -7,6 +7,7 @@
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
 #include "Shapes.h"
+#include "../ViewpointMgr.h"
 #include "../support/VectorMath.h"
 #include <log4cpp/Category.hh>
 #include <glm/glm.hpp>
@@ -298,6 +299,17 @@ void ModelScreenLocation::AddOffset(float deltax, float deltay, float deltaz) {
     worldPos_x += deltax;
     worldPos_y += deltay;
     worldPos_z += deltaz;
+}
+
+glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz)
+{
+    glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
+        screenheight,
+        glm::vec3(sx, sy, sz),                                // X,Y,Z coords of the position when not transformed at all.
+        preview->GetProjMatrix() * camera->GetViewMatrix(),    // Projection / View matrix
+        Identity                                              // Points must be pre-translated
+    );
+    return position;
 }
 
 void ModelScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const

@@ -85,12 +85,13 @@ public:
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive();
-    float GetZoom() { return (is_3d ? camera3d->zoom : camera2d->zoom); }
-    float GetCameraRotation() { return (is_3d ? camera3d->angleY : camera2d->angleY); }
+    float GetZoom() { return (is_3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
+    float GetCameraRotation() { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
     void SetPan(float deltax, float deltay);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
     glm::mat4& GetProjViewMatrix() { return ProjViewMatrix; }
+    glm::mat4& GetProjMatrix() { return ProjMatrix; }
 
 	virtual void render(const wxSize& size=wxSize(0,0)) override;
 

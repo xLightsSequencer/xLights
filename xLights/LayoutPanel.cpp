@@ -2755,7 +2755,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             wxMenu* mnuViewPoint = new wxMenu();
             for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
-                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->menu_id, xlights->viewpoint_mgr.GetCamera3D(i)->name);
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
             mnu.Append(ID_PREVIEW_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
         }
@@ -2765,7 +2765,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             wxMenu* mnuViewPoint = new wxMenu();
             for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
-                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->menu_id, xlights->viewpoint_mgr.GetCamera2D(i)->name);
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
             }
             mnu.Append(ID_PREVIEW_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
         }
@@ -2981,7 +2981,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
             for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
             {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId())
                 {
                     modelPreview->SetCamera3D(i);
                     UpdatePreview();
@@ -2994,7 +2994,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
             for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
             {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->menu_id)
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId())
                 {
                     modelPreview->SetCamera2D(i);
                     UpdatePreview();
