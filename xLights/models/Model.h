@@ -141,6 +141,7 @@ protected:
     void AdjustForTransform(const std::string &transform,
                             int &bufferWi, int &bufferHi) const;
     void ApplyTransparency(xlColor &color, int transparency) const;
+    void DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes, int bufferWi, int bufferHi) const;
 
     int BufferHt,BufferWi,BufferDp;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;

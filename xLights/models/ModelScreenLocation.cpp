@@ -301,7 +301,7 @@ void ModelScreenLocation::AddOffset(float deltax, float deltay, float deltaz) {
     worldPos_z += deltaz;
 }
 
-glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz)
+glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz) const
 {
     glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
         screenheight,

@@ -94,7 +94,7 @@ public:
     virtual void AddOffset(float deltax, float deltay, float deltaz);
 
     virtual glm::vec2 GetScreenOffset(ModelPreview* preview) = 0;
-    virtual glm::vec2 GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview, PreviewCamera* camera, float &sx, float &sy, float &sz);
+    virtual glm::vec2 GetScreenPosition(int screenwidth, int screenheight, ModelPreview* preview, PreviewCamera* camera, float &sx, float &sy, float &sz) const;
     virtual float GetHcenterPos() const = 0;
     virtual float GetVcenterPos() const = 0;
     virtual void SetHcenterPos(float f) = 0;

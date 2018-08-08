@@ -7,6 +7,7 @@
 
 #include "Model.h"
 #include "ModelManager.h"
+#include "../xLightsApp.h"
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
 #include "../Color.h"
@@ -466,10 +467,9 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
 
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
-    wxPGProperty *p;
     wxPGProperty *sp;
 
-    p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    wxPGProperty *p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
 
     AddTypeProperties(grid);
 
@@ -1919,6 +1919,40 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int 
     it2.bufY = y;
 }
 
+// this is really slow
+char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr> &newNodes)
+{
+    for (auto n = newNodes.begin(); n != newNodes.end(); ++n)
+    {
+        for (auto c = (*n)->Coords.begin(); c != (*n)->Coords.end(); ++c)
+        {
+            if (c->bufX == x && c->bufY == y)
+            {
+                return '*';
+            }
+        }
+    }
+
+    return '-';
+}
+
+void Model::DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes,
+    int bufferWi, int bufferHt) const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Dumping render buffer for '%s':", (const char*)GetFullName().c_str());
+    for (int y = bufferHt - 1; y >= 0; y--)
+    {
+        std::string line = "";
+        for (int x = 0; x < bufferWi; x++)
+        {
+            line += GetPixelDump(x, y, newNodes);
+        }
+        logger_base.debug(">    %s", (const char*)line.c_str());
+    }
+}
+
 void Model::ApplyTransform(const std::string &type,
                     std::vector<NodeBaseClassPtr> &newNodes,
                     int &bufferWi, int &bufferHi) const {
@@ -2078,6 +2112,15 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         float minY = 1000000;
         GetModelScreenLocation().PrepareToDraw(false, false);
 
+        ModelPreview* modelPreview = nullptr;
+        PreviewCamera* pcamera = nullptr;
+        if (xLightsApp::GetFrame() != nullptr)
+        {
+            modelPreview = xLightsApp::GetFrame()->GetModelPreview();
+            pcamera = xLightsApp::GetFrame()->viewpoint_mgr.GetNamedCamera3D(camera);
+        }
+
+        // We save the transformed coordinates here so we dont have to calculate them all twice
         std::list<float> outx;
         std::list<float> outy;
 
@@ -2089,10 +2132,24 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 float sx = it2->screenX;
                 float sy = it2->screenY;
-                float sz = 0;
 
-                GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                if (pcamera == nullptr || camera == "2D")
+                {
+                    // Handle all of the 2D classic transformations
+                    float sz = 0;
+                    GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                }
+                else
+                {
+                    // Handle 3D from an arbitrary camera position
+                    float sz = it2->screenZ;
+                    // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
+                    glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
+                    sx = loc.x;
+                    sy = loc.y;
+                }
 
+                // save the transformed value
                 outx.push_back(sx);
                 outy.push_back(sy);
 
@@ -2126,9 +2183,8 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                
-                wxASSERT(itx != outx.end() && ity != outy.end());
 
+                // grab the previously transformed coordinate                
                 float sx = *itx;
                 float sy = *ity;
 
@@ -2157,6 +2213,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             bufferHt = std::round(maxY - minY + 1.0f);
             bufferWi = std::round(maxX - minX + 1.0f);
         }
+        //DumpBuffer(newNodes, bufferWi, bufferHt);
     }
     else {
         bufferHt = this->BufferHt;

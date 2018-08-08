@@ -556,6 +556,7 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
 #ifdef __WXOSX__
     if (dirty) {
         ButtonSavePreview->SetBackgroundColour(wxColour(255,0,0));
+        xlights->UnsavedRgbEffectsChanges = true;
     } else {
         ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
     }
@@ -563,6 +564,7 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
 #else
     if (dirty) {
         ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
+        xlights->UnsavedRgbEffectsChanges = true;
     } else {
         ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
@@ -2976,6 +2978,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     else if (event.GetId() == ID_PREVIEW_SAVE_VIEWPOINT)
     {
         modelPreview->SaveCurrentCameraPosition();
+        SetDirtyHiLight(true);
     }
     else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
