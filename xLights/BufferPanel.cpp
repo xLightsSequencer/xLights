@@ -988,7 +988,7 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event)
         xLightsFrame* frame = xLightsApp::GetFrame();
         for (size_t i = 0; i < frame->viewpoint_mgr.GetNum3DCameras(); ++i)
         {
-            Choice_PerPreviewCamera->Append(frame->viewpoint_mgr.GetCamera3D(i)->name);
+            Choice_PerPreviewCamera->Append(frame->viewpoint_mgr.GetCamera3D(i)->GetName());
         }
 
         Choice_PerPreviewCamera->SetStringSelection("2D");

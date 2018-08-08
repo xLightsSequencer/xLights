@@ -2076,8 +2076,10 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         float minX = 1000000;
         float maxY = -1000000;
         float minY = 1000000;
-        float sx,sy,sz;
         GetModelScreenLocation().PrepareToDraw(false, false);
+
+        std::list<float> outx;
+        std::list<float> outy;
 
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
@@ -2085,11 +2087,14 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                sx = it2->screenX;
-                sy = it2->screenY;
-                sz = 0;
+                float sx = it2->screenX;
+                float sy = it2->screenY;
+                float sz = 0;
 
                 GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+
+                outx.push_back(sx);
+                outy.push_back(sy);
 
                 if (sx > maxX) {
                     maxX = sx;
@@ -2113,17 +2118,19 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             offy = 0;
         }
         bufferHt = bufferWi = -1;
+        auto itx = outx.begin();
+        auto ity = outy.begin();
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                sx = it2->screenX;
-                sy = it2->screenY;
-                sz = 0;
+                
+                wxASSERT(itx != outx.end() && ity != outy.end());
 
-                GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                float sx = *itx;
+                float sy = *ity;
 
                 SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
                 if (it2->bufX > bufferWi) {
@@ -2137,6 +2144,9 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     it2->screenX = sx;
                     it2->screenY = sy;
                 }
+
+                ++itx;
+                ++ity;
             }
         }
         if (!noOff) {
