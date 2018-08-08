@@ -78,6 +78,7 @@ public:
     int GetNum3DCameras() { return previewCameras3d.size(); }
     PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i]; }
     PreviewCamera* GetCamera3D(int i) { return previewCameras3d[i]; }
+    PreviewCamera* GetNamedCamera3D(const std::string& name);
 
 protected:
 

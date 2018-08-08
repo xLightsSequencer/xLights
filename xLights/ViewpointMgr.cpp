@@ -64,6 +64,19 @@ ViewpointMgr::~ViewpointMgr()
     previewCameras3d.clear();
 }
 
+PreviewCamera* ViewpointMgr::GetNamedCamera3D(const std::string& name)
+{
+    PreviewCamera* camera = nullptr;
+    for (size_t i = 0; i < previewCameras3d.size(); ++i)
+    {
+        if (previewCameras3d[i]->name == name) {
+            camera = previewCameras3d[i];
+            break;
+        }
+    }
+    return camera;
+}
+
 void ViewpointMgr::AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d )
 {
     PreviewCamera* new_camera;
