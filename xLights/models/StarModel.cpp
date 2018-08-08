@@ -32,7 +32,7 @@ const std::vector<std::string> &StarModel::GetBufferStyles() const {
     return STAR_BUFFER_STYLES;
 }
 
-void StarModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void StarModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
     if (type == "Layer Star") {
         BufferHi = GetNumStrands();
         BufferWi = 0;
@@ -45,11 +45,12 @@ void StarModel::GetBufferSize(const std::string &type, const std::string &transf
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else {
-        Model::GetBufferSize(type, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
     }
 }
 
 void StarModel::InitRenderBufferNodes(const std::string &type,
+                                      const std::string &camera,
                                       const std::string &transform,
                                       std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     if (type == "Layer Star") {
@@ -97,7 +98,7 @@ void StarModel::InitRenderBufferNodes(const std::string &type,
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     } else {
-        Model::InitRenderBufferNodes(type, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
 

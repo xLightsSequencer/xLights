@@ -132,11 +132,11 @@ enum DMX_STYLE {
     DMX_STYLE_SKULLTRONIX_SKULL
 };
 
-void DmxModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void DmxModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
         BufferHi = 1;
         BufferWi = GetNodeCount();
 }
-void DmxModel::InitRenderBufferNodes(const std::string &type,  const std::string &transform,
+void DmxModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                      std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     BufferHi = 1;
     BufferWi = GetNodeCount();

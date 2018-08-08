@@ -83,8 +83,9 @@ void PixelBufferClass::reset(int nlayers, int timing)
     {
         layers[x] = new LayerInfo(frame);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
-        model->InitRenderBufferNodes("Default", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
+        model->InitRenderBufferNodes("Default", "2D", "None", layers[x]->buffer.Nodes, layers[x]->BufferWi, layers[x]->BufferHt);
         layers[x]->bufferType = "Default";
+        layers[x]->camera = "2D";
         layers[x]->bufferTransform = "None";
         layers[x]->outTransitionType = "Fade";
         layers[x]->inTransitionType = "Fade";
@@ -116,7 +117,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer, i
         Model *m = *it;
         RenderBuffer *buf = new RenderBuffer(frame);
         buf->SetFrameTimeInMs(timing);
-        m->InitRenderBufferNodes("Default", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
+        m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, buf->BufferHt, buf->BufferWi, "None");
         layers[layer]->modelBuffers.push_back(std::unique_ptr<RenderBuffer>(buf));
     }
@@ -1343,6 +1344,7 @@ static const std::string SLIDER_YPivot("SLIDER_YPivot");
 
 static const std::string CHECKBOX_OverlayBkg("CHECKBOX_OverlayBkg");
 static const std::string CHOICE_BufferStyle("CHOICE_BufferStyle");
+static const std::string CHOICE_PerPreviewCamera("CHOICE_PerPreviewCamera");
 static const std::string CHOICE_BufferTransform("CHOICE_BufferTransform");
 static const std::string CUSTOM_SubBuffer("CUSTOM_SubBuffer");
 static const std::string VALUECURVE_Blur("VALUECURVE_Blur");
@@ -1637,9 +1639,11 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->canvas = settingsMap.GetBool(CHECKBOX_Canvas, false);
 
     inf->type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    inf->camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     inf->transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
 
     const std::string &type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
+    const std::string &camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
     const std::string &transform = settingsMap.Get(CHOICE_BufferTransform, STR_NONE);
     const std::string &subBuffer = settingsMap.Get(CUSTOM_SubBuffer, STR_EMPTY);
     const std::string &blurValueCurve = settingsMap.Get(VALUECURVE_Blur, STR_EMPTY);
@@ -1659,6 +1663,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     const std::string &ypivotValueCurve = settingsMap.Get(VALUECURVE_YPivot, STR_EMPTY);
 
     if (inf->bufferType != type || 
+        inf->camera != camera ||
         inf->bufferTransform != transform || 
         inf->subBuffer != subBuffer || 
         inf->blurValueCurve != blurValueCurve || 
@@ -1679,10 +1684,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     {
         int origNodeCount = inf->buffer.Nodes.size();
         inf->buffer.Nodes.clear();
-        model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+        model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+            model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
         
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
@@ -1706,6 +1711,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         ComputeValueCurve(xpivotValueCurve, inf->XPivotValueCurve);
         ComputeValueCurve(ypivotValueCurve, inf->YPivotValueCurve);
         inf->bufferType = type;
+        inf->camera = camera;
         inf->bufferTransform = transform;
         inf->subBuffer = subBuffer;
         inf->blurValueCurve = blurValueCurve;
@@ -1735,7 +1741,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
                 std::string ntype = type.substr(10, type.length() - 10);
                 int bw, bh;
                 (*it)->Nodes.clear();
-                gp->Models()[cnt]->InitRenderBufferNodes(ntype, transform, (*it)->Nodes, bw, bh);
+                gp->Models()[cnt]->InitRenderBufferNodes(ntype, camera, transform, (*it)->Nodes, bw, bh);
                 if (bw == 0) bw = 1; // zero sized buffers are a problem
                 if (bh == 0) bh = 1;
                 (*it)->InitBuffer(bh, bw, bh, bw, transform);
@@ -2094,9 +2100,10 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     }
     offset = std::min(offset, 1.0f);
     const std::string &type = layers[layer]->type;
+    const std::string &camera = layers[layer]->camera;
     const std::string &transform = layers[layer]->transform;
     layers[layer]->buffer.Nodes.clear();
-    model->InitRenderBufferNodes(type, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
+    model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
     ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset);
     layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
     layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;

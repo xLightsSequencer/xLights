@@ -817,7 +817,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
 
     int origwidth;
     int origheight;
-    model->GetBufferSize("Default", "None", origwidth, origheight);
+    model->GetBufferSize("Default", "2D", "None", origwidth, origheight);
 
     int width = origwidth;
     int height = origheight;
@@ -1079,7 +1079,7 @@ void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numC
 
     int width;
     int height;
-    model->GetBufferSize("Default", "None", width, height);
+    model->GetBufferSize("Default", "2D", "None", width, height);
 
     wxFile f;
     if (!f.Create(filename, true))

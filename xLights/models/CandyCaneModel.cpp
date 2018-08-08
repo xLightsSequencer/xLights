@@ -124,17 +124,17 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     return Model::OnPropertyGridChange(grid, event);
 }
 
-void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = this->BufferWi * this->BufferHt;
         AdjustForTransform(transform, BufferWi, BufferHi);
     } else {
-        Model::GetBufferSize(type, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
     }
 }
 
-void CandyCaneModel::InitRenderBufferNodes(const std::string &type,  const std::string &transform,
+void CandyCaneModel::InitRenderBufferNodes(const std::string &type, const std::string &camera,  const std::string &transform,
                                         std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;
@@ -156,7 +156,7 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &type,  const std::
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     } else {
-        Model::InitRenderBufferNodes(type, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
 

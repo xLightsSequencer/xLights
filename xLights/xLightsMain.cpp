@@ -4224,7 +4224,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 }
             }
             int w, h;
-            model->GetBufferSize("Default", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h);
             f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
@@ -4269,7 +4269,7 @@ void xLightsFrame::ExportModels(wxString filename)
             }
 
             int w, h;
-            model->GetBufferSize("Default", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h);
 
             f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
                 model->name,
