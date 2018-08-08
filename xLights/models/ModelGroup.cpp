@@ -154,8 +154,8 @@ bool ModelGroup::Reset(bool zeroBased) {
     float maxy = -1;
     
     int minChan = 9999999;
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
-        for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); ++coord) {
             minx = std::min(minx, coord->screenX);
             miny = std::min(miny, coord->screenY);
             maxx = std::max(maxx, coord->screenX);
@@ -166,8 +166,8 @@ bool ModelGroup::Reset(bool zeroBased) {
         }
     }
     if (miny < 0) {
-        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
-            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); ++coord) {
                 coord->screenY -= miny;
             }
         }
@@ -175,8 +175,8 @@ bool ModelGroup::Reset(bool zeroBased) {
         miny = 0;
     }
     if (minx < 0) {
-        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
-            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+            for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); ++coord) {
                 coord->screenX -= minx;
             }
         }
@@ -221,8 +221,8 @@ bool ModelGroup::Reset(bool zeroBased) {
     BufferHt = 0;
     BufferWi = 0;
 
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
-        for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); coord++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); ++coord) {
             if (minimal) {
                 coord->screenX = coord->screenX - minx;
                 coord->screenY = coord->screenY - miny;

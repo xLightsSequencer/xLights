@@ -2458,10 +2458,9 @@ size_t Model::GetChannelCoords(wxArrayString& choices) { //wxChoice* choices1, w
 
 //get parsed node info:
 std::string Model::GetNodeXY(const std::string& nodenumstr) {
-    long nodenum;
     size_t NodeCount = GetNodeCount();
     try {
-        nodenum = std::stod(nodenumstr);
+        long nodenum = std::stod(nodenumstr);
         for (size_t inx = 0; inx < NodeCount; inx++) {
             if (Nodes[inx]->Coords.empty()) continue;
             if (GetNodeNumber(inx) == nodenum) return GetNodeXY(inx);
