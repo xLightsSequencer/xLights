@@ -60,8 +60,7 @@ ViewpointMgr::ViewpointMgr()
 
 ViewpointMgr::~ViewpointMgr()
 {
-    previewCameras2d.clear();
-    previewCameras3d.clear();
+    Clear();
 }
 
 PreviewCamera* ViewpointMgr::GetNamedCamera3D(const std::string& name)
@@ -75,6 +74,20 @@ PreviewCamera* ViewpointMgr::GetNamedCamera3D(const std::string& name)
         }
     }
     return camera;
+}
+
+void ViewpointMgr::Clear()
+{
+    for (auto x : previewCameras2d)
+    {
+        delete x;
+    }
+    for (auto x : previewCameras3d)
+    {
+        delete x;
+    }
+    previewCameras2d.clear();
+    previewCameras3d.clear();
 }
 
 void ViewpointMgr::AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d )

@@ -7573,6 +7573,11 @@ bool xLightsFrame::IsPaneDocked(wxWindow* window) const
     return m_mgr->GetPane(window).IsDocked();
 }
 
+ModelPreview* xLightsFrame::GetHousePreview() const
+{
+    return _housePreviewPanel->GetModelPreview();
+}
+
 void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
 {
     GenerateLyricsDialog dlg(this, SeqData.NumChannels());

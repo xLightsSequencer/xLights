@@ -2116,7 +2116,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         PreviewCamera* pcamera = nullptr;
         if (xLightsApp::GetFrame() != nullptr)
         {
-            modelPreview = xLightsApp::GetFrame()->GetModelPreview();
+            modelPreview = xLightsApp::GetFrame()->GetHousePreview();
             pcamera = xLightsApp::GetFrame()->viewpoint_mgr.GetNamedCamera3D(camera);
         }
 

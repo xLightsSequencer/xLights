@@ -124,13 +124,16 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     }
 
     // delete any views that were added to the menu
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
             RemovePreviewOption(grp);
         }
     }
     PreviewWindows.clear();
+
+    // remove any 3d viewpoints
+    viewpoint_mgr.Clear();
 
     if (newdir != CurrentDir && "" != CurrentDir) {
         wxFileName kbf;

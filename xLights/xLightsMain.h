@@ -1366,7 +1366,7 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
-    ModelPreview* GetModelPreview() const { return _modelPreviewPanel; }
+    ModelPreview* GetHousePreview() const;
 
     void UnselectEffect();
 
