@@ -6,7 +6,7 @@
 
 #undef max
 
-//#define DEBUG_GIF
+#define DEBUG_GIF
 
 bool GIFImage::IsGIF(const std::string& filename)
 {
@@ -113,7 +113,7 @@ void GIFImage::DoCreate(const std::string& filename)
 #endif
     _filename = filename;
     _lastFrame = -1;
-    _lastDispose = wxAnimationDisposal::wxANIM_UNSPECIFIED;
+    _lastDispose = wxANIM_TOBACKGROUND;
     _ok = false;
 
 	wxFileInputStream stream(filename);
@@ -143,6 +143,7 @@ void GIFImage::DoCreate(const std::string& filename)
             }
 #ifdef DEBUG_GIF
             logger_base.debug("    GIF size (%d,%d)", _gifSize.GetWidth(), _gifSize.GetHeight());
+            logger_base.debug("    Background colour %s", (const char*)_backgroundColour.GetAsString().c_str());
 #endif
         }
 		else
@@ -169,7 +170,7 @@ wxImage GIFImage::GetFrameForTime(int msec, bool loop)
 	return GetFrame(frame);
 }
 
-void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay)
+void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay, bool dontaddtransparency)
 {
     if (from.GetWidth() != to.GetWidth() || from.GetHeight() != to.GetHeight() || overlay)
     {
@@ -192,7 +193,10 @@ void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool
                 }
                 else
                 {
-                    to.SetAlpha(x + offset.x, y + offset.y, 0);
+                    if (!dontaddtransparency)
+                    {
+                        to.SetAlpha(x + offset.x, y + offset.y, 0);
+                    }
                 }
             }
         }
@@ -200,6 +204,21 @@ void GIFImage::CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool
     else
     {
         to = from;
+    }
+}
+
+wxString DecodeDispose(int dispose)
+{
+    switch (dispose)
+    {
+    case 0:
+        return "DONOTREMOVE";
+    case 1: 
+        return "TOBACKGROUND";
+    case 2: 
+        return "TOPREVIOUS";
+    default: 
+        return "UNSPECIFIED";
     }
 }
 
@@ -220,7 +239,9 @@ wxPoint GIFImage::LoadRawImageFrame(wxImage& image, int frame, wxAnimationDispos
     _gifDecoder.ConvertToImage(frame, &image);
     disposal = _gifDecoder.GetDisposalMethod(frame);
 #ifdef DEBUG_GIF
-    logger_base.debug("    disposal %d %s", disposal, (disposal == 0 ? "DONOTREMOVE" : (disposal == 1 ? "TOBACKGROUND" : (disposal == 2 ? "TOPREVIOUS" : "UNSPECIFIED"))));
+    wxColor color  = _gifDecoder.GetTransparentColour(frame);
+    logger_base.debug("    transparent colour %s", (const char*)color.GetAsString().c_str());
+    logger_base.debug("    disposal %d %s", disposal, (const char *)DecodeDispose(disposal).c_str());
     long frameduration = _gifDecoder.GetDelay(frame);
     logger_base.debug("    delay %ldms", frameduration);
 #endif
@@ -234,6 +255,10 @@ wxPoint GIFImage::LoadRawImageFrame(wxImage& image, int frame, wxAnimationDispos
 
 wxImage GIFImage::GetFrame(int frame)
 {
+#ifdef DEBUG_GIF
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
+
     wxImage image(_gifSize);
     image.InitAlpha();
 
@@ -270,14 +295,14 @@ wxImage GIFImage::GetFrame(int frame)
         wxPoint offset = LoadRawImageFrame(newframe, i, dispose);
 
 #ifdef DEBUG_GIF
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.debug("Frame %d loaded offset (%d,%d) frame size (%d,%d) dispose %d actual image size (%d,%d)", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, image.GetWidth(), image.GetHeight());
+        logger_base.debug("    Frame %d loaded offset (%d,%d) frame size (%d,%d) dispose %d %s actual image size (%d,%d)", i, offset.x, offset.y, newframe.GetWidth(), newframe.GetHeight(), dispose, (const char *)DecodeDispose(dispose).c_str(), image.GetWidth(), image.GetHeight());
+        logger_base.debug("    Applying dispose from last frame %s", (const char *)DecodeDispose(_lastDispose).c_str());
 #endif
 
         if (_suppressBackground  && (i == 0 || _lastDispose == wxANIM_TOBACKGROUND || _lastDispose == wxANIM_UNSPECIFIED))
         {
 #ifdef DEBUG_GIF
-            logger_base.debug("    Replacing gif image this frame : Applying dispose %d", _lastDispose);
+            logger_base.debug("    Replacing gif image this frame");
 #endif
             image.Clear();
             CopyImageToImage(image, newframe, offset, true);
@@ -285,7 +310,7 @@ wxImage GIFImage::GetFrame(int frame)
         else if (i == 0 || _lastDispose == wxANIM_TOBACKGROUND || _lastDispose == wxANIM_UNSPECIFIED)
         {
 #ifdef DEBUG_GIF
-            logger_base.debug("    Replacing gif image this after drawing background colour : Applying dispose %d", _lastDispose);
+            logger_base.debug("    Replacing gif image this after drawing background colour");
 #endif
             unsigned char red = _backgroundColour.Red();
             unsigned char green = _backgroundColour.Green();
@@ -295,22 +320,30 @@ wxImage GIFImage::GetFrame(int frame)
                 for (int x = 0; x < image.GetWidth(); x++)
                 {
                     image.SetRGB(x, y, red, green, blue);
+                    image.SetAlpha(x, y, 255);
                 }
             }
             CopyImageToImage(image, newframe, offset, true);
         }
+        else if (_lastDispose == wxANIM_DONOTREMOVE) 
+        {
+#ifdef DEBUG_GIF
+            logger_base.debug("    Updating gif image this frame");
+#endif
+            CopyImageToImage(image, newframe, offset, true, true);
+        }
         else
         {
 #ifdef DEBUG_GIF
-            logger_base.debug("    Updating gif image this frame : Applying dispose %d", _lastDispose);
+            logger_base.debug("    Updating gif image this frame");
 #endif
-            CopyImageToImage(image, newframe, offset, true);
+            CopyImageToImage(image, newframe, offset, true, true);
         }
 
-        _lastImage = image;
         _lastDispose = dispose;
     }
 
+    _lastImage = image;
     _lastFrame = frame;
 
     return image;

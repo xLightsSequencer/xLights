@@ -26,7 +26,7 @@ class GIFImage
 	void ReadFrameProperties();
     int CalcFrameForTime(int msec, bool loop);
     wxPoint LoadRawImageFrame(wxImage& image, int frame, wxAnimationDisposal& disposal);
-    void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay);
+    void CopyImageToImage(wxImage& to, wxImage& from, wxPoint offset, bool overlay, bool dontaddtransparency = false);
     void DoCreate(const std::string& filename);
 
 	public:
