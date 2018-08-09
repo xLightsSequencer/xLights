@@ -19,6 +19,8 @@
 #include "../TimingPanel.h"
 #include "UtilFunctions.h"
 
+#include "../Parallel.h"
+
 namespace
 {
    template <class T> T CLAMP( const T& lo, const T&val, const T& hi )
@@ -439,15 +441,13 @@ namespace
       xlColorVector cvOrig( rb.pixels );
       ColorBuffer cb( cvOrig, rb.BufferWi, rb.BufferHt );
 
-      for ( int y = 0; y < rb.BufferHt; ++y )
-      {
+      parallel_for(0, rb.BufferHt, [&rb, &cb, &transform, &params](int y) {
          double t = double( y ) / ( rb.BufferHt - 1 );
-         for ( int x = 0; x < rb.BufferWi; ++x )
-         {
+         for ( int x = 0; x < rb.BufferWi; ++x ) {
             double s = double( x ) / ( rb.BufferWi - 1 );
             rb.SetPixel( x, y, transform( cb, s, t, params ) );
          }
-      }
+      }, 25);
    }
 }
 

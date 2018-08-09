@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Use parallel algorithms in Twinkle/Butterfly/Plasma/Warp/Meteors effects to speed them up
 2018.25 August 8, 2018
    -- bug (keith)  Prevent a crash due to value curves on sub-buffers. This stops the crash but the subbuffer is wrong ... further fixes to come.
    -- enh (keith)  Remove flag that prevents effects grid paste until a copy has been performed

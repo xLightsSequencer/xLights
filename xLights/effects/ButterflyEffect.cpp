@@ -13,6 +13,8 @@
 #include "../../include/butterfly-64.xpm"
 
 
+#include "../Parallel.h"
+
 ButterflyEffect::ButterflyEffect(int i) : RenderableEffect(i, "Butterfly", butterfly_16, butterfly_24, butterfly_32, butterfly_48, butterfly_64)
 {
     //ctor
@@ -70,40 +72,35 @@ void ButterflyEffect::SetDefaultParameters() {
 void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Chunks = GetValueCurveInt("Butterfly_Chunks", 1, SettingsMap, oset, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX);
+    const int Chunks = GetValueCurveInt("Butterfly_Chunks", 1, SettingsMap, oset, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX);
     int Skip = GetValueCurveInt("Butterfly_Skip", 2, SettingsMap, oset, BUTTERFLY_SKIP_MIN, BUTTERFLY_SKIP_MAX);
     int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", 10, SettingsMap, oset, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX);
 
-    int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
+    const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
     int ColorScheme = GetButterflyColorScheme(SettingsMap["CHOICE_Butterfly_Colors"]);
     int ButterflyDirection = SettingsMap["CHOICE_Butterfly_Direction"] == "Reverse" ? 1 : 0;
     
-    int x,y,d,xc,yc,x0,y0;
-    double n,x1,y1,f;
-    double h=0.0,hue1,hue2;
     static const double pi2=6.283185307;
-    
     //  These are for Plasma effect
-    double rx,ry,cx,cy,v,time,Speed_plasma,multiplier;
     static const double pi=3.1415926535897932384626433832;
-    int state;
     
-    double  fractpart, intpart;
-    
-    xlColor color;
-    HSVValue hsv;
-    int maxframe=buffer.BufferHt*2;
-    
-    int curState = (buffer.curPeriod - buffer.curEffStartPer) * butterFlySpeed * buffer.frameTimeInMs / 50;
-    int frame=(buffer.BufferHt * curState / 200)%maxframe;
-    double offset=double(curState)/200.0;
-    size_t colorcnt=buffer.GetColorCount();
-    
-    if(ButterflyDirection==1) offset = -offset;
-    xc=buffer.BufferWi/2;
-    yc=buffer.BufferHt/2;
-    for (x=0; x<buffer.BufferWi; x++)
-    {
+    const int maxframe=buffer.BufferHt*2;
+    const int curState = (buffer.curPeriod - buffer.curEffStartPer) * butterFlySpeed * buffer.frameTimeInMs / 50;
+    const int frame=(buffer.BufferHt * curState / 200)%maxframe;
+    const size_t colorcnt=buffer.GetColorCount();
+    const double offset = (ButterflyDirection==1 ? -1 : 1) * double(curState)/200.0;
+    const int xc=buffer.BufferWi/2;
+    const int yc=buffer.BufferHt/2;
+    int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
+    parallel_for(0, buffer.BufferWi, [&buffer, Style, &xc, &yc, &offset, frame, maxframe, Chunks, colorcnt, Skip, ColorScheme, butterFlySpeed](int x) {
+        double  fractpart, intpart;
+        double h=0.0,hue1,hue2;
+        xlColor color;
+        HSVValue hsv;
+        int y, d, x0, y0;
+        double n,x1,y1,f;
+        double rx,ry,cx,cy,v,time,multiplier;
+
         for (y=0; y<buffer.BufferHt; y++)
         {
             switch (Style)
@@ -220,12 +217,8 @@ void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             {
                 // reference: http://www.bidouille.org/prog/plasma
                 
-                state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
-                if(Style==10) // Style 10 is for custom colors on Plasma
-                    Speed_plasma = (101-butterFlySpeed)*3; // we want a large number to divide by
-                else
-                    Speed_plasma = (101-butterFlySpeed)*5; // we want a large number to divide by
-                
+                int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
+                double Speed_plasma = (Style == 10) ? (101-butterFlySpeed)*3 : (101-butterFlySpeed)*5;
                 time = (state+1.0)/Speed_plasma;
                 
                 v=0;
@@ -307,6 +300,6 @@ void ButterflyEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                 buffer.SetPixel(x,y,color);
             }
         }
-    }
+    }, block);
 }
 
