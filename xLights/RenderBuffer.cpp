@@ -822,7 +822,7 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
     }
     
     // I dont like this ... it should actually never happen
-    if (y*BufferWi + x < pixels.size())
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
         pixels[y*BufferWi+x] = color;
     }
