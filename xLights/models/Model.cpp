@@ -437,7 +437,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("GRB Nodes");
         NODE_TYPES.push_back("BRG Nodes");
         NODE_TYPES.push_back("BGR Nodes");
-        
+
         NODE_TYPES.push_back("WRGB Nodes");
         NODE_TYPES.push_back("WRBG Nodes");
         NODE_TYPES.push_back("WGBR Nodes");
@@ -458,8 +458,8 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         NODE_TYPES.push_back("Strobes");
         NODE_TYPES.push_back("Single Color");
         NODE_TYPES.push_back("Single Color Intensity");
-        
-        
+
+
         RGBW_HANDLING.push_back("R=G=B -> W");
         RGBW_HANDLING.push_back("RGB Only");
         RGBW_HANDLING.push_back("White Only");
@@ -566,7 +566,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     if (HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4) {
         sp->Enable(false);
     }
-    
+
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
@@ -2143,8 +2143,10 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 {
                     // Handle 3D from an arbitrary camera position
                     float sz = it2->screenZ;
+                    GetModelScreenLocation().TranslatePoint(sx, sy, sz);
                     // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
                     glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
+                    loc.y *= -1.0f;
                     sx = loc.x;
                     sy = loc.y;
                 }
@@ -2184,7 +2186,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
 
-                // grab the previously transformed coordinate                
+                // grab the previously transformed coordinate
                 float sx = *itx;
                 float sy = *ity;
 
