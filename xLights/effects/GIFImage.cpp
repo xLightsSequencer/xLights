@@ -6,7 +6,7 @@
 
 #undef max
 
-#define DEBUG_GIF
+//#define DEBUG_GIF
 
 bool GIFImage::IsGIF(const std::string& filename)
 {
