@@ -649,8 +649,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     ModelBufferWi = newModelBufferWi;
     //wxASSERT(BufferHt <= newModelBufferHt);
     //wxASSERT(BufferWi <= newModelBufferWi);
-    //int NumPixels = BufferHt * BufferWi;
-    int NumPixels = ModelBufferHt * ModelBufferWi;
+    int NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     isTransformed = (bufferTransform != "None");
