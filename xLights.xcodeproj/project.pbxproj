@@ -22,7 +22,6 @@
 		3D585F2D1E7E524400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */; };
 		3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */; };
 		3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3D585F301E7E541400A3F84F /* UtilFunctions.cpp */; };
-		6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */; };
 		6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */; };
 		67025C6E20D7E80900BF1AC6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67025C6D20D7E80900BF1AC6 /* Assets.xcassets */; };
 		67025C8C20D7E85100BF1AC6 /* SettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67025C7920D7E84F00BF1AC6 /* SettingsDialog.cpp */; };
@@ -802,8 +801,6 @@
 		3D585F2C1E7E524400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UtilFunctions.cpp; path = ../xLights/UtilFunctions.cpp; sourceTree = "<group>"; };
 		3D585F2E1E7E52F700A3F84F /* SequenceData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = SequenceData.cpp; path = ../xLights/SequenceData.cpp; sourceTree = "<group>"; };
 		3D585F301E7E541400A3F84F /* UtilFunctions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = UtilFunctions.cpp; sourceTree = "<group>"; };
-		6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelAppearanceDlg.cpp; sourceTree = "<group>"; };
-		6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelAppearanceDlg.h; sourceTree = "<group>"; };
 		6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenderProgressDialog.cpp; sourceTree = "<group>"; };
 		6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProgressDialog.h; sourceTree = "<group>"; };
 		67025C6820D7E80700BF1AC6 /* xFade.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFade.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2906,7 +2903,6 @@
 				67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */,
 				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
 				67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */,
-				6700FD941AD8075400084A71 /* PixelAppearanceDlg.cpp */,
 				67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */,
 				67B6F3232040BF6C00B847E0 /* PixelTestDialog.h */,
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
@@ -3054,7 +3050,6 @@
 				67A619D517B51C0F008E95BB /* PaletteMgmtDialog.h */,
 				672F95111A7A6619005FF8BF /* PerspectivesPanel.h */,
 				67AAF8F11B63767B00585431 /* PhonemeDictionary.h */,
-				6700FD951AD8075400084A71 /* PixelAppearanceDlg.h */,
 				67A619D717B51C0F008E95BB /* PixelBuffer.h */,
 				672F95221A7A6619005FF8BF /* PreviewModels.h */,
 				672F951B1A7A6619005FF8BF /* RenameTextDialog.h */,
@@ -3465,6 +3460,7 @@
 				TargetAttributes = {
 					67025C6720D7E80700BF1AC6 = {
 						CreatedOnToolsVersion = 10.0;
+						DevelopmentTeam = U8ZT9RPC6S;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
@@ -3993,7 +3989,6 @@
 				679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */,
 				67B2CF861C39D98A003C17CA /* SnowflakesPanel.cpp in Sources */,
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
-				6700FD961AD8075400084A71 /* PixelAppearanceDlg.cpp in Sources */,
 				67B2B23A1E1947BE0024F0BB /* TestPreset.cpp in Sources */,
 				670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */,
 				674E3EEC20CEB6010087FDA1 /* DissolveTransitionPattern.cpp in Sources */,

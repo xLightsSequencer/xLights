@@ -1363,8 +1363,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     _suppressDuplicateFrames = 0;
 
-    AddWindowsMenu();
-
     // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
     #ifndef NDEBUG
         logger_base.debug("xLights Crash Menu item not removed.");

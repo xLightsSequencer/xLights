@@ -210,35 +210,3 @@ void ModalPopup(wxWindow *w, wxMenu &menu) {
     //[menu.GetHMenu() popUpMenuPositioningItem:nil atLocation:NSMakePoint(x, y) inView:view];
     //w->PopupMenu(&menu);
 }
-
-void AddWindowsMenu() {
-    NSApplication *app = [NSApplication sharedApplication];
-    NSMenu * mainMenu = app.mainMenu;
-    
-    NSMenu* windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
-    
-    // MINIMIZE
-    NSMenuItem* minimizeItem = [[NSMenuItem alloc] initWithTitle:@"Minimize"
-                                                          action:@selector(performMiniaturize:)
-                                                   keyEquivalent:@"m"];
-    [windowMenu addItem:minimizeItem];
-    [minimizeItem release];
-    
-    // ZOOM
-    [windowMenu addItemWithTitle:@"Zoom"
-                          action:@selector(performZoom:)
-                   keyEquivalent:@""];
-    
-    // SEPARATOR
-    [windowMenu addItem:[NSMenuItem separatorItem]];
-    
-    // BRING ALL TO FRONT
-    [windowMenu addItemWithTitle:@"Bring All to Front"
-                          action:@selector(arrangeInFront:)
-                   keyEquivalent:@""];
-
-    NSMenuItem* windowItem = [mainMenu insertItemWithTitle:@"" action:nil keyEquivalent:@"" atIndex: ([mainMenu numberOfItems] - 1)];
-    [windowItem setSubmenu:windowMenu];
-    [NSApp setWindowsMenu:windowMenu];
-}
-

@@ -711,8 +711,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
 
-    AddWindowsMenu();
-
     StaticBitmap_WebIcon->SetBitmap(_nowebicon);
     _webIconDisplayed = false;
 
