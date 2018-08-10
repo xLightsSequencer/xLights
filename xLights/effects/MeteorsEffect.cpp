@@ -461,7 +461,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer &buffer, int ColorScheme, int 
 
     //draw some dim icicles for bkg:
     if (want_bkg) {
-        xlColor c(100, 500, 255); //light blue
+        xlColor c(100, 50, 255); //light blue
         // HSV hsv = c;
         //        m.hsv.saturation = 0.5;
         //        m.hsv.value = 1.0;
@@ -629,7 +629,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer &buffer, int ColorScheme, 
         meteor.cnt++;
     };
     parallel_for(cache->meteorsRadial, f, 500);
-    
+
     // delete old meteors
     cache->meteorsRadial.remove_if(MeteorHasExpiredImplode(buffer.BufferWi/2+truexoffset,buffer.BufferHt/2+trueyoffset));
 }

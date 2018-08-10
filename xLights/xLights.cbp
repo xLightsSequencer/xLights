@@ -507,8 +507,6 @@
 		<Unit filename="PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />
 		<Unit filename="PhonemeDictionary.h" />
-		<Unit filename="PixelAppearanceDlg.cpp" />
-		<Unit filename="PixelAppearanceDlg.h" />
 		<Unit filename="PixelBuffer.cpp" />
 		<Unit filename="PixelBuffer.h" />
 		<Unit filename="PixelTestDialog.cpp" />
@@ -1109,7 +1107,6 @@
 		<Unit filename="wxsmith/PicturesAssistPanel.wxs" />
 		<Unit filename="wxsmith/PicturesPanel.wxs" />
 		<Unit filename="wxsmith/PinwheelPanel.wxs" />
-		<Unit filename="wxsmith/PixelAppearanceDlg.wxs" />
 		<Unit filename="wxsmith/PixelTestDialog.wxs" />
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
@@ -1221,7 +1218,6 @@
 					<wxDialog wxs="wxsmith/SeqSettingsDialog.wxs" src="SeqSettingsDialog.cpp" hdr="SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricsDialog.wxs" src="LyricsDialog.cpp" hdr="LyricsDialog.h" fwddecl="0" i18n="1" name="LyricsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LorConvertDialog.wxs" src="LorConvertDialog.cpp" hdr="LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/PixelAppearanceDlg.wxs" src="PixelAppearanceDlg.cpp" hdr="PixelAppearanceDlg.h" fwddecl="0" i18n="1" name="PixelAppearanceDlg" language="CPP" />
 					<wxDialog wxs="wxsmith/LMSImportChannelMapDialog.wxs" src="LMSImportChannelMapDialog.cpp" hdr="LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/xLightsImportChannelMapDialog.wxs" src="xLightsImportChannelMapDialog.cpp" hdr="xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SuperStarImportDialog.wxs" src="SuperStarImportDialog.cpp" hdr="SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
