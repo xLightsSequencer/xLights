@@ -1330,61 +1330,59 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
         #define VCITERATIONS (10.0 * VC_X_POINTS)
 
         float maxX = 0;
-        if (fx1vc)
+        if (fx1vc || fx2vc)
         {
             v[0].Replace("yyz", "Max");
-            ValueCurve vc(v[0].ToStdString());
-            vc.SetLimits(-100, 200);
-            for (int i = 0; i < VCITERATIONS; ++i)
-            {
-                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
-                if (val > maxX)
-                {
-                    maxX = val;
-                }
-            }
-        }
-        if (fx2vc)
-        {
             v[2].Replace("yyz", "Max");
-            ValueCurve vc(v[2].ToStdString());
-            vc.SetLimits(-100, 200);
+            ValueCurve vcx1(v[0].ToStdString());
+            ValueCurve vcx2(v[2].ToStdString());
+            vcx1.SetLimits(-100, 200);
+            vcx2.SetLimits(-100, 200);
             for (int i = 0; i < VCITERATIONS; ++i)
             {
-                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
-                if (val > maxX)
+                float valx1 = 0.0;
+                if (fx1vc)
                 {
-                    maxX = val;
+                    valx1 = vcx1.GetOutputValueAt((float)i / VCITERATIONS);
+                }
+                float valx2 = BufferWi;
+                if (fx2vc)
+                {
+                    valx2 = vcx2.GetOutputValueAt((float)i / VCITERATIONS);
+                }
+                float diff = std::abs(valx2 - valx1);
+                if (diff > maxX)
+                {
+                    maxX = diff;
                 }
             }
         }
 
         float maxY = 0;
-        if (fy1vc)
+        if (fy1vc || fy2vc)
         {
             v[1].Replace("yyz", "Max");
-            ValueCurve vc(v[1].ToStdString());
-            vc.SetLimits(-100, 200);
-            for (int i = 0; i < VCITERATIONS; ++i)
-            {
-                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
-                if (val > maxY)
-                {
-                    maxY = val;
-                }
-            }
-        }
-        if (fy2vc)
-        {
             v[3].Replace("yyz", "Max");
-            ValueCurve vc(v[3].ToStdString());
-            vc.SetLimits(-100, 200);
+            ValueCurve vcy1(v[1].ToStdString());
+            ValueCurve vcy2(v[3].ToStdString());
+            vcy1.SetLimits(-100, 200);
+            vcy2.SetLimits(-100, 200);
             for (int i = 0; i < VCITERATIONS; ++i)
             {
-                float val = vc.GetOutputValueAt((float)i / VCITERATIONS);
-                if (val > maxY)
+                float valy1 = 0.0;
+                if (fy1vc)
                 {
-                    maxY = val;
+                    valy1 = vcy1.GetOutputValueAt((float)i / VCITERATIONS);
+                }
+                float valy2 = BufferWi;
+                if (fy2vc)
+                {
+                    valy2 = vcy2.GetOutputValueAt((float)i / VCITERATIONS);
+                }
+                float diff = std::abs(valy2 - valy1);
+                if (diff > maxY)
+                {
+                    maxY = diff;
                 }
             }
         }
@@ -1405,6 +1403,7 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
 }
 
 void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress) {
+
     if (subBuffer == STR_EMPTY) {
         return;
     }
@@ -1603,10 +1602,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
         
-        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
-
         // save away the full model buffer size ... some effects need to know this
         ComputeMaxBuffer(subBuffer, inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi);
+
+        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
 
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
@@ -2630,7 +2629,9 @@ void PixelBufferClass::LayerInfo::calculateMask(bool isFirstFrame) {
         mask.clear();
     }
 }
+
 void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mode, bool isFirstFrame) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     switch (DecodeType(type)) {
         case 1:
             createWipeMask(mode);
@@ -2662,7 +2663,6 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string &type, bool mo
         default:
             if (isFirstFrame)
             {
-                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                 logger_base.warn("Unrecognised transition type '%s'.", (const char *)type.c_str());
             }
             break;
