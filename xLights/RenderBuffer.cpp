@@ -635,6 +635,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     BufferWi = newBufferWi;
     ModelBufferHt = newModelBufferHt;
     ModelBufferWi = newModelBufferWi;
+    wxASSERT(BufferHt <= newModelBufferHt);
+    wxASSERT(BufferWi <= newModelBufferWi);
     //int NumPixels = BufferHt * BufferWi;
     int NumPixels = ModelBufferHt * ModelBufferWi;
     pixels.resize(NumPixels);
@@ -818,7 +820,9 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
             y -= BufferHt;
         }
     }
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    
+    // I dont like this ... it should actually never happen
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
         pixels[y*BufferWi+x] = color;
     }
@@ -858,7 +862,7 @@ void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
             y -= BufferHt;
         }
     }
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
         pixels[y*BufferWi+x] = hsv;
     }
@@ -878,7 +882,7 @@ void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
         for (auto &a : node->Coords) {
             int x = a.bufX;
             int y = a.bufY;
-            if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+            if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size()) {
                 pixels[y*BufferWi+x] = c;
                 done[y*BufferWi+x] = true;
             }
@@ -890,9 +894,11 @@ void RenderBuffer::CopyNodeColorsToPixels(std::vector<bool> &done) {
 //copy src to dest: -DJ
 void RenderBuffer::CopyPixel(int srcx, int srcy, int destx, int desty)
 {
-    if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt))
-        if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt))
+    if ((srcx >= 0) && (srcx < BufferWi) && (srcy >= 0) && (srcy < BufferHt) && srcy*BufferWi + srcx < pixels.size())
+        if ((destx >= 0) && (destx < BufferWi) && (desty >= 0) && (desty < BufferHt) && desty*BufferWi + destx < pixels.size())
+        {
             pixels[desty * BufferWi + destx] = pixels[srcy * BufferWi + srcx];
+        }
 }
 
 void RenderBuffer::DrawHLine(int y, int xstart, int xend, const xlColor &color, bool wrap) {
@@ -1066,9 +1072,10 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
 // 0,0 is lower left
 void RenderBuffer::GetPixel(int x, int y, xlColor &color)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    // I also dont like this ... I shouldnt need to check against pixel size
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
-        color=pixels[y*BufferWi+x];
+        color = pixels[y*BufferWi + x];
     }
     else
     {
@@ -1077,7 +1084,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color)
 }
 
 const xlColor &RenderBuffer::GetPixel(int x, int y) {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
         return pixels[y*BufferWi+x];
     }
@@ -1087,7 +1094,7 @@ const xlColor &RenderBuffer::GetPixel(int x, int y) {
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor &color)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
     {
         tempbuf[y*BufferWi+x]=color;
     }
@@ -1103,23 +1110,22 @@ void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha)
 // 0,0 is lower left
 void RenderBuffer::GetTempPixel(int x, int y, xlColor &color)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
     {
         color=tempbuf[y*BufferWi+x];
     }
 }
 const xlColor &RenderBuffer::GetTempPixel(int x, int y) {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
     {
         return tempbuf[y*BufferWi+x];
     }
     return xlBLACK;
 }
 
-
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
-    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt)
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < tempbuf.size())
     {
         return tempbuf[y*BufferWi+x];
     }
@@ -1137,13 +1143,15 @@ void RenderBuffer::SetState(int period, bool ResetState, const std::string& mode
     curPeriod = period;
     palette.UpdateForProgress(GetEffectTimeIntervalPosition());
 }
+
 void RenderBuffer::ClearTempBuf()
 {
-    for (size_t i=0; i < tempbuf.size(); i++)
+    for (size_t i = 0; i < tempbuf.size(); i++)
     {
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
+
 float RenderBuffer::GetEffectTimeIntervalPosition(float cycles) {
     if (curEffEndPer == curEffStartPer) {
         return 0.0f;

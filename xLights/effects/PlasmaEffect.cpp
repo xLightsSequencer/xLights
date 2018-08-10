@@ -11,6 +11,8 @@
 #include "../../include/plasma-48.xpm"
 #include "../../include/plasma-64.xpm"
 
+#include "../Parallel.h"
+
 PlasmaEffect::PlasmaEffect(int id) : RenderableEffect(id, "Plasma", plasma_16, plasma_24, plasma_32, plasma_48, plasma_64)
 {
     //ctor
@@ -67,7 +69,7 @@ void PlasmaEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     std::string PlasmaDirectionStr = SettingsMap["CHOICE_Plasma_Direction"];
 
     int PlasmaDirection = 0; //fixme?
-    int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
+    const int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);
 
     //  These are for Plasma effect
     static const double pi=3.1415926535897932384626433832;
@@ -75,19 +77,19 @@ void PlasmaEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     int curState = (buffer.curPeriod - buffer.curEffStartPer) * PlasmaSpeed * buffer.frameTimeInMs / 50;
     double offset=double(curState)/200.0;
 
-    int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
-    double Speed_plasma = (101-PlasmaSpeed)*3; // we want a large number to divide by
-    double time = (state+1.0)/Speed_plasma;
+    const int state = (buffer.curPeriod - buffer.curEffStartPer); // frames 0 to N
+    const double Speed_plasma = (101-PlasmaSpeed)*3; // we want a large number to divide by
+    const double time = (state+1.0)/Speed_plasma;
 
     if (PlasmaDirection==1) offset = -offset;
 
-    double sin_time_5 = buffer.sin(time / 5);
-    double cos_time_3 = buffer.cos(time / 3);
-    double sin_time_2 = buffer.sin(time / 2);
-    static double pi3 = pi / 3.0;
+    const double sin_time_5 = buffer.sin(time / 5);
+    const double cos_time_3 = buffer.cos(time / 3);
+    const double sin_time_2 = buffer.sin(time / 2);
+    static const double pi3 = pi / 3.0;
 
-    for (int x=0; x<buffer.BufferWi; x++)
-    {
+    int block = buffer.BufferHt * buffer.BufferWi > 100 ? 1 : -1;
+    parallel_for(0, buffer.BufferWi, [&] (int x) {
         double rx = ((float)x / (buffer.BufferWi - 1)); // rx is now in the range 0.0 to 1.0
         double rx2 = rx * rx;
         double cx = rx + .5*sin_time_5;
@@ -154,5 +156,5 @@ void PlasmaEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
             }
             buffer.SetPixel(x,y,color);
         }
-    }
+    }, block);
 }

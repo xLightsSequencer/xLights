@@ -42,7 +42,6 @@
 
 PixelBufferClass::PixelBufferClass(xLightsFrame *f) : frame(f)
 {
-    CurrentLayer = 0;
     frameTimeInMs = 50;
     model = nullptr;
     numLayers = 0;
@@ -160,26 +159,11 @@ void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, in
 
 void PixelBufferClass::Clear(int which)
 {
-    if (which != -1)
-    {
-        layers[which]->buffer.Clear(); //just clear this one
-        if (layers[which]->usingModelBuffers) {
-            for (auto it = layers[which]->modelBuffers.begin();  it != layers[which]->modelBuffers.end(); ++it) {
-                (*it)->Clear();
-            }
-        }
-    }
-    else
-    {
-        //clear them all
-        for (size_t i = 0; i < numLayers; i++)
-        {
-            layers[i]->buffer.Clear();
-            if (layers[i]->usingModelBuffers) {
-                for (auto it = layers[i]->modelBuffers.begin();  it != layers[i]->modelBuffers.end(); ++it) {
-                    (*it)->Clear();
-                }
-            }
+    if (which != -1) {
+        layers[which]->clear(); //just clear this one
+    } else {
+        for (auto &a : layers) {
+            a->clear();
         }
     }
 }
@@ -225,109 +209,43 @@ int PixelBufferClass::GetChanCountPerNode() const
 
 bool MixTypeHandlesAlpha(MixTypes mt)
 {
-    switch (mt)
-    {
-    case Mix_Normal:
-        return true;
-    default:
-        return false;
-    }
+    return mt == Mix_Normal;
 }
+
+static std::map<std::string, MixTypes> MixTypesMap = {
+    {"Effect 1", Mix_Effect1},
+    {"Effect 2", Mix_Effect2},
+    {"1 is Mask", Mix_Mask1},
+    {"2 is Mask", Mix_Mask2},
+    {"1 is Unmask", Mix_Unmask1},
+    {"2 is Unmask", Mix_Unmask2},
+    {"1 is True Unmask", Mix_TrueUnmask1},
+    {"2 is True Unmask", Mix_TrueUnmask2},
+    {"1 reveals 2", Mix_1_reveals_2},
+    {"2 reveals 1", Mix_2_reveals_1},
+    {"Shadow 1 on 2", Mix_Shadow_1on2},
+    {"Shadow 2 on 1", Mix_Shadow_2on1},
+    {"Layered", Mix_Layered},
+    {"Normal", Mix_Normal},
+    {"Additive", Mix_Additive},
+    {"Subtractive", Mix_Subtractive},
+    {"Average", Mix_Average},
+    {"Bottom-Top", Mix_BottomTop},
+    {"Left-Right", Mix_LeftRight},
+    {"Max", Mix_Max},
+    {"Min", Mix_Min}
+};
 
 // convert MixName to MixType enum
 void PixelBufferClass::SetMixType(int layer, const std::string& MixName)
 {
-    MixTypes MixType;
-    if (MixName == "Effect 1")
-    {
-        MixType=Mix_Effect1;
+    auto it = MixTypesMap.find(MixName);
+    if (it == MixTypesMap.end()) {
+        layers[layer]->mixType = Mix_Effect1;
+    } else {
+        layers[layer]->mixType = it->second;
     }
-    else if (MixName == "Effect 2")
-    {
-        MixType=Mix_Effect2;
-    }
-    else if (MixName == "1 is Mask")
-    {
-        MixType=Mix_Mask1;
-    }
-    else if (MixName == "2 is Mask")
-    {
-        MixType=Mix_Mask2;
-    }
-    else if (MixName == "1 is Unmask")
-    {
-        MixType=Mix_Unmask1;
-    }
-    else if (MixName == "2 is Unmask")
-    {
-        MixType=Mix_Unmask2;
-    }
-    else if (MixName == "1 is True Unmask")
-    {
-        MixType=Mix_TrueUnmask1;
-    }
-    else if (MixName == "2 is True Unmask")
-    {
-        MixType=Mix_TrueUnmask2;
-    }
-    else if (MixName == "1 reveals 2")
-    {
-        MixType=Mix_1_reveals_2;
-    }
-    else if (MixName == "2 reveals 1")
-    {
-        MixType=Mix_2_reveals_1;
-    }
-    else if (MixName == "Shadow 1 on 2")
-    {
-        MixType=Mix_Shadow_1on2;
-    }
-    else if (MixName == "Shadow 2 on 1")
-    {
-        MixType=Mix_Shadow_2on1;
-    }
-    else if (MixName == "Layered")
-    {
-        MixType=Mix_Layered;
-    }
-    else if (MixName == "Normal")
-    {
-        MixType=Mix_Normal;
-    }
-    else if (MixName == "Additive")
-    {
-        MixType=Mix_Additive;
-    }
-    else if (MixName == "Subtractive")
-    {
-        MixType=Mix_Subtractive;
-    }
-    else if (MixName == "Average")
-    {
-        MixType=Mix_Average;
-    }
-    else if (MixName == "Bottom-Top")
-    {
-        MixType=Mix_BottomTop;
-    }
-    else if (MixName == "Left-Right")
-    {
-        MixType=Mix_LeftRight;
-    }
-    else if (MixName == "Max")
-    {
-        MixType=Mix_Max;
-    }
-    else if (MixName == "Min")
-    {
-        MixType=Mix_Min;
-    }
-    else
-    {
-        MixType=Mix_Effect1;
-    }
-    layers[layer]->mixType = MixType;
-    layers[layer]->buffer.SetAllowAlphaChannel(MixTypeHandlesAlpha(MixType));
+    layers[layer]->buffer.SetAllowAlphaChannel(MixTypeHandlesAlpha(layers[layer]->mixType));
 }
 
 void PixelBufferClass::mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer)
@@ -1786,21 +1704,16 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
     }
 }
 
-void PixelBufferClass::SetLayer(int newlayer, int period, bool resetState)
+void PixelBufferClass::SetLayer(int layer, int period, bool resetState)
 {
-    CurrentLayer=newlayer;
-    wxASSERT(frame->AllModels[modelName] != nullptr);
-    layers[CurrentLayer]->buffer.SetState(period, resetState, modelName);
-    if (layers[CurrentLayer]->usingModelBuffers) {
+    layers[layer]->buffer.SetState(period, resetState, modelName);
+    if (layers[layer]->usingModelBuffers) {
         int cnt = 0;
         const ModelGroup *grp = dynamic_cast<const ModelGroup*>(model);
-        for (auto it = layers[CurrentLayer]->modelBuffers.begin(); it != layers[CurrentLayer]->modelBuffers.end(); ++it, cnt++)  {
-            if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr)
-            {
+        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it, cnt++)  {
+            if (frame->AllModels[grp->Models()[cnt]->Name()] == nullptr) {
                 (*it)->SetState(period, resetState, grp->Models()[cnt]->GetFullName());
-            }
-            else
-            {
+            } else {
                 (*it)->SetState(period, resetState, grp->Models()[cnt]->Name());
             }
         }
@@ -2191,7 +2104,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
     // layer calculation and map to output
     size_t NodeCount = layers[0]->buffer.Nodes.size();
-    parallel_for(0, NodeCount, [this, saveLayer, validLayers, EffectPeriod] (int i) {
+    parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
         if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
             layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
@@ -2249,6 +2162,15 @@ static int DecodeType(const std::string &type)
 
     return 0;
 }
+void PixelBufferClass::LayerInfo::clear() {
+    buffer.Clear();
+    if (usingModelBuffers) {
+        for (auto it = modelBuffers.begin();  it != modelBuffers.end(); ++it) {
+            (*it)->Clear();
+        }
+    }
+}
+
 
 void PixelBufferClass::LayerInfo::createFromMiddleMask(bool out) {
     bool reverse = inTransitionReverse;

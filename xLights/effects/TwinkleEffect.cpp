@@ -12,6 +12,7 @@
 #include "../../include/twinkle-64.xpm"
 #include "ValueCurve.h"
 
+#include "../Parallel.h"
 
 TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64)
 {
@@ -175,7 +176,7 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     if (max_modulo2<1) 
         max_modulo2 = 1;
     
-    if(step<1) 
+    if (step<1)
         step=1;
     
     TwinkleRenderCache *cache = (TwinkleRenderCache*)buffer.infoCache[id];
@@ -209,10 +210,10 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         }
     }
     
-    for (size_t x = 0; x < strobe.size(); x++) {
+    parallel_for(0, strobe.size(), [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe](int x) {
         strobe[x].duration++;
         if (strobe[x].duration < 0) {
-            continue;
+            return;
         }
         if (strobe[x].duration == max_modulo) {
             strobe[x].duration = 0;
@@ -225,21 +226,17 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         HSVValue hsv;
         buffer.palette.GetHSV(strobe[x].colorindex, hsv);
         double v;
-        if(i7<=max_modulo2)
-        {
+        if(i7<=max_modulo2) {
             if(max_modulo2>0) v = (1.0*i7)/max_modulo2;
             else v =0;
-        }
-        else
-        {
+        } else {
             if(max_modulo2>0)v = (max_modulo-i7)*1.0/(max_modulo2);
             else v = 0;
         }
-        if(v<0.0) v=0.0;
+        if (v<0.0) v=0.0;
         
-        if(Strobe)
-        {
-            if(i7==max_modulo2)  v = 1.0;
+        if (Strobe) {
+            if (i7==max_modulo2) v = 1.0;
             else v = 0.0;
         }
         if (buffer.allowAlpha) {
@@ -253,5 +250,5 @@ void TwinkleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
             hsv.value = v;
             buffer.SetPixel(strobe[x].x,strobe[x].y,hsv); // Turn pixel on
         }
-    }
+    }, 500);
 }

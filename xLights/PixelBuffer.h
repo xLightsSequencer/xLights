@@ -213,6 +213,8 @@ private:
         void calculateMask(const std::string &type, bool mode, bool isFirstFrame);
         bool isMasked(int x, int y);
         
+        void clear();
+        
     private:
         void createSquareExplodeMask(bool end);
         void createCircleExplodeMask(bool end);
@@ -230,8 +232,6 @@ private:
     int numLayers;
     std::vector<LayerInfo*> layers;
     int frameTimeInMs;
-
-    int CurrentLayer;
 
     //both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
     void mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer);

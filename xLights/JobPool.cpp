@@ -22,6 +22,10 @@
 
 #include <log4cpp/Category.hh>
 
+
+const std::string Job::EMPTY_STRING = "";
+
+
 class JobPoolWorker
 {
     JobPool *pool;

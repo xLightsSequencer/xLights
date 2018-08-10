@@ -97,7 +97,7 @@ void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
     int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX);
     const std::string &pinwheel_style = SettingsMap["CHOICE_Pinwheel_Style"];
 
-    double pos = (buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs / 50;
+    double pos = (double)((buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs) / (double)PINWHEEL_SPEED_MAX;
     int degrees_per_arm = 1;
     if (pinwheel_arms > 0) degrees_per_arm = 360 / pinwheel_arms;
     float armsize = (pinwheel_armsize / 100.0);
