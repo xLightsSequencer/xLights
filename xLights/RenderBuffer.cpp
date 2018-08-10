@@ -635,8 +635,8 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     BufferWi = newBufferWi;
     ModelBufferHt = newModelBufferHt;
     ModelBufferWi = newModelBufferWi;
-    wxASSERT(BufferHt <= newModelBufferHt);
-    wxASSERT(BufferWi <= newModelBufferWi);
+    //wxASSERT(BufferHt <= newModelBufferHt);
+    //wxASSERT(BufferWi <= newModelBufferWi);
     //int NumPixels = BufferHt * BufferWi;
     int NumPixels = ModelBufferHt * ModelBufferWi;
     pixels.resize(NumPixels);
