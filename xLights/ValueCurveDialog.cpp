@@ -506,16 +506,16 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
     }
     else if (type == "Sine")
     {
-        SetParameter100(1, 0);
-        _vc->SetTimeOffset(75);
+        SetParameter100(1, 75);
+        _vc->SetTimeOffset(0);
         SetParameter100(2, 100);
         SetParameter100(3, 10);
         SetParameter100(4, 50);
     }
     else if (type == "Decaying Sine")
     {
-        SetParameter100(1, 0);
-        _vc->SetTimeOffset(75);
+        SetParameter100(1, 75);
+        _vc->SetTimeOffset(0);
         SetParameter100(2, 100);
         SetParameter100(3, 10);
         SetParameter100(4, 50);
@@ -1066,8 +1066,8 @@ void ValueCurveDialog::ValidateWindow()
     }
     else if (type == "Sine" || type == "Abs Sine" || type == "Decaying Sine")
     {
-        Slider_Parameter1->Disable();
-        TextCtrl_Parameter1->Disable();
+        Slider_Parameter1->Enable();
+        TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Enable();
         TextCtrl_Parameter2->Enable();
         Slider_Parameter3->Enable();
@@ -1210,14 +1210,14 @@ void ValueCurveDialog::ValidateWindow()
     }
     else if (type == "Sine")
     {
-        StaticText_P1->SetLabel("N/A - Deprecated");
+        StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
     }
     else if (type == "Decaying Sine")
     {
-        StaticText_P1->SetLabel("N/A - Deprecated");
+        StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
@@ -1231,7 +1231,7 @@ void ValueCurveDialog::ValidateWindow()
     }
     else if (type == "Abs Sine")
     {
-        StaticText_P1->SetLabel("N/A - Deprecated");
+        StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");
         StaticText_P3->SetLabel("Cycles");
         StaticText_P4->SetLabel("Vertical Offset");
