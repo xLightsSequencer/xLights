@@ -123,7 +123,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup &model, int layer, i
 
 void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased)
 {
-    modelName = pbc.name;
+    modelName = pbc.GetFullName();
     if (zeroBased)
     {
         zbModel = pbc.GetModelManager().CreateModel(pbc.GetModelXml(), zeroBased);
@@ -147,7 +147,7 @@ void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing
 }
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing)
 {
-    modelName = pbc.name;
+    modelName = pbc.GetFullName();
     if (ssModel == nullptr) {
         ssModel = new SingleLineModel(pbc.GetModelManager());
     }

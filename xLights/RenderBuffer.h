@@ -395,6 +395,7 @@ public:
     void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform);
     AudioManager* GetMedia();
     Model* GetModel() const;
+    Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
     std::string GetModelName() const;
 
     void Clear();

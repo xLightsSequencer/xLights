@@ -3,6 +3,7 @@
 #include "FacesEffect.h"
 #include "FacesPanel.h"
 #include "../models/Model.h"
+#include "../models/SubModel.h"
 #include "../sequencer/SequenceElements.h"
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
@@ -556,6 +557,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     std::vector<wxPoint> first_xy;
     Model* model_info = buffer.GetModel();
+
     if (!model_info || !parse_model(buffer.cur_model))
     {
         return;
@@ -658,10 +660,17 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     if (buffer.cur_model == "") {
         return;
     }
-    Model* model_info = buffer.GetModel();
+    Model* model_info = buffer.GetPermissiveModel();
     if (model_info == nullptr) {
         return;
     }
+
+    // if this is a submodel find the parent so we can find the face definition there
+    if (model_info->GetDisplayAs() == "SubModel")
+    {
+        model_info = ((SubModel*)model_info)->GetParent();
+    }
+
     if (cache->nodeNameCache.empty()) {
         for (int x = 0; x < model_info->GetNodeCount(); x++) {
             cache->nodeNameCache[model_info->GetNodeName(x, true)] = x;

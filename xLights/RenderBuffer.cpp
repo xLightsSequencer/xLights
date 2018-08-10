@@ -194,12 +194,25 @@ AudioManager* RenderBuffer::GetMedia()
 
 Model* RenderBuffer::GetModel() const
 {
+    // this only returns a model or model group
+    wxString m(cur_model);
+    if (m.Contains("/"))
+    {
+        return nullptr;
+    }
+
     return frame->AllModels[cur_model];
+}
+
+Model* RenderBuffer::GetPermissiveModel() const
+{
+    // This will return models, model groups or submodels and strands
+    return frame->AllModels.GetModel(cur_model);
 }
 
 std::string RenderBuffer::GetModelName() const
 {
-    Model* m = GetModel();
+    Model* m = GetPermissiveModel();
 
     if (m != nullptr)
     {
@@ -210,7 +223,6 @@ std::string RenderBuffer::GetModelName() const
 }
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
-
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
 {
