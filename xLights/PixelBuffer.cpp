@@ -1602,10 +1602,15 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
             model->InitRenderBufferNodes(type, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
         
-        // save away the full model buffer size ... some effects need to know this
-        ComputeMaxBuffer(subBuffer, inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi);
-
+        int curBH = inf->BufferHt;
+        int curBW = inf->BufferWi;
         ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
+        
+        curBH = std::max(curBH, inf->BufferHt);
+        curBW = std::max(curBW, inf->BufferWi);
+
+        // save away the full model buffer size ... some effects need to know this
+        ComputeMaxBuffer(subBuffer, curBH, curBW, inf->ModelBufferHt, inf->ModelBufferWi);
 
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
