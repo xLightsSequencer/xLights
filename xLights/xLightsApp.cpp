@@ -22,6 +22,7 @@
 
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
+#include "Parallel.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -319,6 +320,7 @@ void handleCrash(void *data) {
         trace += wxString::Format("\nCrashed thread id: %s\n", id.c_str());
     }
     trace += topFrame->GetThreadStatusReport();
+    trace += ParallelJobPool::POOL.GetThreadStatus();
 
     report->AddText("backtrace.txt", trace, "Backtrace");
 
