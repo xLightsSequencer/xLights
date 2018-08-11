@@ -414,14 +414,14 @@ void AddIcon(wxImageList &list, const std::string &id, double scaleFactor) {
     wxSize iconSize = list.GetSize();
     wxBitmap bmp =  wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(id), wxART_LIST, wxDefaultSize);
     if (bmp.GetSize() != iconSize) {
-#ifdef __WXOSX__
         wxImage img = bmp.ConvertToImage();
+#ifdef __WXOSX__
         img.Rescale(iconSize.x * scaleFactor, iconSize.y * scaleFactor);
         wxBitmap bmp2 = wxBitmap(img);
         wxIcon icon(bmp2.CreateIconRef(), iconSize);
-        list.Add(icon);
+        int i = list.Add(icon);
+        list.Replace(i, wxIcon(bmp2.CreateIconRef(), wxSize(iconSize.x * scaleFactor, iconSize.y * scaleFactor)));
 #else
-        wxImage img = bmp.ConvertToImage();
         img.Rescale(iconSize.x, iconSize.y);
         wxBitmap bmp2 = wxBitmap(img);
         wxIcon icon;
