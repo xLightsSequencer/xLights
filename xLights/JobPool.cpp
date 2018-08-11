@@ -167,8 +167,20 @@ void JobPoolWorker::Entry()
                 break;
             }
         }
-    } catch (...) {
-        //ignore
+#ifdef HAVE_ABI_FORCEDUNWIND
+    // When using common C++ ABI under Linux we must always rethrow this
+    // special exception used to unwind the stack when the thread was
+    // cancelled, otherwise the thread library would simply terminate the
+    // program, see http://udrepper.livejournal.com/21541.html
+    }  catch ( abi::__forced_unwind& ) {
+        logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.");
+        --pool->numThreads;
+        status = STOPPED;
+        throw;
+#endif // HAVE_ABI_FORCEDUNWIND
+    } catch ( ... ) {
+        logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.");
+        wxTheApp->OnUnhandledException();
     }
     logger_jobpool.debug("JobPoolWorker::Entry exiting.");
     --pool->numThreads;
