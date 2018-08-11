@@ -19,6 +19,9 @@
 #ifdef LINUX
     #include <X11/Xlib.h>
 #endif
+#ifdef HAVE_ABI_FORCEDUNWIND
+    #include <cxxabi.h>
+#endif
 
 #include <log4cpp/Category.hh>
 
