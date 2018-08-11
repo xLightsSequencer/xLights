@@ -76,6 +76,27 @@ PreviewCamera* ViewpointMgr::GetNamedCamera3D(const std::string& name)
     return camera;
 }
 
+bool ViewpointMgr::IsNameUnique(const std::string& name, bool is_3d)
+{
+    if (is_3d) {
+        for (size_t i = 0; i < previewCameras3d.size(); ++i)
+        {
+            if (previewCameras3d[i]->name == name) {
+                return false;
+            }
+        }
+    }
+    else {
+        for (size_t i = 0; i < previewCameras2d.size(); ++i)
+        {
+            if (previewCameras2d[i]->name == name) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void ViewpointMgr::Clear()
 {
     for (auto x : previewCameras2d)

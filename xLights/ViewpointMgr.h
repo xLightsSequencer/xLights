@@ -80,6 +80,7 @@ public:
     PreviewCamera* GetCamera3D(int i) { return previewCameras3d[i]; }
     PreviewCamera* GetNamedCamera3D(const std::string& name);
     void Clear();
+    bool IsNameUnique(const std::string& name, bool is_3d);
 
 protected:
 
