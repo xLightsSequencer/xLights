@@ -3,9 +3,9 @@
 
 // These have been moved here so they can be used in xSchedule as well.
 
-static const wxString xlights_qualifier       = " "; // " BETA,ALPHA,PROD";
+static const wxString xlights_qualifier       = " 3D BETA 1"; // " BETA,ALPHA,PROD";
 static const wxString xlights_version_string  = "2018.27";
-static const wxString xlights_build_date      = "August 11, 2018";
+static const wxString xlights_build_date      = "August 12, 2018";
 
 wxString GetBitness();
 

@@ -17,6 +17,7 @@
 #define Year 2018
 #define Version 27
 #define Bits 32
+#define Other "_3D_BETA"
 
 [Setup]
 ;; (not yet implemented) SignTool=mystandard
@@ -25,16 +26,16 @@ ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
 AppName={#MyTitleName}
-AppVersion={#Year}.{#Version}
-DefaultDirName={pf32}\{#MyTitleName}
-DefaultGroupName={#MyTitleName}
+AppVersion={#Year}.{#Version}{#Other}
+DefaultDirName={pf32}\{#MyTitleName}{#Other}
+DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=include\{#MyTitleName}.ico
 
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}
+OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}{#Other}
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone

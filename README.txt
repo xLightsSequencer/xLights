@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.27 3D Beta August 12, 2018
+   -- enh (gil)    xLights 3D
 2018.27 August 11, 2018
    -- bug (dkulp)  Fix some issues with subbuffers
    -- bug (dkulp)  Dont double up the windows menu

@@ -18,6 +18,7 @@
 #define Year 2018
 #define Version 27
 #define Bits 64
+#define Other "_3D_BETA"
 
 [Setup]
 ;; (not yet implemented) SignTool=mystandard
@@ -35,15 +36,15 @@ ArchitecturesInstallIn64BitMode=x64
 
 AppName={#MyTitleName}
 AppVersion={#Year}.{#Version}
-DefaultDirName={pf64}\{#MyTitleName}
-DefaultGroupName={#MyTitleName}
+DefaultDirName={pf64}\{#MyTitleName}{#Other}
+DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=include\{#MyTitleName}64.ico
 
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}
+OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}{#Other}
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone
