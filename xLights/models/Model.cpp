@@ -7,6 +7,7 @@
 
 #include "Model.h"
 #include "ModelManager.h"
+#include "ModelGroup.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
@@ -2106,10 +2107,10 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         }
     }
     else if (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET) {
-        float maxX = -1000000;
-        float minX = 1000000;
-        float maxY = -1000000;
-        float minY = 1000000;
+        float maxX = -1000000.0;
+        float minX = 1000000.0;
+        float maxY = -1000000.0;
+        float minY = 1000000.0;
         GetModelScreenLocation().PrepareToDraw(false, false);
 
         ModelPreview* modelPreview = nullptr;
@@ -2199,9 +2200,35 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 }
             }
         }
+
+        // Work out scaling factor for per preview camera views as these can build some 
+        // exteme locations which translate into crazy sized render buffers
+        // this allows us to scale it back to the desired grid size
+        float factor = 1.0;
+        if (pcamera != nullptr && camera != "2D" && GetDisplayAs() == "ModelGroup" && type == PER_PREVIEW)
+        {
+            int maxDimension = ((ModelGroup*)this)->GetGridSize();
+            if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension))
+            {
+                // we need to resize all the points by this amount
+                factor = std::max(((float)(maxX - minX)) / (float)maxDimension, ((float)(maxY - minY)) / (float)maxDimension);
+                // But if it is already smaller we dont want to make it bigger
+                if (factor < 1.0)
+                {
+                    factor = 1.0;
+                }
+            }
+        }
+
+        minX /= factor;
+        maxX /= factor;
+        minY /= factor;
+        maxY /= factor;
+
         int offx = minX;
         int offy = minY;
         bool noOff = type == PER_PREVIEW_NO_OFFSET;
+
         if (noOff) {
             offx = 0;
             offy = 0;
@@ -2217,9 +2244,9 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
 
                 // grab the previously transformed coordinate
-                float sx = *itx;
-                float sy = *ity;
-
+                float sx = *itx / factor;
+                float sy = *ity / factor;
+                
                 SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
                 if (it2->bufX > bufferWi) {
                     bufferWi = it2->bufX;

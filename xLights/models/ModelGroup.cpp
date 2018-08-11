@@ -92,6 +92,11 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string 
     }
 }
 
+int ModelGroup::GetGridSize() const
+{
+    return wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
+}
+
 bool ModelGroup::Reset(bool zeroBased) {
     this->zeroBased = zeroBased;
     selected = false;
