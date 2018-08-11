@@ -1313,6 +1313,8 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
 // Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size
 void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, int& maxHt, int& maxWi)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (wxString(subBuffer).Contains("Active=TRUE"))
     {
         // value curve present ... we have work to do
@@ -1394,6 +1396,8 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
 
         maxWi = std::max((int)std::ceil(maxX), BufferWi);
         maxHt = std::max((int)std::ceil(maxY), BufferHt);
+
+        logger_base.debug("Max buffer calculated to be %dx%d on model of size %dx%d <= %s", maxWi, maxHt, BufferWi, BufferHt, (const char *)subBuffer.c_str());
     }
     else
     {
