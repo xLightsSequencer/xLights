@@ -4,6 +4,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "UtilFunctions.h"
 
 PreviewCamera::PreviewCamera(bool is_3d_)
 : posX(-500.0f), posY(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
@@ -156,7 +157,8 @@ wxXmlNode* ViewpointMgr::Save() const
 
 	for( size_t i = 0; i < previewCameras2d.size(); ++i )
 	{
-	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, previewCameras2d[i]->name);
+	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, "Camera");
+	    cnode->AddAttribute("name", XmlSafe(previewCameras2d[i]->name));
 	    cnode->AddAttribute("posX", wxString::Format("%f", previewCameras2d[i]->posX));
 	    cnode->AddAttribute("posY", wxString::Format("%f", previewCameras2d[i]->posY));
 	    cnode->AddAttribute("angleX", wxString::Format("%f", previewCameras2d[i]->angleX));
@@ -173,7 +175,8 @@ wxXmlNode* ViewpointMgr::Save() const
 
 	for( size_t i = 0; i < previewCameras3d.size(); ++i )
 	{
-	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, previewCameras3d[i]->name);
+	    wxXmlNode* cnode = new wxXmlNode(wxXML_ELEMENT_NODE, "Camera");
+	    cnode->AddAttribute("name", XmlSafe(previewCameras3d[i]->name));
 	    cnode->AddAttribute("posX", wxString::Format("%f", previewCameras3d[i]->posX));
 	    cnode->AddAttribute("posY", wxString::Format("%f", previewCameras3d[i]->posY));
 	    cnode->AddAttribute("angleX", wxString::Format("%f", previewCameras3d[i]->angleX));
@@ -199,7 +202,12 @@ void ViewpointMgr::Load(wxXmlNode* vp_node)
         previewCameras3d.clear();
         for (wxXmlNode* c = vp_node->GetChildren(); c != nullptr; c = c->GetNext())
         {
-            std::string name = c->GetName().ToStdString();
+            std::string name = UnXmlSafe(c->GetAttribute("name", ""));
+            if (name == "")
+            {
+                // This is so Gils early file still loads correctly
+                name = c->GetName().ToStdString();
+            }
             wxString is_3d_;
             c->GetAttribute("is_3d", &is_3d_);
             bool is_3d = wxAtoi(is_3d_);
@@ -234,5 +242,3 @@ void ViewpointMgr::Load(wxXmlNode* vp_node)
         }
 	}
 }
-
-
