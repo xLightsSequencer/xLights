@@ -135,6 +135,8 @@ const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_VIEWPOINT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -2760,6 +2762,15 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
             mnu.Append(ID_PREVIEW_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+
+            mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            {
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
+            }
+            mnu.Append(ID_PREVIEW_DELETEVIEWPOINT3D, "Delete ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
         }
     }
     else {
@@ -2770,6 +2781,15 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
                 mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
             }
             mnu.Append(ID_PREVIEW_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+
+            mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            {
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
+            }
+            mnu.Append(ID_PREVIEW_DELETEVIEWPOINT2D, "Delete ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
         }
     }
 
@@ -2990,6 +3010,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
                     UpdatePreview();
                     break;
                 }
+                else if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId())
+                {
+                    xlights->viewpoint_mgr.DeleteCamera3D(i);
+                }
             }
         }
     }
@@ -3002,6 +3026,10 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
                     modelPreview->SetCamera2D(i);
                     UpdatePreview();
                     break;
+                }
+                else if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId())
+                {
+                    xlights->viewpoint_mgr.DeleteCamera2D(i);
                 }
             }
         }

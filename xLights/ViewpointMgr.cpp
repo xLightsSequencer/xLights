@@ -8,7 +8,7 @@
 
 PreviewCamera::PreviewCamera(bool is_3d_)
 : posX(-500.0f), posY(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
-  panx(0.0f), pany(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_), name("Name Unspecified"), menu_id(wxNewId()), mat_valid(false)
+  panx(0.0f), pany(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_), name("Name Unspecified"), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
 {
 }
 
@@ -19,7 +19,7 @@ PreviewCamera::~PreviewCamera()
 // Copy constructor
 PreviewCamera::PreviewCamera(const PreviewCamera &cam)
 : posX(cam.posX), posY(cam.posY), angleX(cam.angleX), angleY(cam.angleY), distance(cam.distance), zoom(cam.zoom),
-  panx(cam.panx), pany(cam.pany), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d), name(cam.name), menu_id(wxNewId()), mat_valid(false)
+  panx(cam.panx), pany(cam.pany), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d), name(cam.name), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
 {
 }
 
@@ -62,6 +62,26 @@ ViewpointMgr::ViewpointMgr()
 ViewpointMgr::~ViewpointMgr()
 {
     Clear();
+}
+
+void ViewpointMgr::DeleteCamera3D(int i)
+{
+    if (previewCameras3d.size() <= i) return;
+    auto todelete = GetCamera3D(i);
+    auto it = previewCameras3d.begin();
+    std::advance(it, i);
+    previewCameras3d.erase(it);
+    delete todelete;
+}
+
+void ViewpointMgr::DeleteCamera2D(int i)
+{
+    if (previewCameras2d.size() <= i) return;
+    auto todelete = GetCamera2D(i);
+    auto it = previewCameras2d.begin();
+    std::advance(it, i);
+    previewCameras2d.erase(it);
+    delete todelete;
 }
 
 PreviewCamera* ViewpointMgr::GetNamedCamera3D(const std::string& name)

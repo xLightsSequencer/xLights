@@ -63,13 +63,13 @@ void ModelPreview::SaveCurrentCameraPosition()
     while (!name_ok) {
         if (dlg.ShowModal() == wxID_OK) {
             const std::string name = dlg.GetValue().ToStdString();
-            if (xlights->viewpoint_mgr.IsNameUnique(name, is_3d)) {
+            if (name != "" && xlights->viewpoint_mgr.IsNameUnique(name, is_3d)) {
                 PreviewCamera* current_camera = (is_3d ? camera3d : camera2d);
                 xlights->viewpoint_mgr.AddCamera( name, current_camera, is_3d );
                 name_ok = true;
             }
             else {
-                wxMessageDialog msgDlg(this, "Error: ViewPoint name is a duplicate", "Error", wxOK | wxCENTRE);
+                wxMessageDialog msgDlg(this, "Error: ViewPoint name is a duplicate or blank.", "Error", wxOK | wxCENTRE);
                 msgDlg.ShowModal();
             }
         }

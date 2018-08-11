@@ -32,6 +32,7 @@ public:
     float GetIs3D() { return is_3d; }
     const std::string& GetName() { return name; }
     const long GetMenuId() { return menu_id; }
+    const long GetDeleteMenuId() { return deletemenu_id; }
 
     void SetPosX(float value) { posX = value; mat_valid = false; }
     void SetPosY(float value) { posY = value; mat_valid = false; }
@@ -60,6 +61,7 @@ protected:
     bool is_3d;
     std::string name;
     const long menu_id;
+    const long deletemenu_id;
     bool mat_valid;
     glm::mat4 view_matrix;
 };
@@ -77,7 +79,9 @@ public:
     int GetNum2DCameras() { return previewCameras2d.size(); }
     int GetNum3DCameras() { return previewCameras3d.size(); }
     PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i]; }
+    void DeleteCamera2D(int i);
     PreviewCamera* GetCamera3D(int i) { return previewCameras3d[i]; }
+    void DeleteCamera3D(int i);
     PreviewCamera* GetNamedCamera3D(const std::string& name);
     void Clear();
     bool IsNameUnique(const std::string& name, bool is_3d);
