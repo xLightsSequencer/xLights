@@ -678,7 +678,7 @@ bool BoxedScreenLocation::IsContained(ModelPreview* preview, int x1, int y1, int
     int xf = x1>x2?x1:x2;
     int ys = y1<y2?y1:y2;
     int yf = y1>y2?y1:y2;
-    
+
     if (draw_3d) {
         return VectorMath::TestVolumeOBBIntersection(
             xs, ys, xf, yf,
@@ -805,7 +805,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
                 handle = CENTER_HANDLE;
             }
         }
-        else {;
+        else {
             handle = R_BOT_HANDLE;
             saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
             active_axis = Y_AXIS;
@@ -1454,6 +1454,9 @@ int BoxedScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool Shif
         sx = new_width / RenderWi;
         sy = new_height / RenderHt;
         SetScale(sx, sy);
+        if( supportsZScaling ) {
+            scalez = scalex;
+        }
     }
     return 0;
 }
