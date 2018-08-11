@@ -113,7 +113,7 @@ public:
     float GetValueAt(float offset);
     float GetOutputValueAt(float offset);
     float GetOutputValueAtDivided(float offset);
-    float GetOutputValue(float offset);
+    float GetOutputValue(float offset) const;
     void SetActive(bool a) { _active = a; RenderType(); }
     bool IsActive() const { return _active && IsOk(); }
     void ToggleActive() { _active = !_active; if (_active) RenderType(); }

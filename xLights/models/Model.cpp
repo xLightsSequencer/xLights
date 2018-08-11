@@ -2006,7 +2006,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
     int firstNode = newNodes.size();
 
     // want to see if i can catch something that causes this to crash
-    if (firstNode + Nodes.size() <= 0 || firstNode + Nodes.size() > 50000)
+    if (firstNode + Nodes.size() <= 0)
     {
         // This seems to happen when an effect is dropped on a strand with zero pixels
         // Like a polyline segment with no nodes

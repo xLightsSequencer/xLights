@@ -438,12 +438,14 @@ void ValueCurve::Reverse()
     //}
     else if (_type == "Sine")   
     {
+        SetParameter1((int)(GetParameter1() + 25.0) % 100);
         _timeOffset = 100 - _timeOffset;
         _timeOffset += 0.5 * 100 * 10 / _parameter3;
         _timeOffset %= 100;
     }
     else if (_type == "Abs Sine")
     {
+        SetParameter1((int)(GetParameter1() + 25.0) % 100);
         _timeOffset = 100 - _timeOffset;
         _timeOffset += 0.5 * 100 * 10 / _parameter3;
         _timeOffset %= 100;
@@ -897,7 +899,7 @@ void ValueCurve::RenderType()
     }
     else if (_type == "Sine")
     {
-        // p1 - offset in cycle - deprecated
+        // p1 - offset in cycle
         // p2 - maxy
         // p3 - cycles
         // one cycle = 2* PI
@@ -906,7 +908,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.025)
         {
             if (i > 1.0) i = 1.0;
-            float r = i * maxx; // +((parameter1 * pi2) / 100.0f);
+            float r = i * maxx + ((parameter1 * pi2) / 100.0f);
             float y = (parameter4 - 50.0) / 50.0 + (sin(r) * (std::max(parameter2, 1.0f) / 200.0f)) + 0.5f;
             bool wrapped = false;
             if (_wrap)
@@ -929,7 +931,7 @@ void ValueCurve::RenderType()
     }
     else if (_type == "Decaying Sine")
     {
-        // p1 - offset in cycle - deprecated
+        // p1 - offset in cycle
         // p2 - maxy
         // p3 - cycles
         // one cycle = 2* PI
@@ -939,7 +941,7 @@ void ValueCurve::RenderType()
         {
             if (i > 1.0) i = 1.0;
 
-            float r = i * maxx; // +(((float)_parameter1 * pi2) / 100.0f);
+            float r = i * maxx + (((float)_parameter1 * pi2) / 100.0f);
             float exponent = exp(-0.1 * i * maxx);
             float y = ((float)_parameter4 - 50.0) / 50.0 + (exponent * cos(r) * (std::max((float)_parameter2, 1.0f) / 200.0f)) + 0.5f;
             bool wrapped = false;
@@ -997,7 +999,7 @@ void ValueCurve::RenderType()
     }
     else if (_type == "Abs Sine")
     {
-        // p1 - offset in cycle - deprecated
+        // p1 - offset in cycle
         // p2 - maxy
         // p3 - cycles
         // one cycle = 2* PI
@@ -1006,7 +1008,7 @@ void ValueCurve::RenderType()
         for (double i = 0.0; i <= 1.01; i += 0.025)
         {
             if (i > 1.0) i = 1.0;
-            float r = i * maxx; // +((parameter1 * pi2) / 100.0f);
+            float r = i * maxx + ((parameter1 * pi2) / 100.0f);
             float y = (parameter4 - 50.0) / 50.0 + (std::abs(sin(r) * (std::max(parameter2, 1.0f) / 100.0f)));
             bool wrapped = false;
             if (_wrap)
@@ -1314,14 +1316,6 @@ void ValueCurve::SetSerialisedValue(std::string k, std::string s)
     }
 
     _values.sort();
-    //_active = true;
-
-    // Start (param1) for Sine, Absolute Sine and Decaying Sine has been deprecated and replaced by TimeOffset
-    if (_parameter1 != 0 && (_type == "Sine" || _type == "Abs Sine" || _type == "Decaying Sine"))
-    {
-        _timeOffset = 100 - _parameter1;
-        _parameter1 = 0;
-    }
 }
 
 void ValueCurve::SetType(std::string type)
@@ -1330,7 +1324,7 @@ void ValueCurve::SetType(std::string type)
     RenderType();
 }
 
-float ValueCurve::GetOutputValue(float offset)
+float ValueCurve::GetOutputValue(float offset) const
 {
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);

@@ -11,7 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.27 August 11, 2018
+   -- bug (dkulp)  Fix some issues with subbuffers
+   -- bug (dkulp)  Dont double up the windows menu
+   -- enh (keith)  Allow matrix faces to be dropped on submodels
+2018.26 August 10, 2018
    -- enh (dkulp)  Use parallel algorithms in Twinkle/Butterfly/Plasma/Warp/Meteors effects to speed them up
+   -- bug (keith)  Fix variable subbuffers not calculating correctly
+   -- bug (keith)  Fix yet more animated gif issues
+   -- bug (keith)  Fix some effects are wrapping pixels (eg picture, pinwheel)
+   -- bug (keith)  Add back start parameter to sine based curves because timeoffset was not quite equivalent
+   -- enh (kevinp) New save icons
 2018.25 August 8, 2018
    -- bug (keith)  Prevent a crash due to value curves on sub-buffers. This stops the crash but the subbuffer is wrong ... further fixes to come.
    -- enh (keith)  Remove flag that prevents effects grid paste until a copy has been performed

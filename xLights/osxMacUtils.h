@@ -20,8 +20,6 @@ void ObtainAccessToURL(const std::string &path);
 void EnableSleepModes();
 void DisableSleepModes();
 
-void AddWindowsMenu();
-
 void ModalPopup(wxWindow *p, wxMenu &menu);
 
 #define WINDOW_LOCKER(a, b)
@@ -33,7 +31,6 @@ void ModalPopup(wxWindow *p, wxMenu &menu);
 #define ObtainAccessToURL(x)
 #define EnableSleepModes()
 #define DisableSleepModes()
-#define AddWindowsMenu()
 #define ModalPopup(p, a) p->PopupMenu(&a)
 #define WINDOW_LOCKER(a, b) wxWindowUpdateLocker b(a)
 #endif

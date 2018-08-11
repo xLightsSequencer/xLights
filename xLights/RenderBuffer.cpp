@@ -194,12 +194,25 @@ AudioManager* RenderBuffer::GetMedia()
 
 Model* RenderBuffer::GetModel() const
 {
+    // this only returns a model or model group
+    wxString m(cur_model);
+    if (m.Contains("/"))
+    {
+        return nullptr;
+    }
+
     return frame->AllModels[cur_model];
+}
+
+Model* RenderBuffer::GetPermissiveModel() const
+{
+    // This will return models, model groups or submodels and strands
+    return frame->AllModels.GetModel(cur_model);
 }
 
 std::string RenderBuffer::GetModelName() const
 {
-    Model* m = GetModel();
+    Model* m = GetPermissiveModel();
 
     if (m != nullptr)
     {
@@ -210,7 +223,6 @@ std::string RenderBuffer::GetModelName() const
 }
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
-
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
 {
@@ -625,6 +637,8 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
 
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (_pathDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _pathDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
@@ -635,10 +649,12 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     BufferWi = newBufferWi;
     ModelBufferHt = newModelBufferHt;
     ModelBufferWi = newModelBufferWi;
-    wxASSERT(BufferHt <= newModelBufferHt);
-    wxASSERT(BufferWi <= newModelBufferWi);
-    //int NumPixels = BufferHt * BufferWi;
-    int NumPixels = ModelBufferHt * ModelBufferWi;
+    if (ModelBufferHt * ModelBufferWi < std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi))
+    {
+        wxASSERT(false);
+        logger_base.warn("RenderBuffer had to be expanded for %s from %d to %d pixels", (const char *)GetModelName().c_str(), ModelBufferHt * ModelBufferWi, std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi));
+    }
+    int NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     isTransformed = (bufferTransform != "None");

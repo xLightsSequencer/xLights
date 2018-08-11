@@ -17,9 +17,12 @@
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
+#include <thread>
+#include <iomanip>
 
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
+#include "Parallel.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -303,11 +306,21 @@ void handleCrash(void *data) {
     trace += windows_get_stacktrace(data);
 #endif
 
-    int id = (int)wxThread::GetCurrentId();
-    trace += wxString::Format("\nCrashed thread id: 0x%X or %i\n", id, id);
-#ifndef LINUX
+    if (wxThread::IsMain()) {
+        trace += wxString::Format("\nCrashed thread the Main Thread\n");
+    } else {
+        
+        std::stringstream ret;
+        ret << std::showbase // show the 0x prefix
+            << std::internal // fill between the prefix and the number
+            << std::setfill('0') << std::setw(10)
+            << std::hex << std::this_thread::get_id();
+        
+        std::string id = ret.str();
+        trace += wxString::Format("\nCrashed thread id: %s\n", id.c_str());
+    }
     trace += topFrame->GetThreadStatusReport();
-#endif // LINUX
+    trace += ParallelJobPool::POOL.GetThreadStatus();
 
     report->AddText("backtrace.txt", trace, "Backtrace");
 

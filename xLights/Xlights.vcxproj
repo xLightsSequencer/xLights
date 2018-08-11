@@ -415,7 +415,6 @@
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
-    <ClCompile Include="PixelAppearanceDlg.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
@@ -760,7 +759,6 @@
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
-    <ClInclude Include="PixelAppearanceDlg.h" />
     <ClInclude Include="PixelBuffer.h" />
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="PreviewModels.h" />
