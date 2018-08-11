@@ -637,7 +637,6 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
             _frames.at(model).resize(fs);
             _frameSize[model] = fsz;
         }
-        ps += strlen(ps) + 1;
 
         long firstFrameOffset = ps - headerBuffer;
 
