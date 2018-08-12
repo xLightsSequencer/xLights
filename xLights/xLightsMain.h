@@ -165,13 +165,6 @@ static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.x
 
 typedef SequenceData SeqDataType;
 
-enum play_modes
-{
-    play_off,
-    play_single,
-    play_list
-};
-
 enum SeqPlayerStates
 {
     NO_SEQ,
@@ -551,7 +544,6 @@ public:
     void OnMenuItemUserDictSelected(wxCommandEvent& event);
     void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
-    void OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event);
     void OnMenuItem_RenderCache(wxCommandEvent& event);
     //*)
 private:
@@ -1028,7 +1020,6 @@ private:
     int mSavedChangeCount;
     int mLastAutosaveCount;
     wxDateTime starttime;
-    play_modes play_mode;
     ModelPreview* modelPreview;
     EffectManager effectManager;
     int effGridPrevX;
@@ -1057,7 +1048,6 @@ private:
     int DecodeBackupPurgeDays(std::string s);
     void DoBackupPurge();
     void DoAltBackup(bool prompt = true);
-    void SetPlayMode(play_modes newmode);
     bool EnableOutputs(bool ignoreCheck = false);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);

@@ -142,13 +142,6 @@ bool xLightsFrame::SetDir(const wxString& newdir)
         mainSequencer->keyBindings.Save(kbf);
     }
 
-    // reject change if something is playing
-    if (play_mode == play_list || play_mode == play_single)
-    {
-        wxMessageBox(_("Cannot change directories during playback"), _("Error"));
-        return false;
-    }
-
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
 

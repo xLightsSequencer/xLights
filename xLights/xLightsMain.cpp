@@ -1938,7 +1938,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     EffectTreeDlg = nullptr;  // must be before any call to SetDir
 
-    SetPlayMode(play_off);
+    starttime = wxDateTime::UNow();
     ResetEffectsXml();
     EnableSequenceControls(true);
     if (ok && !dir.IsEmpty())
@@ -2215,21 +2215,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     wxString ver = wxString::Format(_("xLights\nVersion: %s  -  %s\n\n"), xlights_version_string, GetBitness());
     wxMessageDialog dlg(this, ver + XLIGHTS_LICENSE, hdg);
     dlg.ShowModal();
-}
-
-void xLightsFrame::SetPlayMode(play_modes newmode)
-{
-    switch (newmode)
-    {
-    case play_off:
-        SetStatusText(_("Playback: off"));
-        break;
-    default:
-        break;
-    }
-
-    play_mode = newmode;
-    starttime = wxDateTime::UNow();
 }
 
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
@@ -2513,7 +2498,7 @@ void xLightsFrame::StopNow(void)
 		CurrentSeqXmlFile->GetMedia()->Stop();
 	}
     heartbeat("playback end", true); //tell fido to stop watching -DJ
-    SetPlayMode(play_off);
+    starttime = wxDateTime::UNow();
     switch (actTab)
     {
     case NEWSEQUENCER:
