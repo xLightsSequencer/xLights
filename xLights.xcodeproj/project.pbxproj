@@ -103,6 +103,8 @@
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
+		6721865D211FBA0800AD3B44 /* ViewpointMgr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6721865B211FBA0800AD3B44 /* ViewpointMgr.cpp */; };
+		6721865E211FBA0800AD3B44 /* ViewpointDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6721865C211FBA0800AD3B44 /* ViewpointDialog.cpp */; };
 		6723D3911E3946ED00355C72 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */; };
 		6725FAE91F943AD8007F2D7C /* GammaDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */; };
@@ -917,6 +919,10 @@
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResizeImageDialog.cpp; sourceTree = "<group>"; };
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
+		67218659211FBA0700AD3B44 /* ViewpointDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewpointDialog.h; sourceTree = "<group>"; };
+		6721865A211FBA0700AD3B44 /* ViewpointMgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewpointMgr.h; sourceTree = "<group>"; };
+		6721865B211FBA0800AD3B44 /* ViewpointMgr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewpointMgr.cpp; sourceTree = "<group>"; };
+		6721865C211FBA0800AD3B44 /* ViewpointDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ViewpointDialog.cpp; sourceTree = "<group>"; };
 		6725FAE41F943AD7007F2D7C /* GammaDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GammaDialog.h; sourceTree = "<group>"; };
 		6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPPRemotesDialog.cpp; sourceTree = "<group>"; };
 		6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GammaDialog.cpp; sourceTree = "<group>"; };
@@ -2782,6 +2788,10 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6721865C211FBA0800AD3B44 /* ViewpointDialog.cpp */,
+				67218659211FBA0700AD3B44 /* ViewpointDialog.h */,
+				6721865B211FBA0800AD3B44 /* ViewpointMgr.cpp */,
+				6721865A211FBA0700AD3B44 /* ViewpointMgr.h */,
 				67CE7B502111E02D004005BC /* RenderCache.cpp */,
 				67CE7B512111E02D004005BC /* RenderCache.h */,
 				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
@@ -3926,6 +3936,7 @@
 				67623E711AD07E320022667B /* KeyBindings.cpp in Sources */,
 				67A61A4B17B51C0F008E95BB /* SeqElementMismatchDialog.cpp in Sources */,
 				67B2CFD61C3A186A003C17CA /* SnowflakesEffect.cpp in Sources */,
+				6721865D211FBA0800AD3B44 /* ViewpointMgr.cpp in Sources */,
 				67DD179820167D4B001E7A8B /* DDPOutput.cpp in Sources */,
 				67B2B22B1E1947BE0024F0BB /* LOROutput.cpp in Sources */,
 				67E6750B2009993D000E930E /* VendorModelDialog.cpp in Sources */,
@@ -3993,6 +4004,7 @@
 				675AB4291B5ACEDA00853A28 /* host-c.cpp in Sources */,
 				67A61A7017B51C0F008E95BB /* xLightsApp.cpp in Sources */,
 				679BD3421C375D9F000539FE /* BarsEffect.cpp in Sources */,
+				6721865E211FBA0800AD3B44 /* ViewpointDialog.cpp in Sources */,
 				67B2CF861C39D98A003C17CA /* SnowflakesPanel.cpp in Sources */,
 				676DCBFF1A98E53800FBA86B /* LorConvertDialog.cpp in Sources */,
 				67B2B23A1E1947BE0024F0BB /* TestPreset.cpp in Sources */,
