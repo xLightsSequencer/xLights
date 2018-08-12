@@ -143,6 +143,7 @@ void GIFImage::DoCreate(const std::string& filename)
             }
 #ifdef DEBUG_GIF
             logger_base.debug("    GIF size (%d,%d)", _gifSize.GetWidth(), _gifSize.GetHeight());
+            logger_base.debug("    Frames %d", _gifDecoder.GetFrameCount());
             logger_base.debug("    Background colour %s", (const char*)_backgroundColour.GetAsString().c_str());
 #endif
         }
@@ -299,7 +300,7 @@ wxImage GIFImage::GetFrame(int frame)
         logger_base.debug("    Applying dispose from last frame %s", (const char *)DecodeDispose(_lastDispose).c_str());
 #endif
 
-        if (_suppressBackground  && (i == 0 || _lastDispose == wxANIM_TOBACKGROUND || _lastDispose == wxANIM_UNSPECIFIED))
+        if (_suppressBackground  && (i == 0 || _lastDispose == wxANIM_TOBACKGROUND))
         {
 #ifdef DEBUG_GIF
             logger_base.debug("    Replacing gif image this frame");
@@ -307,7 +308,7 @@ wxImage GIFImage::GetFrame(int frame)
             image.Clear();
             CopyImageToImage(image, newframe, offset, true);
         }
-        else if (i == 0 || _lastDispose == wxANIM_TOBACKGROUND || _lastDispose == wxANIM_UNSPECIFIED)
+        else if (i == 0 || _lastDispose == wxANIM_TOBACKGROUND)
         {
 #ifdef DEBUG_GIF
             logger_base.debug("    Replacing gif image this after drawing background colour");
