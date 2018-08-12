@@ -378,12 +378,14 @@ void DrawGLUtils::SetLineWidth(float i) {
 void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
     int x, y, x2, y2;
     x = topleft_x;
-    y = bottomright_y;
+    y = std::min(bottomright_y, topleft_y);
     x2 = bottomright_x;
-    y2 = topleft_y;
+    y2 = std::max(bottomright_y,topleft_y);
 
     xlSetRetinaCanvasViewport(win, x,y,x2,y2);
-    LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
+    int w = std::max(x, x2) - std::min(x, x2);
+    int h = std::max(y, y2) - std::min(y, y2);
+    LOG_GL_ERRORV(glViewport(x,y,w,h));
     currentCache->Ortho(topleft_x, topleft_y, bottomright_x, bottomright_y);
 }
 
