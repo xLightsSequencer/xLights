@@ -670,6 +670,10 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     {
         model_info = ((SubModel*)model_info)->GetParent();
     }
+    else if (model_info->GetDisplayAs() == "ModelGroup")
+    {
+        return;
+    }
 
     if (cache->nodeNameCache.empty()) {
         for (int x = 0; x < model_info->GetNodeCount(); x++) {
