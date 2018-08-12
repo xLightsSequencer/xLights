@@ -124,7 +124,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     }
 
     // delete any views that were added to the menu
-    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); it++) {
+    for (auto it = LayoutGroups.begin(); it != LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
             RemovePreviewOption(grp);

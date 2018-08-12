@@ -135,7 +135,7 @@ void FacesEffect::SetPanelStatus(Model *cls) {
     }
     bool addRender = true;
     if (cls != nullptr) {
-        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); it++) {
+        for (std::map<std::string, std::map<std::string, std::string> >::iterator it = cls->faceInfo.begin(); it != cls->faceInfo.end(); ++it) {
             if (it->first != "")
             {
                 fp->Face_FaceDefinitonChoice->Append(it->first);

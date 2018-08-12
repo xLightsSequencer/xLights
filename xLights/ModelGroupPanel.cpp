@@ -234,7 +234,7 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
         if (m != nullptr) {
             ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
             if (grp != nullptr) {
-                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); it2++) {
+                for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
                     if (!canAddToGroup(g, models, *it2, modelGroupsInGroup)) {
                         return false;
                     }
@@ -273,7 +273,7 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
             }
             if (CheckBox_ShowSubmodels->GetValue())
             {
-                for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); smit++) {
+                for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
                     Model *sm = *smit;
 
                     if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {

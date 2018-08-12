@@ -693,7 +693,7 @@ void ModelManager::Delete(const std::string &name) {
     }
 
     // now delete the model
-    for (auto it = models.begin(); it != models.end(); it++) {
+    for (auto it = models.begin(); it != models.end(); ++it) {
         if (it->first == name) {
             Model *model = it->second;
 

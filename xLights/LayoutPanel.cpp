@@ -1091,7 +1091,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         else if (m->DisplayAs == "ModelGroup") {
                             ModelGroup *mg = (ModelGroup*)m;
                             if (mark_selected) {
-                                for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); it3++) {
+                                for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); ++it3) {
                                     if ((*it3)->DisplayAs != "ModelGroup") {
                                         (*it3)->GroupSelected = true;
                                         prev_models.push_back(*it3);
@@ -3673,7 +3673,7 @@ void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
 void LayoutPanel::DeleteCurrentPreview()
 {
     if (wxMessageBox("Are you sure you want to delete the " + currentLayoutGroup + " preview?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
             LayoutGroup* grp = (LayoutGroup*)(*it);
             if (grp != nullptr) {
                 if( currentLayoutGroup == grp->GetName() ) {
@@ -3697,7 +3697,7 @@ void LayoutPanel::DeleteCurrentPreview()
             }
         }
         // change any existing assignments to this preview to be unassigned
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             Model *model = it->second;
             if( model->GetLayoutGroup() == currentLayoutGroup) {
                 model->SetLayoutGroup("Unassigned");
@@ -3734,7 +3734,7 @@ void LayoutPanel::ShowPropGrid(bool show)
 void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 {
     currentLayoutGroup = group;
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
             if( currentLayoutGroup == grp->GetName() ) {

@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)  Fix video drift in generate custom model video watcher
+   -- bug (keith)  Yet another tweak to the animated GIF reader
+   -- bug (keith)  Fix right click after selecting models to create a group omits selected model
+   -- bug (dkulp)  Fix reading back from render cache changes pixel colour
 2018.27 August 11, 2018
    -- bug (dkulp)  Fix some issues with subbuffers
    -- bug (dkulp)  Dont double up the windows menu

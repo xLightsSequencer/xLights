@@ -804,7 +804,7 @@ static std::string chooseNewName(xLightsFrame *parent, std::vector<std::string> 
 }
 
 static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewModels) {
-    for (auto it2 = grp->Models().begin(); it2 != grp->Models().end(); it2++) {
+    for (auto it2 = grp->Models().begin(); it2 != grp->Models().end(); ++it2) {
         Model *model = dynamic_cast<Model*>(*it2);
         ModelGroup *g2 = dynamic_cast<ModelGroup*>(*it2);
         SubModel *sm = dynamic_cast<SubModel*>(*it2);

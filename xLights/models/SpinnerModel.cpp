@@ -40,7 +40,7 @@ wxString DecodeStart(long start)
 int EncodeStarts(const wxString& start)
 {
     int i = 0;
-    for (auto it = TOP_BOT_LEFT_RIGHT.GetLabels().begin(); it != TOP_BOT_LEFT_RIGHT.GetLabels().end(); it++)
+    for (auto it = TOP_BOT_LEFT_RIGHT.GetLabels().begin(); it != TOP_BOT_LEFT_RIGHT.GetLabels().end(); ++it)
     {
         if (*it == start)
         {
@@ -351,8 +351,8 @@ void SpinnerModel::SetSpinnerCoord() {
     
     float min = 99999;
     float max = -9999;
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
-        for (auto it2 = (*it)->Coords.begin(); it2 != (*it)->Coords.end(); it2++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        for (auto it2 = (*it)->Coords.begin(); it2 != (*it)->Coords.end(); ++it2) {
             min = std::min(min, it2->screenY);
             max = std::max(max, it2->screenY);
         }

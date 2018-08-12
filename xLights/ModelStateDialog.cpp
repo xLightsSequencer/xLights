@@ -302,7 +302,7 @@ void ModelStateDialog::SetStateInfo(Model *cls, std::map< std::string, std::map<
 void ModelStateDialog::GetStateInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
     finfo.clear();
     for (std::map<std::string, std::map<std::string, std::string> >::iterator it = stateData.begin();
-         it != stateData.end(); it++) {
+         it != stateData.end(); ++it) {
         if (!it->second.empty()) {
             finfo[it->first] = it->second;
         }

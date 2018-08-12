@@ -116,7 +116,7 @@ EffectGridTouchBar::EffectGridTouchBar(xlTouchBarSupport &support, const EffectM
     }, "NSTouchBarColorPickerFill", "Colors");
     items.push_back(colorsButton);
     
-    for (auto it = manager.begin(); it != manager.end(); it++) {
+    for (auto it = manager.begin(); it != manager.end(); ++it) {
         wxBitmap ico = (*it)->GetEffectIcon(16, false);
         
         wxButton *b = new wxButton(support.GetControlParent(), wxID_ANY,

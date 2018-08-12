@@ -58,7 +58,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type,
                 BufferWi = w;
             }
         }
-        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
             newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
         }
 

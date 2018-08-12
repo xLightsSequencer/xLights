@@ -290,7 +290,7 @@ void PianoEffect::ReduceChannels(std::list<float>* pdata, int start, int end, bo
 		}
 		else
 		{
-			it++;
+			++it;
 		}
 	}
 }

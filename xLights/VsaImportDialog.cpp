@@ -40,7 +40,7 @@ END_EVENT_TABLE()
 
 static wxArrayString Convert(const std::vector<std::string> arr) {
     wxArrayString ret;
-    for (auto it = arr.begin(); it != arr.end(); it++) {
+    for (auto it = arr.begin(); it != arr.end(); ++it) {
         ret.push_back(*it);
     }
     return ret;
@@ -137,7 +137,7 @@ void VsaImportDialog::Init(VSAFile* file, bool allModels) {
 
     modelNames.push_back("");
     if (allModels) {
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             modelNames.push_back(it->first);
         }
     } else {

@@ -353,8 +353,8 @@ void CandyCaneModel::SetCaneCoord() {
     }
     float min = 99999;
     float max = -9999;
-    for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
-        for (auto it2 = (*it)->Coords.begin(); it2 != (*it)->Coords.end(); it2++) {
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        for (auto it2 = (*it)->Coords.begin(); it2 != (*it)->Coords.end(); ++it2) {
             min = std::min(min, it2->screenY);
             max = std::max(max, it2->screenY);
         }

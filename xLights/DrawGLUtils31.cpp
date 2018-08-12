@@ -534,7 +534,7 @@ public:
         normalProgram.BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
         bool tverticesBound = false;
-        for (auto it = va.types.begin(); it != va.types.end(); it++) {
+        for (auto it = va.types.begin(); it != va.types.end(); ++it) {
             int type = it->type;
             int enableCapability = it->enableCapability;
             
