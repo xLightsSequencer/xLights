@@ -1332,17 +1332,30 @@ void LayoutPanel::CreateModelGroupFromSelected()
         wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
         node->AddAttribute("LayoutGroup", grp);
 
+        bool selectedModelAdded = selectedModel == nullptr;
         wxString ModelsInGroup = "";
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
+                if (modelPreview->GetModels()[i] == selectedModel)
+                {
+                    selectedModelAdded = true;
+                }
                 if (ModelsInGroup != "")
                 {
                     ModelsInGroup += ",";
                 }
                 ModelsInGroup += modelPreview->GetModels()[i]->GetName();
             }
+        }
+        if (!selectedModelAdded)
+        {
+            if (ModelsInGroup != "")
+            {
+                ModelsInGroup += ",";
+            }
+            ModelsInGroup += selectedModel->GetName();
         }
 
         node->AddAttribute("models", ModelsInGroup);
