@@ -1148,7 +1148,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
                         // this should be updated every release by 1 until we decide to change a slider range for the first time
                         // at that point we are going to need to force people to go back to a version after 2017.24 but before the
                         // first version with the change
-                        if (!::IsVersionOlder("2018.24", xlights_version_string.ToStdString()))
+                        if (!::IsVersionOlder("2018.30", xlights_version_string.ToStdString()))
                         {
                             static std::string warnedfile = "";
 
