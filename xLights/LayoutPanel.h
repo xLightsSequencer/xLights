@@ -163,6 +163,7 @@ class LayoutPanel: public wxPanel
         void OnPreviewMouseWheel(wxMouseEvent& event);
         void OnPreviewMouseWheelDown(wxMouseEvent& event);
         void OnPreviewMouseWheelUp(wxMouseEvent& event);
+        void OnPreviewMagnify(wxMouseEvent& event);
         void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
@@ -177,7 +178,10 @@ class LayoutPanel: public wxPanel
 		void OnCheckBox_3DClick(wxCommandEvent& event);
 		void OnCheckBox_SelectionClick(wxCommandEvent& event);
 		void OnCheckBox_XZClick(wxCommandEvent& event);
+        void OnPreviewRotateGesture(wxRotateGestureEvent& event);
+        void OnPreviewZoomGesture(wxZoomGestureEvent& event);
 		//*)
+
 
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
         void OnPropertyGridItemCollapsed(wxPropertyGridEvent& event);

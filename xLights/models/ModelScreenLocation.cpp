@@ -1251,6 +1251,36 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     return 0;
 }
 
+bool BoxedScreenLocation::Rotate(int axis, float factor) {
+    if (_locked) return false;
+    switch (axis) {
+        case 0:
+            rotatex += factor;
+            if (rotatex > 180) rotatex -= 360;
+            if (rotatex < -180) rotatex += 360;
+            return true;
+        case 1:
+            rotatey += factor;
+            if (rotatey > 180) rotatey -= 360;
+            if (rotatey < -180) rotatey += 360;
+            return true;
+        case 2:
+            rotatez += factor;
+            if (rotatez > 180) rotatez -= 360;
+            if (rotatez < -180) rotatez += 360;
+            return true;
+    }
+    return false;
+}
+bool BoxedScreenLocation::Scale(float factor) {
+    if (_locked) return false;
+    
+    scalex *= factor;
+    scaley *= factor;
+    scalez *= factor;
+    return true;
+}
+
 int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) {
 
     if (latch) {
@@ -3657,8 +3687,11 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
                 }
                 ret_value = true;
             }
-        }
-        else {
+        } else {
+            if (mPos[i].mod_matrix == nullptr) {
+                continue;
+            }
+            
             // perform normal line segment hit detection
             if (VectorMath::TestRayOBBIntersection(
                 ray_origin,
@@ -5119,4 +5152,22 @@ void PolyPointScreenLocation::AdjustAllHandles(glm::mat4& mat)
         }
     }
     FixCurveHandles();
+}
+
+
+
+//FIXME - implement these
+
+bool TwoPointScreenLocation::Rotate(int axis, float factor) {
+    return false;
+}
+bool TwoPointScreenLocation::Scale(float factor) {
+    return false;
+}
+
+bool PolyPointScreenLocation::Rotate(int axis, float factor) {
+    return false;
+}
+bool PolyPointScreenLocation::Scale(float factor) {
+    return false;
 }

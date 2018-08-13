@@ -332,7 +332,13 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheel, nullptr, this);
     modelPreview->Connect(wxEVT_MIDDLE_DOWN, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheelDown, nullptr, this);
     modelPreview->Connect(wxEVT_MIDDLE_UP, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheelUp, nullptr, this);
+    modelPreview->Connect(wxEVT_MAGNIFY, (wxObjectEventFunction)&LayoutPanel::OnPreviewMagnify, nullptr, this);
+    
+    modelPreview->EnableTouchEvents(wxTOUCH_ROTATE_GESTURE | wxTOUCH_ZOOM_GESTURE);
+    modelPreview->Connect(wxEVT_GESTURE_ROTATE, (wxObjectEventFunction)&LayoutPanel::OnPreviewRotateGesture, nullptr, this);
+    modelPreview->Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&LayoutPanel::OnPreviewZoomGesture, nullptr, this);
 
+    
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
                                         wxDefaultPosition, // position
@@ -2351,16 +2357,101 @@ void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
 {
     m_wheel_down = false;
 }
+void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
+    if (selectedModel != nullptr) {
+        //rotate model
+        float delta = (m_last_mouse_x - (event.GetRotationAngle() * 1000)) / 1000.0;
+        if (!event.IsGestureStart()) {
+            //convert to degrees
+            delta = (delta/(2*M_PI))*360.0;
+            if (delta > 90) {
+                delta -= 360;
+            }
+            if (delta < -90) {
+                delta += 360;
+            }
+
+            int axis = 2;  //default is around z axis
+            if (wxGetKeyState(WXK_SHIFT)) {
+                axis = 0;
+            } else if (wxGetKeyState(WXK_CONTROL)) {
+                axis = 1;
+            }
+            if (selectedModel->GetModelScreenLocation().Rotate(axis, delta)) {
+                SetupPropGrid(selectedModel);
+                xlights->MarkEffectsFileDirty(true);
+                UpdatePreview();
+            }
+        } else {
+            CreateUndoPoint("SingleModel", selectedModel->name, "Zoom");
+        }
+    }
+    m_last_mouse_x = (event.GetRotationAngle() * 1000);
+}
+void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
+    float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
+    if (selectedModel != nullptr) {
+        if (!event.IsGestureStart()) {
+            //resize model
+            if (selectedModel->GetModelScreenLocation().Scale(1.0f - delta)) {
+                SetupPropGrid(selectedModel);
+                xlights->MarkEffectsFileDirty(true);
+                UpdatePreview();
+            }
+        } else {
+            CreateUndoPoint("SingleModel", selectedModel->name, "Zoom");
+        }
+    }  else {
+        modelPreview->SetZoomDelta(delta > 0.0 ? -0.1f : 0.1f);
+        UpdatePreview();
+    }
+    m_last_mouse_x = (event.GetZoomFactor() * 1000);
+}
+void LayoutPanel::OnPreviewMagnify(wxMouseEvent& event) {
+    if (event.GetWheelRotation() == 0 || event.GetMagnification() == 0.0f) {
+        //magnification of 0 is sometimes generated for other gestures (pinch/zoom), ignore
+        return;
+    }
+    modelPreview->SetZoomDelta(event.GetMagnification() > 0 ? -0.1f : 0.1f);
+}
 
 void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
 {
-    int i = event.GetWheelRotation();
-    float delta = -0.1f;
-    if (i < 0)
-    {
-        delta *= -1.0f;
+    if (event.GetWheelRotation() == 0) {
+        //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
+        return;
     }
-    modelPreview->SetZoomDelta(delta);
+    if (is_3d) {
+        if (event.ControlDown()) {
+            modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+        } else {
+            float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            if (event.ShiftDown()) {
+                modelPreview->SetPan(delta_x, delta_y);
+            } else {
+                modelPreview->SetCameraView(delta_x, delta_y, false);
+                modelPreview->SetCameraView(0, 0, true);
+            }
+        }
+    } else {
+        if (event.ControlDown()) {
+            modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+        } else {
+            float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+
+            // account for grid rotation
+            float angle = glm::radians(modelPreview->GetCameraRotation());
+            float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+            float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+            delta_x *= modelPreview->GetZoom() * 2.0f;
+            delta_y *= modelPreview->GetZoom() * 2.0f;
+            modelPreview->SetPan(delta_x, delta_y);
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+        }
+    }
     UpdatePreview();
 }
 
