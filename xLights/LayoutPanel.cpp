@@ -38,6 +38,7 @@
 #include "UtilFunctions.h"
 #include "ColorManager.h"
 #include "support/VectorMath.h"
+#include "osxMacUtils.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -2421,8 +2422,9 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
         //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
         return;
     }
+    bool fromTrackPad = IsMouseEventFromTouchpad();
     if (is_3d) {
-        if (event.ControlDown()) {
+        if (!fromTrackPad || event.ControlDown()) {
             modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
         } else {
             float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
@@ -2435,7 +2437,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             }
         }
     } else {
-        if (event.ControlDown()) {
+        if (!fromTrackPad || event.ControlDown()) {
             modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
         } else {
             float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();

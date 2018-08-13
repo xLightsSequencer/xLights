@@ -108,6 +108,11 @@ double xlTranslateToRetina(xlGLCanvas &win, double x) {
     return pt2.width;
 }
 
+bool IsMouseEventFromTouchpad() {
+    NSEvent *theEvent = (NSEvent*)wxTheApp->MacGetCurrentEvent();
+    
+    return (([theEvent momentumPhase] != NSEventPhaseNone) || ([theEvent phase] != NSEventPhaseNone));
+}
 
 
 class AppNapSuspenderPrivate
