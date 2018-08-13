@@ -2402,7 +2402,7 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
             CreateUndoPoint("SingleModel", selectedModel->name, "Zoom");
         }
     }  else {
-        modelPreview->SetZoomDelta(delta > 0.0 ? -0.1f : 0.1f);
+        modelPreview->SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
         UpdatePreview();
     }
     m_last_mouse_x = (event.GetZoomFactor() * 1000);
