@@ -35,11 +35,6 @@ bool IsMouseEventFromTouchpad();
 #define DisableSleepModes()
 #define ModalPopup(p, a) p->PopupMenu(&a)
 #define WINDOW_LOCKER(a, b) wxWindowUpdateLocker b(a)
-bool IsMouseEventFromTouchpad() {
-    //I  have no idea how to do this on Windows
-    return false;
-}
-
 #endif
 
 

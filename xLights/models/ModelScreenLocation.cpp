@@ -815,6 +815,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
             worldPos_z = 0.0f;
             centery = worldPos_y;
             centerx = worldPos_x;
+            scalex = scaley = scalez = 0.0f;
         }
     }
     else {
@@ -1274,7 +1275,7 @@ bool BoxedScreenLocation::Rotate(int axis, float factor) {
 }
 bool BoxedScreenLocation::Scale(float factor) {
     if (_locked) return false;
-    
+
     scalex *= factor;
     scaley *= factor;
     scalez *= factor;
@@ -3691,7 +3692,7 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
             if (mPos[i].mod_matrix == nullptr) {
                 continue;
             }
-            
+
             // perform normal line segment hit detection
             if (VectorMath::TestRayOBBIntersection(
                 ray_origin,

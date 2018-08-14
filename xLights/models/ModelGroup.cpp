@@ -157,7 +157,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     float maxx = -1;
     float miny = 99999;
     float maxy = -1;
-    
+
     int minChan = 9999999;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); ++coord) {
@@ -743,6 +743,9 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             }
         }
     } else {
+        if( camera == "2D" && type == "Per Preview" ) {
+            Nodes.clear();
+        }
         Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHt);
     }
 

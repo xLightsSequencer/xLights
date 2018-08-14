@@ -2142,7 +2142,6 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 }
             }
 
-            newNodes.clear();
             if (nc) {
                 newNodes.reserve(nc);
             }
@@ -2201,7 +2200,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             }
         }
 
-        // Work out scaling factor for per preview camera views as these can build some 
+        // Work out scaling factor for per preview camera views as these can build some
         // exteme locations which translate into crazy sized render buffers
         // this allows us to scale it back to the desired grid size
         float factor = 1.0;
@@ -2246,7 +2245,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 // grab the previously transformed coordinate
                 float sx = *itx / factor;
                 float sy = *ity / factor;
-                
+
                 SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
                 if (it2->bufX > bufferWi) {
                     bufferWi = it2->bufX;
