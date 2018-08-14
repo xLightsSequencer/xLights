@@ -52,6 +52,7 @@ class MainSequencer: public wxPanel
         std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
         void SetChanged();
         void UnselectAllEffects();
+        bool HandleKeyBinding(wxKeyEvent& event);
 
         void Cut();
         void Copy();

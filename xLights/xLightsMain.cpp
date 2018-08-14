@@ -2930,9 +2930,9 @@ wxString xLightsFrame::GetSeqXmlFileName()
     return CurrentSeqXmlFile->GetFullPath();
 }
 
-void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
+void xLightsFrame::ShowSequenceSettings()
 {
-    if( xLightsFrame::CurrentSeqXmlFile == nullptr ) return;
+    if (xLightsFrame::CurrentSeqXmlFile == nullptr) return;
 
     // abort any in progress render ... as it may be using any already open media
     bool aborted = false;
@@ -2953,16 +2953,21 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 
     if (ret_code != wxID_OK) return;  // user pressed cancel
 
-	if(CurrentSeqXmlFile->GetMedia() != nullptr)
-	{
-		if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
-		{
-			CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
-		}
-	}
-	SetAudioControls();
+    if (CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
+        {
+            CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
+        }
+    }
+    SetAudioControls();
 
     mSequenceElements.IncrementChangeCount(nullptr);
+}
+
+void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
+{
+    ShowSequenceSettings();
 }
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
@@ -3047,7 +3052,6 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
     }
 }
 
-
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
     OpenSequence("", nullptr);
@@ -3058,17 +3062,22 @@ void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event
     SaveAsSequence();
 }
 
-void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
+void xLightsFrame::AskCloseSequence()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Closing sequence.");
-	CloseSequence();
-	logger_base.info("Sequence closed.");
+    CloseSequence();
+    logger_base.info("Sequence closed.");
 
     // force refreshes since grid has been cleared
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
+}
+
+void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
+{
+    AskCloseSequence();
 }
 
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
@@ -3621,18 +3630,32 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	}
 }
 
-void xLightsFrame::OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event)
-{
-    ButtonPasteByTime->SetValue(true);
-    ButtonPasteByCell->SetValue(false);
-    mainSequencer->SetPasteByCell(false);
-}
-
-void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
+void xLightsFrame::SetPasteByCell()
 {
     ButtonPasteByTime->SetValue(false);
     ButtonPasteByCell->SetValue(true);
     mainSequencer->SetPasteByCell(true);
+    m_mgr->Update();
+    EditToolBar->Refresh();
+}
+
+void xLightsFrame::SetPasteByTime()
+{
+    ButtonPasteByTime->SetValue(true);
+    ButtonPasteByCell->SetValue(false);
+    mainSequencer->SetPasteByCell(false);
+    m_mgr->Update();
+    EditToolBar->Refresh();
+}
+
+void xLightsFrame::OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event)
+{
+    SetPasteByTime();
+}
+
+void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
+{
+    SetPasteByCell();
 }
 
 void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)

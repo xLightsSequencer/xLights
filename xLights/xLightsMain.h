@@ -365,6 +365,7 @@ public:
     void SaveWorking();
     void SaveWorkingLayout();
     void PlayerError(const wxString& msg);
+    void AskCloseSequence();
 
     EffectManager &GetEffectManager() { return effectManager; }
 
@@ -566,6 +567,8 @@ private:
     void MaybePackageAndSendDebugFiles();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     void AddDebugFilesToReport(wxDebugReport &report);
+
+public:
 
     //(*Identifiers(xLightsFrame)
     static const long ID_AUITOOLBAR_OPENSHOW;
@@ -1240,8 +1243,6 @@ protected:
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
     void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
-    void NewSequence();
-    void SaveAsSequence();
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
@@ -1265,6 +1266,11 @@ public:
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
     bool CloseSequence();
+    void NewSequence();
+    void SaveAsSequence();
+    void SetPasteByCell();
+    void SetPasteByTime();
+    void ShowSequenceSettings();
 
 private:
     wxXmlNode* SettingsNode;
