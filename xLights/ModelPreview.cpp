@@ -87,11 +87,15 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         Render();
     }
     else if (m_wheel_down) {
-        float delta_x = event.GetX() - m_last_mouse_x;
-        float delta_y = event.GetY() - m_last_mouse_y;
+        float new_x = event.GetX() - m_last_mouse_x;
+        float new_y = event.GetY() - m_last_mouse_y;
         if (!is_3d) {
-            delta_y *= -1.0f;
+            new_y *= -1.0f;
         }
+        // account for grid rotation
+        float angle = glm::radians(GetCameraRotation());
+        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
         delta_x *= GetZoom() * 2.0f;
         delta_y *= GetZoom() * 2.0f;
         SetPan(delta_x, delta_y);
@@ -679,8 +683,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         DrawGLUtils::PushMatrix();
         accumulator.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
-        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-        accumulator.Finish(GL_TRIANGLES);
+        if( mBackgroundImageExists ) {
+            accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+            accumulator.Finish(GL_TRIANGLES);
+        }
         if (virtualWidth > 0 && virtualHeight > 0) {
             drawGrid(virtualWidth, virtualHeight / 40);
         }
