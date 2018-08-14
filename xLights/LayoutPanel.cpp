@@ -40,10 +40,15 @@
 #include "support/VectorMath.h"
 #include "osxMacUtils.h"
 
+#ifdef __WXMSW__
 static bool IsMouseEventFromTouchpad() {
     //I  have no idea how to do this on Windows
-    return false;
+    INPUT_MESSAGE_SOURCE ims;
+    ::GetCurrentInputMessageSource(&ims);
+
+    return ims.deviceType == IMDT_TOUCHPAD;
 }
+#endif
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
