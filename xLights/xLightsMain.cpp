@@ -5596,6 +5596,18 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
 
+    // check value curves not updated
+    for (auto it = sm.begin(); it != sm.end(); ++it)
+    {
+        wxString value = it->second;
+        if (value.Contains("|Type=") && !value.Contains("RV=TRUE"))
+        {
+            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
+    }
+
     // check excessive fadein/fadeout time
     float fadein = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
     float fadeout = sm.GetFloat("T_TEXTCTRL_Fadeout", 0.0);
