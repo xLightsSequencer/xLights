@@ -42,11 +42,15 @@
 
 #ifdef __WXMSW__
 static bool IsMouseEventFromTouchpad() {
-    //I  have no idea how to do this on Windows
-    INPUT_MESSAGE_SOURCE ims;
-    ::GetCurrentInputMessageSource(&ims);
+	return false;
+    // In theory this is the windows solution ... but
+    // - It does not compile in codeblocks - likely solveable
+    // - Testing on my laptop my trackpad appears to be a mouse ... not a touchpad which means it doesnt do anything useful
+    //        but maybe i could get it to work with my touch screen
+    //INPUT_MESSAGE_SOURCE ims;
+    //::GetCurrentInputMessageSource(&ims);
 
-    return ims.deviceType == IMDT_TOUCHPAD;
+    //return ims.deviceType == IMDT_TOUCHPAD;
 }
 #endif
 
