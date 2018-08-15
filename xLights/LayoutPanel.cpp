@@ -36,6 +36,8 @@
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
 #include "ColorManager.h"
+#include "KeyBindings.h"
+#include "sequencer/MainSequencer.h"
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -2261,12 +2263,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
     {
-        Model* md = selectedModel;
-        if (md == nullptr) return;
-        wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
-        ChannelLayoutDialog dialog(this);
-        dialog.SetHtmlSource(html);
-        dialog.ShowModal();
+        ShowNodeLayout();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_LOCK)
     {
@@ -2290,11 +2287,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
     {
-        Model* md = selectedModel;
-        if (md == nullptr) return;
-        WiringDialog dlg(this, md->GetName());
-        dlg.SetData(md);
-        dlg.ShowModal();
+        ShowWiring();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
@@ -2380,6 +2373,25 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
 { \
 wxMessageBox(msg, _("Export Error")); \
 return; \
+}
+
+void LayoutPanel::ShowNodeLayout()
+{
+    Model* md = selectedModel;
+    if (md == nullptr) return;
+    wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
+    ChannelLayoutDialog dialog(this);
+    dialog.SetHtmlSource(html);
+    dialog.ShowModal();
+}
+
+void LayoutPanel::ShowWiring()
+{
+    Model* md = selectedModel;
+    if (md == nullptr) return;
+    WiringDialog dlg(this, md->GetName());
+    dlg.SetData(md);
+    dlg.ShowModal();
 }
 
 void LayoutPanel::PreviewModelAlignTops()
@@ -2797,6 +2809,8 @@ void LayoutPanel::Nudge(int key)
 
 void LayoutPanel::OnChar(wxKeyEvent& event) {
 
+    if (HandleLayoutKeyBinding(event)) return;
+
     wxChar uc = event.GetKeyCode();
     switch (uc) {
         case WXK_UP:
@@ -2810,6 +2824,8 @@ void LayoutPanel::OnChar(wxKeyEvent& event) {
     }
 }
 void LayoutPanel::OnCharHook(wxKeyEvent& event) {
+
+    if (HandleLayoutKeyBinding(event)) return;
 
   wxChar uc = event.GetKeyCode();
 
@@ -4029,4 +4045,88 @@ std::string CopyPasteModel::Serialise() const
         doc.DetachRoot();
         return copyData;
     }
+}
+
+bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto k = event.GetKeyCode();
+    if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
+
+    KeyBinding *binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE_LAYOUT);
+    if (binding != nullptr) {
+        event.StopPropagation();
+        std::string type = binding->GetType();
+        if (type == "LOCK_MODEL")
+        {
+            LockSelectedModels(true);
+            UpdatePreview();
+        }
+        else if (type == "UNLOCK_MODEL")
+        {
+            LockSelectedModels(false);
+            UpdatePreview();
+        }
+        else if (type == "GROUP_MODELS")
+        {
+            CreateModelGroupFromSelected();
+        }
+        else if (type == "WIRING_VIEW")
+        {
+            ShowWiring();
+        }
+        else if (type == "NODE_LAYOUT")
+        {
+            ShowNodeLayout();
+        }
+        else if (type == "SAVE_LAYOUT")
+        {
+            SaveEffects();
+        }
+        else if (type == "MODEL_ALIGN_TOP")
+        {
+            PreviewModelAlignTops();
+        }
+        else if (type == "MODEL_ALIGN_BOTTOM")
+        {
+            PreviewModelAlignBottoms();
+        }
+        else if (type == "MODEL_ALIGN_LEFT")
+        {
+            PreviewModelAlignLeft();
+        }
+        else if (type == "MODEL_ALIGN_RIGHT")
+        {
+            PreviewModelAlignRight();
+        }
+        else if (type == "MODEL_ALIGN_CENTER_VERT")
+        {
+            PreviewModelAlignVCenter();
+        }
+        else if (type == "MODEL_ALIGN_CENTER_HORIZ")
+        {
+            PreviewModelAlignHCenter();
+        }
+        else if (type == "MODEL_DISTRIBUTE_HORIZ")
+        {
+            PreviewModelHDistribute();
+        }
+        else if (type == "MODEL_DISTRIBUTE_VERT")
+        {
+            PreviewModelVDistribute();
+        }
+        else
+        {
+            if (!xlights->HandleAllKeyBinding(event))
+            {
+                logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
+                wxASSERT(false);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    return false;
 }

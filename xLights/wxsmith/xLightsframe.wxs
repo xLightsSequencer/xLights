@@ -1680,6 +1680,10 @@
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_KEYBINDINGS" variable="MenuItem_ShowKeyBindings" member="yes">
+					<label>Key Bindings</label>
+					<handler function="OnMenuItem_ShowKeyBindingsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="idMenuHelpContent" variable="MenuItem4" member="no">
 					<label>Content</label>
 					<accel>F1</accel>

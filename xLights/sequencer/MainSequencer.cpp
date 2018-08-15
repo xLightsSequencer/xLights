@@ -424,7 +424,7 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
     }
 }
 
-bool MainSequencer::HandleKeyBinding(wxKeyEvent& event)
+bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -435,7 +435,7 @@ bool MainSequencer::HandleKeyBinding(wxKeyEvent& event)
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
     
-    KeyBinding *binding = keyBindings.Find(event);
+    KeyBinding *binding = keyBindings.Find(event, KBSCOPE_SEQUENCE);
     if (binding != nullptr) {
         event.StopPropagation();
         std::string type = binding->GetType();
@@ -463,29 +463,10 @@ bool MainSequencer::HandleKeyBinding(wxKeyEvent& event)
         {
             PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
         }
-        else if (type == "RENDER_ALL")
+        else if (type == "EFFECT_SETTINGS_TOGGLE")
         {
-            mSequenceElements->GetXLightsFrame()->RenderAll();
-        }
-        else if (type == "LIGHTS_TOGGLE")
-        {
-            mSequenceElements->GetXLightsFrame()->CheckBoxLightOutput->SetValue(!mSequenceElements->GetXLightsFrame()->CheckBoxLightOutput->IsChecked());
-            mSequenceElements->GetXLightsFrame()->EnableOutputs();
-            mSequenceElements->GetXLightsFrame()->m_mgr->Update();
-            mSequenceElements->GetXLightsFrame()->OutputToolBar->Refresh();
-        }
-        else if (type == "OPEN_SEQUENCE")
-        {
-            mSequenceElements->GetXLightsFrame()->OpenSequence("", nullptr);
-        }
-        else if (type == "CLOSE_SEQUENCE")
-        {
-            mSequenceElements->GetXLightsFrame()->AskCloseSequence();
-        }
-        else if (type == "NEW_SEQUENCE")
-        {
-            mSequenceElements->GetXLightsFrame()->NewSequence();
-            mSequenceElements->GetXLightsFrame()->EnableSequenceControls(true);
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideEffectSettingsWindow(e);
         }
         else if (type == "SAVE_SEQUENCE")
         {
@@ -494,19 +475,6 @@ bool MainSequencer::HandleKeyBinding(wxKeyEvent& event)
         else if (type == "SAVEAS_SEQUENCE")
         {
             mSequenceElements->GetXLightsFrame()->SaveAsSequence();
-        }
-        else if (type == "PASTE_BY_CELL")
-        {
-            mSequenceElements->GetXLightsFrame()->SetPasteByCell();
-        }
-        else if (type == "PASTE_BY_TIME")
-        {
-            mSequenceElements->GetXLightsFrame()->SetPasteByTime();
-        }
-        else if (type == "EFFECT_SETTINGS_TOGGLE")
-        {
-            wxCommandEvent e;
-            mSequenceElements->GetXLightsFrame()->ShowHideEffectSettingsWindow(e);
         }
         else if (type == "EFFECT_ASSIST_TOGGLE")
         {
@@ -551,34 +519,72 @@ bool MainSequencer::HandleKeyBinding(wxKeyEvent& event)
             wxCommandEvent e;
             mSequenceElements->GetXLightsFrame()->OnMenuItem_JukeboxSelected(e);
         }
-        else if (type == "SEQUENCE_SETTINGS")
+        else if (type == "LOCK_EFFECT")
         {
-            mSequenceElements->GetXLightsFrame()->ShowSequenceSettings();
+            PanelEffectGrid->LockEffects(true);
         }
-        else if (type == "PLAY_LOOP")
+        else if (type == "UNLOCK_EFFECT")
         {
-            wxCommandEvent playEvent(EVT_SEQUENCE_REPLAY_SECTION);
-            wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+            PanelEffectGrid->LockEffects(false);
         }
-        else if (type == "PLAY")
+        else if (type == "MARK_SPOT")
         {
-            wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
-            wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+            SavePosition();
         }
-        else if (type == "STOP")
+        else if (type == "RETURN_TO_SPOT")
         {
-            wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-            wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+            RestorePosition();
         }
-        else if (type == "PAUSE")
+        else if (type == "EFFECT_DESCRIPTION")
         {
-            wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
-            wxPostEvent(mSequenceElements->GetXLightsFrame(), playEvent);
+            PanelEffectGrid->SetEffectsDescription();
+        }
+        else if (type == "EFFECT_ALIGN_START")
+        {
+            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);
+        }
+        else if (type == "EFFECT_ALIGN_END")
+        {
+            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES);
+        }
+        else if (type == "EFFECT_ALIGN_BOTH")
+        {
+            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_BOTH_TIMES);
+        }
+        else if (type == "INSERT_LAYER_ABOVE")
+        {
+            PanelEffectGrid->InsertEffectLayerAbove();
+        }
+        else if (type == "INSERT_LAYER_BELOW")
+        {
+            PanelEffectGrid->InsertEffectLayerBelow();
+        }
+        else if (type == "TOGGLE_ELEMENT_EXPAND")
+        {
+            PanelEffectGrid->ToggleExpandElement(PanelRowHeadings);
+        }
+        else if (type == "SHOW_PRESETS")
+        {
+            mSequenceElements->GetXLightsFrame()->ShowPresetsPanel();
+        }
+        else if (type == "SEARCH_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->OnMenuItemSelectEffectSelected(e);
+        }
+        else if (type == "PERSPECTIVES_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
         }
         else
         {
-            logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
-            wxASSERT(false);
+            if (!mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event))
+            {
+                logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
+                wxASSERT(false);
+                return false;
+            }
         }
         return true;
     }
@@ -599,7 +605,7 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
         }
     }
 
-    if (HandleKeyBinding(event)) return;
+    if (HandleSequencerKeyBinding(event)) return;
 
     //printf("OnCharHook %d   %c\n", uc, uc);
     switch(uc)
@@ -792,7 +798,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         }
     }
 
-    if (HandleKeyBinding(event)) return;
+    if (HandleSequencerKeyBinding(event)) return;
 
     //printf("OnChar %d   %c\n", uc, uc);
     switch(uc)

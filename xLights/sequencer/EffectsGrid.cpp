@@ -471,12 +471,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_PRESETS)
     {
         logger_base.debug("OnGridPopup - PRESETS");
-        if( xlights->EffectTreeDlg==nullptr )
-        {
-            xlights->EffectTreeDlg = new EffectTreeDialog(xlights);
-            xlights->EffectTreeDlg->InitItems(mSequenceElements->GetEffectsNode());
-        }
-        xlights->EffectTreeDlg->Show();
+        xlights->ShowPresetsPanel();
     }
     else if(id == ID_GRID_MNU_BREAKDOWN_PHRASE)
     {
@@ -5037,6 +5032,61 @@ void EffectsGrid::SetEffectStatusText(Effect* eff) const
             xlights->SetStatusText(xlights->CurrentDir, true);
         }
     }
+}
+
+void EffectsGrid::InsertEffectLayerAbove()
+{
+    int row = mSelectedRow;
+    if (row == -1 && mRangeStartRow == mRangeEndRow) row = mRangeStartRow; // +mSequenceElements->GetNumberOfTimingRows();
+    if (row == -1) return;
+
+    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+    if (el == nullptr) return;
+    Element* element = el->GetParentElement();
+    if (element == nullptr) return;
+    element->InsertEffectLayer(el->GetLayerNumber()-1);
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
+}
+
+void EffectsGrid::InsertEffectLayerBelow()
+{
+    int row = mSelectedRow;
+    if (row == -1 && mRangeStartRow == mRangeEndRow) row = mRangeStartRow; // +mSequenceElements->GetNumberOfTimingRows();
+    if (row == -1) return;
+
+    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+    if (el == nullptr) return;
+
+    Element* element = el->GetParentElement();
+    if (element == nullptr) return;
+
+    if (el->GetLayerNumber() - 1 < element->GetEffectLayerCount() - 1)
+    {
+        element->InsertEffectLayer(el->GetLayerNumber());
+    }
+    else
+    {
+        element->AddEffectLayer();
+    }
+
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(this, eventRowHeaderChanged);
+}
+
+void EffectsGrid::ToggleExpandElement(RowHeading* rowHeading)
+{
+    int row = mSelectedRow;
+    if (row == -1 && mRangeStartRow == mRangeEndRow) row = mRangeStartRow; // +mSequenceElements->GetNumberOfTimingRows();
+    if (row == -1) return;
+
+    EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+    if (el == nullptr) return;
+
+    Element* element = el->GetParentElement();
+    if (element == nullptr) return;
+
+    rowHeading->ToggleExpand(element);
 }
 
 void EffectsGrid::UpdateTimePosition(int time) const

@@ -537,6 +537,7 @@ public:
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
+    void ShowPresetsPanel();
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
@@ -553,6 +554,7 @@ public:
     void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
     void OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event);
     void OnMenuItem_RenderCache(wxCommandEvent& event);
+    void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     //*)
 private:
 
@@ -789,6 +791,7 @@ public:
     static const long ID_MNU_FORCEIP;
     static const long ID_MNU_DEFAULTMODELBLENDOFF;
     static const long ID_MNU_SNAP_TO_TIMING;
+    static const long ID_MNU_KEYBINDINGS;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
     static const long ID_MNU_VIDEOS;
@@ -953,6 +956,7 @@ public:
     wxMenuItem* MenuItem_SD_40;
     wxMenuItem* MenuItem_SD_None;
     wxMenuItem* MenuItem_ShowACRamps;
+    wxMenuItem* MenuItem_ShowKeyBindings;
     wxMenuItem* MenuItem_SmallWaveform;
     wxMenuItem* MenuItem_SnapToTimingMarks;
     wxMenuItem* MenuItem_Update;
@@ -1271,6 +1275,7 @@ public:
     void SetPasteByCell();
     void SetPasteByTime();
     void ShowSequenceSettings();
+    bool HandleAllKeyBinding(wxKeyEvent& event);
 
 private:
     wxXmlNode* SettingsNode;

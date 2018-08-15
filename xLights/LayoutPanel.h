@@ -195,6 +195,9 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
         void ReplaceModel();
+        bool HandleLayoutKeyBinding(wxKeyEvent& event);
+        void ShowNodeLayout();
+        void ShowWiring();
 
         bool SelectSingleModel(int x,int y);
         bool SelectMultipleModels(int x,int y);
