@@ -42,6 +42,7 @@ build_script:
   - ps: Start-FileDownload 'https://downloads.sourceforge.net/project/cbp2make/cbp2make-stl-rev147-all.tar.7z'
   - ps: Start-FileDownload 'http://www.jrsoftware.org/download.php/is.exe?site=1'
   - ps: Start-FileDownload 'https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.zip'
+  - ps: Start-FileDownload 'http://sourceforge.net/projects/codeblocks/files/Binaries/17.12/Windows/codeblocks-17.12-nosetup.zip'
   # This is not required because it is built in to the appveyor image
   #- ps: Start-FileDownload 'https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/7.2.0/threads-posix/seh/x86_64-7.2.0-release-posix-seh-rt_v5-rev0.7z'
   - ps: Start-FileDownload 'https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/7.2.0/threads-posix/dwarf/i686-7.2.0-release-posix-dwarf-rt_v5-rev0.7z'
