@@ -85,7 +85,7 @@ class KeyBinding {
 public:
     static wxString EncodeKey(wxKeyCode key, bool shift);
     static wxKeyCode DecodeKey(wxString key);
-    static bool KeyBinding::IsShiftedKey(wxKeyCode ch);
+    static bool IsShiftedKey(wxKeyCode ch);
 
     KeyBinding(wxKeyCode k, bool disabled, std::string type, bool control = false, bool alt = false, bool shift = false) : 
     _key(k), _disabled(disabled), _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), 
