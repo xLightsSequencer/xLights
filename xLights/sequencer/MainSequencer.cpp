@@ -579,14 +579,15 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         }
         else
         {
-            if (!mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event))
-            {
-                logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
-                wxASSERT(false);
-                return false;
-            }
+            logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
+            wxASSERT(false);
+            return false;
         }
         return true;
+    }
+    else
+    {
+        return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
     }
 
     return false;

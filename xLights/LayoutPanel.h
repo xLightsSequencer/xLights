@@ -186,6 +186,7 @@ class LayoutPanel: public wxPanel
         void SetDirtyHiLight(bool dirty);
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
+        bool HandleLayoutKeyBinding(wxKeyEvent& event);
 
     protected:
         void AddModelButton(const std::string &type, const char *imageData[]);
@@ -195,7 +196,6 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerPreview();
         void BulkEditDimmingCurves();
         void ReplaceModel();
-        bool HandleLayoutKeyBinding(wxKeyEvent& event);
         void ShowNodeLayout();
         void ShowWiring();
 

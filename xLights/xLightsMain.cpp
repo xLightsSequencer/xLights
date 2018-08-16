@@ -1362,8 +1362,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
     Connect(ID_TIMER_EFFECT_SETTINGS,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnEffectSettingsTimerTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
+    Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnChar);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
+
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(xLightsFrame::OnCharHook), nullptr, this);
 
     _suppressDuplicateFrames = 0;
 
@@ -7935,21 +7938,26 @@ void xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event
     _modelBlendDefaultOff = MenuItem_ModelBlendDefaultOff->IsChecked();
 }
 
+void xLightsFrame::SaveCurrentTab()
+{
+    switch (Notebook1->GetSelection()) {
+    case SETUPTAB:
+        SaveNetworksFile();
+        break;
+    case LAYOUTTAB:
+        layoutPanel->SaveEffects();
+        break;
+    case NEWSEQUENCER:
+        SaveSequence();
+        break;
+    default:
+        break;
+    }
+}
+
 void xLightsFrame::OnMenuItem_File_Save_Selected(wxCommandEvent& event)
 {
-     switch (Notebook1->GetSelection()) {
-         case SETUPTAB:
-             SaveNetworksFile();
-             break;
-         case LAYOUTTAB:
-             layoutPanel->SaveEffects();
-             break;
-         case NEWSEQUENCER:
-             SaveSequence();
-             break;
-         default:
-             break;
-    }
+    SaveCurrentTab();
 }
 
 void xLightsFrame::OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event)
@@ -8505,6 +8513,10 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         {
             SetPasteByTime();
         }
+        else if (type == "SAVE_CURRENT_TAB")
+        {
+            SaveCurrentTab();
+        }
         else if (type == "SEQUENCE_SETTINGS")
         {
             ShowSequenceSettings();
@@ -8543,3 +8555,32 @@ void xLightsFrame::OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event)
 {
     wxMessageBox(mainSequencer->keyBindings.Dump(), "Key bindings");
 }
+
+void xLightsFrame::OnChar(wxKeyEvent& event)
+{
+    OnCharHook(event);
+}
+
+void xLightsFrame::OnCharHook(wxKeyEvent& event)
+{
+    switch (Notebook1->GetSelection()) {
+    case SETUPTAB:
+        break;
+    case LAYOUTTAB:
+        layoutPanel->HandleLayoutKeyBinding(event);
+        return;
+        break;
+    case NEWSEQUENCER:
+        mainSequencer->HandleSequencerKeyBinding(event);
+        return;
+        break;
+    default:
+        break;
+    }
+
+    if (!HandleAllKeyBinding(event))
+    {
+        event.Skip();
+    }
+}
+

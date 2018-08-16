@@ -366,9 +366,9 @@ public:
     void SaveWorkingLayout();
     void PlayerError(const wxString& msg);
     void AskCloseSequence();
+    void SaveCurrentTab();
 
     EffectManager &GetEffectManager() { return effectManager; }
-
 
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
                          int x_offset, int y_offset, bool average_colors,
@@ -552,10 +552,11 @@ public:
     void OnMenuItemUserDictSelected(wxCommandEvent& event);
     void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
-    void OnMenuItem_EnableRenderCacheSelected(wxCommandEvent& event);
     void OnMenuItem_RenderCache(wxCommandEvent& event);
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
+    void OnChar(wxKeyEvent& event);
     //*)
+    void OnCharHook(wxKeyEvent& event);
 private:
 
     //void OnMenuItem53Selected(wxCommandEvent& event);

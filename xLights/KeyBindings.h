@@ -26,6 +26,7 @@ const std::map<std::string, KBSCOPE> KeyBindingTypes = {
 { "ZOOM_OUT", KBSCOPE_SEQUENCE },
 { "RANDOM", KBSCOPE_SEQUENCE },
 { "RENDER_ALL", KBSCOPE_ALL },
+{ "SAVE_CURRENT_TAB", KBSCOPE_ALL },
 { "LIGHTS_TOGGLE", KBSCOPE_ALL },
 { "OPEN_SEQUENCE", KBSCOPE_ALL },
 { "CLOSE_SEQUENCE", KBSCOPE_ALL },
@@ -81,35 +82,54 @@ const std::map<std::string, KBSCOPE> KeyBindingTypes = {
 };
 
 class KeyBinding {
-    bool IsShiftedKey(unsigned char ch);
-    void FixKey()
-    {
-        if (_key >= 'a' && _key <= 'z')
-        {
-            _key -= 32;
-            _shift = false;
-        }
-        else if ((_key >= 'A' && _key <= 'Z') || IsShiftedKey(_key))
+public:
+    static wxString EncodeKey(wxKeyCode key, bool shift);
+    static wxKeyCode DecodeKey(wxString key);
+    static bool KeyBinding::IsShiftedKey(wxKeyCode ch);
+
+    KeyBinding(wxKeyCode k, bool disabled, std::string type, bool control = false, bool alt = false, bool shift = false) : 
+    _key(k), _disabled(disabled), _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), 
+    _alt(alt), _shift(shift) {
+        _scope = KeyBindingTypes.at(type);
+        if (IsShiftedKey(_key))
         {
             _shift = true;
         }
     }
-public:
-    KeyBinding(unsigned char k, bool disabled, std::string type, bool control = false, bool alt = false) : 
-    _key(k), _disabled(disabled), _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), 
-    _alt(alt), _shift(false) {
-        FixKey();
+    KeyBinding(wxString k, bool disabled, std::string type, bool control = false, bool alt = false, bool shift = false) : 
+    _disabled(disabled), _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), 
+    _alt(alt), _shift(shift) {
+        _key = DecodeKey(k);
+        if (_key == WXK_NONE) _disabled = true;
         _scope = KeyBindingTypes.at(type);
+        if (IsShiftedKey(_key))
+        {
+            _shift = true;
+        }
     }
-    KeyBinding(unsigned char k, bool disabled, const wxString &name, const wxString &eff, const wxString &ver, bool control = false, bool alt = false)
-        : _key(k), _disabled(disabled), _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(false)
+    KeyBinding(wxKeyCode k, bool disabled, const wxString &name, const wxString &eff, const wxString &ver, bool control = false, bool alt = false, bool shift = false)
+        : _key(k), _disabled(disabled), _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift)
     {
-        FixKey();
         _scope = KeyBindingTypes.at(_type);
+        if (IsShiftedKey(_key))
+        {
+            _shift = true;
+        }
+    }
+    KeyBinding(wxString k, bool disabled, const wxString &name, const wxString &eff, const wxString &ver, bool control = false, bool alt = false, bool shift = false)
+        : _disabled(disabled), _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift)
+    {
+        _key = DecodeKey(k);
+        if (_key == WXK_NONE) _disabled = true;
+        _scope = KeyBindingTypes.at(_type);
+        if (IsShiftedKey(_key))
+        {
+            _shift = true;
+        }
     }
     
     wxString GetType() const { return _type; }
-    unsigned char GetKey() const { return _key; }
+    wxKeyCode GetKey() const { return _key; }
     const std::string &GetEffectString() const { return _effectString;}
     const std::string &GetEffectName() const { return _effectName;}
     const std::string &GetEffectDataVersion() const { return _effectDataVersion;}
@@ -121,7 +141,7 @@ public:
     std::string Description() const;
 
 private:
-    unsigned char _key;
+    wxKeyCode _key;
     std::string _type;
     std::string _effectName;
     std::string _effectString;
@@ -138,12 +158,11 @@ public:
     KeyBindingMap() {}
     
     void LoadDefaults();
-    
+
     void Load(wxFileName &file);
     void Save(wxFileName &file);
     
     KeyBinding *Find(wxKeyEvent& event, KBSCOPE scope);
-    KeyBinding *Find(unsigned char key, bool control, bool alt, KBSCOPE scope);
 
     std::string Dump();
     
