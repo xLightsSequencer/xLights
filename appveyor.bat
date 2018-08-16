@@ -103,8 +103,12 @@ if %ERRORLEVEL% NEQ 0 exit 1
 
 dir c:\mingw32
 
+rem extract codeblocks
+7z x -o \codeblocks codeblocks-17.12-nosetup.zip
+
+dir c:\codeblocks
+
 rem This has to be cmd.exe because the makefile uses \ in paths and bash and sh dont understand them
-set COMSPEC=cmd.exe
 set MINGWPATH=C:\mingw32\mingw32\bin
 set PATH=%MINGWPATH%;%PATH%
 
@@ -117,27 +121,27 @@ mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXX
 
 cd %xlightsdir%
 
-7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
-if %ERRORLEVEL% NEQ 0 exit 1
+rem 7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
+rem if %ERRORLEVEL% NEQ 0 exit 1
 
 cd xlights
 
-..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets MinGW_Release
-if %ERRORLEVEL% NEQ 0 exit 1
+rem ..\cbp2make.exe -in xLights.cbp -out xLights.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets MinGW_Release
+rem if %ERRORLEVEL% NEQ 0 exit 1
 
-sed -i "s/-l\.\./../g" xLights.cbp.mak
-if %ERRORLEVEL% NEQ 0 exit 1
+rem sed -i "s/-l\.\./../g" xLights.cbp.mak
+rem if %ERRORLEVEL% NEQ 0 exit 1
 
-mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 mingw_release
-if %ERRORLEVEL% NEQ 0 exit 1
+rem mingw32-make -f xLights.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 mingw_release
+rem if %ERRORLEVEL% NEQ 0 exit 1
 
-cd ..\xSchedule
+rem cd ..\xSchedule
 
-..\cbp2make.exe -in xSchedule.cbp -out xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets MinGW_Release
-if %ERRORLEVEL% NEQ 0 exit 1
+rem ..\cbp2make.exe -in xSchedule.cbp -out xSchedule.cbp.mak --with-deps --keep-outdir --keep-objdir -windows -targets MinGW_Release
+rem if %ERRORLEVEL% NEQ 0 exit 1
 
-mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 mingw_release
-if %ERRORLEVEL% NEQ 0 exit 1
+rem mingw32-make -f xSchedule.cbp.mak CXXFLAGS="-std=gnu++14" WX=\projects\wxWidgets INC=-I\projects\wxWidgets\include -j 10 mingw_release
+rem if %ERRORLEVEL% NEQ 0 exit 1
 
 cd ..
 
