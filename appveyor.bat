@@ -104,7 +104,7 @@ if %ERRORLEVEL% NEQ 0 exit 1
 dir c:\mingw32
 
 rem extract codeblocks
-7z x -o \codeblocks codeblocks-17.12-nosetup.zip
+7z x -o\codeblocks codeblocks-17.12-nosetup.zip
 
 dir c:\codeblocks
 
