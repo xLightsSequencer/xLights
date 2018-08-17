@@ -121,9 +121,11 @@ mingw32-make setup_h -f makefile.gcc --debug MONOLITHIC=1 SHARED=1 UNICODE=1 CXX
 
 cd %xlightsdir%
 
-\codeblocks\codeblocks.exe --build --target=MinGW_Release xfade\xfade.cbp
+\codeblocks\codeblocks.exe --build --no-check-associations --no-splash-screen --target=MinGW_Release xfade\xfade.cbp > xfade.log
 
 dir bin
+
+type xfade.log
 
 rem 7z e cbp2make-stl-rev147-all.tar.7z -o. cbp2make-stl-rev147-all\bin\Release\cbp2make.exe
 rem if %ERRORLEVEL% NEQ 0 exit 1
