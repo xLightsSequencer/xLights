@@ -156,15 +156,15 @@ class LayoutPanel: public wxPanel
 		void OnPreviewLeftUp(wxMouseEvent& event);
 		void OnPreviewMouseLeave(wxMouseEvent& event);
 		void OnPreviewLeftDown(wxMouseEvent& event);
-        void OnPreviewLeftDClick(wxMouseEvent& event);
+		void OnPreviewLeftDClick(wxMouseEvent& event);
 		void OnPreviewRightDown(wxMouseEvent& event);
-        void OnPreviewMouseMove(wxMouseEvent& event);
-        void OnPreviewMouseMove3D(wxMouseEvent& event);
-        void OnPreviewMouseWheel(wxMouseEvent& event);
-        void OnPreviewMouseWheelDown(wxMouseEvent& event);
-        void OnPreviewMouseWheelUp(wxMouseEvent& event);
-        void OnPreviewMagnify(wxMouseEvent& event);
-        void OnPreviewModelPopup(wxCommandEvent &event);
+		void OnPreviewMouseMove(wxMouseEvent& event);
+		void OnPreviewMouseMove3D(wxMouseEvent& event);
+		void OnPreviewMouseWheel(wxMouseEvent& event);
+		void OnPreviewMouseWheelDown(wxMouseEvent& event);
+		void OnPreviewMouseWheelUp(wxMouseEvent& event);
+		void OnPreviewMagnify(wxMouseEvent& event);
+		void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
@@ -178,8 +178,9 @@ class LayoutPanel: public wxPanel
 		void OnCheckBox_3DClick(wxCommandEvent& event);
 		void OnCheckBox_SelectionClick(wxCommandEvent& event);
 		void OnCheckBox_XZClick(wxCommandEvent& event);
-        void OnPreviewRotateGesture(wxRotateGestureEvent& event);
-        void OnPreviewZoomGesture(wxZoomGestureEvent& event);
+		void OnPreviewRotateGesture(wxRotateGestureEvent& event);
+		void OnPreviewZoomGesture(wxZoomGestureEvent& event);
+		void OnChoice_InsertObjectSelect(wxCommandEvent& event);
 		//*)
 
 

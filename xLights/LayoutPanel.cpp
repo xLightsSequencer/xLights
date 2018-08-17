@@ -1145,7 +1145,12 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                     Model *m = xlights->AllModels[*it2];
                     if (m != nullptr) {
                         if (mark_selected) {
+                            if (selectedModel == nullptr)
+                            {
+                                SelectModel(m, false);
+                            }
                             m->GroupSelected = true;
+                            m->Highlighted = true;
                         }
                         if (m->DisplayAs == "SubModel") {
                             if (mark_selected) {
@@ -1157,7 +1162,12 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                             if (mark_selected) {
                                 for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); ++it3) {
                                     if ((*it3)->DisplayAs != "ModelGroup") {
+                                        if (selectedModel == nullptr)
+                                        {
+                                            SelectModel((*it3), false);
+                                        }
                                         (*it3)->GroupSelected = true;
+                                        (*it3)->Highlighted = true;
                                         prev_models.push_back(*it3);
                                     }
                                 }
