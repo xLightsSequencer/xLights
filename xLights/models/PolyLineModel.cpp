@@ -574,6 +574,8 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         for (int x = 0; x < 100; x++) {
             ModelXml->DeleteAttribute(SegAttrName(x));
         }
+        // If we dont have individual segments ... then we dont have individual start channels
+        ModelXml->DeleteAttribute("Advanced");
     }
 }
 
