@@ -184,6 +184,41 @@ void RowHeading::mouseLeftDown( wxMouseEvent& event)
     }
 }
 
+void RowHeading::ToggleExpand(Element* element)
+{
+    if (element->GetType() == ELEMENT_TYPE_MODEL) {
+        ModelElement *me = dynamic_cast<ModelElement *>(element);
+        me->ShowStrands(!me->ShowStrands());
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        eventRowHeaderChanged.SetString(element->GetModelName());
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+    else if (element->GetType() == ELEMENT_TYPE_SUBMODEL) {
+
+    }
+    else if (element->GetType() == ELEMENT_TYPE_STRAND) {
+        StrandElement *se = dynamic_cast<StrandElement *>(element);
+        se->ShowNodes(!se->ShowNodes());
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        eventRowHeaderChanged.SetString(element->GetName());
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    }
+    else if (element->GetType() == ELEMENT_TYPE_TIMING) {
+        if (element->GetEffectLayerCount() > 1) {
+            if (element->GetCollapsed()) {
+                element->SetCollapsed(false);
+            }
+            else {
+                element->SetCollapsed(true);
+            }
+            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+            eventRowHeaderChanged.SetString(element->GetName());
+            wxPostEvent(GetParent(), eventRowHeaderChanged);
+        }
+    }
+}
+
 void RowHeading::leftDoubleClick(wxMouseEvent& event)
 {
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
@@ -193,34 +228,9 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
 
-    if (element->GetType() == ELEMENT_TYPE_MODEL) {
-        ModelElement *me = dynamic_cast<ModelElement *>(element);
-        me->ShowStrands(!me->ShowStrands());
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        eventRowHeaderChanged.SetString(element->GetModelName());
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
-    } else if (element->GetType() == ELEMENT_TYPE_SUBMODEL) {
-
-    } else if (element->GetType() == ELEMENT_TYPE_STRAND) {
-        StrandElement *se = dynamic_cast<StrandElement *>(element);
-        se->ShowNodes(!se->ShowNodes());
-
-        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-        eventRowHeaderChanged.SetString(element->GetName());
-        wxPostEvent(GetParent(), eventRowHeaderChanged);
-    } else if (element->GetType() == ELEMENT_TYPE_TIMING) {
-        if (element->GetEffectLayerCount() > 1) {
-            if(element->GetCollapsed()) {
-                element->SetCollapsed(false);
-            } else {
-                element->SetCollapsed(true);
-            }
-            wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-            eventRowHeaderChanged.SetString(element->GetName());
-            wxPostEvent(GetParent(), eventRowHeaderChanged);
-        }
-    }
+    ToggleExpand(element);
 }
+
 void RowHeading::rightClick( wxMouseEvent& event)
 {
     wxMenu mnuLayer;

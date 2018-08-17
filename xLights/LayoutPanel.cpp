@@ -39,6 +39,8 @@
 #include "ColorManager.h"
 #include "support/VectorMath.h"
 #include "osxMacUtils.h"
+#include "KeyBindings.h"
+#include "sequencer/MainSequencer.h"
 
 #ifdef __WXMSW__
 static bool IsMouseEventFromTouchpad() {
@@ -1153,7 +1155,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                         else if (m->DisplayAs == "ModelGroup") {
                             ModelGroup *mg = (ModelGroup*)m;
                             if (mark_selected) {
-                                for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); it3++) {
+                                for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); ++it3) {
                                     if ((*it3)->DisplayAs != "ModelGroup") {
                                         (*it3)->GroupSelected = true;
                                         prev_models.push_back(*it3);
@@ -1394,17 +1396,30 @@ void LayoutPanel::CreateModelGroupFromSelected()
         wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
         node->AddAttribute("LayoutGroup", grp);
 
+        bool selectedModelAdded = selectedModel == nullptr;
         wxString ModelsInGroup = "";
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
+                if (modelPreview->GetModels()[i] == selectedModel)
+                {
+                    selectedModelAdded = true;
+                }
                 if (ModelsInGroup != "")
                 {
                     ModelsInGroup += ",";
                 }
                 ModelsInGroup += modelPreview->GetModels()[i]->GetName();
             }
+        }
+        if (!selectedModelAdded)
+        {
+            if (ModelsInGroup != "")
+            {
+                ModelsInGroup += ",";
+            }
+            ModelsInGroup += selectedModel->GetName();
         }
 
         node->AddAttribute("models", ModelsInGroup);
@@ -2989,12 +3004,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
     {
-        Model* md = selectedModel;
-        if (md == nullptr) return;
-        wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
-        ChannelLayoutDialog dialog(this);
-        dialog.SetHtmlSource(html);
-        dialog.ShowModal();
+        ShowNodeLayout();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_LOCK)
     {
@@ -3018,11 +3028,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_WIRINGVIEW)
     {
-        Model* md = selectedModel;
-        if (md == nullptr) return;
-        WiringDialog dlg(this, md->GetName());
-        dlg.SetData(md);
-        dlg.ShowModal();
+        ShowWiring();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
@@ -3163,6 +3169,25 @@ void LayoutPanel::PreviewModelAlignWithGround()
         }
     }
     UpdatePreview();
+}
+
+void LayoutPanel::ShowNodeLayout()
+{
+    Model* md = selectedModel;
+    if (md == nullptr) return;
+    wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
+    ChannelLayoutDialog dialog(this);
+    dialog.SetHtmlSource(html);
+    dialog.ShowModal();
+}
+
+void LayoutPanel::ShowWiring()
+{
+    Model* md = selectedModel;
+    if (md == nullptr) return;
+    WiringDialog dlg(this, md->GetName());
+    dlg.SetData(md);
+    dlg.ShowModal();
 }
 
 void LayoutPanel::PreviewModelAlignTops()
@@ -3619,6 +3644,8 @@ void LayoutPanel::Nudge(int key)
 
 void LayoutPanel::OnChar(wxKeyEvent& event) {
 
+    if (HandleLayoutKeyBinding(event)) return;
+
     wxChar uc = event.GetKeyCode();
     switch (uc) {
         case WXK_UP:
@@ -3632,6 +3659,8 @@ void LayoutPanel::OnChar(wxKeyEvent& event) {
     }
 }
 void LayoutPanel::OnCharHook(wxKeyEvent& event) {
+
+    if (HandleLayoutKeyBinding(event)) return;
 
   wxChar uc = event.GetKeyCode();
 
@@ -4506,7 +4535,7 @@ void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
 void LayoutPanel::DeleteCurrentPreview()
 {
     if (wxMessageBox("Are you sure you want to delete the " + currentLayoutGroup + " preview?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
-        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+        for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
             LayoutGroup* grp = (LayoutGroup*)(*it);
             if (grp != nullptr) {
                 if( currentLayoutGroup == grp->GetName() ) {
@@ -4530,7 +4559,7 @@ void LayoutPanel::DeleteCurrentPreview()
             }
         }
         // change any existing assignments to this preview to be unassigned
-        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); it++) {
+        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
             Model *model = it->second;
             if( model->GetLayoutGroup() == currentLayoutGroup) {
                 model->SetLayoutGroup("Unassigned");
@@ -4567,7 +4596,7 @@ void LayoutPanel::ShowPropGrid(bool show)
 void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 {
     currentLayoutGroup = group;
-    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); it++) {
+    for (auto it = xlights->LayoutGroups.begin(); it != xlights->LayoutGroups.end(); ++it) {
         LayoutGroup* grp = (LayoutGroup*)(*it);
         if (grp != nullptr) {
             if( currentLayoutGroup == grp->GetName() ) {
@@ -4882,4 +4911,89 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
     Refresh();
+}
+
+bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto k = event.GetKeyCode();
+    if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
+
+    KeyBinding *binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE_LAYOUT);
+    if (binding != nullptr) {
+        std::string type = binding->GetType();
+        if (type == "LOCK_MODEL")
+        {
+            LockSelectedModels(true);
+            UpdatePreview();
+        }
+        else if (type == "UNLOCK_MODEL")
+        {
+            LockSelectedModels(false);
+            UpdatePreview();
+        }
+        else if (type == "GROUP_MODELS")
+        {
+            CreateModelGroupFromSelected();
+        }
+        else if (type == "WIRING_VIEW")
+        {
+            ShowWiring();
+        }
+        else if (type == "NODE_LAYOUT")
+        {
+            ShowNodeLayout();
+        }
+        else if (type == "SAVE_LAYOUT")
+        {
+            SaveEffects();
+        }
+        else if (type == "MODEL_ALIGN_TOP")
+        {
+            PreviewModelAlignTops();
+        }
+        else if (type == "MODEL_ALIGN_BOTTOM")
+        {
+            PreviewModelAlignBottoms();
+        }
+        else if (type == "MODEL_ALIGN_LEFT")
+        {
+            PreviewModelAlignLeft();
+        }
+        else if (type == "MODEL_ALIGN_RIGHT")
+        {
+            PreviewModelAlignRight();
+        }
+        else if (type == "MODEL_ALIGN_CENTER_VERT")
+        {
+            PreviewModelAlignVCenter();
+        }
+        else if (type == "MODEL_ALIGN_CENTER_HORIZ")
+        {
+            PreviewModelAlignHCenter();
+        }
+        else if (type == "MODEL_DISTRIBUTE_HORIZ")
+        {
+            PreviewModelHDistribute();
+        }
+        else if (type == "MODEL_DISTRIBUTE_VERT")
+        {
+            PreviewModelVDistribute();
+        }
+        else
+        {
+            logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
+            wxASSERT(false);
+            return false;
+        }
+        event.StopPropagation();
+        return true;
+    }
+    else
+    {
+        return xlights->HandleAllKeyBinding(event);
+    }
+
+    return false;
 }

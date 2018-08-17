@@ -1390,7 +1390,7 @@ static void addModelsFrom(std::list<Model*> &models, const std::list<Model *> &t
         }
         found = true;
         bool add = true;
-        for (auto it2 = models.begin(); it2 != models.end() && add; it2++) {
+        for (auto it2 = models.begin(); it2 != models.end() && add; ++it2) {
             if (*it2 == *it) {
                 add = false;
             }

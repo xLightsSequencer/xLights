@@ -331,6 +331,7 @@ const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
 const long xLightsFrame::ID_MNU_DEFAULTMODELBLENDOFF = wxNewId();
 const long xLightsFrame::ID_MNU_SNAP_TO_TIMING = wxNewId();
+const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
 const long xLightsFrame::ID_MENU_HELP_FORMUM = wxNewId();
 const long xLightsFrame::ID_MNU_VIDEOS = wxNewId();
@@ -1117,6 +1118,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(MenuItem_SnapToTimingMarks);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
+    MenuItem_ShowKeyBindings = new wxMenuItem(MenuHelp, ID_MNU_KEYBINDINGS, _("Key Bindings"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_ShowKeyBindings);
     MenuItem4 = new wxMenuItem(MenuHelp, idMenuHelpContent, _("Content\tF1"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem4);
     MenuItem_Help_Forum = new wxMenuItem(MenuHelp, ID_MENU_HELP_FORMUM, _("Forum"), wxEmptyString, wxITEM_NORMAL);
@@ -1344,6 +1347,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
     Connect(ID_MNU_DEFAULTMODELBLENDOFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected);
     Connect(ID_MNU_SNAP_TO_TIMING,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SnapToTimingMarksSelected);
+    Connect(ID_MNU_KEYBINDINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
     Connect(ID_MENU_HELP_FORMUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Help_ForumSelected);
     Connect(ID_MNU_VIDEOS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_VideoTutorialsSelected);
@@ -1358,8 +1362,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnTimer_AutoSaveTrigger);
     Connect(ID_TIMER_EFFECT_SETTINGS,wxEVT_TIMER,(wxObjectEventFunction)&xLightsFrame::OnEffectSettingsTimerTrigger);
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
+    Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnChar);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
     //*)
+
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(xLightsFrame::OnCharHook), nullptr, this);
 
     _suppressDuplicateFrames = 0;
 
@@ -1705,7 +1712,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         {
             MenuItem_RC_Enable->Check(true);
         }
-        else 
+        else
         {
             _enableRenderCache = "Locked Only";
             MenuItem_RC_LockedOnly->Check(true);
@@ -2915,9 +2922,9 @@ wxString xLightsFrame::GetSeqXmlFileName()
     return CurrentSeqXmlFile->GetFullPath();
 }
 
-void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
+void xLightsFrame::ShowSequenceSettings()
 {
-    if( xLightsFrame::CurrentSeqXmlFile == nullptr ) return;
+    if (xLightsFrame::CurrentSeqXmlFile == nullptr) return;
 
     // abort any in progress render ... as it may be using any already open media
     bool aborted = false;
@@ -2938,16 +2945,21 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 
     if (ret_code != wxID_OK) return;  // user pressed cancel
 
-	if(CurrentSeqXmlFile->GetMedia() != nullptr)
-	{
-		if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
-		{
-			CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
-		}
-	}
-	SetAudioControls();
+    if (CurrentSeqXmlFile->GetMedia() != nullptr)
+    {
+        if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
+        {
+            CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
+        }
+    }
+    SetAudioControls();
 
     mSequenceElements.IncrementChangeCount(nullptr);
+}
+
+void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
+{
+    ShowSequenceSettings();
 }
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
@@ -3032,7 +3044,6 @@ void xLightsFrame::OnAuiToolBarItem_ZoomOutClick(wxCommandEvent& event)
     }
 }
 
-
 void xLightsFrame::OnMenuItem_File_Open_SequenceSelected(wxCommandEvent& event)
 {
     OpenSequence("", nullptr);
@@ -3043,17 +3054,22 @@ void xLightsFrame::OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event
     SaveAsSequence();
 }
 
-void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
+void xLightsFrame::AskCloseSequence()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Closing sequence.");
-	CloseSequence();
-	logger_base.info("Sequence closed.");
+    CloseSequence();
+    logger_base.info("Sequence closed.");
 
     // force refreshes since grid has been cleared
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
     wxPostEvent(this, eventRowHeaderChanged);
+}
+
+void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
+{
+    AskCloseSequence();
 }
 
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
@@ -3606,18 +3622,32 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	}
 }
 
-void xLightsFrame::OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event)
-{
-    ButtonPasteByTime->SetValue(true);
-    ButtonPasteByCell->SetValue(false);
-    mainSequencer->SetPasteByCell(false);
-}
-
-void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
+void xLightsFrame::SetPasteByCell()
 {
     ButtonPasteByTime->SetValue(false);
     ButtonPasteByCell->SetValue(true);
     mainSequencer->SetPasteByCell(true);
+    m_mgr->Update();
+    EditToolBar->Refresh();
+}
+
+void xLightsFrame::SetPasteByTime()
+{
+    ButtonPasteByTime->SetValue(true);
+    ButtonPasteByCell->SetValue(false);
+    mainSequencer->SetPasteByCell(false);
+    m_mgr->Update();
+    EditToolBar->Refresh();
+}
+
+void xLightsFrame::OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event)
+{
+    SetPasteByTime();
+}
+
+void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
+{
+    SetPasteByCell();
 }
 
 void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)
@@ -5580,6 +5610,18 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
+
+    // check value curves not updated
+    for (auto it = sm.begin(); it != sm.end(); ++it)
+    {
+        wxString value = it->second;
+        if (value.Contains("|Type=") && !value.Contains("RV=TRUE"))
+        {
+            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            LogAndWrite(f, msg.ToStdString());
+            errcount++;
+        }
+    }
 
     // check excessive fadein/fadeout time
     float fadein = sm.GetFloat("T_TEXTCTRL_Fadein", 0.0);
@@ -7886,21 +7928,26 @@ void xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected(wxCommandEvent& event
     _modelBlendDefaultOff = MenuItem_ModelBlendDefaultOff->IsChecked();
 }
 
+void xLightsFrame::SaveCurrentTab()
+{
+    switch (Notebook1->GetSelection()) {
+    case SETUPTAB:
+        SaveNetworksFile();
+        break;
+    case LAYOUTTAB:
+        layoutPanel->SaveEffects();
+        break;
+    case NEWSEQUENCER:
+        SaveSequence();
+        break;
+    default:
+        break;
+    }
+}
+
 void xLightsFrame::OnMenuItem_File_Save_Selected(wxCommandEvent& event)
 {
-     switch (Notebook1->GetSelection()) {
-         case SETUPTAB:
-             SaveNetworksFile();
-             break;
-         case LAYOUTTAB:
-             layoutPanel->SaveEffects();
-             break;
-         case NEWSEQUENCER:
-             SaveSequence();
-             break;
-         default:
-             break;
-    }
+    SaveCurrentTab();
 }
 
 void xLightsFrame::OnMenuItem_SnapToTimingMarksSelected(wxCommandEvent& event)
@@ -7938,6 +7985,16 @@ void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
 {
     playVolume = 10;
     SDL::SetGlobalVolume(playVolume);
+}
+
+void xLightsFrame::ShowPresetsPanel()
+{
+    if (EffectTreeDlg == nullptr)
+    {
+        EffectTreeDlg = new EffectTreeDialog(this);
+        EffectTreeDlg->InitItems(mSequenceElements.GetEffectsNode());
+    }
+    EffectTreeDlg->Show();
 }
 
 void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
@@ -8398,5 +8455,157 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
     {
         _renderCache.SetSequence("", "");
         _renderCache.Purge(&mSequenceElements, false);
+    }
+}
+
+bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mainSequencer == nullptr) return false;
+
+    auto k = event.GetKeyCode();
+    if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
+
+    KeyBinding *binding = mainSequencer->keyBindings.Find(event, KBSCOPE_ALL);
+    if (binding != nullptr) {
+        std::string type = binding->GetType();
+        if (type == "RENDER_ALL")
+        {
+            RenderAll();
+        }
+        else if (type == "LIGHTS_TOGGLE")
+        {
+            CheckBoxLightOutput->SetValue(!CheckBoxLightOutput->IsChecked());
+            EnableOutputs();
+            m_mgr->Update();
+            OutputToolBar->Refresh();
+        }
+        else if (type == "OPEN_SEQUENCE")
+        {
+            OpenSequence("", nullptr);
+        }
+        else if (type == "CLOSE_SEQUENCE")
+        {
+            AskCloseSequence();
+        }
+        else if (type == "NEW_SEQUENCE")
+        {
+            NewSequence();
+            EnableSequenceControls(true);
+        }
+        else if (type == "PASTE_BY_CELL")
+        {
+            SetPasteByCell();
+        }
+        else if (type == "PASTE_BY_TIME")
+        {
+            SetPasteByTime();
+        }
+        else if (type == "SAVE_CURRENT_TAB")
+        {
+            SaveCurrentTab();
+        }
+        else if (type == "SEQUENCE_SETTINGS")
+        {
+            ShowSequenceSettings();
+        }
+        else if (type == "PLAY_LOOP")
+        {
+            wxCommandEvent playEvent(EVT_SEQUENCE_REPLAY_SECTION);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "PLAY")
+        {
+            wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "TOGGLE_PLAY")
+        {
+            wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "START_OF_SONG")
+        {
+            wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "END_OF_SONG")
+        {
+            wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "STOP")
+        {
+            wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "PAUSE")
+        {
+            wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "BACKUP")
+        {
+            wxCommandEvent e;
+            OnMenuItemBackupSelected(e);
+        }
+        else if (type == "ALTERNATE_BACKUP")
+        {
+            wxCommandEvent e;
+            OnmAltBackupMenuItemSelected(e);
+        }
+        else if (type == "SELECT_SHOW_FOLDER")
+        {
+            wxCommandEvent e;
+            OnMenuOpenFolderSelected(e);
+        }
+        else
+        {
+            return false;
+        }
+        event.StopPropagation();
+        return true;
+    }
+
+    return false;
+}
+
+void xLightsFrame::OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event)
+{
+    wxMessageBox(mainSequencer->keyBindings.Dump(), "Key bindings");
+}
+
+void xLightsFrame::OnChar(wxKeyEvent& event)
+{
+    OnCharHook(event);
+}
+
+void xLightsFrame::OnCharHook(wxKeyEvent& event)
+{
+    switch (Notebook1->GetSelection()) {
+    case SETUPTAB:
+        break;
+    case LAYOUTTAB:
+        if (!layoutPanel->HandleLayoutKeyBinding(event))
+        {
+            event.Skip();
+        }
+        return;
+        break;
+    case NEWSEQUENCER:
+        if (!mainSequencer->HandleSequencerKeyBinding(event))
+        {
+            event.Skip();
+        }
+        return;
+        break;
+    default:
+        break;
+    }
+
+    if (!HandleAllKeyBinding(event))
+    {
+        event.Skip();
     }
 }

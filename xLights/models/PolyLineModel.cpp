@@ -61,7 +61,7 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::st
                 BufferWi = w;
             }
         }
-        for (auto it = Nodes.begin(); it != Nodes.end(); it++) {
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
             newNodes.push_back(NodeBaseClassPtr(it->get()->clone()));
         }
 
@@ -611,6 +611,8 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         for (int x = 0; x < 100; x++) {
             ModelXml->DeleteAttribute(SegAttrName(x));
         }
+        // If we dont have individual segments ... then we dont have individual start channels
+        ModelXml->DeleteAttribute("Advanced");
     }
 }
 

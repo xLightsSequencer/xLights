@@ -352,7 +352,7 @@ public:
         GLuint tattrib = 0;
         GLuint tvattrib = 0;
 
-        for (auto it = va.types.begin(); it != va.types.end(); it++) {
+        for (auto it = va.types.begin(); it != va.types.end(); ++it) {
             if (it->type == GL_POINTS) {
                 LOG_GL_ERRORV(glPointSize(it->extra));
             } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {

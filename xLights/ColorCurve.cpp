@@ -339,7 +339,7 @@ void ColorCurve::DeletePoint(float offset)
                 _values.remove(*it);
                 break;
             }
-            it++;
+            ++it;
         }
     }
     else
@@ -378,7 +378,7 @@ void ColorCurve::SetValueAt(float offset, xlColor c)
             _values.remove(*it);
             break;
         }
-        it++;
+        ++it;
     }
 
     _values.push_back(ccSortableColorPoint(offset, c));

@@ -75,6 +75,10 @@ void VSAFile::Load(const std::string& filename)
         event_type.resize(str_bytes);
         _fh->Read(&event_type[0], str_bytes);
 
+        // Store event types
+        std::string first_event_type = "";
+        std::string second_event_type = "";
+
         // read all the events
         for( int i=0; i < num_events; ++i ) {
             vsaEventRecord evt;
@@ -99,8 +103,20 @@ void VSAFile::Load(const std::string& filename)
             evt.text.resize(num_bytes);
             _fh->Read(&evt.text[0], num_bytes);
             if( event_type == "CEventBarLinear" ) {
+                if (first_event_type == "") {
+                    first_event_type = "CEventBarLinear";
+                }
+                else if (second_event_type == "") {
+                    second_event_type = "CEventBarLinear";
+                }
                 _fh->Read(&evt.data[0], 12);
             } else if( event_type == "CEventBarPulse" ) {
+                if (first_event_type == "") {
+                    first_event_type = "CEventBarPulse";
+                }
+                else if (second_event_type == "") {
+                    second_event_type = "CEventBarPulse";
+                }
                 _fh->Read(&evt.data[0], 16);
             } else {
                 wxMessageBox("Unsupported event type! Halted.");
@@ -120,8 +136,17 @@ void VSAFile::Load(const std::string& filename)
             // get next event type
             uint16_t next_evt;
             _fh->Read(&next_evt, 2);
-            if( next_evt != 0x8001 ) {
+            if (next_evt == 0x8001) {
+                event_type = first_event_type;
+            }
+            else if (next_evt == 0x8003) {
+                event_type = second_event_type;
+            }
+            else {
                 if( next_evt == 0xFFFF ) {
+                    // Read other data
+                    uint16_t other_data;
+                    _fh->Read(&other_data, 2);
                     // Read event type
                     _fh->Read(&str_bytes, 2);
                     event_type.resize(str_bytes);

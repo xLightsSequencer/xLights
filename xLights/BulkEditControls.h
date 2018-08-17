@@ -74,8 +74,10 @@ protected:
     void OnRightDown(wxMouseEvent& event);
     void OnTextCtrlPopup(wxCommandEvent &event);
     void OnTextCtrl_TextUpdated(wxCommandEvent& event);
+    void OnTextCtrl_TextLoseFocus(wxFocusEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    void TextUpdate(bool force);
 };
 
 class BulkEditTextCtrlF1 : public BulkEditTextCtrl

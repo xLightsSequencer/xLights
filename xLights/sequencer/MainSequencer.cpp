@@ -424,6 +424,185 @@ void MainSequencer::mouseWheelMoved(wxMouseEvent& event)
     }
 }
 
+bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (mSequenceElements == nullptr) {
+        return false;
+    }
+
+    auto k = event.GetKeyCode();
+    if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
+    
+    KeyBinding *binding = keyBindings.Find(event, KBSCOPE_SEQUENCE);
+    if (binding != nullptr) {
+        std::string type = binding->GetType();
+        if (type == "TIMING_ADD")
+        {
+            InsertTimingMarkFromRange();
+        }
+        else if (type == "TIMING_SPLIT")
+        {
+            SplitTimingMark();
+        }
+        else if (type == "ZOOM_IN")
+        {
+            PanelTimeLine->ZoomIn();
+        }
+        else if (type == "ZOOM_OUT")
+        {
+            PanelTimeLine->ZoomOut();
+        }
+        else if (type == "RANDOM")
+        {
+            PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
+        }
+        else if (type == "EFFECT")
+        {
+            PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
+        }
+        else if (type == "EFFECT_SETTINGS_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideEffectSettingsWindow(e);
+        }
+        else if (type == "SAVE_SEQUENCE")
+        {
+            mSequenceElements->GetXLightsFrame()->SaveSequence();
+        }
+        else if (type == "SAVEAS_SEQUENCE")
+        {
+            mSequenceElements->GetXLightsFrame()->SaveAsSequence();
+        }
+        else if (type == "EFFECT_ASSIST_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideEffectAssistWindow(e);
+        }
+        else if (type == "COLOR_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideColorWindow(e);
+        }
+        else if (type == "LAYER_SETTING_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideBufferSettingsWindow(e);
+        }
+        else if (type == "LAYER_BLENDING_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideLayerTimingWindow(e);
+        }
+        else if (type == "MODEL_PREVIEW_TOGGLE")
+        {
+            ToggleModelPreview();
+        }
+        else if (type == "HOUSE_PREVIEW_TOGGLE")
+        {
+            ToggleHousePreview();
+        }
+        else if (type == "EFFECTS_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideEffectDropper(e);
+        }
+        else if (type == "DISPLAY_ELEMENTS_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHideDisplayElementsWindow(e);
+        }
+        else if (type == "JUKEBOX_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->OnMenuItem_JukeboxSelected(e);
+        }
+        else if (type == "LOCK_EFFECT")
+        {
+            PanelEffectGrid->LockEffects(true);
+        }
+        else if (type == "UNLOCK_EFFECT")
+        {
+            PanelEffectGrid->LockEffects(false);
+        }
+        else if (type == "MARK_SPOT")
+        {
+            SavePosition();
+        }
+        else if (type == "RETURN_TO_SPOT")
+        {
+            RestorePosition();
+        }
+        else if (type == "EFFECT_DESCRIPTION")
+        {
+            PanelEffectGrid->SetEffectsDescription();
+        }
+        else if (type == "EFFECT_ALIGN_START")
+        {
+            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_START_TIMES);
+        }
+        else if (type == "EFFECT_ALIGN_END")
+        {
+            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_END_TIMES);
+        }
+        else if (type == "EFFECT_ALIGN_BOTH")
+        {
+            PanelEffectGrid->AlignSelectedEffects(EFF_ALIGN_MODE::ALIGN_BOTH_TIMES);
+        }
+        else if (type == "INSERT_LAYER_ABOVE")
+        {
+            PanelEffectGrid->InsertEffectLayerAbove();
+        }
+        else if (type == "SELECT_ALL")
+        {
+            mSequenceElements->SelectAllEffects();
+            PanelEffectGrid->Refresh();
+        }
+        else if (type == "SELECT_ALL_NO_TIMING")
+        {
+            mSequenceElements->SelectAllEffectsNoTiming();
+            PanelEffectGrid->Refresh();
+        }
+        else if (type == "INSERT_LAYER_BELOW")
+        {
+            PanelEffectGrid->InsertEffectLayerBelow();
+        }
+        else if (type == "TOGGLE_ELEMENT_EXPAND")
+        {
+            PanelEffectGrid->ToggleExpandElement(PanelRowHeadings);
+        }
+        else if (type == "SHOW_PRESETS")
+        {
+            mSequenceElements->GetXLightsFrame()->ShowPresetsPanel();
+        }
+        else if (type == "SEARCH_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->OnMenuItemSelectEffectSelected(e);
+        }
+        else if (type == "PERSPECTIVES_TOGGLE")
+        {
+            wxCommandEvent e;
+            mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
+        }
+        else
+        {
+            logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());
+            wxASSERT(false);
+            return false;
+        }
+        event.StopPropagation();
+        return true;
+    }
+    else
+    {
+        return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
+    }
+
+    return false;
+}
+
 void MainSequencer::OnCharHook(wxKeyEvent& event)
 {
     wxChar uc = event.GetKeyCode();
@@ -436,6 +615,8 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             return;
         }
     }
+
+    if (HandleSequencerKeyBinding(event)) return;
 
     //printf("OnCharHook %d   %c\n", uc, uc);
     switch(uc)
@@ -485,34 +666,6 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 			}
 #endif
 			break;
-        case WXK_PAUSE:
-            {
-                wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
-        case WXK_HOME:
-            {
-                wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
-        case WXK_END:
-            {
-                wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
-        case WXK_SPACE:
-            {
-                wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
         case WXK_UP:
             PanelEffectGrid->MoveSelectedEffectUp(event.ShiftDown());
             event.StopPropagation();
@@ -528,20 +681,6 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
         case WXK_RIGHT:
             PanelEffectGrid->MoveSelectedEffectRight(event.ShiftDown(), event.ControlDown(), event.AltDown());
             event.StopPropagation();
-            break;
-        case '.':
-            if (event.ControlDown())
-            {
-                // save current effects grid position
-                SavePosition();
-            }
-            break;
-        case '/':
-            if (event.ControlDown())
-            {
-                //restore saved effects grid position
-                RestorePosition();
-            }
             break;
         case '0':
         case '1':
@@ -628,33 +767,8 @@ void MainSequencer::OnChar(wxKeyEvent& event)
         }
     }
 
-    KeyBinding *binding = keyBindings.Find(uc);
-    if (binding != nullptr) {
-        event.StopPropagation();
-        if (mSequenceElements == nullptr) {
-            return;
-        }
-        switch (binding->GetType()) {
-            case TIMING_ADD:
-                InsertTimingMarkFromRange();
-                break;
-            case TIMING_SPLIT:
-                SplitTimingMark();
-                break;
-            case KEY_ZOOM_IN:
-                PanelTimeLine->ZoomIn();
-                break;
-            case KEY_ZOOM_OUT:
-                PanelTimeLine->ZoomOut();
-                break;
-            case RANDOM_EFFECT:
-                PanelEffectGrid->Paste("Random\t\t\n", xlights_version_string);
-                break;
-            case EFFECT_STRING:
-                PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
-                break;
-        }
-    }
+    if (HandleSequencerKeyBinding(event)) return;
+
     //printf("OnChar %d   %c\n", uc, uc);
     switch(uc)
     {
@@ -714,34 +828,23 @@ void MainSequencer::OnChar(wxKeyEvent& event)
             }
         }
             break;
-        case 'a':
-        case 'A':
-        case WXK_CONTROL_A:
-            if (event.CmdDown() || event.ControlDown()) {
-                if (mSequenceElements != nullptr) {
-                    if (event.ShiftDown())
-                        mSequenceElements->SelectAllEffects();
-                    else
-                        mSequenceElements->SelectAllEffectsNoTiming();
-                    PanelEffectGrid->Refresh();
-                }
-                event.StopPropagation();
-            }
-            break;
     }
 }
+
 void MainSequencer::ToggleHousePreview() {
     if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
         wxCommandEvent event;
         mSequenceElements->GetXLightsFrame()->ShowHideHousePreview(event);
     }
 }
+
 void MainSequencer::ToggleModelPreview() {
     if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
         wxCommandEvent event;
         mSequenceElements->GetXLightsFrame()->ShowHideModelPreview(event);
     }
 }
+
 void MainSequencer::TouchPlayControl(const std::string &evt) {
     wxCommandEvent e;
     if (evt == "Play") {
@@ -756,7 +859,6 @@ void MainSequencer::TouchPlayControl(const std::string &evt) {
         mSequenceElements->GetXLightsFrame()->OnAuiToolBarLastFrameClick(e);
     }
 }
-
 
 void MainSequencer::TouchButtonEvent(wxCommandEvent &event) {
     if (mSequenceElements != nullptr) {

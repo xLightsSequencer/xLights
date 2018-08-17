@@ -78,6 +78,48 @@ void SettingsMap::RemapChangedSettingKey(std::string &n,  std::string &value)
     Remaps.map(n);
 }
 
+bool rangesort(const std::pair<int, int> first, const std::pair<int, int> second)
+{
+    if (first.first == second.first)
+    {
+        return first.second < second.second;
+    }
+
+    return first.first < second.first;
+}
+
+void RangeAccumulator::ResolveOverlaps(int minSeparation)
+{
+    _ranges.sort(rangesort);
+
+    auto it1 = _ranges.begin();
+    auto it2 = it1;
+
+    while (it1 != _ranges.end())
+    {
+        ++it2;
+        if (it2 != _ranges.end())
+        {
+            if (it2->first - minSeparation <= it1->second)
+            {
+                if (it1->second < it2->second)
+                {
+                    it1->second = it2->second;
+                }
+                _ranges.erase(it2);
+                it2 = it1;
+                continue;
+            }
+        }
+        ++it1;
+    }
+}
+
+void RangeAccumulator::Add(int low, int high)
+{
+    _ranges.push_back(std::pair<int, int>(low, high));
+}
+
 static std::vector<std::string> CHECKBOX_IDS {
     "C_CHECKBOX_Palette1", "C_CHECKBOX_Palette2", "C_CHECKBOX_Palette3",
     "C_CHECKBOX_Palette4", "C_CHECKBOX_Palette5", "C_CHECKBOX_Palette6",

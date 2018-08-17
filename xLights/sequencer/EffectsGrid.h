@@ -16,6 +16,7 @@
 #include "Element.h"
 #include "../EffectTreeDialog.h"
 #include "../ValueCurve.h"
+#include "RowHeading.h"
 
 #include <map>
 
@@ -84,6 +85,9 @@ public:
     void MoveSelectedEffectLeft(bool shift, bool control, bool alt);
     void MoveSelectedEffectRight(bool shift, bool control, bool alt);
     void SetEffectStatusText(Effect* eff) const;
+    void InsertEffectLayerAbove();
+    void InsertEffectLayerBelow();
+    void ToggleExpandElement(RowHeading* rowHeading);
 
     void DeleteSelectedEffects();
     void SetEffectsDescription();
@@ -111,6 +115,7 @@ public:
     int GetMSFromColumn(int col) const;
     Element* GetActiveTimingElement() const;
     void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true) const;
+    void LockEffects(bool lock);
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
         seqData = data;
@@ -187,7 +192,6 @@ private:
     void OnGridPopup(wxCommandEvent& event);
     void FillRandomEffects();
     bool OneCellSelected();
-    void LockEffects(bool lock);
     void ACDraw(ACTYPE type, ACSTYLE style, ACMODE mode, int intensity, int a, int b, int startMS, int endMS, int startRow, int endRow);
     void ACCascade(int startMS, int endMS, int startCol, int endCol, int startRow, int endRow);
     void ACFill(ACTYPE type, int startMS, int endMS, int startRow, int endRow);

@@ -195,5 +195,24 @@ private:
     static void RemapChangedSettingKey(std::string &n,  std::string &value);
 };
 
+class RangeAccumulator
+{
+    std::list<std::pair<int,int>> _ranges;
+    void ResolveOverlaps(int minSeparation);
+
+public:
+    RangeAccumulator() {}
+    virtual ~RangeAccumulator() {}
+    void Add(int low, int high);
+    std::list<std::pair<int, int>>::iterator begin() {
+        return _ranges.begin(); 
+    }
+    std::list<std::pair<int, int>>::iterator end() { return _ranges.end(); }
+    size_t size() const { return _ranges.size(); }
+    void clear() { _ranges.clear(); }
+    void Consolidate(int minSeparation = 0) { ResolveOverlaps(minSeparation); }
+    std::pair<int, int> front() const { return _ranges.front(); }
+    std::pair<int, int> back() const { return _ranges.back(); }
+};
 
 #endif

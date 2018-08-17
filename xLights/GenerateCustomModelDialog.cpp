@@ -1653,12 +1653,12 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     if (bwFrame.IsOk())
                     {
                         advance++;
-                        if (advance > 3)
+                        if (advance > 4)
                         {
                             logger_gcm.info("   No bulb found so assuming bulb %d is not visible.", n);
                             advance = 0;
                             n++;
-                            currentTime = zerotime + (n - 1)*(NODEON + NODEOFF);
+                            currentTime = zerotime + (n - 1)*(NODEON + NODEOFF) - FRAMEMS;
                         }
                         else
                         {
@@ -1703,23 +1703,24 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     }
                     else
                     {
+                        logger_gcm.info("   Video drift %d.", delta);
                         // This helps correct for video drift
                         if (abs(delta) > 2 * FRAMEMS)
                         {
                             if (delta < 0)
                             {
-                                logger_gcm.info("   *** Video drift %d adjusting by %d.", delta, -1 * FRAMEMS);
+                                logger_gcm.info("       *** Adjusting by %d.", -1 * FRAMEMS);
                                 zerotime -= FRAMEMS;
                             }
                             else
                             {
-                                logger_gcm.info("   *** Video drift %d adjusting by %d.", delta, FRAMEMS);
-                                zerotime += FRAMEMS;
+                                logger_gcm.info("       *** Adjusting by %d.", delta);
+                                zerotime += delta;
                             }
                         }
                     }
 
-                    currentTime = zerotime + (n - 1)*(NODEON + NODEOFF);
+                    currentTime = zerotime + (n - 1)*(NODEON + NODEOFF) - FRAMEMS;
                 }
             }
 
@@ -1758,6 +1759,7 @@ void GenerateCustomModelDialog::BITabEntry(bool setdefault)
         TextCtrl_BI_Status->SetValue("");
         SetBIDefault();
     }
+    _biFrame = CreateDetectMask(_biFrame, true, _clip);
     ShowImage(_biFrame);
     StaticText_BI->SetLabel("The red circles on the image show the bulbs we have identified. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected.");
     Slider_BI_Sensitivity->Enable();
@@ -1772,7 +1774,7 @@ void GenerateCustomModelDialog::BITabEntry(bool setdefault)
 int GenerateCustomModelDialog::GetMaxNum()
 {
     int max = -1;
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
     {
         if (!it->isSupressed() && it->GetNum() > max)
         {
@@ -1786,7 +1788,7 @@ int GenerateCustomModelDialog::GetMaxNum()
 int GenerateCustomModelDialog::GetBulbCount()
 {
     int count = 0;
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
     {
         if (!it->isSupressed())
         {
@@ -1802,7 +1804,7 @@ wxString GenerateCustomModelDialog::GetMissingNodes()
 {
     wxString res;
     int current = 0;
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
     {
         if (!it->isSupressed())
         {
@@ -1840,7 +1842,7 @@ wxString GenerateCustomModelDialog::GetMultiBulbNodes()
     wxString res;
     int current = -1;
     int last = -2;
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
     {
         if (!it->isSupressed())
         {
@@ -1964,7 +1966,7 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(wxImage ref, bool includeima
     dc.DrawRectangle(_clip);
 
     // draw blue first
-    for (auto c = _lights.begin(); c != _lights.end(); c++)
+    for (auto c = _lights.begin(); c != _lights.end(); ++c)
     {
         if (c->isSupressedButDraw())
         {
@@ -1973,7 +1975,7 @@ wxImage GenerateCustomModelDialog::CreateDetectMask(wxImage ref, bool includeima
     }
 
     // now red so they are easy to see
-    for (auto c = _lights.begin(); c != _lights.end(); c++)
+    for (auto c = _lights.begin(); c != _lights.end(); ++c)
     {
         if (!c->isSupressed())
         {
@@ -2104,8 +2106,8 @@ void GenerateCustomModelDialog::OnSlider_BI_MinSeparationCmdSliderUpdated(wxScro
 
 void GenerateCustomModelDialog::SetBIDefault()
 {
-    Slider_BI_MinSeparation->SetValue(10);
-    TextCtrl_BI_MinSeparation->SetValue("10");
+    Slider_BI_MinSeparation->SetValue(100);
+    TextCtrl_BI_MinSeparation->SetValue("100");
     Slider_AdjustBlur->SetValue(1);
     TextCtrl_BC_Blur->SetValue("1");
     Slider_BI_Sensitivity->SetValue(127);
@@ -2281,7 +2283,7 @@ wxPoint GenerateCustomModelDialog::CalcTrim(std::list<GCMBulb>& lights)
     int x = 999999;
     int y = 999999;
 
-    for (auto it = lights.begin(); it != lights.end(); it++)
+    for (auto it = lights.begin(); it != lights.end(); ++it)
     {
         if (!it->isSupressed())
         {
@@ -2330,7 +2332,7 @@ wxSize GenerateCustomModelDialog::CalcSize()
     int x = 0;
     int y = 0;
 
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
     {
         if (!it->isSupressed())
         {
@@ -2464,7 +2466,7 @@ void GenerateCustomModelDialog::DoGenerateCustomModel()
         Grid_CM_Result->CreateGrid(_size.y, _size.x);
     }
 
-    for (auto it = _lights.begin(); it != _lights.end(); it++)
+    for (auto it = _lights.begin(); it != _lights.end(); ++it)
     {
         if (!it->isSupressed())
         {

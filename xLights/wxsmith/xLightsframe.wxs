@@ -5,6 +5,7 @@
 		<size>1411,1103</size>
 		<id_arg>0</id_arg>
 		<handler function="OnClose" entry="EVT_CLOSE" />
+		<handler function="OnChar" entry="EVT_CHAR" />
 		<handler function="OnResize" entry="EVT_SIZE" />
 		<object class="wxAuiManager" variable="MainAuiManager" member="yes">
 			<style>wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_ALLOW_ACTIVE_PANE|wxAUI_MGR_DEFAULT</style>
@@ -1680,6 +1681,10 @@
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_KEYBINDINGS" variable="MenuItem_ShowKeyBindings" member="yes">
+					<label>Key Bindings</label>
+					<handler function="OnMenuItem_ShowKeyBindingsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="idMenuHelpContent" variable="MenuItem4" member="no">
 					<label>Content</label>
 					<accel>F1</accel>

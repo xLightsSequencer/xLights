@@ -74,7 +74,7 @@ DrawGLUtils::xlGLCacheInfo::~xlGLCacheInfo() {
         glDeleteTextures(deleteTextures.size(), &deleteTextures[0]);
         deleteTextures.clear();
     }
-    for (auto it = textures.begin(); it != textures.end(); it++) {
+    for (auto it = textures.begin(); it != textures.end(); ++it) {
         glDeleteTextures(1, &it->second);
     }
 }
@@ -133,7 +133,7 @@ public:
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
         LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
 
-        for (auto it = va.types.begin(); it != va.types.end(); it++) {
+        for (auto it = va.types.begin(); it != va.types.end(); ++it) {
             if (it->textureId != -1) {
                 LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
                 if (!textsBound) {

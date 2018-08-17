@@ -29,6 +29,7 @@ class RowHeading : public wxWindow
         int getHeight() const;
         int GetMaxRows();
         void SetCanPaste(bool value) { mCanPaste = value; }
+        void ToggleExpand(Element * element);
 
     static int rowHeadingSize;
 

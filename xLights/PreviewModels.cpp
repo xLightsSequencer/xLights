@@ -139,10 +139,10 @@ PreviewModels::PreviewModels(wxWindow* parent,const std::string &group, ModelMan
 
     ModelGroup *g = (ModelGroup*)mModels[group];
     wxXmlNode *e = g->GetModelXml();
-    for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); it++) {
+    for (auto it = g->ModelNames().begin(); it != g->ModelNames().end(); ++it) {
         ListBoxModelsInGroup->Append(*it);
     }
-    for (auto it = mModels.begin(); it != mModels.end(); it++) {
+    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
 
         if (it->second->GetDisplayAs() != "ModelGroup"
             && std::find(g->ModelNames().begin(), g->ModelNames().end(), it->first) == g->ModelNames().end()) {

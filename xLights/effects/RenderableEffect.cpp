@@ -881,6 +881,9 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
 
             if (needsUpgrade)
             {
+                // this updates the settings map ... but not the actual settings on the effect ... 
+                // this is a problem as the error will keep occuring next time the sequence is loaded.
+                // To fix it the user needs to click on the offending effect and save and it will go away
                 SettingsMap[vn] = valc.Serialise();
             }
         }

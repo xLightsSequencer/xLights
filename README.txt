@@ -11,8 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2018.27 3D Beta August 12, 2018
+2018.28 3D Beta August 12, 2018
    -- enh (gil)    xLights 3D
+2018.28 August 18, 2018
+   -- bug (gil)    Fix VSA Imports with multiple event types and treat DMX relays as 8bit effects.
+   -- enh (keith)  Extend significantly the keybindings available functions
+   -- bug (keith)  Fix text boxes with sliders where zero is not valid are hard to edit
+   -- bug (keith)  Fix single segment polyline allows individual start channels
+   -- bug (keith)  Fix video drift in generate custom model video watcher
+   -- bug (keith)  Yet another tweak to the animated GIF reader
+   -- bug (keith)  Fix right click after selecting models to create a group omits selected model
+   -- bug (keith)  Minimise render events when bulk editing
+   -- bug (keith)  Direct user in check sequence how to fix legacy value curves
+   -- bug (dkulp)  Fix reading back from render cache changes pixel colour
 2018.27 August 11, 2018
    -- bug (dkulp)  Fix some issues with subbuffers
    -- bug (dkulp)  Dont double up the windows menu

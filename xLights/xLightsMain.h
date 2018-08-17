@@ -359,9 +359,10 @@ public:
     void SaveWorking();
     void SaveWorkingLayout();
     void PlayerError(const wxString& msg);
+    void AskCloseSequence();
+    void SaveCurrentTab();
 
     EffectManager &GetEffectManager() { return effectManager; }
-
 
     bool ImportSuperStar(Element *el, wxXmlDocument &doc, int x_size, int y_size,
                          int x_offset, int y_offset, bool average_colors,
@@ -530,6 +531,7 @@ public:
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
+    void ShowPresetsPanel();
     void OnMenuItemSelectEffectSelected(wxCommandEvent& event);
     void OnMenuItemShowHideVideoPreview(wxCommandEvent& event);
     void OnButtonAddDDPClick(wxCommandEvent& event);
@@ -545,7 +547,10 @@ public:
     void OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event);
     void OnMenuItem_PurgeRenderCacheSelected(wxCommandEvent& event);
     void OnMenuItem_RenderCache(wxCommandEvent& event);
+    void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
+    void OnChar(wxKeyEvent& event);
     //*)
+    void OnCharHook(wxKeyEvent& event);
 private:
 
     //void OnMenuItem53Selected(wxCommandEvent& event);
@@ -559,6 +564,8 @@ private:
     void MaybePackageAndSendDebugFiles();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     void AddDebugFilesToReport(wxDebugReport &report);
+
+public:
 
     //(*Identifiers(xLightsFrame)
     static const long ID_AUITOOLBAR_OPENSHOW;
@@ -779,6 +786,7 @@ private:
     static const long ID_MNU_FORCEIP;
     static const long ID_MNU_DEFAULTMODELBLENDOFF;
     static const long ID_MNU_SNAP_TO_TIMING;
+    static const long ID_MNU_KEYBINDINGS;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
     static const long ID_MNU_VIDEOS;
@@ -943,6 +951,7 @@ private:
     wxMenuItem* MenuItem_SD_40;
     wxMenuItem* MenuItem_SD_None;
     wxMenuItem* MenuItem_ShowACRamps;
+    wxMenuItem* MenuItem_ShowKeyBindings;
     wxMenuItem* MenuItem_SmallWaveform;
     wxMenuItem* MenuItem_SnapToTimingMarks;
     wxMenuItem* MenuItem_Update;
@@ -1231,8 +1240,6 @@ protected:
     bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
     void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
     void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
-    void NewSequence();
-    void SaveAsSequence();
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
@@ -1256,6 +1263,12 @@ public:
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
     bool CloseSequence();
+    void NewSequence();
+    void SaveAsSequence();
+    void SetPasteByCell();
+    void SetPasteByTime();
+    void ShowSequenceSettings();
+    bool HandleAllKeyBinding(wxKeyEvent& event);
 
 private:
     wxXmlNode* SettingsNode;
