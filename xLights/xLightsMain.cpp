@@ -8479,7 +8479,6 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 
     KeyBinding *binding = mainSequencer->keyBindings.Find(event, KBSCOPE_ALL);
     if (binding != nullptr) {
-        event.StopPropagation();
         std::string type = binding->GetType();
         if (type == "RENDER_ALL")
         {
@@ -8575,6 +8574,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         {
             return false;
         }
+        event.StopPropagation();
         return true;
     }
 
@@ -8597,11 +8597,17 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
     case SETUPTAB:
         break;
     case LAYOUTTAB:
-        layoutPanel->HandleLayoutKeyBinding(event);
+        if (!layoutPanel->HandleLayoutKeyBinding(event))
+        {
+            event.Skip();
+        }
         return;
         break;
     case NEWSEQUENCER:
-        mainSequencer->HandleSequencerKeyBinding(event);
+        if (!mainSequencer->HandleSequencerKeyBinding(event))
+        {
+            event.Skip();
+        }
         return;
         break;
     default:

@@ -37,6 +37,7 @@ BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString val
     _type = BESLIDERTYPE::BE_INT;
     ID_TEXTCTRL_BULKEDIT = wxNewId();
     Connect(wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&BulkEditTextCtrl::OnTextCtrl_TextUpdated);
+    Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&BulkEditTextCtrl::OnTextCtrl_TextLoseFocus);
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditTextCtrl::OnRightDown, nullptr, this);
 }
 
@@ -526,6 +527,19 @@ void BulkEditSlider::OnSlider_SliderUpdated(wxScrollEvent& event)
 
 void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
 {
+    TextUpdate(false);
+    GetParent()->HandleWindowEvent(event);
+}
+
+void BulkEditTextCtrl::OnTextCtrl_TextLoseFocus(wxFocusEvent& event)
+{
+    TextUpdate(true);
+    event.Skip();
+    //GetParent()->HandleWindowEvent(event);
+}
+
+void BulkEditTextCtrl::TextUpdate(bool force)
+{
     if (IsSliderTextPair(GetParent(), GetName().ToStdString(), "TEXTCTRL"))
     {
         wxSlider* s = GetSettingSliderControl(GetParent(), GetName().ToStdString(), "TEXTCTRL");
@@ -543,10 +557,13 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 auto t = wxAtoi(GetValue());
                 if (s->GetValue() != t)
                 {
-                    s->SetValue(t);
-                    if (s->GetValue() != t)
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
-                        ChangeValue(wxString::Format("%d", s->GetValue()));
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%d", s->GetValue()));
+                        }
                     }
                 }
             }
@@ -556,10 +573,13 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 auto t = wxAtof(GetValue()) * 10;
                 if (s->GetValue() != t)
                 {
-                    s->SetValue(t);
-                    if (s->GetValue() != t)
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
-                        ChangeValue(wxString::Format("%.1f", (float)s->GetValue() / 10.0));
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%.1f", (float)s->GetValue() / 10.0));
+                        }
                     }
                 }
             }
@@ -569,10 +589,13 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 auto t = wxAtof(GetValue()) * 100.0;
                 if (s->GetValue() != t)
                 {
-                    s->SetValue(t);
-                    if (s->GetValue() != t)
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
-                        ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 100.0));
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 100.0));
+                        }
                     }
                 }
             }
@@ -582,10 +605,13 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
                 auto t = wxAtof(GetValue()) * 360.0;
                 if (s->GetValue() != t)
                 {
-                    s->SetValue(t);
-                    if (s->GetValue() != t)
+                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
-                        ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 360.0));
+                        s->SetValue(t);
+                        if (s->GetValue() != t)
+                        {
+                            ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 360.0));
+                        }
                     }
                 }
             }
@@ -593,7 +619,6 @@ void BulkEditTextCtrl::OnTextCtrl_TextUpdated(wxCommandEvent& event)
             }
         }
     }
-    GetParent()->HandleWindowEvent(event);
 }
 #pragma endregion
 

@@ -437,7 +437,6 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
     
     KeyBinding *binding = keyBindings.Find(event, KBSCOPE_SEQUENCE);
     if (binding != nullptr) {
-        event.StopPropagation();
         std::string type = binding->GetType();
         if (type == "TIMING_ADD")
         {
@@ -593,6 +592,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             wxASSERT(false);
             return false;
         }
+        event.StopPropagation();
         return true;
     }
     else

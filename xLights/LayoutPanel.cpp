@@ -4056,7 +4056,6 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
 
     KeyBinding *binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE_LAYOUT);
     if (binding != nullptr) {
-        event.StopPropagation();
         std::string type = binding->GetType();
         if (type == "LOCK_MODEL")
         {
@@ -4122,6 +4121,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
             wxASSERT(false);
             return false;
         }
+        event.StopPropagation();
         return true;
     }
     else
