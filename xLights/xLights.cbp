@@ -858,6 +858,8 @@
 		</Unit>
 		<Unit filename="models/ArchesModel.cpp" />
 		<Unit filename="models/ArchesModel.h" />
+		<Unit filename="models/BaseObject.cpp" />
+		<Unit filename="models/BaseObject.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
 		<Unit filename="models/CandyCaneModel.h" />
 		<Unit filename="models/ChannelBlockModel.cpp" />
@@ -868,6 +870,8 @@
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DmxModel.cpp" />
 		<Unit filename="models/DmxModel.h" />
+		<Unit filename="models/GridlinesObject.cpp" />
+		<Unit filename="models/GridlinesObject.h" />
 		<Unit filename="models/IciclesModel.cpp" />
 		<Unit filename="models/IciclesModel.h" />
 		<Unit filename="models/ImageModel.cpp" />
@@ -884,6 +888,8 @@
 		<Unit filename="models/ModelScreenLocation.h" />
 		<Unit filename="models/Node.cpp" />
 		<Unit filename="models/Node.h" />
+		<Unit filename="models/ObjectManager.cpp" />
+		<Unit filename="models/ObjectManager.h" />
 		<Unit filename="models/PolyLineModel.cpp" />
 		<Unit filename="models/PolyLineModel.h" />
 		<Unit filename="models/Shapes.cpp" />
@@ -900,6 +906,8 @@
 		<Unit filename="models/SubModel.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
+		<Unit filename="models/ViewObject.cpp" />
+		<Unit filename="models/ViewObject.h" />
 		<Unit filename="models/WholeHouseModel.cpp" />
 		<Unit filename="models/WholeHouseModel.h" />
 		<Unit filename="models/WindowFrameModel.cpp" />

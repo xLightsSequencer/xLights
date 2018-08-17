@@ -8,7 +8,7 @@
 
 #include "ModelScreenLocation.h"
 #include "../Color.h"
-
+#include "BaseObject.h"
 #include <wx/gdicmn.h>
 
 class DimmingCurve;
@@ -30,7 +30,7 @@ namespace DrawGLUtils {
     class xl3Accumulator;
 }
 
-class Model
+class Model : public BaseObject
 {
     friend class LayoutPanel;
     friend class SubModel;

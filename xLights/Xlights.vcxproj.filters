@@ -351,6 +351,9 @@
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="Parallel.cpp" />
+    <ClCompile Include="models\BaseObject.cpp" />
+    <ClCompile Include="models\ObjectManager.cpp" />
+    <ClCompile Include="models\ViewObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -702,6 +705,9 @@
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="RenderCache.h" />
     <ClInclude Include="Parallel.h" />
+    <ClInclude Include="models\BaseObject.h" />
+    <ClInclude Include="models\ObjectManager.h" />
+    <ClInclude Include="models\ViewObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
