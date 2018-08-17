@@ -535,7 +535,6 @@ void BulkEditTextCtrl::OnTextCtrl_TextLoseFocus(wxFocusEvent& event)
 {
     TextUpdate(true);
     event.Skip();
-    //GetParent()->HandleWindowEvent(event);
 }
 
 void BulkEditTextCtrl::TextUpdate(bool force)
