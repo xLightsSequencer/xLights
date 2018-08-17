@@ -5344,6 +5344,7 @@ void xLightsFrame::ImportVsa(const wxFileName &filename) {
                     switch( (VSAFile::vsaControllers)(tracks[idx].controller) )
                     {
                     case VSAFile::DMX_DIMMER:
+                    case VSAFile::DMX_RELAY:
                         is_16bit = false;
                     default:
                         break;
