@@ -12,7 +12,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2018.28 3D Beta August 12, 2018
-   -- enh (gil)    xLights 3D
+   -- bug (gil)    Fix 3D buffer for nested groups
+   -- bug (gil)    Fix pan to account for grid rotations in house view
+   -- enh (dkulp)  Enhance mouse/trackpad on OSX
 2018.28 August 18, 2018
    -- bug (gil)    Fix VSA Imports with multiple event types and treat DMX relays as 8bit effects.
    -- enh (keith)  Extend significantly the keybindings available functions
@@ -24,6 +26,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Minimise render events when bulk editing
    -- bug (keith)  Direct user in check sequence how to fix legacy value curves
    -- bug (dkulp)  Fix reading back from render cache changes pixel colour
+2018.27 3D Beta August 12, 2018
+   -- enh (gil)    xLights 3D
 2018.27 August 11, 2018
    -- bug (dkulp)  Fix some issues with subbuffers
    -- bug (dkulp)  Dont double up the windows menu
