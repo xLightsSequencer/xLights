@@ -555,6 +555,16 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         {
             PanelEffectGrid->InsertEffectLayerAbove();
         }
+        else if (type == "SELECT_ALL")
+        {
+            mSequenceElements->SelectAllEffects();
+            PanelEffectGrid->Refresh();
+        }
+        else if (type == "SELECT_ALL_NO_TIMING")
+        {
+            mSequenceElements->SelectAllEffectsNoTiming();
+            PanelEffectGrid->Refresh();
+        }
         else if (type == "INSERT_LAYER_BELOW")
         {
             PanelEffectGrid->InsertEffectLayerBelow();
@@ -656,34 +666,6 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
 			}
 #endif
 			break;
-        case WXK_PAUSE:
-            {
-                wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
-        case WXK_HOME:
-            {
-                wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
-        case WXK_END:
-            {
-                wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
-        case WXK_SPACE:
-            {
-                wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
-                wxPostEvent(mParent, playEvent);
-            }
-            event.StopPropagation();
-            break;
         case WXK_UP:
             PanelEffectGrid->MoveSelectedEffectUp(event.ShiftDown());
             event.StopPropagation();
@@ -699,20 +681,6 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
         case WXK_RIGHT:
             PanelEffectGrid->MoveSelectedEffectRight(event.ShiftDown(), event.ControlDown(), event.AltDown());
             event.StopPropagation();
-            break;
-        case '.':
-            if (event.ControlDown())
-            {
-                // save current effects grid position
-                SavePosition();
-            }
-            break;
-        case '/':
-            if (event.ControlDown())
-            {
-                //restore saved effects grid position
-                RestorePosition();
-            }
             break;
         case '0':
         case '1':
@@ -859,20 +827,6 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 escapeReenter = false;
             }
         }
-            break;
-        case 'a':
-        case 'A':
-        case WXK_CONTROL_A:
-            if (event.CmdDown() || event.ControlDown()) {
-                if (mSequenceElements != nullptr) {
-                    if (event.ShiftDown())
-                        mSequenceElements->SelectAllEffects();
-                    else
-                        mSequenceElements->SelectAllEffectsNoTiming();
-                    PanelEffectGrid->Refresh();
-                }
-                event.StopPropagation();
-            }
             break;
     }
 }

@@ -33,6 +33,9 @@ const std::map<std::string, KBSCOPE> KeyBindingTypes = {
 { "NEW_SEQUENCE", KBSCOPE_ALL },
 { "PASTE_BY_CELL", KBSCOPE_ALL },
 { "PASTE_BY_TIME", KBSCOPE_ALL },
+{ "BACKUP", KBSCOPE_ALL },
+{ "ALTERNATE_BACKUP", KBSCOPE_ALL },
+{ "SELECT_SHOW_FOLDER", KBSCOPE_ALL },
 { "SAVEAS_SEQUENCE", KBSCOPE_SEQUENCE },
 {   "SAVE_SEQUENCE", KBSCOPE_SEQUENCE },
 {   "EFFECT_SETTINGS_TOGGLE", KBSCOPE_SEQUENCE },
@@ -57,11 +60,16 @@ const std::map<std::string, KBSCOPE> KeyBindingTypes = {
 {"INSERT_LAYER_ABOVE", KBSCOPE_SEQUENCE },
 {"INSERT_LAYER_BELOW", KBSCOPE_SEQUENCE },
 {"TOGGLE_ELEMENT_EXPAND", KBSCOPE_SEQUENCE },
+{"SELECT_ALL", KBSCOPE_SEQUENCE },
+{"SELECT_ALL_NO_TIMING", KBSCOPE_SEQUENCE },
 {"SHOW_PRESETS", KBSCOPE_SEQUENCE },
 {"SEARCH_TOGGLE", KBSCOPE_SEQUENCE },
 {"PERSPECTIVES_TOGGLE", KBSCOPE_SEQUENCE },
 {"PLAY_LOOP", KBSCOPE_ALL },
 {   "PLAY", KBSCOPE_ALL },
+{   "TOGGLE_PLAY", KBSCOPE_ALL },
+{   "START_OF_SONG", KBSCOPE_ALL },
+{   "END_OF_SONG", KBSCOPE_ALL },
 {  "STOP", KBSCOPE_ALL },
 { "PAUSE", KBSCOPE_ALL },
 { "EFFECT", KBSCOPE_SEQUENCE },
@@ -139,6 +147,7 @@ public:
     bool InScope(const KBSCOPE scope) const { return scope == _scope; }
     bool IsDisabled() const { return _disabled; }
     std::string Description() const;
+    bool IsKey(wxKeyCode key);
 
 private:
     wxKeyCode _key;
@@ -155,6 +164,9 @@ private:
 
 class KeyBindingMap {
 public:
+
+    static wxString ParseKey(wxString key, bool& ctrl, bool& alt, bool& shift);
+
     KeyBindingMap() {}
     
     void LoadDefaults();

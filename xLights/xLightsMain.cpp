@@ -8531,6 +8531,21 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
             wxPostEvent(this, playEvent);
         }
+        else if (type == "TOGGLE_PLAY")
+        {
+            wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "START_OF_SONG")
+        {
+            wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
+            wxPostEvent(this, playEvent);
+        }
+        else if (type == "END_OF_SONG")
+        {
+            wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
+            wxPostEvent(this, playEvent);
+        }
         else if (type == "STOP")
         {
             wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
@@ -8540,6 +8555,21 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         {
             wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
             wxPostEvent(this, playEvent);
+        }
+        else if (type == "BACKUP")
+        {
+            wxCommandEvent e;
+            OnMenuItemBackupSelected(e);
+        }
+        else if (type == "ALTERNATE_BACKUP")
+        {
+            wxCommandEvent e;
+            OnmAltBackupMenuItemSelected(e);
+        }
+        else if (type == "SELECT_SHOW_FOLDER")
+        {
+            wxCommandEvent e;
+            OnMenuOpenFolderSelected(e);
         }
         else
         {
@@ -8583,4 +8613,3 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
         event.Skip();
     }
 }
-
