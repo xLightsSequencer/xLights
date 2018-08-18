@@ -555,6 +555,7 @@ public:
     void OnMenuItem_RenderCache(wxCommandEvent& event);
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     void OnChar(wxKeyEvent& event);
+    void OnMenuItem_ZoomSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -792,6 +793,7 @@ public:
     static const long ID_MNU_FORCEIP;
     static const long ID_MNU_DEFAULTMODELBLENDOFF;
     static const long ID_MNU_SNAP_TO_TIMING;
+    static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
     static const long idMenuHelpContent;
     static const long ID_MENU_HELP_FORMUM;
@@ -966,6 +968,7 @@ public:
     wxMenuItem* MenuItem_ViewLog;
     wxMenuItem* MenuItem_ViewZoomIn;
     wxMenuItem* MenuItem_ViewZoomOut;
+    wxMenuItem* MenuItem_Zoom;
     wxMenuItem* MenuItem_e131sync;
     wxMenuItem* MenuItem_xFade_A;
     wxMenuItem* MenuItem_xFade_B;
