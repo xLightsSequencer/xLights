@@ -942,7 +942,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             colorPanel->SetDefaultSettings(true);
 
             // do the effect setting last as it may want to override some of the above
-            // this should be used sparingly ... 
+            // this should be used sparingly ...
             RenderableEffect *eff = GetEffectManager().GetEffect(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection());
             if (eff != nullptr) {
                 eff->SetDefaultParameters();
@@ -3340,7 +3340,7 @@ void xLightsFrame::ConvertDataRowToEffects(wxCommandEvent &event) {
     if (model != nullptr) {
         SingleLineModel *ssModel = new SingleLineModel(model->GetModelManager());
         ssModel->Reset(1, *model, strand, node);
-        
+
         for (size_t f = 0; f < SeqData.NumFrames(); f++) {
             ssModel->SetNodeChannelValues(0, &SeqData[f][ssModel->NodeStartChannel(0)]);
             xlColor c = ssModel->GetNodeColor(0);
@@ -3370,6 +3370,46 @@ void xLightsFrame::UpdateEffectNode(wxXmlNode* node)
     node->AddAttribute("settings", copy_data);
     node->DeleteAttribute("xLightsVersion");
     node->AddAttribute("xLightsVersion", xlights_version_string);
+}
+
+wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level)
+{
+    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == "effect")
+        {
+            if (n->GetAttribute("name", "") == path[level])
+            {
+                return n;
+            }
+        }
+        else if (n->GetName() == "effectGroup" && level < path.size() - 1)
+        {
+            if (n->GetAttribute("name", "") == path[level])
+            {
+                return FindPreset(n, path, level + 1);
+            }
+        }
+        else
+        {
+            wxASSERT(false);
+        }
+    }
+    return nullptr;
+}
+
+void xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
+{
+    wxXmlNode* ele = nullptr;
+
+    auto path = wxSplit(presetName, '/');
+
+    ele = FindPreset(mSequenceElements.GetEffectsNode(), path, 0);
+
+    if (ele != nullptr)
+    {
+        mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));
+    }
 }
 
 void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion)

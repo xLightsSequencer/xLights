@@ -462,6 +462,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         {
             PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
         }
+        else if (type == "PRESET")
+        {
+            mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
+        }
         else if (type == "EFFECT_SETTINGS_TOGGLE")
         {
             wxCommandEvent e;

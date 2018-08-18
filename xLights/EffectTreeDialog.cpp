@@ -205,8 +205,7 @@ void EffectTreeDialog::ApplyEffect(bool dblClick)
         if ( item != nullptr )
         {
             ele = item->GetElement();
-            wxString settings;
-            settings=ele->GetAttribute("settings");
+            wxString settings = ele->GetAttribute("settings");
             if (!settings.IsEmpty())
             {
                 xLightParent->ApplyEffectsPreset(settings, ele->GetAttribute("xLightsVersion", "4.0"));

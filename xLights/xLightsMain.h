@@ -199,7 +199,7 @@ public:
                  wxWindowID id = wxID_ANY,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 long style = wxAUI_TB_DEFAULT_STYLE); 
+                 long style = wxAUI_TB_DEFAULT_STYLE);
     virtual ~xlAuiToolBar() {}
 
     wxSize &GetAbsoluteMinSize() {return m_absoluteMinSize;}
@@ -812,7 +812,7 @@ public:
     static const long ID_PANEL_EFFECTS1;
     static const long ID_PANEL_EFFECTS;
     static const long ID_NOTEBOOK_EFFECTS;
-    
+
     static const long ID_XFADESOCKET;
     static const long ID_XFADESERVER;
 
@@ -1225,6 +1225,7 @@ public:
     wxXmlNode* CreateEffectNode(wxString& name);
     void UpdateEffectNode(wxXmlNode* node);
     void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
+    void ApplyEffectsPreset(const std::string& presetName);
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
     bool RenameModel(const std::string old_name, const std::string& new_name);
     bool EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName, std::vector<std::string>& submodelOrder);
