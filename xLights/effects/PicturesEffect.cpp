@@ -481,12 +481,18 @@ void PicturesEffect::Render(RenderBuffer &buffer,
     int &frame = cache->frame;
 
     wxString sPicture = NewPictureName2;
-    wxString suffix = NewPictureName2.substr(NewPictureName2.length() - 6, 2);
-    wxString extension = NewPictureName2.substr(NewPictureName2.length() - 3, 3);
+
+    wxFileName fn(NewPictureName2);
+    wxString extension = fn.GetExt();
+    wxString suffix = "";
+    if (fn.GetName().Length() >= 2)
+    {
+        suffix = fn.GetName().Right(2);
+    }
+
     if (suffix == "-1") {// do we have a movie file?
         //    yes
-        wxString BasePicture = NewPictureName2.substr(0, NewPictureName2.length() - 6);
-
+        wxString BasePicture = fn.GetPathWithSep() + fn.GetName().Left(fn.GetName().Length() - 2);
         wxString sTmpPicture = wxString::Format("%s-2.%s", BasePicture, extension);
         if (!wxFileExists(sTmpPicture)) {
             // not a movie file as frame 2 does not exist

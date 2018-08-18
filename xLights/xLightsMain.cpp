@@ -5422,7 +5422,7 @@ void xLightsFrame::CheckSequence(bool display)
     if (CurrentSeqXmlFile != nullptr)
     {
         LogAndWrite(f, "");
-        LogAndWrite(f, "Render Mode");
+        LogAndWrite(f, "Uncommon and often undesirable settings");
 
         if (CurrentSeqXmlFile->GetRenderMode() == xLightsXmlFile::CANVAS_MODE)
         {
@@ -5430,7 +5430,15 @@ void xLightsFrame::CheckSequence(bool display)
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
-        else
+
+        if (!mSaveFseqOnSave)
+        {
+            wxString msg = wxString::Format("    WARN: Save FSEQ on save is turned off. This means every time you open the sequence you will need to render all to play your sequence. This is not recommended.");
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+
+        if (errcount + warncount == errcountsave + warncountsave)
         {
             LogAndWrite(f, "    No problems found");
         }
@@ -8480,6 +8488,16 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
+
+    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) || 
+        (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
+    {
+        // Just a regular key ... If current focus is a control then we need to not process this
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && k < 128)
+        {
+            return false;
+        }
+    }
 
     KeyBinding *binding = mainSequencer->keyBindings.Find(event, KBSCOPE_ALL);
     if (binding != nullptr) {

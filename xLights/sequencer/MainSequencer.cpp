@@ -435,6 +435,16 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
     
+    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
+        (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
+    {
+        // Just a regular key ... If current focus is a control then we need to not process this
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && k < 128)
+        {
+            return false;
+        }
+    }
+
     KeyBinding *binding = keyBindings.Find(event, KBSCOPE_SEQUENCE);
     if (binding != nullptr) {
         std::string type = binding->GetType();
