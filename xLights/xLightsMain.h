@@ -61,7 +61,7 @@
 #include "SequenceData.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
-#include "models/ObjectManager.h"
+#include "models/ViewObjectManager.h"
 #include "xLightsTimer.h"
 #include "JobPool.h"
 #include "SequenceViewManager.h"
@@ -1541,7 +1541,7 @@ public:
     std::vector<LayoutGroup *> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
     ModelManager AllModels;
-    ObjectManager AllObjects;
+    ViewObjectManager AllObjects;
     ColorManager color_mgr;
     ViewpointMgr viewpoint_mgr;
     EffectTreeDialog *EffectTreeDlg;

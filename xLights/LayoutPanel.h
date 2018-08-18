@@ -149,6 +149,9 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_VIEWPOINT3D;
         static const long ID_PREVIEW_DELETEVIEWPOINT2D;
         static const long ID_PREVIEW_DELETEVIEWPOINT3D;
+        static const long ID_ADD_OBJECT_IMAGE;
+        static const long ID_ADD_OBJECT_GRIDLINES;
+        static const long ID_ADD_OBJECT_MESH;
 
 	public:
 
@@ -391,6 +394,10 @@ class LayoutPanel: public wxPanel
         int GetModelTreeIcon(Model* model, bool open);
         int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string new_name);
+        void DisplayAddObjectPopup();
+        void OnAddObjectPopup(wxCommandEvent& event);
+        void AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]);
+
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 
         class ModelListComparator : public wxTreeListItemComparator

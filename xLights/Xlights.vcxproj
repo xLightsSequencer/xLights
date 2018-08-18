@@ -212,6 +212,7 @@
     <ClCompile Include="models\ImageModel.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
+    <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
@@ -560,6 +561,7 @@
     <ClInclude Include="models\ImageModel.h" />
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\ViewObject.h" />
+    <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />

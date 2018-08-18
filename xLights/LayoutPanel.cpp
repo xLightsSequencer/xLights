@@ -154,6 +154,9 @@ const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -399,7 +402,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel property grid created");
 
-    ToolSizer->SetCols(18);
+    ToolSizer->SetCols(19);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
@@ -418,6 +421,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Wreath", wreath);
     AddModelButton("Import Custom", import);
     AddModelButton("Download", download);
+    AddModelButton("Add Object", object);
 
     logger_base.debug("LayoutPanel model buttons created");
 
@@ -457,8 +461,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashGravity(0.0);
         ModelSplitter->SetSashPosition(msp);
     }
-
-    Reset();
 
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
@@ -556,6 +558,8 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
 
 void LayoutPanel::Reset()
 {
+    selectedModel = nullptr;
+    highlightedModel = nullptr;
     SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
     ChoiceLayoutGroups->Clear();
     ChoiceLayoutGroups->Append("Default");
@@ -3538,20 +3542,73 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     for (auto it = buttons.begin(); it != buttons.end(); ++it) {
         if (event.GetId() == (*it)->GetId()) {
-            int state = (*it)->GetState();
-            (*it)->SetState(state + 1);
-            if ((*it)->GetState()) {
-                selectedButton = (*it);
-                UnSelectAllModels();
-                modelPreview->SetFocus();
-            } else {
-                selectedButton = nullptr;
-                _lastXlightsModel = "";
+            if ((*it)->GetModelType() == "Add Object") {
+                DisplayAddObjectPopup();
+            }
+            else {
+                int state = (*it)->GetState();
+                (*it)->SetState(state + 1);
+                if ((*it)->GetState()) {
+                    selectedButton = (*it);
+                    UnSelectAllModels();
+                    modelPreview->SetFocus();
+                }
+                else {
+                    selectedButton = nullptr;
+                    _lastXlightsModel = "";
+                }
             }
         } else if ((*it)->GetState()) {
             (*it)->SetState(0);
         }
     }
+}
+
+void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]) {
+    wxMenuItem* menu_item = mnu.Append(id, name);
+    if (icon != nullptr) {
+        wxImage image(icon);
+#ifdef __WXOSX__
+        wxBitmap bitmap(image, -1, 2.0);
+#else
+        image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
+            ScaleWithSystemDPI(GetContentScaleFactor(), 24),
+            wxIMAGE_QUALITY_HIGH);
+        wxBitmap bitmap(image);
+#endif
+        menu_item->SetBitmap(image);
+    }
+}
+
+void LayoutPanel::DisplayAddObjectPopup() {
+    wxMenu mnuObjects;
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_IMAGE, "Image", add_object_image_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_GRIDLINES, "Gridlines", add_object_gridlines_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", nullptr);
+    mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddObjectPopup, nullptr, this);
+    PopupMenu(&mnuObjects);
+}
+
+void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int id = event.GetId();
+    if (id == ID_ADD_OBJECT_IMAGE)
+    {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
+
+    }
+    else if (id == ID_ADD_OBJECT_GRIDLINES)
+    {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
+
+    }
+    else if (id == ID_ADD_OBJECT_MESH)
+    {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
+        wxMessageBox("Keep the xLights donations rolling in and this might do something in the future. ;)", "Alert");
+    }
+    Refresh();
 }
 
 Model *LayoutPanel::CreateNewModel(const std::string &type) const

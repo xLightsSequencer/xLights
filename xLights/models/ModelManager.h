@@ -4,13 +4,14 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "ObjectManager.h"
 
 class Model;
 class wxXmlNode;
 class OutputManager;
 class xLightsFrame;
 
-class ModelManager
+class ModelManager : public ObjectManager
 {
     public:
         ModelManager(OutputManager* outputManager, xLightsFrame* xl);
@@ -19,6 +20,7 @@ class ModelManager
         OutputManager* GetOutputManager() const { return _outputManager; }
         Model *operator[](const std::string &name) const;
         Model *GetModel(const std::string &name) const;
+        virtual BaseObject *GetObject(const std::string &name) const;
 
         void OldRecalcStartChannels() const;
         void NewRecalcStartChannels() const;

@@ -908,6 +908,8 @@
 		<Unit filename="models/TreeModel.h" />
 		<Unit filename="models/ViewObject.cpp" />
 		<Unit filename="models/ViewObject.h" />
+		<Unit filename="models/ViewObjectManager.cpp" />
+		<Unit filename="models/ViewObjectManager.h" />
 		<Unit filename="models/WholeHouseModel.cpp" />
 		<Unit filename="models/WholeHouseModel.h" />
 		<Unit filename="models/WindowFrameModel.cpp" />
