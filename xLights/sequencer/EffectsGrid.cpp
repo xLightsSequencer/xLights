@@ -256,7 +256,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         wxMenuItem* menu_copy = mnuLayer.Append(ID_GRID_MNU_COPY,"Copy");
         wxMenuItem* menu_paste = mnuLayer.Append(ID_GRID_MNU_PASTE,"Paste");
         wxMenuItem* menu_delete = mnuLayer.Append(ID_GRID_MNU_DELETE,"Delete");
-        if( (mSelectedEffect == nullptr && !MultipleEffectsSelected()) &&
+        if( (mSelectedEffect == nullptr && !AtLeastOneEffectSelected()) &&
             !(IsACActive() && mCellRangeSelected)) {
             menu_copy->Enable(false);
             menu_delete->Enable(false);
@@ -3965,14 +3965,27 @@ bool EffectsGrid::PapagayoEffectsSelected() const
     return false;
 }
 
-bool EffectsGrid::MultipleEffectsSelected() const
+bool EffectsGrid::AtLeastOneEffectSelected() const
 {
-    int count=0;
-    for(int i = 0; i<mSequenceElements->GetRowInformationSize(); i++)
+    for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++)
     {
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
-        count+= el->GetSelectedEffectCount();
-        if(count > 1)
+        if (el->GetSelectedEffectCount() > 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EffectsGrid::MultipleEffectsSelected() const
+{
+    int count = 0;
+    for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++)
+    {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
+        count += el->GetSelectedEffectCount();
+        if (count > 1)
         {
             return true;
         }
