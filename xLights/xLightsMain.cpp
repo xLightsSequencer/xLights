@@ -1705,6 +1705,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         MenuItem_RC_Enable->Enable(false);
         MenuItem_RC_LockedOnly->Enable(false);
         MenuItem_PurgeRenderCache->Enable(false);
+        _enableRenderCache = "Disabled";
     }
     else
     {

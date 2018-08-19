@@ -1798,7 +1798,10 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
     if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0)
     {
         // this happens with custom models with no nodes defined
-        logger_base.warn("Model %s has no nodes so skipping rendering.", (const char *)buffer.GetModel()->GetName().c_str());
+        if (buffer.BufferForLayer(layer, 0).curEffStartPer == period)
+        {
+            logger_base.warn("Model %s has no nodes so skipping rendering.", (const char *)buffer.GetModel()->GetName().c_str());
+        }
         return false;
     }
 

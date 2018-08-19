@@ -13,6 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (keith)  Add key binding support for presets
    -- enh (keith)  Add a link to zoom in the help menu
+   -- bug (keith)  Unable to enter text in controls if key is assigned in keybindings
+   -- enh (keith)  Add warning about setting which stops FSEQ save as that setting is undesirable for most users
 2018.28 August 18, 2018
    -- bug (gil)    Fix VSA Imports with multiple event types and treat DMX relays as 8bit effects.
    -- enh (keith)  Extend significantly the keybindings available functions
