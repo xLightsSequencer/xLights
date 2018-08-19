@@ -1295,6 +1295,13 @@ void MainSequencer::InsertTimingMarkFromRange()
     {
         x1 = PanelTimeLine->GetSelectedPositionStart();
         x2 = PanelTimeLine->GetSelectedPositionEnd();
+
+        int pm = PanelTimeLine->GetPlayMarker();
+        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1)
+        {
+            x1 = pm;
+            x2 = x1;
+        }
     }
     if (x2 == -1) x2 = x1;
     if (x1 == x2) is_range = false;
@@ -1411,6 +1418,13 @@ void MainSequencer::SplitTimingMark()
     {
         x1 = PanelTimeLine->GetSelectedPositionStart();
         x2 = PanelTimeLine->GetSelectedPositionEnd();
+
+        int pm = PanelTimeLine->GetPlayMarker();
+        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1)
+        {
+            x1 = pm;
+            x2 = x1;
+        }
     }
     if (x2 == -1) x2 = x1;
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();
