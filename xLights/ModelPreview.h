@@ -149,7 +149,7 @@ private:
     DrawGLUtils::xlAccumulator accumulator;
     Model* _model;
     xLightsFrame* xlights;
-	DrawGLUtils::xlVertex3Accumulator gridlines;
+	DrawGLUtils::xl3Accumulator view_object_accumulator;
     DrawGLUtils::xl3Accumulator accumulator3d;
     bool is_3d;
     bool m_mouse_down;

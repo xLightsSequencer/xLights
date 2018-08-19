@@ -3,20 +3,29 @@
 
 #include "BaseObject.h"
 #include "ModelScreenLocation.h"
-#include "ObjectManager.h"
+#include "ViewObjectManager.h"
 
 class ViewObject : public BaseObject
 {
-    public:
-        ViewObject(const ObjectManager &manger);
-        virtual ~ViewObject();
+public:
+    ViewObject(const ObjectManager &manger);
+    virtual ~ViewObject();
 
-        bool GetIs3dOnly() { return only_3d; }
+    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
+    void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
+    void SetFromXml(wxXmlNode* ObjectNode);
 
-    protected:
+    bool GetIs3dOnly() { return only_3d; }
 
-    private:
-        bool only_3d;
+    virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;
+    virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
+
+    virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) {};
+
+protected:
+
+private:
+    bool only_3d;
 };
 
 template <class ScreenLocation>
@@ -25,11 +34,11 @@ public:
     virtual const ModelScreenLocation &GetObjectScreenLocation() const {
         return screenLocation;
     }
-    virtual ModelScreenLocation &GetModelScreenLocation() {
+    virtual ModelScreenLocation &GetObjectScreenLocation() {
         return screenLocation;
     }
 protected:
-    ObjectWithScreenLocation(const ObjectManager &manager) : ViewObject(manager) {}
+    ObjectWithScreenLocation(const ViewObjectManager &manager) : ViewObject(manager) {}
     virtual ~ObjectWithScreenLocation() {}
     ScreenLocation screenLocation;
 };

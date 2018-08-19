@@ -62,14 +62,11 @@ public:
         return n.ToStdString();
     }
 
-    const std::string &Name() const { return name;}
-    const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
     void Rename(std::string newName);
     int GetNumStrings() const { return parm1; }
     virtual int GetNumPhysicalStrings() const { return parm1; }
 
-    std::string name;
     std::string description;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
@@ -113,8 +110,8 @@ public:
     void SetProperty(wxString property, wxString value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface *grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
+    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) { return 0; };
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
@@ -168,7 +165,6 @@ protected:
 
     int StrobeRate;      // 0=no strobing
     bool zeroBased;
-    wxXmlNode* ModelXml;
 
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
@@ -179,12 +175,8 @@ protected:
     std::vector<long> stringStartChan;
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
-    std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
-    std::string layout_group;
     std::string controller_connection;
     int rgbwHandlingType;
-
-    unsigned long changeCount;
 
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
@@ -213,7 +205,6 @@ public:
     void RemoveSubModel(const std::string &name);
     std::list<int> ParseFaceNodes(std::string channels);
 
-    void IncrementChangeCount() { ++changeCount;};
     unsigned long GetChangeCount() const { return changeCount; }
 
     std::string rgbOrder;
@@ -248,7 +239,6 @@ public:
     unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
-    wxXmlNode* GetModelXml() const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
@@ -258,8 +248,6 @@ public:
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
 
-    virtual const std::string &GetLayoutGroup() const {return layout_group;}
-    void SetLayoutGroup(const std::string &grp);
     std::list<std::string> GetFaceFiles() const;
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
@@ -282,7 +270,6 @@ public:
     void Lock(bool lock);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     const std::string& GetStringType(void) const { return StringType; }
-    const std::string& GetDisplayAs(void) const { return DisplayAs; }
     virtual int NodesPerString();
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y, ModelPreview* preview);

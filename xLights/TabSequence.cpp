@@ -66,6 +66,7 @@ void xLightsFrame::ResetEffectsXml()
 {
 	_sequenceViewManager.Reset();
     ModelsNode=nullptr;
+    ViewObjectsNode=nullptr;
     EffectsNode=nullptr;
     PalettesNode=nullptr;
     ModelGroupsNode=nullptr;
@@ -152,6 +153,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "models") ModelsNode=e;
+        if (e->GetName() == "view_objects") ViewObjectsNode=e;
         if (e->GetName() == "effects") EffectsNode=e;
         if (e->GetName() == "palettes") PalettesNode=e;
 		if (e->GetName() == "views") viewsNode = e;
@@ -166,6 +168,12 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     {
         ModelsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "models" );
         root->AddChild( ModelsNode );
+        UnsavedRgbEffectsChanges = true;
+    }
+    if (ViewObjectsNode == nullptr)
+    {
+        ViewObjectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "view_objects" );
+        root->AddChild( ViewObjectsNode );
         UnsavedRgbEffectsChanges = true;
     }
     if (EffectsNode == nullptr)
@@ -834,6 +842,7 @@ static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewMod
 void xLightsFrame::UpdateModelsList()
 {
     if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
+    if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
 
     playModel = nullptr;
     PreviewModels.clear();
@@ -843,6 +852,8 @@ void xLightsFrame::UpdateModelsList()
     AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
+
+    AllObjects.LoadViewObjects(ViewObjectsNode);
 
     std::vector<std::string> current;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {

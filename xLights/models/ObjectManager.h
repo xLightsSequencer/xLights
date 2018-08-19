@@ -17,9 +17,10 @@ public:
     virtual BaseObject *GetObject(const std::string &name) const = 0;
 
 protected:
+    wxXmlNode *modelNode;
+    wxXmlNode *groupNode;
 
 private:
-    wxXmlNode *modelNode;
 
 };
 

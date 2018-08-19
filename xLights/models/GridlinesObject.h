@@ -5,13 +5,21 @@
 
 class GridlinesObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
-    public:
-        virtual ~GridlinesObject();
+public:
+    GridlinesObject(wxXmlNode *node, const ViewObjectManager &manager);
+    virtual ~GridlinesObject();
 
-    protected:
-        GridlinesObject(const ObjectManager &manager);
+    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
 
-    private:
+    virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
+
+protected:
+
+private:
+    int line_spacing;
+    xlColor color;
+    float width;
+    float height;
 };
 
 #endif // GRIDLINESOBJECT_H

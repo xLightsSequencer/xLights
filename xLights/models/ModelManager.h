@@ -54,8 +54,6 @@ class ModelManager : public ObjectManager
         Model *createAndAddModel(wxXmlNode *node, int previewW, int previewH);
     private:
 
-    wxXmlNode *modelNode;
-    wxXmlNode *groupNode;
     wxXmlNode *layoutsNode;
     OutputManager* _outputManager;
     xLightsFrame* xlights;

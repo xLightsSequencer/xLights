@@ -1263,6 +1263,7 @@ public:
     wxXmlNode* ModelsNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* LayoutGroupsNode;
+    wxXmlNode* ViewObjectsNode;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();

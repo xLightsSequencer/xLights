@@ -10,6 +10,7 @@
 
 #include "ModelPreview.h"
 #include "models/Model.h"
+#include "models/ViewObject.h"
 #include "PreviewPane.h"
 #include "DrawGLUtils.h"
 #include "osxMacUtils.h"
@@ -182,6 +183,14 @@ void ModelPreview::render(wxPaintEvent& event)
 void ModelPreview::Render()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // draw all the view objects
+    if( is_3d ) {
+        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+            ViewObject *view_object = it->second;
+            view_object->Draw(view_object_accumulator, allowSelected);
+        }
+    }
 
     if (PreviewModels != nullptr)
     {
@@ -687,12 +696,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
             accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
             accumulator.Finish(GL_TRIANGLES);
         }
-        if (virtualWidth > 0 && virtualHeight > 0) {
-            drawGrid(virtualWidth, virtualHeight / 40);
-        }
-        else {
-            drawGrid(mWindowWidth, mWindowWidth / 40);
-        }
     }
 
     if (mBackgroundImageExists) {
@@ -738,7 +741,7 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     if (accumulator.count > maxVertexCount) {
         maxVertexCount = accumulator.count;
     }
-    DrawGLUtils::Draw(gridlines, xlColor(0, 128, 0), GL_LINES);
+    DrawGLUtils::Draw(view_object_accumulator);
     DrawGLUtils::Draw(accumulator);
     DrawGLUtils::Draw(accumulator3d);
     DrawGLUtils::PopMatrix();
@@ -746,40 +749,9 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     {
         LOG_GL_ERRORV(SwapBuffers());
     }
-    gridlines.Reset();
+    view_object_accumulator.Reset();
     accumulator3d.Reset();
     accumulator.Reset();
     mIsDrawing = false;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// draw a grid on the xz plane
-///////////////////////////////////////////////////////////////////////////////
-void ModelPreview::drawGrid(float size, float step)
-{
-	gridlines.PreAlloc(size/step * 24);
-
-	for (float i = 0; i <= size; i += step)
-	{
-		gridlines.AddVertex(-size, 0, i);   // lines parallel to X-axis
-		gridlines.AddVertex(size, 0, i);
-		gridlines.AddVertex(-size, 0, -i);   // lines parallel to X-axis
-		gridlines.AddVertex(size, 0, -i);
-
-		gridlines.AddVertex(i, 0, -size);   // lines parallel to Z-axis
-		gridlines.AddVertex(i, 0, size);
-		gridlines.AddVertex(-i, 0, -size);   // lines parallel to Z-axis
-		gridlines.AddVertex(-i, 0, size);
-	}
-
-	// x-axis
-	//glColor3f(0.5f, 0, 0);
-	//gridlines.AddVertex(-size, 0, 0);
-	//gridlines.AddVertex(size, 0, 0);
-
-	// z-axis
-	//glColor3f(0, 0, 0.5f);
-	//glVertex3f(0, 0, -size);
-	//glVertex3f(0, 0, size);
 }
 

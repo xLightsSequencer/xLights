@@ -50,9 +50,9 @@ return; \
 
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE, AS_PIXEL};
 
-Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
+Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
-    StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
+    StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
     splitRGB(false), rgbwHandlingType(0)
 {
     // These member vars were not initialised so give them some defaults.
@@ -1055,10 +1055,6 @@ std::string Model::ComputeStringStartChannel(int i) {
 
 int Model::GetNumStrands() const {
     return 1;
-}
-
-wxXmlNode* Model::GetModelXml() const {
-    return this->ModelXml;
 }
 
 bool Model::ModelRenamed(const std::string &oldName, const std::string &newName) {
@@ -3600,13 +3596,6 @@ void Model::RecalcStartChannels()
 
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetModelScreenLocation().AddSizeLocationProperties(grid);
-}
-
-void Model::SetLayoutGroup(const std::string &grp) {
-    layout_group = grp;
-    ModelXml->DeleteAttribute("LayoutGroup");
-    ModelXml->AddAttribute("LayoutGroup", grp);
-    IncrementChangeCount();
 }
 
 bool Model::SupportsXlightsModel()

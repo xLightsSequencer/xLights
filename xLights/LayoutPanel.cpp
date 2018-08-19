@@ -33,6 +33,7 @@
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
 #include "models/ModelGroup.h"
+#include "models/ViewObject.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
@@ -1016,7 +1017,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         if (grp->GetName() == currentLayoutGroup) {
             UpdateModelsForPreview(currentLayoutGroup, grp, models, true);
         } else {
-             UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
+            UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
         }
     }
 
@@ -3601,7 +3602,8 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     else if (id == ID_ADD_OBJECT_GRIDLINES)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
-
+        ViewObject* vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
+        vobj->SetLayoutGroup(currentLayoutGroup);
     }
     else if (id == ID_ADD_OBJECT_MESH)
     {
