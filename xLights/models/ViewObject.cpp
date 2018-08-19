@@ -27,7 +27,7 @@ void ViewObject::SetFromXml(wxXmlNode* ObjectNode) {
 
     GetObjectScreenLocation().Read(ObjectNode);
 
-    //InitModel();
+    InitModel();
 
     IncrementChangeCount();
 }

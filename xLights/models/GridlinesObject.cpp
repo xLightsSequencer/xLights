@@ -16,6 +16,18 @@ GridlinesObject::~GridlinesObject()
 {
 }
 
+void GridlinesObject::InitModel() {
+    if (ModelXml->HasAttribute("GridLineSpacing")) {
+        line_spacing = wxAtoi(ModelXml->GetAttribute("GridLineSpacing"));
+    }
+    if (ModelXml->HasAttribute("GridWidth")) {
+        width = wxAtof(ModelXml->GetAttribute("GridWidth"));
+    }
+    if (ModelXml->HasAttribute("GridHeight")) {
+        height = wxAtof(ModelXml->GetAttribute("GridHeight"));
+    }
+}
+
 void GridlinesObject::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty *p = grid->Append(new wxUIntProperty("Line Spacing", "GridLineSpacing", line_spacing));
@@ -32,27 +44,27 @@ void GridlinesObject::Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
 	xlColor xaxis = xlColor(128,0,0);
 	xlColor zaxis = xlColor(0,0,128);
 
-	float half_size = width / 2.0f;
-	for (float i = 0; i <= half_size; i += line_spacing)
+    float half_width = width / 2.0f;
+    float half_height = height / 2.0f;
+    for (float i = 0; i <= half_height; i += line_spacing)
 	{
-		va3.AddVertex(-half_size, 0, i, color);
-		va3.AddVertex(half_size, 0, i, color);
-		va3.AddVertex(-half_size, 0, -i, color);
-		va3.AddVertex(half_size, 0, -i, color);
+		va3.AddVertex(-half_width, 0, i, color);
+		va3.AddVertex(half_width, 0, i, color);
+		va3.AddVertex(-half_width, 0, -i, color);
+		va3.AddVertex(half_width, 0, -i, color);
 	}
-	va3.AddVertex(-half_size, 0, 0, xaxis);
-	va3.AddVertex(half_size, 0, 0, xaxis);
+	va3.AddVertex(-half_width, 0, 0, xaxis);
+	va3.AddVertex(half_width, 0, 0, xaxis);
 
-	half_size = height / 2.0f;
-	for (float i = 0; i <= half_size; i += line_spacing)
+	for (float i = 0; i <= half_width; i += line_spacing)
 	{
-		va3.AddVertex(i, 0, -half_size, color);
-		va3.AddVertex(i, 0, half_size, color);
-		va3.AddVertex(-i, 0, -half_size, color);
-		va3.AddVertex(-i, 0, half_size, color);
+		va3.AddVertex(i, 0, -half_height, color);
+		va3.AddVertex(i, 0, half_height, color);
+		va3.AddVertex(-i, 0, -half_height, color);
+		va3.AddVertex(-i, 0, half_height, color);
 	}
-	va3.AddVertex(0, 0, -half_size, zaxis);
-	va3.AddVertex(0, 0, half_size, zaxis);
+	va3.AddVertex(0, 0, -half_height, zaxis);
+	va3.AddVertex(0, 0, half_height, zaxis);
 
     va3.Finish(GL_LINES);
 }

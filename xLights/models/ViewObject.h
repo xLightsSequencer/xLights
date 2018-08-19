@@ -14,6 +14,7 @@ public:
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
     void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     void SetFromXml(wxXmlNode* ObjectNode);
+    virtual void InitModel() = 0;
 
     bool GetIs3dOnly() { return only_3d; }
 

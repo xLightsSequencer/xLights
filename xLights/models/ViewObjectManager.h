@@ -17,6 +17,7 @@ public:
     ViewObject *GetViewObject(const std::string &name) const;
 
     ViewObject* CreateAndAddObject(const std::string &type);
+    ViewObject* CreateObject(wxXmlNode *node) const;
     void AddViewObject(ViewObject *view_object);
 
     void LoadViewObjects(wxXmlNode *objectNode);

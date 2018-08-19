@@ -9,6 +9,8 @@ public:
     GridlinesObject(wxXmlNode *node, const ViewObjectManager &manager);
     virtual ~GridlinesObject();
 
+    virtual void InitModel() override;
+
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
 
     virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;

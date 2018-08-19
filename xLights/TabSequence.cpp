@@ -174,6 +174,14 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     {
         ViewObjectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "view_objects" );
         root->AddChild( ViewObjectsNode );
+        wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "view_object");
+        ViewObjectsNode->AddChild(node);
+        node->AddAttribute("DisplayAs", "Gridlines");
+        node->AddAttribute("LayoutGroup", "Default");
+        node->AddAttribute("name", "Gridlines");
+        node->AddAttribute("GridLineSpacing", "50");
+        node->AddAttribute("GridWidth", "2000.0");
+        node->AddAttribute("GridHeight", "1000.0");
         UnsavedRgbEffectsChanges = true;
     }
     if (EffectsNode == nullptr)

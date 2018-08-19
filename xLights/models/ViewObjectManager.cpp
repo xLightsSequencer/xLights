@@ -47,6 +47,15 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
     return view_object;
 }
 
+ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
+    std::string type = node->GetAttribute("DisplayAs").ToStdString();
+    ViewObject *view_object;
+    if (type == "Gridlines") {
+        view_object = new GridlinesObject(node, *this);
+    }
+    return view_object;
+}
+
 void ViewObjectManager::AddViewObject(ViewObject *view_object) {
     if (view_object != nullptr) {
         auto it = view_objects.find(view_object->name);
@@ -89,7 +98,7 @@ void ViewObjectManager::LoadViewObjects(wxXmlNode *modelNode) {
     clear();
     this->modelNode = modelNode;
     for (wxXmlNode* e=modelNode->GetChildren(); e!=nullptr; e=e->GetNext()) {
-        if (e->GetName() == "model") {
+        if (e->GetName() == "view_object") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
                 ViewObject *v = createAndAddObject(e);
@@ -99,8 +108,8 @@ void ViewObjectManager::LoadViewObjects(wxXmlNode *modelNode) {
 }
 
 ViewObject *ViewObjectManager::createAndAddObject(wxXmlNode *node) {
-    std::string type = node->GetAttribute("DisplayAs").ToStdString();
-    ViewObject *view_object = CreateAndAddObject(type);
+    ViewObject* view_object = CreateObject(node);
+    AddViewObject(view_object);
     return view_object;
 }
 
