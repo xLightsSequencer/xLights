@@ -11,10 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.29 August 19, 2018
    -- enh (keith)  Add key binding support for presets
    -- enh (keith)  Add a link to zoom in the help menu
    -- bug (keith)  Unable to enter text in controls if key is assigned in keybindings
    -- enh (keith)  Add warning about setting which stops FSEQ save as that setting is undesirable for most users
+   -- bug (keith)  Fix a bunch of minor errors in xSchedule - play random step in specified playlist, some play list item names not saving, high midi cpu
+   -- enh (keith)  Allow timing mark creation after pausing playback
+   -- bug (keith)  Fix timing tags dont load properly
+   -- bug (keith)  Fix morph text control is not editable
 2018.28 August 18, 2018
    -- bug (gil)    Fix VSA Imports with multiple event types and treat DMX relays as 8bit effects.
    -- enh (keith)  Extend significantly the keybindings available functions
