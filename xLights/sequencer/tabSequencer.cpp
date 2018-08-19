@@ -1763,8 +1763,10 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 }
 
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
-    std::string palette;
-    std::string effectText = GetEffectTextFromWindows(palette);
+
+    // Get only the colours from the colour panel ... ignore all the other settings
+    std::string palette = colorPanel->GetColorString(true);
+
     mSequenceElements.get_undo_mgr().CreateUndoStep();
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
@@ -1778,7 +1780,8 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
                                                                        ef);
-                ef->SetPalette(palette);
+                // only set the colours ... not other settings like sparkles
+                ef->SetColourOnlyPalette(palette);
                 startms = std::min(startms, ef->GetStartTimeMS());
                 endms = std::max(endms, ef->GetEndTimeMS());
             }

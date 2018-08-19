@@ -102,6 +102,7 @@ public:
     const SettingsMap &GetPaletteMap() const { return mPaletteMap; }
     std::string GetPaletteAsString() const;
     void SetPalette(const std::string& i);
+    void SetColourOnlyPalette(const std::string & i);
     void CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const;
 
     /* Do NOT call these on any thread other than the main thread */

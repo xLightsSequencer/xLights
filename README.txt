@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Change the colour panel update button to purely apply the colour palette. All other colour settings are ignored.
 2018.29 August 19, 2018
    -- enh (keith)  Add key binding support for presets
    -- enh (keith)  Add a link to zoom in the help menu

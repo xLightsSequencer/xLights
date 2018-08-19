@@ -53,7 +53,7 @@ public:
 
         void SetColorCount(int count);
         void SetDefaultSettings(bool optionbased = false);
-        wxString GetColorString();
+        wxString GetColorString(bool colourOnly = false);
         wxString GetRandomColorString();
         void SetSupports(bool linear, bool radial);
         void ValidateWindow();

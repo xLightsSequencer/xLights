@@ -454,6 +454,37 @@ void Effect::SetPalette(const std::string& i)
     ParseColorMap(mPaletteMap, mColors, mCC);
 }
 
+// This only updates the colour palette ... preserving all the other colour settings
+void Effect::SetColourOnlyPalette(const std::string& i)
+{
+    std::unique_lock<std::recursive_mutex> lock(settingsLock);
+
+    // save the old palette
+    auto oldPalette = mPaletteMap;
+
+    // parse in the new one
+    mPaletteMap.Parse(i);
+
+    // copy over all the non colour entries
+    for (auto it = oldPalette.begin(); it != oldPalette.end(); ++it)
+    {
+        wxString key(it->first);
+        if (!key.StartsWith("C_BUTTON_Palette") && !key.StartsWith("C_CHECKBOX_Palette"))
+        {
+            mPaletteMap[it->first] = it->second;
+        }
+    }
+
+    mColors.clear();
+    mCC.clear();
+    IncrementChangeCount();
+    if (mPaletteMap.empty())
+    {
+        return;
+    }
+    ParseColorMap(mPaletteMap, mColors, mCC);
+}
+
 void Effect::CopyPalette(xlColorVector &target, xlColorCurveVector& newcc) const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
