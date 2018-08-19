@@ -32,7 +32,6 @@ public:
     #pragma region Getters and Setters
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
-    std::string GetRawName() const { return _name; }
     void SetMajor(const int major) { if (_major != major) { _major = major; _changeCount++; } }
     void SetMinor(const int minor) { if (_minor != minor) { _minor = minor; _changeCount++; } }
     void SetIP(const std::string ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }

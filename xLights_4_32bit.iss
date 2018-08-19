@@ -15,7 +15,7 @@
 
 #define MyTitleName "xLights" 
 #define Year 2018
-#define Version 28
+#define Version 29
 #define Bits 32
 #define Other "_3D_BETA"
 

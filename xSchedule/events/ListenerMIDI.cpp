@@ -137,4 +137,8 @@ void ListenerMIDI::Poll()
             }
         }
     }
+    else
+    {
+        wxMilliSleep(100);
+    }
 }

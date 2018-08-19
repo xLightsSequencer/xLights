@@ -55,7 +55,6 @@
 															<value>0</value>
 															<maxlength>3</maxlength>
 															<size>20,-1d</size>
-															<style>wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL</style>
 														</object>
 														<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 														<border>1</border>

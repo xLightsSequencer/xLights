@@ -31,7 +31,7 @@ public:
 
     #pragma region Getters and Setters
     std::string GetNameNoTime() const override;
-    std::string GetRawName() const { return _name; }
+
     void SetCommand(const std::string& command) {
         if (_command != command) { _command = command; _changeCount++; }
     }

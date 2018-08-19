@@ -2062,9 +2062,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         if (r != nullptr)
                         {
                             rate = p->JumpToStep(r->GetNameNoTime());
+                            scheduleChanged = true;
                         }
                     }
-                    scheduleChanged = true;
                 }
                 else if (command == "Jump to random step in specified playlist")
                 {
@@ -2075,10 +2075,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         auto r = p->GetRandomStep();
                         if (r != nullptr)
                         {
-                            rate = p->JumpToStep(r->GetNameNoTime());
+                            PlayPlayList(p, rate, false, r->GetNameNoTime(), false);
+                            scheduleChanged = true;
                         }
                     }
-                    scheduleChanged = true;
                 }
                 else if (command == "Add to the current schedule n minutes")
                 {

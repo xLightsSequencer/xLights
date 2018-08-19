@@ -528,6 +528,17 @@ void RenderCacheItem::Save()
 
     char zero = 0x00;
 
+    // check all the data is there
+    for (auto itm = _frames.begin(); itm != _frames.end(); ++itm)
+    {
+        for (auto it = itm->second.begin(); it != itm->second.end(); ++it)
+        {
+            // we are missing data
+            //wxASSERT(false);
+            if (*it == nullptr) return;
+        }
+    }
+
     wxFile file;
 
     if (file.Create(_cacheFile, true))

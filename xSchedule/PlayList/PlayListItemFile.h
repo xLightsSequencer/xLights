@@ -30,7 +30,6 @@ public:
     #pragma region Getters and Setters
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
-    std::string GetRawName() const { return _name; }
     void SetContent(const std::string& content) { if (_content != content) { _content = content; _changeCount++; } }
     void SetFileName(const std::string& fileName) { if (_fileName != fileName) { _fileName = fileName; _changeCount++; } }
     std::string GetContent() const { return _content; }

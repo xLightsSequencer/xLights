@@ -46,7 +46,7 @@ public:
 
     #pragma region Getters and Setters
     static std::string GetTooltip(const std::string& type);
-    std::string GetRawName() const { return _name; }
+
     void SetSpeed(int speed) { if (_speed != speed) { _speed = speed; _changeCount++; } }
     int GetSpeed() const { return _speed; }
     void SetBlendMode(const std::string& blendMode) { if (_blendMode != EncodeBlendMode(blendMode)) { _blendMode = EncodeBlendMode(blendMode); _changeCount++; } }

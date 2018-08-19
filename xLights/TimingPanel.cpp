@@ -93,7 +93,7 @@ TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	Slider_EffectLayerMix = new BulkEditSlider(ScrolledWindowTiming, ID_SLIDER_EffectLayerMix, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_EffectLayerMix"));
 	Slider_EffectLayerMix->SetMinSize(wxDLG_UNIT(ScrolledWindowTiming,wxSize(30,-1)));
 	FlexGridSizer1->Add(Slider_EffectLayerMix, 1, wxALL|wxEXPAND, 1);
-	TextCtrl_EffectLayerMix = new BulkEditTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_EffectLayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), wxTE_PROCESS_ENTER|wxTAB_TRAVERSAL, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectLayerMix"));
+	TextCtrl_EffectLayerMix = new BulkEditTextCtrl(ScrolledWindowTiming, IDD_TEXTCTRL_EffectLayerMix, _("0"), wxDefaultPosition, wxDLG_UNIT(ScrolledWindowTiming,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_EffectLayerMix"));
 	TextCtrl_EffectLayerMix->SetMaxLength(3);
 	FlexGridSizer1->Add(TextCtrl_EffectLayerMix, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
 	FlexGridSizer2->Add(FlexGridSizer1, 1, wxALL|wxEXPAND, 2);

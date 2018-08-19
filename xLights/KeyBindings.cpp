@@ -39,15 +39,24 @@ std::string KeyBinding::Description() const
         res += EncodeKey(_key, _shift);
         res += "'";
     }
-    res += "   : ";
 
-    if (_type == "EFFECT")
+    while (res.size() < 22)
     {
-        res += _effectName;
+        res += " ";
+    }
+
+    res += ": ";
+
+    if (_type == "EFFECT" || _type == "PRESET")
+    {
+        res += _type + " " + _effectName;
     }
     else
     {
-        res += _type;
+        wxString t = _type;
+        t.Replace("_", " ");
+        t = t.Capitalize();
+        res += t;
     }
     return res;
 }
@@ -65,38 +74,37 @@ const std::map<wxKeyCode, wxKeyCode> KeyEquivalents =
     { (wxKeyCode)'7', WXK_NUMPAD7 },
     { (wxKeyCode)'8', WXK_NUMPAD8 },
     { (wxKeyCode)'9', WXK_NUMPAD9 },
-{ (wxKeyCode)'*', WXK_MULTIPLY},
-{ (wxKeyCode)'+', WXK_ADD},
-{ (wxKeyCode)'-', WXK_SUBTRACT},
-{ (wxKeyCode)'.', WXK_DECIMAL},
-{ (wxKeyCode)'/', WXK_DIVIDE},
-{ WXK_TAB, WXK_NUMPAD_TAB },
-{ WXK_SPACE, WXK_NUMPAD_SPACE},
-{ WXK_RETURN, WXK_NUMPAD_ENTER},
-{ WXK_F1, WXK_NUMPAD_F1},
-{ WXK_F2, WXK_NUMPAD_F2},
-{ WXK_F3, WXK_NUMPAD_F3},
-{ WXK_F4, WXK_NUMPAD_F4},
-{ WXK_HOME, WXK_NUMPAD_HOME},
-{ WXK_LEFT, WXK_NUMPAD_LEFT},
-{ WXK_RIGHT, WXK_NUMPAD_RIGHT},
-{ WXK_UP, WXK_NUMPAD_UP},
-{ WXK_DOWN, WXK_NUMPAD_DOWN},
-{ WXK_PAGEUP, WXK_NUMPAD_PAGEUP},
-{ WXK_PAGEDOWN, WXK_NUMPAD_PAGEDOWN},
-{ WXK_END, WXK_NUMPAD_END},
-{ WXK_HOME, WXK_NUMPAD_BEGIN},
-{ WXK_DELETE, WXK_NUMPAD_DELETE},
-{ (wxKeyCode)'=', WXK_NUMPAD_EQUAL },
-{ (wxKeyCode)'*', WXK_NUMPAD_MULTIPLY},
-{ (wxKeyCode)'+', WXK_NUMPAD_ADD},
-{ (wxKeyCode)'-', WXK_NUMPAD_SUBTRACT},
-{ (wxKeyCode)'.', WXK_NUMPAD_DECIMAL},
-{ (wxKeyCode)'/', WXK_NUMPAD_DIVIDE}
+    { (wxKeyCode)'*', WXK_MULTIPLY},
+    { (wxKeyCode)'+', WXK_ADD},
+    { (wxKeyCode)'-', WXK_SUBTRACT},
+    { (wxKeyCode)'.', WXK_DECIMAL},
+    { (wxKeyCode)'/', WXK_DIVIDE},
+    { WXK_TAB, WXK_NUMPAD_TAB },
+    { WXK_SPACE, WXK_NUMPAD_SPACE},
+    { WXK_RETURN, WXK_NUMPAD_ENTER},
+    { WXK_F1, WXK_NUMPAD_F1},
+    { WXK_F2, WXK_NUMPAD_F2},
+    { WXK_F3, WXK_NUMPAD_F3},
+    { WXK_F4, WXK_NUMPAD_F4},
+    { WXK_HOME, WXK_NUMPAD_HOME},
+    { WXK_LEFT, WXK_NUMPAD_LEFT},
+    { WXK_RIGHT, WXK_NUMPAD_RIGHT},
+    { WXK_UP, WXK_NUMPAD_UP},
+    { WXK_DOWN, WXK_NUMPAD_DOWN},
+    { WXK_PAGEUP, WXK_NUMPAD_PAGEUP},
+    { WXK_PAGEDOWN, WXK_NUMPAD_PAGEDOWN},
+    { WXK_END, WXK_NUMPAD_END},
+    { WXK_HOME, WXK_NUMPAD_BEGIN},
+    { WXK_DELETE, WXK_NUMPAD_DELETE},
+    { (wxKeyCode)'=', WXK_NUMPAD_EQUAL },
+    { (wxKeyCode)'*', WXK_NUMPAD_MULTIPLY},
+    { (wxKeyCode)'+', WXK_NUMPAD_ADD},
+    { (wxKeyCode)'-', WXK_NUMPAD_SUBTRACT},
+    { (wxKeyCode)'.', WXK_NUMPAD_DECIMAL},
+    { (wxKeyCode)'/', WXK_NUMPAD_DIVIDE}
 };
 
-
-bool KeyBinding::IsKey(wxKeyCode key)
+bool KeyBinding::IsKey(wxKeyCode key) const
 {
     if (_key == key) return true;
 
@@ -111,108 +119,109 @@ bool KeyBinding::IsKey(wxKeyCode key)
 }
 
 // These are the keys that were hard coded before 2018.28 and thus need to be inserted if they are not present
-const std::map<std::string, std::string> ConvertKeys = 
+const std::map<std::string, std::string> ConvertKeys =
 {
-{"OPEN_SEQUENCE", "CTRL+O"},
-{"NEW_SEQUENCE", "CTRL+N"},
-{"PAUSE", "CTRL+PAUSE"},
-{"START_OF_SONG", "+HOME"},
-{"END_OF_SONG", "+END"},
-{"SAVE_CURRENT_TAB", "CTRL+S"},
-{ "MARK_SPOT", "CTRL+."},
-{"RETURN_TO_SPOT","CTRL+/"},
-{"SELECT_ALL","CTRL+SHIFT+A"},
-{"SELECT_ALL_NO_TIMING","CTRL+A"},
-{"TOGGLE_PLAY","+ "},
-{"BACKUP","+F10"},
-{"ALTERNATE_BACKUP","+F11"},
-{"SELECT_SHOW_FOLDER","+F9"},
+    {"OPEN_SEQUENCE", "CTRL+O"},
+    {"NEW_SEQUENCE", "CTRL+N"},
+    {"PAUSE", "CTRL+PAUSE"},
+    {"START_OF_SONG", "+HOME"},
+    {"END_OF_SONG", "+END"},
+    {"SAVE_CURRENT_TAB", "CTRL+S"},
+    {"MARK_SPOT", "CTRL+."},
+    {"RETURN_TO_SPOT","CTRL+/"},
+    {"SELECT_ALL","CTRL+SHIFT+A"},
+    {"SELECT_ALL_NO_TIMING","CTRL+A"},
+    {"TOGGLE_PLAY","+ "},
+    {"BACKUP","+F10"},
+    {"ALTERNATE_BACKUP","+F11"},
+    {"SELECT_SHOW_FOLDER","+F9"},
 };
 
 void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding("F10", false, "BACKUP"));
     bindings.push_back(KeyBinding("F11", false, "ALTERNATE_BACKUP"));
     bindings.push_back(KeyBinding("F9", false, "SELECT_SHOW_FOLDER"));
-    bindings.push_back(KeyBinding(' ', true, "LIGHTS_TOGGLE", true));
-    bindings.push_back(KeyBinding('o', false, "OPEN_SEQUENCE", true));
-    bindings.push_back(KeyBinding(' ', true, "CLOSE_SEQUENCE", true, false, true));
-    bindings.push_back(KeyBinding('n', false, "NEW_SEQUENCE", true));
-    bindings.push_back(KeyBinding(' ', true, "PASTE_BY_CELL", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "PASTE_BY_TIME", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "SEQUENCE_SETTINGS", true, true));
-    bindings.push_back(KeyBinding(' ', true, "PLAY_LOOP"));
+    bindings.push_back(KeyBinding("", true, "LIGHTS_TOGGLE"));
+    bindings.push_back(KeyBinding("o", false, "OPEN_SEQUENCE", true));
+    bindings.push_back(KeyBinding("", true, "CLOSE_SEQUENCE"));
+    bindings.push_back(KeyBinding("n", false, "NEW_SEQUENCE", true));
+    bindings.push_back(KeyBinding("", true, "RENDER_ALL"));
+    bindings.push_back(KeyBinding("", true, "PASTE_BY_CELL"));
+    bindings.push_back(KeyBinding("", true, "PASTE_BY_TIME"));
+    bindings.push_back(KeyBinding("", true, "SEQUENCE_SETTINGS"));
+    bindings.push_back(KeyBinding("", true, "PLAY_LOOP"));
     bindings.push_back(KeyBinding("HOME", false, "START_OF_SONG"));
     bindings.push_back(KeyBinding("END", false, "END_OF_SONG"));
-    bindings.push_back(KeyBinding(' ', true, "PLAY"));
-    bindings.push_back(KeyBinding(' ', false, "TOGGLE_PLAY"));
-    bindings.push_back(KeyBinding(' ', true, "STOP", true));
+    bindings.push_back(KeyBinding("", true, "PLAY"));
+    bindings.push_back(KeyBinding("SPACE", false, "TOGGLE_PLAY"));
+    bindings.push_back(KeyBinding("", true, "STOP"));
     bindings.push_back(KeyBinding("PAUSE", false, "PAUSE"));
 
-    bindings.push_back(KeyBinding('s', false, "SAVE_CURRENT_TAB", true));
-    bindings.push_back(KeyBinding('s', true, "SAVE_SEQUENCE", true));
-    bindings.push_back(KeyBinding('S', true, "SAVEAS_SEQUENCE", true, false, true));
-    bindings.push_back(KeyBinding('t', false, "TIMING_ADD"));
-    bindings.push_back(KeyBinding('s', false, "TIMING_SPLIT"));
-    bindings.push_back(KeyBinding('+', false, "ZOOM_IN"));
-    bindings.push_back(KeyBinding('-', false, "ZOOM_OUT"));
-    bindings.push_back(KeyBinding('R', false, "RANDOM", false, false, true));
-    bindings.push_back(KeyBinding("F1", false, "EFFECT_SETTINGS_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F8", false, "EFFECT_ASSIST_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F2", false, "COLOR_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F3", false, "LAYER_SETTING_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F4", false, "LAYER_BLENDING_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F5", false, "MODEL_PREVIEW_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F6", false, "HOUSE_PREVIEW_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F9", false, "EFFECTS_TOGGLE", true, true, false));
-    bindings.push_back(KeyBinding("F7", false, "DISPLAY_ELEMENTS_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F8", false, "JUKEBOX_TOGGLE", true, false));
-    bindings.push_back(KeyBinding('l', false, "LOCK_EFFECT", true, false, false));
-    bindings.push_back(KeyBinding('u', false, "UNLOCK_EFFECT", true, false, false));
-    bindings.push_back(KeyBinding('.', false, "MARK_SPOT", true, false));
-    bindings.push_back(KeyBinding('/', false, "RETURN_TO_SPOT", true, false));
-    bindings.push_back(KeyBinding(' ', true, "EFFECT_DESCRIPTION", true, false));
-    bindings.push_back(KeyBinding(' ', true, "EFFECT_ALIGN_START", true, true));
-    bindings.push_back(KeyBinding(' ', true, "EFFECT_ALIGN_END", true, true));
-    bindings.push_back(KeyBinding(' ', true, "EFFECT_ALIGN_BOTH", true, true));
-    bindings.push_back(KeyBinding('I', false, "INSERT_LAYER_ABOVE", true, false, true));
-    bindings.push_back(KeyBinding('A', false, "INSERT_LAYER_BELOW", true, false, true));
-    bindings.push_back(KeyBinding('X', false, "TOGGLE_ELEMENT_EXPAND", true, false, true));
-    bindings.push_back(KeyBinding("F10", false, "SHOW_PRESETS", true, false));
-    bindings.push_back(KeyBinding("F11", false, "SEARCH_TOGGLE", true, false));
-    bindings.push_back(KeyBinding("F12", false, "PERSPECTIVES_TOGGLE", true, false));
- 
-    bindings.push_back(KeyBinding('l', false, "LOCK_MODEL", true, false, false));
-    bindings.push_back(KeyBinding('u', false, "UNLOCK_MODEL", true, false, false));
-    bindings.push_back(KeyBinding('g', false, "GROUP_MODELS", true, false));
-    bindings.push_back(KeyBinding(' ', true, "WIRING_VIEW", true, false));
-    bindings.push_back(KeyBinding(' ', true, "NODE_LAYOUT", true, false));
-    bindings.push_back(KeyBinding(' ', true, "SAVE_LAYOUT", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_ALIGN_TOP", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_ALIGN_BOTTOM", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_ALIGN_LEFT", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_ALIGN_RIGHT", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_ALIGN_CENTER_VERT", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_ALIGN_CENTER_HORIZ", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_DISTRIBUTE_HORIZ", true, false, true));
-    bindings.push_back(KeyBinding(' ', true, "MODEL_DISTRIBUTE_VERT", true, false, true));
+    bindings.push_back(KeyBinding("s", false, "SAVE_CURRENT_TAB", true));
+    bindings.push_back(KeyBinding("", true, "SAVE_SEQUENCE", true));
+    bindings.push_back(KeyBinding("", true, "SAVEAS_SEQUENCE", true, false, true));
+    bindings.push_back(KeyBinding("t", false, "TIMING_ADD"));
+    bindings.push_back(KeyBinding("s", false, "TIMING_SPLIT"));
+    bindings.push_back(KeyBinding("+", false, "ZOOM_IN"));
+    bindings.push_back(KeyBinding("-", false, "ZOOM_OUT"));
+    bindings.push_back(KeyBinding(std::string("R"), false, "RANDOM", false, false, true));
+    bindings.push_back(KeyBinding("F1", false, "EFFECT_SETTINGS_TOGGLE", true));
+    bindings.push_back(KeyBinding("F8", false, "EFFECT_ASSIST_TOGGLE", true));
+    bindings.push_back(KeyBinding("F2", false, "COLOR_TOGGLE", true));
+    bindings.push_back(KeyBinding("F3", false, "LAYER_SETTING_TOGGLE", true));
+    bindings.push_back(KeyBinding("F4", false, "LAYER_BLENDING_TOGGLE", true));
+    bindings.push_back(KeyBinding("F5", false, "MODEL_PREVIEW_TOGGLE", true));
+    bindings.push_back(KeyBinding("F6", false, "HOUSE_PREVIEW_TOGGLE", true));
+    bindings.push_back(KeyBinding("F9", false, "EFFECTS_TOGGLE", true, true));
+    bindings.push_back(KeyBinding("F7", false, "DISPLAY_ELEMENTS_TOGGLE", true));
+    bindings.push_back(KeyBinding("F8", false, "JUKEBOX_TOGGLE", true));
+    bindings.push_back(KeyBinding("l", false, "LOCK_EFFECT", true));
+    bindings.push_back(KeyBinding("u", false, "UNLOCK_EFFECT", true));
+    bindings.push_back(KeyBinding(".", false, "MARK_SPOT", true));
+    bindings.push_back(KeyBinding("/", false, "RETURN_TO_SPOT", true));
+    bindings.push_back(KeyBinding("", true, "EFFECT_DESCRIPTION", true));
+    bindings.push_back(KeyBinding("", true, "EFFECT_ALIGN_START", true, true));
+    bindings.push_back(KeyBinding("", true, "EFFECT_ALIGN_END", true, true));
+    bindings.push_back(KeyBinding("", true, "EFFECT_ALIGN_BOTH", true, true));
+    bindings.push_back(KeyBinding(std::string("I"), false, "INSERT_LAYER_ABOVE", true, false, true));
+    bindings.push_back(KeyBinding(std::string("A"), false, "INSERT_LAYER_BELOW", true, false, true));
+    bindings.push_back(KeyBinding(std::string("X"), false, "TOGGLE_ELEMENT_EXPAND", true, false, true));
+    bindings.push_back(KeyBinding("F10", false, "SHOW_PRESETS", true));
+    bindings.push_back(KeyBinding("F11", false, "SEARCH_TOGGLE", true));
+    bindings.push_back(KeyBinding("F12", false, "PERSPECTIVES_TOGGLE", true));
 
-    bindings.push_back(KeyBinding('o', false, "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100", xlights_version_string));
-    bindings.push_back(KeyBinding('u', false, "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0", xlights_version_string));
-    bindings.push_back(KeyBinding('d', false, "On", "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100", xlights_version_string));
-    bindings.push_back(KeyBinding('m', false, "Morph", "", xlights_version_string));
-    bindings.push_back(KeyBinding('c', false, "Curtain", "", xlights_version_string));
-    bindings.push_back(KeyBinding('i', false, "Circles", "", xlights_version_string));
-    bindings.push_back(KeyBinding('b', false, "Bars", "", xlights_version_string));
-    bindings.push_back(KeyBinding('y', false, "Butterfly", "", xlights_version_string));
-    bindings.push_back(KeyBinding('f', false, "Fire", "", xlights_version_string));
-    bindings.push_back(KeyBinding('g', false, "Garlands", "", xlights_version_string));
-    bindings.push_back(KeyBinding('p', false, "Pinwheel", "", xlights_version_string));
-    bindings.push_back(KeyBinding('r', false, "Ripple", "", xlights_version_string));
-    bindings.push_back(KeyBinding('x', false, "Text", "", xlights_version_string));
-    bindings.push_back(KeyBinding('S', false, "Spirals", "", xlights_version_string, false, false, true));
-    bindings.push_back(KeyBinding('w', false, "Color Wash", "", xlights_version_string));
-    bindings.push_back(KeyBinding('n', false, "Snowflakes", "", xlights_version_string));
-    bindings.push_back(KeyBinding('O', false, "Off", "", xlights_version_string, false, false, true));
+    bindings.push_back(KeyBinding("l", false, "LOCK_MODEL", true));
+    bindings.push_back(KeyBinding("u", false, "UNLOCK_MODEL", true));
+    bindings.push_back(KeyBinding("g", false, "GROUP_MODELS", true));
+    bindings.push_back(KeyBinding("", true, "WIRING_VIEW", true));
+    bindings.push_back(KeyBinding("", true, "NODE_LAYOUT", true));
+    bindings.push_back(KeyBinding("", true, "SAVE_LAYOUT", true, false, true));
+    bindings.push_back(KeyBinding("", true, "MODEL_ALIGN_TOP", true, false, true));
+    bindings.push_back(KeyBinding("", true, "MODEL_ALIGN_BOTTOM", true, false, true));
+    bindings.push_back(KeyBinding("", true, "MODEL_ALIGN_LEFT", true, false, true));
+    bindings.push_back(KeyBinding("", true, "MODEL_ALIGN_RIGHT", true, false, true));
+    bindings.push_back(KeyBinding("", true, "MODEL_ALIGN_CENTER_VERT", true, false, true));
+    bindings.push_back(KeyBinding("", true, "MODEL_ALIGN_CENTER_HORIZ", true, false, true));
+    bindings.push_back(KeyBinding("", true, wxString("MODEL_DISTRIBUTE_HORIZ"), true, false, true));
+    bindings.push_back(KeyBinding("", true, wxString("MODEL_DISTRIBUTE_VERT"), true, false, true));
+
+    bindings.push_back(KeyBinding("o", false, "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=100", xlights_version_string));
+    bindings.push_back(KeyBinding("u", false, "On", "E_TEXTCTRL_Eff_On_End=100,E_TEXTCTRL_Eff_On_Start=0", xlights_version_string));
+    bindings.push_back(KeyBinding("d", false, "On", "E_TEXTCTRL_Eff_On_End=0,E_TEXTCTRL_Eff_On_Start=100", xlights_version_string));
+    bindings.push_back(KeyBinding("m", false, "Morph", "", xlights_version_string));
+    bindings.push_back(KeyBinding("c", false, "Curtain", "", xlights_version_string));
+    bindings.push_back(KeyBinding("i", false, "Circles", "", xlights_version_string));
+    bindings.push_back(KeyBinding("b", false, "Bars", "", xlights_version_string));
+    bindings.push_back(KeyBinding("y", false, "Butterfly", "", xlights_version_string));
+    bindings.push_back(KeyBinding("f", false, "Fire", "", xlights_version_string));
+    bindings.push_back(KeyBinding("g", false, "Garlands", "", xlights_version_string));
+    bindings.push_back(KeyBinding("p", false, "Pinwheel", "", xlights_version_string));
+    bindings.push_back(KeyBinding("r", false, "Ripple", "", xlights_version_string));
+    bindings.push_back(KeyBinding("x", false, "Text", "", xlights_version_string));
+    bindings.push_back(KeyBinding("S", false, "Spirals", "", xlights_version_string, false, false, true));
+    bindings.push_back(KeyBinding("w", false, "Color Wash", "", xlights_version_string));
+    bindings.push_back(KeyBinding("n", false, "Snowflakes", "", xlights_version_string));
+    bindings.push_back(KeyBinding("O", false, "Off", "", xlights_version_string, false, false, true));
     bindings.push_back(KeyBinding("F", false, "Fan", "", xlights_version_string, false, false, true));
 }
 
@@ -265,17 +274,17 @@ wxString KeyBinding::EncodeKey(wxKeyCode key, bool shift)
     case WXK_F6:
         return "F6";
     case WXK_F7:
-        return "F7"; 
+        return "F7";
     case WXK_F8:
         return "F8";
     case WXK_F9:
-        return "F9"; 
+        return "F9";
     case WXK_F10:
-        return "F10"; 
+        return "F10";
     case WXK_F11:
         return "F11";
     case WXK_F12:
-        return "F12"; 
+        return "F12";
     default:
         wxASSERT(key > 32 && key < 128);
         auto s = wxString((char)key);
@@ -452,12 +461,20 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                         if (child->GetChildren() != nullptr) {
                             settings = child->GetChildren()->GetContent().ToStdString();
                         }
-                        bindings.push_back(KeyBinding(k, disabled, effect, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift));
+                        if (effect != "")
+                        {
+                            bindings.push_back(KeyBinding(k, disabled, effect, settings, child->GetAttribute("xLightsVersion", "4.0"), control, alt, shift));
+                        }
+                    }
+                    else if (type == "PRESET")
+                    {
+                        std::string presetName = child->GetAttribute("effect").ToStdString();
+                        bindings.push_back(KeyBinding(disabled, k, presetName, control, alt, shift));
                     }
                     else
                     {
                         bindings.push_back(KeyBinding(k, disabled, type, control, alt, shift));
-                    } 
+                    }
                 }
 
                 child = child->GetNext();
@@ -488,7 +505,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
             // add in all the missing key bindings ... but disable them
             for (auto it = KeyBindingTypes.begin(); it != KeyBindingTypes.end(); ++it)
             {
-                if (it->first != "EFFECT")
+                if (it->first != "EFFECT" && it->first != "PRESET")
                 {
                     bool found = false;
                     for (auto it2 = bindings.begin(); it2 != bindings.end(); ++it2)
@@ -525,7 +542,7 @@ void KeyBindingMap::Save(wxFileName &fileName) {
         wxKeyCode key = binding.GetKey();
         if (binding.IsDisabled())
         {
-            child->AddAttribute("key", "");
+            child->AddAttribute("keycode", "");
         }
         else
         {
@@ -540,6 +557,10 @@ void KeyBindingMap::Save(wxFileName &fileName) {
             child->AddAttribute("effect", binding.GetEffectName());
             child->AddAttribute("xLightsVersion", binding.GetEffectDataVersion());
             child->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", binding.GetEffectString()));
+        }
+        else if (binding.GetType() == "PRESET")
+        {
+            child->AddAttribute("effect", binding.GetEffectName());
         }
         root->AddChild(child);
     }

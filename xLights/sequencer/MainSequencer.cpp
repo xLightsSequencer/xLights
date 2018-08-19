@@ -435,6 +435,16 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
     
+    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
+        (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
+    {
+        // Just a regular key ... If current focus is a control then we need to not process this
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && k < 128)
+        {
+            return false;
+        }
+    }
+
     KeyBinding *binding = keyBindings.Find(event, KBSCOPE_SEQUENCE);
     if (binding != nullptr) {
         std::string type = binding->GetType();
@@ -461,6 +471,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         else if (type == "EFFECT")
         {
             PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
+        }
+        else if (type == "PRESET")
+        {
+            mSequenceElements->GetXLightsFrame()->ApplyEffectsPreset(binding->GetEffectName());
         }
         else if (type == "EFFECT_SETTINGS_TOGGLE")
         {
@@ -1281,6 +1295,13 @@ void MainSequencer::InsertTimingMarkFromRange()
     {
         x1 = PanelTimeLine->GetSelectedPositionStart();
         x2 = PanelTimeLine->GetSelectedPositionEnd();
+
+        int pm = PanelTimeLine->GetPlayMarker();
+        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1)
+        {
+            x1 = pm;
+            x2 = x1;
+        }
     }
     if (x2 == -1) x2 = x1;
     if (x1 == x2) is_range = false;
@@ -1397,6 +1418,13 @@ void MainSequencer::SplitTimingMark()
     {
         x1 = PanelTimeLine->GetSelectedPositionStart();
         x2 = PanelTimeLine->GetSelectedPositionEnd();
+
+        int pm = PanelTimeLine->GetPlayMarker();
+        if ((x1 == -1 || x2 == -1 || x1 == x2) && pm != -1)
+        {
+            x1 = pm;
+            x2 = x1;
+        }
     }
     if (x2 == -1) x2 = x1;
     int selectedTiming = mSequenceElements->GetSelectedTimingRow();

@@ -3373,6 +3373,46 @@ void xLightsFrame::UpdateEffectNode(wxXmlNode* node)
     node->AddAttribute("xLightsVersion", xlights_version_string);
 }
 
+wxXmlNode* FindPreset(wxXmlNode* node, wxArrayString& path, int level)
+{
+    for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
+    {
+        if (n->GetName() == "effect")
+        {
+            if (n->GetAttribute("name", "") == path[level])
+            {
+                return n;
+            }
+        }
+        else if (n->GetName() == "effectGroup" && level < path.size() - 1)
+        {
+            if (n->GetAttribute("name", "") == path[level])
+            {
+                return FindPreset(n, path, level + 1);
+            }
+        }
+        else
+        {
+            wxASSERT(false);
+        }
+    }
+    return nullptr;
+}
+
+void xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
+{
+    wxXmlNode* ele = nullptr;
+
+    auto path = wxSplit(presetName, '/');
+
+    ele = FindPreset(mSequenceElements.GetEffectsNode(), path, 0);
+
+    if (ele != nullptr)
+    {
+        mainSequencer->PanelEffectGrid->Paste(ele->GetAttribute("settings"), ele->GetAttribute("xLightsVersion", "4.0"));
+    }
+}
+
 void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion)
 {
     mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);

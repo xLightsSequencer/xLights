@@ -95,7 +95,7 @@ void TimeLine::OnPopup(wxCommandEvent& event)
 
 void TimeLine::SetTagPosition(int tag, int position)
 {
-    if (position > GetTimeLength())
+    if (GetTimeLength() != -1 && position > GetTimeLength())
     {
         position = GetTimeLength();
     }
@@ -231,6 +231,7 @@ TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
     mCurrentPlayMarkerMS = -1;
     timeline_initiated_play = false;
     m_dragging = false;
+    mTimeLength = -1;
     ClearTags();
 
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&TimeLine::mouseRightDown, 0, this);

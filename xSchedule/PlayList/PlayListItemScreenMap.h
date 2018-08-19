@@ -37,7 +37,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
-    std::string GetRawName() const { return _name; }
+
     void SetWidth(int width) { if (_width != width) { _width = width; _changeCount++; } }
     int GetWidth() const { return _width; }
     void SetHeight(int height) { if (_height != height) { _height = height; _changeCount++; } }
