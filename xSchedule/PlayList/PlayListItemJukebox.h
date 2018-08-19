@@ -42,7 +42,6 @@ public:
 
     #pragma region Getters and Setters
     std::string GetNameNoTime() const override;
-    std::string GetRawName() const { return _name; }
     void SetButton(int button) {
         if (_jukeboxButton != button) { _jukeboxButton = button; _changeCount++; }
     }

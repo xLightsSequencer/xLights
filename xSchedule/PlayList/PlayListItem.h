@@ -47,6 +47,7 @@ public:
     bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }
     std::string GetName() const;
+    std::string GetRawName() const { return _name; }
     virtual std::string GetNameNoTime() const;
     void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
     virtual long GetLength() { return _frames; }

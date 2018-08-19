@@ -33,7 +33,7 @@ public:
     #pragma region Getters and Setters
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
-    std::string GetRawName() const { return _name; }
+
     void SetCommPort(const std::string& commPort) { if (_commPort != commPort) { _commPort = commPort; _changeCount++; } }
     std::string GetCommPort() const { return _commPort; }
     void SetConfiguration(const std::string& configuration) { if (_configuration != configuration) { _configuration = configuration; _changeCount++; } }

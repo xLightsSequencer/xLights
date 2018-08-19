@@ -44,7 +44,7 @@ public:
     void SetValue2(const size_t value2) { if (_value2 != value2) { _value2 = value2; _changeCount++; } };
     void SetStartChannel(const std::string startChannel) { if (_startChannel != startChannel) { _startChannel = startChannel; _sc = 0; _changeCount++; } };
     void SetChannels(const size_t channels) { if (_channels != channels) { _channels = channels; _changeCount++; } };
-    std::string GetRawName() const { return _name; }
+
     size_t GetFrameDuration() const { return _frameDuration; }
     size_t GetValue1() const { return _value1; }
     size_t GetValue2() const { return _value2; }

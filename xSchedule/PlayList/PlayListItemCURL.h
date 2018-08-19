@@ -32,7 +32,6 @@ public:
     #pragma region Getters and Setters
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
-    std::string GetRawName() const { return _name; }
     void SetURL(const std::string& url) { if (_url != url) { _url = url; _changeCount++; } }
     std::string GetURL() const { return _url; }
     void SetType(const std::string& type) { if (_type != type) { _type = type; _changeCount++; } }

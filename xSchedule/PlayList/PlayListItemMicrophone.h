@@ -13,7 +13,6 @@ class PlayListItemMicrophone : public PlayListItem
 protected:
 
     #pragma region Member Variables
-    std::string _name;
     std::string _mode;
     wxColor _colour;
     size_t _sc;
@@ -45,7 +44,6 @@ public:
     void SetPixels(const size_t pixels) { if (_pixels != pixels) { _pixels = pixels; _changeCount++; } };
     void SetBlendMode(const std::string& blendMode) { if (_blendMode != EncodeBlendMode(blendMode)) { _blendMode = EncodeBlendMode(blendMode); _changeCount++; } }
     int GetBlendMode() const { return _blendMode; }
-    std::string GetRawName() const { return _name; }
     wxColour GetColour() const { return _colour; }
     std::string GetStartChannel() const { return _startChannel; }
     size_t GetStartChannelAsNumber();

@@ -42,7 +42,6 @@ public:
     std::string GetIP() const { return _ip; }
     static std::string GetTooltip();
     std::string GetNameNoTime() const override;
-    std::string GetRawName() const { return _name; }
     void SetIPAddress(const std::string& ip) { if (_ip != ip) { _ip = ip; _changeCount++; } }
     void SetPath(const std::string& path) { if (_path != path) { _path = path; _changeCount++; } }
     void SetPort(int port) { if (_port != port) { _port = port; _changeCount++; } }

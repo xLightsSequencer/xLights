@@ -852,7 +852,10 @@ bool PlayList::JumpToStep(const std::string& step)
         return success;
     }
 
-    _currentStep->Stop();
+    if (_currentStep != nullptr)
+    {
+        _currentStep->Stop();
+    }
 
     _currentStep = GetStep(step);
     if (_currentStep == nullptr)
