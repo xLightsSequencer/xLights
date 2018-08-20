@@ -12,6 +12,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (keith)  Change the colour panel update button to purely apply the colour palette. All other colour settings are ignored.
+   -- enh (keith)  Add the ability to change custom model background image from within the model data dialog
+   -- enh (keith)  Strip out some buttons and replace them with a right click menu with enhancements to create 
+                   gaps in node numbers and compress node numbers to remove gaps.
 2018.29 August 19, 2018
    -- enh (keith)  Add key binding support for presets
    -- enh (keith)  Add a link to zoom in the help menu
