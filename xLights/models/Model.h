@@ -108,7 +108,7 @@ public:
     int GetDefaultBufferHt() const {return BufferHt;}
 
     void SetProperty(wxString property, wxString value, bool apply = false);
-    virtual void AddProperties(wxPropertyGridInterface *grid);
+    virtual void AddProperties(wxPropertyGridInterface *grid) override;
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;

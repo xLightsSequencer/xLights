@@ -11,6 +11,7 @@ public:
     ViewObject(const ObjectManager &manger);
     virtual ~ViewObject();
 
+    virtual void AddProperties(wxPropertyGridInterface *grid) override;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
     void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     void SetFromXml(wxXmlNode* ObjectNode);

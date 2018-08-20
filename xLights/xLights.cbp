@@ -606,6 +606,8 @@
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
+		<Unit filename="ViewObjectPanel.cpp" />
+		<Unit filename="ViewObjectPanel.h" />
 		<Unit filename="ViewpointDialog.cpp" />
 		<Unit filename="ViewpointDialog.h" />
 		<Unit filename="ViewpointMgr.cpp" />
@@ -1174,6 +1176,7 @@
 		<Unit filename="wxsmith/VendorModelDialog.wxs" />
 		<Unit filename="wxsmith/VendorMusicDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
+		<Unit filename="wxsmith/ViewObjectPanel.wxs" />
 		<Unit filename="wxsmith/ViewpointDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
@@ -1353,6 +1356,7 @@
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/ViewpointDialog.wxs" src="ViewpointDialog.cpp" hdr="ViewpointDialog.h" fwddecl="0" i18n="1" name="ViewpointDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

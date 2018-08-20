@@ -23,9 +23,12 @@ class wxStaticText;
 
 class xLightsFrame;
 class ModelPreview;
+class BaseObject;
 class Model;
 class ModelGroup;
 class ModelGroupPanel;
+class ViewObjectPanel;
+class ViewObject;
 class wxListEvent;
 class wxMouseEvent;
 class wxPropertyGrid;
@@ -73,6 +76,7 @@ class LayoutPanel: public wxPanel
 		wxCheckBox* CheckBoxOverlap;
 		wxCheckBox* CheckBox_3D;
 		wxChoice* ChoiceLayoutGroups;
+		wxChoice* Choice_EditModelObjects;
 		wxFlexGridSizer* ToolSizer;
 		wxPanel* FirstPanel;
 		wxPanel* LeftPanel;
@@ -85,6 +89,7 @@ class LayoutPanel: public wxPanel
 		wxStaticText* StaticText1;
 		//*)
 
+		wxScrolledWindow* ViewObjectWindow;
 		wxScrolledWindow* ModelGroupWindow;
 		wxTreeListCtrl* TreeListViewModels;
 
@@ -94,6 +99,7 @@ class LayoutPanel: public wxPanel
 		static const long ID_PANEL3;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
+		static const long ID_CHOICE_EditModelObjects;
 		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_PANEL5;
@@ -184,6 +190,7 @@ class LayoutPanel: public wxPanel
 		void OnPreviewRotateGesture(wxRotateGestureEvent& event);
 		void OnPreviewZoomGesture(wxZoomGestureEvent& event);
 		void OnChoice_InsertObjectSelect(wxCommandEvent& event);
+		void OnChoice_EditModelObjectsSelect(wxCommandEvent& event);
 		//*)
 
 
@@ -208,7 +215,7 @@ class LayoutPanel: public wxPanel
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true);
-        void SetupPropGrid(Model *model);
+        void SetupPropGrid(BaseObject *model);
         void AddPreviewChoice(const std::string &name);
         ModelPreview* GetMainPreview() const {return modelPreview;}
         bool GetBackgroundScaledForSelectedPreview();
@@ -297,6 +304,7 @@ class LayoutPanel: public wxPanel
         std::string _lastXlightsModel;
         Model *newModel;
         ModelGroupPanel *model_grp_panel;
+        ViewObjectPanel *objects_panel;
         std::string currentLayoutGroup;
         LayoutGroup* pGrp;
 
@@ -362,6 +370,7 @@ class LayoutPanel: public wxPanel
         wxPanel* main_sequencer;
         wxImageList* m_imageList;
 
+        bool editing_models;
         bool is_3d;
         bool m_mouse_down;
         int last_selection;
@@ -397,6 +406,7 @@ class LayoutPanel: public wxPanel
         void DisplayAddObjectPopup();
         void OnAddObjectPopup(wxCommandEvent& event);
         void AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]);
+        void SelectViewObject(ViewObject *v, bool highlight_tree);
 
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 

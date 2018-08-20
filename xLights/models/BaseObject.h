@@ -12,6 +12,7 @@ public:
     BaseObject();
     virtual ~BaseObject();
 
+    virtual void AddProperties(wxPropertyGridInterface *grid) = 0;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) = 0;
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) = 0;
 

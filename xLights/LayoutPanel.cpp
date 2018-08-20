@@ -29,6 +29,7 @@
 #include "ChannelLayoutDialog.h"
 #include "ControllerConnectionDialog.h"
 #include "ModelGroupPanel.h"
+#include "ViewObjectPanel.h"
 #include "LayoutGroup.h"
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
@@ -82,6 +83,7 @@ static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeigh
 const long LayoutPanel::ID_PANEL3 = wxNewId();
 const long LayoutPanel::ID_PANEL2 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
+const long LayoutPanel::ID_CHOICE_EditModelObjects = wxNewId();
 const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
 const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
@@ -241,7 +243,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(-1), last_highlight(-1),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr), m_mouse_down(false), m_wheel_down(false), selectionLatched(false), over_handle(-1), creating_model(false)
+    ModelGroupWindow(nullptr), ViewObjectWindow(nullptr), editing_models(true), m_mouse_down(false), m_wheel_down(false),
+    selectionLatched(false), over_handle(-1), creating_model(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -253,6 +256,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizerPreview;
 	wxFlexGridSizer* LayoutGLSizer;
 	wxFlexGridSizer* LeftPanelSizer;
@@ -277,10 +281,17 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	Choice_EditModelObjects = new wxChoice(LeftPanel, ID_CHOICE_EditModelObjects, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_EditModelObjects"));
+	Choice_EditModelObjects->SetSelection( Choice_EditModelObjects->Append(_("Edit Models")) );
+	Choice_EditModelObjects->Append(_("Edit Objects"));
+	FlexGridSizer3->Add(Choice_EditModelObjects, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
-	LeftPanelSizer->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
 	FlexGridSizer2->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanelSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -291,7 +302,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
 	PreviewGLSizer->AddGrowableCol(0);
 	PreviewGLSizer->AddGrowableRow(1);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 5, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 6, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	ToolSizer = new wxFlexGridSizer(0, 10, 0, 0);
 	FlexGridSizer1->Add(ToolSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
@@ -328,6 +339,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerPreview->SetSizeHints(this);
 
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
+	Connect(ID_CHOICE_EditModelObjects,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoice_EditModelObjectsSelect);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
@@ -448,12 +460,26 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel model group panel created");
 
+    // Setup the Object List Panel
+    wxScrolledWindow *sw2 = new wxScrolledWindow(ModelSplitter);
+    wxBoxSizer* sizer2 = new wxBoxSizer(wxVERTICAL);
+    sw2->SetSizer(sizer2);
+    objects_panel = new ViewObjectPanel(sw2, xlights->AllObjects, this);
+    sizer2->Add( objects_panel, 1, wxEXPAND | wxALL, 1 );
+    sizer2->SetSizeHints(objects_panel);
+    sw2->SetScrollRate(5,5);
+    sw2->Hide();
+    ViewObjectWindow = sw2;
+    logger_base.debug("LayoutPanel object panel created");
+
     LeftPanelSizer->Fit(LeftPanel);
     LeftPanelSizer->SetSizeHints(LeftPanel);
     FlexGridSizerPreview->Fit(this);
     FlexGridSizerPreview->SetSizeHints(this);
 
     ModelGroupWindow = sw;
+
+
     if (sp != -1) {
         SplitterWindow2->SetSashGravity(0.0);
         SplitterWindow2->SetSashPosition(sp);
@@ -996,6 +1022,7 @@ void LayoutPanel::ReloadModelList() {
 void LayoutPanel::UpdateModelList(bool full_refresh) {
     std::vector<Model *> models;
     UpdateModelList(full_refresh, models);
+    objects_panel->UpdateObjectList(full_refresh, currentLayoutGroup);
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
@@ -1553,7 +1580,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
     }
 }
 
-void LayoutPanel::SetupPropGrid(Model *model) {
+void LayoutPanel::SetupPropGrid(BaseObject *model) {
     propertyEditor->Freeze();
     clearPropGrid();
 
@@ -1695,6 +1722,38 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         }
     }
     SelectModel3D();
+    UpdatePreview();
+}
+
+void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // TODO need to strip out extra logging once I know for sure what is going on
+    if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectViewObject modelPreview is nullptr ... this is going to crash.");
+
+    modelPreview->SetFocus();
+    int foundStart = 0;
+    int foundEnd = 0;
+
+    if (v != nullptr) {
+
+        //v->Selected = true;
+
+        if( highlight_tree ) {
+                objects_panel->HighlightObject(v);
+        }
+        SetupPropGrid(v);
+    } else {
+        propertyEditor->Freeze();
+        clearPropGrid();
+        propertyEditor->Thaw();
+    }
+
+    //selectedModel = m;
+    //selectedModel->GetModelScreenLocation().SetActiveHandle(CENTER_HANDLE);
+    selectionLatched = true;
+
     UpdatePreview();
 }
 
@@ -4769,35 +4828,42 @@ static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
     UnSelectAllModels(false);
-    wxTreeListItem item = event.GetItem();
-    if (item.IsOk()) {
+    if( editing_models ) {
+        wxTreeListItem item = event.GetItem();
+        if (item.IsOk()) {
 
-        ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
-        Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
-        if (model != nullptr) {
-            if (model->GetDisplayAs() == "ModelGroup") {
-                mSelectedGroup = item;
-                ShowPropGrid(false);
-                UpdateModelList(false);
-                model_grp_panel->UpdatePanel(model->name);
+            ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
+            Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
+            if (model != nullptr) {
+                if (model->GetDisplayAs() == "ModelGroup") {
+                    mSelectedGroup = item;
+                    ShowPropGrid(false);
+                    UpdateModelList(false);
+                    model_grp_panel->UpdatePanel(model->name);
+                } else {
+                    mSelectedGroup = nullptr;
+                    ShowPropGrid(true);
+                    SelectModel(model, false);
+                    SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                }
             } else {
                 mSelectedGroup = nullptr;
+                selectedModel = nullptr;
                 ShowPropGrid(true);
-                SelectModel(model, false);
-                SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                UnSelectAllModels(true);
+                SetToolTipForTreeList(TreeListViewModels, "");
             }
+            #ifndef LINUX
+            TreeListViewModels->SetFocus();
+            #endif
         } else {
-            mSelectedGroup = nullptr;
-            selectedModel = nullptr;
-            ShowPropGrid(true);
-            UnSelectAllModels(true);
             SetToolTipForTreeList(TreeListViewModels, "");
         }
-        #ifndef LINUX
-        TreeListViewModels->SetFocus();
-        #endif
     } else {
-        SetToolTipForTreeList(TreeListViewModels, "");
+        ViewObject* view_object = nullptr;
+        bool show_prop_grid = objects_panel->OnSelectionChanged(event, &view_object, currentLayoutGroup);
+        SelectViewObject(view_object, false);
+        ShowPropGrid(show_prop_grid);
     }
 }
 
@@ -5076,4 +5142,21 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     }
 
     return false;
+}
+
+void LayoutPanel::OnChoice_EditModelObjectsSelect(wxCommandEvent& event)
+{
+    std::string edit_option = std::string(Choice_EditModelObjects->GetStringSelection());
+
+    if(editing_models && edit_option == "Edit Objects") {
+        ModelSplitter->ReplaceWindow(FirstPanel, ViewObjectWindow);
+        FirstPanel->Hide();
+        ViewObjectWindow->Show();
+        editing_models = false;
+    } else if(!editing_models && edit_option == "Edit Models") {
+        ModelSplitter->ReplaceWindow(ViewObjectWindow, FirstPanel);
+        ViewObjectWindow->Hide();
+        FirstPanel->Show();
+        editing_models = true;
+    }
 }
