@@ -60,6 +60,10 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_SHIFT;
     static const long CUSTOMMODELDLGMNU_INSERT;
     static const long CUSTOMMODELDLGMNU_COMPRESS;
+    static const long CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE;
+    static const long CUSTOMMODELDLGMNU_SHRINKSPACE10;
+    static const long CUSTOMMODELDLGMNU_SHRINKSPACE50;
+    static const long CUSTOMMODELDLGMNU_SHRINKSPACE99;
 
     public:
 
@@ -159,12 +163,15 @@ class CustomModelDialog: public wxDialog
         void OnGridPopup(wxCommandEvent& event);
 
         void Reverse();
+        bool CheckScale(std::list<wxPoint>& points, float scale);
         void FlipHorizontal();
         void FlipVertical();
         void Insert();
         void Shift();
         void Compress();
         bool AdjustNodeBy(int node, int adjust);
+        void TrimSpace();
+        void ShrinkSpace(float min);
 
 		DECLARE_EVENT_TABLE()
 };

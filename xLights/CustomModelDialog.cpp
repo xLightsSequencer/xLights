@@ -56,6 +56,10 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_COMPRESS = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE10 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE50 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE99 = wxNewId();
 
 BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 	//(*EventTable(CustomModelDialog)
@@ -987,6 +991,135 @@ void CustomModelDialog::Reverse()
     ValidateWindow();
 }
 
+bool CustomModelDialog::CheckScale(std::list<wxPoint>& points, float scale)
+{
+    std::list<wxPoint> newPoints;
+
+    for (auto it = points.begin(); it != points.end(); ++it)
+    {
+        int newX = (int)((float)it->x * scale);
+        int newY = (int)((float)it->y * scale);
+
+        for (auto it2 = newPoints.begin(); it2 != newPoints.end(); ++it2)
+        {
+            if (it2->x == newX && it2->y == newY)
+            {
+                return false;
+            }
+        }
+        newPoints.push_back(wxPoint(newX, newY));
+    }
+
+    return true;
+}
+
+void CustomModelDialog::ShrinkSpace(float min)
+{
+    TrimSpace();
+
+    std::list<wxPoint> points;
+    for (int c = 0; c < GridCustom->GetNumberCols(); c++)
+    {
+        for (int r = 0; r < GridCustom->GetNumberRows(); r++)
+        {
+            if (!GridCustom->GetCellValue(r, c).IsEmpty())
+            {
+                points.push_back(wxPoint(r, c));
+            }
+        }
+    }
+
+    float scaleFactor = (1.0 - min) / 2.0;
+    float scale = min + scaleFactor;
+
+    for (int i = 0; i < 5; i++)
+    {
+        scaleFactor /= 2.0;
+        if (CheckScale(points, scale))
+        {
+            scale -= scaleFactor;
+        }
+        else
+        {
+            scale += scaleFactor;
+        }
+    }
+
+    if (scale < min) scale = min;
+
+    if (!CheckScale(points, scale))
+    {
+        scale += scaleFactor;
+        if (!CheckScale(points, scale))
+        {
+            // cant scale
+            return;
+        }
+    }
+
+    for (auto it = points.begin(); it != points.end(); ++it)
+    {
+        int newX = (int)((float)it->x * scale);
+        int newY = (int)((float)it->y * scale);
+
+        if (newX != it->x || newY != it->y)
+        {
+            wxASSERT(GridCustom->GetCellValue(newX, newY).IsEmpty());
+
+            GridCustom->SetCellValue(newX, newY, GridCustom->GetCellValue(it->x, it->y));
+            GridCustom->SetCellValue(it->x, it->y, "");
+        }
+    }
+
+    TrimSpace();
+}
+
+void CustomModelDialog::TrimSpace()
+{
+    int minRow = 99999;
+    int maxRow = -99999;
+    int minCol = 99999;
+    int maxCol = -99999;
+
+    //Find the max value returned
+    for (auto c = 0; c < GridCustom->GetNumberCols(); c++)
+    {
+        for (auto r = 0; r < GridCustom->GetNumberRows(); ++r)
+        {
+            wxString s = GridCustom->GetCellValue(r, c);
+
+            if (!s.IsEmpty())
+            {
+                if (c < minCol) minCol = c;
+                if (r < minRow) minRow = r;
+                if (c > maxCol) maxCol = c;
+                if (r > maxRow) maxRow = r;
+            }
+        }
+    }
+
+    if (minCol == 0 && minRow == 0 && maxRow == GridCustom->GetNumberRows() && maxCol == GridCustom->GetNumberCols())
+    {
+        // already the right size
+        return;
+    }
+
+    int adjustRows = -1 * minRow;
+    int adjustCols = -1 * minCol;
+
+    for (int r = minRow; r <= maxRow; r++)
+    {
+        for (int c = minCol; c <= maxCol; c++)
+        {
+            GridCustom->SetCellValue(r + adjustRows, c + adjustCols, GridCustom->GetCellValue(r, c));
+        }
+    }
+
+    WidthSpin->SetValue(std::max(1, maxCol - minCol + 1));
+    HeightSpin->SetValue(std::max(1, maxRow - minRow + 1));
+    ResizeCustomGrid();
+}
+
 void CustomModelDialog::Shift()
 {
     auto min = 1;
@@ -1099,6 +1232,22 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         Compress();
     }
+    else if (id == CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE)
+    {
+        TrimSpace();
+    }
+    else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE10)
+    {
+        ShrinkSpace(0.9f);
+    }
+    else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE50)
+    {
+        ShrinkSpace(0.5f);
+    }
+    else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE99)
+    {
+        ShrinkSpace(0.01f);
+    }
 }
 
 void CustomModelDialog::OnCut(wxCommandEvent& event)
@@ -1161,6 +1310,10 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     wxMenuItem* menu_shift = mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
     wxMenuItem* menu_insert = mnu.Append(CUSTOMMODELDLGMNU_INSERT, "Insert Prior");
     wxMenuItem* menu_compress = mnu.Append(CUSTOMMODELDLGMNU_COMPRESS, "Compress");
+    wxMenuItem* menu_trim = mnu.Append(CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE, "Trim Unused Space");
+    wxMenuItem* menu_shrink10 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
+    wxMenuItem* menu_shrink55 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
+    wxMenuItem* menu_shrink99 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
 
     if (selectedCellWithValue)
     {
