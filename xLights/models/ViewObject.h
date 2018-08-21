@@ -14,6 +14,7 @@ public:
     virtual void AddProperties(wxPropertyGridInterface *grid) override;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
     void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
+    virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     void SetFromXml(wxXmlNode* ObjectNode);
     virtual void InitModel() = 0;
 

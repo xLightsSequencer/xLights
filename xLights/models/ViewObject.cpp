@@ -58,3 +58,16 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid) {
     //grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
 
 }
+
+int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+
+    int i = GetObjectScreenLocation().OnPropertyGridChange(grid, event);
+
+    if (i & 0x2) {
+        GetObjectScreenLocation().Write(ModelXml);
+        SetFromXml(ModelXml);
+        IncrementChangeCount();
+    }
+
+    return i;
+}

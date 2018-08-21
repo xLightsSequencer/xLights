@@ -70,6 +70,8 @@ class LayoutPanel: public wxPanel
 		LayoutPanel(wxWindow* parent, xLightsFrame *xlights, wxPanel* sequencer);
 		virtual ~LayoutPanel();
 
+		friend class ViewObjectPanel;
+
     private:
 		//(*Declarations(LayoutPanel)
 		wxButton* ButtonSavePreview;

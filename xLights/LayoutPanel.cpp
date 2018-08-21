@@ -692,62 +692,70 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
-    } else if (selectedModel != nullptr) {
-        //model property
-        if ("ModelName" == name) {
-            std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+    } else {
+        if (editing_models) {
+            if (selectedModel != nullptr) {
+                //model property
+                if ("ModelName" == name) {
+                    std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
 
-            if (safename != event.GetValue().GetString().ToStdString())
-            {
-                // need to update the property grid with the modified name
-                wxPGProperty* prop = propertyEditor->GetPropertyByName("ModelName");
-                if (prop != nullptr) {
-                    prop->SetValue(safename);
+                    if (safename != event.GetValue().GetString().ToStdString())
+                    {
+                        // need to update the property grid with the modified name
+                        wxPGProperty* prop = propertyEditor->GetPropertyByName("ModelName");
+                        if (prop != nullptr) {
+                            prop->SetValue(safename);
+                        }
+                    }
+                    std::string oldname = selectedModel->name;
+                    if (oldname != safename) {
+                        RenameModelInTree(selectedModel, safename);
+                        selectedModel = nullptr;
+                        xlights->RenameModel(oldname, safename);
+                        if (oldname == lastModelName) {
+                            lastModelName = safename;
+                        }
+                        xlights->RecalcModels(true);
+                        SelectModel(safename);
+                        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
+                        xlights->MarkEffectsFileDirty(true);
+                    }
+                }
+                else {
+                    int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
+                    if (i & 0x0001) {
+                        xlights->UpdatePreview();
+                    }
+                    if (i & 0x0002) {
+                        xlights->MarkEffectsFileDirty(true);
+                    }
+                    if (i & 0x0004) {
+                        CallAfter(&LayoutPanel::resetPropertyGrid);
+                    }
+                    if (i & 0x0008) {
+                        CallAfter(&LayoutPanel::refreshModelList);
+                    }
+                    if (i & 0x0010) {
+                        // Preview assignment change so model may not exist in current preview anymore
+                        CallAfter(&LayoutPanel::RefreshLayout);
+                    }
+                    if (i == 0) {
+                        printf("Did not handle %s   %s\n",
+                            (const char *)event.GetPropertyName().c_str(),
+                            (const char *)event.GetValue().GetString().c_str());
+                    }
+
+                    if ("SubModels" == name) {
+                        // if the sequencer is open we need to force a refresh to make sure submodel names are right
+                        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+                        wxPostEvent(xlights, eventForceRefresh);
+                        CallAfter(&LayoutPanel::ReloadModelList);
+                    }
                 }
             }
-            std::string oldname = selectedModel->name;
-            if (oldname != safename) {
-                RenameModelInTree(selectedModel, safename);
-                selectedModel = nullptr;
-                xlights->RenameModel(oldname, safename);
-                if (oldname == lastModelName) {
-                    lastModelName = safename;
-                }
-                xlights->RecalcModels(true);
-                SelectModel(safename);
-                CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
-                xlights->MarkEffectsFileDirty(true);
-            }
-        } else {
-            int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
-            if (i & 0x0001) {
-                xlights->UpdatePreview();
-            }
-            if (i & 0x0002) {
-                xlights->MarkEffectsFileDirty(true);
-            }
-            if (i & 0x0004) {
-                CallAfter(&LayoutPanel::resetPropertyGrid);
-            }
-            if (i & 0x0008) {
-                CallAfter(&LayoutPanel::refreshModelList);
-            }
-            if (i & 0x0010) {
-                // Preview assignment change so model may not exist in current preview anymore
-                CallAfter(&LayoutPanel::RefreshLayout);
-            }
-            if (i == 0) {
-                printf("Did not handle %s   %s\n",
-                       (const char *)event.GetPropertyName().c_str(),
-                       (const char *)event.GetValue().GetString().c_str());
-            }
-
-            if ("SubModels" == name) {
-                // if the sequencer is open we need to force a refresh to make sure submodel names are right
-                wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-                wxPostEvent(xlights, eventForceRefresh);
-                CallAfter(&LayoutPanel::ReloadModelList);
-            }
+        }
+        else {
+            objects_panel->OnPropertyGridChange(propertyEditor, event);
         }
     }
     updatingProperty = false;
@@ -1584,7 +1592,11 @@ void LayoutPanel::SetupPropGrid(BaseObject *model) {
     propertyEditor->Freeze();
     clearPropGrid();
 
-    propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
+    if( editing_models ) {
+        propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
+    } else {
+        propertyEditor->Append(new wxStringProperty("Name", "ObjectName", model->name));
+    }
 
     model->AddProperties(propertyEditor);
 
@@ -3663,6 +3675,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
         ViewObject* vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
         vobj->SetLayoutGroup(currentLayoutGroup);
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
     }
     else if (id == ID_ADD_OBJECT_MESH)
     {

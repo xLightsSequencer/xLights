@@ -13,15 +13,17 @@ public:
 
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
 
+    int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
+
     virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
 
 protected:
 
 private:
     int line_spacing;
-    xlColor color;
-    float width;
-    float height;
+    xlColor gridColor;
+    int width;
+    int height;
 };
 
 #endif // GRIDLINESOBJECT_H

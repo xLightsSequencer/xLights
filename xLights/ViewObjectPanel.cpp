@@ -1,6 +1,8 @@
 #include <wx/artprov.h>
 #include <wx/treebase.h>
 #include <wx/dataview.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 
 #include "LayoutPanel.h"
 #include "ViewObjectPanel.h"
@@ -25,7 +27,7 @@ END_EVENT_TABLE()
 const long ViewObjectPanel::ID_TREELISTVIEW_OBJECTS = wxNewId();
 
 ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
-:   layoutPanel(xl), mViewObjects(Objects)
+:   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr)
 {
 	//(*Initialize(ViewObjectPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -440,6 +442,19 @@ void ViewObjectPanel::HighlightObject(ViewObject* v)
     }
 }
 
+void ViewObjectPanel::RenameObjectInTree(ViewObject *view_object, const std::string new_name)
+{
+    for ( wxTreeListItem item = TreeListViewObjects->GetFirstItem();
+          item.IsOk();
+          item = TreeListViewObjects->GetNextItem(item) )
+    {
+        ObjectTreeData *data = dynamic_cast<ObjectTreeData*>(TreeListViewObjects->GetItemData(item));
+        if (data != nullptr && data->GetViewObject() == view_object) {
+            TreeListViewObjects->SetItemText(item, wxString(new_name.c_str()));
+        }
+    }
+}
+
 bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** view_object, std::string& currentLayoutGroup)
 {
     bool show_prop_grid = false;
@@ -455,11 +470,12 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
                 //model_grp_panel->UpdatePanel(view_object->name);
             } else {
                 mSelectedGroup = nullptr;
+                mSelectedObject = *view_object;
                 show_prop_grid = true;
             }
         } else {
             mSelectedGroup = nullptr;
-            //selectedObject = nullptr;
+            mSelectedObject = nullptr;
             show_prop_grid = true;
             //UnSelectAllObjects(true);
         }
@@ -468,6 +484,56 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
         #endif
     }
     return show_prop_grid;
+}
+
+void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPropertyGridEvent& event) {
+    wxString name = event.GetPropertyName();
+    if (mSelectedObject != nullptr) {
+        if ("ModelName" == name) {
+            std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+
+            if (safename != event.GetValue().GetString().ToStdString())
+            {
+                // need to update the property grid with the modified name
+                wxPGProperty* prop = propertyEditor->GetPropertyByName("ObjectName");
+                if (prop != nullptr) {
+                    prop->SetValue(safename);
+                }
+            }
+            std::string oldname = mSelectedObject->name;
+            if (oldname != safename) {
+                RenameObjectInTree(mSelectedObject, safename);
+                mSelectedObject = nullptr;
+                //layoutPanel->xlights->RenameModel(oldname, safename);
+                //SelectViewObject(safename);
+                CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
+                layoutPanel->xlights->MarkEffectsFileDirty(true);
+            }
+        } else {
+            int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
+            if (i & 0x0001) {
+                layoutPanel->xlights->UpdatePreview();
+            }
+            if (i & 0x0002) {
+                layoutPanel->xlights->MarkEffectsFileDirty(true);
+            }
+            if (i & 0x0004) {
+                CallAfter(&LayoutPanel::resetPropertyGrid);
+            }
+            if (i & 0x0008) {
+                CallAfter(&ViewObjectPanel::refreshObjectList);
+            }
+            if (i & 0x0010) {
+                // Preview assignment change so model may not exist in current preview anymore
+                CallAfter(&LayoutPanel::RefreshLayout);
+            }
+            if (i == 0) {
+                printf("Did not handle %s   %s\n",
+                       (const char *)event.GetPropertyName().c_str(),
+                       (const char *)event.GetValue().GetString().c_str());
+            }
+        }
+    }
 }
 
 int ViewObjectPanel::ObjectListComparator::SortElementsFunction(wxTreeListCtrl *treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)

@@ -22,6 +22,7 @@ public:
 
     void UpdateObjectList(bool full_refresh, std::string& currentLayoutGroup);
     bool OnSelectionChanged(wxTreeListEvent& event, ViewObject** view_object, std::string& currentLayoutGroup);
+    void OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPropertyGridEvent& event);
     void HighlightObject(ViewObject* v);
 
     //(*Declarations(ViewObjectPanel)
@@ -59,12 +60,14 @@ private:
     int AddObjectToTree(ViewObject *view_object, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
     void UpdateObjectList(bool full_refresh, std::vector<ViewObject*> &objects, std::string& currentLayoutGroup );
     void UpdateObjectsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<ViewObject *> &prev_objects, bool filtering);
+    void RenameObjectInTree(ViewObject *view_object, const std::string new_name);
 
     LayoutPanel* layoutPanel;
     ViewObjectManager& mViewObjects;
     wxTreeListCtrl* TreeListViewObjects;
     wxImageList* m_imageList;
     wxTreeListItem mSelectedGroup;
+    ViewObject* mSelectedObject;
 
     class ObjectListComparator : public wxTreeListItemComparator
     {
