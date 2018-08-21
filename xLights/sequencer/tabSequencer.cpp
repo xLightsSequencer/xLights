@@ -694,13 +694,18 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Load sequence %s", (const char*)xml_file.GetFullPath().c_str());
+
     SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
     mSequenceElements.SetModelsNode(ModelsNode);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
-    xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
 
+    logger_base.debug("Upgrading sequence");
+    xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
 
     Menu_Settings_Sequence->Enable(true);
     MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, true);
@@ -717,17 +722,26 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     mSavedChangeCount = mSequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
+
+    logger_base.debug("Checking for valid models");
     CheckForValidModels();
 
+    logger_base.debug("Loading the audio data");
     LoadAudioData(xml_file);
 
-
+    logger_base.debug("Preparing views");
     mSequenceElements.PrepareViews(xml_file);
+
+    logger_base.debug("Populating row information");
     mSequenceElements.PopulateRowInformation();
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
+
+    logger_base.debug("Updating the timeline");
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+
+    logger_base.debug("Updating the house preview");
     _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() / CurrentSeqXmlFile->GetFrameMS());
     mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
@@ -737,6 +751,8 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _housePreviewPanel->Refresh();
     m_mgr->Update();
     _selectPanel->ReloadModels();
+
+    logger_base.debug("Sequence all loaded.");
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
