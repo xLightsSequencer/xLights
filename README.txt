@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (kevin)  Fix house preview video export on Windows with high DPI settings
    -- enh (keith)  Change the colour panel update button to purely apply the colour palette. All other colour settings are ignored.
    -- enh (keith)  Add the ability to change custom model background image from within the model data dialog
    -- enh (keith)  Strip out some buttons and replace them with a right click menu with enhancements to create 
