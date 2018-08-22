@@ -439,7 +439,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
     {
         // Just a regular key ... If current focus is a control then we need to not process this
-        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && k < 128)
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
+            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END))
         {
             return false;
         }

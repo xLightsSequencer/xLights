@@ -1352,6 +1352,8 @@ void xLightsFrame::PlaySequence(wxCommandEvent& event)
 
 void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" )
     {
 		if (CurrentSeqXmlFile->GetMedia() != nullptr)
@@ -1559,6 +1561,8 @@ void xLightsFrame::TogglePlay(wxCommandEvent& event)
 
 void xLightsFrame::DoStopSequence()
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     _fps = -1;
 	mLoopAudio = false;
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
@@ -1590,6 +1594,8 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
 
 void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     _fps = -1;
     if( playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_EFFECT ) {
         playStartMS = -1;
@@ -1609,6 +1615,8 @@ void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 
 void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     _fps = -1;
     int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(limit-1);
@@ -1624,6 +1632,8 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 
 void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     int current_play_time;
     if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
     {
@@ -1666,6 +1676,8 @@ void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
 
 void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     int current_play_time;
     if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
     {
@@ -1709,6 +1721,8 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
 
 void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     int pos = event.GetInt();
     int current_play_time;
     if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
