@@ -182,6 +182,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         node->AddAttribute("GridLineSpacing", "50");
         node->AddAttribute("GridWidth", "2000.0");
         node->AddAttribute("GridHeight", "1000.0");
+        node->AddAttribute("Active", "1");
         UnsavedRgbEffectsChanges = true;
     }
     if (EffectsNode == nullptr)

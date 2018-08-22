@@ -26,6 +26,7 @@ public:
     virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) {};
 
 protected:
+    bool active;
 
 private:
     bool only_3d;

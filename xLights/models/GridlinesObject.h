@@ -24,6 +24,7 @@ private:
     xlColor gridColor;
     int width;
     int height;
+    bool hasAxis;
 };
 
 #endif // GRIDLINESOBJECT_H

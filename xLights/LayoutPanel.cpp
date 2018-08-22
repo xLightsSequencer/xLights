@@ -4750,6 +4750,11 @@ void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 
 void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 {
+    if( !editing_models ) {
+        objects_panel->OnItemContextMenu(event);
+        return;
+    }
+
     wxMenu mnuContext;
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {

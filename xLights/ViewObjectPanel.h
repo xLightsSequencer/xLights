@@ -23,6 +23,7 @@ public:
     void UpdateObjectList(bool full_refresh, std::string& currentLayoutGroup);
     bool OnSelectionChanged(wxTreeListEvent& event, ViewObject** view_object, std::string& currentLayoutGroup);
     void OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPropertyGridEvent& event);
+    void OnItemContextMenu(wxTreeListEvent& event);
     void HighlightObject(ViewObject* v);
 
     //(*Declarations(ViewObjectPanel)
@@ -36,6 +37,7 @@ protected:
     //*)
 
     static const long ID_TREELISTVIEW_OBJECTS;
+    static const long ID_MNU_DELETE_OBJECT;
 
 private:
 
@@ -61,6 +63,8 @@ private:
     void UpdateObjectList(bool full_refresh, std::vector<ViewObject*> &objects, std::string& currentLayoutGroup );
     void UpdateObjectsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<ViewObject *> &prev_objects, bool filtering);
     void RenameObjectInTree(ViewObject *view_object, const std::string new_name);
+    void OnObjectsPopup(wxCommandEvent& event);
+    void DeleteSelectedObject();
 
     LayoutPanel* layoutPanel;
     ViewObjectManager& mViewObjects;

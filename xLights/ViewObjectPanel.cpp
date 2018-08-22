@@ -25,6 +25,7 @@ BEGIN_EVENT_TABLE(ViewObjectPanel,wxPanel)
 END_EVENT_TABLE()
 
 const long ViewObjectPanel::ID_TREELISTVIEW_OBJECTS = wxNewId();
+const long ViewObjectPanel::ID_MNU_DELETE_OBJECT = wxNewId();
 
 ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,LayoutPanel *xl,wxWindowID id,const wxPoint& pos,const wxSize& size)
 :   layoutPanel(xl), mViewObjects(Objects), mSelectedObject(nullptr)
@@ -533,6 +534,96 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
                        (const char *)event.GetValue().GetString().c_str());
             }
         }
+    }
+}
+
+void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
+{
+    wxMenu mnuContext;
+    wxTreeListItem item = event.GetItem();
+    if( item.IsOk() ) {
+        ObjectTreeData *data = dynamic_cast<ObjectTreeData*>(TreeListViewObjects->GetItemData(item));
+        ViewObject* view_object = data != nullptr ? data->GetViewObject() : nullptr;
+        if( view_object != nullptr ) {
+            if( view_object->GetDisplayAs() == "ObjectGroup" ) {
+                mSelectedGroup = item;
+            } else {
+                mSelectedGroup = nullptr;
+                mSelectedObject = view_object;
+                //SelectModel(model, false);
+            }
+        }
+    } else {
+        return;
+    }
+
+    if (mSelectedObject != nullptr ) {
+        mnuContext.Append(ID_MNU_DELETE_OBJECT,"Delete");
+        mnuContext.AppendSeparator();
+    }
+
+    /*mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
+    if( mSelectedGroup.IsOk() ) {
+        mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
+        mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
+    }*/
+
+    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ViewObjectPanel::OnObjectsPopup, nullptr, this);
+    PopupMenu(&mnuContext);
+}
+
+void ViewObjectPanel::OnObjectsPopup(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int id = event.GetId();
+    if(id == ID_MNU_DELETE_OBJECT)
+    {
+        logger_base.debug("ViewObjectPanel::OnObjectsPopup DELETE_OBJECT");
+        DeleteSelectedObject();
+    }
+    /*else if(id == ID_MNU_DELETE_MODEL_GROUP)
+    {
+        logger_base.debug("ViewObjectPanel::OnObjectsPopup DELETE_MODEL_GROUP");
+        if( mSelectedGroup.IsOk() ) {
+            wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
+            if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+                xlights->AllModels.Delete(name.ToStdString());
+                selectedModel = nullptr;
+                mSelectedGroup = nullptr;
+                UnSelectAllModels();
+                ShowPropGrid(true);
+                xlights->UpdateModelsList();
+                xlights->MarkEffectsFileDirty(true);
+            }
+        }
+    }*/
+}
+
+void ViewObjectPanel::DeleteSelectedObject() {
+    if( mSelectedObject != nullptr && !mSelectedObject->GetObjectScreenLocation().IsLocked()) {
+        layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+        // This should delete all selected models
+        layoutPanel->xlights->AllObjects.Delete(mSelectedObject->name);
+        /*bool selectedModelFound = false;
+        for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+        {
+            if (modelPreview->GetModels()[i]->GroupSelected)
+            {
+                if (!selectedModelFound && modelPreview->GetModels()[i]->name == mSelectedObject->name)
+                {
+                    selectedModelFound = true;
+                }
+                xlights->AllModels.Delete(modelPreview->GetModels()[i]->name);
+            }
+        }
+        if (!selectedModelFound)
+        {
+            xlights->AllModels.Delete(mSelectedObject->name);
+        }*/
+        mSelectedObject = nullptr;
+        layoutPanel->xlights->UpdateModelsList();
+        layoutPanel->xlights->MarkEffectsFileDirty(true);
     }
 }
 

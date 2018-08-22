@@ -6,11 +6,12 @@
 #include "ObjectManager.h"
 
 class ViewObject;
+class xLightsFrame;
 
 class ViewObjectManager : public ObjectManager
 {
 public:
-    ViewObjectManager();
+    ViewObjectManager(xLightsFrame* xl);
     virtual ~ViewObjectManager();
 
     virtual BaseObject *GetObject(const std::string &name) const;
@@ -19,6 +20,7 @@ public:
     ViewObject* CreateAndAddObject(const std::string &type);
     ViewObject* CreateObject(wxXmlNode *node) const;
     void AddViewObject(ViewObject *view_object);
+    void Delete(const std::string &name);
 
     void LoadViewObjects(wxXmlNode *objectNode);
 
@@ -32,6 +34,7 @@ protected:
 
 private:
     std::map<std::string, ViewObject *> view_objects;
+    xLightsFrame* xlights;
 
     void clear();
 };

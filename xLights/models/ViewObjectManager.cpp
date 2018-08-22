@@ -3,8 +3,9 @@
 
 #include "ViewObjectManager.h"
 #include "GridlinesObject.h"
+#include "xLightsMain.h"
 
-ViewObjectManager::ViewObjectManager()
+ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
 {
     //ctor
 }
@@ -111,6 +112,41 @@ ViewObject *ViewObjectManager::createAndAddObject(wxXmlNode *node) {
     ViewObject* view_object = CreateObject(node);
     AddViewObject(view_object);
     return view_object;
+}
+
+void ViewObjectManager::Delete(const std::string &name) {
+
+    if( xlights->CurrentSeqXmlFile != nullptr )
+    {
+        Element* elem_to_delete = xlights->GetSequenceElements().GetElement(name);
+        if (elem_to_delete != nullptr)
+        {
+            // Delete the object from the sequencer grid and views
+            xlights->GetSequenceElements().DeleteElement(name);
+        }
+    }
+
+    // now delete the view_object
+    for (auto it = view_objects.begin(); it != view_objects.end(); ++it) {
+        if (it->first == name) {
+            ViewObject *view_object = it->second;
+
+            if (view_object != nullptr) {
+                view_object->GetModelXml()->GetParent()->RemoveChild(view_object->GetModelXml());
+
+                /*for (auto it2 = view_objects.begin(); it2 != view_objects.end(); ++it2) {
+                    if (it2->second->GetDisplayAs() == "ObjectGroup") {
+                        ModelGroup *group = (ModelGroup*)it2->second;
+                        group->ModelRemoved(name);
+                    }
+                }*/
+                view_objects.erase(it);
+                delete view_object->GetModelXml();
+                delete view_object;
+                return;
+            }
+        }
+    }
 }
 
 std::map<std::string, ViewObject*>::const_iterator ViewObjectManager::begin() const {

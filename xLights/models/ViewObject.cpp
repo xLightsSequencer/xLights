@@ -5,7 +5,7 @@
 #include "ViewObject.h"
 
 ViewObject::ViewObject(const ObjectManager &manger)
-: only_3d(true)
+: only_3d(true), active(true)
 {
     //ctor
 }
@@ -26,6 +26,7 @@ void ViewObject::SetFromXml(wxXmlNode* ObjectNode) {
     name=ObjectNode->GetAttribute("name").ToStdString();
     DisplayAs=ObjectNode->GetAttribute("DisplayAs").ToStdString();
     layout_group = ObjectNode->GetAttribute("LayoutGroup","Unassigned");
+    active = ObjectNode->GetAttribute("Active", "1") == "1";
 
     GetObjectScreenLocation().Read(ObjectNode);
 
@@ -41,6 +42,8 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *sp;
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    p = grid->Append(new wxBoolProperty("Active", "Active", active));
+    p->SetAttribute("UseCheckbox", true);
 
     AddTypeProperties(grid);
 
@@ -60,6 +63,16 @@ void ViewObject::AddProperties(wxPropertyGridInterface *grid) {
 }
 
 int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
+
+    if (event.GetPropertyName() == "Active") {
+        ModelXml->DeleteAttribute("Active");
+        active = event.GetValue().GetBool();
+        if (active) {
+            ModelXml->AddAttribute("Active", "1");
+        }
+        IncrementChangeCount();
+        return 3 | 0x0008;
+    }
 
     int i = GetObjectScreenLocation().OnPropertyGridChange(grid, event);
 
