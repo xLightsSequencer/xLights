@@ -3133,6 +3133,9 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     int width = housePreview->getWidth();
     int height = housePreview->getHeight();
     double contentScaleFactor = GetContentScaleFactor();
+#ifdef _WIN32
+    contentScaleFactor = 1.;
+#endif // WIN32
 
     int audioChannelCount = 0;
     int audioSampleRate = 0;
