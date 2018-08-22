@@ -27,6 +27,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetCustomData(const std::string &data);
 
         std::string GetCustomBackground() const {return custom_background;}
+        void SetCustomBackground(std::string background);
         long GetCustomLightness() const;
         void SetCustomLightness(long lightness);
 

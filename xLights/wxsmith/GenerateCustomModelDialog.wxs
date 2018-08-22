@@ -597,7 +597,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxSlider" name="ID_SLIDER_BI_MinSeparation" variable="Slider_BI_MinSeparation" member="yes">
-																					<value>10</value>
+																					<value>100</value>
 																					<min>1</min>
 																					<handler function="OnSlider_BI_MinSeparationCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
 																					<handler function="OnSlider_BI_MinSeparationCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
@@ -608,7 +608,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BI_MinSeparation" variable="TextCtrl_BI_MinSeparation" member="yes">
-																					<value>10</value>
+																					<value>100</value>
 																					<size>40,24</size>
 																					<style>wxTE_READONLY</style>
 																				</object>
@@ -638,6 +638,35 @@
 																			<object class="sizeritem">
 																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BI_Contrast" variable="TextCtrl_BI_Contrast" member="yes">
 																					<value>0</value>
+																					<size>40,24</size>
+																					<style>wxTE_READONLY</style>
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText16" member="yes">
+																					<label>Model Scale</label>
+																				</object>
+																				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxSlider" name="ID_SLIDER_BI_MinScale" variable="Slider_BI_MinScale" member="yes">
+																					<value>1</value>
+																					<min>1</min>
+																					<handler function="OnSlider_BI_MinScaleCmdScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+																					<handler function="OnSlider_BI_MinScaleCmdSliderUpdated" entry="EVT_COMMAND_SLIDER_UPDATED" />
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>2</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxTextCtrl" name="ID_TEXTCTRL_BI_MinScale" variable="TextCtrl_BI_MinScale" member="yes">
+																					<value>1</value>
 																					<size>40,24</size>
 																					<style>wxTE_READONLY</style>
 																				</object>

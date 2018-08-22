@@ -84,6 +84,10 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 }
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CustomData" == event.GetPropertyName()) {
+        if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != custom_background)
+        {
+            grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(custom_background));
+        }
         return 3 | 0x0008;
     }
     else if ("CustomBkgImage" == event.GetPropertyName()) {
@@ -131,6 +135,13 @@ void CustomModel::SetCustomData(const std::string &data) {
     ModelXml->DeleteAttribute("CustomModel");
     ModelXml->AddAttribute("CustomModel", data);
     SetFromXml(ModelXml, zeroBased);
+}
+
+void CustomModel::SetCustomBackground(std::string background)
+{
+    custom_background = background;
+    ModelXml->DeleteAttribute("CustomBkgImage");
+    ModelXml->AddAttribute("CustomBkgImage", custom_background);
 }
 
 long CustomModel::GetCustomLightness() const

@@ -179,6 +179,7 @@ private:
     bool MultipleEffectsSelected() const;
     std::list<Effect*> GetSelectedEffects() const;
     bool PapagayoEffectsSelected() const;
+    bool AtLeastOneEffectSelected() const;
     void ResizeSingleEffect(int position);
     void ResizeMoveMultipleEffects(int position, bool offset);
     void ResizeMoveMultipleEffectsByTime(int delta, bool force);

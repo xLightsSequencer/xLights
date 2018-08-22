@@ -695,13 +695,18 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 
 void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Load sequence %s", (const char*)xml_file.GetFullPath().c_str());
+
     SetFrequency(xml_file.GetFrequency());
     mSequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
     mSequenceElements.SetModelsNode(ModelsNode);
     mSequenceElements.SetEffectsNode(EffectsNode);
     mSequenceElements.LoadSequencerFile(xml_file, GetShowDirectory());
-    xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
 
+    logger_base.debug("Upgrading sequence");
+    xml_file.AdjustEffectSettingsForVersion(mSequenceElements, this);
 
     Menu_Settings_Sequence->Enable(true);
     MenuSettings->Enable(ID_MENUITEM_RENDER_MODE, true);
@@ -718,17 +723,26 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
 
     mSavedChangeCount = mSequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
+
+    logger_base.debug("Checking for valid models");
     CheckForValidModels();
 
+    logger_base.debug("Loading the audio data");
     LoadAudioData(xml_file);
 
-
+    logger_base.debug("Preparing views");
     mSequenceElements.PrepareViews(xml_file);
+
+    logger_base.debug("Populating row information");
     mSequenceElements.PopulateRowInformation();
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&mSequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
+
+    logger_base.debug("Updating the timeline");
     mainSequencer->PanelTimeLine->SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
+
+    logger_base.debug("Updating the house preview");
     _housePreviewPanel->SetDurationFrames(CurrentSeqXmlFile->GetSequenceDurationMS() / CurrentSeqXmlFile->GetFrameMS());
     mSequenceElements.SetSequenceEnd(CurrentSeqXmlFile->GetSequenceDurationMS());
     ResizeAndMakeEffectsScroll();
@@ -738,6 +752,8 @@ void xLightsFrame::LoadSequencer(xLightsXmlFile& xml_file)
     _housePreviewPanel->Refresh();
     m_mgr->Update();
     _selectPanel->ReloadModels();
+
+    logger_base.debug("Sequence all loaded.");
 }
 
 void xLightsFrame::Zoom( wxCommandEvent& event)
@@ -1337,6 +1353,8 @@ void xLightsFrame::PlaySequence(wxCommandEvent& event)
 
 void xLightsFrame::PauseSequence(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" )
     {
 		if (CurrentSeqXmlFile->GetMedia() != nullptr)
@@ -1544,6 +1562,8 @@ void xLightsFrame::TogglePlay(wxCommandEvent& event)
 
 void xLightsFrame::DoStopSequence()
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     _fps = -1;
 	mLoopAudio = false;
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED )
@@ -1575,6 +1595,8 @@ void xLightsFrame::StopSequence(wxCommandEvent& event)
 
 void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     _fps = -1;
     if( playType == PLAY_TYPE_EFFECT_PAUSED || playType == PLAY_TYPE_EFFECT ) {
         playStartMS = -1;
@@ -1594,6 +1616,8 @@ void xLightsFrame::SequenceFirstFrame(wxCommandEvent& event)
 
 void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     _fps = -1;
     int limit = mainSequencer->ScrollBarEffectsHorizontal->GetRange();
     mainSequencer->ScrollBarEffectsHorizontal->SetThumbPosition(limit-1);
@@ -1609,6 +1633,8 @@ void xLightsFrame::SequenceLastFrame(wxCommandEvent& event)
 
 void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     int current_play_time;
     if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
     {
@@ -1651,6 +1677,8 @@ void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
 
 void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     int current_play_time;
     if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
     {
@@ -1694,6 +1722,8 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
 
 void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     int pos = event.GetInt();
     int current_play_time;
     if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
@@ -1764,8 +1794,10 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
 }
 
 void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
-    std::string palette;
-    std::string effectText = GetEffectTextFromWindows(palette);
+
+    // Get only the colours from the colour panel ... ignore all the other settings
+    std::string palette = colorPanel->GetColorString(true);
+
     mSequenceElements.get_undo_mgr().CreateUndoStep();
     for(size_t i=0;i<mSequenceElements.GetVisibleRowInformationSize();i++) {
         Element* element = mSequenceElements.GetVisibleRowInformation(i)->element;
@@ -1779,7 +1811,8 @@ void xLightsFrame::UpdateEffectPalette(wxCommandEvent& event) {
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
                                                                        ef);
-                ef->SetPalette(palette);
+                // only set the colours ... not other settings like sparkles
+                ef->SetColourOnlyPalette(palette);
                 startms = std::min(startms, ef->GetStartTimeMS());
                 endms = std::max(endms, ef->GetEndTimeMS());
             }

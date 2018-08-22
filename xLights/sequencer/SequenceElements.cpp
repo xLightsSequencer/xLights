@@ -745,6 +745,10 @@ void SequenceElements::LoadEffects(EffectLayer *effectLayer,
 
 bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxString &ShowDir)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    renderDependency.clear();
+
     mFilename = xml_file;
     wxXmlDocument& seqDocument = xml_file.GetXmlDocument();
 
@@ -776,7 +780,6 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
                 if (ElementExists(name))
                 {
-                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
                     logger_base.warn("Duplicate " + type + ": '" + name + "'. Second instance ignored.");
                     wxMessageBox("Duplicate " + type + ": '" + name + "'. Second instance ignored.", _("ERROR"));
                 }
@@ -863,12 +866,11 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                             EffectLayer* effectLayer = element->AddEffectLayer();
                             int time = 0;
                             int end_time = xml_file.GetSequenceDurationMS();
-                            int startTime, endTime, next_time;
                             while (time <= end_time)
                             {
-                                next_time = (time + interval <= end_time) ? time + interval : end_time;
-                                startTime = TimeLine::RoundToMultipleOfPeriod(time, mFrequency);
-                                endTime = TimeLine::RoundToMultipleOfPeriod(next_time, mFrequency);
+                                int next_time = (time + interval <= end_time) ? time + interval : end_time;
+                                int startTime = TimeLine::RoundToMultipleOfPeriod(time, mFrequency);
+                                int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, mFrequency);
                                 effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
                                 time += interval;
                             }
@@ -919,6 +921,9 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
             el->AddEffectLayer();
         }
     }
+
+    logger_base.debug("Sequencer file loaded.");
+
     return true;
 }
 

@@ -661,7 +661,7 @@ std::string ColorPanel::GetCurrentPalette() const
     return res;
 }
 
-wxString ColorPanel::GetColorString()
+wxString ColorPanel::GetColorString(bool colourOnly)
 {
     wxString s,ChildName,AttrName;
     wxColour color;
@@ -686,6 +686,12 @@ wxString ColorPanel::GetColorString()
             s += AttrName;
         }
     }
+
+    if (colourOnly)
+    {
+        return s;
+    }
+
     if (BitmapButton_SparkleFrequencyVC->GetValue()->IsActive())
     {
         wxString sparkleVC = wxString(BitmapButton_SparkleFrequencyVC->GetValue()->Serialise().c_str());

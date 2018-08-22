@@ -6,20 +6,20 @@
 class OutputManager;
 
 //(*Headers(GenerateCustomModelDialog)
+#include <wx/aui/aui.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/dialog.h>
+#include <wx/filedlg.h>
+#include <wx/gauge.h>
+#include <wx/grid.h>
+#include <wx/panel.h>
+#include <wx/radiobut.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/aui/aui.h>
-#include <wx/radiobut.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
-#include <wx/grid.h>
-#include <wx/filedlg.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/gauge.h>
 //*)
 
 #ifdef __WXOSX__
@@ -238,7 +238,7 @@ class GenerateCustomModelDialog: public wxDialog
     wxPoint CalcTrim(std::list<GCMBulb>& lights);
     bool TestScale(std::list<GCMBulb>& lights, std::list<GCMBulb>::iterator it, float scale, wxPoint trim);
     void CMTabEntry();
-    wxSize CalcSize();
+    wxSize CalcSize(float min);
     void DoGenerateCustomModel();
     void RemoveClippedLights(std::list<GCMBulb>& lights, wxRect& clip);
     void MITabEntry(bool erase);
@@ -255,82 +255,85 @@ class GenerateCustomModelDialog: public wxDialog
 		virtual ~GenerateCustomModelDialog();
 
 		//(*Declarations(GenerateCustomModelDialog)
-		wxStaticText* StaticText10;
-		wxRadioButton* SLRadioButton;
-		wxPanel* Panel_BulbIdentify;
-		wxStaticText* StaticText9;
-		wxButton* Button_Shrink;
-		wxButton* Button_Forward10Frames;
-		wxTextCtrl* TextCtrl_BI_Contrast;
-		wxStaticText* StaticText_StartTime;
-		wxFlexGridSizer* FlexGridSizer19;
-		wxRadioButton* SingleChannelRadioButton;
-		wxStaticText* StaticText_CM_Request;
-		wxTextCtrl* TextCtrl_BI_Sensitivity;
-		wxSlider* Slider_BI_MinSeparation;
+		wxAuiNotebook* AuiNotebook1;
+		wxAuiNotebook* AuiNotebook_ProcessSettings;
+		wxButton* ButtonBumpBack;
+		wxButton* ButtonBumpFwd;
 		wxButton* Button_BI_Back;
-		wxButton* Button_SF_Back;
-		wxButton* Button_MI_Back;
+		wxButton* Button_BI_Next;
+		wxButton* Button_BI_Update;
+		wxButton* Button_Back10Frames;
 		wxButton* Button_Back1Frame;
-		wxStaticText* StaticText13;
 		wxButton* Button_CB_RestoreDefault;
 		wxButton* Button_CM_Back;
-		wxAuiNotebook* AuiNotebook_ProcessSettings;
-		wxRadioButton* SCRadioButton;
-		wxButton* Button_BI_Update;
-		wxFlexGridSizer* FlexGridSizer5;
-		wxSlider* Slider_Intensity;
-		wxStaticText* StaticText_BI;
-		wxStaticText* StaticText11;
-		wxGrid* Grid_CM_Result;
-		wxStaticText* StaticText_BI_Slider;
-		wxButton* Button_PCM_Run;
-		wxButton* Button_MI_Next;
-		wxButton* Button_CV_Next;
-		wxPanel* Panel1;
-		wxSpinCtrl* SpinCtrl_NC_Count;
-		wxFileDialog* FileDialog1;
-		wxTextCtrl* TextCtrl_BI_Status;
-		wxButton* Button_Back10Frames;
-		wxButton* Button_SF_Manual;
-		wxGauge* Gauge_Progress;
-		wxButton* Button_CV_Back;
-		wxButton* Button_MT_Next;
-		wxRadioButton* NodesRadioButtonPg2;
-		wxTextCtrl* TextCtrl_BC_Blur;
-		wxSlider* Slider_BI_Contrast;
-		wxTextCtrl* TextCtrl_BI_MinSeparation;
-		wxTextCtrl* TextCtrl_GCM_Filename;
-		wxPanel* Panel_ChooseVideo;
-		wxCheckBox* CheckBox_BI_ManualUpdate;
-		wxButton* Button_MI_UndoBulb;
-		wxSlider* Slider_AdjustBlur;
-		wxButton* Button_GCM_SelectFile;
-		wxFlexGridSizer* FlexGridSizer14;
-		wxButton* ButtonBumpFwd;
-		wxPanel* Panel_Generate;
-		wxButton* Button_MI_NextFrame;
-		wxAuiNotebook* AuiNotebook1;
-		wxButton* ButtonBumpBack;
-		wxButton* Button_SF_Next;
-		wxStaticText* StaticText_StartFrameOk;
-		wxPanel* Panel_CustomModel;
-		wxButton* Button_BI_Next;
-		wxCheckBox* CheckBox_BI_IsSteady;
-		wxStaticText* StaticText15;
-		wxButton* Button_CV_Manual;
-		wxStaticText* StaticText12;
-		wxPanel* Panel2;
-		wxPanel* Panel_Prepare;
-		wxButton* Button_MI_PriorFrame;
-		wxSlider* Slider_BI_Sensitivity;
-		wxPanel* Panel_StartFrame;
-		wxButton* Button_Grow;
-		wxStaticText* StaticText17;
 		wxButton* Button_CM_Save;
-		wxSpinCtrl* SpinCtrl_StartChannel;
-		wxRadioButton* NodesRadioButton;
+		wxButton* Button_CV_Back;
+		wxButton* Button_CV_Manual;
+		wxButton* Button_CV_Next;
+		wxButton* Button_Forward10Frames;
 		wxButton* Button_Forward1Frame;
+		wxButton* Button_GCM_SelectFile;
+		wxButton* Button_Grow;
+		wxButton* Button_MI_Back;
+		wxButton* Button_MI_Next;
+		wxButton* Button_MI_NextFrame;
+		wxButton* Button_MI_PriorFrame;
+		wxButton* Button_MI_UndoBulb;
+		wxButton* Button_MT_Next;
+		wxButton* Button_PCM_Run;
+		wxButton* Button_SF_Back;
+		wxButton* Button_SF_Manual;
+		wxButton* Button_SF_Next;
+		wxButton* Button_Shrink;
+		wxCheckBox* CheckBox_BI_IsSteady;
+		wxCheckBox* CheckBox_BI_ManualUpdate;
+		wxFileDialog* FileDialog1;
+		wxFlexGridSizer* FlexGridSizer14;
+		wxFlexGridSizer* FlexGridSizer19;
+		wxFlexGridSizer* FlexGridSizer5;
+		wxGauge* Gauge_Progress;
+		wxGrid* Grid_CM_Result;
+		wxPanel* Panel1;
+		wxPanel* Panel2;
+		wxPanel* Panel_BulbIdentify;
+		wxPanel* Panel_ChooseVideo;
+		wxPanel* Panel_CustomModel;
+		wxPanel* Panel_Generate;
+		wxPanel* Panel_Prepare;
+		wxPanel* Panel_StartFrame;
+		wxRadioButton* NodesRadioButton;
+		wxRadioButton* NodesRadioButtonPg2;
+		wxRadioButton* SCRadioButton;
+		wxRadioButton* SLRadioButton;
+		wxRadioButton* SingleChannelRadioButton;
+		wxSlider* Slider_AdjustBlur;
+		wxSlider* Slider_BI_Contrast;
+		wxSlider* Slider_BI_MinScale;
+		wxSlider* Slider_BI_MinSeparation;
+		wxSlider* Slider_BI_Sensitivity;
+		wxSlider* Slider_Intensity;
+		wxSpinCtrl* SpinCtrl_NC_Count;
+		wxSpinCtrl* SpinCtrl_StartChannel;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
+		wxStaticText* StaticText13;
+		wxStaticText* StaticText15;
+		wxStaticText* StaticText16;
+		wxStaticText* StaticText17;
+		wxStaticText* StaticText9;
+		wxStaticText* StaticText_BI;
+		wxStaticText* StaticText_BI_Slider;
+		wxStaticText* StaticText_CM_Request;
+		wxStaticText* StaticText_StartFrameOk;
+		wxStaticText* StaticText_StartTime;
+		wxTextCtrl* TextCtrl_BC_Blur;
+		wxTextCtrl* TextCtrl_BI_Contrast;
+		wxTextCtrl* TextCtrl_BI_MinScale;
+		wxTextCtrl* TextCtrl_BI_MinSeparation;
+		wxTextCtrl* TextCtrl_BI_Sensitivity;
+		wxTextCtrl* TextCtrl_BI_Status;
+		wxTextCtrl* TextCtrl_GCM_Filename;
 		//*)
 
 	protected:
@@ -381,6 +384,9 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_BI_Contrast;
 		static const long ID_TEXTCTRL_BI_Contrast;
+		static const long ID_STATICTEXT7;
+		static const long ID_SLIDER_BI_MinScale;
+		static const long ID_TEXTCTRL_BI_MinScale;
 		static const long ID_CHECKBOX_BI_IsSteady;
 		static const long ID_CHECKBOX_BI_ManualUpdate;
 		static const long ID_GAUGE1;
@@ -456,6 +462,8 @@ class GenerateCustomModelDialog: public wxDialog
 		void OnButton_SF_ManualClick(wxCommandEvent& event);
 		void OnButtonBumpBackClick(wxCommandEvent& event);
 		void OnButtonBumpFwdClick(wxCommandEvent& event);
+		void OnSlider_BI_MinScaleCmdScrollChanged(wxScrollEvent& event);
+		void OnSlider_BI_MinScaleCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
         void OnStaticBitmapLeftUp(wxMouseEvent& event);
