@@ -3447,6 +3447,7 @@ void xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event)
         mRenderOnSaveMenuItem->Check(false);
         mRenderOnSaveMenuItem->Enable(false);
         mRenderOnSave = false;
+        wxMessageBox("Turning off save of the FSEQ is really not recommended. This will often require you to re-render a sequence every time you load it ... all to save yourself a couple of seconds save time.");
     }
 }
 
