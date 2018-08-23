@@ -5,6 +5,8 @@
 #include "ModelScreenLocation.h"
 #include "ViewObjectManager.h"
 
+class ModelPreview;
+
 class ViewObject : public BaseObject
 {
 public:
@@ -23,7 +25,7 @@ public:
     virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
 
-    virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) {};
+    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) {};
 
 protected:
     bool active;

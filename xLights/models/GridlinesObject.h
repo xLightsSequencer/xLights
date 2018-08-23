@@ -3,6 +3,8 @@
 
 #include "ViewObject.h"
 
+class ModelPreview;
+
 class GridlinesObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
 public:
@@ -15,7 +17,7 @@ public:
 
     int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
 
-    virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
+    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
 
 protected:
 

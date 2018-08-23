@@ -188,7 +188,7 @@ void ModelPreview::Render()
     if( is_3d ) {
         for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
             ViewObject *view_object = it->second;
-            view_object->Draw(view_object_accumulator, allowSelected);
+            view_object->Draw(this, view_object_accumulator, allowSelected);
         }
     }
 

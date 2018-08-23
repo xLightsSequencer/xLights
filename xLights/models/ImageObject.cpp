@@ -5,21 +5,22 @@
 #include "ImageObject.h"
 #include "DrawGLUtils.h"
 #include "UtilFunctions.h"
+#include "ModelPreview.h"
 
 #include <log4cpp/Category.hh>
 
 ImageObject::ImageObject(wxXmlNode *node, const ViewObjectManager &manager)
- : ObjectWithScreenLocation(manager), _imageFile(""), width(1), height(1), transparency(0), _image(nullptr)
+ : ObjectWithScreenLocation(manager), _imageFile(""), width(1), height(1), transparency(0)
 {
     SetFromXml(node);
 }
 
 ImageObject::~ImageObject()
 {
-    //for (auto it = _images.begin(); it != _images.end(); ++it)
-    //{
-    //    delete it->second;
-    //}
+    for (auto it = _images.begin(); it != _images.end(); ++it)
+    {
+        delete it->second;
+    }
 }
 
 void ImageObject::InitModel() {
@@ -47,13 +48,11 @@ void ImageObject::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("Image" == event.GetPropertyName()) {
-        /*for (auto it = _images.begin(); it != _images.end(); ++it)
+        for (auto it = _images.begin(); it != _images.end(); ++it)
         {
             delete it->second;
         }
-        _images.clear();*/
-        if( _image != nullptr ) delete _image;
-        _image = nullptr;
+        _images.clear();
         _imageFile = event.GetValue().GetString();
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
@@ -70,7 +69,7 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void ImageObject::Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
+void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
 {
     if( !active ) { return; }
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
@@ -94,14 +93,14 @@ void ImageObject::Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
     GetObjectScreenLocation().TranslatePoint(x4, y4, z4);
 
     //GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
-    DrawObjectOnWindow(/*preview, */va3, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+    DrawObjectOnWindow(preview, va3, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
 
     /*if ((Selected || Highlighted) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }*/
 }
 
-void ImageObject::DrawObjectOnWindow(/*ModelPreview* preview,*/ DrawGLUtils::xl3Accumulator &va,
+void ImageObject::DrawObjectOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
     float &x1, float &y1, float &z1,
     float &x2, float &y2, float &z2,
     float &x3, float &y3, float &z3,
@@ -110,8 +109,7 @@ void ImageObject::DrawObjectOnWindow(/*ModelPreview* preview,*/ DrawGLUtils::xl3
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool exists = false;
-    //if (_images.find(preview->GetName().ToStdString()) == _images.end())
-    if( _image == nullptr )
+    if (_images.find(preview->GetName().ToStdString()) == _images.end())
     {
         if (!wxFileExists(_imageFile))
         {
@@ -131,14 +129,14 @@ void ImageObject::DrawObjectOnWindow(/*ModelPreview* preview,*/ DrawGLUtils::xl3
         }
         else
         {
-            //logger_base.debug("Loading image model %s file %s for preview %s.",
-            //    (const char *)GetName().c_str(),
-            //    (const char *)_imageFile.c_str(),
-            //    (const char *)preview->GetName().c_str());
-            //_images[preview->GetName().ToStdString()] = new Image(_imageFile, _whiteAsAlpha);
-            _image = new Image(_imageFile);
-            width = _image->width;
-            height = _image->height;
+            logger_base.debug("Loading image model %s file %s for preview %s.",
+                (const char *)GetName().c_str(),
+                (const char *)_imageFile.c_str(),
+                (const char *)preview->GetName().c_str());
+            _images[preview->GetName().ToStdString()] = new Image(_imageFile);
+
+            width = (_images[preview->GetName().ToStdString()])->width;
+            height = (_images[preview->GetName().ToStdString()])->height;
             screenLocation.SetRenderSize(width, height, 10.0f);
             exists = true;
         }
@@ -150,7 +148,7 @@ void ImageObject::DrawObjectOnWindow(/*ModelPreview* preview,*/ DrawGLUtils::xl3
 
     if (exists)
     {
-        Image* image = _image; //_images[preview->GetName().ToStdString()];
+        Image* image = _images[preview->GetName().ToStdString()];
 
         va.PreAllocTexture(6);
         float tx1 = 0;

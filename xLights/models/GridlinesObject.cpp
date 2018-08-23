@@ -4,6 +4,7 @@
 
 #include "GridlinesObject.h"
 #include "DrawGLUtils.h"
+#include "ModelPreview.h"
 
 GridlinesObject::GridlinesObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), line_spacing(50), gridColor(xlColor(0,128, 0)),
@@ -94,7 +95,7 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void GridlinesObject::Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
+void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
 {
     if( !active ) { return; }
 

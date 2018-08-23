@@ -4,6 +4,8 @@
 #include "ViewObject.h"
 #include "Image.h"
 
+class ModelPreview;
+
 class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
     public:
@@ -16,10 +18,10 @@ class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
 
-        virtual void Draw(DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
+        virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
 
     protected:
-    void DrawObjectOnWindow(/*ModelPreview* preview,*/ DrawGLUtils::xl3Accumulator &va,
+    void DrawObjectOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
         float &x1, float &y1, float &z1,
         float &x2, float &y2, float &z2,
         float &x3, float &y3, float &z3,
@@ -27,10 +29,9 @@ class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 
     private:
         std::string _imageFile;
-        Image* _image;
         int width;
         int height;
-        //std::map<std::string, Image*> _images;
+        std::map<std::string, Image*> _images;
         int transparency;
 
 };
