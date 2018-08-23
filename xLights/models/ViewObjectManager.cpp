@@ -38,6 +38,8 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
     std::string name = GenerateObjectName(type);
     node->AddAttribute("name", name);
 
+    node->AddAttribute("DisplayAs", type);
+
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
     } else if (type == "Image") {
@@ -53,12 +55,16 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
 
 ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     std::string type = node->GetAttribute("DisplayAs").ToStdString();
-    ViewObject *view_object;
+    ViewObject *view_object = nullptr;
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
     }
     else if (type == "Image") {
         view_object = new ImageObject(node, *this);
+    }
+    else
+    {
+        wxASSERT(false);
     }
     return view_object;
 }
