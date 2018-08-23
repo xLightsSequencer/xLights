@@ -144,7 +144,10 @@ void InitialiseLogging(bool fromMain)
 
 #endif
 #ifdef __LINUX__
-        std::string initFileName = "/usr/share/xLights/xschedule.linux.properties";
+        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xschedule.linux.properties";
+        if (!wxFile::Exists(initFileName)) {
+            initFileName = wxStandardPaths::Get().GetResourcesDir() + "/xschedule.linux.properties";
+        }
 #endif
 
         if (!wxFile::Exists(initFileName))
