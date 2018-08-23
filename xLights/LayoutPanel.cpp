@@ -3668,7 +3668,9 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     if (id == ID_ADD_OBJECT_IMAGE)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
-
+        ViewObject* vobj = xlights->AllObjects.CreateAndAddObject("Image");
+        vobj->SetLayoutGroup(currentLayoutGroup);
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
     }
     else if (id == ID_ADD_OBJECT_GRIDLINES)
     {
@@ -5078,7 +5080,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     {
         // let crontrol A through
         // Just a regular key ... If current focus is a control then we need to not process this
-        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && 
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
             (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END))
         {
             return false;

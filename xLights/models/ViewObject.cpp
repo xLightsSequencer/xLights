@@ -7,12 +7,10 @@
 ViewObject::ViewObject(const ObjectManager &manger)
 : only_3d(true), active(true)
 {
-    //ctor
 }
 
 ViewObject::~ViewObject()
 {
-    //dtor
 }
 
 void ViewObject::AddSizeLocationProperties(wxPropertyGridInterface *grid) {

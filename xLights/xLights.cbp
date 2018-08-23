@@ -42,6 +42,7 @@
 					<Add directory="support" />
 					<Add directory="outputs" />
 					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -107,6 +108,7 @@
 					<Add directory="support" />
 					<Add directory="outputs" />
 					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -170,6 +172,7 @@
 					<Add directory="support" />
 					<Add directory="outputs" />
 					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -214,6 +217,7 @@
 					<Add directory="support" />
 					<Add directory="outputs" />
 					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -262,6 +266,7 @@
 					<Add directory="support" />
 					<Add directory="outputs" />
 					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -325,6 +330,7 @@
 					<Add directory="support" />
 					<Add directory="outputs" />
 					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -878,6 +884,8 @@
 		<Unit filename="models/IciclesModel.h" />
 		<Unit filename="models/ImageModel.cpp" />
 		<Unit filename="models/ImageModel.h" />
+		<Unit filename="models/ImageObject.cpp" />
+		<Unit filename="models/ImageObject.h" />
 		<Unit filename="models/MatrixModel.cpp" />
 		<Unit filename="models/MatrixModel.h" />
 		<Unit filename="models/Model.cpp" />

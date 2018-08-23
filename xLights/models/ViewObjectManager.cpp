@@ -3,6 +3,7 @@
 
 #include "ViewObjectManager.h"
 #include "GridlinesObject.h"
+#include "ImageObject.h"
 #include "xLightsMain.h"
 
 ViewObjectManager::ViewObjectManager(xLightsFrame* xl) : xlights(xl)
@@ -39,6 +40,8 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
 
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
+    } else if (type == "Image") {
+        view_object = new ImageObject(node, *this);
     } else {
         wxMessageBox(type + " is not a valid type for View Object " + node->GetAttribute("name"));
         return nullptr;
@@ -53,6 +56,9 @@ ViewObject* ViewObjectManager::CreateObject(wxXmlNode *node) const {
     ViewObject *view_object;
     if (type == "Gridlines") {
         view_object = new GridlinesObject(node, *this);
+    }
+    else if (type == "Image") {
+        view_object = new ImageObject(node, *this);
     }
     return view_object;
 }

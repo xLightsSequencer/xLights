@@ -211,6 +211,7 @@
     <ClCompile Include="models\ChannelBlockModel.cpp" />
     <ClCompile Include="models\GridlinesObject.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
+    <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
@@ -562,6 +563,7 @@
     <ClInclude Include="models\ChannelBlockModel.h" />
     <ClInclude Include="models\GridlinesObject.h" />
     <ClInclude Include="models\ImageModel.h" />
+    <ClInclude Include="models\ImageObject.h" />
     <ClInclude Include="models\ObjectManager.h" />
     <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />

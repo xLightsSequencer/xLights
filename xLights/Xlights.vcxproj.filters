@@ -357,6 +357,7 @@
     <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="models\GridlinesObject.cpp" />
     <ClCompile Include="ViewObjectPanel.cpp" />
+    <ClCompile Include="models\ImageObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -714,6 +715,7 @@
     <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="models\GridlinesObject.h" />
     <ClInclude Include="ViewObjectPanel.h" />
+    <ClInclude Include="models\ImageObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
