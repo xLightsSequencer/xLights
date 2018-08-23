@@ -497,6 +497,7 @@ ColorCurveButton::ColorCurveButton(wxWindow *parent,
     const wxValidator& validator,
     const wxString& name) : wxBitmapButton(parent, id, bitmap, pos, size, style, validator, name)
 {
+    _color = "#FFFFFF";
     _cc = new ColorCurve(name.ToStdString());
     Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveButton::LeftClick);
     Connect(id, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&ColorCurveButton::RightClick);

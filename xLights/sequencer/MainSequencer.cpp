@@ -756,6 +756,19 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
                 ScrollToRow(std::min(mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed(), mSequenceElements->GetFirstVisibleModelRow() + mSequenceElements->GetMaxModelsDisplayed()));
             }
             break;
+        case WXK_ESCAPE:
+            {
+                static bool escapeReenter = false;
+                
+                if (!escapeReenter) {
+                    escapeReenter = true;
+                    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
+                        mSequenceElements->GetXLightsFrame()->AbortRender();
+                    }
+                    escapeReenter = false;
+                }
+            }
+            break;
         default:
             event.Skip();
             break;
@@ -828,21 +841,18 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 event.StopPropagation();
             }
             break;
-        case WXK_ESCAPE:
-        {
+        case WXK_ESCAPE: {
             static bool escapeReenter = false;
 
-            if (!escapeReenter)
-            {
+            if (!escapeReenter) {
                 escapeReenter = true;
-                if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr)
-                {
+                if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
                     mSequenceElements->GetXLightsFrame()->AbortRender();
                 }
                 escapeReenter = false;
             }
         }
-            break;
+        break;
     }
 }
 
