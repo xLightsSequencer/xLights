@@ -4,6 +4,7 @@
 #include <wx/choice.h>
 #include <wx/font.h>
 #include <wx/intl.h>
+#include <wx/notebook.h>
 #include <wx/scrolbar.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
@@ -80,10 +81,12 @@ static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeigh
 }
 
 //(*IdInit(LayoutPanel)
+const long LayoutPanel::ID_PANEL4 = wxNewId();
+const long LayoutPanel::ID_PANEL_Objects = wxNewId();
+const long LayoutPanel::ID_NOTEBOOK_OBJECTS = wxNewId();
 const long LayoutPanel::ID_PANEL3 = wxNewId();
 const long LayoutPanel::ID_PANEL2 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
-const long LayoutPanel::ID_CHOICE_EditModelObjects = wxNewId();
 const long LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
 const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
@@ -257,6 +260,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizerPreview;
 	wxFlexGridSizer* LayoutGLSizer;
 	wxFlexGridSizer* LeftPanelSizer;
@@ -278,16 +282,23 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	ModelSplitter->SetMinimumPaneSize(100);
 	ModelSplitter->SetSashGravity(0.5);
 	FirstPanel = new wxPanel(ModelSplitter, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer4->AddGrowableCol(0);
+	FlexGridSizer4->AddGrowableRow(0);
+	Notebook_Objects = new wxNotebook(FirstPanel, ID_NOTEBOOK_OBJECTS, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_OBJECTS"));
+	PanelModels = new wxPanel(Notebook_Objects, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	PanelObjects = new wxPanel(Notebook_Objects, ID_PANEL_Objects, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Objects"));
+	Notebook_Objects->AddPage(PanelModels, _("Models"), false);
+	Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
+	FlexGridSizer4->Add(Notebook_Objects, 1, wxALL|wxEXPAND, 1);
+	FirstPanel->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(FirstPanel);
+	FlexGridSizer4->SetSizeHints(FirstPanel);
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-	Choice_EditModelObjects = new wxChoice(LeftPanel, ID_CHOICE_EditModelObjects, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_EditModelObjects"));
-	Choice_EditModelObjects->SetSelection( Choice_EditModelObjects->Append(_("Edit Models")) );
-	Choice_EditModelObjects->Append(_("Edit Objects"));
-	FlexGridSizer3->Add(Choice_EditModelObjects, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
 	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -338,8 +349,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerPreview->Fit(this);
 	FlexGridSizerPreview->SetSizeHints(this);
 
+	Connect(ID_NOTEBOOK_OBJECTS,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
-	Connect(ID_CHOICE_EditModelObjects,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoice_EditModelObjectsSelect);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
@@ -387,14 +398,22 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE);
 #endif
     InitImageList();
-    TreeListViewModels = CreateTreeListCtrl(wxTL_DEFAULT_STYLE);
+
+    wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizerModels->AddGrowableCol(0);
+	FlexGridSizerModels->AddGrowableRow(0);
+	wxPanel* new_panel = new wxPanel(PanelModels, wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_OBJECTS_PANEL"));
+	FlexGridSizerModels->Add(new_panel, 1, wxALL|wxEXPAND, 0);
+    PanelModels->SetSizer(FlexGridSizerModels);
+    wxSizer* sizer1 = new wxBoxSizer(wxVERTICAL);
+    TreeListViewModels = CreateTreeListCtrl(wxTL_DEFAULT_STYLE, new_panel);
+    sizer1->Add(TreeListViewModels, wxSizerFlags(2).Expand());
+    new_panel->SetSizer(sizer1);
+    sizer1->SetSizeHints(new_panel);
+
     comparator.SetFrame(xlights);
     TreeListViewModels->SetItemComparator(&comparator);
 
-    wxSizer* sizer1 = new wxBoxSizer(wxVERTICAL);
-    sizer1->Add(TreeListViewModels, wxSizerFlags(2).Expand());
-    FirstPanel->SetSizer(sizer1);
-    sizer1->SetSizeHints(FirstPanel);
 
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
 
@@ -461,15 +480,17 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     logger_base.debug("LayoutPanel model group panel created");
 
     // Setup the Object List Panel
-    wxScrolledWindow *sw2 = new wxScrolledWindow(ModelSplitter);
+    //wxScrolledWindow *sw2 = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer2 = new wxBoxSizer(wxVERTICAL);
-    sw2->SetSizer(sizer2);
-    objects_panel = new ViewObjectPanel(sw2, xlights->AllObjects, this);
+    //->SetSizer(sizer2);
+    objects_panel = new ViewObjectPanel(PanelObjects, xlights->AllObjects, this);
     sizer2->Add( objects_panel, 1, wxEXPAND | wxALL, 1 );
     sizer2->SetSizeHints(objects_panel);
-    sw2->SetScrollRate(5,5);
-    sw2->Hide();
-    ViewObjectWindow = sw2;
+    PanelObjects->SetSizer(sizer2);
+    sizer1->SetSizeHints(PanelObjects);
+    //sw2->SetScrollRate(5,5);
+    //sw2->Hide();
+    //ViewObjectWindow = sw2;
     logger_base.debug("LayoutPanel object panel created");
 
     LeftPanelSizer->Fit(LeftPanel);
@@ -559,10 +580,10 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_WINDOW_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_WREATH_ICON", scaleFactor);
 }
-wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
+wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
 {
     wxTreeListCtrl* const
-        tree = new wxTreeListCtrl(FirstPanel, ID_TREELISTVIEW_MODELS,
+        tree = new wxTreeListCtrl(panel, ID_TREELISTVIEW_MODELS,
                                   wxDefaultPosition, wxDefaultSize,
                                   style, "ID_TREELISTVIEW_MODELS");
     tree->SetImageList(m_imageList);
@@ -5165,19 +5186,11 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     return false;
 }
 
-void LayoutPanel::OnChoice_EditModelObjectsSelect(wxCommandEvent& event)
+void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
 {
-    std::string edit_option = std::string(Choice_EditModelObjects->GetStringSelection());
-
-    if(editing_models && edit_option == "Edit Objects") {
-        ModelSplitter->ReplaceWindow(FirstPanel, ViewObjectWindow);
-        FirstPanel->Hide();
-        ViewObjectWindow->Show();
-        editing_models = false;
-    } else if(!editing_models && edit_option == "Edit Models") {
-        ModelSplitter->ReplaceWindow(ViewObjectWindow, FirstPanel);
-        ViewObjectWindow->Hide();
-        FirstPanel->Show();
+    if (Notebook_Objects->GetPageText(Notebook_Objects->GetSelection()) == "Models") {
         editing_models = true;
+    } else {
+        editing_models = false;
     }
 }

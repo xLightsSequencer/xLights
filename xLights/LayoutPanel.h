@@ -7,6 +7,8 @@ class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxFlexGridSizer;
+class wxNotebook;
+class wxNotebookEvent;
 class wxScrollBar;
 class wxSplitterEvent;
 class wxSplitterWindow;
@@ -78,10 +80,12 @@ class LayoutPanel: public wxPanel
 		wxCheckBox* CheckBoxOverlap;
 		wxCheckBox* CheckBox_3D;
 		wxChoice* ChoiceLayoutGroups;
-		wxChoice* Choice_EditModelObjects;
 		wxFlexGridSizer* ToolSizer;
+		wxNotebook* Notebook_Objects;
 		wxPanel* FirstPanel;
 		wxPanel* LeftPanel;
+		wxPanel* PanelModels;
+		wxPanel* PanelObjects;
 		wxPanel* PreviewGLPanel;
 		wxPanel* SecondPanel;
 		wxScrollBar* ScrollBarLayoutHorz;
@@ -98,10 +102,12 @@ class LayoutPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(LayoutPanel)
+		static const long ID_PANEL4;
+		static const long ID_PANEL_Objects;
+		static const long ID_NOTEBOOK_OBJECTS;
 		static const long ID_PANEL3;
 		static const long ID_PANEL2;
 		static const long ID_SPLITTERWINDOW1;
-		static const long ID_CHOICE_EditModelObjects;
 		static const long ID_CHECKBOXOVERLAP;
 		static const long ID_BUTTON_SAVE_PREVIEW;
 		static const long ID_PANEL5;
@@ -193,6 +199,8 @@ class LayoutPanel: public wxPanel
 		void OnPreviewZoomGesture(wxZoomGestureEvent& event);
 		void OnChoice_InsertObjectSelect(wxCommandEvent& event);
 		void OnChoice_EditModelObjectsSelect(wxCommandEvent& event);
+		void OnNotebook1PageChanged(wxNotebookEvent& event);
+		void OnNotebook_ObjectsPageChanged(wxNotebookEvent& event);
 		//*)
 
 
@@ -401,7 +409,7 @@ class LayoutPanel: public wxPanel
         void SelectModel3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         void InitImageList();
-        wxTreeListCtrl* CreateTreeListCtrl(long style);
+        wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);
         int GetModelTreeIcon(Model* model, bool open);
         int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, int nativeOrder, bool fullName = false);
         void RenameModelInTree(Model* model, const std::string new_name);
