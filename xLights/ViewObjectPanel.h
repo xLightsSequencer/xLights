@@ -25,6 +25,7 @@ public:
     void OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPropertyGridEvent& event);
     void OnItemContextMenu(wxTreeListEvent& event);
     void HighlightObject(ViewObject* v);
+    ViewObject* GetSelectedObject() { return mSelectedObject; }
 
     //(*Declarations(ViewObjectPanel)
     wxPanel* FirstPanel;

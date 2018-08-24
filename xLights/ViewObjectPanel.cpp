@@ -437,6 +437,7 @@ void ViewObjectPanel::HighlightObject(ViewObject* v)
             if (mitem != nullptr && mitem->GetViewObject() == v) {
                 TreeListViewObjects->Select(item);
                 TreeListViewObjects->EnsureVisible(item);
+                mSelectedObject = v;
                 break;
             }
         }

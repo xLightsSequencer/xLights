@@ -805,7 +805,20 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
             CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
             selectedModel->OnPropertyGridChanging(propertyEditor, event);
         }
-    } else {
+    } else if (objects_panel->GetSelectedObject() != nullptr) {
+        if ("ObjectName" == name) {
+            std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+            // refuse clashing names or names with unsafe characters
+            if (xlights->AllObjects[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
+                CreateUndoPoint("ObjectName", objects_panel->GetSelectedObject()->name, safename);
+                event.Veto();
+            }
+        } else {
+            //CreateUndoPoint("ObjectProperty", objects_panel->GetSelectedObject()->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+            //objects_panel->GetSelectedObject()->OnPropertyGridChanging(propertyEditor, event);
+        }
+    }
+     else {
         CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
     }
 }
