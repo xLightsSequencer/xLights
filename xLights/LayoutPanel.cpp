@@ -3655,6 +3655,8 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
                     selectedButton = nullptr;
                     _lastXlightsModel = "";
                 }
+                Notebook_Objects->ChangeSelection(0);
+                editing_models = true;
             }
         } else if ((*it)->GetState()) {
             (*it)->SetState(0);
@@ -3691,25 +3693,37 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = event.GetId();
+    ViewObject* vobj = nullptr;
+    bool object_created = false;
     if (id == ID_ADD_OBJECT_IMAGE)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
-        ViewObject* vobj = xlights->AllObjects.CreateAndAddObject("Image");
+        vobj = xlights->AllObjects.CreateAndAddObject("Image");
         vobj->SetLayoutGroup(currentLayoutGroup);
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
     }
     else if (id == ID_ADD_OBJECT_GRIDLINES)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
-        ViewObject* vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
+        vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
         vobj->SetLayoutGroup(currentLayoutGroup);
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
     }
     else if (id == ID_ADD_OBJECT_MESH)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
         wxMessageBox("Keep the xLights donations rolling in and this might do something in the future. ;)", "Alert");
     }
+
+    if( object_created ) {
+        Notebook_Objects->ChangeSelection(1);
+        objects_panel->HighlightObject(vobj);
+        editing_models = false;
+        SetupPropGrid(vobj);
+    }
+
     Refresh();
 }
 
