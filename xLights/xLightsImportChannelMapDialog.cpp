@@ -1037,13 +1037,16 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
                 mapping = FindTab(line);
             }
             Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
-            // There is no point adding the model to the sequence unless we also add it into the tree which this code doesnt do
-            //if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
-            //    mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
-            //    ModelElement *mel = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(model.ToStdString()));
-            //    mel->Init(*xlights->GetModel(model.ToStdString()));
-            //    modelEl = mel;
-            //}
+
+            // This code adds the model into the sequence ... it is useful if the model was previously only 
+            // in a model group that was in the sequence.
+            if (modelEl == nullptr && xlights->GetModel(model.ToStdString()) != nullptr) {
+                mSequenceElements->AddMissingModelsToSequence(model.ToStdString(), false);
+                ModelElement *mel = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(model.ToStdString()));
+                mel->Init(*xlights->GetModel(model.ToStdString()));
+                modelEl = mel;
+            }
+
             if (modelEl != nullptr) {
                 xLightsImportModelNode* mi = TreeContainsModel(model.ToStdString());
                 xLightsImportModelNode* msi = TreeContainsModel(model.ToStdString(), strand.ToStdString());

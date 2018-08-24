@@ -695,9 +695,12 @@ void GenerateCustomModelDialog::ShowImage(const wxImage& image)
 
 void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int node, int ms, int intensity)
 {
+    static log4cpp::Category &logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
+
     // node is out of range ... odd
     if (node > count)
     {
+        logger_pcm.debug("SetBulbs failed. Node %d is greater than number of nodes %d", node, count);
         return;
     }
 
@@ -796,10 +799,12 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     if (nodes)
     {
         logger_pcm.info("   Nodes.");
+        logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + (count * 3) - 1, _outputManager->GetTotalChannels());
     }
     else
     {
         logger_pcm.info("   Channels.");
+        logger_pcm.info("   Channels that will be affected %ld-%ld of %ld channels", startch, startch + count - 1, _outputManager->GetTotalChannels());
     }
 
     _starttime = wxDateTime::UNow();
@@ -831,6 +836,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
     // then in turn each node on for 0.5 seconds ... all off for 0.2 seconds
     for (int i = 0; i < count && !wxGetKeyState(WXK_ESCAPE); i++)
     {
+        //logger_pcm.debug("%d of %d", i, count);
         SetBulbs(nodes, count, startch, i, NODEON, intensity);
         UpdateProgress(pd, totaltime);
         SetBulbs(nodes, count, startch, i, NODEOFF, 0);
@@ -924,10 +930,10 @@ void GenerateCustomModelDialog::MTTabEntry()
     _state = VideoProcessingStates::CHOOSE_MODELTYPE;
     _displaybmp = wxImage(GCM_DISPLAYIMAGEWIDTH, GCM_DISPLAYIMAGEHEIGHT, true);
     StaticBitmap_Preview->SetBitmap(_displaybmp);
-    if (_vr != NULL)
+    if (_vr != nullptr)
     {
         delete _vr;
-        _vr = NULL;
+        _vr = nullptr;
     }
     _draggingedge = -1;
 }
@@ -1084,15 +1090,15 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 void GenerateCustomModelDialog::DoStartFrameIdentify()
 {
     static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-    if (_vr != NULL)
+    if (_vr != nullptr)
     {
         delete _vr;
-        _vr = NULL;
+        _vr = nullptr;
     }
 
     _vr = new VideoReader(std::string(TextCtrl_GCM_Filename->GetValue().c_str()), 800, 600, true);
 
-    if (_vr == NULL)
+    if (_vr == nullptr)
     {
         logger_gcm.info("Error starting video reader.");
         wxMessageBox("Unable to process video.");
