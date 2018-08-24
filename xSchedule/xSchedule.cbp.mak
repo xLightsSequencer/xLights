@@ -1456,7 +1456,7 @@ EventOSCPanel.cpp: EventOSCPanel.h EventDialog.h
 
 EventOSCPanel.h: EventPanel.h
 
-EventMIDIPanel.cpp: EventMIDIPanel.h
+EventMIDIPanel.cpp: EventMIDIPanel.h xScheduleMain.h ScheduleManager.h EventDialog.h
 
 EventMIDIPanel.h: EventPanel.h
 
