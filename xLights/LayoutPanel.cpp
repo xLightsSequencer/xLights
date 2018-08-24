@@ -242,7 +242,7 @@ private:
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
-    m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr), highlightedModel(nullptr),
+    m_over_handle(-1), selectedButton(nullptr), obj_button(nullptr), newModel(nullptr), selectedModel(nullptr), highlightedModel(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(-1), last_highlight(-1),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
     previewBackgroundBrightness(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
@@ -453,7 +453,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Wreath", wreath);
     AddModelButton("Import Custom", import);
     AddModelButton("Download", download);
-    AddModelButton("Add Object", object);
+    obj_button = AddModelButton("Add Object", object);
+    obj_button->Enable(is_3d);
 
     logger_base.debug("LayoutPanel model buttons created");
 
@@ -500,6 +501,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     ModelGroupWindow = sw;
 
+    if( !is_3d ) {
+        Notebook_Objects->RemovePage(1);
+    }
 
     if (sp != -1) {
         SplitterWindow2->SetSashGravity(0.0);
@@ -648,7 +652,7 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
 #endif
 }
 
-void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
+NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
 #ifdef __WXOSX__
     wxBitmap bitmap(image, -1, 2.0);
@@ -663,6 +667,7 @@ void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
     Connect(button->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnNewModelTypeButtonClicked);
+    return button;
 }
 
 LayoutPanel::~LayoutPanel()
@@ -5082,7 +5087,11 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
         else {
             UnSelectAllModels();
         }
+	    Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
+    } else {
+        Notebook_Objects->RemovePage(1);
     }
+    obj_button->Enable(is_3d);
 
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);

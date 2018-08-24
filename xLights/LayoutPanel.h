@@ -238,7 +238,7 @@ class LayoutPanel: public wxPanel
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
 
     protected:
-        void AddModelButton(const std::string &type, const char *imageData[]);
+        NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
         void CreateModelGroupFromSelected();
         void BulkEditControllerConnection();
@@ -311,6 +311,7 @@ class LayoutPanel: public wxPanel
         bool colSizesSet;
         std::vector<NewModelBitmapButton*> buttons;
         NewModelBitmapButton *selectedButton;
+        NewModelBitmapButton *obj_button;
         std::string _lastXlightsModel;
         Model *newModel;
         ModelGroupPanel *model_grp_panel;
