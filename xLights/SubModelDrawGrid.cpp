@@ -265,13 +265,13 @@ std::vector<wxString> SubModelDrawGrid::GetRowData()
         }
     }
 
-    int sizex = (endx - startx) + 1;
-    int sizey = (endy - starty) + 1;
+    //int sizex = (endx - startx) + 1;
+    //int sizey = (endy - starty) + 1;
 
-    for (int y = starty; y < sizey; y++)
+    for (int y = starty; y <= endy; y++)
     {
         wxString row;
-        for (int x = startx; x < sizex; x++)
+        for (int x = startx; x <= endx; x++)
         {
             wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsEmpty() && GridNodes->GetCellTextColour(y, x) == selectColor)
