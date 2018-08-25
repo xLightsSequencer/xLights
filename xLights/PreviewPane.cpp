@@ -78,6 +78,6 @@ void PreviewPane::OnResize(wxSizeEvent& event)
 
 void PreviewPane::OnMoved(wxMoveEvent& event)
 {
-    layout_grp->SetPreviewPosition(event.GetPosition());
+    layout_grp->SetPreviewPosition(GetPosition());
     event.Skip();
 }
