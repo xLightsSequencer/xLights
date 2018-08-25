@@ -66,6 +66,7 @@
 #include "ModelPreview.h"
 #include "TopEffectsPanel.h"
 #include "LyricUserDictDialog.h"
+#include "models/ViewObject.h"
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -3983,6 +3984,10 @@ void xLightsFrame::SaveWorkingLayout()
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->UpdateXmlWithScale();
+    }
+    for (auto it = AllObjects.begin(); it != AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        view_object->UpdateXmlWithScale();
     }
     SaveEffectsFile(true);
 }

@@ -328,6 +328,7 @@ class LayoutPanel: public wxPanel
             std::string key;
             std::string data;
             std::string models;
+            std::string objects;
             std::string groups;
         };
         std::vector<UndoStep> undoBuffer;
@@ -417,7 +418,7 @@ class LayoutPanel: public wxPanel
         void DisplayAddObjectPopup();
         void OnAddObjectPopup(wxCommandEvent& event);
         void AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]);
-        void SelectViewObject(ViewObject *v, bool highlight_tree);
+        void SelectViewObject(ViewObject *v, bool highlight_tree = true);
 
         //int SortElementsFunction(wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn);
 

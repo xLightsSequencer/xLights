@@ -161,6 +161,34 @@ void ViewObjectManager::Delete(const std::string &name) {
     }
 }
 
+bool ViewObjectManager::Rename(const std::string &oldName, const std::string &newName) {
+    ViewObject *view_object = GetViewObject(oldName);
+    if (view_object == nullptr) {
+        return false;
+    }
+    view_object->GetModelXml()->DeleteAttribute("name");
+    view_object->GetModelXml()->AddAttribute("name",newName);
+    view_object->name = newName;
+
+    bool changed = false;
+    //for (auto it2 = view_objects.begin(); it2 != view_objects.end(); ++it2) {
+    //    changed |= it2->second->ModelRenamed(oldName, newName);
+    //}
+    view_objects.erase(view_objects.find(oldName));
+    view_objects[newName] = view_object;
+
+    // go through all the view_object groups looking for things that might need to be renamed
+    /*for (auto it = view_objects.begin(); it != view_objects.end(); ++it) {
+        ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+        if (mg != nullptr)
+        {
+            changed |= mg->ModelRenamed(oldName, newName);
+        }
+    }*/
+
+    return changed;
+}
+
 std::map<std::string, ViewObject*>::const_iterator ViewObjectManager::begin() const {
     return view_objects.begin();
 }

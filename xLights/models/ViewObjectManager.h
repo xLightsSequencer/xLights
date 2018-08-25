@@ -21,6 +21,7 @@ public:
     ViewObject* CreateObject(wxXmlNode *node) const;
     void AddViewObject(ViewObject *view_object);
     void Delete(const std::string &name);
+    bool Rename(const std::string &oldName, const std::string &newName);
 
     void LoadViewObjects(wxXmlNode *objectNode);
 

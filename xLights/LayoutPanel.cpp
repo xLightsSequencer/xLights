@@ -814,7 +814,7 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 event.Veto();
             }
         } else {
-            //CreateUndoPoint("ObjectProperty", objects_panel->GetSelectedObject()->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+            CreateUndoPoint("ObjectProperty", objects_panel->GetSelectedObject()->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
             //objects_panel->GetSelectedObject()->OnPropertyGridChanging(propertyEditor, event);
         }
     }
@@ -1792,7 +1792,7 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
         //v->Selected = true;
 
         if( highlight_tree ) {
-                objects_panel->HighlightObject(v);
+            objects_panel->HighlightObject(v);
         }
         SetupPropGrid(v);
     } else {
@@ -1833,6 +1833,10 @@ void LayoutPanel::SaveEffects()
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->UpdateXmlWithScale();
+    }
+    for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        view_object->UpdateXmlWithScale();
     }
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
@@ -3711,6 +3715,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     if (id == ID_ADD_OBJECT_IMAGE)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
+        CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Image");
         vobj->SetLayoutGroup(currentLayoutGroup);
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
@@ -3719,6 +3724,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     else if (id == ID_ADD_OBJECT_GRIDLINES)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
+        CreateUndoPoint("All", "", "");
         vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
         vobj->SetLayoutGroup(currentLayoutGroup);
         objects_panel->UpdateObjectList(true, currentLayoutGroup);
@@ -3734,6 +3740,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
         Notebook_Objects->ChangeSelection(1);
         objects_panel->HighlightObject(vobj);
         editing_models = false;
+        vobj->UpdateXmlWithScale();
         SetupPropGrid(vobj);
     }
 
@@ -4145,6 +4152,18 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             OnPropertyGridChange(event2);
             xlights->MarkEffectsFileDirty(true);
             resetPropertyGrid();
+        } else if (undoBuffer[sz].type == "ObjectProperty") {
+            ViewObject* vobj = xlights->AllObjects[undoBuffer[sz].model];
+            SelectViewObject(vobj);
+            wxPropertyGridEvent event2;
+            event2.SetPropertyGrid(propertyEditor);
+            wxStringProperty wsp("Object", undoBuffer[sz].key, undoBuffer[sz].data);
+            event2.SetProperty(&wsp);
+            wxVariant value(undoBuffer[sz].data);
+            event2.SetPropertyValue(value);
+            OnPropertyGridChange(event2);
+            xlights->MarkEffectsFileDirty(true);
+            resetPropertyGrid();
         } else if (undoBuffer[sz].type == "SingleModel") {
             Model *m = xlights->AllModels[undoBuffer[sz].model];
             if (m != nullptr) {
@@ -4170,6 +4189,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             gdoc.Load(gin);
             wxStringInputStream min(undoBuffer[sz].models);
             wxXmlDocument mdoc(min);
+            wxStringInputStream oin(undoBuffer[sz].models);
+            wxXmlDocument odoc(oin);
 
             wxXmlNode *m = xlights->ModelsNode->GetChildren();
             while (m != nullptr) {
@@ -4182,6 +4203,19 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 mdoc.GetRoot()->RemoveChild(m);
                 xlights->ModelsNode->AddChild(m);
                 m = mdoc.GetRoot()->GetChildren();
+            }
+
+            wxXmlNode *o = xlights->ViewObjectsNode->GetChildren();
+            while (o != nullptr) {
+                xlights->ViewObjectsNode->RemoveChild(o);
+                delete o;
+                o = xlights->ViewObjectsNode->GetChildren();
+            }
+            o = odoc.GetRoot()->GetChildren();
+            while (o != nullptr) {
+                odoc.GetRoot()->RemoveChild(o);
+                xlights->ViewObjectsNode->AddChild(o);
+                o = odoc.GetRoot()->GetChildren();
             }
 
             m = xlights->ModelGroupsNode->GetChildren();
@@ -4213,6 +4247,14 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->UpdateModelsList();
             xlights->MarkEffectsFileDirty(true);
             SelectModel(origName);
+        } else if (undoBuffer[sz].type == "ObjectName") {
+            std::string origName = undoBuffer[sz].model;
+            std::string newName = undoBuffer[sz].key;
+            xlights->RenameObject(newName, origName);
+            xlights->UpdateModelsList();
+            xlights->MarkEffectsFileDirty(true);
+            ViewObject *vobj = xlights->AllObjects[origName];
+            SelectViewObject(vobj);
         }
         modelPreview->SetFocus();
 
@@ -4225,7 +4267,7 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     int idx = undoBuffer.size();
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
-    if (idx > 0 && (type == "SingleModel" || type == "ModelProperty" || type == "Background")
+    if (idx > 0 && (type == "SingleModel" || type == "ModelProperty" || type == "ObjectProperty" || type == "Background")
         && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
         //SingleModel - multi mouse movement, just record the original
         //Background/ModelProperty - multiple changes of the same property (like spinning spin button)
@@ -4274,6 +4316,16 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         undoBuffer[idx].models = stream.GetString();
         doc.DetachRoot();
         parent->InsertChild(xlights->ModelsNode, next);
+
+        parent = xlights->ViewObjectsNode->GetParent();
+        next = xlights->ViewObjectsNode->GetNext();
+        parent->RemoveChild(xlights->ViewObjectsNode);
+        doc.SetRoot(xlights->ViewObjectsNode);
+        wxStringOutputStream stream3;
+        doc.Save(stream3);
+        undoBuffer[idx].objects = stream3.GetString();
+        doc.DetachRoot();
+        parent->InsertChild(xlights->ViewObjectsNode, next);
 
         wxStringOutputStream stream2;
         parent = xlights->ModelGroupsNode->GetParent();

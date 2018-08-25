@@ -1221,6 +1221,7 @@ public:
     void ApplyEffectsPreset(const std::string& presetName);
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
     bool RenameModel(const std::string old_name, const std::string& new_name);
+    bool RenameObject(const std::string old_name, const std::string& new_name);
     bool EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName, std::vector<std::string>& submodelOrder);
     void UpdateSequenceLength();
 

@@ -82,3 +82,10 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
 
     return i;
 }
+
+void ViewObject::UpdateXmlWithScale() {
+    GetObjectScreenLocation().Write(ModelXml);
+    if (ModelXml->HasAttribute("versionNumber"))
+        ModelXml->DeleteAttribute("versionNumber");
+    ModelXml->AddAttribute("versionNumber", "3");
+}

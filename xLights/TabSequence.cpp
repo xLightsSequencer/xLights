@@ -806,6 +806,29 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
     }
 }
 
+bool xLightsFrame::RenameObject(const std::string OldName, const std::string& NewName)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool internalsChanged = false;
+
+    if (OldName == NewName) {
+        return false;
+    }
+
+    logger_base.debug("Renaming object '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
+
+    Element* elem_to_rename = mSequenceElements.GetElement(OldName);
+    if (elem_to_rename != nullptr)
+    {
+        elem_to_rename->SetName(NewName);
+    }
+
+    internalsChanged = AllObjects.Rename(OldName, NewName);
+
+    UnsavedRgbEffectsChanges = true;
+    return internalsChanged;
+}
+
 void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
     SaveSequence();
