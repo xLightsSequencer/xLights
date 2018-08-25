@@ -196,6 +196,7 @@ public:
     static std::list<std::string> GetLCProtocols();
     static bool IsProtocolValid(std::string protocol);
     int GetPort() const;
+    bool IsPixelProtocol() const;
     std::string GetControllerConnection() const { return controller_connection; }
     long GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {

@@ -1808,6 +1808,7 @@ void xLightsFrame::UploadFalconOutput()
         SetCursor(wxCURSOR_ARROW);
     }
 }
+
 void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxport, int maxdmx) {
     SetStatusText("");
     if (wxMessageBox("This will upload the output controller configuration for a " + controller + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES) {
