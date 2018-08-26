@@ -103,8 +103,8 @@ void SubModelDrawGrid::LoadGrid(std::vector<wxString> rows)
     float maxsx = -1;
     float maxsy = -1;
 
-    size_t nodeCount = model->GetNodeCount();
-    for (size_t i = 0; i < nodeCount; i++) {
+    const auto nodeCount = model->GetNodeCount();
+    for (auto i = 0; i < nodeCount; i++) {
         std::vector<wxPoint> pts;
         model->GetNodeCoords(i, pts);
         if (pts.size() > 0)
@@ -128,7 +128,7 @@ void SubModelDrawGrid::LoadGrid(std::vector<wxString> rows)
     GridNodes->AppendCols(sizex);
     GridNodes->AppendRows(sizey);
 
-    for (int i = 0; i < nodeCount; i++)
+    for (auto i = 0; i < nodeCount; i++)
     {
         std::vector<wxPoint> pts;
         model->GetNodeCoords(i, pts);
@@ -147,9 +147,9 @@ void SubModelDrawGrid::LoadGrid(std::vector<wxString> rows)
 
 void SubModelDrawGrid::ValidateWindow()
 {
-    for (int x = 0; x < GridNodes->GetNumberCols(); x++)
+    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
-        for (int y = 0; y < GridNodes->GetNumberRows(); y++)
+        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
         {
             wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty())
@@ -167,9 +167,9 @@ void SubModelDrawGrid::ValidateWindow()
 
 void SubModelDrawGrid::OnButton_SelectClick(wxCommandEvent& event)
 {
-    for (int x = 0; x < GridNodes->GetNumberCols(); x++)
+    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
-        for (int y = 0; y < GridNodes->GetNumberRows(); y++)
+        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
         {
             wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty())
@@ -188,9 +188,9 @@ void SubModelDrawGrid::OnButton_SelectClick(wxCommandEvent& event)
 
 void SubModelDrawGrid::OnButtonSelectAllClick(wxCommandEvent& event)
 {
-    for (int x = 0; x < GridNodes->GetNumberCols(); x++)
+    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
-        for (int y = 0; y < GridNodes->GetNumberRows(); y++)
+        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
         {
             wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty())
@@ -206,9 +206,9 @@ void SubModelDrawGrid::OnButtonSelectAllClick(wxCommandEvent& event)
 
 void SubModelDrawGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
 {
-    for (int x = 0; x < GridNodes->GetNumberCols(); x++)
+    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
-        for (int y = 0; y < GridNodes->GetNumberRows(); y++)
+        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
         {
             GridNodes->SetCellTextColour(y, x, unselectColor);
             GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
@@ -220,9 +220,9 @@ void SubModelDrawGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
 
 void SubModelDrawGrid::OnButtonDeselectClick(wxCommandEvent& event)
 {
-    for (int x = 0; x < GridNodes->GetNumberCols(); x++)
+    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
-        for (int y = 0; y < GridNodes->GetNumberRows(); y++)
+        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
         {
             wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty())
@@ -257,9 +257,9 @@ std::vector<wxString> SubModelDrawGrid::GetRowData()
     int endx = 0;
     int endy = 0;
 
-    for (int x = 0; x < GridNodes->GetNumberCols(); x++)
+    for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
-        for (int y = 0; y < GridNodes->GetNumberRows(); y++)
+        for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
         {
             wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsNull() && !value.IsEmpty())
@@ -275,13 +275,10 @@ std::vector<wxString> SubModelDrawGrid::GetRowData()
         }
     }
 
-    //int sizex = (endx - startx) + 1;
-    //int sizey = (endy - starty) + 1;
-
-    for (int y = starty; y <= endy; y++)
+    for (auto y = starty; y <= endy; y++)
     {
         wxString row;
-        for (int x = startx; x <= endx; x++)
+        for (auto x = startx; x <= endx; x++)
         {
             wxString value = GridNodes->GetCellValue(y, x);
             if (!value.IsEmpty() && GridNodes->GetCellTextColour(y, x) == selectColor)
@@ -302,14 +299,15 @@ std::vector<wxString> SubModelDrawGrid::GetRowData()
 std::vector<int> SubModelDrawGrid::DecodeNodeList(const std::vector<wxString> &rows)
 {
     std::vector<int> nodeList;
-    for (int i = 0; i < rows.size(); i++) {
-        wxStringTokenizer wtkz(rows[i], ",");
+    for (const auto& row : rows)
+    {
+        wxStringTokenizer wtkz(row, ",");
         while (wtkz.HasMoreTokens()) {
             wxString valstr = wtkz.GetNextToken();
 
             int start2, end2;
             if (valstr.Contains("-")) {
-                int idx = valstr.Index('-');
+                const int idx = valstr.Index('-');
                 start2 = wxAtoi(valstr.Left(idx));
                 end2 = wxAtoi(valstr.Right(valstr.size() - idx - 1));
             }
@@ -318,8 +316,8 @@ std::vector<int> SubModelDrawGrid::DecodeNodeList(const std::vector<wxString> &r
             }
             start2--;
             end2--;
-            bool done = false;
-            int n = start2;
+            auto done = false;
+            auto n = start2;
             while (!done) {
                 if (n < model->GetNodeCount()) {
                     nodeList.push_back(n);
