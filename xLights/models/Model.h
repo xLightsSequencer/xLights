@@ -36,7 +36,7 @@ class Model : public BaseObject
     friend class SubModel;
 
 public:
-    Model(const ModelManager &manger);
+    Model(const ModelManager &manager);
     virtual ~Model();
     static wxArrayString GetLayoutGroups(const ModelManager& mm);
     static std::string SafeModelName(const std::string& name)
@@ -211,9 +211,6 @@ public:
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
 
-    bool Selected = false;
-    bool Highlighted = false;
-    bool GroupSelected=false;
     std::string ModelStartChannel;
     bool CouldComputeStartChannel;
     bool Overlapping=false;
@@ -221,7 +218,7 @@ public:
     std::string _pixelType = "";
     std::string _pixelSpacing = "";
 
-    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
+    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) override;
     virtual bool ModelRenamed(const std::string &oldName, const std::string &newName);
     size_t GetNodeCount() const;
     int GetChanCount() const;
@@ -250,8 +247,6 @@ public:
 
     std::list<std::string> GetFaceFiles() const;
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
-    void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
-    void SelectHandle(int handle);
     int GetSelectedHandle();
     int GetNumHandles();
     int GetSelectedSegment();
@@ -267,7 +262,6 @@ public:
     void SaveModelState( std::vector<std::string>& state );
 
     bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
-    void Lock(bool lock);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
     const std::string& GetStringType(void) const { return StringType; }
     virtual int NodesPerString();
@@ -381,6 +375,12 @@ public:
         return screenLocation;
     }
     virtual ModelScreenLocation &GetModelScreenLocation() {
+        return screenLocation;
+    }
+    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const {
+        return screenLocation;
+    }
+    virtual ModelScreenLocation &GetBaseObjectScreenLocation() {
         return screenLocation;
     }
 protected:

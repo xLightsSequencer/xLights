@@ -10,14 +10,14 @@ class ModelPreview;
 class ViewObject : public BaseObject
 {
 public:
-    ViewObject(const ObjectManager &manger);
+    ViewObject(const ObjectManager &manager);
     virtual ~ViewObject();
 
     virtual void AddProperties(wxPropertyGridInterface *grid) override;
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
     void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
-    void SetFromXml(wxXmlNode* ObjectNode);
+    void SetFromXml(wxXmlNode* ObjectNode, bool zeroBased=false) override;
     void UpdateXmlWithScale();
     virtual void InitModel() = 0;
 
@@ -42,6 +42,12 @@ public:
         return screenLocation;
     }
     virtual ModelScreenLocation &GetObjectScreenLocation() {
+        return screenLocation;
+    }
+    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const {
+        return screenLocation;
+    }
+    virtual ModelScreenLocation &GetBaseObjectScreenLocation() {
         return screenLocation;
     }
 protected:

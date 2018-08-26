@@ -222,6 +222,8 @@ class LayoutPanel: public wxPanel
     public:
         void SaveEffects();
         void UpdatePreview();
+        void SelectBaseObject(const std::string & name, bool highlight_tree = true);
+        void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true);
@@ -295,8 +297,8 @@ class LayoutPanel: public wxPanel
 
         wxPropertyGrid *propertyEditor;
         bool updatingProperty;
-        Model *selectedModel;
-        Model *highlightedModel;
+        BaseObject *selectedBaseObject;
+        BaseObject *highlightedBaseObject;
         bool selectionLatched;
         int over_handle;
         glm::vec3 last_worldpos;
@@ -385,8 +387,8 @@ class LayoutPanel: public wxPanel
         bool editing_models;
         bool is_3d;
         bool m_mouse_down;
-        int last_selection;
-        int last_highlight;
+        BaseObject* last_selection;
+        BaseObject* last_highlight;
         int m_last_mouse_x, m_last_mouse_y;
         bool creating_model;
 
@@ -408,7 +410,7 @@ class LayoutPanel: public wxPanel
         void ShowPropGrid(bool show);
         void SetCurrentLayoutGroup(const std::string& group);
         void FinalizeModel();
-        void SelectModel3D();
+        void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         void InitImageList();
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);

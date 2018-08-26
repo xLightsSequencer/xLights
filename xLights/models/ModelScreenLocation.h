@@ -71,7 +71,7 @@ public:
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const = 0;
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) = 0;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) = 0;
-    
+
     virtual bool Rotate(int axis, float factor) = 0;
     virtual bool Scale(float factor) = 0;
 
@@ -88,6 +88,7 @@ public:
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
     virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const; // useful for hit test debugging
+    void UpdateBoundingBox(float width, float height);
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) = 0;

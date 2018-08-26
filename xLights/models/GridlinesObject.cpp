@@ -105,25 +105,25 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
 	va3.PreAlloc(height / line_spacing * 12);
 
 	xlColor xaxis = xlColor(128,0,0);
-	xlColor zaxis = xlColor(0,0,128);
+	xlColor yaxis = xlColor(0,0,128);
 
     float half_width = width / 2.0f;
     float half_height = height / 2.0f;
     for (float i = 0; i <= half_height; i += line_spacing)
 	{
-	    sx = -half_width; sy = 0; sz = i;
+	    sx = -half_width; sy = i; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = half_width; sy = 0; sz = i;
+        sx = half_width; sy = i; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = -half_width; sy = 0; sz = -i;
+        sx = -half_width; sy = -i; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = half_width; sy = 0; sz = -i;
+        sx = half_width; sy = -i; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 	}
@@ -140,33 +140,38 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
 
 	for (float i = 0; i <= half_width; i += line_spacing)
 	{
-	    sx = i; sy = 0; sz = -half_height;
+	    sx = i; sy = -half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = i; sy = 0; sz = half_height;
+	    sx = i; sy = half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = -i; sy = 0; sz = -half_height;
+	    sx = -i; sy = -half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = -i; sy = 0; sz = half_height;
+	    sx = -i; sy = half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
 		va3.AddVertex(sx, sy, sz, gridColor);
 	}
 
 	if( hasAxis ) {
-        sx = 0; sy = 0; sz = -half_height;
+        sx = 0; sy = -half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-        va3.AddVertex(sx, sy, sz, zaxis);
+        va3.AddVertex(sx, sy, sz, yaxis);
 
-        sx = 0; sy = 0; sz = half_height;
+        sx = 0; sy = half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-        va3.AddVertex(sx, sy, sz, zaxis);
+        va3.AddVertex(sx, sy, sz, yaxis);
 	}
 
     va3.Finish(GL_LINES);
+
+    if ((Selected || Highlighted) && allowSelected) {
+        GetObjectScreenLocation().DrawHandles(va3);
+    }
+
 }
 

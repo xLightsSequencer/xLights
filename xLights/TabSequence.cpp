@@ -182,6 +182,16 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         node->AddAttribute("GridLineSpacing", "50");
         node->AddAttribute("GridWidth", "2000.0");
         node->AddAttribute("GridHeight", "1000.0");
+        node->AddAttribute("WorldPosX", "0.0000");
+        node->AddAttribute("WorldPosY", "0.0000");
+        node->AddAttribute("WorldPosZ", "0.0000");
+        node->AddAttribute("ScaleX", "1.0000");
+        node->AddAttribute("ScaleY", "1.0000");
+        node->AddAttribute("ScaleZ", "1.0000");
+        node->AddAttribute("RotateX", "90.0");
+        node->AddAttribute("RotateY", "0");
+        node->AddAttribute("RotateZ", "0");
+        node->AddAttribute("versionNumber", "3");
         node->AddAttribute("Active", "1");
         UnsavedRgbEffectsChanges = true;
     }

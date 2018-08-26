@@ -95,9 +95,9 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     //GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
     DrawObjectOnWindow(preview, va3, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
 
-    /*if ((Selected || Highlighted) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
-    }*/
+    if ((Selected || Highlighted) && allowSelected) {
+        GetObjectScreenLocation().DrawHandles(va3);
+    }
 }
 
 void ImageObject::DrawObjectOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
