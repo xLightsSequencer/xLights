@@ -119,6 +119,8 @@ Falcon::Falcon(const std::string& ip)
     _version = 0;
     _model = 0;
 
+    logger_base.debug("Connecting to Falcon on %s.", (const char *)_ip.c_str());
+
     _http.SetMethod("GET");
     _connected = _http.Connect(_ip);
 
@@ -127,19 +129,29 @@ Falcon::Falcon(const std::string& ip)
         std::string versionxml = GetURL("/status.xml");
         if (versionxml == "")
         {
-            logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
+            logger_base.error("    Error retrieving status.xml from falcon controller.");
             _connected = false;
             return;
         }
+        logger_base.debug("Status.xml retrieved.");
 
-        std::string version = GetURL("/index.htm");
         if (versionxml != "")
         {
+            logger_base.debug("status.xml:\n%s", (const char*)versionxml.c_str());
+
             static wxRegEx versionregex("(\\<v\\>)([0-9]+\\.[0-9]+)\\<\\/v\\>", wxRE_ADVANCED | wxRE_NEWLINE);
             if (versionregex.Matches(wxString(versionxml)))
             {
                 _firmwareVersion = versionregex.GetMatch(wxString(versionxml), 2).ToStdString();
             }
+        }
+
+        std::string version = GetURL("/index.htm");
+        if (version == "")
+        {
+            logger_base.error("    Error retrieving index.htm from falcon controller.");
+            _connected = false;
+            return;
         }
 
         if (_firmwareVersion == "")
@@ -167,6 +179,11 @@ Falcon::Falcon(const std::string& ip)
             }
         }
 
+        if (_modelString == "")
+        {
+            logger_base.error("Unable to find model in html:\n%s", (const char*)version.c_str());
+        }
+
         static wxRegEx versionregex("(F[0-9]+V)([0-9]+)$", wxRE_ADVANCED);
         if (versionregex.Matches(wxString(_modelString)))
         {
@@ -184,7 +201,7 @@ Falcon::Falcon(const std::string& ip)
             _model = wxAtoi(modelregex2.GetMatch(wxString(_modelString), 2));
         }
 
-        logger_base.debug("Connected to falcon - Model: %s Firmware Version %s. %d:%d", _modelString.c_str(), _firmwareVersion.c_str(), _model, _version);
+        logger_base.debug("Connected to falcon - Model: '%s' Firmware Version '%s'. F%d:V%d", (const char*)_modelString.c_str(), (const char*)_firmwareVersion.c_str(), _model, _version);
     }
     else
     {
