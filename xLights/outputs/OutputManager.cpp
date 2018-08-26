@@ -408,7 +408,7 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
 
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
-        if ((*it)->IsIpOutput() && (ip == "" || ip == (*it)->GetIP()))
+        if (ip == "" || ip == (*it)->GetIP())
         {
             if ((*it)->IsOutputCollection())
             {
