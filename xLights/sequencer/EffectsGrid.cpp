@@ -243,7 +243,7 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
 
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
 
-    if (ri == nullptr) 
+    if (ri == nullptr)
         logger_base.crit("EffectsGrid::rightClick No row information ... this is not going to end well.");
 
     Element* element = ri->element;
@@ -314,8 +314,8 @@ void EffectsGrid::rightClick(wxMouseEvent& event)
         }
 
         wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
-        if (mSelectedEffect == nullptr || 
-            MultipleEffectsSelected() || 
+        if (mSelectedEffect == nullptr ||
+            MultipleEffectsSelected() ||
             (mSelectedEffect != nullptr && mSelectedEffect->IsLocked()))
         {
             menu_effect_timing->Enable(false);
@@ -2776,14 +2776,14 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event)
                 {
                     adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS(), min, max);
                     adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS(), min, max);
-                    if (mSelectedEffect != nullptr && 
-                        mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED && 
+                    if (mSelectedEffect != nullptr &&
+                        mSelectedEffect->GetSelected() == EFFECT_LT_SELECTED &&
                         mResizeEffectIndex > 0) {
                         //also have to re-render the effect to the left
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetStartTimeMS(), min, max);
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex - 1)->GetEndTimeMS(), min, max);
-                    } else if (mSelectedEffect != nullptr && 
-                               mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED && 
+                    } else if (mSelectedEffect != nullptr &&
+                               mSelectedEffect->GetSelected() == EFFECT_RT_SELECTED &&
                                mResizeEffectIndex < (mEffectLayer->GetEffectCount() - 1)) {
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetStartTimeMS(), min, max);
                         adjustMS(mEffectLayer->GetEffect(mResizeEffectIndex + 1)->GetEndTimeMS(), min, max);
@@ -2929,7 +2929,7 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
 
     if (mSequenceElements == nullptr) return;
 
-    int new_position = position;
+    int new_time = -1;
 
     // Snap to timing marks logic
     if ((xlights->GetSnapToTimingMarks() && !control) || (!xlights->GetSnapToTimingMarks() && control))
@@ -2937,30 +2937,32 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
         if (mSequenceElements->GetSelectedTimingRow() >= 0)
         {
             int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
+            int time_plus_one = mTimeline->GetAbsoluteTimeMSfromPosition(position+1);
+            int time_delta = (time_plus_one - time) * 10;  // snap within 10 pixels
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
 
             if (tel != nullptr)
             {
                 if( tel->GetEffectCount() > 0 )
                 {
-                    int pos1 = -1000;
-                    int pos2 = 100000000;
+                    int time1 = -1000;
+                    int time2 = 100000000;
                     // see if inside an effect
                     Effect* eff1 = tel->GetEffectAtTime(time);
                     if (eff1 != nullptr)
                     {
-                        pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetStartTimeMS());
-                        pos2 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
+                        time1 = eff1->GetStartTimeMS();
+                        time2 = eff1->GetEndTimeMS();
 
-                        if( (position - pos1) <= 10 )
+                        if( (time - time1) <= time_delta )
                         {
-                            new_position = pos1;
+                            new_time = time1;
                         }
                         else
                         {
-                            if( (pos2-position) <= 10 )
+                            if( (time2-time) <= time_delta )
                             {
-                                new_position = pos2;
+                                new_time = time2;
                             }
                         }
                     }
@@ -2971,22 +2973,22 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
 
                         if (eff1 != nullptr )
                         {
-                            pos1 = mTimeline->GetPositionFromTimeMS(eff1->GetEndTimeMS());
+                            time1 = eff1->GetEndTimeMS();
                         }
                         if (eff2 != nullptr )
                         {
-                            pos2 = mTimeline->GetPositionFromTimeMS(eff2->GetStartTimeMS());
+                            time2 = eff2->GetStartTimeMS();
                         }
 
-                        if( (position - pos1) <= 10 )
+                        if( (time - time1) <= time_delta )
                         {
-                            new_position = pos1;
+                            new_time = time1;
                         }
                         else
                         {
-                            if( (pos2-position) <= 10 )
+                            if( (time2-time) <= time_delta )
                             {
-                                new_position = pos2;
+                                new_time = time2;
                             }
                         }
                     }
@@ -2995,14 +2997,22 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
         }
     }
 
-    if(MultipleEffectsSelected() || mResizingMode == EFFECT_RESIZE_MOVE)
-    {
-        ResizeMoveMultipleEffects(new_position, offset);
+    if( new_time != -1 ) {
+        if(MultipleEffectsSelected() || mResizingMode == EFFECT_RESIZE_MOVE) {
+            ResizeMoveMultipleEffectsMS(new_time, offset);
+        }
+        else {
+            ResizeSingleEffectMS(new_time);
+        }
+    } else {
+        if(MultipleEffectsSelected() || mResizingMode == EFFECT_RESIZE_MOVE) {
+            ResizeMoveMultipleEffects(position, offset);
+        }
+        else {
+            ResizeSingleEffect(position);
+        }
     }
-    else
-    {
-        ResizeSingleEffect(new_position);
-    }
+
     if( mSequenceElements->get_undo_mgr().ChangeCaptured() )
     {
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
@@ -3735,9 +3745,9 @@ void EffectsGrid::SetEffectsDescription()
 
 void EffectsGrid::SetEffectsTiming()
 {
-    if (mSequenceElements == nullptr || 
-        mSelectedEffect == nullptr || 
-        MultipleEffectsSelected() || 
+    if (mSequenceElements == nullptr ||
+        mSelectedEffect == nullptr ||
+        MultipleEffectsSelected() ||
         (mSelectedEffect != nullptr && mSelectedEffect->IsLocked())) {
         return;
     }
@@ -4705,9 +4715,14 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
 void EffectsGrid::ResizeMoveMultipleEffects(int position, bool offset)
 {
+    int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
+    ResizeMoveMultipleEffectsMS(time, offset);
+}
+
+void EffectsGrid::ResizeMoveMultipleEffectsMS(int time, bool offset)
+{
     int deltaTime = 0;
     int toLeft,toRight;
-    int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
     GetRangeOfMovementForSelectedEffects(toLeft,toRight);
     if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)
     {
@@ -4868,15 +4883,19 @@ void EffectsGrid::ButtUpStretchMultipleEffects(bool right)
 
 void EffectsGrid::ResizeSingleEffect(int position)
 {
+    int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
+    ResizeSingleEffectMS(time);
+}
+
+void EffectsGrid::ResizeSingleEffectMS(int timems)
+{
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (mEffectLayer->GetEffect(mResizeEffectIndex)->IsLocked()) return;
 
     logger_base.debug("EffectsGrid::ResizeSingleEffect.");
 
-    int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
-
-    time = mTimeline->RoundToMultipleOfPeriod(time, mSequenceElements->GetFrequency());
+    int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
     if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)
     {
         int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode==EFFECT_RESIZE_LEFT, mSequenceElements->GetMinPeriod());
@@ -5245,10 +5264,10 @@ void EffectsGrid::SetRCToolTip()
     int x = std::abs(mRangeEndCol - mRangeStartCol) + 1;
     int y = std::abs(mRangeEndRow - mRangeStartRow) + 1;
 
-    if (!mCellRangeSelected || 
+    if (!mCellRangeSelected ||
         mPartialCellSelected ||
-        mRangeStartCol < 0 || 
-        (x == 1 && y == 1) || 
+        mRangeStartCol < 0 ||
+        (x == 1 && y == 1) ||
         mSequenceElements->GetSelectedTimingRow() < 0)
     {
         UnsetToolTip();
