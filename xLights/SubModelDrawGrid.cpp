@@ -7,6 +7,7 @@
 
 #include "models/Model.h"
 #include <wx/tokenzr.h>
+#include <wx/settings.h>
 
 //(*IdInit(SubModelDrawGrid)
 const long SubModelDrawGrid::ID_BUTTON_SELECT = wxNewId();
