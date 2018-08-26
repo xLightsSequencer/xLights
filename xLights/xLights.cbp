@@ -610,6 +610,8 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="controllers/ControllerUploadData.cpp" />
+		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
 		<Unit filename="controllers/ESPixelStick.h" />
 		<Unit filename="controllers/FPP.cpp" />

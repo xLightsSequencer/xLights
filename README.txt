@@ -12,6 +12,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott)  Added Submodel Draw Dialog
+   -- enh (keith)  Rewrite falcon and espixel stick upload to reduce edge cases which cannot be supported for upload
+   -- bug (keith)  Fix non ip outputs not listed in the universe dropdown on start channel dialog
+   -- bug (dkulp)  Fix esc to stop render on osx
 2018.30 August 22, 2018
    -- bug (kevin)  Fix house preview video export on Windows with high DPI settings
    -- enh (keith)  Change the colour panel update button to purely apply the colour palette. All other colour settings are ignored.
