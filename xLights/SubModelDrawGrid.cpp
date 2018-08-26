@@ -83,6 +83,10 @@ SubModelDrawGrid::SubModelDrawGrid(Model *m, std::vector<wxString> rows, wxWindo
 	Connect(ID_BUTTON_SUB_DRAW_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelDrawGrid::OnButtonSubDrawCancelClick);
 	//*)
 
+    GridNodes->EnableDragGridSize(false);
+    GridNodes->DisableDragColSize();
+    GridNodes->DisableDragRowSize();
+
     LoadGrid(rows);
     ValidateWindow();
 }
