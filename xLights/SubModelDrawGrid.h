@@ -2,10 +2,10 @@
 #define SUBMODELDRAWGRID_H
 
 //(*Headers(SubModelDrawGrid)
-#include <wx/sizer.h>
-#include <wx/grid.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/grid.h>
+#include <wx/sizer.h>
 //*)
 
 class Model;
@@ -14,16 +14,16 @@ class SubModelDrawGrid: public wxDialog
 {
 	public:
 
-		SubModelDrawGrid(Model *m, wxWindow* parent,wxWindowID id=wxID_ANY);
+		SubModelDrawGrid(Model *m, std::vector<wxString> rows, wxWindow* parent,wxWindowID id=wxID_ANY);
 		virtual ~SubModelDrawGrid();
 
 		//(*Declarations(SubModelDrawGrid)
+		wxButton* ButtonDeselect;
 		wxButton* ButtonSelectAll;
 		wxButton* ButtonSelectNone;
+		wxButton* ButtonSubDrawOK;
 		wxButton* ButtonSunDrawCancel;
 		wxButton* Button_Select;
-		wxButton* ButtonDeselect;
-		wxButton* ButtonSubDrawOK;
 		wxGrid* GridNodes;
 		//*)
 
@@ -52,8 +52,9 @@ class SubModelDrawGrid: public wxDialog
 		void OnButtonSubDrawCancelClick(wxCommandEvent& event);
 		//*)
 
-        void LoadGrid();
+        void LoadGrid(std::vector<wxString> rows);
         void ValidateWindow();
+        std::vector<int> DecodeNodeList(const std::vector<wxString> &rows);
 
         Model *model;
 

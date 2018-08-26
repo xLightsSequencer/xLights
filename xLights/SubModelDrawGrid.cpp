@@ -6,6 +6,7 @@
 //*)
 
 #include "models/Model.h"
+#include <wx/tokenzr.h>
 
 //(*IdInit(SubModelDrawGrid)
 const long SubModelDrawGrid::ID_BUTTON_SELECT = wxNewId();
@@ -22,7 +23,7 @@ BEGIN_EVENT_TABLE(SubModelDrawGrid,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-SubModelDrawGrid::SubModelDrawGrid(Model *m, wxWindow* parent,wxWindowID id)
+SubModelDrawGrid::SubModelDrawGrid(Model *m, std::vector<wxString> rows, wxWindow* parent, wxWindowID id)
 {
     selectColor = wxColour("white");
     unselectColor =  wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT);
@@ -31,10 +32,10 @@ SubModelDrawGrid::SubModelDrawGrid(Model *m, wxWindow* parent,wxWindowID id)
 
     model = m;
 	//(*Initialize(SubModelDrawGrid)
-	wxFlexGridSizer* FlexGridSizer4;
+	wxBoxSizer* BoxSizer1;
 	wxBoxSizer* wxBoxSizerMain;
 	wxFlexGridSizer* FlexGridSizer2;
-	wxBoxSizer* BoxSizer1;
+	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, id, _("Select Nodes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX, _T("id"));
 	SetClientSize(wxSize(500,400));
@@ -82,7 +83,7 @@ SubModelDrawGrid::SubModelDrawGrid(Model *m, wxWindow* parent,wxWindowID id)
 	Connect(ID_BUTTON_SUB_DRAW_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelDrawGrid::OnButtonSubDrawCancelClick);
 	//*)
 
-    LoadGrid();
+    LoadGrid(rows);
     ValidateWindow();
 }
 
@@ -93,8 +94,10 @@ SubModelDrawGrid::~SubModelDrawGrid()
 }
 
 
-void SubModelDrawGrid::LoadGrid()
+void SubModelDrawGrid::LoadGrid(std::vector<wxString> rows)
 {
+    std::vector<int> prevValue = DecodeNodeList(rows);
+
     float minsx = 99999;
     float minsy = 99999;
     float maxsx = -1;
@@ -132,8 +135,14 @@ void SubModelDrawGrid::LoadGrid()
         if (pts.size() > 0)
         {
             GridNodes->SetCellValue(sizey - pts[0].y, pts[0].x, wxString::Format("%i", i + 1));
+            if (std::find(prevValue.begin(), prevValue.end(), i) != prevValue.end())
+            {
+                GridNodes->SetCellTextColour(sizey - pts[0].y, pts[0].x, selectColor);
+                GridNodes->SetCellBackgroundColour(sizey - pts[0].y, pts[0].x, selectBackColor);
+            }
         }
     }
+    GridNodes->Refresh();
 }
 
 void SubModelDrawGrid::ValidateWindow()
@@ -153,6 +162,7 @@ void SubModelDrawGrid::ValidateWindow()
             }
         }
     }
+    ButtonSubDrawOK->Enable(false);
 }
 
 void SubModelDrawGrid::OnButton_SelectClick(wxCommandEvent& event)
@@ -287,4 +297,43 @@ std::vector<wxString> SubModelDrawGrid::GetRowData()
         returnValue.insert(returnValue.begin(),row);
     }
     return returnValue;
+}
+
+std::vector<int> SubModelDrawGrid::DecodeNodeList(const std::vector<wxString> &rows)
+{
+    std::vector<int> nodeList;
+    for (int i = 0; i < rows.size(); i++) {
+        wxStringTokenizer wtkz(rows[i], ",");
+        while (wtkz.HasMoreTokens()) {
+            wxString valstr = wtkz.GetNextToken();
+
+            int start2, end2;
+            if (valstr.Contains("-")) {
+                int idx = valstr.Index('-');
+                start2 = wxAtoi(valstr.Left(idx));
+                end2 = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+            }
+            else {
+                start2 = end2 = wxAtoi(valstr);
+            }
+            start2--;
+            end2--;
+            bool done = false;
+            int n = start2;
+            while (!done) {
+                if (n < model->GetNodeCount()) {
+                    nodeList.push_back(n);
+                }
+                if (start2 > end2) {
+                    n--;
+                    done = n < end2;
+                }
+                else {
+                    n++;
+                    done = n > end2;
+                }
+            }
+        }
+    }
+    return nodeList;
 }

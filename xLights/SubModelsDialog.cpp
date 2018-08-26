@@ -1,16 +1,16 @@
 //(*InternalHeaders(SubModelsDialog)
-#include <wx/listctrl.h>
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
+#include <wx/button.h>
 #include <wx/checkbox.h>
-#include <wx/splitter.h>
-#include <wx/panel.h>
 #include <wx/grid.h>
 #include <wx/intl.h>
-#include <wx/button.h>
+#include <wx/listctrl.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/splitter.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
+#include <wx/textctrl.h>
 //*)
 
 #include <wx/dnd.h>
@@ -75,17 +75,17 @@ END_EVENT_TABLE()
 SubModelsDialog::SubModelsDialog(wxWindow* parent)
 {
 	//(*Initialize(SubModelsDialog)
-	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer10;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer9;
-	wxPanel* Panel1;
+	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizer8;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer9;
+	wxPanel* Panel1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, wxID_ANY, _("Sub Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
@@ -1606,16 +1606,16 @@ wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
 }
 void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
 {
-    SubModelDrawGrid dialog(model, this);
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    SubModelDrawGrid dialog(model, sm->strands, this);
 
     if (dialog.ShowModal() == wxID_OK)
     {
-        wxString name = GetSelectedName();
-        if (name == "") {
-            return;
-        }
-
-        SubModelInfo* sm = GetSubModelInfo(name);
         sm->strands = dialog.GetRowData();
 
         Select(GetSelectedName());

@@ -9,20 +9,20 @@
 
 //(*Headers(SubModelsDialog)
 #include <wx/dialog.h>
-class wxPanel;
-class wxGrid;
-class wxSplitterWindow;
-class wxStdDialogButtonSizer;
-class wxCheckBox;
-class wxTextCtrl;
-class wxNotebookEvent;
-class wxSplitterEvent;
-class wxNotebook;
-class wxStaticText;
-class wxListCtrl;
-class wxFlexGridSizer;
 class wxButton;
+class wxCheckBox;
+class wxFlexGridSizer;
+class wxGrid;
 class wxGridEvent;
+class wxListCtrl;
+class wxNotebook;
+class wxNotebookEvent;
+class wxPanel;
+class wxSplitterEvent;
+class wxSplitterWindow;
+class wxStaticText;
+class wxStdDialogButtonSizer;
+class wxTextCtrl;
 //*)
 
 class Model;
@@ -92,34 +92,34 @@ public:
     void Save();
 
     //(*Declarations(SubModelsDialog)
-    wxCheckBox* LayoutCheckbox;
-    wxButton* Button_Draw_Model;
-    wxPanel* ModelPreviewPanelLocation;
-    wxFlexGridSizer* SubBufferSizer;
-    wxButton* Button_MoveUp;
-    wxButton* AddRowButton;
-    wxButton* Button_ReverseRows;
-    wxTextCtrl* TextCtrl_Name;
-    wxListCtrl* ListCtrl_SubModels;
-    wxPanel* SubBufferPanelHolder;
-    wxFlexGridSizer* PreviewSizer;
-    wxStaticText* StaticText1;
-    wxButton* Button_ReverseRow;
-    wxPanel* Panel3;
-    wxButton* Button_Generate;
-    wxStaticText* StaticTextName;
-    wxGrid* NodesGrid;
-    wxButton* Button_Sub_Import;
     wxButton* AddButton;
-    wxNotebook* TypeNotebook;
-    wxButton* Button_MoveDown;
-    wxPanel* Panel2;
-    wxButton* DeleteButton;
-    wxButton* ButtonCopyModel;
-    wxSplitterWindow* SplitterWindow1;
-    wxButton* Button_ReverseNodes;
+    wxButton* AddRowButton;
     wxButton* ButtonCopy;
+    wxButton* ButtonCopyModel;
+    wxButton* Button_Draw_Model;
+    wxButton* Button_Generate;
+    wxButton* Button_MoveDown;
+    wxButton* Button_MoveUp;
+    wxButton* Button_ReverseNodes;
+    wxButton* Button_ReverseRow;
+    wxButton* Button_ReverseRows;
+    wxButton* Button_Sub_Import;
+    wxButton* DeleteButton;
     wxButton* DeleteRowButton;
+    wxCheckBox* LayoutCheckbox;
+    wxFlexGridSizer* PreviewSizer;
+    wxFlexGridSizer* SubBufferSizer;
+    wxGrid* NodesGrid;
+    wxListCtrl* ListCtrl_SubModels;
+    wxNotebook* TypeNotebook;
+    wxPanel* ModelPreviewPanelLocation;
+    wxPanel* Panel2;
+    wxPanel* Panel3;
+    wxPanel* SubBufferPanelHolder;
+    wxSplitterWindow* SplitterWindow1;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticTextName;
+    wxTextCtrl* TextCtrl_Name;
     //*)
 
 protected:
