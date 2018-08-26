@@ -94,7 +94,7 @@ SubModelDrawGrid::~SubModelDrawGrid()
 }
 
 
-void SubModelDrawGrid::LoadGrid(std::vector<wxString> rows)
+void SubModelDrawGrid::LoadGrid(const std::vector<wxString> rows)
 {
     std::vector<int> prevValue = DecodeNodeList(rows);
 
@@ -145,7 +145,7 @@ void SubModelDrawGrid::LoadGrid(std::vector<wxString> rows)
     GridNodes->Refresh();
 }
 
-void SubModelDrawGrid::ValidateWindow()
+void SubModelDrawGrid::ValidateWindow() const
 {
     for (auto x = 0; x < GridNodes->GetNumberCols(); x++)
     {
@@ -296,7 +296,7 @@ std::vector<wxString> SubModelDrawGrid::GetRowData()
     return returnValue;
 }
 
-std::vector<int> SubModelDrawGrid::DecodeNodeList(const std::vector<wxString> &rows)
+std::vector<int> SubModelDrawGrid::DecodeNodeList(const std::vector<wxString> &rows) const
 {
     std::vector<int> nodeList;
     for (const auto& row : rows)

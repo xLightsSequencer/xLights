@@ -52,9 +52,9 @@ class SubModelDrawGrid: public wxDialog
 		void OnButtonSubDrawCancelClick(wxCommandEvent& event);
 		//*)
 
-        void LoadGrid(std::vector<wxString> rows);
-        void ValidateWindow();
-        std::vector<int> DecodeNodeList(const std::vector<wxString> &rows);
+        void LoadGrid(const std::vector<wxString> rows);
+        void ValidateWindow() const;
+        std::vector<int> DecodeNodeList(const std::vector<wxString> &rows) const;
 
         Model *model;
 
