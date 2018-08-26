@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Submodel Draw Dialog
 2018.30 August 22, 2018
    -- bug (kevin)  Fix house preview video export on Windows with high DPI settings
    -- enh (keith)  Change the colour panel update button to purely apply the colour palette. All other colour settings are ignored.

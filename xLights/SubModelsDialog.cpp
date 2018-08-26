@@ -22,6 +22,7 @@
 #include "models/Model.h"
 #include "SubBufferPanel.h"
 #include "SubModelGenerateDialog.h"
+#include "SubModelDrawGrid.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
 #include "models/ModelManager.h"
@@ -52,6 +53,7 @@ const long SubModelsDialog::ID_BUTTON2 = wxNewId();
 const long SubModelsDialog::ID_BUTTON_MOVE_UP = wxNewId();
 const long SubModelsDialog::ID_BUTTON_MOVE_DOWN = wxNewId();
 const long SubModelsDialog::ID_BUTTON7 = wxNewId();
+const long SubModelsDialog::ID_BUTTON_DRAW_MODEL = wxNewId();
 const long SubModelsDialog::ID_PANEL2 = wxNewId();
 const long SubModelsDialog::ID_PANEL3 = wxNewId();
 const long SubModelsDialog::ID_NOTEBOOK1 = wxNewId();
@@ -176,6 +178,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer5->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_ReverseRow = new wxButton(Panel1, ID_BUTTON7, _("Reverse Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
 	FlexGridSizer5->Add(Button_ReverseRow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Draw_Model = new wxButton(Panel1, ID_BUTTON_DRAW_MODEL, _("Select Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DRAW_MODEL"));
+	FlexGridSizer5->Add(Button_Draw_Model, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	Panel1->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel1);
@@ -236,6 +240,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_BUTTON_MOVE_UP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveUpClick);
 	Connect(ID_BUTTON_MOVE_DOWN,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_MoveDownClick);
 	Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowClick);
+	Connect(ID_BUTTON_DRAW_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_Draw_ModelClick);
 	//*)
 
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
@@ -1516,7 +1521,7 @@ void SubModelsDialog::ReadSubModelXML(wxXmlNode* xmlData)
             {
                 //Are the submodels The Same?
                 SubModelInfo *prevSm = GetSubModelInfo(name);
-                if (*sm == *prevSm) //skip if exactly the same 
+                if (*sm == *prevSm) //skip if exactly the same
                 {
                     child = child->GetNext();
                     continue;
@@ -1598,4 +1603,26 @@ wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
         choices.Add(m->Name());
     }
     return choices;
+}
+void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
+{
+    wxString name = GetSelectedName();
+    if (name == "") {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    SubModelDrawGrid dialog(model, sm->strands, this);
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        sm->strands = dialog.GetRowData();
+
+        Select(GetSelectedName());
+        dialog.Close();
+
+        NodesGrid->SetFocus();
+
+        ValidateWindow();
+    }
 }

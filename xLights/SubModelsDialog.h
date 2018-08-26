@@ -96,6 +96,7 @@ public:
     wxButton* AddRowButton;
     wxButton* ButtonCopy;
     wxButton* ButtonCopyModel;
+    wxButton* Button_Draw_Model;
     wxButton* Button_Generate;
     wxButton* Button_MoveDown;
     wxButton* Button_MoveUp;
@@ -144,6 +145,7 @@ protected:
     static const long ID_BUTTON_MOVE_UP;
     static const long ID_BUTTON_MOVE_DOWN;
     static const long ID_BUTTON7;
+    static const long ID_BUTTON_DRAW_MODEL;
     static const long ID_PANEL2;
     static const long ID_PANEL3;
     static const long ID_NOTEBOOK1;
@@ -208,6 +210,7 @@ private:
     void OnButton_Sub_ImportClick(wxCommandEvent& event);
     void OnButtonCopyModelClick(wxCommandEvent& event);
     void OnButton_Sub_CopyClick(wxCommandEvent& event);
+    void OnButton_Draw_ModelClick(wxCommandEvent& event);
     //*)
 
     wxWindow* _parent;
