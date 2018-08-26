@@ -695,3 +695,296 @@ int ViewObjectPanel::ObjectListComparator::Compare(wxTreeListCtrl *treelist, uns
 {
     return SortElementsFunction(treelist, first, second, column);
 }
+
+void ViewObjectPanel::PreviewObjectAlignWithGround()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if (view_object->GroupSelected || view_object->Selected)
+        {
+            view_object->SetBottom(0.0f);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignTops()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float top = mSelectedObject->GetTop();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if(view_object->GroupSelected)
+        {
+            view_object->SetTop(top);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignBottoms()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float bottom = mSelectedObject->GetBottom();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if(view_object->GroupSelected)
+        {
+            view_object->SetBottom(bottom);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignLeft()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float left = mSelectedObject->GetLeft();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if(view_object->GroupSelected)
+        {
+            view_object->SetLeft(left);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignFronts()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float front = mSelectedObject->GetFront();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if (view_object->GroupSelected)
+        {
+            view_object->SetFront(front);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignBacks()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float back = mSelectedObject->GetBack();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if (view_object->GroupSelected)
+        {
+            view_object->SetBack(back);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectResize(bool sameWidth, bool sameHeight)
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+
+    if (sameWidth)
+    {
+        int width = mSelectedObject->GetWidth();
+        for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+            ViewObject *view_object = it->second;
+            if (view_object->GroupSelected)
+            {
+                view_object->SetWidth(width);
+                bool z_scale = view_object->GetBaseObjectScreenLocation().GetSupportsZScaling();
+                if (z_scale) {
+                    view_object->GetBaseObjectScreenLocation().SetMDepth(width);
+                }
+            }
+        }
+    }
+
+    if (sameHeight)
+    {
+        int height = mSelectedObject->GetHeight();
+        for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+            ViewObject *view_object = it->second;
+            if (view_object->GroupSelected)
+            {
+                view_object->SetHeight(height);
+            }
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignRight()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float right = mSelectedObject->GetRight();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if(view_object->GroupSelected)
+        {
+            view_object->SetRight(right);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignHCenter()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float center = mSelectedObject->GetHcenterPos();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if(view_object->GroupSelected)
+        {
+            view_object->SetHcenterPos(center);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectAlignVCenter()
+{
+    if (mSelectedObject == nullptr) return;
+
+    layoutPanel->CreateUndoPoint("All", mSelectedObject->name);
+    float center = mSelectedObject->GetVcenterPos();
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if(view_object->GroupSelected)
+        {
+            view_object->SetVcenterPos(center);
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+bool SortObjectX(const ViewObject* first, const ViewObject* second)
+{
+    float firstmodelX = first->GetBaseObjectScreenLocation().GetHcenterPos();
+    float secondmodelX = second->GetBaseObjectScreenLocation().GetHcenterPos();
+
+    return firstmodelX < secondmodelX;
+}
+
+bool SortObjectY(const ViewObject* first, const ViewObject* second)
+{
+    float firstmodelY = first->GetBaseObjectScreenLocation().GetVcenterPos();
+    float secondmodelY = second->GetBaseObjectScreenLocation().GetVcenterPos();
+
+    return firstmodelY < secondmodelY;
+}
+
+void ViewObjectPanel::PreviewObjectHDistribute()
+{
+    int count = 0;
+    float minx = 999999;
+    float maxx = -999999;
+
+    std::list<ViewObject*> objects;
+
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if (view_object->GroupSelected || view_object->Selected)
+        {
+            count++;
+            float x = view_object->GetHcenterPos();
+
+            if (x < minx) minx = x;
+            if (x > maxx) maxx = x;
+            objects.push_back(view_object);
+        }
+    }
+
+    if (count <= 2) return;
+
+    objects.sort(SortObjectX);
+
+    float space = (maxx - minx) / (count - 1);
+
+    layoutPanel->CreateUndoPoint("All", objects.front()->name);
+
+    float x = -1;
+    for (auto it = objects.begin(); it != objects.end(); ++it)
+    {
+        if (it == objects.begin())
+        {
+            x = (*it)->GetHcenterPos() + space;
+        }
+        else if (*it == objects.back())
+        {
+            // do nothing
+        }
+        else
+        {
+            (*it)->SetHcenterPos(x);
+            x += space;
+        }
+    }
+    layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::PreviewObjectVDistribute()
+{
+    int count = 0;
+    float miny = 999999;
+    float maxy = -999999;
+
+    std::list<ViewObject*> objects;
+
+    for (auto it = layoutPanel->xlights->AllObjects.begin(); it != layoutPanel->xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if (view_object->GroupSelected || view_object->Selected)
+        {
+            count++;
+            float y = view_object->GetVcenterPos();
+
+            if (y < miny) miny = y;
+            if (y > maxy) maxy = y;
+            objects.push_back(view_object);
+        }
+    }
+
+    if (count <= 2) return;
+
+    objects.sort(SortObjectY);
+
+    float space = (maxy - miny) / (count - 1);
+
+    layoutPanel->CreateUndoPoint("All", objects.front()->name);
+
+    float y = -1;
+    for (auto it = objects.begin(); it != objects.end(); ++it)
+    {
+        if (it == objects.begin())
+        {
+            y = (*it)->GetVcenterPos() + space;
+        }
+        else if (*it == objects.back())
+        {
+            // do nothing
+        }
+        else
+        {
+            (*it)->SetVcenterPos(y);
+            y += space;
+        }
+    }
+    layoutPanel->UpdatePreview();
+}

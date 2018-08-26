@@ -25,6 +25,28 @@ public:
     void SelectHandle(int handle);
     void Lock(bool lock);
 
+    void SetTop(float y);
+    void SetBottom(float y);
+    void SetLeft(float x);
+    void SetRight(float x);
+    void SetFront(float y);
+    void SetBack(float y);
+    void SetHcenterPos(float pos);
+    void SetVcenterPos(float pos);
+    void SetWidth(float w);
+    void SetHeight(float h);
+
+    float GetTop();
+    float GetBottom();
+    float GetLeft();
+    float GetRight();
+    float GetFront();
+    float GetBack();
+    float GetHcenterPos();
+    float GetVcenterPos();
+    float GetWidth();
+    float GetHeight();
+
     const std::string &Name() const { return name;}
     const std::string &GetName() const { return name;}
     const std::string& GetDisplayAs(void) const { return DisplayAs; }

@@ -533,12 +533,13 @@ bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direct
 
 void ModelScreenLocation::UpdateBoundingBox(float width, float height)
 {
-    aabb_min = glm::vec3(0.0f, 0.0f, 0.0f);
-
     // scale the bounding box for selection logic
-    aabb_max.x = width * scalex;
-    aabb_max.y = height * scaley;
+    aabb_max.x = width / 2.0f * scalex;
+    aabb_max.y = height / 2.0f * scaley;
     aabb_max.z = 5;
+    aabb_min.x = -aabb_max.x;
+    aabb_min.y = -aabb_max.y;
+    aabb_min.z = -aabb_max.z;
 
     // Set minimum bounding rectangle
     if (aabb_max.y - aabb_min.y < 4) {

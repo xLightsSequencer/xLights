@@ -295,28 +295,6 @@ public:
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
-    void SetTop(float y);
-    void SetBottom(float y);
-    void SetLeft(float x);
-    void SetRight(float x);
-    void SetFront(float y);
-    void SetBack(float y);
-    void SetHcenterPos(float pos);
-    void SetVcenterPos(float pos);
-    void SetWidth(float w);
-    void SetHeight(float h);
-
-    float GetTop();
-    float GetBottom();
-    float GetLeft();
-    float GetRight();
-    float GetFront();
-    float GetBack();
-    float GetHcenterPos();
-    float GetVcenterPos();
-    float GetWidth();
-    float GetHeight();
-
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}
     virtual int GetStrandLength(int strand) const;

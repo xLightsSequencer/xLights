@@ -203,7 +203,6 @@ class LayoutPanel: public wxPanel
 		void OnNotebook_ObjectsPageChanged(wxNotebookEvent& event);
 		//*)
 
-
         void OnPropertyGridSelection(wxPropertyGridEvent& event);
         void OnPropertyGridItemCollapsed(wxPropertyGridEvent& event);
         void OnPropertyGridItemExpanded(wxPropertyGridEvent& event);
@@ -261,6 +260,7 @@ class LayoutPanel: public wxPanel
         void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
 
         int ModelsSelectedCount() const;
+        int ViewObjectsSelectedCount() const;
         int GetSelectedModelIndex() const;
         std::list<Model*> GetSelectedModels() const;
         void PreviewModelAlignWithGround();

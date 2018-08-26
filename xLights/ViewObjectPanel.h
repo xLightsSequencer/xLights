@@ -27,6 +27,19 @@ public:
     void HighlightObject(ViewObject* v);
     ViewObject* GetSelectedObject() { return mSelectedObject; }
 
+    void PreviewObjectAlignWithGround();
+    void PreviewObjectAlignTops();
+    void PreviewObjectAlignBottoms();
+    void PreviewObjectAlignLeft();
+    void PreviewObjectAlignFronts();
+    void PreviewObjectAlignBacks();
+    void PreviewObjectResize(bool sameWidth, bool sameHeight);
+    void PreviewObjectAlignRight();
+    void PreviewObjectAlignHCenter();
+    void PreviewObjectAlignVCenter();
+    void PreviewObjectHDistribute();
+    void PreviewObjectVDistribute();
+
     //(*Declarations(ViewObjectPanel)
     wxPanel* FirstPanel;
     //*)

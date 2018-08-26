@@ -21,11 +21,6 @@ class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
 
     protected:
-    void DrawObjectOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
-        float &x1, float &y1, float &z1,
-        float &x2, float &y2, float &z2,
-        float &x3, float &y3, float &z3,
-        float &x4, float &y4, float &z4);
 
     private:
         std::string _imageFile;

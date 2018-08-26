@@ -99,10 +99,14 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
 {
     if( !active ) { return; }
 
+    GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
+
     float sx,sy,sz;
 
 	va3.PreAlloc(width / line_spacing * 12);
 	va3.PreAlloc(height / line_spacing * 12);
+
+    screenLocation.SetRenderSize(width, height, 10.0f);
 
 	xlColor xaxis = xlColor(128,0,0);
 	xlColor yaxis = xlColor(0,0,128);
@@ -168,6 +172,8 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
 	}
 
     va3.Finish(GL_LINES);
+
+    GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
 
     if ((Selected || Highlighted) && allowSelected) {
         GetObjectScreenLocation().DrawHandles(va3);

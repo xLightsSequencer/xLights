@@ -52,3 +52,133 @@ void BaseObject::Lock(bool lock)
     IncrementChangeCount();
 }
 
+void BaseObject::SetTop(float y) {
+
+   if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetTop(y);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetBottom(float y) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetBottom(y);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetLeft(float x) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetLeft(x);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetRight(float x) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetRight(x);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetFront(float z) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetFront(z);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetBack(float z) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetBack(z);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetWidth(float w) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetMWidth(w);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetHeight(float h) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetMHeight(h);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    SetFromXml(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetHcenterPos(float pos) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetHcenterPos(pos);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+void BaseObject::SetVcenterPos(float pos) {
+
+    if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+    GetBaseObjectScreenLocation().SetVcenterPos(pos);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+}
+
+float BaseObject::GetTop() {
+    return GetBaseObjectScreenLocation().GetTop();
+}
+
+float BaseObject::GetBottom() {
+    return GetBaseObjectScreenLocation().GetBottom();
+}
+
+float BaseObject::GetLeft() {
+    return GetBaseObjectScreenLocation().GetLeft();
+}
+
+float BaseObject::GetRight() {
+    return GetBaseObjectScreenLocation().GetRight();
+}
+
+float BaseObject::GetFront() {
+    return GetBaseObjectScreenLocation().GetFront();
+}
+
+float BaseObject::GetBack() {
+    return GetBaseObjectScreenLocation().GetBack();
+}
+
+float BaseObject::GetWidth() {
+    return GetBaseObjectScreenLocation().GetMWidth();
+}
+
+float BaseObject::GetHeight() {
+    return GetBaseObjectScreenLocation().GetMHeight();
+}
+
+float BaseObject::GetHcenterPos() {
+    return GetBaseObjectScreenLocation().GetHcenterPos();
+}
+
+float BaseObject::GetVcenterPos() {
+    return GetBaseObjectScreenLocation().GetVcenterPos();
+}

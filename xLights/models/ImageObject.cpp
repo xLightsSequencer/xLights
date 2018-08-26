@@ -30,8 +30,7 @@ void ImageObject::InitModel() {
         transparency = wxAtoi(ModelXml->GetAttribute("Transparency"));
     }
 
-    screenLocation.SetRenderSize(1, 1);
-    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
+    screenLocation.SetRenderSize(width, height, 10.0f);
 }
 
 void ImageObject::AddTypeProperties(wxPropertyGridInterface *grid) {
@@ -72,7 +71,32 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
 void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
 {
     if( !active ) { return; }
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool exists = false;
+
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
+
+    if (_images.find(preview->GetName().ToStdString()) == _images.end())
+    {
+        if (wxFileExists(_imageFile))
+        {
+            logger_base.debug("Loading image model %s file %s for preview %s.",
+                (const char *)GetName().c_str(),
+                (const char *)_imageFile.c_str(),
+                (const char *)preview->GetName().c_str());
+            _images[preview->GetName().ToStdString()] = new Image(_imageFile);
+
+            width = (_images[preview->GetName().ToStdString()])->width;
+            height = (_images[preview->GetName().ToStdString()])->height;
+            screenLocation.SetRenderSize(width, height, 10.0f);
+            exists = true;
+        }
+    }
+    else
+    {
+        exists = true;
+    }
 
     float x1 = -0.5f * width;
     float x2 = -0.5f * width;
@@ -92,78 +116,44 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     GetObjectScreenLocation().TranslatePoint(x3, y3, z3);
     GetObjectScreenLocation().TranslatePoint(x4, y4, z4);
 
-    //GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
-    DrawObjectOnWindow(preview, va3, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+    GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
 
-    if ((Selected || Highlighted) && allowSelected) {
-        GetObjectScreenLocation().DrawHandles(va3);
-    }
-}
-
-void ImageObject::DrawObjectOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va,
-    float &x1, float &y1, float &z1,
-    float &x2, float &y2, float &z2,
-    float &x3, float &y3, float &z3,
-    float &x4, float &y4, float &z4)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    bool exists = false;
-    if (_images.find(preview->GetName().ToStdString()) == _images.end())
-    {
-        if (!wxFileExists(_imageFile))
-        {
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x1, y1, z1, *wxRED);
-            va.AddVertex(x3, y3, z3, *wxRED);
-            va.AddVertex(x2, y2, z2, *wxRED);
-            va.AddVertex(x4, y4, z4, *wxRED);
-            va.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
-        }
-        else
-        {
-            logger_base.debug("Loading image model %s file %s for preview %s.",
-                (const char *)GetName().c_str(),
-                (const char *)_imageFile.c_str(),
-                (const char *)preview->GetName().c_str());
-            _images[preview->GetName().ToStdString()] = new Image(_imageFile);
-
-            width = (_images[preview->GetName().ToStdString()])->width;
-            height = (_images[preview->GetName().ToStdString()])->height;
-            screenLocation.SetRenderSize(width, height, 10.0f);
-            exists = true;
-        }
-    }
-    else
-    {
-        exists = true;
-    }
-
-    if (exists)
-    {
+    if (exists) {
         Image* image = _images[preview->GetName().ToStdString()];
 
-        va.PreAllocTexture(6);
+        va3.PreAllocTexture(6);
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
 
-        va.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
+        va3.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
+        va3.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
+        va3.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
 
-        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
+        va3.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
+        va3.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
+        va3.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
 
         int brightness = (100.0 - transparency) * 255.0 / 100.0;
 
-        va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
+        va3.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
+    }
+    else {
+        va3.AddVertex(x1, y1, z1, *wxRED);
+        va3.AddVertex(x2, y2, z2, *wxRED);
+        va3.AddVertex(x2, y2, z2, *wxRED);
+        va3.AddVertex(x3, y3, z3, *wxRED);
+        va3.AddVertex(x3, y3, z3, *wxRED);
+        va3.AddVertex(x4, y4, z4, *wxRED);
+        va3.AddVertex(x4, y4, z4, *wxRED);
+        va3.AddVertex(x1, y1, z1, *wxRED);
+        va3.AddVertex(x1, y1, z1, *wxRED);
+        va3.AddVertex(x3, y3, z3, *wxRED);
+        va3.AddVertex(x2, y2, z2, *wxRED);
+        va3.AddVertex(x4, y4, z4, *wxRED);
+        va3.Finish(GL_LINES, GL_LINE_SMOOTH, 5.0f);
+    }
+
+    if ((Selected || Highlighted) && allowSelected) {
+        GetObjectScreenLocation().DrawHandles(va3);
     }
 }
