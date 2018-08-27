@@ -2936,9 +2936,15 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
     {
         if (mSequenceElements->GetSelectedTimingRow() >= 0)
         {
-            int time = mTimeline->GetAbsoluteTimeMSfromPosition(position);
-            int time_plus_one = mTimeline->GetAbsoluteTimeMSfromPosition(position+1);
-            int time_delta = (time_plus_one - time) * 10;  // snap within 10 pixels
+            int time = mTimeline->GetRawTimeMSfromPosition(position);
+            int time_plus_one = mTimeline->GetRawTimeMSfromPosition(position+1);
+            int times = 2;
+            while ( time_plus_one == time && times < 11 ) {
+                time_plus_one = mTimeline->GetAbsoluteTimeMSfromPosition(position+times);
+                times++;
+            }
+            int time_delta = (time_plus_one - time) * (10 / (times-1));  // snap within 10 pixels
+            if( time_delta == 0 ) time_delta = 25;
             EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
 
             if (tel != nullptr)
