@@ -1765,6 +1765,9 @@ void xLightsFrame::UploadFalconInput()
             ip = dlg.GetValue();
         }
 
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
+
         Falcon falcon(ip.ToStdString());
         if (falcon.IsConnected()) {
             if (falcon.SetInputUniverses(&_outputManager, selected)) {
@@ -1794,6 +1797,9 @@ void xLightsFrame::UploadFalconOutput()
             }
             ip = dlg.GetValue();
         }
+
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
 
         Falcon falcon(ip.ToStdString());
         if (falcon.IsConnected()) {
@@ -1825,6 +1831,9 @@ void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxp
             ip = dlg.GetValue();
         }
         
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
+
         FPP fpp(&_outputManager, ip.ToStdString(), "fpp", "falcon");
         if (fpp.IsConnected()) {
             if (fpp.SetOutputs(controller, &AllModels, selected, this, maxport, maxdmx)) {
@@ -1854,6 +1863,9 @@ void xLightsFrame::UploadPixlite16Output()
             }
             ip = dlg.GetValue();
         }
+
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
 
         Pixlite16 pixlite(ip.ToStdString());
         if (pixlite.IsConnected()) {
@@ -1885,6 +1897,9 @@ void xLightsFrame::UploadSanDevicesInput()
             ip = dlg.GetValue();
         }
 
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
+
         SanDevices sanDevices(ip.ToStdString());
         if (sanDevices.IsConnected()) {
             if (sanDevices.SetInputUniverses(&_outputManager, selected)) {
@@ -1914,6 +1929,9 @@ void xLightsFrame::UploadSanDevicesOutput()
             }
             ip = dlg.GetValue();
         }
+
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
 
         SanDevices sanDevices(ip.ToStdString());
         if (sanDevices.IsConnected()) {
@@ -1945,6 +1963,9 @@ void xLightsFrame::UploadJ1SYSOutput()
             ip = dlg.GetValue();
         }
 
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
+
         J1Sys j1sys(ip.ToStdString());
         if (j1sys.IsConnected()) {
             if (j1sys.SetOutputs(&AllModels, &_outputManager, selected, this)) {
@@ -1974,6 +1995,9 @@ void xLightsFrame::UploadESPixelStickOutput()
             }
             ip = dlg.GetValue();
         }
+
+        // Recalc all the models to make sure any changes on setup are incorporated
+        RecalcModels();
 
         ESPixelStick esPixelStick(ip.ToStdString());
         if (esPixelStick.IsConnected()) {
