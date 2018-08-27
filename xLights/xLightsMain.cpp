@@ -8490,8 +8490,6 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
 
 bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (mainSequencer == nullptr) return false;
 
     auto k = event.GetKeyCode();

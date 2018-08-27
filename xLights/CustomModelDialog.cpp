@@ -1304,16 +1304,16 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 
     mnu.AppendSeparator();
 
-    wxMenuItem* menu_fliphoriz = mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
-    wxMenuItem* menu_flipvert = mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
-    wxMenuItem* menu_reverse = mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
-    wxMenuItem* menu_shift = mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
+    mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
+    mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
+    mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
+    mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
     wxMenuItem* menu_insert = mnu.Append(CUSTOMMODELDLGMNU_INSERT, "Insert Prior");
-    wxMenuItem* menu_compress = mnu.Append(CUSTOMMODELDLGMNU_COMPRESS, "Compress");
-    wxMenuItem* menu_trim = mnu.Append(CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE, "Trim Unused Space");
-    wxMenuItem* menu_shrink10 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
-    wxMenuItem* menu_shrink55 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
-    wxMenuItem* menu_shrink99 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
+    mnu.Append(CUSTOMMODELDLGMNU_COMPRESS, "Compress");
+    mnu.Append(CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE, "Trim Unused Space");
+    mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
+    mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
+    mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
 
     if (selectedCellWithValue)
     {

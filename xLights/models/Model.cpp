@@ -502,7 +502,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         else
         {
             // remove per strand start channels if individual isnt selected
-            int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < 100; x++) {
                 wxString nm = StartChanAttrName(x);
                 ModelXml->DeleteAttribute(nm);

@@ -29,12 +29,12 @@ public:
     }
     virtual bool SupportsMultipleProtocols() const override { return false; }
     virtual bool AllUniversesSameSize() const override { return true; }
-    virtual std::list<std::string> GetSupportedInputProtocols() const { 
+    virtual std::list<std::string> GetSupportedInputProtocols() const override {
         std::list<std::string> res;
         res.push_back("E131");
         return res;
     };
-    virtual bool UniversesMustBeSequential() const { return true; }
+    virtual bool UniversesMustBeSequential() const override { return true; }
 };
 
 ESPixelStick::ESPixelStick(const std::string& ip)
