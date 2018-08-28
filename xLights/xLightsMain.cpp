@@ -2374,7 +2374,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             {
                 logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
             }
-            if (grp->GetMenuItem()->IsChecked()) {
+            if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
                 grp->SetPreviewActive(show);
             }
         }
