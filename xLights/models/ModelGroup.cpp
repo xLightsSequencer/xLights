@@ -96,6 +96,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     this->zeroBased = zeroBased;
     selected = false;
     name = ModelXml->GetAttribute("name").ToStdString();
+
     DisplayAs = "ModelGroup";
     StringType = "RGB Nodes";
 
@@ -260,6 +261,19 @@ bool ModelGroup::Reset(bool zeroBased) {
 
     SetMinMaxModelScreenCoordinates(screenLocation.previewW, screenLocation.previewH);
     return true;
+}
+
+void ModelGroup::ResetModels()
+{
+    models.clear();
+    wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+    int nc = 0;
+    for (int x = 0; x < mn.size(); x++) {
+        Model *c = modelManager.GetModel(mn[x].ToStdString());
+        if (c != nullptr) {
+            models.push_back(c);
+        }
+    }
 }
 
 ModelGroup::~ModelGroup() {}
