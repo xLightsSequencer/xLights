@@ -130,6 +130,11 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
             return false;
         }
 
+        // we also shouldnt cache effects with persistent turned on
+        if (it->first == "B_CHECKBOX_OverlayBkg" && it->second == "1") {
+            return false;
+        }
+
         if (_enabled == "Locked Only")
         {
             if (it->first == "X_Effect_Locked" && it->second == "True") {

@@ -143,6 +143,7 @@ void LayoutGroup::RemoveFromPreviewMenu(wxMenu* preview_menu)
     }
     mModelPreview = nullptr;
     mPreviewCreated = false;
+    mMenuItemPreview = nullptr;
 }
 
 void LayoutGroup::ShowPreview(bool show)

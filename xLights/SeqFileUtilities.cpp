@@ -2903,7 +2903,7 @@ wxXmlNode* FindLastLPEEffectNode(wxXmlNode* effect, int start_centisecond, int e
     while (n != nullptr)
     {
         int newstartCentisecond = wxAtoi(n->GetAttribute("startCentisecond"));
-        int newendCentisecond = wxAtoi(n->GetAttribute("endCentisecond"));
+        //int newendCentisecond = wxAtoi(n->GetAttribute("endCentisecond"));
         int newstartIntensity = wxAtoi(n->GetAttribute("startIntensity", "100"));
         int newendIntensity = wxAtoi(n->GetAttribute("endIntensity", "100"));
         wxString newsettings = n->GetAttribute("pixelEffect", "");
@@ -3001,7 +3001,7 @@ std::string ExtractLPEPallette(const wxArrayString& ps)
         else
         {
             // Not sure what the last value is so ignoring it
-            int unknown1 = wxAtoi(c[i]);
+            //int unknown1 = wxAtoi(c[i]);
             break;
         }
     }
@@ -3941,7 +3941,6 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
     {
         xLightsImportModelNode* m = dlg._dataModel->GetNthChild(i);
         std::string modelName = m->_model.ToStdString();
-        Model *mc = GetModel(modelName);
         ModelElement* model = nullptr;
         for (size_t x = 0; x < mSequenceElements.GetElementCount(); x++) {
             if (mSequenceElements.GetElement(x)->GetType() == ELEMENT_TYPE_MODEL

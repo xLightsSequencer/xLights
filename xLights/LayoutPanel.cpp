@@ -4256,16 +4256,36 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                 if (nd != nullptr)
                 {
-                    if (selectedBaseObject != nullptr) {
-                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
-                        selectedBaseObject = nullptr;
-                    }
-
-                    if (xlights->AllModels[lastModelName] != nullptr
-                        && nd->GetAttribute("Advanced", "0") != "1") {
-                        std::string startChannel = ">" + lastModelName + ":1";
+                    if (xlights->AllModels[lastModelName] != nullptr) {
                         nd->DeleteAttribute("StartChannel");
-                        nd->AddAttribute("StartChannel", startChannel);
+                        nd->AddAttribute("StartChannel", ">" + lastModelName + ":1");
+                    }
+                    else
+                    {
+                        long highestch = 0;
+                        Model* highest = nullptr;
+                        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+                        {
+                            if (it->second->GetDisplayAs() != "ModelGroup")
+                            {
+                                if (it->second->GetLastChannel() > highestch)
+                                {
+                                    highestch = it->second->GetLastChannel();
+                                    highest = it->second;
+                                }
+                            }
+                        }
+
+                        if (highest != nullptr)
+                        {
+                            nd->DeleteAttribute("StartChannel");
+                            nd->AddAttribute("StartChannel", ">" + highest->GetName() + ":1");
+                        }
+                        else
+                        {
+                            nd->DeleteAttribute("StartChannel");
+                            nd->AddAttribute("StartChannel", "1");
+                        }
                     }
 
                     Model *newModel = xlights->AllModels.CreateModel(nd);

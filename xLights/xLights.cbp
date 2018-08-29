@@ -574,6 +574,8 @@
 		<Unit filename="StrandNodeNamesDialog.h" />
 		<Unit filename="SubBufferPanel.cpp" />
 		<Unit filename="SubBufferPanel.h" />
+		<Unit filename="SubModelDrawGrid.cpp" />
+		<Unit filename="SubModelDrawGrid.h" />
 		<Unit filename="SubModelGenerateDialog.cpp" />
 		<Unit filename="SubModelGenerateDialog.h" />
 		<Unit filename="SubModelsDialog.cpp" />
@@ -626,6 +628,8 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="controllers/ControllerUploadData.cpp" />
+		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
 		<Unit filename="controllers/ESPixelStick.h" />
 		<Unit filename="controllers/FPP.cpp" />
@@ -1168,6 +1172,7 @@
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
+		<Unit filename="wxsmith/SubModelDrawGrid.wxs" />
 		<Unit filename="wxsmith/SubModelGenerateDialog.wxs" />
 		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
@@ -1362,9 +1367,9 @@
 					<wxPanel wxs="wxsmith/JukeboxPanel.wxs" src="JukeboxPanel.cpp" hdr="JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/ViewpointDialog.wxs" src="ViewpointDialog.cpp" hdr="ViewpointDialog.h" fwddecl="0" i18n="1" name="ViewpointDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

@@ -124,7 +124,7 @@ std::string WebSocketClient::Receive()
         {
             char masking_key[4];
             int i = 0;
-            unsigned long N;
+            unsigned long N = 0;
             if (N0 < 126) {
                 N = N0;
                 i = 2;

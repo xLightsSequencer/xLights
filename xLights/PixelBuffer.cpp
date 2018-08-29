@@ -493,24 +493,18 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
     c = xlBLACK;
     xlColor color;
 
-    for (int layer = numLayers - 1; layer >= 0; layer--)
-    {
-        if (validLayers[layer])
-        {
+    for (int layer = numLayers - 1; layer >= 0; layer--) {
+        if (validLayers[layer]) {
             auto thelayer = layers[layer];
 
             // TEMPORARY - THIS SHOULD BE REMOVED BUT I WANT TO SEE WHAT IS CAUSING SOME RANDOM CRASHES - KW - 2017.7
-            if (thelayer == nullptr)
-            {
+            if (thelayer == nullptr) {
                 logger_base.crit("PixelBufferClass::GetMixedColor thelayer is nullptr ... this is going to crash.");
             }
 
-            if (node >= thelayer->buffer.Nodes.size())
-            {
+            if (node >= thelayer->buffer.Nodes.size()) {
                 //logger_base.crit("PixelBufferClass::GetMixedColor thelayer->buffer.Nodes does not contain node %d as it is only %d in size ... this was going to crash.", node, thelayer->buffer.Nodes.size());
-            }
-            else
-            {
+            } else {
                 int effStartPer, effEndPer;
                 thelayer->buffer.GetEffectPeriods(effStartPer, effEndPer);
                 float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
@@ -532,31 +526,22 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 }
 
                 float ha;
-                if (thelayer->HueAdjustValueCurve.IsActive())
-                {
+                if (thelayer->HueAdjustValueCurve.IsActive()) {
                     ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                }
-                else
-                {
+                } else {
                     ha = (float)thelayer->hueadjust / 100.0;
                 }
                 float sa;
-                if (thelayer->SaturationAdjustValueCurve.IsActive())
-                {
+                if (thelayer->SaturationAdjustValueCurve.IsActive()) {
                     sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                }
-                else
-                {
+                } else {
                     sa = (float)thelayer->saturationadjust / 100.0;
                 }
                 
                 float va;
-                if (thelayer->ValueAdjustValueCurve.IsActive())
-                {
+                if (thelayer->ValueAdjustValueCurve.IsActive()) {
                     va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
-                }
-                else
-                {
+                } else {
                     va = (float)thelayer->valueadjust / 100.0;
                 }
                 
@@ -564,41 +549,29 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 if (ha != 0 || sa != 0 || va != 0) {
                     HSVValue hsv = color.asHSV();
 
-                    if (ha != 0)
-                    {
+                    if (ha != 0) {
                         hsv.hue += ha;
-                        if (hsv.hue < 0)
-                        {
+                        if (hsv.hue < 0) {
                             hsv.hue += 1.0;
-                        }
-                        else if (hsv.hue > 1)
-                        {
+                        } else if (hsv.hue > 1) {
                             hsv.hue -= 1.0;
                         }
                     }
 
-                    if (sa != 0)
-                    {
+                    if (sa != 0) {
                         hsv.saturation += sa;
-                        if (hsv.saturation < 0)
-                        {
+                        if (hsv.saturation < 0) {
                             hsv.saturation = 0.0;
-                        }
-                        else if (hsv.saturation > 1)
-                        {
+                        } else if (hsv.saturation > 1) {
                             hsv.saturation = 1.0;
                         }
                     }
 
-                    if (va != 0)
-                    {
+                    if (va != 0) {
                         hsv.value += va;
-                        if (hsv.value < 0)
-                        {
+                        if (hsv.value < 0) {
                             hsv.value = 0.0;
-                        }
-                        else if (hsv.value > 1)
-                        {
+                        } else if (hsv.value > 1) {
                             hsv.value = 1.0;
                         }
                     }
@@ -610,28 +583,18 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
 
                 // add sparkles
                 if (color != xlBLACK &&
-                    (thelayer->music_sparkle_count ||
+                    (thelayer->use_music_sparkle_count ||
                         thelayer->sparkle_count > 0 ||
-                        thelayer->SparklesValueCurve.IsActive())
-                    )
-                {
+                        thelayer->SparklesValueCurve.IsActive())) {
+                        
                     int sc = thelayer->sparkle_count;
-                    if (thelayer->SparklesValueCurve.IsActive())
-                    {
+                    if (thelayer->SparklesValueCurve.IsActive()) {
                         sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset);
                     }
-
-                    if (thelayer->music_sparkle_count &&
-                        thelayer->buffer.GetMedia() != nullptr)
-                    {
-                        float f = 0.0;
-                        std::list<float>* pf = thelayer->buffer.GetMedia()->GetFrameData(thelayer->buffer.curPeriod, FRAMEDATA_HIGH, "");
-                        if (pf != nullptr)
-                        {
-                            f = *pf->begin();
-                        }
-                        sc = (int)((float)sc * f);
+                    if (thelayer->use_music_sparkle_count) {
+                        sc = (int)(thelayer->music_sparkle_count_factor * (float)sc);
                     }
+
                     switch (sparkle % (208 - sc))
                     {
                     case 1:
@@ -656,12 +619,9 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     sparkle++;
                 }
                 int b;
-                if (thelayer->BrightnessValueCurve.IsActive())
-                {
+                if (thelayer->BrightnessValueCurve.IsActive()) {
                     b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
-                }
-                else
-                {
+                } else {
                     b = thelayer->brightness;
                 }
                 if (thelayer->contrast != 0) {
@@ -670,13 +630,10 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                     hsv.value = hsv.value * ((double)b / 100.0);
 
                     // Apply Contrast
-                    if (hsv.value < 0.5)
-                    {
+                    if (hsv.value < 0.5) {
                         // reduce brightness when below 0.5 in the V value or increase if > 0.5
                         hsv.value = hsv.value - (hsv.value* ((double)thelayer->contrast / 100.0));
-                    }
-                    else
-                    {
+                    } else {
                         hsv.value = hsv.value + (hsv.value* ((double)thelayer->contrast / 100.0));
                     }
 
@@ -1545,7 +1502,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     inf->xpivot = settingsMap.GetInt(SLIDER_XPivot, 50);
     inf->ypivot = settingsMap.GetInt(SLIDER_YPivot, 50);
     inf->sparkle_count = settingsMap.GetInt(SLIDER_SparkleFrequency, 0);
-    inf->music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
+    inf->use_music_sparkle_count = settingsMap.GetBool(CHECKBOX_MusicSparkles, false);
 
     inf->brightness = settingsMap.GetInt(SLIDER_Brightness, 100);
     inf->hueadjust = settingsMap.GetInt(SLIDER_HueAdjust, 0);
@@ -2036,12 +1993,6 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
 void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & validLayers, int saveLayer)
 {
     int curStep;
-    int countValid = 0;
-    for (auto x : validLayers) {
-        if (x) {
-            ++countValid;
-        }
-    }
 
     // blur all the layers if necessary ... before the merge?
     for (int layer = 0; layer < numLayers; layer++)
@@ -2064,6 +2015,19 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
     for(int ii=0; ii < numLayers; ii++)
     {
+        if (layers[ii]->use_music_sparkle_count &&
+            layers[ii]->buffer.GetMedia() != nullptr) {
+            float f = 0.0;
+            std::list<float>* pf = layers[ii]->buffer.GetMedia()->GetFrameData(layers[ii]->buffer.curPeriod, FRAMEDATA_HIGH, "");
+            if (pf != nullptr) {
+                f = *pf->begin();
+            }
+            layers[ii]->music_sparkle_count_factor = f;
+        } else {
+            layers[ii]->use_music_sparkle_count = false;
+        }
+        
+        
         double fadeInFactor=1, fadeOutFactor=1;
         layers[ii]->fadeFactor = 1.0;
         layers[ii]->inMaskFactor = 1.0;
@@ -2112,6 +2076,41 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
 
     // layer calculation and map to output
     size_t NodeCount = layers[0]->buffer.Nodes.size();
+    int countValid = 0;
+    for (auto x : validLayers) {
+        if (x) {
+            ++countValid;
+        }
+    }
+    int blockSize = std::max( 5000 / std::max(countValid, 1), 500);
+    /*
+    //bunch of test code to test the timing of various block sizes to see what impact
+    //the block size has
+    static int test = 2;
+    if (countValid == test) {
+        for (int vvv = 1000; vvv < (NodeCount + 1000); vvv += 1000) {
+            wxStopWatch timer;
+            parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
+                if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
+                    // unmapped pixel - set to black
+                    layers[saveLayer]->buffer.Nodes[i]->SetColor(xlBLACK);
+                } else {
+                    // get blend of two effects
+                    xlColor color;
+                    GetMixedColor(i,
+                                  color,
+                                  validLayers, EffectPeriod);
+                    
+                    // set color for physical output
+                    layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
+                }
+            }, vvv);
+            printf("%d\t%d\t%lld\n", test, vvv, timer.TimeInMicro());
+        }
+        test++;
+    }
+    */
+    
     parallel_for(0, NodeCount, [this, saveLayer, &validLayers, EffectPeriod] (int i) {
         if (!layers[saveLayer]->buffer.Nodes[i]->IsVisible()) {
             // unmapped pixel - set to black
@@ -2126,7 +2125,7 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool> & va
             // set color for physical output
             layers[saveLayer]->buffer.Nodes[i]->SetColor(color);
         }
-    }, std::max( 5000 / std::max(countValid, 1), 500));
+    }, blockSize);
 }
 
 static int DecodeType(const std::string &type)

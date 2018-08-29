@@ -180,7 +180,9 @@ private:
     std::list<Effect*> GetSelectedEffects() const;
     bool PapagayoEffectsSelected() const;
     bool AtLeastOneEffectSelected() const;
+    void ResizeSingleEffectMS(int time);
     void ResizeSingleEffect(int position);
+    void ResizeMoveMultipleEffectsMS(int time, bool offset);
     void ResizeMoveMultipleEffects(int position, bool offset);
     void ResizeMoveMultipleEffectsByTime(int delta, bool force);
     void ButtUpResizeMoveMultipleEffects(bool right);

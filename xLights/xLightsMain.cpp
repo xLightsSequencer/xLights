@@ -2360,7 +2360,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             {
                 logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
             }
-            if (grp->GetMenuItem()->IsChecked()) {
+            if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
                 grp->SetPreviewActive(show);
             }
         }
@@ -3433,6 +3433,7 @@ void xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event)
         mRenderOnSaveMenuItem->Check(false);
         mRenderOnSaveMenuItem->Enable(false);
         mRenderOnSave = false;
+        wxMessageBox("Turning off save of the FSEQ is really not recommended. This will often require you to re-render a sequence every time you load it ... all to save yourself a couple of seconds save time.");
     }
 }
 
@@ -8484,8 +8485,6 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
 
 bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (mainSequencer == nullptr) return false;
 
     auto k = event.GetKeyCode();
@@ -8647,5 +8646,5 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("https://zoom.us/s/175801909");
+    ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
 }

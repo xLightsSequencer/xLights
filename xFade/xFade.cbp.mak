@@ -40,9 +40,9 @@ OBJDIR_LINUX_RELEASE = .objs_lr
 DEP_LINUX_RELEASE = 
 OUT_LINUX_RELEASE = ../bin/xFade
 
-OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/Settings.o $(OBJDIR_LINUX_DEBUG)/SettingsDialog.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/wxLED.o $(OBJDIR_LINUX_DEBUG)/xFadeApp.o $(OBJDIR_LINUX_DEBUG)/xFadeMain.o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/MIDIListener.o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o $(OBJDIR_LINUX_DEBUG)/Emitter.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
+OBJ_LINUX_DEBUG = $(OBJDIR_LINUX_DEBUG)/Settings.o $(OBJDIR_LINUX_DEBUG)/SettingsDialog.o $(OBJDIR_LINUX_DEBUG)/UniverseEntryDialog.o $(OBJDIR_LINUX_DEBUG)/wxLED.o $(OBJDIR_LINUX_DEBUG)/xFadeApp.o $(OBJDIR_LINUX_DEBUG)/xFadeMain.o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_DEBUG)/Emitter.o $(OBJDIR_LINUX_DEBUG)/FadeExcludeDialog.o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o $(OBJDIR_LINUX_DEBUG)/MIDIListener.o
 
-OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/Settings.o $(OBJDIR_LINUX_RELEASE)/SettingsDialog.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/wxLED.o $(OBJDIR_LINUX_RELEASE)/xFadeApp.o $(OBJDIR_LINUX_RELEASE)/xFadeMain.o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/MIDIListener.o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o $(OBJDIR_LINUX_RELEASE)/Emitter.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
+OBJ_LINUX_RELEASE = $(OBJDIR_LINUX_RELEASE)/Settings.o $(OBJDIR_LINUX_RELEASE)/SettingsDialog.o $(OBJDIR_LINUX_RELEASE)/UniverseEntryDialog.o $(OBJDIR_LINUX_RELEASE)/wxLED.o $(OBJDIR_LINUX_RELEASE)/xFadeApp.o $(OBJDIR_LINUX_RELEASE)/xFadeMain.o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o $(OBJDIR_LINUX_RELEASE)/Emitter.o $(OBJDIR_LINUX_RELEASE)/FadeExcludeDialog.o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o $(OBJDIR_LINUX_RELEASE)/MIDIListener.o
 
 all: linux_debug linux_release
 
@@ -79,32 +79,35 @@ $(OBJDIR_LINUX_DEBUG)/xFadeApp.o: xFadeApp.cpp
 $(OBJDIR_LINUX_DEBUG)/xFadeMain.o: xFadeMain.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c xFadeMain.cpp -o $(OBJDIR_LINUX_DEBUG)/xFadeMain.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/MIDIListener.o: MIDIListener.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIListener.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIListener.o
-
-$(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o
-
-$(OBJDIR_LINUX_DEBUG)/Emitter.o: Emitter.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Emitter.cpp -o $(OBJDIR_LINUX_DEBUG)/Emitter.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o: ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o: ../xSchedule/wxMIDI/src/wxMidi.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o
-
-$(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
 
 $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsTimer.o
 
-$(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
-	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/UtilFunctions.o
+$(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/xLightsVersion.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o: ../xSchedule/wxMIDI/src/wxMidi.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidi.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xLights/IPEntryDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o: ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_DEBUG)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o
+
+$(OBJDIR_LINUX_DEBUG)/Emitter.o: Emitter.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c Emitter.cpp -o $(OBJDIR_LINUX_DEBUG)/Emitter.o
+
+$(OBJDIR_LINUX_DEBUG)/FadeExcludeDialog.o: FadeExcludeDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c FadeExcludeDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/FadeExcludeDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIAssociateDialog.o
+
+$(OBJDIR_LINUX_DEBUG)/MIDIListener.o: MIDIListener.cpp
+	$(CXX) $(CFLAGS_LINUX_DEBUG) $(INC_LINUX_DEBUG) -c MIDIListener.cpp -o $(OBJDIR_LINUX_DEBUG)/MIDIListener.o
 
 clean_linux_debug: 
 	rm -f $(OBJ_LINUX_DEBUG) $(OUT_LINUX_DEBUG)
@@ -140,39 +143,42 @@ $(OBJDIR_LINUX_RELEASE)/xFadeApp.o: xFadeApp.cpp
 $(OBJDIR_LINUX_RELEASE)/xFadeMain.o: xFadeMain.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c xFadeMain.cpp -o $(OBJDIR_LINUX_RELEASE)/xFadeMain.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/MIDIListener.o: MIDIListener.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIListener.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIListener.o
-
-$(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o
-
-$(OBJDIR_LINUX_RELEASE)/Emitter.o: Emitter.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Emitter.cpp -o $(OBJDIR_LINUX_RELEASE)/Emitter.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o: ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o: ../xSchedule/wxMIDI/src/wxMidi.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o
-
-$(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
 
 $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o: ../xLights/xLightsTimer.cpp
 	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsTimer.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsTimer.o
 
-$(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o: ../xLights/UtilFunctions.cpp
-	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/UtilFunctions.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/UtilFunctions.o
+$(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o: ../xLights/xLightsVersion.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/xLightsVersion.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/xLightsVersion.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o: ../xSchedule/wxMIDI/src/wxMidi.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxMIDI/src/wxMidi.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidi.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o: ../xLights/IPEntryDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xLights/IPEntryDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xLights/IPEntryDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o: ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c ../xSchedule/wxMIDI/src/wxMidiDatabase.cpp -o $(OBJDIR_LINUX_RELEASE)/__/xSchedule/wxMIDI/src/wxMidiDatabase.o
+
+$(OBJDIR_LINUX_RELEASE)/Emitter.o: Emitter.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c Emitter.cpp -o $(OBJDIR_LINUX_RELEASE)/Emitter.o
+
+$(OBJDIR_LINUX_RELEASE)/FadeExcludeDialog.o: FadeExcludeDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c FadeExcludeDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/FadeExcludeDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o: MIDIAssociateDialog.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIAssociateDialog.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIAssociateDialog.o
+
+$(OBJDIR_LINUX_RELEASE)/MIDIListener.o: MIDIListener.cpp
+	$(CXX) $(CFLAGS_LINUX_RELEASE) $(INC_LINUX_RELEASE) -c MIDIListener.cpp -o $(OBJDIR_LINUX_RELEASE)/MIDIListener.o
 
 clean_linux_release: 
 	rm -f $(OBJ_LINUX_RELEASE) $(OUT_LINUX_RELEASE)
 
 Settings.cpp: Settings.h
 
-SettingsDialog.cpp: SettingsDialog.h Settings.h UniverseEntryDialog.h
+SettingsDialog.cpp: SettingsDialog.h Settings.h UniverseEntryDialog.h FadeExcludeDialog.h
 
 UniverseEntryDialog.cpp: UniverseEntryDialog.h
 
@@ -186,11 +192,13 @@ xFadeMain.cpp: xFadeMain.h UniverseEntryDialog.h Emitter.h MIDIListener.h Settin
 
 Emitter.h: PacketData.h
 
-MIDIListener.cpp: MIDIListener.h
+Emitter.cpp: Emitter.h xFadeMain.h Settings.h
+
+FadeExcludeDialog.cpp: FadeExcludeDialog.h Settings.h
 
 MIDIAssociateDialog.cpp: MIDIAssociateDialog.h MIDIListener.h
 
-Emitter.cpp: Emitter.h xFadeMain.h
+MIDIListener.cpp: MIDIListener.h
 
 .PHONY: before_linux_debug after_linux_debug clean_linux_debug before_linux_release after_linux_release clean_linux_release
 

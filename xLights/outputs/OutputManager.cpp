@@ -221,10 +221,26 @@ Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
 {
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
-        if (absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+        if ((*it)->IsOutputCollection() && absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
         {
-            startChannel = absoluteChannel - (*it)->GetStartChannel() + 1;
-            return *it;
+            auto outputs = (*it)->GetOutputs();
+
+            for (auto it2 = outputs.begin(); it2 != outputs.end(); ++it2)
+            {
+                if (absoluteChannel >= (*it2)->GetStartChannel() && absoluteChannel <= (*it2)->GetEndChannel())
+                {
+                    startChannel = absoluteChannel - (*it2)->GetStartChannel() + 1;
+                    return *it2;
+                }
+            }
+        }
+        else
+        {
+            if (absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+            {
+                startChannel = absoluteChannel - (*it)->GetStartChannel() + 1;
+                return *it;
+            }
         }
     }
 
@@ -392,7 +408,7 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
 
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
-        if ((*it)->IsIpOutput() && (ip == "" || ip == (*it)->GetIP()))
+        if (ip == "" || ip == (*it)->GetIP())
         {
             if ((*it)->IsOutputCollection())
             {

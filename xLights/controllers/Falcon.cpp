@@ -3,12 +3,112 @@
 #include <wx/sstream.h>
 #include <wx/regex.h>
 #include <wx/xml/xml.h>
-#include "models/Model.h"
-#include <log4cpp/Category.hh>
-#include "outputs/OutputManager.h"
-#include "outputs/Output.h"
-#include "models/ModelManager.h"
 #include <wx/progdlg.h>
+
+#include "../models/Model.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+#include "../models/ModelManager.h"
+#include "ControllerUploadData.h"
+
+#include <log4cpp/Category.hh>
+
+class FalconControllerRules : public ControllerRules
+{
+    int _type;
+    int _version;
+    int _expansions;
+
+public:
+    FalconControllerRules(int type, int version) : ControllerRules()
+    {
+        _type = type;
+        _version = version;
+    }
+    virtual ~FalconControllerRules() {}
+    virtual int GetMaxPixelPortChannels() const override
+    {
+        if (_version == 2)
+        {
+            return 680 * 3;
+        }
+        else
+        {
+            return 1024 * 3;
+        }
+    }
+    virtual int GetMaxPixelPort() const override
+    {
+        if (_type == 4)
+        {
+            return 12;
+        }
+        else if (_type == 16)
+        {
+            return 48;
+        }
+        else if (_type == 48)
+        {
+            return 48;
+        }
+
+        return 48;
+    }
+    virtual int GetMaxSerialPortChannels() const override
+    {
+        return 512;
+    }
+    virtual int GetMaxSerialPort() const override
+    {
+        if (_type == 4)
+        {
+            return 1;
+        }
+        else
+        {
+            return 4;
+        }
+    }
+    virtual bool IsValidPixelProtocol(const std::string protocol) const override
+    {
+        if (protocol == "ws2811") return true;
+        if (protocol == "tm18xx") return true;
+        if (protocol == "lx1203") return true;
+        if (protocol == "ws2801") return true;
+        if (protocol == "tls3001") return true;
+        if (protocol == "lpd6803") return true;
+        if (protocol == "gece") return true;
+
+        return false;
+    }
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override
+    {
+        if (protocol == "dmx") return true;
+        if (protocol == "pixelnet") return true;
+        if (protocol == "renard") return true;
+
+        return false;
+    }
+    virtual bool SupportsMultipleProtocols() const override
+    {
+        return true;
+    }
+    virtual bool AllUniversesSameSize() const override
+    {
+        return false;
+    }
+    virtual std::list<std::string> GetSupportedInputProtocols() const override
+    {
+        std::list<std::string> res;
+        res.push_back("E131");
+        res.push_back("ARTNET");
+        return res;
+    }
+    virtual bool UniversesMustBeSequential() const override
+    {
+        return false;
+    }
+};
 
 Falcon::Falcon(const std::string& ip)
 {
@@ -19,6 +119,8 @@ Falcon::Falcon(const std::string& ip)
     _version = 0;
     _model = 0;
 
+    logger_base.debug("Connecting to Falcon on %s.", (const char *)_ip.c_str());
+
     _http.SetMethod("GET");
     _connected = _http.Connect(_ip);
 
@@ -27,19 +129,29 @@ Falcon::Falcon(const std::string& ip)
         std::string versionxml = GetURL("/status.xml");
         if (versionxml == "")
         {
-            logger_base.error("Error connecting to falcon controller on %s.", (const char *)_ip.c_str());
+            logger_base.error("    Error retrieving status.xml from falcon controller.");
             _connected = false;
             return;
         }
+        logger_base.debug("Status.xml retrieved.");
 
-        std::string version = GetURL("/index.htm");
         if (versionxml != "")
         {
+            logger_base.debug("status.xml:\n%s", (const char*)versionxml.c_str());
+
             static wxRegEx versionregex("(\\<v\\>)([0-9]+\\.[0-9]+)\\<\\/v\\>", wxRE_ADVANCED | wxRE_NEWLINE);
             if (versionregex.Matches(wxString(versionxml)))
             {
                 _firmwareVersion = versionregex.GetMatch(wxString(versionxml), 2).ToStdString();
             }
+        }
+
+        std::string version = GetURL("/index.htm");
+        if (version == "")
+        {
+            logger_base.error("    Error retrieving index.htm from falcon controller.");
+            _connected = false;
+            return;
         }
 
         if (_firmwareVersion == "")
@@ -67,6 +179,11 @@ Falcon::Falcon(const std::string& ip)
             }
         }
 
+        if (_modelString == "")
+        {
+            logger_base.error("Unable to find model in html:\n%s", (const char*)version.c_str());
+        }
+
         static wxRegEx versionregex("(F[0-9]+V)([0-9]+)$", wxRE_ADVANCED);
         if (versionregex.Matches(wxString(_modelString)))
         {
@@ -84,7 +201,7 @@ Falcon::Falcon(const std::string& ip)
             _model = wxAtoi(modelregex2.GetMatch(wxString(_modelString), 2));
         }
 
-        logger_base.debug("Connected to falcon - Model: %s Firmware Version %s. %d:%d", _modelString.c_str(), _firmwareVersion.c_str(), _model, _version);
+        logger_base.debug("Connected to falcon - Model: '%s' Firmware Version '%s'. F%d:V%d", (const char*)_modelString.c_str(), (const char*)_firmwareVersion.c_str(), _model, _version);
     }
     else
     {
@@ -261,6 +378,320 @@ int Falcon::GetVirtualStringPixels(const std::vector<FalconString*> &virtualStri
 }
 
 bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
+{
+    //ResetStringOutputs(); // this shouldnt be used normally
+    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progress.Show();
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+
+    progress.Update(0, "Scanning models");
+    logger_base.info("Scanning models.");
+
+    std::string check;
+    UDController cud(_ip, allmodels, outputManager, &selected, check);
+
+    FalconControllerRules rules(_model, _version);
+    bool success = cud.Check(&rules, check);
+
+    logger_base.debug(check);
+
+    cud.Dump();
+
+    progress.Update(10, "Retrieving string configuration from Falcon.");
+    logger_base.info("Retrieving string configuration from Falcon.");
+
+    // get the current config before I start
+    std::string strings = GetURL("/strings.xml");
+    if (strings == "")
+    {
+        progress.Update(100, "Aborting.");
+        logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
+        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
+        return false;
+    }
+
+    std::vector<FalconString*> stringData;
+    std::vector<FalconString*> virtualStringData;
+
+    wxStringInputStream strm(wxString(strings.c_str()));
+    wxXmlDocument stringsDoc(strm);
+
+    if (!stringsDoc.IsOk())
+    {
+        progress.Update(100, "Aborting.");
+        logger_base.error("Falcon Outputs Upload: Could not parse Falcon strings.xml.");
+        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
+        return false;
+    }
+
+    progress.Update(40, "Processing current configuration data.");
+    logger_base.info("Processing current configuration data.");
+
+    int currentStrings = CountStrings(stringsDoc);
+    int mainPixels = GetMaxPixels();
+    int daughter1Pixels = 0;
+    int daughter2Pixels = 0;
+    if (SupportsVariableExpansions())
+    {
+        mainPixels = MaxPixels(stringsDoc, 0);
+        daughter1Pixels = MaxPixels(stringsDoc, 1);
+        daughter2Pixels = MaxPixels(stringsDoc, 2);
+    }
+    else
+    {
+        if (currentStrings > GetDaughter1Threshold())
+        {
+            mainPixels = mainPixels / 2;
+            daughter1Pixels = mainPixels;
+        }
+    }
+
+    logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
+    logger_base.info("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
+
+    int virtualStrings = ReadStringData(stringsDoc, stringData, virtualStringData);
+
+    if (virtualStrings > 0)
+    {
+        if (wxMessageBox("At least one String Port has virtual strings defined. Proceeding will overwrite the first one only and will need to be manually corrected. Are you sure you want to do this?", "Are you sure?", wxYES_NO, parent) == wxYES)
+        {
+            // ok let it happen
+            logger_base.warn("Falcon Outputs Upload: User chose to upload string port outputs even though it had %d virtual strings defined.", virtualStrings);
+        }
+        else
+        {
+            check += "\nAborted by user.\n";
+            success = false;
+        }
+    }
+
+    int maxPixels = GetMaxPixels();
+
+    if (cud.GetMaxPixelPort() > GetDaughter2Threshold() && currentStrings < GetMaxStringOutputs())
+    {
+        logger_base.info("Adjusting string port count to %d.", GetMaxStringOutputs());
+        progress.Update(45, "Adjusting string port count.");
+        InitialiseStrings(stringData, GetMaxStringOutputs(), virtualStrings);
+    }
+    else if (cud.GetMaxPixelPort() > GetDaughter1Threshold() && currentStrings < GetDaughter2Threshold())
+    {
+        logger_base.info("Adjusting string port count to %d.", GetDaughter2Threshold());
+        progress.Update(45, "Adjusting string port count.");
+        InitialiseStrings(stringData, GetDaughter2Threshold(), virtualStrings);
+    }
+
+    logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
+
+    progress.Update(50, "Configuring string ports.");
+    logger_base.info("Configuring string ports.");
+
+    bool portdone[100];
+    memset(&portdone, 0x00, sizeof(portdone)); // all false
+
+    for (int pp = 1; pp <= cud.GetMaxPixelPort(); pp++)
+    {
+        if (cud.HasPixelPort(pp))
+        {
+            UDControllerPort* port = cud.GetControllerPixelPort(pp);
+            logger_base.info("Pixel Port %d Protocol %s.", pp, (const char *)port->GetProtocol().c_str());
+
+            FalconString* string = FindPort(stringData, port->GetPort()-1);
+            if (string != nullptr)
+            {
+                string->protocol = DecodeStringPortProtocol(port->GetProtocol());
+                string->universe = port->GetUniverse();
+                string->startChannel = port->GetUniverseStartChannel();
+                string->pixels = port->Channels() / 3;
+                string->description = SafeDescription(port->GetPortName());
+            }
+            else
+            {
+                wxASSERT(false);
+                logger_base.warn("    Skipping non existent port.");
+            }
+        }
+    }
+
+    logger_base.info("Working out required pixel splits.");
+
+    int maxMain = 0;
+    int maxDaughter1 = 0;
+    int maxDaughter2 = 0;
+
+    for (auto i = 0; i < stringData.size(); ++i)
+    {
+        int pixels = stringData[i]->pixels + GetVirtualStringPixels(virtualStringData, stringData[i]->port);
+        if (i < GetDaughter1Threshold())
+        {
+            if (pixels > maxMain) maxMain = pixels;
+        }
+        else if (i < GetDaughter2Threshold())
+        {
+            if (pixels > maxDaughter1) maxDaughter1 = pixels;
+        }
+        else
+        {
+            if (pixels > maxDaughter2) maxDaughter2 = pixels;
+        }
+    }
+
+    if (!SupportsVariableExpansions())
+    {
+        // minimum of main is 1
+        if (maxMain == 0)
+        {
+            maxMain = 1;
+        }
+
+        if (maxDaughter1 > 0)
+        {
+            if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2)
+            {
+                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
+                    (const char *)_ip.c_str(), maxMain, maxDaughter1);
+                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
+                    _ip, maxMain, maxDaughter1));
+                success = false;
+            }
+
+            maxMain = maxPixels / 2;
+            maxDaughter1 = maxPixels / 2;
+
+            if (maxDaughter2 > 0)
+            {
+                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
+                    (const char *)_ip.c_str());
+                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
+                    _ip));
+                success = false;
+                maxDaughter2 = 0;
+            }
+        }
+
+        logger_base.info("Falcon pixel fixed split: Main = %d, Expansion1 = %d", maxMain, maxDaughter1);
+    }
+    else
+    {
+        if (maxMain == 0)
+        {
+            maxMain = 1;
+        }
+
+        if (stringData.size() > GetDaughter2Threshold() && maxDaughter2 == 0)
+        {
+            maxDaughter2 = 1;
+        }
+
+        if (stringData.size() > GetDaughter1Threshold() && maxDaughter1 == 0)
+        {
+            maxDaughter1 = 1;
+        }
+
+        if (IsF4() && IsV3())
+        {
+            // v3 supports 1024 on all outputs
+            maxMain = maxPixels;
+            maxDaughter1 = 0;
+            maxDaughter2 = 0;
+        }
+
+        logger_base.info("Falcon pixel required split: Main = %d, Expansion1 = %d, Expansion2 = %d", maxMain, maxDaughter1, maxDaughter2);
+
+        if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
+        {
+            success = false;
+            check += "Total pixels exceeded maximum allowed on a pixel port";
+        }
+
+        if (maxMain + maxDaughter1 + maxDaughter2 < maxPixels)
+        {
+            if (maxDaughter2 != 0)
+            {
+                maxDaughter2 = maxPixels - maxMain - maxDaughter1;
+            }
+            else if (maxDaughter1 != 0)
+            {
+                maxDaughter1 = maxPixels - maxMain;
+            }
+            else
+            {
+                maxMain = maxPixels;
+            }
+            logger_base.info("Falcon pixel split adjusted to add up to %d: Main = %d, Expansion1 = %d, Expansion2 = %d", maxPixels, maxMain, maxDaughter1, maxDaughter2);
+        }
+    }
+
+    if (success && cud.GetMaxPixelPort() > 0)
+    {
+        progress.Update(60, "Uploading string ports.");
+
+        if (check != "")
+        {
+            wxMessageBox("Upload warnings:\n" + check);
+            check = ""; // to suppress double display
+        }
+
+        logger_base.info("Uploading string ports.");
+        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, virtualStringData);
+
+        // delete all our string data
+        while (stringData.size() > 0)
+        {
+            delete stringData[stringData.size() - 1];
+            stringData.pop_back();
+        }
+        while (virtualStringData.size() > 0)
+        {
+            delete virtualStringData[virtualStringData.size() - 1];
+            virtualStringData.pop_back();
+        }
+    }
+    else
+    {
+        if (GetMaxStringOutputs() > 0)
+        {
+            wxMessageBox("Not uploaded due to errors.\n" + check);
+            check = "";
+        }
+    }
+
+    if (success && cud.GetMaxSerialPort() > 0)
+    {
+        progress.Update(90, "Uploading serial ports.");
+
+        if (check != "")
+        {
+            wxMessageBox("Upload warnings:\n" + check);
+        }
+
+        for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++)
+        {
+            if (cud.HasSerialPort(sp))
+            {
+                UDControllerPort* port = cud.GetControllerSerialPort(sp);
+                logger_base.info("Serial Port %d Protocol %s.", sp, (const char *)port->GetProtocol().c_str());
+
+                UploadSerialOutput(port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), port->GetStartChannel(), parent);
+            }
+        }
+    }
+    else
+    {
+        if (GetMaxSerialOutputs() > 0 && check != "")
+        {
+            wxMessageBox("Not uploaded due to errors.\n" + check);
+        }
+    }
+
+    progress.Update(100, "Done.");
+    logger_base.info("Falcon upload done.");
+
+    return success;
+}
+
+bool Falcon::SetOutputsOld(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
     //ResetStringOutputs(); // this shouldnt be used normally
     wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);

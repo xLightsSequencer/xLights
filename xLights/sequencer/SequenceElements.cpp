@@ -2029,4 +2029,3 @@ void SequenceElements::AddRenderDependency(const std::string &layer, const std::
 EffectManager &SequenceElements::GetEffectManager() {
     return xframe->GetEffectManager();
 }
-

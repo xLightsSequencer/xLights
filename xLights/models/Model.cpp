@@ -503,7 +503,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
         else
         {
             // remove per strand start channels if individual isnt selected
-            int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < 100; x++) {
                 wxString nm = StartChanAttrName(x);
                 ModelXml->DeleteAttribute(nm);
@@ -3691,6 +3690,13 @@ int Model::GetPort() const
     }
 
     return 0;
+}
+
+bool Model::IsPixelProtocol() const
+{
+    wxString protocol = GetProtocol();
+    protocol.MakeLower();
+    return (GetPort() != 0 && protocol != "dmx" && protocol != "pixelnet" && protocol != "renard");
 }
 
 void Model::SetControllerConnection(const std::string& controllerConnection)

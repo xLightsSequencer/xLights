@@ -141,7 +141,10 @@ void InitialiseLogging(bool fromMain)
 
 #endif
 #ifdef __LINUX__
-        std::string initFileName = "/usr/share/xLights/xcapture.linux.properties";
+        std::string initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/bin/xcapture.linux.properties";
+        if (!wxFile::Exists(initFileName)) {
+            initFileName = wxStandardPaths::Get().GetInstallPrefix() + "/share/xLights/xcapture.linux.properties";
+        }
 #endif
 
         if (!wxFile::Exists(initFileName))
