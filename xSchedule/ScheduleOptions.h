@@ -12,6 +12,7 @@ class wxXmlNode;
 class UserButton;
 class OutputManager;
 class EventBase;
+class Command;
 
 typedef enum
 {
@@ -108,7 +109,7 @@ class ScheduleOptions
 
         bool IsDirty() const;
         void ClearDirty();
-        ScheduleOptions(OutputManager* outputManager, wxXmlNode* node);
+        ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, CommandManager* commandManager);
         ScheduleOptions();
         virtual ~ScheduleOptions();
         wxXmlNode* Save();
@@ -142,7 +143,7 @@ class ScheduleOptions
         void SetWWWRoot(const std::string& wwwRoot) { if (_wwwRoot != wwwRoot) { _wwwRoot = wwwRoot; _changeCount++; } }
         void SetDirty() { _changeCount++; }
         void SetAudioDevice(const std::string& audioDevice);
-        void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color);
+        void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color, CommandManager* commandManager);
         bool GetAPIOnly() const { return _webAPIOnly; }
         std::string GetPassword() const { return _password; }
         std::string GetCity() const { return _city; }

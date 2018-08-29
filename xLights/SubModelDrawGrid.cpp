@@ -1,13 +1,13 @@
-#include "SubModelDrawGrid.h"
-
 //(*InternalHeaders(SubModelDrawGrid)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
-#include "models/Model.h"
 #include <wx/tokenzr.h>
 #include <wx/settings.h>
+
+#include "SubModelDrawGrid.h"
+#include "models/Model.h"
 
 //(*IdInit(SubModelDrawGrid)
 const long SubModelDrawGrid::ID_BUTTON_SELECT = wxNewId();

@@ -19,7 +19,7 @@
 #include "events/EventE131.h"
 #include "events/EventData.h"
 
-ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
+ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, CommandManager* commandManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _oscOptions = nullptr;
@@ -48,7 +48,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node)
     {
         if (n->GetName() == "Button")
         {
-            _buttons.push_back(new UserButton(n));
+            _buttons.push_back(new UserButton(n, commandManager));
         }
         else if (n->GetName() == "Matrix")
         {
@@ -126,11 +126,11 @@ void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
     }
 }
 
-void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color)
+void ScheduleOptions::AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color, CommandManager* commandManager)
 {
     UserButton* b = new UserButton();
     b->SetLabel(label);
-    b->SetCommand(command);
+    b->SetCommand(command, commandManager);
     b->SetParameters(parms);
     b->SetHotkey(hotkey);
     b->SetColor(color);
@@ -348,9 +348,10 @@ void ScheduleOptions::ClearDirty()
 
 UserButton* ScheduleOptions::GetButton(const std::string& label) const
 {
+    wxString l = wxString(label).Lower();
     for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
     {
-        if (wxString((*it)->GetLabel()).Lower() == wxString(label).Lower())
+        if ((*it)->GetLabelLower() == l)
         {
             return *it;
         }
