@@ -407,6 +407,8 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     if (CheckBox_ArtNET->GetValue()) CreateArtNETListener();
     if (CheckBox_E131->GetValue()) CreateE131Listener();
 
+    Button_StartStop->SetLabel("Start");
+
     ValidateWindow();
 }
 
@@ -755,6 +757,11 @@ void xCaptureFrame::ValidateWindow()
         Button_StartStop->Enable(true);
     }
 
+    if (_artNETSocket == nullptr && _e131Socket == nullptr)
+    {
+        Button_StartStop->Enable(false);
+    }
+
     if (_capturedData.size() > 0 && !_capturing)
     {
         Button_Save->Enable(true);
@@ -799,35 +806,45 @@ void xCaptureFrame::CreateE131Listener()
     //create and bind to the address above
     _e131Socket = new wxDatagramSocket(addr);
 
-    logger_base.debug("E131 listening on %s", (const char*)_localIP.c_str());
-
-    for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
+    if (_e131Socket->IsOk())
     {
-        if (ListView_Universes->GetItemText(i) != "All")
+        logger_base.debug("E131 listening on %s", (const char*)_localIP.c_str());
+
+        for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
         {
-            int start = wxAtoi(ListView_Universes->GetItemText(i));
-            int end = wxAtoi(ListView_Universes->GetItemText(i, 1));
-            for (int u = start; u <= end; u++)
+            if (ListView_Universes->GetItemText(i) != "All")
             {
-                struct ip_mreq mreq;
-                wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
-                logger_base.debug("E131 registering for multicast on %s.", (const char *)ip.c_str());
-                mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
-                mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
-                if (!_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
+                int start = wxAtoi(ListView_Universes->GetItemText(i));
+                int end = wxAtoi(ListView_Universes->GetItemText(i, 1));
+                for (int u = start; u <= end; u++)
                 {
-                    logger_base.warn("    Error opening E131 multicast listener %s.", (const char *)ip.c_str());
+                    struct ip_mreq mreq;
+                    wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
+                    logger_base.debug("E131 registering for multicast on %s.", (const char *)ip.c_str());
+                    mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
+                    mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
+                    if (!_e131Socket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
+                    {
+                        logger_base.warn("    Error opening E131 multicast listener %s.", (const char *)ip.c_str());
+                    }
                 }
             }
         }
-    }
 
-    //enable event handling
-    _e131Socket->SetEventHandler(*this, ID_E131SOCKET);
-    //Notify us about incomming data
-    _e131Socket->SetNotify(wxSOCKET_INPUT_FLAG);
-    //enable event handling
-    _e131Socket->Notify(true);
+        //enable event handling
+        _e131Socket->SetEventHandler(*this, ID_E131SOCKET);
+        //Notify us about incomming data
+        _e131Socket->SetNotify(wxSOCKET_INPUT_FLAG);
+        //enable event handling
+        _e131Socket->Notify(true);
+    }
+    else
+    {
+        delete _e131Socket;
+        _e131Socket = nullptr;
+        logger_base.warn("Error opening socket to listen for e131 data");
+        wxMessageBox("Error listening for E1.31 data.");
+    }
 }
 
 void xCaptureFrame::CreateArtNETListener()
@@ -842,35 +859,45 @@ void xCaptureFrame::CreateArtNETListener()
     //create and bind to the address above
     _artNETSocket = new wxDatagramSocket(addr);
 
-    logger_base.debug("ARTNet listening on %s", (const char*)_localIP.c_str());
-
-    for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
+    if (_artNETSocket->IsOk())
     {
-        if (ListView_Universes->GetItemText(i) != "All")
+        logger_base.debug("ARTNet listening on %s", (const char*)_localIP.c_str());
+
+        for (int i = 0; i < ListView_Universes->GetItemCount(); i++)
         {
-            int start = wxAtoi(ListView_Universes->GetItemText(i));
-            int end = wxAtoi(ListView_Universes->GetItemText(i, 1));
-            for (int u = start; u <= end; u++)
+            if (ListView_Universes->GetItemText(i) != "All")
             {
-                struct ip_mreq mreq;
-                wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
-                logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
-                mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
-                mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
-                if (!_artNETSocket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
+                int start = wxAtoi(ListView_Universes->GetItemText(i));
+                int end = wxAtoi(ListView_Universes->GetItemText(i, 1));
+                for (int u = start; u <= end; u++)
                 {
-                    logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
+                    struct ip_mreq mreq;
+                    wxString ip = wxString::Format("239.255.%d.%d", u >> 8, u & 0xFF);
+                    logger_base.debug("ARTNet registering for multicast on %s.", (const char *)ip.c_str());
+                    mreq.imr_multiaddr.s_addr = inet_addr(ip.c_str());
+                    mreq.imr_interface.s_addr = inet_addr(_localIP.c_str()); // this will only listen on the default interface
+                    if (!_artNETSocket->SetOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq)))
+                    {
+                        logger_base.warn("    Error opening ARTNet multicast listener %s.", (const char *)ip.c_str());
+                    }
                 }
             }
         }
-    }
 
-    //enable event handling
-    _artNETSocket->SetEventHandler(*this, ID_ARTNETSOCKET);
-    //Notify us about incomming data
-    _artNETSocket->SetNotify(wxSOCKET_INPUT_FLAG);
-    //enable event handling
-    _artNETSocket->Notify(true);
+        //enable event handling
+        _artNETSocket->SetEventHandler(*this, ID_ARTNETSOCKET);
+        //Notify us about incomming data
+        _artNETSocket->SetNotify(wxSOCKET_INPUT_FLAG);
+        //enable event handling
+        _artNETSocket->Notify(true);
+    }
+    else
+    {
+        delete _artNETSocket;
+        _artNETSocket = nullptr;
+        logger_base.warn("Error opening socket to listen for ArtNET data");
+        wxMessageBox("Error listening for E1.ArtNET data.");
+    }
 }
 
 void xCaptureFrame::AddUniverseRange(int low, int high)
