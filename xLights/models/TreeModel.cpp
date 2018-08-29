@@ -70,7 +70,13 @@ void TreeModel::SetTreeCoord(long degrees) {
 
         double radians=toRadians(degrees);
         double radius=RenderWi/2.0;
-        double topradius=radius/botTopRatio;
+        double topradius=radius/std::abs(botTopRatio);
+        if( botTopRatio == 0.0f ) {
+            topradius = 1.0f;
+        }
+        else if(botTopRatio < 0) {
+            std::swap(topradius, radius);
+        }
 
         double StartAngle=-radians/2.0;
         double AngleIncr=radians/double(BufferWi);
@@ -310,7 +316,7 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->Enable(treeType == 0);
 
     p = grid->Append(new wxFloatProperty("Bottom/Top Ratio", "TreeBottomTopRatio", treeType == 0 ? botTopRatio : 6.0));
-    p->SetAttribute("Min", "1");
+    p->SetAttribute("Min", "-50");
     p->SetAttribute("Max", "50");
     p->SetAttribute("Step", 0.5);
     p->SetAttribute("Precision", 2);
