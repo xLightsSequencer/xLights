@@ -6,7 +6,7 @@
 
 WindowFrameModel::WindowFrameModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
-    rotation = node->GetAttribute("Rotation", "CW") == "CW" ? 0 : 1;
+    rotation = (node->GetAttribute("Rotation", "CW") == "Clockwise" || node->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1;
     SetFromXml(node, zeroBased);
 }
 
@@ -16,6 +16,7 @@ WindowFrameModel::~WindowFrameModel()
 }
  
 void WindowFrameModel::InitModel() {
+    rotation = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1;
     InitFrame();
 }
 
@@ -97,7 +98,7 @@ void WindowFrameModel::InitFrame()
         }
     }
 
-    float dir = ModelXml->GetAttribute("Rotation", "CW") == "CW" ? 1.0 : -1.0;
+    float dir = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 1.0 : -1.0;
 
     int xoffset = BufferWi/2;
     int yoffset = BufferHt/2;
@@ -254,7 +255,7 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
         return 3;
     } else if ("WFDirection" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Rotation");
-        ModelXml->AddAttribute("Rotation", event.GetValue().GetLong() == 0 ? "CW" : "CCW");
+        ModelXml->AddAttribute("Rotation", event.GetValue().GetLong() == 0 ? "Clockwise" : "Counter Clockwise");
         SetFromXml(ModelXml, zeroBased);
         return 3;
     }
