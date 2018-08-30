@@ -1688,7 +1688,16 @@ void TwoPointScreenLocation::Write(wxXmlNode *ModelXml) {
 
 void TwoPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     origin = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-    point2 = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
+    
+    // if both points are exactly equal, then the line is length 0 and the scaling matrix
+    // will not be usable.  We'll offset the x coord slightly so the scaling matrix
+    // will not be a 0 matrix
+    float x = x2;
+    if (x2 == 0.0f && y2 == 0.0f && z2 == 0.0f) {
+        x = 0.001f;
+    }
+
+    point2 = glm::vec3(x + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
     if (!is_3d) {
         // allows 2D selection to work
         origin.z = 0.0f;
@@ -2734,7 +2743,16 @@ static void rotate_point(float cx, float cy, float angle, float &x, float &y)
 
 void ThreePointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
     origin = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-    point2 = glm::vec3(x2 + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
+    
+    // if both points are exactly equal, then the line is length 0 and the scaling matrix
+    // will not be usable.  We'll offset the x coord slightly so the scaling matrix
+    // will not be a 0 matrix
+    float x = x2;
+    if (x2 == 0.0f && y2 == 0.0f && z2 == 0.0f) {
+        x = 0.001f;
+    }
+
+    point2 = glm::vec3(x + worldPos_x, y2 + worldPos_y, z2 + worldPos_z);
     if (!is_3d) {
         // allows 2D selection to work
         //origin.z = 0.0f;
@@ -3581,6 +3599,9 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
             if( mPos[i+1].z > maxZ ) maxZ = mPos[i+1].z;
         }
 
+        if (x1p == x2p && y1p == y2p && z1p == z2p) {
+            x2p += 0.001;
+        }
         glm::vec3 pt1(x1p, y1p, z1p);
         glm::vec3 pt2(x2p, y2p, z2p);
         glm::vec3 a = pt2 - pt1;

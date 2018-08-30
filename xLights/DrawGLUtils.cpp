@@ -925,7 +925,63 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
         AddVertex(cx, cy, cz, center);
     }
 }
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float ocy, float ocz, float radius,
+                                                               const xlColor &center, const xlColor &edge,
+                                                               std::function<void(float &x, float &y, float &z)> &&translateFunction) {
+    int num_segments = radius;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 4);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    float radial_factor = cosf(theta);//calculate the radial factor
 
+    float cx = ocx;
+    float cy = ocy;
+    float cz = ocz;
+    translateFunction(cx, cy, cz);
+
+    //radius is supposed to be in "pixels" to match the size of the smooth points and such, however
+    //the transformation may apply scales and such.  Thus, we'll try and figure out a
+    //new radius by transforming some stuff and calculating a vector
+    float tx = ocx + 1;
+    float ty = ocy + 1;
+    float tz = ocz + 1;
+    translateFunction(tx, ty, tz);
+    float vlen = std::sqrt((cx-tx)*(cx-tx) + (cy-ty)*(cy-ty) + (cz-tz)*(cz-tz));
+    
+    radius = radius/vlen;
+    
+    float x = radius;//we start at angle = 0
+    float y = 0;
+    
+    
+    for(int ii = 0; ii < num_segments; ii++) {
+        tx = x + ocx;
+        ty = y + ocy;
+        tz = ocz;
+        translateFunction(tx, ty, tz);
+        AddVertex(tx, ty, tz, edge);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        tx = -y;
+        ty = x;
+        
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        tx = x + ocx;
+        ty = y + ocy;
+        tz = ocz;
+        translateFunction(tx, ty, tz);
+        AddVertex(tx, ty, tz, edge);
+        AddVertex(cx, cy, cz, center);
+    }
+}
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
 {
     int num_segments = radius;

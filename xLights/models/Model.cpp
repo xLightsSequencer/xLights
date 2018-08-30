@@ -3092,9 +3092,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
             float sx = Nodes[n]->Coords[c2].screenX;;
             float sy = Nodes[n]->Coords[c2].screenY;
             float sz = Nodes[n]->Coords[c2].screenZ;
-            GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
             if (pixelStyle < 2) {
+                GetModelScreenLocation().TranslatePoint(sx, sy, sz);
                 if (splitRGB) {
                     if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
                         xlColor c3(color);
@@ -3128,7 +3128,10 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
                 int trans = color == xlBLACK ? blackTransparency : transparency;
                 ApplyTransparency(ccolor, trans);
                 ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
-                va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor);
+                va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
+                                      [this](float &x, float &y, float &z) {
+                                          GetModelScreenLocation().TranslatePoint(x, y, z);
+                                      });;
             }
         }
     }
