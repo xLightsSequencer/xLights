@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Bunch of performance updates for Test dialog on OSX
 2018.31 3D Beta August 30, 2018
    -- enh (gil)    Add images and grids to layout
    -- enh (gil)    Add easier way to invert trees
