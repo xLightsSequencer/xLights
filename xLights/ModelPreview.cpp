@@ -270,22 +270,21 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
         if (is_3d) {
             if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
                 wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
-                {
+                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
                     PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera3D(i);
                     mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
                 }
+                mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
                 mnu.Append(ID_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
             }
-        }
-        else {
+        } else {
             if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
                 wxMenu* mnuViewPoint = new wxMenu();
-                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
-                {
+                for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
                     PreviewCamera* camera = xlights->viewpoint_mgr.GetCamera2D(i);
                     mnuViewPoint->Append(camera->GetMenuId(), camera->GetName());
                 }
+                mnuViewPoint->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
                 mnu.Append(ID_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
             }
         }
