@@ -16,7 +16,7 @@ class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
 
-        int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
+        int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
         virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
 
