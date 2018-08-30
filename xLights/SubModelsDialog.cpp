@@ -27,7 +27,9 @@
 #include "xLightsApp.h"
 #include "models/ModelManager.h"
 #include "xLightsMain.h"
-#include "LayoutPanel.h"
+#include "ModelPreview.h"
+#include "DimmingCurve.h"
+
 #include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
@@ -67,10 +69,6 @@ BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
     //*)
     EVT_COMMAND(wxID_ANY, EVT_SMDROP, SubModelsDialog::OnDrop)
 END_EVENT_TABLE()
-
-#include "ModelPreview.h"
-#include "DimmingCurve.h"
-
 
 SubModelsDialog::SubModelsDialog(wxWindow* parent)
 {
@@ -1604,6 +1602,7 @@ wxArrayString SubModelsDialog::getModelList(ModelManager* modelManager)
     }
     return choices;
 }
+
 void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
 {
     wxString name = GetSelectedName();

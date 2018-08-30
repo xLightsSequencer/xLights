@@ -846,12 +846,11 @@ void CustomModelDialog::FlipVertical()
     ValidateWindow();
 }
 
-void CustomModelDialog::Insert()
+void CustomModelDialog::Insert(int selRow, int selCol)
 {
     long val;
-    int x = GridCustom->GetGridCursorCol();
-    int y = GridCustom->GetGridCursorRow();
-    GridCustom->GetCellValue(x, y).ToCLong(&val);
+    auto value = GridCustom->GetCellValue(selRow, selCol);
+    value.ToCLong(&val);
     wxNumberEntryDialog dlg(this, wxString::Format("Number of nodes to create a gap for prior to node %ld.", val), "Nodes to create a gap for", "Insert", 1, 1, 50);
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -1226,7 +1225,7 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == CUSTOMMODELDLGMNU_INSERT)
     {
-        Insert();
+        Insert(_selRow, _selCol);
     }
     else if (id == CUSTOMMODELDLGMNU_COMPRESS)
     {
@@ -1280,8 +1279,10 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
 
 void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 {
-    GridCustom->SetGridCursor(event.GetRow(), event.GetCol());
-    auto s = GridCustom->GetCellValue(event.GetRow(), event.GetCol());
+    _selRow = event.GetRow();
+    _selCol = event.GetCol();
+    GridCustom->SetGridCursor(_selRow, _selCol);
+    auto s = GridCustom->GetCellValue(_selRow, _selCol);
     bool selectedCellWithValue = !s.IsEmpty() && s.IsNumber();
 
     wxMenu mnu;

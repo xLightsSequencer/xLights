@@ -273,7 +273,6 @@
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
     <ClCompile Include="SubModelGenerateDialog.cpp" />
-    <ClCompile Include="SubModelDrawGrid.cpp" />
     <ClCompile Include="SubModelsDialog.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="support\EzGrid.cpp" />
@@ -360,6 +359,7 @@
     <ClCompile Include="ViewObjectPanel.cpp" />
     <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
+    <ClCompile Include="SubModelDrawGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -624,7 +624,6 @@
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SubBufferPanel.h" />
     <ClInclude Include="SubModelGenerateDialog.h" />
-    <ClInclude Include="SubModelDrawGrid.h" />
     <ClInclude Include="SubModelsDialog.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
     <ClInclude Include="support\EzGrid.h" />
@@ -720,6 +719,7 @@
     <ClInclude Include="ViewObjectPanel.h" />
     <ClInclude Include="models\ImageObject.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
+    <ClInclude Include="SubModelDrawGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

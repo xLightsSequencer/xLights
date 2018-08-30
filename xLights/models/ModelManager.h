@@ -34,6 +34,7 @@ class ModelManager : public ObjectManager
         void AddModel(Model *m);
         void Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
+        void ResetModelGroups() const;
 
         void LoadModels(wxXmlNode *modelNode, int previewW, int previewH);
         bool LoadGroups(wxXmlNode *groupNode, int previewW, int previewH);

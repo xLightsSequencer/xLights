@@ -91,7 +91,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             }
             else if (n->GetName() == "Options")
             {
-                _scheduleOptions = new ScheduleOptions(_outputManager, n);
+                _scheduleOptions = new ScheduleOptions(_outputManager, n, GetCommandManager());
                 Schedule::SetCity(_scheduleOptions->GetCity());
             }
             else if (n->GetName() == "OutputProcesses")
@@ -466,11 +466,9 @@ std::list<PlayListItem*> ScheduleManager::GetPlayListIps() const
 
 bool ScheduleManager::GetWebRequestToggle()
 {
-    static bool last = false;
-
-    if (last && _webRequestToggle) _webRequestToggle = false;
-
-    return _webRequestToggle;
+    bool rc = _webRequestToggle;
+    _webRequestToggle = false;
+    return rc;
 }
 
 bool ScheduleManager::IsDirty()

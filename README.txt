@@ -11,11 +11,20 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.31 August 30, 2018
    -- bug (gil)    Fix timings not snapping when not zoomed in. Fixes #1221.
    -- enh (scott)  Added Submodel Draw Dialog
    -- enh (keith)  Rewrite falcon and espixel stick upload to reduce edge cases which cannot be supported for upload
+   -- bug (keith)  Fix window frame model wont accept anti-clockwise setting
+   -- bug (keith)  Insert gap for node in custom model renumbering all nodes
+   -- bug (keith)  When start channel on model changed models in groups can become invalid causing crashes on layout panel
+   -- bug (keith)  xCapture does not handle properly when it cant listen for e131/artnet
+   -- bug (keith)  Fix xSchedule lags every second on Linux ... these changes will also improve all platforms when the on second processing runs
+   -- enh (keith)  Replace model prompts to copy replaced model start channel if it doesnt look like you have set the start channel on the replacement model
+   -- bug (keith)  Fix zoom link
    -- bug (keith)  Fix non ip outputs not listed in the universe dropdown on start channel dialog
    -- bug (dkulp)  Fix esc to stop render on osx
+   -- bug (dkulp)  Fix occasional crash when changing show directories
 2018.30 August 22, 2018
    -- bug (kevin)  Fix house preview video export on Windows with high DPI settings
    -- enh (keith)  Change the colour panel update button to purely apply the colour palette. All other colour settings are ignored.

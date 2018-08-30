@@ -4178,6 +4178,21 @@ void LayoutPanel::ReplaceModel()
 
         if (replaceModel == nullptr) return;
 
+        // Prompt user to copy the target models start channel ...but only if
+        // they are not already the same and the new model uses a chaining start
+        // channel ... the theory being if you took time to set the start channel
+        // you probably want to keep it and so a prompt will just be annoying
+        if (replaceModel->ModelStartChannel != 
+            modelToReplaceItWith->ModelStartChannel &&
+            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">"))
+        {
+            auto msg = wxString::Format("Should I copy the replaced models start channel %s to the replacement model whose start channel is currently %s?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
+            if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
+            {
+                modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
+            }
+        }
+
         xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
         replaceModel->Rename("Iamgoingtodeletethismodel");
         xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());

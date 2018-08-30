@@ -307,7 +307,8 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
                             ListView_Buttons->GetItemText(i, 1).ToStdString(),
                             ListView_Buttons->GetItemText(i, 2).ToStdString(),
                             hotkey,
-                            ListView_Buttons->GetItemText(i, 4).ToStdString());
+                            ListView_Buttons->GetItemText(i, 4).ToStdString(),
+                            _commandManager);
     }
 
     EndDialog(wxID_OK);

@@ -3,19 +3,30 @@
 
 int __buttonid = 0;
 
-UserButton::UserButton(wxXmlNode* node)
+UserButton::UserButton(wxXmlNode* node, CommandManager* commandManager)
 {
+    _commandObj = nullptr;
     _color = "default";
     _id = __buttonid++;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
-    Load(node);
+    Load(node, commandManager);
 }
 
-void UserButton::Load(wxXmlNode* node)
+void UserButton::SetCommand(const std::string& command, CommandManager* commandManager)
 {
-    _label = node->GetAttribute("Label", "").ToStdString();
-    _command = node->GetAttribute("Command", "").ToStdString();
+    if (_command != command)
+    {
+        _command = command; 
+        _changeCount++;
+    } 
+    _commandObj = commandManager->GetCommand(_command);
+}
+
+void UserButton::Load(wxXmlNode* node, CommandManager* commandManager)
+{
+    SetLabel(node->GetAttribute("Label", "").ToStdString());
+    SetCommand(node->GetAttribute("Command", "").ToStdString(), commandManager);
     _color = node->GetAttribute("Color", "default").ToStdString();
     _parameters = node->GetAttribute("Parameters", "").ToStdString();
     auto hk = node->GetAttribute("Hotkey", "~");
@@ -31,10 +42,11 @@ void UserButton::Load(wxXmlNode* node)
 
 UserButton::UserButton()
 {
+    _commandObj = nullptr;
     _id = __buttonid++;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
-    _label = "";
+    SetLabel("");
     _command = "";
     _hotkey = '~';
     _parameters = "";

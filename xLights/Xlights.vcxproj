@@ -462,9 +462,9 @@
     <ClCompile Include="StartChannelDialog.cpp" />
     <ClCompile Include="StrandNodeNamesDialog.cpp" />
     <ClCompile Include="SubBufferPanel.cpp" />
+    <ClCompile Include="SubModelDrawGrid.cpp" />
     <ClCompile Include="SubModelGenerateDialog.cpp" />
     <ClCompile Include="SubModelsDialog.cpp" />
-    <ClCompile Include="SubModelDrawGrid.cpp" />
     <ClCompile Include="SuperStarImportDialog.cpp" />
     <ClCompile Include="support\EzGrid.cpp" />
     <ClCompile Include="support\FastComboEditor.cpp" />
@@ -816,9 +816,9 @@
     <ClInclude Include="StartChannelDialog.h" />
     <ClInclude Include="StrandNodeNamesDialog.h" />
     <ClInclude Include="SubBufferPanel.h" />
+    <ClInclude Include="SubModelDrawGrid.h" />
     <ClInclude Include="SubModelGenerateDialog.h" />
     <ClInclude Include="SubModelsDialog.h" />
-    <ClCompile Include="SubModelDrawGrid.h" />
     <ClInclude Include="SuperStarImportDialog.h" />
     <ClInclude Include="support\EzGrid.h" />
     <ClInclude Include="support\FastComboEditor.h" />

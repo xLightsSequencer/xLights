@@ -35,6 +35,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumStrands() const override { return 0;}
 
         bool Reset(bool zeroBased = false);
+        void ResetModels();
     protected:
         static std::vector<std::string> GROUP_BUFFER_STYLES;
 

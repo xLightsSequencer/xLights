@@ -8,7 +8,7 @@
 
 Command::Command(const std::string& name, int parms, const PARMTYPE* parmtypes, bool reqSelPL, bool reqSelSch, bool reqPlayPL, bool reqPlaySch, bool worksinslavemode, bool worksInQueuedMode, bool userSelectable, bool uiOnly)
 {
-    _command = name;
+    SetCommand(name);
     _parms = parms;
     for (int i = 0; i < parms; i++)
     {
@@ -219,9 +219,10 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
 
 Command* CommandManager::GetCommand(std::string name) const
 {
+    auto n = wxString(name).Lower();
     for (auto it = _commands.begin(); it != _commands.end(); ++it)
     {
-        if (wxString((*it)->_command).Lower() == wxString(name).Lower())
+        if ((*it)->_commandLower == n)
         {
             return *it;
         }
