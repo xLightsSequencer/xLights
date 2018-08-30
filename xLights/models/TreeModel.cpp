@@ -70,11 +70,11 @@ void TreeModel::SetTreeCoord(long degrees) {
 
         double radians=toRadians(degrees);
         double radius=RenderWi/2.0;
-        double topradius=radius/std::abs(botTopRatio);
-        if( botTopRatio == 0.0f ) {
-            topradius = 1.0f;
+        double topradius=radius;
+        if( botTopRatio != 0.0f ) {
+            topradius = radius/std::abs(botTopRatio);
         }
-        else if(botTopRatio < 0) {
+        if(botTopRatio < 0.0f) {
             std::swap(topradius, radius);
         }
 
