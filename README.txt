@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.31 3D Beta August 30, 2018
+   -- enh (gil)    Add images and grids to layout
+   -- enh (gil)    Add easier way to invert trees
+   -- bug (gil)    Disable some 3d items when in 2d
 2018.31 August 30, 2018
    -- bug (dkulp)  Fix performance regression for "Sparkles reflect music"
    -- bug (gil)    Fix timings not snapping when not zoomed in. Fixes #1221.
