@@ -188,6 +188,7 @@ void SubModelDrawGrid::OnButton_SelectClick(wxCommandEvent& event)
             }
         }
     }
+    GridNodes->ClearSelection();
     GridNodes->Refresh();
     ValidateWindow();
 }
@@ -241,6 +242,7 @@ void SubModelDrawGrid::OnButtonDeselectClick(wxCommandEvent& event)
             }
         }
     }
+    GridNodes->ClearSelection();
     GridNodes->Refresh();
     ValidateWindow();
 }
