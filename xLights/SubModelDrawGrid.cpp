@@ -88,6 +88,7 @@ SubModelDrawGrid::SubModelDrawGrid(Model *m, std::vector<wxString> rows, wxWindo
     GridNodes->EnableDragGridSize(false);
     GridNodes->DisableDragColSize();
     GridNodes->DisableDragRowSize();
+    GridNodes->SetCellHighlightPenWidth(0);
 
     LoadGrid(rows);
     ValidateWindow();
