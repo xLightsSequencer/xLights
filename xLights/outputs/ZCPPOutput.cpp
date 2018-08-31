@@ -243,7 +243,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
             sendlocaladdr.Hostname(IPOutput::__localIP);
         }
 
-        wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT);
+        wxDatagramSocket* datagram = new wxDatagramSocket(sendlocaladdr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
 
         if (datagram == nullptr)
         {
@@ -261,6 +261,10 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
             delete datagram;
             datagram = nullptr;
         }
+        else
+        {
+            logger_base.info("ZCPP discovery datagram opened successfully.");
+        }
 
         // multicast - universe number must be in lower 2 bytes
         wxIPV4address remoteaddr;
@@ -271,67 +275,83 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
         // bail if we dont have a datagram to use
         if (datagram != nullptr)
         {
+            logger_base.info("ZCPP sending discovery packet.");
             datagram->SendTo(remoteaddr, packet, sizeof(packet));
-            datagram->Close();
-            delete datagram;
-
-            // give the controllers 2 seconds to respond
-            wxMilliSleep(2000);
-
-            unsigned char buffer[2048];
-
-            int lastread = 1;
-
-            while (lastread > 0)
+            if (datagram->Error() != wxSOCKET_NOERROR)
             {
-                //wxStopWatch sw;
-                //logger_base.debug("Trying to read ZCPP discovery packet.");
-                memset(buffer, 0x00, sizeof(buffer));
-                listenSocket->Read(&buffer[0], sizeof(buffer));
-                lastread = listenSocket->LastReadCount();
+                logger_base.error("Error sending ZCPP discovery datagram => %d : %s.", datagram->LastError(), (const char *)DecodeIPError(datagram->LastError()).c_str());
+            }
+            else
+            {
+                logger_base.info("ZCPP sent discovery packet. Sleeping for 2 seconds.");
 
-                if (lastread > 0)
+                // give the controllers 2 seconds to respond
+                wxMilliSleep(2000);
+
+                unsigned char buffer[2048];
+
+                int lastread = 1;
+
+                while (lastread > 0)
                 {
-                    //logger_base.debug(" Read done. %ldms", sw.Time());
-                    if (buffer[0] == 'Z' && buffer[1] == 'C' && buffer[2] == 'P' && buffer[3] == 'P' && buffer[4] == 0x01)
-                    {
-                        long channels = ((long)buffer[66] << 24) + ((long)buffer[67] << 16) + ((long)buffer[68] << 8) + (long)buffer[69];
-                        ZCPPOutput* output = new ZCPPOutput();
-                        output->SetId(1);
-                        output->SetDescription(std::string((char*)&buffer[31]));
-                        output->SetChannels(channels);
-                        auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[90], (int)buffer[91], (int)buffer[92], (int)buffer[93]);
-                        output->SetIP(ip.ToStdString());
+                    wxStopWatch sw;
+                    logger_base.debug("Trying to read ZCPP discovery packet.");
+                    memset(buffer, 0x00, sizeof(buffer));
+                    listenSocket->Read(&buffer[0], sizeof(buffer));
+                    lastread = listenSocket->LastReadCount();
 
-                        // now search for it in outputManager
-                        auto outputs = outputManager->GetOutputs();
-                        for (auto it  = outputs.begin(); it != outputs.end(); ++it)
+                    if (lastread > 0)
+                    {
+                        logger_base.debug(" Read done. %ldms", sw.Time());
+                        if (buffer[0] == 'Z' && buffer[1] == 'C' && buffer[2] == 'P' && buffer[3] == 'P' && buffer[4] == 0x01)
                         {
-                            if ((*it)->GetIP() == output->GetIP())
+                            logger_base.debug(" Valid response.");
+                            long channels = ((long)buffer[66] << 24) + ((long)buffer[67] << 16) + ((long)buffer[68] << 8) + (long)buffer[69];
+                            ZCPPOutput* output = new ZCPPOutput();
+                            output->SetId(1);
+                            output->SetDescription(std::string((char*)&buffer[31]));
+                            output->SetChannels(channels);
+                            auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[90], (int)buffer[91], (int)buffer[92], (int)buffer[93]);
+                            output->SetIP(ip.ToStdString());
+
+                            // now search for it in outputManager
+                            auto outputs = outputManager->GetOutputs();
+                            for (auto it = outputs.begin(); it != outputs.end(); ++it)
                             {
-                                // we already know about this controller
-                                delete output;
-                                output = nullptr;
-                                break;
+                                if ((*it)->GetIP() == output->GetIP())
+                                {
+                                    // we already know about this controller
+                                    logger_base.info("ZCPP Discovery we already know about this controller %s.", (const char*)output->GetIP().c_str());
+                                    delete output;
+                                    output = nullptr;
+                                    break;
+                                }
+                            }
+
+                            if (output != nullptr)
+                            {
+                                logger_base.info("ZCPP Discovery adding controller %s.", (const char*)output->GetIP().c_str());
+                                res.push_back(output);
                             }
                         }
-
-                        if (output != nullptr)
+                        else
                         {
-                            res.push_back(output);
+                            // non discovery response packet
+                            logger_base.info("ZCPP Discovery strange packet received.");
                         }
                     }
-                    else
-                    {
-                        // non discovery response packet
-                    }
                 }
+                logger_base.info("ZCPP Discovery Done looking for response.");
             }
+            datagram->Close();
+            delete datagram;
         }
 
         listenSocket->Close();
         delete listenSocket;
     }
+
+    logger_base.info("ZCPP Discovery Finished.");
 
     return res;
 }
