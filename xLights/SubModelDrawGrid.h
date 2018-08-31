@@ -50,6 +50,7 @@ class SubModelDrawGrid: public wxDialog
 		void OnButtonDeselectClick(wxCommandEvent& event);
 		void OnButtonSubDrawOKClick(wxCommandEvent& event);
 		void OnButtonSubDrawCancelClick(wxCommandEvent& event);
+		void OnGridNodesCellLeftDClick(wxGridEvent& event);
 		//*)
 
         void LoadGrid(const std::vector<wxString> rows);

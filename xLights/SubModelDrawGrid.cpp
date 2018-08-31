@@ -80,6 +80,7 @@ SubModelDrawGrid::SubModelDrawGrid(Model *m, std::vector<wxString> rows, wxWindo
 	Connect(ID_BUTTON_DESELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelDrawGrid::OnButtonDeselectClick);
 	Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelDrawGrid::OnButtonSelectAllClick);
 	Connect(ID_BUTTON_SELECT_NONE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelDrawGrid::OnButtonSelectNoneClick);
+	Connect(ID_GRID_NODES,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&SubModelDrawGrid::OnGridNodesCellLeftDClick);
 	Connect(ID_BUTTON_SUB_DRAW_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelDrawGrid::OnButtonSubDrawOKClick);
 	Connect(ID_BUTTON_SUB_DRAW_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelDrawGrid::OnButtonSubDrawCancelClick);
 	//*)
@@ -252,6 +253,26 @@ void SubModelDrawGrid::OnButtonSubDrawOKClick(wxCommandEvent& event)
 void SubModelDrawGrid::OnButtonSubDrawCancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
+}
+
+void SubModelDrawGrid::OnGridNodesCellLeftDClick(wxGridEvent& event)
+{
+    wxString value = GridNodes->GetCellValue(event.GetRow(), event.GetCol());
+    if (!value.IsNull() && !value.IsEmpty())
+    {
+        if (GridNodes->GetCellTextColour(event.GetRow(), event.GetCol()) == selectColor)
+        {
+            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), unselectColor);
+            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), unselectBackColor);
+        }
+        else
+        {
+            GridNodes->SetCellTextColour(event.GetRow(), event.GetCol(), selectColor);
+            GridNodes->SetCellBackgroundColour(event.GetRow(), event.GetCol(), selectBackColor);
+        }
+        GridNodes->Refresh();
+        ValidateWindow();
+    }
 }
 
 std::vector<wxString> SubModelDrawGrid::GetRowData()

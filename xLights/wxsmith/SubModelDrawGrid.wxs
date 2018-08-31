@@ -64,6 +64,7 @@
 							<labelrowheight>20</labelrowheight>
 							<labelcolwidth>30</labelcolwidth>
 							<defaultcolsize>30</defaultcolsize>
+							<handler function="OnGridNodesCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
