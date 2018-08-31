@@ -14,8 +14,6 @@
 
 UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, std::list<int>* selected, std::string& check)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     std::list<Model*> noConnectionModels;
 
     _ipAddress = ip;

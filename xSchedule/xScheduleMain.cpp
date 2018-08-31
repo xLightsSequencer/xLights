@@ -1254,49 +1254,28 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static bool reentered = false;
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static int last = -1;
 
     if (__schedule == nullptr) return;
 
-    wxDateTime frameStart = wxDateTime::UNow();
+    // This code must be commented out before release!!!
+    //static long long lastms;
+    //long long now = wxGetLocalTimeMillis().GetValue();
+    //logger_base.debug("Start frame %d", (int)(now - lastms));
+    //lastms = now;
 
-    reentered = true;
+    wxDateTime frameStart = wxDateTime::UNow();
 
     int rate = __schedule->Frame(_timerOutputFrame);
 
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
     {
+        // This code must be commented out before release!!!
+        //logger_base.debug("    Check schedule");
         last = wxDateTime::Now().GetSecond();
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event2);
-    }
-
-    static bool webstate = false;
-    if (__schedule->GetWebRequestToggle())
-    {
-        if (!webstate)
-        {
-            if (!_webIconDisplayed)
-            {
-                StaticBitmap_WebIcon->SetBitmap(_webicon);
-                _webIconDisplayed = true;
-            }
-            webstate = true;
-        }
-    }
-    else
-    {
-        if (webstate)
-        {
-            if (_webIconDisplayed)
-            {
-                StaticBitmap_WebIcon->SetBitmap(_nowebicon);
-                _webIconDisplayed = false;
-            }
-            webstate = false;
-        }
     }
 
     CorrectTimer(rate);
@@ -1316,8 +1295,6 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     }
 
     //logger_base.debug("Frame time %ld", ms);
-
-    reentered = false;
 }
 
 void xScheduleFrame::UpdateSchedule()
@@ -1502,12 +1479,12 @@ void xScheduleFrame::CreateButtons()
     // create some default buttons
     if (bs.size() == 0)
     {
-        __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~', "green");
-        __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~', "red");
-        __schedule->GetOptions()->AddButton("Reset All Schedules", "Restart all schedules", "", '~', "default");
-        __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~', "default");
-        __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~', "red");
-        __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~', "default");
+        __schedule->GetOptions()->AddButton("Play Selected", "Play selected playlist", "", '~', "green", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Stop All", "Stop all now", "", '~', "red", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Reset All Schedules", "Restart all schedules", "", '~', "default", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Next Step", "Next step in current playlist", "", '~', "default", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("End Gracefully", "Jump to play once at end at end of current step and then stop", "", '~', "red", __schedule->GetCommandManager());
+        __schedule->GetOptions()->AddButton("Add 10 Mins To Schedule", "Add to the current schedule n minutes", "10", '~', "default", __schedule->GetCommandManager());
 
         bs = __schedule->GetOptions()->GetButtons();
     }
@@ -1745,7 +1722,10 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (p->GetId() != lastid || p->GetChangeCount() != lastcc || (int)p->IsRunning() != lastrunning || p->GetSteps().size() != laststeps)
+        if (p->GetId() != lastid || 
+            p->GetChangeCount() != lastcc || 
+            (int)p->IsRunning() != lastrunning || 
+            p->GetSteps().size() != laststeps)
         {
             lastcc = p->GetChangeCount();
             lastid = p->GetId();
@@ -2016,6 +1996,22 @@ void xScheduleFrame::UpdateStatus()
     }
 
     // update each button based on current status
+
+    PlayList* playlist = nullptr;
+    Schedule* schedule = nullptr;
+
+    wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
+
+    if (IsPlayList(treeitem))
+    {
+        playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+    }
+    else if (IsSchedule(treeitem))
+    {
+        schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
+        playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
+    }
+
     auto buttons = Panel1->GetChildren();
     for (auto it = buttons.begin(); it != buttons.end(); ++it)
     {
@@ -2025,23 +2021,7 @@ void xScheduleFrame::UpdateStatus()
         {
             std::string command = b->GetCommand();
             std::string parameters = b->GetParameters();
-
-            PlayList* playlist = nullptr;
-            Schedule* schedule = nullptr;
-
-            wxTreeItemId treeitem = TreeCtrl_PlayListsSchedules->GetSelection();
-
-            if (IsPlayList(treeitem))
-            {
-                playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-            }
-            else if (IsSchedule(treeitem))
-            {
-                schedule = (Schedule*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(treeitem))->GetData();
-                playlist = (PlayList*)((MyTreeItemData*)TreeCtrl_PlayListsSchedules->GetItemData(TreeCtrl_PlayListsSchedules->GetItemParent(treeitem)))->GetData();
-            }
-
-            Command* c = __schedule->GetCommand(command);
+            Command* c = b->GetCommandObj();
             std::string msg;
             if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
             {
@@ -2670,7 +2650,8 @@ void xScheduleFrame::UpdateUI()
 
     ValidateWindow();
 
-    Refresh();
+// this may be the performance issue cause if it triggers an update event which is then slow !!!!!!
+//    Refresh();
 }
 
 void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)

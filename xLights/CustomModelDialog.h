@@ -130,6 +130,8 @@ class CustomModelDialog: public wxDialog
         bool autoincrement;
         int next_channel;
         wxString name;
+        int _selRow;
+        int _selCol;
 
 	public:
 
@@ -166,7 +168,7 @@ class CustomModelDialog: public wxDialog
         bool CheckScale(std::list<wxPoint>& points, float scale);
         void FlipHorizontal();
         void FlipVertical();
-        void Insert();
+        void Insert(int selRow, int selCol);
         void Shift();
         void Compress();
         bool AdjustNodeBy(int node, int adjust);

@@ -527,8 +527,6 @@ void KeyBindingMap::Load(wxFileName &fileName) {
 }
 
 void KeyBindingMap::Save(wxFileName &fileName) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxXmlDocument doc;
     wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "keybindings");
     doc.SetRoot(root);

@@ -321,7 +321,6 @@ namespace
 
       float ringRadius = dropletExpandSpeed * dropFraction * dropletStrength - dropletStrengthBias;
       float distanceToDroplet = Vec2D( uv - dropletPosition ).Len();
-      float distanceToEdge = std::max(0.f, ringRadius - distanceToDroplet) / ringRadius;
 
       float dropletHeight = distanceToDroplet > ringRadius ? 0.0 : distanceToDroplet;
       dropletHeight = RenderBuffer::cos(PI + (dropletHeight - ringRadius) * dropletRipple * dropletStrength) * 0.5 + 0.5;

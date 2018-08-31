@@ -231,6 +231,16 @@ void ModelManager::NewRecalcStartChannels() const
     //logger_base.debug("New RecalcStartChannels takes %ld.", end);
 }
 
+void ModelManager::ResetModelGroups() const
+{
+    // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
+    for (auto it = models.begin(); it != models.end(); ++it) {
+        if (it->second->GetDisplayAs() == "ModelGroup") {
+            ((ModelGroup*)(it->second))->ResetModels();
+        }
+    }
+}
+
 void ModelManager::OldRecalcStartChannels() const {
     //wxStopWatch sw;
     //sw.Start();
@@ -264,10 +274,16 @@ void ModelManager::OldRecalcStartChannels() const {
             DisplayStartChannelCalcWarning();
 
             //nothing improved
+
+            ResetModelGroups();
+
             return;
         }
         countValid = newCountValid;
     }
+
+    ResetModelGroups();
+
     //long end = sw.Time();
     //logger_base.debug("Old RecalcStartChannels takes %ld.", end);
 }

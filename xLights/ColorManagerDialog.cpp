@@ -6,18 +6,23 @@
 #include <wx/colour.h>
 #include <wx/colourdata.h>
 #include <wx/colordlg.h>
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
+#include <wx/msgdlg.h>
 
 //(*InternalHeaders(ColorManagerDialog)
 #include <wx/bitmap.h>
 #include <wx/font.h>
-#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
 //(*IdInit(ColorManagerDialog)
 const long ColorManagerDialog::ID_STATICTEXT1 = wxNewId();
 const long ColorManagerDialog::ID_STATICBITMAP1 = wxNewId();
+const long ColorManagerDialog::ID_BUTTON_IMPORT = wxNewId();
+const long ColorManagerDialog::ID_BUTTON_EXPORT = wxNewId();
 const long ColorManagerDialog::ID_BUTTON_RESET = wxNewId();
 const long ColorManagerDialog::ID_BUTTON_Cancel = wxNewId();
 const long ColorManagerDialog::ID_BUTTON_Close = wxNewId();
@@ -34,13 +39,13 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
     color_fan = wxBITMAP_PNG_FROM_DATA(colorfan);
 
 	//(*Initialize(ColorManagerDialog)
-	wxStaticBoxSizer* StaticBoxSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxStaticBoxSizer* StaticBoxSizer3;
-	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxStaticBoxSizer* StaticBoxSizer1;
+	wxStaticBoxSizer* StaticBoxSizer2;
+	wxStaticBoxSizer* StaticBoxSizer3;
 
 	Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -72,6 +77,10 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 	FlexGridSizer3->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
+	ButtonImport = new wxButton(this, ID_BUTTON_IMPORT, _("Import"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
+	FlexGridSizer7->Add(ButtonImport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonExport = new wxButton(this, ID_BUTTON_EXPORT, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_EXPORT"));
+	FlexGridSizer7->Add(ButtonExport, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Reset = new wxButton(this, ID_BUTTON_RESET, _("Reset Defaults"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_RESET"));
 	FlexGridSizer7->Add(Button_Reset, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON_Cancel, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Cancel"));
@@ -83,6 +92,8 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::OnButtonImportClick);
+	Connect(ID_BUTTON_EXPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::OnButtonExportClick);
 	Connect(ID_BUTTON_RESET,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::OnButton_Reset_DefaultsClick);
 	Connect(ID_BUTTON_Cancel,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ColorManagerDialog::OnButton_OkClick);
@@ -227,3 +238,36 @@ void ColorManagerDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
+
+void ColorManagerDialog::OnButtonImportClick(wxCommandEvent& event)
+{
+    wxFileDialog dlg(this, "Import Theme", wxEmptyString, "Colors", "Theme Files (*.xtheme)|*.xtheme|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxXmlDocument themeXml(dlg.GetPath());
+        wxXmlNode* root = themeXml.GetRoot();
+        if (root->GetName() == "theme")
+        {
+            wxXmlNode* colorNode = root->GetChildren();
+            if (colorNode->GetName() == "colors")
+            {
+                color_mgr.Load(colorNode);
+                UpdateButtonColors();
+                RefreshColors();
+                color_mgr.SetDirty();
+            }
+        }
+    }
+}
+
+void ColorManagerDialog::OnButtonExportClick(wxCommandEvent& event)
+{
+    wxFileDialog dlg(this, "Export Theme", wxEmptyString, "Colors", "Theme Files (*.xtheme)|*.xtheme|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        wxXmlDocument themeXml;
+        wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "theme");
+        themeXml.SetRoot(root);
+        color_mgr.Save(&themeXml);
+        themeXml.Save(dlg.GetPath());
+    }
+}

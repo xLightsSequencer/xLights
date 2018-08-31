@@ -1486,7 +1486,7 @@ wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
     if (_list != nullptr) return wxDragMove;
     if (((xLightsImportTreeModel*)_tree->GetModel())->GetChildCount() == 0) return wxDragMove;
 
-    wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
+    //wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
     //y += rect.GetHeight();
 
     static int MINSCROLLDELAY = 10;
@@ -1551,12 +1551,6 @@ wxDragResult MDTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def
 bool MDTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
 {
     wxLogNull logNo; //kludge: Prevent wx logging
-
-    if (_tree != nullptr)
-    {
-        wxRect rect = _tree->GetItemRect(((xLightsImportTreeModel*)_tree->GetModel())->GetNthItem(0));
-        //y -= rect.GetHeight();
-    }
 
     long mousePos = x;
     mousePos = mousePos << 16;

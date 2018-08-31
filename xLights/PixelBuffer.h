@@ -109,7 +109,8 @@ private:
             xpivot = 50;
             ypivot = 0;
             sparkle_count = 0;
-            music_sparkle_count = false;
+            use_music_sparkle_count = false;
+            music_sparkle_count_factor = 1.0;
             brightness = 100;
             hueadjust = 0;
             saturationadjust = 0;
@@ -168,7 +169,8 @@ private:
         ValueCurve XPivotValueCurve;
         ValueCurve YPivotValueCurve;
         int sparkle_count;
-        bool music_sparkle_count;
+        bool use_music_sparkle_count;
+        float music_sparkle_count_factor;
 		int blur;
         int rotation;
         int xrotation;

@@ -348,8 +348,10 @@ void VideoReader::Seek(int timestampMS)
 
 AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 {
+#ifdef VIDEO_EXTRALOGGING
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+#endif
+    
     if (!_valid)
     {
         return nullptr;

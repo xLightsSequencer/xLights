@@ -3,6 +3,7 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <wx/wx.h>
 
 typedef enum { PLAYLIST, STEP, SCHEDULE, INTEGER, STRING, COMMAND, ANY, ITEM} PARMTYPE;
 
@@ -14,6 +15,7 @@ class Command
 {
 	public:
 	std::string _command;
+	wxString _commandLower;
 	int _parms;
 	bool _requiresSelectedPlaylist;
 	bool _requiresSelectedSchedule;
@@ -29,6 +31,7 @@ class Command
     bool IsUserSelectable() const { return _userSelectable; }
     bool IsUIOnly() const { return _uiOnly; }
     std::string GetParametersTip() const;
+    void SetCommand(std::string command) { _command = command; _commandLower = wxString(_command).Lower(); }
 };
 
 class CommandManager

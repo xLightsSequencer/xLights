@@ -2382,7 +2382,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             {
                 logger_base.crit("ShowHideAllSequencerWindows grp->GetMenuItem() is null ... this is going to crash");
             }
-            if (grp->GetMenuItem()->IsChecked()) {
+            if (grp->GetMenuItem() && grp->GetMenuItem()->IsChecked()) {
                 grp->SetPreviewActive(show);
             }
         }
@@ -8498,8 +8498,6 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
 
 bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (mainSequencer == nullptr) return false;
 
     auto k = event.GetKeyCode();
@@ -8661,5 +8659,5 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
-    ::wxLaunchDefaultBrowser("https://zoom.us/s/175801909");
+    ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
 }

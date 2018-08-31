@@ -303,8 +303,6 @@ void SDL::PurgeAllButInputAudio(int ms)
 
 int SDL::GetInputMax(int ms)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     //DumpState("", _inputdev, &_wanted_inputspec, &_wanted_inputspec);
 
     // Drop any audio less recent that the specified number of milliseconds ... this is necessary to make it responsive

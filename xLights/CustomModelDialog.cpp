@@ -846,12 +846,11 @@ void CustomModelDialog::FlipVertical()
     ValidateWindow();
 }
 
-void CustomModelDialog::Insert()
+void CustomModelDialog::Insert(int selRow, int selCol)
 {
     long val;
-    int x = GridCustom->GetGridCursorCol();
-    int y = GridCustom->GetGridCursorRow();
-    GridCustom->GetCellValue(x, y).ToCLong(&val);
+    auto value = GridCustom->GetCellValue(selRow, selCol);
+    value.ToCLong(&val);
     wxNumberEntryDialog dlg(this, wxString::Format("Number of nodes to create a gap for prior to node %ld.", val), "Nodes to create a gap for", "Insert", 1, 1, 50);
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -1226,7 +1225,7 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     }
     else if (id == CUSTOMMODELDLGMNU_INSERT)
     {
-        Insert();
+        Insert(_selRow, _selCol);
     }
     else if (id == CUSTOMMODELDLGMNU_COMPRESS)
     {
@@ -1280,8 +1279,10 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
 
 void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 {
-    GridCustom->SetGridCursor(event.GetRow(), event.GetCol());
-    auto s = GridCustom->GetCellValue(event.GetRow(), event.GetCol());
+    _selRow = event.GetRow();
+    _selCol = event.GetCol();
+    GridCustom->SetGridCursor(_selRow, _selCol);
+    auto s = GridCustom->GetCellValue(_selRow, _selCol);
     bool selectedCellWithValue = !s.IsEmpty() && s.IsNumber();
 
     wxMenu mnu;
@@ -1304,16 +1305,16 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 
     mnu.AppendSeparator();
 
-    wxMenuItem* menu_fliphoriz = mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
-    wxMenuItem* menu_flipvert = mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
-    wxMenuItem* menu_reverse = mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
-    wxMenuItem* menu_shift = mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
+    mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
+    mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
+    mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
+    mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
     wxMenuItem* menu_insert = mnu.Append(CUSTOMMODELDLGMNU_INSERT, "Insert Prior");
-    wxMenuItem* menu_compress = mnu.Append(CUSTOMMODELDLGMNU_COMPRESS, "Compress");
-    wxMenuItem* menu_trim = mnu.Append(CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE, "Trim Unused Space");
-    wxMenuItem* menu_shrink10 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
-    wxMenuItem* menu_shrink55 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
-    wxMenuItem* menu_shrink99 = mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
+    mnu.Append(CUSTOMMODELDLGMNU_COMPRESS, "Compress");
+    mnu.Append(CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE, "Trim Unused Space");
+    mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE10, "Shrink Space - Max 10%");
+    mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE50, "Shrink Space - Max 50%");
+    mnu.Append(CUSTOMMODELDLGMNU_SHRINKSPACE99, "Shrink Space - Max 99%");
 
     if (selectedCellWithValue)
     {
