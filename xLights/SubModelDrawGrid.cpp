@@ -207,6 +207,7 @@ void SubModelDrawGrid::OnButtonSelectAllClick(wxCommandEvent& event)
             }
         }
     }
+    GridNodes->ClearSelection();
     GridNodes->Refresh();
     ValidateWindow();
 }
@@ -221,6 +222,7 @@ void SubModelDrawGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
             GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
         }
     }
+    GridNodes->ClearSelection();
     GridNodes->Refresh();
     ValidateWindow();
 }
