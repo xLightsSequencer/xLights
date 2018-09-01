@@ -56,7 +56,6 @@ void ColorWashEffect::SetDefaultParameters() {
     SetCheckBoxValue(p->VFadeCheckBox, false);
     SetCheckBoxValue(p->ShimmerCheckBox, false);
     SetCheckBoxValue(p->CircularPaletteCheckBox, false);
-    p->BitmapButton_ColorWash_CyclesVC->SetValue("Active=FALSE");
     p->BitmapButton_ColorWash_CyclesVC->SetActive(false);
 }
 
