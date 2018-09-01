@@ -61,47 +61,54 @@ std::string KeyBinding::Description() const
     return res;
 }
 
-// These are the keys that we we consider equivalent
-const std::map<wxKeyCode, wxKeyCode> KeyEquivalents =
+struct KEYCODEMAP
 {
-    { (wxKeyCode)'0', WXK_NUMPAD0 },
-    { (wxKeyCode)'1', WXK_NUMPAD1 },
-    { (wxKeyCode)'2', WXK_NUMPAD2 },
-    { (wxKeyCode)'3', WXK_NUMPAD3 },
-    { (wxKeyCode)'4', WXK_NUMPAD4 },
-    { (wxKeyCode)'5', WXK_NUMPAD5 },
-    { (wxKeyCode)'6', WXK_NUMPAD6 },
-    { (wxKeyCode)'7', WXK_NUMPAD7 },
-    { (wxKeyCode)'8', WXK_NUMPAD8 },
-    { (wxKeyCode)'9', WXK_NUMPAD9 },
-    { (wxKeyCode)'*', WXK_MULTIPLY},
-    { (wxKeyCode)'+', WXK_ADD},
-    { (wxKeyCode)'-', WXK_SUBTRACT},
-    { (wxKeyCode)'.', WXK_DECIMAL},
-    { (wxKeyCode)'/', WXK_DIVIDE},
-    { WXK_TAB, WXK_NUMPAD_TAB },
-    { WXK_SPACE, WXK_NUMPAD_SPACE},
-    { WXK_RETURN, WXK_NUMPAD_ENTER},
-    { WXK_F1, WXK_NUMPAD_F1},
-    { WXK_F2, WXK_NUMPAD_F2},
-    { WXK_F3, WXK_NUMPAD_F3},
-    { WXK_F4, WXK_NUMPAD_F4},
-    { WXK_HOME, WXK_NUMPAD_HOME},
-    { WXK_LEFT, WXK_NUMPAD_LEFT},
-    { WXK_RIGHT, WXK_NUMPAD_RIGHT},
-    { WXK_UP, WXK_NUMPAD_UP},
-    { WXK_DOWN, WXK_NUMPAD_DOWN},
-    { WXK_PAGEUP, WXK_NUMPAD_PAGEUP},
-    { WXK_PAGEDOWN, WXK_NUMPAD_PAGEDOWN},
-    { WXK_END, WXK_NUMPAD_END},
-    { WXK_HOME, WXK_NUMPAD_BEGIN},
-    { WXK_DELETE, WXK_NUMPAD_DELETE},
-    { (wxKeyCode)'=', WXK_NUMPAD_EQUAL },
-    { (wxKeyCode)'*', WXK_NUMPAD_MULTIPLY},
-    { (wxKeyCode)'+', WXK_NUMPAD_ADD},
-    { (wxKeyCode)'-', WXK_NUMPAD_SUBTRACT},
-    { (wxKeyCode)'.', WXK_NUMPAD_DECIMAL},
-    { (wxKeyCode)'/', WXK_NUMPAD_DIVIDE}
+    wxKeyCode _to;
+    wxKeyCode _from;
+    KEYCODEMAP(wxKeyCode to, wxKeyCode from) : _to(to), _from(from) {}
+};
+
+// These are the keys that we we consider equivalent
+const std::list<KEYCODEMAP> KeyEquivalents =
+{
+    { KEYCODEMAP((wxKeyCode)'0', WXK_NUMPAD0) },
+    { KEYCODEMAP((wxKeyCode)'1', WXK_NUMPAD1) },
+    { KEYCODEMAP((wxKeyCode)'2', WXK_NUMPAD2) },
+    { KEYCODEMAP((wxKeyCode)'3', WXK_NUMPAD3) },
+    { KEYCODEMAP((wxKeyCode)'4', WXK_NUMPAD4) },
+    { KEYCODEMAP((wxKeyCode)'5', WXK_NUMPAD5) },
+    { KEYCODEMAP((wxKeyCode)'6', WXK_NUMPAD6) },
+    { KEYCODEMAP((wxKeyCode)'7', WXK_NUMPAD7) },
+    { KEYCODEMAP((wxKeyCode)'8', WXK_NUMPAD8) },
+    { KEYCODEMAP((wxKeyCode)'9', WXK_NUMPAD9) },
+    { KEYCODEMAP((wxKeyCode)'*', WXK_MULTIPLY)},
+    { KEYCODEMAP((wxKeyCode)'+', WXK_ADD)},
+    { KEYCODEMAP((wxKeyCode)'-', WXK_SUBTRACT)},
+    { KEYCODEMAP((wxKeyCode)'.', WXK_DECIMAL)},
+    { KEYCODEMAP((wxKeyCode)'/', WXK_DIVIDE)},
+    { KEYCODEMAP(WXK_TAB, WXK_NUMPAD_TAB)},
+    { KEYCODEMAP(WXK_SPACE, WXK_NUMPAD_SPACE)},
+    { KEYCODEMAP(WXK_RETURN, WXK_NUMPAD_ENTER)},
+    { KEYCODEMAP(WXK_F1, WXK_NUMPAD_F1)},
+    { KEYCODEMAP(WXK_F2, WXK_NUMPAD_F2)},
+    { KEYCODEMAP(WXK_F3, WXK_NUMPAD_F3)},
+    { KEYCODEMAP(WXK_F4, WXK_NUMPAD_F4)},
+    { KEYCODEMAP(WXK_HOME, WXK_NUMPAD_HOME)},
+    { KEYCODEMAP(WXK_LEFT, WXK_NUMPAD_LEFT)},
+    { KEYCODEMAP(WXK_RIGHT, WXK_NUMPAD_RIGHT)},
+    { KEYCODEMAP(WXK_UP, WXK_NUMPAD_UP)},
+    { KEYCODEMAP(WXK_DOWN, WXK_NUMPAD_DOWN)},
+    { KEYCODEMAP(WXK_PAGEUP, WXK_NUMPAD_PAGEUP)},
+    { KEYCODEMAP(WXK_PAGEDOWN, WXK_NUMPAD_PAGEDOWN)},
+    { KEYCODEMAP(WXK_END, WXK_NUMPAD_END)},
+    { KEYCODEMAP(WXK_HOME, WXK_NUMPAD_BEGIN)},
+    { KEYCODEMAP(WXK_DELETE, WXK_NUMPAD_DELETE)},
+    { KEYCODEMAP((wxKeyCode)'=', WXK_NUMPAD_EQUAL)},
+    { KEYCODEMAP((wxKeyCode)'*', WXK_NUMPAD_MULTIPLY)},
+    { KEYCODEMAP((wxKeyCode)'+', WXK_NUMPAD_ADD)},
+    { KEYCODEMAP((wxKeyCode)'-', WXK_NUMPAD_SUBTRACT)},
+    { KEYCODEMAP((wxKeyCode)'.', WXK_NUMPAD_DECIMAL)},
+    { KEYCODEMAP((wxKeyCode)'/', WXK_NUMPAD_DIVIDE)}
 };
 
 bool KeyBinding::IsKey(wxKeyCode key) const
@@ -115,7 +122,7 @@ bool KeyBinding::IsEquivalentKey(wxKeyCode key) const
 {
     for (auto it = KeyEquivalents.begin(); it != KeyEquivalents.end(); ++it)
     {
-        if (it->second == key && _key == it->first)
+        if (it->_from == key && _key == it->_to)
         {
             return true;
         }
