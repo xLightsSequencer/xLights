@@ -108,6 +108,11 @@ bool KeyBinding::IsKey(wxKeyCode key) const
 {
     if (_key == key) return true;
 
+    return false;
+}
+
+bool KeyBinding::IsEquivalentKey(wxKeyCode key) const
+{
     for (auto it = KeyEquivalents.begin(); it != KeyEquivalents.end(); ++it)
     {
         if (it->second == key && _key == it->first)
@@ -614,10 +619,12 @@ KeyBinding* KeyBindingMap::Find(wxKeyEvent& event, KBSCOPE scope)
 
     for (size_t x = 0; x < bindings.size(); x++) {
         if (!bindings[x].IsDisabled() &&
-            bindings[x].IsKey(key) &&
             bindings[x].RequiresAlt() == alt &&
             bindings[x].RequiresControl() == ctrl &&
-            bindings[x].RequiresShift() == shift &&
+            (
+                (bindings[x].RequiresShift() == shift && bindings[x].IsKey(key)) ||
+                (bindings[x].IsEquivalentKey(key))
+            ) &&
             bindings[x].InScope(scope)) {
             // Once we get through a couple of releases and i know i am not getting crashes as a result of these i can comment this out
             logger_base.debug("Keybinding fired: %s %s", (const char *)bindings[x].GetType().c_str(), (const char *)bindings[x].GetEffectName().c_str());

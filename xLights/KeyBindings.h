@@ -174,6 +174,7 @@ public:
     bool IsDisabled() const { return _disabled; }
     std::string Description() const;
     bool IsKey(wxKeyCode key) const;
+    bool IsEquivalentKey(wxKeyCode key) const;
 
 private:
     wxKeyCode _key;
