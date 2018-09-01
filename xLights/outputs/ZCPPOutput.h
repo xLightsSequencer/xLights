@@ -15,7 +15,7 @@
 #define ZCPP_SYNCPACKET_LEN 7
 #define ZCPP_PORT 30005
 #define ZCPP_MAXCHANNELS (16*1024)
-#define ZCPP_MODELDATASIZE (21 + 10 * 100)
+#define ZCPP_MODELDATASIZE (40 + 10 * 100)
 #pragma endregion ZCPP Constants
 
 class ZCPPOutput : public IPOutput

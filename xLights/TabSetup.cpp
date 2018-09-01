@@ -2113,7 +2113,7 @@ void xLightsFrame::PingController(Output* e)
 	}
 }
 
-void xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port)
+void xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port, long baseStart)
 {
     std::string protocol = "";
     if (port != nullptr)
@@ -2136,7 +2136,7 @@ void xLightsFrame::SetZCPPPort(unsigned char* current, UDControllerPort* port)
     long sc = 0;
     if (port != nullptr)
     {
-        sc = port->GetStartChannel();
+        sc = port->GetStartChannel() - baseStart;
         if (sc < 0) sc = 0;
     }
     *current = (sc & 0xFF000000) >> 24;
@@ -2166,6 +2166,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     std::list<int> selected;
     std::string check;
     UDController cud(zcpp->GetIP(), modelManager, outputManager, &selected, check);
+    long baseStart = zcpp->GetStartChannel();
 
     unsigned char buffer[ZCPP_MODELDATASIZE];
 
@@ -2178,18 +2179,17 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     buffer[5] = 0x00;
     buffer[6] = (modelsChangeCount & 0xff00) >> 8;
     buffer[7] = modelsChangeCount & 0xff;
-    buffer[8] = (zcpp->GetOutputNumber() & 0xff00) >> 8;
-    buffer[9] = zcpp->GetOutputNumber() & 0xff;
-    buffer[20] = cud.GetMaxPixelPort() + cud.GetMaxSerialPort();
+    strncpy((char*)&buffer[8], zcpp->GetDescription().c_str(), 30);
+    buffer[38] = cud.GetMaxPixelPort() + cud.GetMaxSerialPort();
 
-    unsigned char* current = &buffer[21];
+    unsigned char* current = &buffer[39];
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)
     {
         *current = i + 1;
         current++;
         auto port = cud.GetControllerPixelPort(i + 1);
 
-        SetZCPPPort(current, port);
+        SetZCPPPort(current, port, baseStart);
 
         current += 9;
     }
@@ -2200,7 +2200,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
         current++;
         auto port = cud.GetControllerSerialPort(i + 1);
 
-        SetZCPPPort(current, port);
+        SetZCPPPort(current, port, baseStart);
 
         current += 9;
     }

@@ -323,6 +323,8 @@ bool ZCPPOutput::Open()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_enabled) return true;
 
+    _lastMinute = -1;
+
     _ok = IPOutput::Open();
 
     memset(_packet, 0x00, sizeof(_packet));
@@ -412,7 +414,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
         while (i < _channels)
         {
             _packet[6] = _sequenceNum;
-            long startAddress = GetStartChannel() + i;
+            long startAddress = i;
             _packet[7] = (wxByte)((startAddress >> 24) & 0xFF);
             _packet[8] = (wxByte)((startAddress >> 16) & 0xFF);
             _packet[9] = (wxByte)((startAddress >> 8) & 0xFF);

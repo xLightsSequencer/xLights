@@ -1116,7 +1116,7 @@ public:
     void UploadFPPStringOuputs(const std::string &controllers, int maxport, int maxdmx);
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, int modelsChangeCount, std::string showDir);
-    void SetZCPPPort(unsigned char* current, UDControllerPort* port);
+    void SetZCPPPort(unsigned char* current, UDControllerPort* port, long baseStart);
 
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
