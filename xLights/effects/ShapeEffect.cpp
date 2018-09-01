@@ -117,6 +117,7 @@ void ShapeEffect::SetDefaultParameters() {
     sp->BitmapButton_Shape_LifetimeVC->SetActive(false);
     sp->BitmapButton_Shape_GrowthVC->SetActive(false);
     sp->BitmapButton_Shape_CountVC->SetActive(false);
+    sp->BitmapButton_Shape_StartSizeVC->SetActive(false);
 
     SetChoiceValue(sp->Choice_Shape_ObjectToDraw, "Circle");
 

@@ -12,7 +12,6 @@
 #include "../../include/shockwave-48.xpm"
 #include "../../include/shockwave-64.xpm"
 
-
 ShockwaveEffect::ShockwaveEffect(int id) : RenderableEffect(id, "Shockwave", shockwave_16, shockwave_24, shockwave_32, shockwave_48, shockwave_64)
 {
     //ctor
@@ -38,6 +37,13 @@ void ShockwaveEffect::SetDefaultParameters() {
     if (sp == nullptr) {
         return;
     }
+
+    sp->BitmapButton_Shockwave_CenterX->SetActive(false);
+    sp->BitmapButton_Shockwave_CenterY->SetActive(false);
+    sp->BitmapButton_Shockwave_End_Radius->SetActive(false);
+    sp->BitmapButton_Shockwave_Start_Radius->SetActive(false);
+    sp->BitmapButton_Shockwave_Start_Width->SetActive(false);
+    sp->BitmapButton_Shockwave_End_Width->SetActive(false);
 
     SetSliderValue(sp->Slider_Shockwave_Accel, 0);
     SetSliderValue(sp->Slider_Shockwave_CenterX, 50);

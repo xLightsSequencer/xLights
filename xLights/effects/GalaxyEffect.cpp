@@ -68,6 +68,17 @@ void GalaxyEffect::SetDefaultParameters() {
         return;
     }
 
+    gp->ValueCurve_Galaxy_Accel->SetActive(false);
+    gp->ValueCurve_Galaxy_CenterX->SetActive(false);
+    gp->ValueCurve_Galaxy_CenterY->SetActive(false);
+    gp->ValueCurve_Galaxy_Duration->SetActive(false);
+    gp->ValueCurve_Galaxy_End_Radius->SetActive(false);
+    gp->ValueCurve_Galaxy_End_Width->SetActive(false);
+    gp->ValueCurve_Galaxy_Revolutions->SetActive(false);
+    gp->ValueCurve_Galaxy_Start_Angle->SetActive(false);
+    gp->ValueCurve_Galaxy_Start_Radius->SetActive(false);
+    gp->ValueCurve_Galaxy_Start_Width->SetActive(false);
+
     SetSliderValue(gp->Slider_Galaxy_Accel, 0);
     SetSliderValue(gp->Slider_Galaxy_CenterX, 50);
     SetSliderValue(gp->Slider_Galaxy_CenterY, 50);

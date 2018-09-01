@@ -1,10 +1,8 @@
 #include "SingleStrandEffect.h"
 #include "SingleStrandPanel.h"
-
 #include "../sequencer/Effect.h"
 #include "../RenderBuffer.h"
 #include "../UtilClasses.h"
-
 
 #include "../../include/singleStrand-16.xpm"
 #include "../../include/singleStrand-64.xpm"
@@ -24,7 +22,6 @@ SingleStrandEffect::~SingleStrandEffect()
 wxPanel *SingleStrandEffect::CreatePanel(wxWindow *parent) {
     return new SingleStrandPanel(parent);
 }
-
 
 int mapX(int x, int max, int direction, int &second) {
     second = -1;
@@ -68,6 +65,10 @@ void SingleStrandEffect::SetDefaultParameters()
     if (sp == nullptr) {
         return;
     }
+
+    sp->BitmapButton_Color_Mix1VC->SetActive(false);
+    sp->BitmapButton_Number_ChasesVC->SetActive(false);
+    sp->BitmapButton_Chase_Rotations->SetActive(false);
 
     SetChoiceValue(sp->Choice_SingleStrand_Colors, "Palette");
     SetChoiceValue(sp->Choice_Skips_Direction, "Left");

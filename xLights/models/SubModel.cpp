@@ -1,11 +1,14 @@
+#include "SubModel.h"
+
 #include <wx/xml/xml.h>
 #include <wx/tokenzr.h>
 
-
-#include "SubModel.h"
-
+#include <log4cpp/Category.hh>
 
 SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(p) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     ModelXml = n;
     StrobeRate = 0;
     Nodes.clear();
@@ -15,6 +18,8 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     parm1 = 1;
     parm2 = 1;
     parm3 = 1;
+
+    logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
 
     bool vert = n->GetAttribute("layout") == "vertical";
     bool isRanges = n->GetAttribute("type", "ranges") == "ranges";
@@ -28,6 +33,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
         int maxCol = 0;
         while (n->HasAttribute(wxString::Format("line%d", line))) {
             wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
+            logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
             wxStringTokenizer wtkz(nodes, ",");
             while (wtkz.HasMoreTokens()) {
                 wxString valstr = wtkz.GetNextToken();
@@ -58,7 +64,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                     while (!done) {
                         if (nn < p->GetNodeCount()) {
                             NodeBaseClass *node = p->Nodes[nn]->clone();
-                            startChannel = std::min(startChannel, node->ActChan);
+                            startChannel = (std::min)(startChannel, node->ActChan);
                             Nodes.push_back(NodeBaseClassPtr(node));
                             for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
                                 c->bufX = col;
@@ -154,7 +160,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
         for (int m = 0; m < nn; m++) {
             if (p->IsNodeInBufferRange(m, x1, y1, x2, y2)) {
                 NodeBaseClass *node = p->Nodes[m]->clone();
-                startChannel = std::min(startChannel, node->ActChan);
+                startChannel = (std::min)(startChannel, node->ActChan);
                 Nodes.push_back(NodeBaseClassPtr(node));
                 for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
                     c->bufX -= minx;
