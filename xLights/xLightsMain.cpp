@@ -3195,6 +3195,10 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         m_mgr->GetPane("HousePreview").Hide();
         m_mgr->Update();
     }
+    else
+    {
+       housePreview->Update();
+    }
 
     if (exportStatus)
     {
@@ -8495,7 +8499,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
 
-    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) || 
+    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
     {
         // Just a regular key ... If current focus is a control then we need to not process this
