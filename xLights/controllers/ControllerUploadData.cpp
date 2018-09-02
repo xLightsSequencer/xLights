@@ -316,7 +316,7 @@ bool UDController::Check(ControllerRules* rules, std::string& res)
         {
             success &= it->second->Check(this, false, rules, _outputs, res);
 
-            if (it->second->GetPort() < 1 || it->second->GetPort() < rules->GetMaxSerialPort())
+            if (it->second->GetPort() < 1 || it->second->GetPort() > rules->GetMaxSerialPort())
             {
                 res += wxString::Format("ERROR: Serial port %d is not valid on this controller. Valid ports %d-%d.\n", it->second->GetPort(), 1, rules->GetMaxSerialPort()).ToStdString();
                 success = false;
