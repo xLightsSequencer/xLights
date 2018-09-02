@@ -153,14 +153,11 @@ bool OutputManager::Save()
 bool OutputManager::Discover()
 {
     bool found = false;
-    auto artnet = ArtNetOutput::Discover(this);
-    auto ddp = DDPOutput::Discover(this);
-    auto e131 = E131Output::Discover(this);
-    auto zcpp = ZCPPOutput::Discover(this);
 
     auto outputs = GetAllOutputs("");
 
-    for (auto it =  artnet.begin(); it != artnet.end(); ++it)
+    auto zcpp = ZCPPOutput::Discover(this);
+    for (auto it = zcpp.begin(); it != zcpp.end(); ++it)
     {
         if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
         {
@@ -169,15 +166,7 @@ bool OutputManager::Discover()
         }
     }
 
-    for (auto it = ddp.begin(); it != ddp.end(); ++it)
-    {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
-        {
-            _outputs.push_back(*it);
-            found = true;
-        }
-    }
-
+    auto e131 = E131Output::Discover(this);
     for (auto it = e131.begin(); it != e131.end(); ++it)
     {
         if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
@@ -187,7 +176,18 @@ bool OutputManager::Discover()
         }
     }
 
-    for (auto it = zcpp.begin(); it != zcpp.end(); ++it)
+    auto artnet = ArtNetOutput::Discover(this);
+    for (auto it =  artnet.begin(); it != artnet.end(); ++it)
+    {
+        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        {
+            _outputs.push_back(*it);
+            found = true;
+        }
+    }
+
+    auto ddp = DDPOutput::Discover(this);
+    for (auto it = ddp.begin(); it != ddp.end(); ++it)
     {
         if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
         {
