@@ -39,7 +39,7 @@
 #include "../PerspectivesPanel.h"
 #include "../SelectPanel.h"
 #include "../LayoutGroup.h"
-#include "../ViewPointMgr.h"
+#include "../ViewpointMgr.h"
 
 #include <log4cpp/Category.hh>
 

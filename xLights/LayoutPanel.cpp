@@ -45,7 +45,7 @@
 #include "KeyBindings.h"
 #include "sequencer/MainSequencer.h"
 
-#ifdef __WXMSW__
+#ifndef __WXOSX__
 static bool IsMouseEventFromTouchpad() {
 	return false;
     // In theory this is the windows solution ... but
