@@ -27,7 +27,9 @@ class ZCPPOutput : public IPOutput
     wxByte _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
-    int _lastMinute;
+    long _lastSecond;
+    int _vendor;
+    int _model;
     #pragma endregion Member Variables
 
 public:
@@ -54,6 +56,10 @@ public:
     virtual std::string GetUniverseString() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
+    void SetVendor(int vendor) { _vendor = vendor; _dirty = true; }
+    void SetModel(int model) { _model = model; _dirty = true; }
+    int GetVendor() const { return _vendor; }
+    int GetModel() const { return _model; }
     bool SetModelData(unsigned char* buffer, size_t bufsize, std::string showDir);
     #pragma region Getters and Setters
 

@@ -19,7 +19,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     memset(_modelData, 0x00, sizeof(_modelData));
-    _lastMinute = -1;
+    _lastSecond = -1;
     _sequenceNum = 0;
     _datagram = nullptr;
     _data = (wxByte*)malloc(_channels);
@@ -54,7 +54,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
 ZCPPOutput::ZCPPOutput() : IPOutput()
 {
     memset(_modelData, 0x00, sizeof(_modelData));
-    _lastMinute = -1;
+    _lastSecond = -1;
     _channels = 1;
     _universe = 64001;
     _sequenceNum = 0;
@@ -94,7 +94,7 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::string
 
     wxASSERT(bufsize <= ZCPP_MODELDATASIZE);
     memcpy(_modelData, buffer, std::min(bufsize, sizeof(_modelData)));
-    _lastMinute = -1;
+    _lastSecond = -1;
 
     return true;
 }
@@ -277,6 +277,10 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         output->SetChannels(channels);
                         auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[90], (int)buffer[91], (int)buffer[92], (int)buffer[93]);
                         output->SetIP(ip.ToStdString());
+                        int vendor = buffer[6] << 8 + buffer[7];
+                        output->SetVendor(vendor);
+                        int model = buffer[8] << 8 + buffer[9];
+                        output->SetModel(model);
 
                         // now search for it in outputManager
                         auto outputs = outputManager->GetOutputs();
@@ -323,7 +327,7 @@ bool ZCPPOutput::Open()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_enabled) return true;
 
-    _lastMinute = -1;
+    _lastSecond = -1;
 
     _ok = IPOutput::Open();
 
@@ -397,12 +401,12 @@ void ZCPPOutput::EndFrame(int suppressFrames)
 
     if (_datagram == nullptr) return;
 
-    int min = wxDateTime::Now().GetMinute();
-    if (min != _lastMinute)
+    long second = wxGetLocalTime();
+    if (_lastSecond == -1 || (second - _lastSecond) % 10 == 0)
     {
         if (_modelData[0] != 0x00)
         {
-            _lastMinute = min;
+            _lastSecond = second;
 
             _datagram->SendTo(_remoteAddr, _modelData, sizeof(_modelData));
         }
@@ -425,9 +429,9 @@ void ZCPPOutput::EndFrame(int suppressFrames)
             _packet[13] = (wxByte)((packetlen) & 0xFF);
             memcpy(&_packet[14], &_data[i], packetlen);
             _datagram->SendTo(_remoteAddr, _packet, 14 + packetlen);
-            _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
             i += packetlen;
         }
+        _sequenceNum = _sequenceNum == 255 ? 0 : _sequenceNum + 1;
 
         FrameOutput();
     }

@@ -25,6 +25,33 @@ public:
         _type = type;
         _version = version;
     }
+    FalconControllerRules(int model)
+    {
+        switch (model)
+        {
+        case 1:
+        case 3:
+            _type = 16;
+            _version = 2;
+            break;
+        case 4:
+            _type = 4;
+            _version = 2;
+            break;
+        case 5:
+            _type = 16;
+            _version = 3;
+            break;
+        case 6:
+            _type = 4;
+            _version = 3;
+            break;
+        case 7:
+            _type = 48;
+            _version = 3;
+            break;
+        }
+    }
     virtual ~FalconControllerRules() {}
     virtual int GetMaxPixelPortChannels() const override
     {
