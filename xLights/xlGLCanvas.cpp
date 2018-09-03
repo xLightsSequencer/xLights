@@ -74,55 +74,8 @@ xlGLCanvas::CaptureHelper::~CaptureHelper()
 		delete[] tmpBuf;
 		tmpBuf = nullptr;
 	}
-
-	if (!hasOpenGL3FramebufferObjects())
-		return;
-
-	if (fbID)
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDeleteFramebuffers(1, &fbID);
-		fbID = 0;
-	}
-
-	if (rbID)
-	{
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glDeleteRenderbuffers(1, &rbID);
-	}
 }
 
-void xlGLCanvas::CaptureHelper::SetActive(bool active)
-{
-   if ( !hasOpenGL3FramebufferObjects() )
-   {
-      log4cpp::Category &logger_base = log4cpp::Category::getInstance( std::string( "log_base" ) );
-      logger_base.debug( "xglCanvas::CaptureHelper::SetActive() - framebuffer objects unsupported!" );
-      return;
-   }
-
-	if (active)
-	{
-		if (!fbID && !rbID)
-		{
-			int widthWithContentScaleFactor = width * contentScaleFactor;
-			int heightWithContentScaleFactor = height * contentScaleFactor;
-			glGenRenderbuffers(1, &rbID);
-			glBindRenderbuffer(GL_RENDERBUFFER, rbID);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, widthWithContentScaleFactor, heightWithContentScaleFactor);
-
-			glGenFramebuffers(1, &fbID);
-			glBindFramebuffer(GL_FRAMEBUFFER, fbID);
-			glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, fbID);
-	}
-	else
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-}
 bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims/*=false*/)
 {
 	int w = width * contentScaleFactor;

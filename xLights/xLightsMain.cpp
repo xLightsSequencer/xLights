@@ -3184,9 +3184,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     );
 
-    captureHelper.SetActive(true);
     bool exportStatus = videoExporter.Export(path.c_str());
-    captureHelper.SetActive(false);
 
     mainSequencer->SetPlayStatus(playStatus);
 
@@ -3194,10 +3192,6 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     {
         m_mgr->GetPane("HousePreview").Hide();
         m_mgr->Update();
-    }
-    else
-    {
-       housePreview->Update();
     }
 
     if (exportStatus)
