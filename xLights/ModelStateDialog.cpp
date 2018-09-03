@@ -4,6 +4,7 @@
 #include "ModelPreview.h"
 #include "DimmingCurve.h"
 #include "SevenSegmentDialog.h"
+#include "NodeSelectGrid.h"
 
 //(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
@@ -514,7 +515,19 @@ void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
 
 void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
-    if (event.GetCol() == COLOUR_COL) {
+    if (event.GetCol() == CHANNEL_COL) {
+        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), CHANNEL_COL);
+
+        NodeSelectGrid dialog(model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+
+        if (dialog.ShowModal() == wxID_OK)
+        {
+            NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            dialog.Close();
+        }
+    }
+    else if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
         wxColourData data;

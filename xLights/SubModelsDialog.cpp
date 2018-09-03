@@ -22,7 +22,7 @@
 #include "models/Model.h"
 #include "SubBufferPanel.h"
 #include "SubModelGenerateDialog.h"
-#include "SubModelDrawGrid.h"
+#include "NodeSelectGrid.h"
 #include "UtilFunctions.h"
 #include "xLightsApp.h"
 #include "models/ModelManager.h"
@@ -176,7 +176,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer5->Add(Button_MoveDown, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_ReverseRow = new wxButton(Panel1, ID_BUTTON7, _("Reverse Row"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
 	FlexGridSizer5->Add(Button_ReverseRow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Draw_Model = new wxButton(Panel1, ID_BUTTON_DRAW_MODEL, _("Select Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DRAW_MODEL"));
+	Button_Draw_Model = new wxButton(Panel1, ID_BUTTON_DRAW_MODEL, _("Draw Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DRAW_MODEL"));
 	FlexGridSizer5->Add(Button_Draw_Model, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	Panel1->SetSizer(FlexGridSizer4);
@@ -231,7 +231,9 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnLayoutCheckboxClick);
 	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseNodesClick);
 	Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnButton_ReverseRowsClick);
+	Connect(ID_GRID1,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellLeftDClick);
 	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_CLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftClick);
+	Connect(ID_GRID1,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridLabelLeftDClick);
 	Connect(ID_GRID1,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellSelect);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnAddRowButtonClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SubModelsDialog::OnDeleteRowButtonClick);
@@ -1611,7 +1613,7 @@ void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
     }
 
     SubModelInfo* sm = GetSubModelInfo(name);
-    SubModelDrawGrid dialog(model, sm->strands, this);
+    NodeSelectGrid dialog(model, sm->strands, this);
 
     if (dialog.ShowModal() == wxID_OK)
     {
@@ -1621,6 +1623,37 @@ void SubModelsDialog::OnButton_Draw_ModelClick(wxCommandEvent& event)
         dialog.Close();
 
         NodesGrid->SetFocus();
+
+        ValidateWindow();
+    }
+}
+
+void SubModelsDialog::OnNodesGridLabelLeftDClick(wxGridEvent& event)
+{
+    OnNodesGridCellLeftDClick(event);
+}
+
+void SubModelsDialog::OnNodesGridCellLeftDClick(wxGridEvent& event)
+{
+    int row = event.GetRow();
+    wxString name = GetSelectedName();
+    if (name == "" || row == -1) {
+        return;
+    }
+
+    SubModelInfo* sm = GetSubModelInfo(name);
+    NodeSelectGrid dialog(model, sm->strands[sm->strands.size() - 1 - row], this);
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        sm->strands[sm->strands.size() - 1 - row] = dialog.GetNodeList();
+
+        Select(GetSelectedName());
+        dialog.Close();
+
+        NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
+        NodesGrid->SetFocus();
+        SelectRow(row >= 0 ? row : 0);
 
         ValidateWindow();
     }
