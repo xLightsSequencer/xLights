@@ -352,6 +352,7 @@
     <ClCompile Include="outputs\ZCPPDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
     <ClCompile Include="SubModelDrawGrid.cpp" />
+    <ClCompile Include="NodeSelectGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -704,6 +705,7 @@
     <ClInclude Include="outputs\ZCPPOutput.h" />
     <ClInclude Include="outputs\ZCPPDialog.h" />
     <ClInclude Include="SubModelDrawGrid.h" />
+    <ClInclude Include="NodeSelectGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

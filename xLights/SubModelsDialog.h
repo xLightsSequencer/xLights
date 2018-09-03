@@ -211,6 +211,8 @@ private:
     void OnButtonCopyModelClick(wxCommandEvent& event);
     void OnButton_Sub_CopyClick(wxCommandEvent& event);
     void OnButton_Draw_ModelClick(wxCommandEvent& event);
+    void OnNodesGridLabelLeftDClick(wxGridEvent& event);
+    void OnNodesGridCellLeftDClick(wxGridEvent& event);
     //*)
 
     wxWindow* _parent;

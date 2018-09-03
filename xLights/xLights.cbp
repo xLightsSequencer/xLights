@@ -492,6 +492,8 @@
 		<Unit filename="NetInfo.h" />
 		<Unit filename="NewTimingDialog.cpp" />
 		<Unit filename="NewTimingDialog.h" />
+		<Unit filename="NodeSelectGrid.cpp" />
+		<Unit filename="NodeSelectGrid.h" />
 		<Unit filename="NodesGridCellEditor.cpp" />
 		<Unit filename="NodesGridCellEditor.h" />
 		<Unit filename="NoteImportDialog.cpp" />
@@ -562,8 +564,6 @@
 		<Unit filename="StrandNodeNamesDialog.h" />
 		<Unit filename="SubBufferPanel.cpp" />
 		<Unit filename="SubBufferPanel.h" />
-		<Unit filename="SubModelDrawGrid.cpp" />
-		<Unit filename="SubModelDrawGrid.h" />
 		<Unit filename="SubModelGenerateDialog.cpp" />
 		<Unit filename="SubModelGenerateDialog.h" />
 		<Unit filename="SubModelsDialog.cpp" />
@@ -1105,6 +1105,7 @@
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
+		<Unit filename="wxsmith/NodeSelectGrid.wxs" />
 		<Unit filename="wxsmith/NoteImportDialog.wxs" />
 		<Unit filename="wxsmith/OffPanel.wxs" />
 		<Unit filename="wxsmith/OnPanel.wxs" />
@@ -1144,7 +1145,6 @@
 		<Unit filename="wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="wxsmith/StatePanel.wxs" />
 		<Unit filename="wxsmith/StrobePanel.wxs" />
-		<Unit filename="wxsmith/SubModelDrawGrid.wxs" />
 		<Unit filename="wxsmith/SubModelGenerateDialog.wxs" />
 		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
@@ -1339,7 +1339,7 @@
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
+					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

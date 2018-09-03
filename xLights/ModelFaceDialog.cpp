@@ -34,6 +34,7 @@
 #include "UtilFunctions.h"
 #include "MatrixFaceDownloadDialog.h"
 #include "xLightsMain.h"
+#include "NodeSelectGrid.h"
 
 #include <log4cpp/Category.hh>
 
@@ -843,14 +844,26 @@ void ModelFaceDialog::OnFaceTypeChoicePageChanged(wxChoicebookEvent& event)
 
 void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
-    if (event.GetCol() == 1) {
+    if (event.GetCol() == CHANNEL_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), 1);
+        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), CHANNEL_COL);
+
+        NodeSelectGrid dialog(model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+
+        if (dialog.ShowModal() == wxID_OK)
+        {
+            NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            dialog.Close();
+        }
+    }
+    else if (event.GetCol() == COLOR_COL) {
+        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL);
         wxColourData data;
         data.SetColour(c);
         wxColourDialog dlg(this, &data);
         if (dlg.ShowModal() == wxID_OK) {
-            NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), 1, dlg.GetColourData().GetColour());
+            NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), COLOR_COL, dlg.GetColourData().GetColour());
             NodeRangeGrid->Refresh();
             GetValue(NodeRangeGrid, event, faceData[name]);
         }
@@ -860,14 +873,14 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 
 void ModelFaceDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
 {
-    if (event.GetCol() == 1) {
+    if (event.GetCol() == COLOR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-        wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), 1);
+        wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOR_COL);
         wxColourData data;
         data.SetColour(c);
         wxColourDialog dlg(this, &data);
         if (dlg.ShowModal() == wxID_OK) {
-            SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), 1, dlg.GetColourData().GetColour());
+            SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), COLOR_COL, dlg.GetColourData().GetColour());
             SingleNodeGrid->Refresh();
             GetValue(SingleNodeGrid, event, faceData[name]);
         }
