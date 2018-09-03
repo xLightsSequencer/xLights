@@ -346,6 +346,12 @@ void E131Output::Close()
             (*it)->Close();
         }
     }
+
+    if (_datagram != nullptr)
+    {
+        delete _datagram;
+        _datagram = nullptr;
+    }
 }
 #pragma endregion Start and Stop
 

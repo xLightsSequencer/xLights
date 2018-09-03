@@ -351,8 +351,8 @@
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="outputs\ZCPPDialog.cpp" />
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
-    <ClCompile Include="SubModelDrawGrid.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
+    <ClCompile Include="ModelChainDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -704,8 +704,8 @@
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="outputs\ZCPPOutput.h" />
     <ClInclude Include="outputs\ZCPPDialog.h" />
-    <ClInclude Include="SubModelDrawGrid.h" />
     <ClInclude Include="NodeSelectGrid.h" />
+    <ClInclude Include="ModelChainDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

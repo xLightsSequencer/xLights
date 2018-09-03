@@ -30,7 +30,10 @@ class ZCPPOutput : public IPOutput
     long _lastSecond;
     int _vendor;
     int _model;
+    long _usedChannels;
     #pragma endregion Member Variables
+
+    void ExtractUsedChannelsFromModelData();
 
 public:
 
@@ -61,6 +64,7 @@ public:
     int GetVendor() const { return _vendor; }
     int GetModel() const { return _model; }
     bool SetModelData(unsigned char* buffer, size_t bufsize, std::string showDir);
+    virtual bool IsLookedUpByControllerName() const override { return true; }
     #pragma region Getters and Setters
 
     virtual wxXmlNode* Save() override;

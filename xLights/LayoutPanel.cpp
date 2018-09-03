@@ -1480,7 +1480,7 @@ void LayoutPanel::SetupPropGrid(Model *model) {
 
     propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
 
-    model->AddProperties(propertyEditor);
+    model->AddProperties(propertyEditor, xlights->GetOutputManager());
 
     if (dynamic_cast<SubModel*>(model) == nullptr) {
         wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));

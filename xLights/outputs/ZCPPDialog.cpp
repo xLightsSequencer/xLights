@@ -11,8 +11,6 @@
 
 //(*IdInit(ZCPPDialog)
 const long ZCPPDialog::ID_STATICTEXT4 = wxNewId();
-const long ZCPPDialog::ID_STATICTEXT2 = wxNewId();
-const long ZCPPDialog::ID_SPINCTRL1 = wxNewId();
 const long ZCPPDialog::ID_STATICTEXT1 = wxNewId();
 const long ZCPPDialog::ID_TEXTCTRL_IP_ADDR = wxNewId();
 const long ZCPPDialog::ID_STATICTEXT3 = wxNewId();
@@ -47,11 +45,6 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
     StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("Sets up a Zero Configuration Pixel controller over ethernet.\n\nSupported devices include those made\nby Falcon."), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer1->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Id"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    SpinCtrl_Id = new wxSpinCtrl(this, ID_SPINCTRL1, _T("64001"), wxDefaultPosition, wxDefaultSize, 0, 1, 65535, 64001, _T("ID_SPINCTRL1"));
-    SpinCtrl_Id->SetValue(_T("64001"));
-    FlexGridSizer2->Add(SpinCtrl_Id, 1, wxALL|wxEXPAND, 5);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("IP Address"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer2->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrlIpAddr = new wxTextCtrl(this, ID_TEXTCTRL_IP_ADDR, _("192.168.1.50"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_IP_ADDR"));
@@ -92,7 +85,6 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
     SpinCtrl_Channels->SetValue(_zcpp->GetChannels());
     TextCtrl_Description->SetValue(_zcpp->GetDescription());
     TextCtrlIpAddr->SetValue(_zcpp->GetIP());
-    SpinCtrl_Id->SetValue(_zcpp->GetId());
 
     Button_Ok->SetDefault();
     ValidateWindow();
@@ -119,7 +111,6 @@ void ZCPPDialog::OnButton_OkClick(wxCommandEvent& event)
     _zcpp->SetChannels(SpinCtrl_Channels->GetValue());
     _zcpp->SetDescription(TextCtrl_Description->GetValue().ToStdString());
     _zcpp->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
-    _zcpp->SetId(SpinCtrl_Id->GetValue());
 
     EndDialog(wxID_OK);
 }

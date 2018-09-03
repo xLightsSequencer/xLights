@@ -81,6 +81,7 @@ public:
     virtual std::list<Output*> GetOutputs() const { std::list<Output*> res; return res; }
     virtual bool NeedsControllerConfig() const { return false; }
     bool IsDirty() const { return _dirty; }
+    virtual bool IsLookedUpByControllerName() const { return false; }
     void ClearDirty() { _dirty = false; }
     long GetStartChannel() const { return _startChannel; }
     long GetActualEndChannel() const { return _startChannel + _channels - 1; }

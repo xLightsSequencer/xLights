@@ -183,6 +183,5 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     this->ModelStartChannel = wxString::Format("%u", (startChannel + 1));
 }
 
-void SubModel::AddProperties(wxPropertyGridInterface *grid) {
+void SubModel::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) {
 }
-

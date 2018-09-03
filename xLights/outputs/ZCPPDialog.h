@@ -30,9 +30,7 @@ public:
     wxButton* Button_Ok;
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxSpinCtrl* SpinCtrl_Channels;
-    wxSpinCtrl* SpinCtrl_Id;
     wxStaticText* StaticText1;
-    wxStaticText* StaticText2;
     wxStaticText* StaticText3;
     wxStaticText* StaticText4;
     wxStaticText* StaticText8;
@@ -45,8 +43,6 @@ protected:
 
     //(*Identifiers(ZCPPDialog)
     static const long ID_STATICTEXT4;
-    static const long ID_STATICTEXT2;
-    static const long ID_SPINCTRL1;
     static const long ID_STATICTEXT1;
     static const long ID_TEXTCTRL_IP_ADDR;
     static const long ID_STATICTEXT3;

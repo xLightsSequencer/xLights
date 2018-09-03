@@ -29,6 +29,7 @@
 #include "../xLightsMain.h"
 
 #include <log4cpp/Category.hh>
+#include "outputs/Output.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) : _outputManager(outputManager), xlights(xl)
 {
@@ -305,6 +306,84 @@ void ModelManager::DisplayStartChannelCalcWarning() const
         logger_base.warn(msg);
         wxMessageBox(msg);
         lastwarn = msg;
+    }
+}
+
+void ModelManager::ReworkStartChannel() const
+{
+    OutputManager* outputManager = xlights->GetOutputManager();
+    auto outputs = outputManager->GetOutputs();
+
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    {
+        if ((*it)->IsLookedUpByControllerName())
+        {
+            std::map<std::string, std::list<Model*>> cmodels;
+            for (auto itm = models.begin(); itm != models.end(); ++itm)
+            {
+                if (itm->second->GetControllerName() == (*it)->GetDescription())
+                {
+                    if (cmodels.find(itm->second->GetControllerConnection()) == cmodels.end())
+                    {
+                        std::list<Model*> ml;
+                        cmodels[itm->second->GetControllerConnection()] = ml;
+                    }
+                    cmodels[itm->second->GetControllerConnection()].push_back(itm->second);
+                }
+            }
+
+            long ch = 1;
+            for (auto itcc = cmodels.begin(); itcc != cmodels.end(); ++itcc)
+            {
+                // order the models
+                std::list<Model*> sortedmodels;
+                std::string last = "";
+
+                long chstart = ch;
+
+                while ((*itcc).second.size() > 0)
+                {
+                    bool pushed = false;
+                    for (auto itms = (*itcc).second.begin(); itms != (*itcc).second.end(); ++itms)
+                    {
+                        if ((*itms)->GetModelChain() == last || 
+                            (*itms)->GetModelChain() == ">" + last)
+                        {
+                            sortedmodels.push_back(*itms);
+                            pushed = true;
+                            last = (*itms)->GetName();
+                            (*itcc).second.erase(itms);
+                            break;
+                        }
+                    }
+
+                    if (!pushed && (*itcc).second.size() > 0)
+                    {
+                        // chain is broken ... so just put the rest in in random order
+                        while ((*itcc).second.size() > 0)
+                        {
+                            sortedmodels.push_back(itcc->second.front());
+                            itcc->second.pop_front();
+                        }
+                    }
+                }
+
+                last = "";
+                for (auto itm = sortedmodels.begin(); itm != sortedmodels.end(); ++itm)
+                {
+                    if ((*itm)->GetModelChain() == last || (*itm)->GetModelChain() == ">" + last)
+                    {
+                        (*itm)->SetStartChannel("!" + (*it)->GetDescription() + ":" + wxString::Format("%ld", ch));
+                        last = (*itm)->GetName();
+                    }
+                    else
+                    {
+                        (*itm)->SetStartChannel("!" + (*it)->GetDescription() + ":" + wxString::Format("%ld", chstart));
+                    }
+                    ch += (*itm)->GetChanCount();
+                }
+            }
+        }
     }
 }
 

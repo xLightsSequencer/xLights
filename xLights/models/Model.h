@@ -72,6 +72,8 @@ public:
     std::string description;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
+    int _controller; // this is used to pass the selected controller name between property create and property change only
+    std::string _controllerName;
 
     virtual bool AllNodesAllocated() const { return true; }
     static void ParseFaceInfo(wxXmlNode *fiNode, std::map<std::string, std::map<std::string, std::string> > &faceInfo);
@@ -110,7 +112,7 @@ public:
     int GetDefaultBufferHt() const {return BufferHt;}
 
     void SetProperty(wxString property, wxString value, bool apply = false);
-    virtual void AddProperties(wxPropertyGridInterface *grid);
+    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
@@ -180,6 +182,7 @@ protected:
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
     std::string layout_group;
     std::string controller_connection;
+    std::string _modelChain;
     int rgbwHandlingType;
 
     unsigned long changeCount;
@@ -205,6 +208,11 @@ public:
         return 1;
     }
     void SetControllerConnection(const std::string& controllerConnection);
+    void SetControllerName(const std::string& controllerName);
+    std::string GetControllerName() const { return _controllerName; }
+    void SetModelChain(const std::string& modelChain);
+    std::string GetModelChain() const { return _modelChain; }
+    void ReworkStartChannel();
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}

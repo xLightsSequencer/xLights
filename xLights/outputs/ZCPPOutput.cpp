@@ -21,6 +21,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     memset(_modelData, 0x00, sizeof(_modelData));
     _lastSecond = -1;
     _sequenceNum = 0;
+    _usedChannels = _channels;
     _datagram = nullptr;
     _data = (wxByte*)malloc(_channels);
     memset(_data, 0, _channels);
@@ -39,6 +40,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
             zf.Read(_modelData, sizeof(_modelData));
             zf.Close();
             logger_base.debug("ZCPP Model data file %s loaded.", (const char*)fileName.c_str());
+            ExtractUsedChannelsFromModelData();
         }
         else
         {
@@ -56,6 +58,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     memset(_modelData, 0x00, sizeof(_modelData));
     _lastSecond = -1;
     _channels = 1;
+    _usedChannels = 1;
     _universe = 64001;
     _sequenceNum = 0;
     _datagram = nullptr;
@@ -70,6 +73,26 @@ ZCPPOutput::~ZCPPOutput()
     if (_data != nullptr) free(_data);
 }
 #pragma endregion Constructors and Destructors
+
+void ZCPPOutput::ExtractUsedChannelsFromModelData()
+{
+    int ports = _modelData[38];
+
+    _usedChannels = 1;
+    for (int i = 0; i < ports; i++)
+    {
+        int start = (((int)_modelData[41 + i * 10]) << 24) +
+            (((int)_modelData[42 + i * 10]) << 16) +
+            (((int)_modelData[43 + i * 10]) << 8) +
+            (((int)_modelData[44 + i * 10]));
+        int len = (((int)_modelData[45 + i * 10]) << 8) +
+            (((int)_modelData[46 + i * 10]));
+        if (start + len - 1 > _usedChannels)
+        {
+            _usedChannels = start + len - 1;
+        }
+    }
+}
 
 bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::string showDir)
 {
@@ -95,6 +118,8 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::string
     wxASSERT(bufsize <= ZCPP_MODELDATASIZE);
     memcpy(_modelData, buffer, std::min(bufsize, sizeof(_modelData)));
     _lastSecond = -1;
+
+    ExtractUsedChannelsFromModelData();
 
     return true;
 }
@@ -272,7 +297,6 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         logger_base.debug(" Valid response.");
                         long channels = ((long)buffer[66] << 24) + ((long)buffer[67] << 16) + ((long)buffer[68] << 8) + (long)buffer[69];
                         ZCPPOutput* output = new ZCPPOutput();
-                        output->SetId(1);
                         output->SetDescription(std::string((char*)&buffer[31]));
                         output->SetChannels(channels);
                         auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[90], (int)buffer[91], (int)buffer[92], (int)buffer[93]);
@@ -377,6 +401,11 @@ bool ZCPPOutput::Open()
 
 void ZCPPOutput::Close()
 {
+    if (_datagram != nullptr)
+    {
+        delete _datagram;
+        _datagram = nullptr;
+    }
 }
 #pragma endregion Start and Stop
 
@@ -415,7 +444,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
     if (_changed || NeedToOutput(suppressFrames))
     {
         int i = 0;
-        while (i < _channels)
+        while (i < _usedChannels)
         {
             _packet[6] = _sequenceNum;
             long startAddress = i;
@@ -424,7 +453,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
             _packet[9] = (wxByte)((startAddress >> 8) & 0xFF);
             _packet[10] = (wxByte)((startAddress) & 0xFF);
             _packet[11] = OutputManager::IsSyncEnabled_() ? 1 : 0;
-            int packetlen = _channels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _channels - i;
+            int packetlen = _usedChannels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _channels - i;
             _packet[12] = (wxByte)((packetlen >> 8) & 0xFF);
             _packet[13] = (wxByte)((packetlen) & 0xFF);
             memcpy(&_packet[14], &_data[i], packetlen);

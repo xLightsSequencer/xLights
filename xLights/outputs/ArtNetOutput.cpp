@@ -369,6 +369,15 @@ bool ArtNetOutput::Open()
 
     return _ok;
 }
+
+void ArtNetOutput::Close()
+{
+    if (_datagram != nullptr)
+    {
+        delete _datagram;
+        _datagram = nullptr;
+    }
+}
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling

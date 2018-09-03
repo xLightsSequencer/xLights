@@ -2239,4 +2239,5 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
         NetworkChange();
         UpdateNetworkList(true);
     }
+    SetStatusText("Discovery complete.");
 }

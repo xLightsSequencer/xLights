@@ -25,8 +25,11 @@ public:
         _type = type;
         _version = version;
     }
-    FalconControllerRules(int model)
+    FalconControllerRules(int model) : ControllerRules()
     {
+        _type = 16;
+        _version = 3;
+
         switch (model)
         {
         case 1:
@@ -49,6 +52,9 @@ public:
         case 7:
             _type = 48;
             _version = 3;
+            break;
+        default:
+            wxASSERT(false);
             break;
         }
     }

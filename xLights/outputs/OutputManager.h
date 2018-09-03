@@ -66,11 +66,13 @@ public:
     Output* GetOutput(int outputNumber) const;
     Output* GetOutput(long absoluteChannel, long& startChannel) const;
     Output* GetOutput(int universe, const std::string& ip) const;
+    Output* GetOutput(const std::string& description) const;
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
     bool Discover(); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
+    std::list<std::string> GetControllerNames() const;
     #pragma endregion Output Management
 
     void SomethingChanged() const;

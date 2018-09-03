@@ -184,6 +184,15 @@ bool DDPOutput::Open()
 
     return _ok;
 }
+
+void DDPOutput::Close()
+{
+    if (_datagram != nullptr)
+    {
+        delete _datagram;
+        _datagram = nullptr;
+    }
+}
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling

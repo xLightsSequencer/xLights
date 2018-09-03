@@ -2505,6 +2505,7 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonAddE131->Enable(flag);
     ButtonAddDDP->Enable(flag);
     ButtonArtNET->Enable(flag);
+    Button_AddZCPP->Enable(flag);
     ButtonAddNull->Enable(flag);
     ButtonAddLOR->Enable(flag);
     ButtonNetworkChange->Enable(flag);
@@ -2512,6 +2513,7 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonNetworkDeleteAll->Enable(flag);
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
+    Button_Discover->Enable(flag);
     SpinCtrl_SyncUniverse->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
