@@ -4100,7 +4100,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         // let crontrol A through
         // Just a regular key ... If current focus is a control then we need to not process this
         if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && 
-            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END))
+            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
         {
             return false;
         }

@@ -2515,7 +2515,6 @@ void xLightsFrame::OnCheckBoxLightOutputClick(wxCommandEvent& event)
     //CheckChannelList=true;  // cause status bar to be updated if in test mode
 }
 
-
 //factored out from below so it can be reused by play/pause button -DJ
 void xLightsFrame::StopNow(void)
 {
@@ -8498,7 +8497,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
     {
         // Just a regular key ... If current focus is a control then we need to not process this
         if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
-            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END))
+            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
         {
             return false;
         }
