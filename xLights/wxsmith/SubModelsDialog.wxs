@@ -205,7 +205,9 @@
 																			<item>Strand   1</item>
 																		</rowlabels>
 																		<style>wxVSCROLL</style>
+																		<handler function="OnNodesGridCellLeftDClick" entry="EVT_CMD_GRID_CELL_LEFT_DCLICK" />
 																		<handler function="OnNodesGridLabelLeftClick" entry="EVT_CMD_GRID_LABEL_LEFT_CLICK" />
+																		<handler function="OnNodesGridLabelLeftDClick" entry="EVT_CMD_GRID_LABEL_LEFT_DCLICK" />
 																		<handler function="OnNodesGridCellSelect" entry="EVT_CMD_GRID_SELECT_CELL" />
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
@@ -267,7 +269,7 @@
 																</object>
 																<object class="sizeritem">
 																	<object class="wxButton" name="ID_BUTTON_DRAW_MODEL" variable="Button_Draw_Model" member="yes">
-																		<label>Select Nodes</label>
+																		<label>Draw Model</label>
 																		<handler function="OnButton_Draw_ModelClick" entry="EVT_BUTTON" />
 																	</object>
 																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

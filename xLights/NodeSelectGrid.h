@@ -1,61 +1,73 @@
-#ifndef SUBMODELDRAWGRID_H
-#define SUBMODELDRAWGRID_H
+#ifndef NodeSelectGrid_H
+#define NodeSelectGrid_H
 
-//(*Headers(SubModelDrawGrid)
+//(*Headers(NodeSelectGrid)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/grid.h>
 #include <wx/sizer.h>
 //*)
 
 class Model;
+class DrawGrid;
+class DrawGridEvent;
 
-class SubModelDrawGrid: public wxDialog
+class NodeSelectGrid: public wxDialog
 {
 	public:
 
-		SubModelDrawGrid(Model *m, std::vector<wxString> rows, wxWindow* parent,wxWindowID id=wxID_ANY);
-		virtual ~SubModelDrawGrid();
+		NodeSelectGrid(Model *m, std::vector<wxString> rows, wxWindow* parent,wxWindowID id=wxID_ANY);
+        NodeSelectGrid(Model *m, wxString row, wxWindow* parent, wxWindowID id = wxID_ANY);
 
-		//(*Declarations(SubModelDrawGrid)
+		virtual ~NodeSelectGrid();
+
+		//(*Declarations(NodeSelectGrid)
+		DrawGrid* GridNodes;
 		wxButton* ButtonDeselect;
+		wxButton* ButtonNodeSelectCancel;
+		wxButton* ButtonNodeSelectOK;
 		wxButton* ButtonSelectAll;
 		wxButton* ButtonSelectNone;
-		wxButton* ButtonSubDrawOK;
-		wxButton* ButtonSunDrawCancel;
 		wxButton* Button_Select;
-		wxGrid* GridNodes;
+		wxCheckBox* CheckBoxFreeHand;
 		//*)
 
         std::vector<wxString> GetRowData();
+        wxString GetNodeList();
 
 	protected:
 
-		//(*Identifiers(SubModelDrawGrid)
+		//(*Identifiers(NodeSelectGrid)
+		static const long ID_CHECKBOX_FREE_HAND;
 		static const long ID_BUTTON_SELECT;
 		static const long ID_BUTTON_DESELECT;
 		static const long ID_BUTTON_SELECT_ALL;
 		static const long ID_BUTTON_SELECT_NONE;
 		static const long ID_GRID_NODES;
-		static const long ID_BUTTON_SUB_DRAW_OK;
-		static const long ID_BUTTON_SUB_DRAW_CANCEL;
+		static const long ID_BUTTON_NODE_SELECT_OK;
+		static const long ID_BUTTON_NODE_SELECT_CANCEL;
 		//*)
 
 	private:
 
-		//(*Handlers(SubModelDrawGrid)
+		//(*Handlers(NodeSelectGrid)
 		void OnButton_SelectClick(wxCommandEvent& event);
 		void OnButtonSelectAllClick(wxCommandEvent& event);
 		void OnButtonSelectNoneClick(wxCommandEvent& event);
 		void OnButtonDeselectClick(wxCommandEvent& event);
-		void OnButtonSubDrawOKClick(wxCommandEvent& event);
-		void OnButtonSubDrawCancelClick(wxCommandEvent& event);
+		void OnButtonNodeSelectOKClick(wxCommandEvent& event);
+		void OnButtonNodeSelectCancelClick(wxCommandEvent& event);
 		void OnGridNodesCellLeftDClick(wxGridEvent& event);
+		void OnCheckBoxFreeHandClick(wxCommandEvent& event);
+		void OnGridNodesCellRightDClick(wxGridEvent& event);
 		//*)
 
+        void OnDrawGridEvent(DrawGridEvent& event);
         void LoadGrid(const std::vector<wxString> rows);
         void ValidateWindow() const;
         std::vector<int> DecodeNodeList(const std::vector<wxString> &rows) const;
+        wxString EncodeNodeLine(const std::vector<wxString> &nodes) const;
 
         Model *model;
 

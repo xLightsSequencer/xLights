@@ -3184,9 +3184,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     );
 
-    captureHelper.SetActive(true);
     bool exportStatus = videoExporter.Export(path.c_str());
-    captureHelper.SetActive(false);
 
     mainSequencer->SetPlayStatus(playStatus);
 
@@ -8495,7 +8493,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
     auto k = event.GetKeyCode();
     if (k == WXK_SHIFT || k == WXK_CONTROL || k == WXK_ALT) return false;
 
-    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) || 
+    if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown()))
     {
         // Just a regular key ... If current focus is a control then we need to not process this

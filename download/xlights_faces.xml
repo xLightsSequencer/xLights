@@ -108,6 +108,10 @@
 			<id>Other</id>
 			<name>Other</name>
 		</category>
+		<category>
+			<id>xLightsATW</id>
+			<name>xLights Around The World</name>
+		</category>
 	</categories>
 	<face>
 		<id>1</id>
@@ -3059,5 +3063,83 @@
 		<minwidth>-1</minwidth>
 		<minheight>-1</minheight>
 		<notes/>
+	</face>
+	<face>
+		<id>226</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Albino</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Albino1.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Albino1.png</faceimage>
+		<width>110</width>
+		<height>131</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>227</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Anne</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Anne.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Anne.png</faceimage>
+		<width>96</width>
+		<height>122</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>228</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Lettie</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Lettie.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Lettie.png</faceimage>
+		<width>144</width>
+		<height>150</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>229</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Phillip</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Phillip.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Phillip.png</faceimage>
+		<width>91</width>
+		<height>122</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>230</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>P.T. Barnum</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PTBarnum.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PTBarnum.png</faceimage>
+		<width>116</width>
+		<height>122</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>231</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Tom Thumb</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TomThumb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TomThumb.png</faceimage>
+		<width>145</width>
+		<height>110</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
 	</face>
 </faces>

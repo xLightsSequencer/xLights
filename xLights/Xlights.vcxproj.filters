@@ -349,7 +349,7 @@
     <ClCompile Include="RenderCache.cpp" />
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
-    <ClCompile Include="SubModelDrawGrid.cpp" />
+    <ClCompile Include="NodeSelectGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -699,7 +699,7 @@
     <ClInclude Include="RenderCache.h" />
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
-    <ClInclude Include="SubModelDrawGrid.h" />
+    <ClInclude Include="NodeSelectGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
