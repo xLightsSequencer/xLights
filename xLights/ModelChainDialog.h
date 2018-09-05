@@ -9,7 +9,9 @@
 //*)
 
 #include <string>
+
 class ModelManager;
+class Model;
 
 class ModelChainDialog: public wxDialog
 {
@@ -23,7 +25,7 @@ class ModelChainDialog: public wxDialog
 		wxStaticText* StaticText1;
 		//*)
     
-        void Set(const wxString &chain, const ModelManager &models);
+        void Set(Model* m, const ModelManager &models);
         std::string Get();
 
 	protected:

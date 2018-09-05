@@ -89,7 +89,7 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
             (((int)_modelData[46 + i * 10]));
         if (start + len - 1 > _usedChannels)
         {
-            _usedChannels = start + len - 1;
+            _usedChannels = start + len;
         }
     }
 }
@@ -428,7 +428,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _suspend) return;
 
-    if (_datagram == nullptr) return;
+    if (_datagram == nullptr || _usedChannels == 0) return;
 
     long second = wxGetLocalTime();
     if (_lastSecond == -1 || (second - _lastSecond) % 10 == 0)
@@ -453,7 +453,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
             _packet[9] = (wxByte)((startAddress >> 8) & 0xFF);
             _packet[10] = (wxByte)((startAddress) & 0xFF);
             _packet[11] = OutputManager::IsSyncEnabled_() ? 1 : 0;
-            int packetlen = _usedChannels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _channels - i;
+            int packetlen = _usedChannels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _usedChannels - i;
             _packet[12] = (wxByte)((packetlen >> 8) & 0xFF);
             _packet[13] = (wxByte)((packetlen) & 0xFF);
             memcpy(&_packet[14], &_data[i], packetlen);

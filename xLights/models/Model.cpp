@@ -263,7 +263,7 @@ public:
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
         wxPGProperty* property) override {
         ModelChainDialog dlg(propGrid);
-        dlg.Set(property->GetValue().GetString(), m_model->GetModelManager());
+        dlg.Set(m_model, m_model->GetModelManager());
         if (dlg.ShowModal() == wxID_OK) {
             wxVariant v(dlg.Get());
             SetValue(v);
@@ -575,9 +575,9 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
             }
         }
     }
-    p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", ModelXml->GetAttribute("ModelChain", "")));
-    p->Enable(_controllerName != "");
     grid->Append(new ControllerConnectionProperty(this, "Controller Connection", "ControllerConnection", ModelXml->GetAttribute("ControllerConnection", "")));
+    p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", ModelXml->GetAttribute("ModelChain", "")));
+    p->Enable(_controllerName != "" && controller_connection != "");
 
     int layout_group_number = 0;
     for (int grp = 0; grp < LAYOUT_GROUPS.Count(); grp++)
@@ -723,6 +723,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
+        grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
         return 3 | 0x0008;
     }
     else if (event.GetPropertyName() == "ModelChain") {
@@ -743,17 +744,16 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             SetStartChannel("1", true);
             grid->GetPropertyByName("ModelIndividualStartChannels")->Enable();
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable();
-            grid->GetPropertyByName("ModelChain")->Enable(false);
         }
         else
         {
-            grid->GetPropertyByName("ModelChain")->Enable(true);
             ModelXml->DeleteAttribute("Advanced");
             AdjustStringProperties(grid, parm1);
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
             grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
+        grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
 
         return 3 | 0x0008;
     }
@@ -3803,6 +3803,9 @@ void Model::SetControllerConnection(const std::string& controllerConnection)
 void Model::SetModelChain(const std::string& modelChain)
 {
     _modelChain = modelChain;
+
+    if (_modelChain == "") _modelChain = "Beginning";
+
     ModelXml->DeleteAttribute("ModelChain");
     if (_modelChain != "")
     {

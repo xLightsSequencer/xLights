@@ -56,9 +56,9 @@ ModelChainDialog::~ModelChainDialog()
 	//*)
 }
 
-void ModelChainDialog::Set(const wxString &s, const ModelManager &models) {
+void ModelChainDialog::Set(Model* m, const ModelManager &models) {
 
-    wxString chain = s;
+    wxString chain = m->GetModelChain();
 
     if (chain.StartsWith(">"))
     {
@@ -66,8 +66,9 @@ void ModelChainDialog::Set(const wxString &s, const ModelManager &models) {
     }
 
     wxArrayString  list;
+    list.push_back("Beginning");
     for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
+        if (it->second->GetDisplayAs() != "ModelGroup" && m != it->second && m->GetControllerConnection() == it->second->GetControllerConnection()) {
             list.push_back(it->first);
         }
     }
@@ -78,9 +79,10 @@ void ModelChainDialog::Set(const wxString &s, const ModelManager &models) {
 
 std::string ModelChainDialog::Get() {
 
-    if (ModelChoice->GetStringSelection() == "")
+    if (ModelChoice->GetStringSelection() == "" ||
+        ModelChoice->GetStringSelection() == "Beginning")
     {
-        return "";
+        return "Beginning";
     }
     else
     {
