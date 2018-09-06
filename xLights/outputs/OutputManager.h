@@ -64,6 +64,7 @@ public:
     void Replace(Output* replacethis, Output* withthis);
     Output* GetOutput(int outputNumber) const;
     Output* GetOutput(long absoluteChannel, long& startChannel) const;
+    Output* GetLevel1Output(long absoluteChannel, long& startChannel) const;
     Output* GetOutput(int universe, const std::string& ip) const;
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
