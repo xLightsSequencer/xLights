@@ -11,7 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.32 September 6, 2018
    -- enh (scott)  Added Node Select Dialog to the SubModel, Faces, and State Dialogs
+   -- enh (scott)  Added import/export to colour manager dialog
+   -- bug (keith)  Fix output to lights incorrect for grouped universes
+   -- bug (keith)  Some fixes for text effect
+   -- bug (keith)  Fix value curves not resetting on some effects
+   -- bug (keith)  Fix falcon upload serial validation incorrect
+   -- bug (keith)  Fix screen wont update after exporting preview to video
+   -- bug (keith)  Fix some number pad keys dont work
+   -- enh (keith)  Consolidate render cache folders
 2018.31 August 30, 2018
    -- bug (dkulp)  Fix performance regression for "Sparkles reflect music"
    -- bug (gil)    Fix timings not snapping when not zoomed in. Fixes #1221.
