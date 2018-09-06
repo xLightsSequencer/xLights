@@ -37,15 +37,11 @@ class xlGLCanvas
 		  {
 		  public:
 			  // note: width & height without content-scale factor
-			  CaptureHelper(int i_width, int i_height, double i_contentScaleFactor) : fbID(0), rbID(0), width(i_width), height(i_height), contentScaleFactor(i_contentScaleFactor), tmpBuf(nullptr) {};
+			  CaptureHelper(int i_width, int i_height, double i_contentScaleFactor) : width(i_width), height(i_height), contentScaleFactor(i_contentScaleFactor), tmpBuf(nullptr) {};
 			  virtual ~CaptureHelper();
-
-			  void SetActive(bool active);
 
 			  bool ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims=false);
 		  protected:
-			  unsigned fbID;
-			  unsigned rbID;
 			  const int width;
 			  const int height;
 			  const double contentScaleFactor;

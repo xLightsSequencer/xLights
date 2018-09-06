@@ -5,11 +5,11 @@
 #include <wx/bmpbuttn.h>
 
 //(*Headers(ColorManagerDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/statbmp.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/statbmp.h>
+#include <wx/stattext.h>
 //*)
 
 class ColorManager;
@@ -25,14 +25,16 @@ class ColorManagerDialog: public wxDialog
         void SetMainSequencer(MainSequencer* sequencer);
 
 		//(*Declarations(ColorManagerDialog)
-		wxFlexGridSizer* Sizer_Timing_Tracks;
-		wxFlexGridSizer* Sizer_Effect_Grid;
-		wxStaticBitmap* StaticBitmap1;
-		wxStaticText* StaticText1;
-		wxButton* Button_Reset;
-		wxFlexGridSizer* Sizer_Layout_Tab;
+		wxButton* ButtonExport;
+		wxButton* ButtonImport;
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
+		wxButton* Button_Reset;
+		wxFlexGridSizer* Sizer_Effect_Grid;
+		wxFlexGridSizer* Sizer_Layout_Tab;
+		wxFlexGridSizer* Sizer_Timing_Tracks;
+		wxStaticBitmap* StaticBitmap1;
+		wxStaticText* StaticText1;
 		//*)
 
 	protected:
@@ -40,6 +42,8 @@ class ColorManagerDialog: public wxDialog
 		//(*Identifiers(ColorManagerDialog)
 		static const long ID_STATICTEXT1;
 		static const long ID_STATICBITMAP1;
+		static const long ID_BUTTON_IMPORT;
+		static const long ID_BUTTON_EXPORT;
 		static const long ID_BUTTON_RESET;
 		static const long ID_BUTTON_Cancel;
 		static const long ID_BUTTON_Close;
@@ -52,6 +56,8 @@ class ColorManagerDialog: public wxDialog
 		void OnButton_Reset_DefaultsClick(wxCommandEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
+		void OnButtonImportClick(wxCommandEvent& event);
+		void OnButtonExportClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

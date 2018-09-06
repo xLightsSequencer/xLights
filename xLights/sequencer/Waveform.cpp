@@ -46,7 +46,7 @@ Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxS
                    xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "WaveForm", true)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                Creating waveform");
+    logger_base.debug("                Creating Waveform");
     m_dragging = false;
     m_drag_mode = DRAG_NORMAL;
     mParent = parent;

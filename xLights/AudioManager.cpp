@@ -32,6 +32,11 @@ int AudioData::__nextId = 0;
 #define DEFAULT_RATE RESAMPLE_RATE
 #endif
 
+#ifndef CODEC_CAP_DELAY /* add compatibility for ffmpeg 3+ */
+#define CODEC_CAP_DELAY AV_CODEC_CAP_DELAY
+#endif
+
+
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0

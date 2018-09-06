@@ -304,7 +304,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
 void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& type, std::string& description, long& channeloffset, std::string &ip, std::string& u, std::string& inactive, int& output, std::string& baud)
 {
     long ch = 0;
-    Output* o = _outputManager.GetOutput(channel, ch);
+    Output* o = _outputManager.GetLevel1Output(channel, ch);
     channeloffset = ch;
 
     type = "Unknown";
@@ -348,7 +348,7 @@ void xLightsFrame::GetControllerDetailsForChannel(long channel, std::string& typ
 std::string xLightsFrame::GetChannelToControllerMapping(long channel)
 {
     long stch;
-    Output* o = _outputManager.GetOutput(channel, stch);
+    Output* o = _outputManager.GetLevel1Output(channel, stch);
 
     if (o != nullptr)
     {

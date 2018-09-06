@@ -1026,7 +1026,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         logger_base.crit("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
     }
 
-    logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
+    //logger_base.debug("Adding model %s", (const char *)model->GetFullName().c_str());
 
     wxTreeListItem item = TreeListViewModels->AppendItem(*parent, fullName ? model->GetFullName() : model->name,
                                                          GetModelTreeIcon(model, false),
@@ -5416,8 +5416,8 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     {
         // let crontrol A through
         // Just a regular key ... If current focus is a control then we need to not process this
-        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
-            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END))
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && 
+            (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
         {
             return false;
         }

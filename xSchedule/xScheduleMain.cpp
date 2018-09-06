@@ -1254,16 +1254,16 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static int last = -1;
 
     if (__schedule == nullptr) return;
 
     // This code must be commented out before release!!!
-    static long long lastms;
-    long long now = wxGetLocalTimeMillis().GetValue();
-    logger_base.debug("Start frame %d", (int)(now - lastms));
-    lastms = now;
+    //static long long lastms;
+    //long long now = wxGetLocalTimeMillis().GetValue();
+    //logger_base.debug("Start frame %d", (int)(now - lastms));
+    //lastms = now;
 
     wxDateTime frameStart = wxDateTime::UNow();
 
@@ -1272,7 +1272,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
     {
         // This code must be commented out before release!!!
-        logger_base.debug("    Check schedule");
+        //logger_base.debug("    Check schedule");
         last = wxDateTime::Now().GetSecond();
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event2);

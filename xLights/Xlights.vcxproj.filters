@@ -359,7 +359,7 @@
     <ClCompile Include="ViewObjectPanel.cpp" />
     <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
-    <ClCompile Include="SubModelDrawGrid.cpp" />
+    <ClCompile Include="NodeSelectGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -719,7 +719,7 @@
     <ClInclude Include="ViewObjectPanel.h" />
     <ClInclude Include="models\ImageObject.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
-    <ClInclude Include="SubModelDrawGrid.h" />
+    <ClInclude Include="NodeSelectGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

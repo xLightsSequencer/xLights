@@ -344,6 +344,7 @@ static int TextEffectsIndex(const wxString &st) {
     if (st == "rotate down 90") return 6;
     return 0;
 }
+
 void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     // determine if we are rendering an xLights Font
@@ -353,8 +354,6 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         RenderXLText(effect, SettingsMap, buffer);
         return;
     }
-
-
 
     wxString text = SettingsMap["TEXTCTRL_Text"];
     if (text != "") {
@@ -411,7 +410,6 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
         }
     }
 }
-
 
 wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
                               const wxString& text,
@@ -475,7 +473,6 @@ wxSize GetMultiLineTextExtent(TextDrawingContext *dc,
     *hl = heightLine;
     return wxSize(widthTextMax, heightTextTotal);
 }
-
 
 class CachedTextInfo {
 public:
@@ -578,9 +575,8 @@ void DrawLabel(TextDrawingContext *dc,
     wxCoord widthText, heightText, heightLine;
     GetMultiLineTextExtent(dc, text, &widthText, &heightText, &heightLine);
 
-    wxCoord width, height;
-    width = widthText;
-    height = heightText;
+    wxCoord width = widthText;
+    wxCoord height = heightText;
 
     wxCoord x, y;
     if ( alignment & wxALIGN_RIGHT )
@@ -644,14 +640,14 @@ void DrawLabel(TextDrawingContext *dc,
                 if (colors.size() != 1) {
                     wxArrayDouble d;
                     dc->GetTextExtents(curLine, d);
-                    for (int x = 0; x < curLine.size(); x++) {
-                        wxString c = curLine[x];
+                    for (int x1 = 0; x1 < curLine.size(); x1++) {
+                        wxString c = curLine[x1];
                         if (c != " ") {
                             SetFont(dc, fontString, colors[curPos % colors.size()]);
                             curPos++;
                             double loc = xRealStart;
-                            if (x != 0) {
-                                loc += d[x - 1];
+                            if (x1 != 0) {
+                                loc += d[x1 - 1];
                             }
                             dc->DrawText(c, loc, y);
                         }
@@ -724,7 +720,6 @@ static wxString StripRight(wxString str, wxString pattern)
     return str;
 }
 
-
 TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
     TextRenderCache *cache = (TextRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -776,8 +771,6 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             }
             break;
     }
-
-    
     
     TextRenderCache *cache = GetCache(buffer, id);
     bool fontSet = false;
@@ -838,7 +831,6 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
 
     int xlimit=totwidth*8 + 1;
     int ylimit=totheight*8 + 1;
-    int state8;
 
     if (TextRotation == 0.0)
     {
@@ -861,11 +853,13 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             case TEXTDIR_LEFT:
                 //           debug(1, "l2r[%d] center? %d, xlim/16 %d, state %d, xofs %d, extra l %d r %d, text %s", idx, center, xlimit/16, state, center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, extra_left, extra_right, (const char*)msg);
                 // rect.Offset(center? std::max((int)(xlimit/16 - state /*% xlimit*/ /8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
-                state8 = state /8;
-                if(state8<0) state8+=32768;
-                if(state>2000000)
-                    state=state+0;
-                rect.Offset(center? std::max((int)(xlimit/16 - state8), -extra_left/2): xlimit/16 - state % xlimit/8, OffsetTop);
+                {                
+                    int state8 = state / 8;
+                    if (state8 < 0) state8 += 32768;
+                    if (state > 2000000)
+                        state = state + 0;
+                    rect.Offset(center ? std::max((int)(xlimit / 16 - state8), -extra_left / 2) : xlimit / 16 - state % xlimit / 8, OffsetTop);
+                }
                 break; // left, optionally stop at center
             case TEXTDIR_RIGHT:
                 rect.Offset(center? std::min((int)(state /*% xlimit*/ /8 - xlimit/16), extra_right/2): state % xlimit/8 - xlimit/16, OffsetTop);
@@ -910,17 +904,17 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             colors.push_back(xlWHITE);
         }
         CachedTextInfo inf(msg.ToStdString(), fontString, colors, rect);
-        wxImage *i = GetCache(buffer,id)->GetImage(inf);
-        if (i == nullptr) {
+        wxImage *img = GetCache(buffer,id)->GetImage(inf);
+        if (img == nullptr) {
             dc->Clear();
             SetFont(dc, fontString, colors[0]);
             DrawLabel(dc, msg, rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, GetCache(buffer,id), fontString, colors);
             wxImage *i2 = dc->FlushAndGetImage();
-            i = new wxImage(i2->GetSize());
-            *i = i2->Copy();
-            GetCache(buffer,id)->PutImage(inf, i);
+            img = new wxImage(i2->GetSize());
+            *img = i2->Copy();
+            GetCache(buffer,id)->PutImage(inf, img);
         }
-        return i;
+        return img;
     }
     
     xlColor c;
@@ -1169,7 +1163,14 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
             else if (Countdown == COUNTDOWN_FREEFMT)
                 //            msg = _T("%%") + Line + _T("%%") + fmt + _T("%%");
-                msg = ts.Format(fmt); //dt.Format(fmt)
+                if (fmt == "" || (fmt.EndsWith("%") && !fmt.EndsWith("%%")))
+                {
+                    msg = _T("invalid format");
+                }
+                else
+                {
+                    msg = ts.Format(fmt); //dt.Format(fmt)
+                }
             else //if (Countdown == COUNTDOWN_M_or_S)
                 if (60 * hours + minutes < 5) //COUNTDOWN_M_or_S: show seconds
                     msg = wxString::Format("%d", 60 * 60 * hours + 60 * minutes + seconds);
@@ -1183,6 +1184,7 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
             break;
     }
 }
+
 void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer)
 {
     xlColor c;
@@ -1211,7 +1213,6 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int char_height = font->GetHeight();
 
     wxString text = settings["TEXTCTRL_Text"];
-    int text_length = font_mgr.get_length(font, text);
 
     wxString msg = text;
     int Countdown = TextCountDownIndex(settings["CHOICE_Text_Count"]);
@@ -1223,6 +1224,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
         msg.Replace(" : ", ":");
     }
     text = msg;
+    int text_length = font_mgr.get_length(font, text);
 
     int text_effect = TextEffectsIndex(settings["CHOICE_Text_Effect"]);
     bool vertical = false;

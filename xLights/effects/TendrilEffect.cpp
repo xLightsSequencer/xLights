@@ -206,8 +206,6 @@ void ATendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
     --ci_second_last;
     --ci_second_last;
 
-    TendrilNode* a;
-    TendrilNode* b;
     for(;ci != ci_second_last; ++ci)
     {
         TendrilNode* a = *ci;
@@ -219,8 +217,8 @@ void ATendril::Draw(PathDrawingContext* gc, xlColor colour, int thickness)
         path.AddQuadCurveToPoint(a->x, a->y, x, y);
     }
 
-    a = *ci;
-    b = *(++ci);
+    TendrilNode* a = *ci;
+    TendrilNode* b = *(++ci);
     path.AddQuadCurveToPoint(a->x, a->y, b->x, b->y);
     gc->StrokePath(path);
 }
@@ -275,10 +273,10 @@ Tendril::Tendril(float friction, int trails, int size, float dampening, float te
 	for (int i = 0; i < t; i++)
 	{
 		float aspring = sb + si * ((float)i / (float)t);
-		ATendril* t = new ATendril(friction, size, dampening, tension, aspring, start, maxx, maxy);
-		if (t != nullptr)
+		ATendril* at = new ATendril(friction, size, dampening, tension, aspring, start, maxx, maxy);
+		if (at != nullptr)
 		{
-			_tendrils.push_back(t);
+			_tendrils.push_back(at);
 		}
 	}
 }

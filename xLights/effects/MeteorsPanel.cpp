@@ -89,7 +89,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	Choice_Meteors_Type->SetSelection( Choice_Meteors_Type->Append(_("Rainbow")) );
 	Choice_Meteors_Type->Append(_("Range"));
 	Choice_Meteors_Type->Append(_("Palette"));
-	FlexGridSizer41->Add(Choice_Meteors_Type, 1, wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer41->Add(Choice_Meteors_Type, 1, wxTOP|wxBOTTOM|wxEXPAND, 5);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_MeteorsType = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Meteors_Type, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Meteors_Type"));
 	BitmapButton_MeteorsType->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -105,7 +105,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	Choice_Meteors_Effect->Append(_("Explode"));
 	Choice_Meteors_Effect->Append(_("Icicles"));
 	Choice_Meteors_Effect->Append(_("Icicles + bkg"));
-	FlexGridSizer41->Add(Choice_Meteors_Effect, 1, wxTOP|wxBOTTOM|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer41->Add(Choice_Meteors_Effect, 1, wxTOP|wxBOTTOM|wxEXPAND, 2);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_MeteorsEffect = new xlLockButton(this, ID_BITMAPBUTTON_CHOICE_Meteors_Effect, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHOICE_Meteors_Effect"));
 	BitmapButton_MeteorsEffect->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -199,7 +199,7 @@ MeteorsPanel::MeteorsPanel(wxWindow* parent)
 	BitmapButton_Meteors_YOffset->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer41->Add(BitmapButton_Meteors_YOffset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_Meteors_UseMusic = new BulkEditCheckBox(this, ID_CHECKBOX_Meteors_UseMusic, _("Adjust count based on music intensity"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Meteors_UseMusic"));
+	CheckBox_Meteors_UseMusic = new BulkEditCheckBox(this, ID_CHECKBOX_Meteors_UseMusic, _("Adjust count based on music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Meteors_UseMusic"));
 	CheckBox_Meteors_UseMusic->SetValue(false);
 	FlexGridSizer41->Add(CheckBox_Meteors_UseMusic, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer41->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

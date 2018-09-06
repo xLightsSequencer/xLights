@@ -63,7 +63,8 @@ public:
     std::list<Output*> GetOutputs() const { return _outputs; } // returns a list like that on setup tab
     void Replace(Output* replacethis, Output* withthis);
     Output* GetOutput(int outputNumber) const;
-    Output* GetOutput(long absoluteChannel, long& startChannel) const;
+    Output* GetOutput(long absoluteChannel, long& startChannel) const; // returns the output ... even if it is in a collection
+    Output* GetLevel1Output(long absoluteChannel, long& startChannel) const; // returns the output ... but always level 1
     Output* GetOutput(int universe, const std::string& ip) const;
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
