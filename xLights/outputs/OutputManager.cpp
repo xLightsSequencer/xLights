@@ -300,7 +300,7 @@ std::string OutputManager::GetChannelName(long channel)
 {
     long startChannel = 0;
     ++channel;
-    Output* o = GetOutput(channel, startChannel);
+    Output* o = GetLevel1Output(channel, startChannel);
 
     if (o == nullptr)
     {
@@ -915,7 +915,7 @@ void OutputManager::AllOff()
 void OutputManager::SetOneChannel(long channel, unsigned char data)
 {
     long sc = 0;
-    Output* output = GetOutput(channel + 1, sc);
+    Output* output = GetLevel1Output(channel + 1, sc);
     if (output != nullptr)
     {
         if (output->IsEnabled())

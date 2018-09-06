@@ -1164,8 +1164,6 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
 
     file.Seek(0);
 
-
-
     channels = 0;
 
     for (tmp = 0; tmp < map.size(); tmp += 2)

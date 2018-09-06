@@ -1037,7 +1037,7 @@ std::string Model::ComputeStringStartChannel(int i) {
         }
         else {
             long ststch;
-            Output* o = modelManager.GetOutputManager()->GetOutput(startChannel, ststch);
+            Output* o = modelManager.GetOutputManager()->GetLevel1Output(startChannel, ststch);
             if (o != nullptr)
             {
                 return wxString::Format("%i:%ld", o->GetOutputNumber(), ststch).ToStdString();
@@ -1750,7 +1750,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
     {
         // output:channel
         long startChannel;
-        Output* output = outputManager->GetOutput(lastChannel, startChannel);
+        Output* output = outputManager->GetLevel1Output(lastChannel, startChannel);
 
         if (output == nullptr)
         {
