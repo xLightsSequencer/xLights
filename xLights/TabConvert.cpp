@@ -33,6 +33,11 @@ extern "C"
 
 #include <log4cpp/Category.hh>
 
+#ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
+#define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+#endif
+
+
 void xLightsFrame::ConversionError(const wxString& msg)
 {
     wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);

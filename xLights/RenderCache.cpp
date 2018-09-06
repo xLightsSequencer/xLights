@@ -87,14 +87,33 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
 
     Close();
 
-    if (!IsEnabled()) return;
+    if (!IsEnabled())
+    {
+        if (sequenceFile != "")
+        {
+            _cacheFolder = path + wxFileName::GetPathSeparator() + "RenderCache" + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
+            if (wxDir::Exists(_cacheFolder))
+            {
+                logger_base.debug("Render cache disabled so removing folder %s.", (const char *)_cacheFolder.c_str());
+                wxDir::Remove(_cacheFolder, wxPATH_RMDIR_RECURSIVE);
+            }
+        }
+        return;
+    }
 
     if (sequenceFile != "")
     {
-        this->_cacheFolder = path + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
+        _cacheFolder = path + wxFileName::GetPathSeparator() + "RenderCache" + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
 
         if (!wxDir::Exists(_cacheFolder))
         {
+            wxString common = path + wxFileName::GetPathSeparator() + "RenderCache";
+            if (!wxDir::Exists(common))
+            {
+                logger_base.debug("Creating render cache folder %s.", (const char *)common.c_str());
+                wxDir::Make(common);
+            }
+
             logger_base.debug("Creating render cache folder %s.", (const char *)_cacheFolder.c_str());
             wxDir::Make(_cacheFolder);
         }

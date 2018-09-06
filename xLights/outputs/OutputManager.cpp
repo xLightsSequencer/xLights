@@ -296,6 +296,21 @@ Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
     return nullptr;
 }
 
+// get an output based on an absolute channel number
+Output* OutputManager::GetLevel1Output(long absoluteChannel, long& startChannel) const
+{
+    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    {
+        if (absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+        {
+            startChannel = absoluteChannel - (*it)->GetStartChannel() + 1;
+            return *it;
+        }
+    }
+
+    return nullptr;
+}
+
 // get an output based on a universe number
 Output* OutputManager::GetOutput(int universe, const std::string& ip) const
 {
@@ -346,7 +361,7 @@ std::string OutputManager::GetChannelName(long channel)
 {
     long startChannel = 0;
     ++channel;
-    Output* o = GetOutput(channel, startChannel);
+    Output* o = GetLevel1Output(channel, startChannel);
 
     if (o == nullptr)
     {
@@ -961,7 +976,7 @@ void OutputManager::AllOff()
 void OutputManager::SetOneChannel(long channel, unsigned char data)
 {
     long sc = 0;
-    Output* output = GetOutput(channel + 1, sc);
+    Output* output = GetLevel1Output(channel + 1, sc);
     if (output != nullptr)
     {
         if (output->IsEnabled())
@@ -977,7 +992,7 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
     if (size == 0) return;
 
     long stch;
-    Output* o = GetOutput(channel + 1, stch);
+    Output* o = GetLevel1Output(channel + 1, stch);
 
     // if this doesnt map to an output then skip it
     if (o == nullptr) return;

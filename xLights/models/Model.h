@@ -350,7 +350,7 @@ public:
             return strandNames[x];
         }
         if (def) {
-            return wxString::Format("Strand %i", (long)x + 1).ToStdString();
+            return wxString::Format("Strand %ld", (long)x + 1).ToStdString();
         }
         return "";
     }
@@ -359,7 +359,7 @@ public:
             return nodeNames[x];
         }
         if (def) {
-            return wxString::Format("Node %i", (long)x + 1).ToStdString();
+            return wxString::Format("Node %ld", (long)x + 1).ToStdString();
         }
         return "";
     }

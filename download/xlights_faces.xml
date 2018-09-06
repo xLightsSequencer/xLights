@@ -108,6 +108,10 @@
 			<id>Other</id>
 			<name>Other</name>
 		</category>
+		<category>
+			<id>xLightsATW</id>
+			<name>xLights Around The World</name>
+		</category>
 	</categories>
 	<face>
 		<id>1</id>
@@ -1487,7 +1491,7 @@
 	</face>
 	<face>
 		<id>106</id>
-		<categoryid>Witches</categoryid>0
+		<categoryid>Witches</categoryid>
 		<name>Witch</name>
 		<artist>Ed Buechner</artist>
 		<facelink>http://nutcracker123.com/xlights/faces/Witch02.zip</facelink>
@@ -1496,7 +1500,7 @@
 		<height>449</height>
 		<minwidth>-1</minwidth>
 		<minheight>-1</minheight>
-		<notes/>
+		<notes>Witch with White Background</notes>
 	</face>
 	<face>
 		<id>107</id>
@@ -2125,7 +2129,7 @@
 		<height>141</height>
 		<minwidth>-1</minwidth>
 		<minheight>-1</minheight>
-		<notes/>
+		<notes>Singing Tree with White Background</notes>
 	</face>
 	<face>
 		<id>155</id>
@@ -2837,5 +2841,305 @@
 		<minwidth>-1</minwidth>
 		<minheight>-1</minheight>
 		<notes></notes>
+	</face>
+	<face>
+		<id>209</id>
+		<categoryid>Other</categoryid>
+		<name>SingDog</name>
+		<artist>jamills6377</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/SingDog.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/SingDog.png</faceimage>
+		<width>661</width>
+		<height>666</height>
+		<minwidth>40</minwidth>
+		<minheight>40</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>210</id>
+		<categoryid>Other</categoryid>
+		<name>Officer</name>
+		<artist>jamills6377</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/officer.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/officer.png</faceimage>
+		<width>725</width>
+		<height>824</height>
+		<minwidth>40</minwidth>
+		<minheight>40</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>211</id>
+		<categoryid>Santa</categoryid>
+		<name>MrsClaus</name>
+		<artist>jamills6377</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/MrsClaus.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/MrsClaus.png</faceimage>
+		<width>600</width>
+		<height>662</height>
+		<minwidth>40</minwidth>
+		<minheight>40</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>212</id>
+		<categoryid>Christmas</categoryid>
+		<name>Hippo</name>
+		<artist>jamills6377</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Hippo.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Hippo.png</faceimage>
+		<width>490</width>
+		<height>591</height>
+		<minwidth>40</minwidth>
+		<minheight>40</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>213</id>
+		<categoryid>Trees</categoryid>
+		<name>Christmas Tree</name>
+		<artist>jamills6377</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/ChrTree.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/ChrTree.png</faceimage>
+		<width>490</width>
+		<height>591</height>
+		<minwidth>40</minwidth>
+		<minheight>40</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>214</id>
+		<categoryid>Other</categoryid>
+		<name>Duet_M</name>
+		<artist>jamills6377</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Duet_M.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Duet_M.png</faceimage>
+		<width>300</width>
+		<height>600</height>
+		<minwidth>40</minwidth>
+		<minheight>20</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>215</id>
+		<categoryid>Other</categoryid>
+		<name>Duet_F</name>
+		<artist>jamills6377</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Duet_F.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Duet_F.png</faceimage>
+		<width>300</width>
+		<height>600</height>
+		<minwidth>40</minwidth>
+		<minheight>20</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>216</id>
+		<categoryid>Other</categoryid>
+		<name>Branch</name>
+		<artist>Tomas Rodriguez</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Branch02.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Branch02.png</faceimage>
+		<width>191</width>
+		<height>172</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>From Trolls Movie</notes>
+	</face>
+	<face>
+		<id>217</id>
+		<categoryid>Other</categoryid>
+		<name>Bridgette</name>
+		<artist>Tomas Rodriguez</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/bridgette.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/bridgette.png</faceimage>
+		<width>316</width>
+		<height>217</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>From Trolls Movie</notes>
+	</face>
+	<face>
+		<id>218</id>
+		<categoryid>MiscChristmas</categoryid>
+		<categoryid>Other</categoryid>
+		<name>Elsa</name>
+		<artist>Richard Sonnier/706 Lights</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Elsa05.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Elsa05.png</faceimage>
+		<width>861</width>
+		<height>1024</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Forward Looking with blue background</notes>
+	</face>
+	<face>
+		<id>219</id>
+		<categoryid>Other</categoryid>
+		<name>Gristle</name>
+		<artist>Tomas Rodriguez</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/gristle.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/gristle.png</faceimage>
+		<width>387</width>
+		<height>377</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>From Trolls Movie</notes>
+	</face>
+	<face>
+		<id>220</id>
+		<categoryid>Other</categoryid>
+		<name>Poppy</name>
+		<artist>Tomas Rodriguez</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Poppy03.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Poppy03.png</faceimage>
+		<width>205</width>
+		<height>255</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>From Trolls Movie</notes>
+	</face>
+	<face>
+		<id>221</id>
+		<categoryid>Trees</categoryid>
+		<name>Singing Tree</name>
+		<artist>B. Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Tree02Trans.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Tree02Trans.png</faceimage>
+		<width>100</width>
+		<height>141</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Signing Tree with Transparent Background</notes>
+	</face>
+	<face>
+		<id>222</id>
+		<categoryid>Witches</categoryid>
+		<name>Witch</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch02Trans.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch02Trans.png</faceimage>
+		<width>379</width>
+		<height>370</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Witch with Transparent Background</notes>
+	</face>
+	<face>
+		<id>223</id>
+		<categoryid>Witches</categoryid>
+		<name>Witch</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch05.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch05.png</faceimage>
+		<width>164</width>
+		<height>164</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>224</id>
+		<categoryid>Witches</categoryid>
+		<name>Witch</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch06.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch06.png</faceimage>
+		<width>334</width>
+		<height>298</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>225</id>
+		<categoryid>Witches</categoryid>
+		<name>Witch</name>
+		<artist>Ed Buechner</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Witch07.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Witch07.png</faceimage>
+		<width>165</width>
+		<height>149</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes/>
+	</face>
+	<face>
+		<id>226</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Albino</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Albino1.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Albino1.png</faceimage>
+		<width>110</width>
+		<height>131</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>227</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Anne</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Anne.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Anne.png</faceimage>
+		<width>96</width>
+		<height>122</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>228</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Lettie</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Lettie.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Lettie.png</faceimage>
+		<width>144</width>
+		<height>150</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>229</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Phillip</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/Phillip.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/Phillip.png</faceimage>
+		<width>91</width>
+		<height>122</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>230</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>P.T. Barnum</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/PTBarnum.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/PTBarnum.png</faceimage>
+		<width>116</width>
+		<height>122</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
+	</face>
+	<face>
+		<id>231</id>
+		<categoryid>xLightsATW</categoryid>
+		<name>Tom Thumb</name>
+		<artist>Bruce Johnson</artist>
+		<facelink>http://nutcracker123.com/xlights/faces/TomThumb.zip</facelink>
+		<faceimage>http://nutcracker123.com/xlights/faces/TomThumb.png</faceimage>
+		<width>145</width>
+		<height>110</height>
+		<minwidth>-1</minwidth>
+		<minheight>-1</minheight>
+		<notes>Character from "The Greatest Showman" used for the 2018 xLights Around The World.</notes>
 	</face>
 </faces>

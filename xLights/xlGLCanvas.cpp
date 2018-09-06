@@ -136,7 +136,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         cache(nullptr)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("                Creating GL Canvas for %s", (const char *)name.c_str());
+    logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
 
     xlSetOpenGLRetina(*this);
     this->GetGLCTXAttrs().PlatformDefaults();

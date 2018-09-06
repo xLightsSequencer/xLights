@@ -4,6 +4,7 @@
 #include "TimeLine.h"
 #include "Waveform.h"
 #include "../xLightsMain.h"
+#include <log4cpp/Category.hh>
 
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
@@ -208,6 +209,9 @@ int TimeLine::GetPositionFromSelection(int position)
 TimeLine::TimeLine(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name):
                    wxWindow((wxWindow*)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("                Creating Timeline");
+
     _savedPosition = -1;
     mParent = (wxPanel*)parent;
     DOUBLE_BUFFER(this);

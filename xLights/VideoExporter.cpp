@@ -13,6 +13,9 @@ extern "C"
 
 #include "VideoExporter.h"
 
+#ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
+#define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+#endif
 
 double VideoExporter::s_t = 0.;
 double VideoExporter::s_freq = 750.;
