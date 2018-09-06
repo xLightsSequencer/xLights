@@ -332,6 +332,12 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             SeqChanCtrlBasic=false;
             SeqChanCtrlColor=false;
             loaded_fseq = true;
+
+            logger_base.debug("    Fseq file loaded.");
+            logger_base.debug("        Channels %u", SeqData.NumChannels());
+            logger_base.debug("        Frame Time %u", SeqData.FrameTime());
+            logger_base.debug("        Frames %u", SeqData.NumFrames());
+            logger_base.debug("        Length %u", SeqData.TotalTime());
         }
         else
         {
