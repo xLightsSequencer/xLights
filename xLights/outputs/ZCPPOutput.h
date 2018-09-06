@@ -56,7 +56,6 @@ public:
     virtual int GetMaxChannels() const override { return ZCPP_MAXCHANNELS; }
     virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     virtual long GetEndChannel() const override;
-    virtual std::string GetUniverseString() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
     void SetVendor(int vendor) { _vendor = vendor; _dirty = true; }
@@ -65,6 +64,7 @@ public:
     int GetModel() const { return _model; }
     bool SetModelData(unsigned char* buffer, size_t bufsize, std::string showDir);
     virtual bool IsLookedUpByControllerName() const override { return true; }
+    virtual std::string GetUniverseString() const override { return ""; }
     #pragma region Getters and Setters
 
     virtual wxXmlNode* Save() override;

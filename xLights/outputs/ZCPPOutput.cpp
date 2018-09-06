@@ -61,7 +61,7 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _lastSecond = -1;
     _channels = 1;
     _usedChannels = 1;
-    _universe = 64001;
+    _universe = -1;
     _sequenceNum = 0;
     _datagram = nullptr;
     _data = (wxByte*)malloc(_channels);
@@ -543,11 +543,6 @@ std::string ZCPPOutput::GetChannelMapping(long ch) const
 
     if (!_enabled) res += " INACTIVE";
     return res;
-}
-
-std::string ZCPPOutput::GetUniverseString() const
-{
-    return IPOutput::GetUniverseString();
 }
 #pragma endregion Getters and Setters
 
