@@ -66,6 +66,9 @@
 #include "ModelPreview.h"
 #include "TopEffectsPanel.h"
 #include "LyricUserDictDialog.h"
+#include "controllers/ControllerUploadData.h"
+#include "controllers/Falcon.h"
+#include "outputs/ZCPPOutput.h"
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -4738,6 +4741,180 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // ZCPP Checks
+    std::list<Output*> zcppOutputs;
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    {
+        if ((*it)->GetType() == "ZCPP")
+        {
+            zcppOutputs.push_back(*it);
+        }
+    }
+
+    if (zcppOutputs.size() > 0)
+    {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "ZCPP Checks");
+
+        // zcpp controllers with descriptions that clash with other outputs
+        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        {
+            if ((*it)->GetDescription() == "")
+            {
+                wxString msg = wxString::Format("    ERR: ZCPP controller on IP %s has no description. This is not valid.", (const char*)(*it)->GetIP().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+
+            auto sit = it;
+            ++sit;
+            for (; sit != zcppOutputs.end(); ++sit)
+            {
+                if (*it == *sit)
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple ZCPP outputs with the same description '%s'. This is not valid.", (const char*)(*it)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                    break;
+                }
+            }
+        }
+
+        // zcpp ip address must only be on one output ... no duplicates
+        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        {
+            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            {
+                if (*ito != *it && (*it)->GetIP() == (*ito)->GetIP())
+                {
+                    wxString msg = wxString::Format("    ERR: ZCPP IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.", (const char*)(*it)->GetIP().c_str(), (const char*)(*it)->GetDescription().c_str(), (const char*)(*ito)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                    break;
+                }
+            }
+        }
+
+        std::map<std::string, std::map<std::string, std::list<Model*>>> modelsByPortByController;
+        for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+        {
+            if (it->second->GetControllerName() != "")
+            {
+                Output* o = _outputManager.GetOutput(it->second->GetControllerName());
+                if (o != nullptr)
+                {
+                    if (!it->second->IsControllerConnectionValid())
+                    {
+                        wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' has invalid controller connection '%s'.", (const char*)it->second->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)it->second->GetControllerConnection().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+
+                    if (modelsByPortByController.find(o->GetDescription()) == modelsByPortByController.end())
+                    {
+                        std::map<std::string, std::list<Model*>> pm;
+                        modelsByPortByController[o->GetDescription()] = pm;
+                    }
+                    modelsByPortByController[o->GetDescription()][wxString(it->second->GetControllerConnection()).Lower().ToStdString()].push_back(it->second);
+                }
+            }
+        }
+
+        // Models with chains to models that dont exist or are not on same controller and port
+        // Multiple models with the same chain value on the same port on the same controller
+        // Loops in model chains
+
+        // for each controller
+        for (auto it = modelsByPortByController.begin(); it != modelsByPortByController.end(); ++it)
+        {
+            //it->first is controller
+            //it->second is a list of ports
+
+            Output* o = _outputManager.GetOutput(it->first);
+
+            // for each port
+            for (auto itp = it->second.begin(); itp != it->second.end(); ++itp)
+            {
+                // itp->first is the port name
+                // itp->second  is the model list
+
+                    // order the models
+                std::string last = "";
+
+                while (itp->second.size() > 0)
+                {
+                    bool pushed = false;
+                    for (auto itms = itp->second.begin(); itms != itp->second.end(); ++itms)
+                    {
+                        if (((*itms)->GetModelChain() == "Beginning" && last == "") ||
+                            (*itms)->GetModelChain() == last ||
+                            (*itms)->GetModelChain() == ">" + last)
+                        {
+                            pushed = true;
+                            last = (*itms)->GetName();
+                            itp->second.erase(itms);
+                            break;
+                        }
+                    }
+
+                    if (!pushed && itp->second.size() > 0)
+                    {
+                        // chain is broken ... so just put the rest in in random order
+                        while (itp->second.size() > 0)
+                        {
+                            wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.", (const char*)itp->second.front()->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)itp->second.front()->GetControllerConnection().c_str(), (const char*)itp->second.front()->GetModelChain().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                            itp->second.pop_front();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Apply the vendor specific validations
+        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        {
+            wxString msg = wxString::Format("        Applying controller rules for %s:%s", (*it)->GetIP(), (*it)->GetDescription());
+            LogAndWrite(f, msg.ToStdString());
+
+            std::list<int> outputNums;
+            std::string check;
+            UDController edc((*it)->GetIP(), &AllModels, &_outputManager, &outputNums, check);
+            if (check != "")
+            {
+                LogAndWrite(f, check);
+            }
+
+            check = "";
+
+            switch(((ZCPPOutput*)(*it))->GetVendor())
+            {
+            case 0:
+                // falcon
+                {
+                    FalconControllerRules fcr(((ZCPPOutput*)(*it))->GetModel());
+                    edc.Check(&fcr, check);
+                }
+                break;
+            default:
+                LogAndWrite(f, "Unknown controller vendor.");
+                break;
+            }
+            if (check != "")
+            {
+                LogAndWrite(f, check);
+            }
+        }
+
+        if (errcount + warncount == errcountsave + warncountsave)
+        {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+    }
+
     // multiple outputs to same universe/ID
     LogAndWrite(f, "");
     LogAndWrite(f, "Multiple outputs with same universe/id number");
@@ -4946,6 +5123,16 @@ void xLightsFrame::CheckSequence(bool display)
                     }
                 }
             }
+            else if (start[0] == '!')
+            {
+                auto comp = wxSplit(start.substr(1), ':');
+                if (_outputManager.GetOutput(comp[0]) == nullptr)
+                {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent controller '%s'.", it->first, start, comp[0]);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            } 
             if (it->second->GetLastChannel() == (unsigned int)-1)
             {
                 wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it->first, start);
@@ -5011,6 +5198,10 @@ void xLightsFrame::CheckSequence(bool display)
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
+            }
+            else if (start[0] == '!')
+            {
+                // nothing to check
             }
             else if (start.find(':') != std::string::npos)
             {

@@ -150,7 +150,7 @@ bool OutputManager::Save()
 #pragma endregion Save and Load
 
 #pragma region Controller Discovery
-bool OutputManager::Discover()
+bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>& renames)
 {
     bool found = false;
 
@@ -159,10 +159,47 @@ bool OutputManager::Discover()
     auto zcpp = ZCPPOutput::Discover(this);
     for (auto it = zcpp.begin(); it != zcpp.end(); ++it)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        auto match = std::find(outputs.begin(), outputs.end(), *it);
+        if (match == outputs.end())
         {
-            _outputs.push_back(*it);
-            found = true;
+            // no match on ip ... but what about description
+            bool updated = false;
+            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            {
+                if ((*ito)->GetType() == "ZCPP" && (*ito)->GetDescription() == (*it)->GetDescription())
+                {
+                    if (wxMessageBox("The discovered ZCPP controller matches an existing ZCPP controllers Description but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, frame) == wxYES)
+                    {
+                        updated = true;
+                        (*ito)->SetIP((*it)->GetIP());
+                        found = true;
+                    }
+                }
+            }
+
+            if (!updated)
+            {
+                _outputs.push_back(*it);
+                found = true;
+            }
+        }
+        else
+        {
+            // ip address matches
+            if ((*it)->GetDescription() == (*match)->GetDescription())
+            {
+                // descriptions also match ... no need to do anything
+            }
+            else
+            {
+                // existing zcpp with same ip but different description ... maybe we should update the description
+                if (wxMessageBox("The discovered ZCPP controller matches an existing ZCPP controllers IP address but has a different description. Do you want to update the description in xLights?", "Mismatch controller description", wxYES_NO, frame) == wxYES)
+                {
+                    renames[(*match)->GetDescription()] = (*it)->GetDescription();
+                    (*match)->SetDescription((*it)->GetDescription());
+                    found = true;
+                }
+            }
         }
     }
 

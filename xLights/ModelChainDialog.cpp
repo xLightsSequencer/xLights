@@ -59,16 +59,20 @@ ModelChainDialog::~ModelChainDialog()
 void ModelChainDialog::Set(Model* m, const ModelManager &models) {
 
     wxString chain = m->GetModelChain();
+    if (chain == "") chain = "Beginning";
 
     if (chain.StartsWith(">"))
     {
         chain = chain.substr(1);
     }
+    wxString mc = wxString(m->GetControllerConnection()).Lower();
 
     wxArrayString  list;
     list.push_back("Beginning");
     for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup" && m != it->second && m->GetControllerConnection() == it->second->GetControllerConnection()) {
+        if (it->second->GetDisplayAs() != "ModelGroup" && 
+            m != it->second && 
+            mc == wxString(it->second->GetControllerConnection()).Lower()) {
             list.push_back(it->first);
         }
     }

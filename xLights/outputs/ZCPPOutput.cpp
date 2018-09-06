@@ -26,6 +26,8 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     _data = (wxByte*)malloc(_channels);
     memset(_data, 0, _channels);
     memset(_packet, 0, sizeof(_packet));
+    _vendor = wxAtoi(node->GetAttribute("Vendor", "65535"));
+    _model = wxAtoi(node->GetAttribute("Model", "65535"));
 
     wxString fileName = GetIP();
     fileName.Replace(".", "_");
@@ -127,6 +129,8 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::string
 wxXmlNode* ZCPPOutput::Save()
 {
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
+    node->AddAttribute("Vendor", wxString::Format("%d", _vendor));
+    node->AddAttribute("Model", wxString::Format("%d", _model));
     IPOutput::Save(node);
 
     return node;
@@ -301,9 +305,9 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                         output->SetChannels(channels);
                         auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[90], (int)buffer[91], (int)buffer[92], (int)buffer[93]);
                         output->SetIP(ip.ToStdString());
-                        int vendor = buffer[6] << 8 + buffer[7];
+                        int vendor = ((int)buffer[6] << 8) + buffer[7];
                         output->SetVendor(vendor);
-                        int model = buffer[8] << 8 + buffer[9];
+                        int model = ((int)buffer[8] << 8) + buffer[9];
                         output->SetModel(model);
 
                         // now search for it in outputManager
@@ -452,8 +456,8 @@ void ZCPPOutput::EndFrame(int suppressFrames)
             _packet[8] = (wxByte)((startAddress >> 16) & 0xFF);
             _packet[9] = (wxByte)((startAddress >> 8) & 0xFF);
             _packet[10] = (wxByte)((startAddress) & 0xFF);
-            _packet[11] = OutputManager::IsSyncEnabled_() ? 1 : 0;
             int packetlen = _usedChannels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _usedChannels - i;
+            _packet[11] = (OutputManager::IsSyncEnabled_() ? 0x01 : 0x00) + (i + packetlen == _usedChannels ? 0xF0 : 0x00);
             _packet[12] = (wxByte)((packetlen >> 8) & 0xFF);
             _packet[13] = (wxByte)((packetlen) & 0xFF);
             memcpy(&_packet[14], &_data[i], packetlen);

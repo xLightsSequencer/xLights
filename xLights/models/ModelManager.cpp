@@ -323,12 +323,13 @@ void ModelManager::ReworkStartChannel() const
             {
                 if (itm->second->GetControllerName() == (*it)->GetDescription())
                 {
-                    if (cmodels.find(itm->second->GetControllerConnection()) == cmodels.end())
+                    wxString cc = wxString(itm->second->GetControllerConnection()).Lower();
+                    if (cmodels.find(cc) == cmodels.end())
                     {
                         std::list<Model*> ml;
-                        cmodels[itm->second->GetControllerConnection()] = ml;
+                        cmodels[cc] = ml;
                     }
-                    cmodels[itm->second->GetControllerConnection()].push_back(itm->second);
+                    cmodels[cc].push_back(itm->second);
                 }
             }
 
@@ -346,7 +347,8 @@ void ModelManager::ReworkStartChannel() const
                     bool pushed = false;
                     for (auto itms = (*itcc).second.begin(); itms != (*itcc).second.end(); ++itms)
                     {
-                        if ((*itms)->GetModelChain() == last || 
+                        if (((*itms)->GetModelChain() == "Beginning" && last == "") ||
+                            (*itms)->GetModelChain() == last || 
                             (*itms)->GetModelChain() == ">" + last)
                         {
                             sortedmodels.push_back(*itms);
@@ -371,7 +373,7 @@ void ModelManager::ReworkStartChannel() const
                 last = "";
                 for (auto itm = sortedmodels.begin(); itm != sortedmodels.end(); ++itm)
                 {
-                    if ((*itm)->GetModelChain() == last || (*itm)->GetModelChain() == ">" + last)
+                    if ((*itm)->GetModelChain() == last || (*itm)->GetModelChain() == ">" + last || ((*itm)->GetModelChain() == "Beginning" && last == ""))
                     {
                         (*itm)->SetStartChannel("!" + (*it)->GetDescription() + ":" + wxString::Format("%ld", ch));
                         last = (*itm)->GetName();

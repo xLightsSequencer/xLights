@@ -2234,10 +2234,29 @@ bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelMa
 
 void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
 {
-    if (_outputManager.Discover())
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Running controller discovery.");
+
+    std::map<std::string, std::string> renames;
+    if (_outputManager.Discover(this, renames))
     {
+        // update the controller name on any models which use renamed controllers
+        for (auto it = renames.begin(); it != renames.end(); ++it)
+        {
+            logger_base.debug("Discovered controller renamed from '%s' to '%s'", (const char*)it->first.c_str(), (const char*)it->second.c_str());
+
+            for (auto itm = AllModels.begin(); itm != AllModels.end(); ++itm)
+            {
+                if (itm->second->GetControllerName() == it->first)
+                {
+                    itm->second->SetControllerName(it->second);
+                }
+            }
+        }
+
         NetworkChange();
         UpdateNetworkList(true);
     }
     SetStatusText("Discovery complete.");
+    logger_base.debug("Controller discovery complete.");
 }

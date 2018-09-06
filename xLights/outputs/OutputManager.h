@@ -1,13 +1,16 @@
 #ifndef OUTPUTMANAGER_H
 #define OUTPUTMANAGER_H
 
+#include <wx/thread.h>
+
 #include <list>
 #include <string>
-#include <wx/thread.h>
+#include <map>
 
 class Output;
 class Controller;
 class TestPreset;
+class wxWindow;
 
 #define NETWORKSFILE "xlights_networks.xml";
 
@@ -69,7 +72,7 @@ public:
     Output* GetOutput(const std::string& description) const;
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
-    bool Discover(); // discover controllers and add them to the list if they are not already there
+    bool Discover(wxWindow* parent, std::map<std::string, std::string>& renames); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
     std::list<std::string> GetControllerNames() const;

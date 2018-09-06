@@ -575,7 +575,15 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
             }
         }
     }
-    grid->Append(new ControllerConnectionProperty(this, "Controller Connection", "ControllerConnection", ModelXml->GetAttribute("ControllerConnection", "")));
+    p = grid->Append(new ControllerConnectionProperty(this, "Controller Connection", "ControllerConnection", ModelXml->GetAttribute("ControllerConnection", "")));
+    if (_controllerName != "" && controller_connection == "")
+    {
+        p->SetBackgroundColour(*wxRED);
+    }
+    else
+    {
+        p->SetBackgroundColour(*wxWHITE);
+    }
     p = grid->Append(new ModelChainProperty(this, "Model Chain", "ModelChain", ModelXml->GetAttribute("ModelChain", "")));
     p->Enable(_controllerName != "" && controller_connection != "");
 
@@ -724,6 +732,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
         grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
+        if (_controllerName != "" && controller_connection == "")
+        {
+            grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxRED);
+        }
+        else
+        {
+            grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxWHITE);
+        }
         return 3 | 0x0008;
     }
     else if (event.GetPropertyName() == "ModelChain") {
@@ -754,7 +770,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
         }
         grid->GetPropertyByName("ModelChain")->Enable(_controllerName != "" && controller_connection != "");
-
+        if (_controllerName != "" && controller_connection == "")
+        {
+            grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxRED);
+        }
+        else
+        {
+            grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxWHITE);
+        }
         return 3 | 0x0008;
     }
     else if (event.GetPropertyName() == "SubModels") {
