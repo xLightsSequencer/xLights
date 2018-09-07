@@ -11,7 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.33 September 7, 2018
    -- enh (dkulp)  Bunch of performance updates for Test dialog on OSX
+   -- bug (keith)  FPP Upload extra logging and delete any existing file before upload
+   -- bug (keith)  Change the way we detect falcon model/version as 2.01 firmware broke it
+   -- bug (keith)  Fix hang selecting model group on layout panel
 2018.32 September 6, 2018
    -- enh (scott)  Added Node Select Dialog to the SubModel, Faces, and State Dialogs
    -- enh (scott)  Added import/export to colour manager dialog
