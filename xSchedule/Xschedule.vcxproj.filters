@@ -459,6 +459,7 @@
     <ClCompile Include="PlayList\PlayListItemMicrophone.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -896,6 +897,7 @@
     <ClInclude Include="PlayList\PlayListItemMicrophone.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

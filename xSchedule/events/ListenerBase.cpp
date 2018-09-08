@@ -51,9 +51,8 @@ void* ListenerThread::Entry()
         }
     }
 
-    _listener->StopProcess();
-
-    _running = false;
+    //_listener->StopProcess();
+    //_running = false;
 
     return nullptr;
 }

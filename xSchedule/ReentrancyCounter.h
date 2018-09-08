@@ -9,18 +9,19 @@ class ReentrancyCounter
 	public:
 		ReentrancyCounter(int& ref) : _ref(ref)
 		{
-            std::unique_lock<std::recursive_mutex> locker(_lock);
+            std::lock_guard<std::recursive_mutex> locker(_lock);
 		    ++_ref;
 		}
 		virtual ~ReentrancyCounter()
 		{
-            std::unique_lock<std::recursive_mutex> locker(_lock);
+            std::lock_guard<std::recursive_mutex> locker(_lock);
             --_ref;
 			wxASSERT(_ref >= 0);
+            if (_ref < 0) _ref = 0;
 		}
 		bool SoleReference()
 		{
-            std::unique_lock<std::recursive_mutex> locker(_lock);
+            std::lock_guard<std::recursive_mutex> locker(_lock);
             return _ref == 1;
 		}
 };

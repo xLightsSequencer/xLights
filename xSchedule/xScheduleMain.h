@@ -185,6 +185,9 @@ public:
         void OnMenuItem_ARTNetTimeCodeSlaveSelected(wxCommandEvent& event);
         void OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& event);
         void OnMenuItem_CrashSelected(wxCommandEvent& event);
+        void OnMenuItem_MIDITimeCodeMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_MIDITimeCodeSlaveSelected(wxCommandEvent& event);
+        void OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -255,12 +258,15 @@ public:
         static const long ID_MNU_OSCMASTER;
         static const long ID_MNU_OSCFPPMASTER;
         static const long IDM_MNU_ARTNETMASTER;
+        static const long MNU_MIDITIMECODE_MASTER;
         static const long ID_MNU_FPPREMOTE;
         static const long ID_MNU_OSCREMOTE;
         static const long ID_MNU_ARTNETTIMECODESLAVE;
+        static const long MNU_MIDITIMECODEREMOTE;
         static const long ID_MNU_FPPUNICASTREMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
         static const long ID_MNU_OSCOPTION;
+        static const long MNU_CONFIGUREMIDITIMECODE;
         static const long idMenuAbout;
         static const long ID_STATUSBAR1;
         static const long ID_TIMER1;
@@ -301,6 +307,7 @@ public:
         wxMenu* Menu3;
         wxMenu* Menu4;
         wxMenu* Menu5;
+        wxMenuItem* MenuItem5MenuItem_ConfigureMIDITimecode;
         wxMenuItem* MenuItem_ARTNetTimeCodeMaster;
         wxMenuItem* MenuItem_ARTNetTimeCodeSlave;
         wxMenuItem* MenuItem_AddPlayList;
@@ -315,6 +322,8 @@ public:
         wxMenuItem* MenuItem_FPPRemote;
         wxMenuItem* MenuItem_FPPUnicastRemote;
         wxMenuItem* MenuItem_ImportxLights;
+        wxMenuItem* MenuItem_MIDITimeCodeMaster;
+        wxMenuItem* MenuItem_MIDITimeCodeSlave;
         wxMenuItem* MenuItem_Matrices;
         wxMenuItem* MenuItem_OSCMaster;
         wxMenuItem* MenuItem_OSCRemote;

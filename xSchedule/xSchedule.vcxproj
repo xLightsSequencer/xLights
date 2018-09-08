@@ -213,6 +213,7 @@
     <ClCompile Include="City.cpp" />
     <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
+    <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
     <ClCompile Include="DeadChannelDialog.cpp" />
     <ClCompile Include="DimDialog.cpp" />
@@ -397,6 +398,7 @@
     <ClInclude Include="City.h" />
     <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="CommandManager.h" />
+    <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
     <ClInclude Include="ConfigureOSC.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="DeadChannelDialog.h" />
