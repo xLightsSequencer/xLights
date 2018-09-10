@@ -12,7 +12,7 @@
 
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
-    width(100), height(100), depth(100), transparency(0), obj_loaded(false)
+    width(100), height(100), depth(100), transparency(0), obj_loaded(false), mesh_only(false)
 {
     SetFromXml(node);
     screenLocation.SetSupportsZScaling(true);
@@ -20,10 +20,17 @@ MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
 
 MeshObject::~MeshObject()
 {
+    for (auto it = textures.begin(); it != textures.end(); ++it)
+    {
+        if (it->second != nullptr) {
+            delete it->second;
+        }
+    }
 }
 
 void MeshObject::InitModel() {
 	_objFile = FixFile("", ModelXml->GetAttribute("ObjFile", ""));
+    mesh_only = ModelXml->GetAttribute("Mesh Only", "0") == "1";
 
     if (ModelXml->HasAttribute("Transparency")) {
         transparency = wxAtoi(ModelXml->GetAttribute("Transparency"));
@@ -42,11 +49,20 @@ void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
+
+    p = grid->Append(new wxBoolProperty("Mesh Only", "Mesh Only", mesh_only));
+    p->SetAttribute("UseCheckbox", true);
 }
 
 int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ObjFile" == event.GetPropertyName()) {
         obj_loaded = false;
+        for (auto it = textures.begin(); it != textures.end(); ++it)
+        {
+            if (it->second != nullptr) {
+                delete it->second;
+            }
+        }
         _objFile = event.GetValue().GetString();
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
@@ -59,9 +75,135 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
         return 3 | 0x0008;
     }
+    else if ("Mesh Only" == event.GetPropertyName() ) {
+        ModelXml->DeleteAttribute("Mesh Only");
+        mesh_only = event.GetValue().GetBool();
+        if (mesh_only) {
+            ModelXml->AddAttribute("Mesh Only", "1");
+        }
+        IncrementChangeCount();
+        return 3 | 0x0008;
+    }
 
     return ViewObject::OnPropertyGridChange(grid, event);
 }
+
+static void CalcNormal(float N[3], float v0[3], float v1[3], float v2[3]) {
+    float v10[3];
+    v10[0] = v1[0] - v0[0];
+    v10[1] = v1[1] - v0[1];
+    v10[2] = v1[2] - v0[2];
+
+    float v20[3];
+    v20[0] = v2[0] - v0[0];
+    v20[1] = v2[1] - v0[1];
+    v20[2] = v2[2] - v0[2];
+
+    N[0] = v20[1] * v10[2] - v20[2] * v10[1];
+    N[1] = v20[2] * v10[0] - v20[0] * v10[2];
+    N[2] = v20[0] * v10[1] - v20[1] * v10[0];
+
+    float len2 = N[0] * N[0] + N[1] * N[1] + N[2] * N[2];
+    if (len2 > 0.0f) {
+        float len = sqrtf(len2);
+
+        N[0] /= len;
+        N[1] /= len;
+        N[2] /= len;
+    }
+}
+
+namespace  // Local utility functions
+{
+    struct vec3 {
+        float v[3];
+        vec3() {
+            v[0] = 0.0f;
+            v[1] = 0.0f;
+            v[2] = 0.0f;
+        }
+    };
+
+    void normalizeVector(vec3 &v) {
+        float len2 = v.v[0] * v.v[0] + v.v[1] * v.v[1] + v.v[2] * v.v[2];
+        if (len2 > 0.0f) {
+            float len = sqrtf(len2);
+
+            v.v[0] /= len;
+            v.v[1] /= len;
+            v.v[2] /= len;
+        }
+    }
+
+    // Check if `mesh_t` contains smoothing group id.
+    bool hasSmoothingGroup(const tinyobj::shape_t& shape)
+    {
+        for (size_t i = 0; i < shape.mesh.smoothing_group_ids.size(); i++) {
+            if (shape.mesh.smoothing_group_ids[i] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void computeSmoothingNormals(const tinyobj::attrib_t& attrib, const tinyobj::shape_t& shape,
+        std::map<int, vec3>& smoothVertexNormals) {
+        smoothVertexNormals.clear();
+        std::map<int, vec3>::iterator iter;
+
+        for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
+            // Get the three indexes of the face (all faces are triangular)
+            tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
+            tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
+            tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
+
+            // Get the three vertex indexes and coordinates
+            int vi[3];      // indexes
+            float v[3][3];  // coordinates
+
+            for (int k = 0; k < 3; k++) {
+                vi[0] = idx0.vertex_index;
+                vi[1] = idx1.vertex_index;
+                vi[2] = idx2.vertex_index;
+                assert(vi[0] >= 0);
+                assert(vi[1] >= 0);
+                assert(vi[2] >= 0);
+
+                v[0][k] = attrib.vertices[3 * vi[0] + k];
+                v[1][k] = attrib.vertices[3 * vi[1] + k];
+                v[2][k] = attrib.vertices[3 * vi[2] + k];
+            }
+
+            // Compute the normal of the face
+            float normal[3];
+            CalcNormal(normal, v[0], v[1], v[2]);
+
+            // Add the normal to the three vertexes
+            for (size_t i = 0; i < 3; ++i) {
+                iter = smoothVertexNormals.find(vi[i]);
+                if (iter != smoothVertexNormals.end()) {
+                    // add
+                    iter->second.v[0] += normal[0];
+                    iter->second.v[1] += normal[1];
+                    iter->second.v[2] += normal[2];
+                }
+                else {
+                    smoothVertexNormals[vi[i]].v[0] = normal[0];
+                    smoothVertexNormals[vi[i]].v[1] = normal[1];
+                    smoothVertexNormals[vi[i]].v[2] = normal[2];
+                }
+            }
+
+        }  // f
+
+           // Normalize the normals, that is, make them unit vectors
+        for (iter = smoothVertexNormals.begin(); iter != smoothVertexNormals.end();
+            iter++) {
+            normalizeVector(iter->second);
+        }
+
+    }  // computeSmoothingNormals
+}  // namespace
 
 void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
 {
@@ -77,8 +219,38 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                 (const char *)GetName().c_str(),
                 (const char *)_objFile.c_str(),
                 (const char *)preview->GetName().c_str());
+            wxFileName fn(_objFile);
+            std::string base_path = fn.GetPath();
             std::string err;
-            bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, (char *)_objFile.c_str());
+            bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+
+            // Append `default` material
+            materials.push_back(tinyobj::material_t());
+
+            // Load diffuse textures
+            {
+                for (size_t m = 0; m < materials.size(); m++) {
+                    tinyobj::material_t* mp = &materials[m];
+
+                    if (mp->diffuse_texname.length() > 0) {
+                        // Only load the texture if it is not already loaded
+                        if (textures.find(mp->diffuse_texname) == textures.end()) {
+                            std::string texture_filename = mp->diffuse_texname;
+                            if (!wxFileExists(texture_filename)) {
+                                // Append base dir.
+                                wxFileName fn2(texture_filename);
+                                fn2.SetPath(fn.GetPath());
+                                texture_filename = fn2.GetFullPath();
+                                if (!wxFileExists(texture_filename)) {
+                                    logger_base.debug("Unable to find materials file: %s", (const char *)mp->diffuse_texname.c_str());
+                                    continue;
+                                }
+                            }
+                            textures[mp->diffuse_texname] = new Image(texture_filename);
+                        }
+                    }
+                }
+            }
 
             bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
             bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
@@ -129,10 +301,88 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             // Loop over faces(polygon)
             size_t index_offset = 0;
 
+            // make sure the shape material is valid
+            size_t material_id;
+            GLuint image_id = 0;
+            if (shapes[s].mesh.material_ids.size() > 0 &&
+                shapes[s].mesh.material_ids.size() > s) {
+                material_id = shapes[s].mesh.material_ids[0];  // use the material ID
+                                                               // of the first face.
+            }
+            else {
+                material_id = materials.size() - 1;  // = ID for default material.
+            }
+            if ((material_id < materials.size())) {
+                std::string diffuse_texname = materials[material_id].diffuse_texname;
+                if (textures.find(diffuse_texname) != textures.end()) {
+                    image_id = textures[diffuse_texname]->getID();
+                }
+            }
+
+            // Check for smoothing group and compute smoothing normals
+            std::map<int, vec3> smoothVertexNormals;
+            if (hasSmoothingGroup(shapes[s]) > 0) {
+                std::cout << "Compute smoothingNormal for shape [" << s << "]" << std::endl;
+                computeSmoothingNormals(attrib, shapes[s], smoothVertexNormals);
+            }
+
             for (size_t f = 0; f < shapes[s].mesh.indices.size() / 3; f++) {
                 tinyobj::index_t idx0 = shapes[s].mesh.indices[3 * f + 0];
                 tinyobj::index_t idx1 = shapes[s].mesh.indices[3 * f + 1];
                 tinyobj::index_t idx2 = shapes[s].mesh.indices[3 * f + 2];
+
+                int current_material_id = shapes[s].mesh.material_ids[f];
+
+                if ((current_material_id < 0) ||
+                    (current_material_id >= static_cast<int>(materials.size()))) {
+                    // Invaid material ID. Use default material.
+                    current_material_id = materials.size() - 1;  // Default material is added to the last item in `materials`.
+                }
+
+                float diffuse[3];
+                for (size_t i = 0; i < 3; i++) {
+                    diffuse[i] = materials[current_material_id].diffuse[i];
+                }
+
+                float tc[3][2];
+                if (!mesh_only) {
+                    if (attrib.texcoords.size() > 0) {
+                        if ((idx0.texcoord_index < 0) || (idx1.texcoord_index < 0) ||
+                            (idx2.texcoord_index < 0)) {
+                            // face does not contain valid uv index.
+                            tc[0][0] = 0.0f;
+                            tc[0][1] = 0.0f;
+                            tc[1][0] = 0.0f;
+                            tc[1][1] = 0.0f;
+                            tc[2][0] = 0.0f;
+                            tc[2][1] = 0.0f;
+                        }
+                        else {
+                            assert(attrib.texcoords.size() >
+                                size_t(2 * idx0.texcoord_index + 1));
+                            assert(attrib.texcoords.size() >
+                                size_t(2 * idx1.texcoord_index + 1));
+                            assert(attrib.texcoords.size() >
+                                size_t(2 * idx2.texcoord_index + 1));
+
+                            // Flip Y coord.
+                            tc[0][0] = attrib.texcoords[2 * idx0.texcoord_index];
+                            tc[0][1] = 1.0f - attrib.texcoords[2 * idx0.texcoord_index + 1];
+                            tc[1][0] = attrib.texcoords[2 * idx1.texcoord_index];
+                            tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
+                            tc[2][0] = attrib.texcoords[2 * idx2.texcoord_index];
+                            tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
+                        }
+                    }
+                    else {
+                        tc[0][0] = 0.0f;
+                        tc[0][1] = 0.0f;
+                        tc[1][0] = 0.0f;
+                        tc[1][1] = 0.0f;
+                        tc[2][0] = 0.0f;
+                        tc[2][1] = 0.0f;
+                    }
+                }
 
                 float v[3][3];
                 for (int k = 0; k < 3; k++) {
@@ -143,71 +393,128 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                     v[0][k] = attrib.vertices[3 * f0 + k];
                     v[1][k] = attrib.vertices[3 * f1 + k];
                     v[2][k] = attrib.vertices[3 * f2 + k];
-                    bmin[k] = std::min(v[0][k], bmin[k]);
-                    bmin[k] = std::min(v[1][k], bmin[k]);
-                    bmin[k] = std::min(v[2][k], bmin[k]);
-                    bmax[k] = std::max(v[0][k], bmax[k]);
-                    bmax[k] = std::max(v[1][k], bmax[k]);
-                    bmax[k] = std::max(v[2][k], bmax[k]);
+                }
+
+                for (int k = 0; k < 3; k++) {
+                    GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
+                }
+
+                float n[3][3];
+                if( !mesh_only )
+                {
+                    bool invalid_normal_index = false;
+                    if (attrib.normals.size() > 0) {
+                        int nf0 = idx0.normal_index;
+                        int nf1 = idx1.normal_index;
+                        int nf2 = idx2.normal_index;
+
+                        if ((nf0 < 0) || (nf1 < 0) || (nf2 < 0)) {
+                            // normal index is missing from this face.
+                            invalid_normal_index = true;
+                        }
+                        else {
+                            for (int k = 0; k < 3; k++) {
+                                assert(size_t(3 * nf0 + k) < attrib.normals.size());
+                                assert(size_t(3 * nf1 + k) < attrib.normals.size());
+                                assert(size_t(3 * nf2 + k) < attrib.normals.size());
+                                n[0][k] = attrib.normals[3 * nf0 + k];
+                                n[1][k] = attrib.normals[3 * nf1 + k];
+                                n[2][k] = attrib.normals[3 * nf2 + k];
+                            }
+                        }
+                    }
+                    else {
+                        invalid_normal_index = true;
+                    }
+
+                    if (invalid_normal_index && !smoothVertexNormals.empty()) {
+                        // Use smoothing normals
+                        int f0 = idx0.vertex_index;
+                        int f1 = idx1.vertex_index;
+                        int f2 = idx2.vertex_index;
+
+                        if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
+                            n[0][0] = smoothVertexNormals[f0].v[0];
+                            n[0][1] = smoothVertexNormals[f0].v[1];
+                            n[0][2] = smoothVertexNormals[f0].v[2];
+
+                            n[1][0] = smoothVertexNormals[f1].v[0];
+                            n[1][1] = smoothVertexNormals[f1].v[1];
+                            n[1][2] = smoothVertexNormals[f1].v[2];
+
+                            n[2][0] = smoothVertexNormals[f2].v[0];
+                            n[2][1] = smoothVertexNormals[f2].v[1];
+                            n[2][2] = smoothVertexNormals[f2].v[2];
+
+                            invalid_normal_index = false;
+                        }
+                    }
+
+                    if (invalid_normal_index) {
+                        // compute geometric normal
+                        CalcNormal(n[0], v[0], v[1], v[2]);
+                        n[1][0] = n[0][0];
+                        n[1][1] = n[0][1];
+                        n[1][2] = n[0][2];
+                        n[2][0] = n[0][0];
+                        n[2][1] = n[0][1];
+                        n[2][2] = n[0][2];
+                    }
+                }
+
+                if (!mesh_only) {
+                    for (int k = 0; k < 3; k++) {
+
+                        // Combine normal and diffuse to get color.
+                        float normal_factor = 0.2;
+                        float diffuse_factor = 1 - normal_factor;
+                        float c[3] = { n[k][0] * normal_factor + diffuse[0] * diffuse_factor,
+                            n[k][1] * normal_factor + diffuse[1] * diffuse_factor,
+                            n[k][2] * normal_factor + diffuse[2] * diffuse_factor };
+                        float len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
+                        if (len2 > 0.0f) {
+                            float len = sqrtf(len2);
+
+                            c[0] /= len;
+                            c[1] /= len;
+                            c[2] /= len;
+                        }
+                        float red = c[0] * 0.5 + 0.5;
+                        float green = c[1] * 0.5 + 0.5;
+                        float blue = c[2] * 0.5 + 0.5;
+
+                        if (image_id == 0) {
+                            wxColor c(red * 255, green * 255, blue * 255);
+                            va3.AddVertex(v[k][0], v[k][1], v[k][2], c);
+                        }
+                        else {
+                            va3.AddTextureVertex(v[k][0], v[k][1], v[k][2], tc[k][0], tc[k][1]);
+                        }
+                    }
                 }
 
                 // Mesh Lines
-                float x0 = v[0][0];
-                float y0 = v[0][1];
-                float z0 = v[0][2];
-                GetObjectScreenLocation().TranslatePoint(x0, y0, z0);
-                float x1 = v[1][0];
-                float y1 = v[1][1];
-                float z1 = v[1][2];
-                GetObjectScreenLocation().TranslatePoint(x1, y1, z1);
-                float x2 = v[2][0];
-                float y2 = v[2][1];
-                float z2 = v[2][2];
-                GetObjectScreenLocation().TranslatePoint(x2, y2, z2);
-
-                va3.AddVertex(x0, y0, z0, *wxGREEN);
-                va3.AddVertex(x1, y1, z1, *wxGREEN);
-                va3.AddVertex(x1, y1, z1, *wxGREEN);
-                va3.AddVertex(x2, y2, z2, *wxGREEN);
-                va3.AddVertex(x2, y2, z2, *wxGREEN);
-                va3.AddVertex(x0, y0, z0, *wxGREEN);
-
-                /*
-                for (int k = 0; k < 3; k++) {
-                    GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
-                    va3.AddVertex(v[k][0], v[k][1], v[k][2], *wxGREEN);
-
-                    //buffer.push_back(v[k][0]);
-                    //buffer.push_back(v[k][1]);
-                    //buffer.push_back(v[k][2]);
-                    //buffer.push_back(n[k][0]);
-                    //buffer.push_back(n[k][1]);
-                    //buffer.push_back(n[k][2]);
-                    // Combine normal and diffuse to get color.
-                    float normal_factor = 0.2;
-                    float diffuse_factor = 1 - normal_factor;
-                    float c[3] = { n[k][0] * normal_factor + diffuse[0] * diffuse_factor,
-                        n[k][1] * normal_factor + diffuse[1] * diffuse_factor,
-                        n[k][2] * normal_factor + diffuse[2] * diffuse_factor };
-                    float len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
-                    if (len2 > 0.0f) {
-                        float len = sqrtf(len2);
-
-                        c[0] /= len;
-                        c[1] /= len;
-                        c[2] /= len;
-                    }
-                    buffer.push_back(c[0] * 0.5 + 0.5);
-                    buffer.push_back(c[1] * 0.5 + 0.5);
-                    buffer.push_back(c[2] * 0.5 + 0.5);
-
-                    buffer.push_back(tc[k][0]);
-                    buffer.push_back(tc[k][1]);
-                }*/
+                if (mesh_only) {
+                    va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
+                    va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxGREEN);
+                    va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxGREEN);
+                    va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
+                    va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
+                    va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
+                }
+            }
+            if (!mesh_only) {
+                if (image_id == 0) {
+                    va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
+                }
+                else {
+                    va3.FinishTextures(GL_TRIANGLES, image_id, 255.0f);
+                }
             }
         }
-        //va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
-        va3.Finish(GL_LINES, GL_LINE_SMOOTH, 1.0f);
+        if (mesh_only) {
+            va3.Finish(GL_LINES, GL_LINE_SMOOTH, 1.0f);
+        }
     }
 
     if ((Selected || Highlighted) && allowSelected) {

@@ -31,10 +31,12 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         float depth;
         int transparency;
         bool obj_loaded;
+        bool mesh_only;
 
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
+        std::map<std::string, Image*> textures;
         float bmin[3];
         float bmax[3];
 
