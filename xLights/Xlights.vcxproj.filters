@@ -359,7 +359,8 @@
     <ClCompile Include="ViewObjectPanel.cpp" />
     <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
-    <ClCompile Include="NodeSelectGrid.cpp" />
+    <ClCompile Include="NodeSelectGrid.h" />
+    <ClCompile Include="models\MeshObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -720,6 +721,8 @@
     <ClInclude Include="models\ImageObject.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="NodeSelectGrid.h" />
+    <ClInclude Include="models\MeshObject.h" />
+    <ClInclude Include="models\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

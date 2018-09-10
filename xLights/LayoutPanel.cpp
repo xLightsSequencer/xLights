@@ -3864,7 +3864,7 @@ void LayoutPanel::DisplayAddObjectPopup() {
     wxMenu mnuObjects;
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_IMAGE, "Image", add_object_image_xpm);
     AddObjectButton(mnuObjects, ID_ADD_OBJECT_GRIDLINES, "Gridlines", add_object_gridlines_xpm);
-    AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", nullptr);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", add_object_mesh_xpm);
     mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddObjectPopup, nullptr, this);
     PopupMenu(&mnuObjects);
 }
@@ -3896,7 +3896,11 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     else if (id == ID_ADD_OBJECT_MESH)
     {
         logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
-        wxMessageBox("Keep the xLights donations rolling in and this might do something in the future. ;)", "Alert");
+        CreateUndoPoint("All", "", "");
+        vobj = xlights->AllObjects.CreateAndAddObject("Mesh");
+        vobj->SetLayoutGroup(currentLayoutGroup);
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
     }
 
     if( object_created ) {
@@ -4182,7 +4186,7 @@ void LayoutPanel::ReplaceModel()
         // they are not already the same and the new model uses a chaining start
         // channel ... the theory being if you took time to set the start channel
         // you probably want to keep it and so a prompt will just be annoying
-        if (replaceModel->ModelStartChannel != 
+        if (replaceModel->ModelStartChannel !=
             modelToReplaceItWith->ModelStartChannel &&
             wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">"))
         {
@@ -5416,7 +5420,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     {
         // let crontrol A through
         // Just a regular key ... If current focus is a control then we need to not process this
-        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && 
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
             (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
         {
             return false;

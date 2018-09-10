@@ -22,4 +22,5 @@
 #include "object.xpm"
 #include "add_object_image.xpm"
 #include "add_object_gridlines.xpm"
+#include "add_object_mesh.xpm"
 #endif

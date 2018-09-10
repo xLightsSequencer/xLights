@@ -892,6 +892,8 @@
 		<Unit filename="models/ImageObject.h" />
 		<Unit filename="models/MatrixModel.cpp" />
 		<Unit filename="models/MatrixModel.h" />
+		<Unit filename="models/MeshObject.cpp" />
+		<Unit filename="models/MeshObject.h" />
 		<Unit filename="models/Model.cpp" />
 		<Unit filename="models/Model.h" />
 		<Unit filename="models/ModelGroup.cpp" />
