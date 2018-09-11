@@ -301,31 +301,14 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             // Loop over faces(polygon)
             size_t index_offset = 0;
 
-            // make sure the shape material is valid
-            size_t material_id;
-            GLuint image_id = 0;
-            if (shapes[s].mesh.material_ids.size() > 0 &&
-                shapes[s].mesh.material_ids.size() > s) {
-                material_id = shapes[s].mesh.material_ids[0];  // use the material ID
-                                                               // of the first face.
-            }
-            else {
-                material_id = materials.size() - 1;  // = ID for default material.
-            }
-            if ((material_id < materials.size())) {
-                std::string diffuse_texname = materials[material_id].diffuse_texname;
-                if (textures.find(diffuse_texname) != textures.end()) {
-                    image_id = textures[diffuse_texname]->getID();
-                }
-            }
-
             // Check for smoothing group and compute smoothing normals
             std::map<int, vec3> smoothVertexNormals;
-            if (hasSmoothingGroup(shapes[s]) > 0) {
-                std::cout << "Compute smoothingNormal for shape [" << s << "]" << std::endl;
+            if (hasSmoothingGroup(shapes[s])) {
                 computeSmoothingNormals(attrib, shapes[s], smoothVertexNormals);
             }
 
+            int last_material_id = -1;
+            GLuint image_id = 0;
             for (size_t f = 0; f < shapes[s].mesh.indices.size() / 3; f++) {
                 tinyobj::index_t idx0 = shapes[s].mesh.indices[3 * f + 0];
                 tinyobj::index_t idx1 = shapes[s].mesh.indices[3 * f + 1];
@@ -338,6 +321,17 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                     // Invaid material ID. Use default material.
                     current_material_id = materials.size() - 1;  // Default material is added to the last item in `materials`.
                 }
+
+                if (current_material_id != last_material_id) {
+                    std::string diffuse_texname = materials[current_material_id].diffuse_texname;
+                    if (textures.find(diffuse_texname) != textures.end()) {
+                        image_id = textures[diffuse_texname]->getID();
+                    }
+                    else {
+                        image_id = -1;
+                    }
+                }
+                last_material_id = current_material_id;
 
                 float diffuse[3];
                 for (size_t i = 0; i < 3; i++) {
@@ -466,7 +460,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                     for (int k = 0; k < 3; k++) {
 
                         // Combine normal and diffuse to get color.
-                        float normal_factor = 0.2;
+                        float normal_factor = 0.2f;
                         float diffuse_factor = 1 - normal_factor;
                         float c[3] = { n[k][0] * normal_factor + diffuse[0] * diffuse_factor,
                             n[k][1] * normal_factor + diffuse[1] * diffuse_factor,
@@ -483,7 +477,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         float green = c[1] * 0.5 + 0.5;
                         float blue = c[2] * 0.5 + 0.5;
 
-                        if (image_id == 0) {
+                        if (image_id == -1) {
                             wxColor c(red * 255, green * 255, blue * 255);
                             va3.AddVertex(v[k][0], v[k][1], v[k][2], c);
                         }
@@ -502,13 +496,13 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                     va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
                     va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
                 }
-            }
-            if (!mesh_only) {
-                if (image_id == 0) {
-                    va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
-                }
                 else {
-                    va3.FinishTextures(GL_TRIANGLES, image_id, 255.0f);
+                    if (image_id == -1) {
+                        va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
+                    }
+                    else {
+                        va3.FinishTextures(GL_TRIANGLES, image_id, 255.0f);
+                    }
                 }
             }
         }
