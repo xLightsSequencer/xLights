@@ -12,7 +12,8 @@
 
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
-    width(100), height(100), depth(100), transparency(0), obj_loaded(false), mesh_only(false)
+    width(100), height(100), depth(100), transparency(0),
+    obj_loaded(false), mesh_only(false), diffuse_colors(false)
 {
     SetFromXml(node);
     screenLocation.SetSupportsZScaling(true);
@@ -30,7 +31,8 @@ MeshObject::~MeshObject()
 
 void MeshObject::InitModel() {
 	_objFile = FixFile("", ModelXml->GetAttribute("ObjFile", ""));
-    mesh_only = ModelXml->GetAttribute("Mesh Only", "0") == "1";
+    mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
+    diffuse_colors = ModelXml->GetAttribute("Diffuse", "0") == "1";
 
     if (ModelXml->HasAttribute("Transparency")) {
         transparency = wxAtoi(ModelXml->GetAttribute("Transparency"));
@@ -50,7 +52,9 @@ void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
-    p = grid->Append(new wxBoolProperty("Mesh Only", "Mesh Only", mesh_only));
+    p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
+    p->SetAttribute("UseCheckbox", true);
+    p = grid->Append(new wxBoolProperty("Diffuse Colors", "Diffuse", diffuse_colors));
     p->SetAttribute("UseCheckbox", true);
 }
 
@@ -75,11 +79,20 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
         return 3 | 0x0008;
     }
-    else if ("Mesh Only" == event.GetPropertyName() ) {
-        ModelXml->DeleteAttribute("Mesh Only");
+    else if ("MeshOnly" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("MeshOnly");
         mesh_only = event.GetValue().GetBool();
         if (mesh_only) {
-            ModelXml->AddAttribute("Mesh Only", "1");
+            ModelXml->AddAttribute("MeshOnly", "1");
+        }
+        IncrementChangeCount();
+        return 3 | 0x0008;
+    }
+    else if ("Diffuse" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("Diffuse");
+        diffuse_colors = event.GetValue().GetBool();
+        if (diffuse_colors) {
+            ModelXml->AddAttribute("Diffuse", "1");
         }
         IncrementChangeCount();
         return 3 | 0x0008;
@@ -476,6 +489,13 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         float red = c[0] * 0.5 + 0.5;
                         float green = c[1] * 0.5 + 0.5;
                         float blue = c[2] * 0.5 + 0.5;
+
+                        if (diffuse_colors) {
+                            // just use diffuse color for now
+                            red = diffuse[0];
+                            green = diffuse[1];
+                            blue = diffuse[2];
+                        }
 
                         if (image_id == -1) {
                             wxColor c(red * 255, green * 255, blue * 255);

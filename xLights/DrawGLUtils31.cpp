@@ -707,6 +707,10 @@ public:
                     program->SetRenderType(0);
                 }
             }
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
             LOG_GL_ERRORV(glDrawArrays(type, offset0 + it->start, it->count));
             if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
                 LOG_GL_ERRORV(glDisable(enableCapability));
