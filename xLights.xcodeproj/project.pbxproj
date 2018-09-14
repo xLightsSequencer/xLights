@@ -136,6 +136,7 @@
 		673C925920A47C5400E59F5D /* JukeboxPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925520A47C5400E59F5D /* JukeboxPanel.cpp */; };
 		673C925A20A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */; };
 		673C925B20A47CEF00E59F5D /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4F1E329AD800F8B985 /* md5.cpp */; };
+		673D764C214B2F06007C6E83 /* MeshObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673D764B214B2F06007C6E83 /* MeshObject.cpp */; };
 		673E425B17F0D95200F4BC76 /* TabSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425917F0D23E00F4BC76 /* TabSetup.cpp */; };
 		673F03681F322A9B0052A793 /* ChannelBlockModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673F03671F322A9B0052A793 /* ChannelBlockModel.cpp */; };
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
@@ -268,7 +269,6 @@
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
 		6785922720F02CD9001C2929 /* LyricUserDictDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */; };
 		6786DC761D45D00100672F70 /* PolyLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6786DC741D45D00100672F70 /* PolyLineModel.cpp */; };
-		679129982134239B00818B73 /* SubModelDrawGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679129972134239B00818B73 /* SubModelDrawGrid.cpp */; };
 		6791299B213423A800818B73 /* ControllerUploadData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67912999213423A800818B73 /* ControllerUploadData.cpp */; };
 		6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */; };
 		6792BF371D0B253B00A5A0CC /* SpinnerModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */; };
@@ -329,6 +329,7 @@
 		67AA37AF1C7E4107001D2377 /* libavformat.57.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.57.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		67AA37B01C7E4107001D2377 /* libavcodec.57.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		67AA37B11C7E4107001D2377 /* libswresample.2.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */; };
 		67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */; };
 		67AAF8F81B63785900585431 /* user_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F41B63785900585431 /* user_dictionary */; };
 		67AAF8F91B63785900585431 /* extended_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F51B63785900585431 /* extended_dictionary */; };
@@ -1001,6 +1002,8 @@
 		673C925620A47C5400E59F5D /* JukeboxPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JukeboxPanel.h; sourceTree = "<group>"; };
 		673C925720A47C5400E59F5D /* LinkJukeboxButtonDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinkJukeboxButtonDialog.cpp; sourceTree = "<group>"; };
 		673C925820A47C5400E59F5D /* LinkJukeboxButtonDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinkJukeboxButtonDialog.h; sourceTree = "<group>"; };
+		673D764A214B2F06007C6E83 /* MeshObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MeshObject.h; path = models/MeshObject.h; sourceTree = "<group>"; };
+		673D764B214B2F06007C6E83 /* MeshObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MeshObject.cpp; path = models/MeshObject.cpp; sourceTree = "<group>"; };
 		673E425717F0D23E00F4BC76 /* TabPreview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabPreview.cpp; sourceTree = "<group>"; };
 		673E425917F0D23E00F4BC76 /* TabSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TabSetup.cpp; sourceTree = "<group>"; };
 		673F03661F322A9B0052A793 /* ChannelBlockModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChannelBlockModel.h; path = models/ChannelBlockModel.h; sourceTree = "<group>"; };
@@ -1220,8 +1223,6 @@
 		6785922620F02CD9001C2929 /* LyricUserDictDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricUserDictDialog.h; sourceTree = "<group>"; };
 		6786DC741D45D00100672F70 /* PolyLineModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PolyLineModel.cpp; path = models/PolyLineModel.cpp; sourceTree = "<group>"; };
 		6786DC751D45D00100672F70 /* PolyLineModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PolyLineModel.h; path = models/PolyLineModel.h; sourceTree = "<group>"; };
-		679129962134239A00818B73 /* SubModelDrawGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubModelDrawGrid.h; sourceTree = "<group>"; };
-		679129972134239B00818B73 /* SubModelDrawGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubModelDrawGrid.cpp; sourceTree = "<group>"; };
 		67912999213423A800818B73 /* ControllerUploadData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ControllerUploadData.cpp; path = controllers/ControllerUploadData.cpp; sourceTree = "<group>"; };
 		6791299A213423A800818B73 /* ControllerUploadData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerUploadData.h; path = controllers/ControllerUploadData.h; sourceTree = "<group>"; };
 		679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsImportChannelMapDialog.cpp; sourceTree = "<group>"; };
@@ -1296,6 +1297,8 @@
 		67AA37A11C7E372E001D2377 /* libavformat.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavformat.57.dylib; path = lib/osx/libavformat.57.dylib; sourceTree = "<group>"; };
 		67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavcodec.57.dylib; path = lib/osx/libavcodec.57.dylib; sourceTree = "<group>"; };
 		67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswresample.2.dylib; path = lib/osx/libswresample.2.dylib; sourceTree = "<group>"; };
+		67AAC48C214199A7005D55A9 /* NodeSelectGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeSelectGrid.h; sourceTree = "<group>"; };
+		67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeSelectGrid.cpp; sourceTree = "<group>"; };
 		67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PhonemeDictionary.cpp; sourceTree = "<group>"; };
 		67AAF8F11B63767B00585431 /* PhonemeDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhonemeDictionary.h; sourceTree = "<group>"; };
 		67AAF8F41B63785900585431 /* user_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = user_dictionary; path = bin/user_dictionary; sourceTree = "<group>"; };
@@ -2096,6 +2099,8 @@
 		670C827C1C44554E000AA5D8 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				673D764B214B2F06007C6E83 /* MeshObject.cpp */,
+				673D764A214B2F06007C6E83 /* MeshObject.h */,
 				67CE258A2138234000ADF180 /* BaseObject.cpp */,
 				67CE25872138233F00ADF180 /* BaseObject.h */,
 				67CE25862138233F00ADF180 /* GridlinesObject.cpp */,
@@ -2835,8 +2840,8 @@
 				67C9E65F211FC07E00379E2A /* ViewpointDialog.h */,
 				67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */,
 				67C9E65E211FC07E00379E2A /* ViewpointMgr.h */,
-				679129972134239B00818B73 /* SubModelDrawGrid.cpp */,
-				679129962134239A00818B73 /* SubModelDrawGrid.h */,
+				67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */,
+				67AAC48C214199A7005D55A9 /* NodeSelectGrid.h */,
 				67CE7B502111E02D004005BC /* RenderCache.cpp */,
 				67CE7B512111E02D004005BC /* RenderCache.h */,
 				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
@@ -3900,6 +3905,7 @@
 				6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */,
 				67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
+				67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */,
 				67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */,
 				67D2B0491D54CC6A006D324F /* ColorCurveDialog.cpp in Sources */,
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
@@ -3948,6 +3954,7 @@
 				675AB4271B5ACEDA00853A28 /* acsymbols.c in Sources */,
 				67D678FD1A7E628400421B05 /* tmGridCell.cpp in Sources */,
 				673C925920A47C5400E59F5D /* JukeboxPanel.cpp in Sources */,
+				673D764C214B2F06007C6E83 /* MeshObject.cpp in Sources */,
 				675DE26F1B53381800A9BB44 /* xlSlider.cpp in Sources */,
 				67FF398D1D57F54D00290DB4 /* Shapes.cpp in Sources */,
 				67CE25902138234000ADF180 /* BaseObject.cpp in Sources */,
@@ -4081,7 +4088,6 @@
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67B2CF801C39D98A003C17CA /* PinwheelPanel.cpp in Sources */,
-				679129982134239B00818B73 /* SubModelDrawGrid.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,
 				6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */,
 				67B2CF7F1C39D98A003C17CA /* PicturesPanel.cpp in Sources */,

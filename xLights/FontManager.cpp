@@ -69,6 +69,9 @@ void FontManager::init()
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_5x6_thin_vertical_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_6x6_thin_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_6x6_thin_vertical_system));
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_7_7x9_thin));
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_7_7x9_thinnarrow));
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_7_7x9_bold));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_8_8x8_thin_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_8_8x8_thin_vertical_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_10_12x12_bold_system));
@@ -102,6 +105,9 @@ wxArrayString FontManager::get_font_names()
         names.Add("6-5x6 Thin Vertical");
         names.Add("6-6x6 Thin");
         names.Add("6-6x6 Thin Vertical");
+        names.Add("7-7x9 Thin");
+        names.Add("7-7x9 Thin Narrow");
+        names.Add("7-7x9 Bold");
         names.Add("8-8x8 Thin");
         names.Add("8-8x8 Thin Vertical");
         names.Add("10-12x12 Bold");

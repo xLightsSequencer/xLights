@@ -93,9 +93,9 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
 
     //logger_base.info("FTP current directory %s.", (const char *)ftp.Pwd().c_str());
 
+    int size = _ftp.GetFileSize((folder + "/" + basefile).c_str());
     if (backup)
     {
-        int size = _ftp.GetFileSize((folder + "/" + basefile).c_str());
         if (size == -1)
         {
             // file not there so no need to backup
@@ -105,11 +105,27 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
             wxDateTime dt = wxDateTime::Now();
             wxString tgtfile = wxString((folder + "/" + basefilenew).c_str()) + "_" + dt.Format("%Y%m%d_%H%M%S");
             logger_base.info("FTP Backing up file %s to %s.", (const char *)(folder + "/" + basefilenew).c_str(), (const char *)tgtfile.c_str());
-            _ftp.Rename((folder + "/" + basefilenew).c_str(), tgtfile);
+            if (!_ftp.Rename((folder + "/" + basefilenew).c_str(), tgtfile))
+            {
+                logger_base.error("    Rename failed : %s", (const char*)_ftp.GetLastResult().c_str());
+            }
             if (!cancelled)
             {
                 cancelled = progress.WasCancelled();
             }
+        }
+    }
+    else
+    {
+        // delete the file before uploading ... hopefully this will help remove some creation errors.
+        logger_base.info("FTP Deleting file %s.", (const char *)(folder + "/" + basefilenew).c_str());
+        if (!_ftp.RmFile((folder + "/" + basefilenew).c_str()))
+        {
+            logger_base.error("    Deletion failed : %s", (const char*)_ftp.GetLastResult().c_str());
+        }
+        if (!cancelled)
+        {
+            cancelled = progress.WasCancelled();
         }
     }
 

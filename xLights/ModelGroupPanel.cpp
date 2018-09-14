@@ -221,7 +221,8 @@ void ModelGroupPanel::AddPreviewChoice(const std::string name)
     ChoicePreviews->Append(name);
 }
 
-bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model, std::list<std::string> &modelGroupsInGroup) {
+bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model, std::list<std::string> &modelGroupsInGroup, std::list<std::string>& visitedGroups) {
+
     if (model == g->GetName()) {
         return false;
     }
@@ -230,12 +231,23 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
         if (*it == model) {
             return false;
         }
+
         Model *m = models[model];
         if (m != nullptr) {
             ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
             if (grp != nullptr) {
+
+                // If we have already visited this group dont look at it again
+                for (auto it3 = visitedGroups.begin(); it3 != visitedGroups.end(); ++it3) {
+                    if (*it3 == grp->GetName())
+                    {
+                        return false;
+                    }
+                }
+                visitedGroups.push_back(grp->GetName());
+
                 for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
-                    if (!canAddToGroup(g, models, *it2, modelGroupsInGroup)) {
+                    if (!canAddToGroup(g, models, *it2, modelGroupsInGroup, visitedGroups)) {
                         return false;
                     }
                 }
@@ -268,7 +280,8 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
     }
     for (auto it = mModels.begin(); it != mModels.end(); ++it) {
         if (it->first != group) {
-            if (canAddToGroup(g, mModels, it->first, modelsInGroup)) {
+            std::list<std::string> visitedGroups;
+            if (canAddToGroup(g, mModels, it->first, modelsInGroup, visitedGroups)) {
                 ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
             }
             if (CheckBox_ShowSubmodels->GetValue())

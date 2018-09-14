@@ -1772,6 +1772,10 @@ void xLightsFrame::UploadFalconInput()
                 SetStatusText("Falcon Input Upload Failed.");
             }
         }
+        else
+        {
+            SetStatusText("Falcon Input Upload Failed.");
+        }
         SetCursor(wxCURSOR_ARROW);
     }
 }
