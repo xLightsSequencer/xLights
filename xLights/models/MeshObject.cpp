@@ -259,7 +259,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                                     continue;
                                 }
                             }
-                            textures[mp->diffuse_texname] = new Image(texture_filename);
+                            textures[mp->diffuse_texname] = new Image(texture_filename, false, true);
                         }
                     }
                 }
@@ -521,7 +521,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
                     }
                     else {
-                        va3.FinishTextures(GL_TRIANGLES, image_id, 255.0f);
+                        va3.FinishTextures(GL_TRIANGLES, image_id, xlColor(0,0,0));
                     }
                 }
             }

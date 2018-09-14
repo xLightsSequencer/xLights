@@ -1193,7 +1193,7 @@ public:
 
         bool scaledW, scaledH, mAlpha;
         int width, height;
-        GLuint id = loadImage(&cimg, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha);
+        GLuint id = loadImage(&cimg, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha, false);
         currentCache->SetTextureId(fontIdx, id);
     }
     void ForceCreate(int size) {
