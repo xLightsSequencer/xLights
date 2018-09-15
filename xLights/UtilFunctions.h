@@ -58,6 +58,8 @@ double ScaleWithSystemDPI(double scalingFactor, double val);
 double UnScaleWithSystemDPI(double val);
 double UnScaleWithSystemDPI(double scalingFactor, double val);
 
+wxString RemoveCntrlCharacters(const wxString &s);
+
 inline bool isHexChar(char c)
 {
     return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));

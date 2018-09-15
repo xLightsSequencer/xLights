@@ -647,6 +647,7 @@ void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
 
 void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& node_value)
 {
+    wxString clean_node_value(RemoveCntrlCharacters(node_value));
     wxXmlNode* root=seqDocument.GetRoot();
 
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
@@ -657,8 +658,8 @@ void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& 
             {
                 if( element->GetName() == HEADER_STRINGS[name_name])
                 {
-                    SetNodeContent(element, node_value);
-                    header_info[name_name] = node_value;
+                    SetNodeContent(element, clean_node_value);
+                    header_info[name_name] = clean_node_value;
                 }
             }
        }

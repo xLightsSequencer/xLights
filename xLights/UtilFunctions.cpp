@@ -553,6 +553,16 @@ double UnScaleWithSystemDPI(double scalingFactor, double val) {
 #endif
 }
 
+wxString RemoveCntrlCharacters(const wxString& s)
+{
+    wxString str(s.ToStdString());
+
+    str.erase(std::remove_if(str.begin(), str.end(), [&](const unsigned char &c)
+    { return !isprint(c); }), str.end());
+
+    return str;
+}
+
 bool DeleteDirectory(std::string directory)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
