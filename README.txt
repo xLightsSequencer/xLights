@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  Added Start and End Time to the Lyric Dialog
 2018.33 September 7, 2018
    -- enh (dkulp)  Bunch of performance updates for Test dialog on OSX
    -- bug (keith)  FPP Upload extra logging and delete any existing file before upload
