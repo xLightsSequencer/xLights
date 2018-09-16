@@ -236,6 +236,13 @@ void ModelPreview::Render()
 
 void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
     if (StartDrawing(mPointSize)) {
+        // draw all the view objects
+        if (is_3d) {
+            for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+                ViewObject *view_object = it->second;
+                view_object->Draw(this, view_object_accumulator, allowSelected);
+            }
+        }
         if (PreviewModels != nullptr) {
             for (int m = 0; m < PreviewModels->size(); m++) {
                 int NodeCnt = (*PreviewModels)[m]->GetNodeCount();
