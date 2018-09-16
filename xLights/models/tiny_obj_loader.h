@@ -340,7 +340,7 @@ class MaterialStreamReader : public MaterialReader {
 /// or not.
 /// Option 'default_vcols_fallback' specifies whether vertex colors should
 /// always be defined, even if no colors are given (fallback to white).
-bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
+bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes, std::vector<int> *lines,
              std::vector<material_t> *materials, std::string *err,
              const char *filename, const char *mtl_basedir = NULL,
              bool triangulate = true, bool default_vcols_fallback = true);
@@ -360,7 +360,7 @@ bool LoadObjWithCallback(std::istream &inStream, const callback_t &callback,
 /// std::istream for materials.
 /// Returns true when loading .obj become success.
 /// Returns warning and error message into `err`
-bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
+bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes, std::vector<int> *lines,
              std::vector<material_t> *materials, std::string *err,
              std::istream *inStream, MaterialReader *readMatFn = NULL,
              bool triangulate = true, bool default_vcols_fallback = true);
@@ -1735,7 +1735,7 @@ bool MaterialStreamReader::operator()(const std::string &matId,
   return true;
 }
 
-bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
+bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes, std::vector<int> *lines,
              std::vector<material_t> *materials, std::string *err,
              const char *filename, const char *mtl_basedir,
              bool trianglulate, bool default_vcols_fallback) {
@@ -1744,6 +1744,7 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
   attrib->texcoords.clear();
   attrib->colors.clear();
   shapes->clear();
+  lines->clear();
 
   std::stringstream errss;
 
@@ -1767,11 +1768,11 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
   }
   MaterialFileReader matFileReader(baseDir);
 
-  return LoadObj(attrib, shapes, materials, err, &ifs, &matFileReader,
+  return LoadObj(attrib, shapes, lines, materials, err, &ifs, &matFileReader,
                  trianglulate, default_vcols_fallback);
 }
 
-bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
+bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes, std::vector<int> *lines,
              std::vector<material_t> *materials, std::string *err,
              std::istream *inStream, MaterialReader *readMatFn /*= NULL*/,
              bool triangulate, bool default_vcols_fallback) {
@@ -1895,6 +1896,8 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
           line_cache.idx1 = idx;
           lineGroup.push_back(line_cache.idx0);
           lineGroup.push_back(line_cache.idx1);
+          lines->push_back(line_cache.idx0);
+          lines->push_back(line_cache.idx1);
           line_cache = line_t();
         }
         end_line_bit = !end_line_bit;

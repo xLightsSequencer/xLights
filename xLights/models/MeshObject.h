@@ -38,6 +38,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
         std::map<std::string, Image*> textures;
+        std::vector<int> lines;
         float bmin[3];
         float bmax[3];
 

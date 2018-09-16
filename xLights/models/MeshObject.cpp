@@ -235,7 +235,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             wxFileName fn(_objFile);
             std::string base_path = fn.GetPath();
             std::string err;
-            bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+            bool ret = tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
 
             // Append `default` material
             materials.push_back(tinyobj::material_t());
@@ -372,13 +372,16 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             assert(attrib.texcoords.size() >
                                 size_t(2 * idx2.texcoord_index + 1));
 
-                            // Flip Y coord.
                             tc[0][0] = attrib.texcoords[2 * idx0.texcoord_index];
-                            tc[0][1] = 1.0f - attrib.texcoords[2 * idx0.texcoord_index + 1];
+                            tc[0][1] = attrib.texcoords[2 * idx0.texcoord_index + 1];
                             tc[1][0] = attrib.texcoords[2 * idx1.texcoord_index];
-                            tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
+                            tc[1][1] = attrib.texcoords[2 * idx1.texcoord_index + 1];
                             tc[2][0] = attrib.texcoords[2 * idx2.texcoord_index];
-                            tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
+                            tc[2][1] = attrib.texcoords[2 * idx2.texcoord_index + 1];
+
+                            //tc[0][1] = 1.0f - attrib.texcoords[2 * idx0.texcoord_index + 1];
+                            //tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
+                            //tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
                         }
                     }
                     else {
@@ -498,7 +501,11 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         }
 
                         if (image_id == -1) {
-                            wxColor c(red * 255, green * 255, blue * 255);
+                            float trans = materials[current_material_id].dissolve * 255.0f;
+                            if (trans < 255.0f) {
+                                red = green;
+                            }
+                            xlColor c(red * 255, green * 255, blue * 255, trans);
                             va3.AddVertex(v[k][0], v[k][1], v[k][2], c);
                         }
                         else {
@@ -528,6 +535,26 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
         }
         if (mesh_only) {
             va3.Finish(GL_LINES, GL_LINE_SMOOTH, 1.0f);
+        }
+
+        // process any edge lines
+        if (lines.size() > 0) {
+            for (size_t l = 0; l < lines.size() / 2; l++) {
+                float v[2][3];
+                for (int k = 0; k < 3; k++) {
+                    int f0 = lines[l * 2 + 0];
+                    int f1 = lines[l * 2 + 1];
+
+                    v[0][k] = attrib.vertices[3 * f0 + k];
+                    v[1][k] = attrib.vertices[3 * f1 + k];
+                }
+                for (int k = 0; k < 2; k++) {
+                    GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
+                }
+                va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxBLACK);
+                va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxBLACK);
+            }
+            va3.Finish(GL_LINES, GL_LINE_SMOOTH, 0.75f);
         }
     }
 
