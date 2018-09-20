@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Update to newer standard dictionary
+   -- bug (dkulp)  Loading dictionaries did not properly use utf-8.  Fixes #1247
    -- enh (scott)  Added Start and End Time to the Lyric Dialog
    -- bug (scott)  Fixed Missing Nodes on Node Select Dialog
 2018.33 September 7, 2018
