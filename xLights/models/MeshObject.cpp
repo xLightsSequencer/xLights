@@ -12,7 +12,7 @@
 
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
-    width(100), height(100), depth(100), transparency(0),
+    width(100), height(100), depth(100), brightness(255),
     obj_loaded(false), mesh_only(false), diffuse_colors(false)
 {
     SetFromXml(node);
@@ -34,8 +34,8 @@ void MeshObject::InitModel() {
     mesh_only = ModelXml->GetAttribute("MeshOnly", "0") == "1";
     diffuse_colors = ModelXml->GetAttribute("Diffuse", "0") == "1";
 
-    if (ModelXml->HasAttribute("Transparency")) {
-        transparency = wxAtoi(ModelXml->GetAttribute("Transparency"));
+    if (ModelXml->HasAttribute("Brightness")) {
+        brightness = wxAtoi(ModelXml->GetAttribute("brightness"));
     }
 
     screenLocation.SetRenderSize(width, height, depth);
@@ -47,9 +47,9 @@ void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
                                              _objFile));
     p->SetAttribute(wxPG_FILE_WILDCARD, "Wavefront files|*.obj|All files (*.*)|*.*");
 
-    p = grid->Append(new wxUIntProperty("Transparency", "Transparency", transparency));
+    p = grid->Append(new wxUIntProperty("Brightness", "Brightness", brightness));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 100);
+    p->SetAttribute("Max", 255);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
@@ -73,10 +73,10 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         SetFromXml(ModelXml);
         return 3;
     }
-    else if ("Transparency" == event.GetPropertyName()) {
-        transparency = (int)event.GetPropertyValue().GetLong();
-        ModelXml->DeleteAttribute("Transparency");
-        ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
+    else if ("Brightness" == event.GetPropertyName()) {
+        brightness = (int)event.GetPropertyValue().GetLong();
+        ModelXml->DeleteAttribute("Brightness");
+        ModelXml->AddAttribute("Brightness", wxString::Format("%d", brightness));
         return 3 | 0x0008;
     }
     else if ("MeshOnly" == event.GetPropertyName()) {
@@ -528,7 +528,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
                     }
                     else {
-                        va3.FinishTextures(GL_TRIANGLES, image_id, xlColor(0,0,0));
+                        va3.FinishTextures(GL_TRIANGLES, image_id, brightness);
                     }
                 }
             }

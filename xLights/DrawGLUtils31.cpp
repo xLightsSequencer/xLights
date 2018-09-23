@@ -602,7 +602,7 @@ public:
         if (va.count == 0) {
             return;
         }
-        
+
         ShaderProgram *program = &singleColorProgram;
         if (va.coordsPerVertex == 3) {
             program = &singleColor3Program;
@@ -648,7 +648,7 @@ public:
             program = &normal3Program;
             texturep = &texture3Program;
         }
-        
+
         program->UseProgram();
         program->SetMatrix(*matrix);
         program->SetRenderType(0);
@@ -679,7 +679,9 @@ public:
                 LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(texturep->ProgramID, "tex"), 0));
                 GLuint cid = glGetUniformLocation(texturep->ProgramID, "inColor");
 
-                LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                float brightness = ((float)it->textureAlpha)/255.0;
+                LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, 1.0));
+                //LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
                 if (it->useTexturePixelColor) {
                     LOG_GL_ERRORV(glUniform4f(cid, ((float)it->texturePixelColor.red) / 255.0f,
                                               ((float)it->texturePixelColor.green) / 255.0f,
@@ -687,7 +689,7 @@ public:
                                               ((float)it->texturePixelColor.alpha) / 255.0f));
                     texturep->SetRenderType(1);
                 } else {
-                    LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                    //LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
                     texturep->SetRenderType(0);
                 }
             } else if (type == GL_POINTS && enableCapability == 0x0B10) {
@@ -732,12 +734,12 @@ public:
         if (va.count == 0) {
             return;
         }
-        
+
         ShaderProgram *program = &normalProgram;
         if (va.coordsPerVertex == 3) {
             program = &normal3Program;
         }
-        
+
         program->UseProgram();
         program->SetMatrix(*matrix);
 
@@ -780,7 +782,7 @@ public:
         if (va.coordsPerVertex == 3) {
             program = &texture3Program;
         }
-        
+
         program->UseProgram();
         program->SetMatrix(*matrix);
 
