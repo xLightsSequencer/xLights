@@ -14,6 +14,13 @@ END_EVENT_TABLE()
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 
+
+#ifdef __WXMSW__
+#define DEPTH_BUFFER_BITS 16
+#else
+#define DEPTH_BUFFER_BITS 32
+#endif
+
 static wxGLAttributes GetAttributes(bool need3d) {
     wxGLAttributes atts;
     atts.PlatformDefaults()
@@ -21,7 +28,7 @@ static wxGLAttributes GetAttributes(bool need3d) {
         .MinRGBA(8, 8, 8, 8)
         .DoubleBuffer();
     if (need3d) {
-        atts.Depth(32);
+        atts.Depth(DEPTH_BUFFER_BITS);
     }
     atts.EndList();
     if (!wxGLCanvas::IsDisplaySupported(atts)) {
@@ -30,7 +37,7 @@ static wxGLAttributes GetAttributes(bool need3d) {
             .RGBA()
             .DoubleBuffer();
         if (need3d) {
-            atts.Depth(32);
+            atts.Depth(DEPTH_BUFFER_BITS);
         }
         atts.EndList();
     }
@@ -181,7 +188,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
             0,                     // shift bit ignored
             0,                     // no accumulation buffer
             0, 0, 0, 0,            // accum bits ignored
-            only2d ? 0 : 32,                    // 32-bit z-buffer
+            only2d ? (uint8_t)0 : (uint8_t)16,       // 16-bit z-buffer
             0,                     // no stencil buffer
             0,                     // no auxiliary buffer
             PFD_MAIN_PLANE,        // main layer
