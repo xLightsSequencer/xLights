@@ -386,7 +386,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                 "void main(){\n"
                                 "    vec4 c = texture(tex, UV);\n"
                                 "    if (RenderType == 0) {\n"
-                                "        color = vec4(c.rgb, c.a*fragmentColor.a);\n"
+                                "        color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
                                 "    } else {\n"
                                 "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
                                 "    }\n"
@@ -415,7 +415,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "uniform int RenderType;\n"
                 "void main(){\n"
                 "    vec4 c = texture(tex, UV);\n"
-                "    color = vec4(c.rgb, c.a*fragmentColor.a);\n"
+                "    color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
                 "}\n", 3);
         }
         if (UsesVertexAccumulator) {
@@ -679,9 +679,6 @@ public:
                 LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(texturep->ProgramID, "tex"), 0));
                 GLuint cid = glGetUniformLocation(texturep->ProgramID, "inColor");
 
-                float brightness = ((float)it->textureAlpha)/255.0;
-                LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, 1.0));
-                //LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
                 if (it->useTexturePixelColor) {
                     LOG_GL_ERRORV(glUniform4f(cid, ((float)it->texturePixelColor.red) / 255.0f,
                                               ((float)it->texturePixelColor.green) / 255.0f,
@@ -689,7 +686,9 @@ public:
                                               ((float)it->texturePixelColor.alpha) / 255.0f));
                     texturep->SetRenderType(1);
                 } else {
-                    //LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                    float alpha = ((float)it->textureAlpha)/255.0;
+                    float brightness = it->textureBrightness / 100.0f;
+                    LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, alpha));
                     texturep->SetRenderType(0);
                 }
             } else if (type == GL_POINTS && enableCapability == 0x0B10) {

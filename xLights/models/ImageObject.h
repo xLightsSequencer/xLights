@@ -28,6 +28,7 @@ class ImageObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         int height;
         std::map<std::string, Image*> _images;
         int transparency;
+        float brightness;
 
 };
 

@@ -201,13 +201,13 @@ namespace DrawGLUtils
 
     class xlVertexTextureAccumulator : public xlVertexAccumulatorBase {
     public:
-        xlVertexTextureAccumulator() : xlVertexAccumulatorBase(), id(0), alpha(255), forceColor(false) {
+        xlVertexTextureAccumulator() : xlVertexAccumulatorBase(), id(0), alpha(255), forceColor(false), brightness(100.0) {
             tvertices = (float*)malloc(sizeof(float)*max*2);
         }
-        xlVertexTextureAccumulator(GLuint i) : xlVertexAccumulatorBase(), id(i), alpha(255), forceColor(false) {
+        xlVertexTextureAccumulator(GLuint i) : xlVertexAccumulatorBase(), id(i), alpha(255), forceColor(false), brightness(100.0) {
             tvertices = (float*)malloc(sizeof(float)*max*2);
         }
-        xlVertexTextureAccumulator(GLuint i, uint8_t a) : xlVertexAccumulatorBase(), id(i), alpha(a), forceColor(false) {
+        xlVertexTextureAccumulator(GLuint i, uint8_t a) : xlVertexAccumulatorBase(), id(i), alpha(a), forceColor(false), brightness(100.0) {
             tvertices = (float*)malloc(sizeof(float)*max*2);
         }
         xlVertexTextureAccumulator(xlVertexTextureAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
@@ -217,6 +217,7 @@ namespace DrawGLUtils
             alpha = mv.alpha;
             forceColor = mv.forceColor;
             color = mv.color;
+            brightness = mv.brightness;
         }
         xlVertexTextureAccumulator(const xlVertexTextureAccumulator &mv) : xlVertexAccumulatorBase(mv) {
             id = mv.id;
@@ -225,6 +226,7 @@ namespace DrawGLUtils
             color = mv.color;
             tvertices = (float*)malloc(sizeof(float)*max*2);
             memcpy(tvertices, mv.tvertices, count * sizeof(float) * 2);
+            brightness = mv.brightness;
         }
 
         virtual ~xlVertexTextureAccumulator() {
@@ -252,6 +254,7 @@ namespace DrawGLUtils
         }
         GLuint id;
         uint8_t alpha;
+        float brightness;
         bool forceColor;
         xlColor color;
         float *tvertices;
@@ -315,7 +318,7 @@ namespace DrawGLUtils
         }
         void AddTextureVertex(float x, float y, float z, float tx, float ty);
 
-        void FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability = 0);
+        void FinishTextures(int type, GLuint textureId, uint8_t alpha, float brightness, int enableCapability = 0);
         void FinishTextures(int type, GLuint textureId, const xlColor &color, int enableCapability = 0);
 
         void Load(const xlVertexColorAccumulator &ca);
@@ -331,9 +334,10 @@ namespace DrawGLUtils
                 enableCapability = ec;
                 extra = ex;
                 textureId = -1;
+                textureBrightness = 1.0f;
                 useTexturePixelColor = false;
             }
-            BufferRangeType(int s, int c, int t, int ec, GLuint tid, uint8_t alpha) {
+            BufferRangeType(int s, int c, int t, int ec, GLuint tid, uint8_t alpha, float brightness) {
                 start = s;
                 count = c;
                 type = t;
@@ -341,6 +345,7 @@ namespace DrawGLUtils
                 extra = 0.0f;
                 textureId = tid;
                 textureAlpha = alpha;
+                textureBrightness = brightness;
                 useTexturePixelColor = false;
             }
             BufferRangeType(int s, int c, int t, int ec, GLuint tid, const xlColor &color) {
@@ -351,6 +356,7 @@ namespace DrawGLUtils
                 extra = 0.0f;
                 textureId = tid;
                 textureAlpha = 255;
+                textureBrightness = 1.0f;
                 useTexturePixelColor = true;
                 texturePixelColor = color;
             }
@@ -361,6 +367,7 @@ namespace DrawGLUtils
             float extra;
             GLuint textureId;
             uint8_t textureAlpha;
+            float textureBrightness;
             bool useTexturePixelColor;
             xlColor texturePixelColor;
         };

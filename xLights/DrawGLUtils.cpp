@@ -145,7 +145,8 @@ public:
                 LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
                 float trans = it->textureAlpha;
                 trans /= 255.0f;
-                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, trans));
+                float bri = it->textureBrightness;
+                LOG_GL_ERRORV(glColor4f(bri/100.0f, bri/100.0f, bri/100.0f, trans));
             }
             if (it->type == GL_POINTS) {
                 LOG_GL_ERRORV(glPointSize(it->extra));
@@ -727,7 +728,7 @@ void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int 
     if (va.forceColor) {
         FinishTextures(type, va.id, va.color, enableCapability);
     } else {
-        FinishTextures(type, va.id, va.alpha, enableCapability);
+        FinishTextures(type, va.id, va.alpha, va.brightness, enableCapability);
     }
 }
 
@@ -767,8 +768,8 @@ void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, cons
     start = count;
 }
 
-void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
-    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
+void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, float brightness, int enableCapability) {
+    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha, brightness));
     start = count;
 }
 

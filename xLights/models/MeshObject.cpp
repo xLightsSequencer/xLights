@@ -12,7 +12,7 @@
 
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
-    width(100), height(100), depth(100), brightness(255),
+    width(100), height(100), depth(100), brightness(100),
     obj_loaded(false), mesh_only(false), diffuse_colors(false)
 {
     SetFromXml(node);
@@ -35,7 +35,12 @@ void MeshObject::InitModel() {
     diffuse_colors = ModelXml->GetAttribute("Diffuse", "0") == "1";
 
     if (ModelXml->HasAttribute("Brightness")) {
-        brightness = wxAtoi(ModelXml->GetAttribute("brightness"));
+        brightness = wxAtoi(ModelXml->GetAttribute("Brightness"));
+        if (brightness > 100) {
+            brightness = 100;
+        } else if (brightness < 0) {
+            brightness = 0;
+        }
     }
 
     screenLocation.SetRenderSize(width, height, depth);
@@ -49,7 +54,7 @@ void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxUIntProperty("Brightness", "Brightness", brightness));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 255);
+    p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxBoolProperty("Mesh Only", "MeshOnly", mesh_only));
@@ -76,7 +81,7 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
     else if ("Brightness" == event.GetPropertyName()) {
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
-        ModelXml->AddAttribute("Brightness", wxString::Format("%d", brightness));
+        ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         return 3 | 0x0008;
     }
     else if ("MeshOnly" == event.GetPropertyName()) {
@@ -505,10 +510,12 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             if (trans < 255.0f) {
                                 red = green;
                             }
+                            red *= brightness / 100.f;
+                            green *= brightness / 100.f;
+                            blue *= brightness / 100.f;
                             xlColor c(red * 255, green * 255, blue * 255, trans);
                             va3.AddVertex(v[k][0], v[k][1], v[k][2], c);
-                        }
-                        else {
+                        } else {
                             va3.AddTextureVertex(v[k][0], v[k][1], v[k][2], tc[k][0], tc[k][1]);
                         }
                     }
@@ -522,13 +529,11 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                     va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
                     va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
                     va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
-                }
-                else {
+                } else {
                     if (image_id == -1) {
                         va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
-                    }
-                    else {
-                        va3.FinishTextures(GL_TRIANGLES, image_id, brightness);
+                    } else {
+                        va3.FinishTextures(GL_TRIANGLES, image_id, 255, (float)brightness);
                     }
                 }
             }

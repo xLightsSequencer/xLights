@@ -10,7 +10,7 @@
 #include <log4cpp/Category.hh>
 
 ImageObject::ImageObject(wxXmlNode *node, const ViewObjectManager &manager)
- : ObjectWithScreenLocation(manager), _imageFile(""), width(1), height(1), transparency(0)
+ : ObjectWithScreenLocation(manager), _imageFile(""), width(1), height(1), transparency(0), brightness(100.0f)
 {
     SetFromXml(node);
 }
@@ -29,6 +29,9 @@ void ImageObject::InitModel() {
     if (ModelXml->HasAttribute("Transparency")) {
         transparency = wxAtoi(ModelXml->GetAttribute("Transparency"));
     }
+    if (ModelXml->HasAttribute("Brightness")) {
+        brightness = wxAtoi(ModelXml->GetAttribute("Brightness"));
+    }
 
     screenLocation.SetRenderSize(width, height, 10.0f);
 }
@@ -40,6 +43,10 @@ void ImageObject::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
 
     p = grid->Append(new wxUIntProperty("Transparency", "Transparency", transparency));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    p = grid->Append(new wxUIntProperty("Brightness", "Brightness", (int)brightness));
     p->SetAttribute("Min", 0);
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
@@ -57,11 +64,15 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("Image", _imageFile);
         SetFromXml(ModelXml);
         return 3;
-    }
-    else if ("Transparency" == event.GetPropertyName()) {
+    } else if ("Transparency" == event.GetPropertyName()) {
         transparency = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
+        return 3 | 0x0008;
+    } else if ("Brightness" == event.GetPropertyName()) {
+        brightness = (int)event.GetPropertyValue().GetLong();
+        ModelXml->DeleteAttribute("Brightness");
+        ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         return 3 | 0x0008;
     }
 
@@ -133,11 +144,9 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
         va3.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
         va3.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
 
-        int brightness = (100.0 - transparency) * 255.0 / 100.0;
-
-        va3.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
-    }
-    else {
+        int alpha = (100.0 - transparency) * 255.0 / 100.0;
+        va3.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
+    } else {
         va3.AddVertex(x1, y1, z1, *wxRED);
         va3.AddVertex(x2, y2, z2, *wxRED);
         va3.AddVertex(x2, y2, z2, *wxRED);

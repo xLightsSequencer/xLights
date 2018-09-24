@@ -29,7 +29,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         float width;
         float height;
         float depth;
-        int brightness;
+        float brightness;
         bool obj_loaded;
         bool mesh_only;
         bool diffuse_colors;

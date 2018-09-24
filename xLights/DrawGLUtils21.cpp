@@ -166,11 +166,10 @@ public:
             "void main(){\n"
             "    vec4 col = texture2D(tex, textCoord);\n"
             "    if (RenderType == 0) {\n"
-            "        gl_FragColor = vec4(col.rgb, col.a * inColor.a);\n"
+            "        gl_FragColor = vec4(col.r*inColor.r, col.g*inColor.g, col.b*inColor.b, col.a * inColor.a);\n"
             "    } else {\n"
             "        gl_FragColor = vec4(inColor.rgb, col.a * inColor.a);\n"
             "    }\n"
-
             "}\n");
 
         ProgramIDtexture = LinkProgram(VertexShaderIDtx, FragmentShaderIDtxt);
@@ -573,7 +572,7 @@ public:
             GLuint cid = glGetUniformLocation(program, "RenderType");
             LOG_GL_ERRORV(glUniform1i(cid, 0));
             cid = glGetUniformLocation(program, "inColor");
-            glUniform4f(cid, 1.0, 1.0, 1.0, ((float)va.alpha)/255.0);
+            glUniform4f(cid, va.brightness / 100.f, va.brightness / 100.f, va.brightness / 100.f, ((float)va.alpha)/255.0);
         }
 
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
