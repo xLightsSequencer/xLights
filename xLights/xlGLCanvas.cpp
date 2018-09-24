@@ -14,19 +14,25 @@ END_EVENT_TABLE()
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 
-static wxGLAttributes GetAttributes() {
+static wxGLAttributes GetAttributes(bool need3d) {
     wxGLAttributes atts;
     atts.PlatformDefaults()
         .RGBA()
         .MinRGBA(8, 8, 8, 8)
-        .DoubleBuffer()
-        .EndList();
+        .DoubleBuffer();
+    if (need3d) {
+        atts.Depth(32);
+    }
+    atts.EndList();
     if (!wxGLCanvas::IsDisplaySupported(atts)) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
-            .DoubleBuffer()
-            .EndList();
+            .DoubleBuffer();
+        if (need3d) {
+            atts.Depth(32);
+        }
+        atts.EndList();
     }
     return atts;
 }
@@ -125,14 +131,14 @@ bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, 
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
-                       bool coreProfile)
-    :   wxGLCanvas(parent, GetAttributes(), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
+                       bool only2d)
+    :   wxGLCanvas(parent, GetAttributes(!only2d), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
         mWindowWidth(0),
         mWindowHeight(0),
         mWindowResized(false),
         mIsInitialized(false),
         m_context(nullptr),
-        m_coreProfile(coreProfile),
+        m_coreProfile(true),
         cache(nullptr)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -175,7 +181,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
             0,                     // shift bit ignored
             0,                     // no accumulation buffer
             0, 0, 0, 0,            // accum bits ignored
-            16,                    // 16-bit z-buffer
+            only2d ? 0 : 32,                    // 32-bit z-buffer
             0,                     // no stencil buffer
             0,                     // no auxiliary buffer
             PFD_MAIN_PLANE,        // main layer

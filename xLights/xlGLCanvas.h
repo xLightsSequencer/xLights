@@ -15,7 +15,7 @@ class xlGLCanvas
                    const wxSize &size=wxDefaultSize,
                    long style=0,
                    const wxString &name=wxPanelNameStr,
-                   bool coreProfile = true);
+                   bool only2d = true);
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();

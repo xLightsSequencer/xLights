@@ -43,7 +43,7 @@ const long Waveform::ID_WAVE_MNU_RENDER = wxNewId();
 
 Waveform::Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
                    long style, const wxString &name):
-                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "WaveForm", true)
+                   xlGLCanvas(parent,wxID_ANY,wxDefaultPosition, wxDefaultSize, 0, "WaveForm")
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                Creating Waveform");

@@ -348,7 +348,7 @@ void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
       image(nullptr), PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_),
       m_mouse_down(false), m_wheel_down(false), is_3d(false), camera3d(nullptr), camera2d(nullptr)
 {
@@ -362,7 +362,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
 }
 
 ModelPreview::ModelPreview(wxPanel* parent)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(nullptr), allowSelected(false), image(nullptr)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", false), PreviewModels(nullptr), allowSelected(false), image(nullptr)
 {
     _model = nullptr;
     maxVertexCount = 5000;

@@ -1866,8 +1866,10 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     }
 
     selectedBaseObject = v;
-    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
-    selectionLatched = true;
+    if (v) {
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        selectionLatched = true;
+    }
     SelectBaseObject3D();
 
     UpdatePreview();
