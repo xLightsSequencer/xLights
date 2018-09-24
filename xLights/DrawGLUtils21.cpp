@@ -424,6 +424,9 @@ public:
                     }
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                    
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                 }
                 if (enableCapability != 0) {
                     if (enableCapability == GL_POINT_SMOOTH) {
@@ -573,6 +576,8 @@ public:
             LOG_GL_ERRORV(glUniform1i(cid, 0));
             cid = glGetUniformLocation(program, "inColor");
             glUniform4f(cid, va.brightness / 100.f, va.brightness / 100.f, va.brightness / 100.f, ((float)va.alpha)/255.0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         }
 
         LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0

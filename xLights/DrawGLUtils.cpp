@@ -147,6 +147,8 @@ public:
                 trans /= 255.0f;
                 float bri = it->textureBrightness;
                 LOG_GL_ERRORV(glColor4f(bri/100.0f, bri/100.0f, bri/100.0f, trans));
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             }
             if (it->type == GL_POINTS) {
                 LOG_GL_ERRORV(glPointSize(it->extra));
