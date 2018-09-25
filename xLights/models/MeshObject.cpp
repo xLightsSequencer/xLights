@@ -507,9 +507,6 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
 
                         if (image_id == -1) {
                             float trans = materials[current_material_id].dissolve * 255.0f;
-                            if (trans < 255.0f) {
-                                red = green;
-                            }
                             red *= brightness / 100.f;
                             green *= brightness / 100.f;
                             blue *= brightness / 100.f;
