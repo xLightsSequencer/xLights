@@ -285,7 +285,11 @@ std::string XmlSafe(const std::string& s)
         if ((int)(*c) < 32)
         {
             //res += wxString::Format("&#x%x;", (int)(*c));
-            res += wxString::Format("&#%d;", (int)(*c)).ToStdString();
+            int cc = (int)*c;
+            if (cc == 9 || cc == 10 || cc == 13)
+            {
+                res += wxString::Format("&#%d;", (int)(*c)).ToStdString();
+            }
         }
         else if (*c == '&')
         {
@@ -551,16 +555,6 @@ double UnScaleWithSystemDPI(double scalingFactor, double val) {
 #else
     return val / scalingFactor;
 #endif
-}
-
-wxString RemoveCntrlCharacters(const wxString& s)
-{
-    wxString str(s.ToStdString());
-
-    str.erase(std::remove_if(str.begin(), str.end(), [&](const unsigned char &c)
-    { return !isprint(c); }), str.end());
-
-    return str;
 }
 
 bool DeleteDirectory(std::string directory)

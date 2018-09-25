@@ -51,14 +51,11 @@ inline int NumberAwareStringCompareRev(const std::string &a, const std::string &
 inline int wxStringNumberAwareStringCompare(const wxString& a, const wxString& b) { return NumberAwareStringCompare(a.ToStdString(), b.ToStdString()); }
 inline bool stdlistNumberAwareStringCompare(const std::string& a, const std::string& b) { return NumberAwareStringCompare(a, b) == -1; }
 
-
 double GetSystemContentScaleFactor();
 double ScaleWithSystemDPI(double val);
 double ScaleWithSystemDPI(double scalingFactor, double val);
 double UnScaleWithSystemDPI(double val);
 double UnScaleWithSystemDPI(double scalingFactor, double val);
-
-wxString RemoveCntrlCharacters(const wxString &s);
 
 inline bool isHexChar(char c)
 {
