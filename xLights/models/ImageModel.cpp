@@ -391,7 +391,7 @@ void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumul
             brightness = (float)_offBrightness + (float)(255 - _offBrightness) * (float)brightness / 255.0 * (float)GetChannelValue(0) / 255.0;
         }
 
-        va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
+        va.FinishTextures(GL_TRIANGLES, image->getID(), brightness, 100.0f);
     }
 
     if (c != nullptr && (c->red != c->green || c->red != c->blue))
@@ -473,7 +473,7 @@ void ImageModel::DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumu
             brightness = (float)_offBrightness + (float)(255 - _offBrightness) * (float)brightness / 255.0 * (float)GetChannelValue(0) / 255.0;
         }
 
-        va.FinishTextures(GL_TRIANGLES, image->getID(), brightness);
+        va.FinishTextures(GL_TRIANGLES, image->getID(), brightness, 100.0f);
     }
 
     if (c != nullptr && (c->red != c->green || c->red != c->blue))

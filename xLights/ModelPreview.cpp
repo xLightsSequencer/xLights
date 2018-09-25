@@ -736,8 +736,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
         accumulator.AddTextureVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
 
-        int i = mBackgroundBrightness * 255 / 100;
-        accumulator.FinishTextures(GL_TRIANGLES, image->getID(), i);
+        float i = mBackgroundBrightness;
+        accumulator.FinishTextures(GL_TRIANGLES, image->getID(), 255, i);
     }
     return true;
 }
