@@ -1860,7 +1860,7 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
 
 void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 {
-    LyricsDialog* dlgLyrics = new LyricsDialog(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    LyricsDialog* dlgLyrics = new LyricsDialog(mSequenceEndMS, parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
     if (dlgLyrics->ShowModal() == wxID_OK)
     {
@@ -1889,8 +1889,15 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         }
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
-        int start_time = 0;
-        int end_time = mSequenceEndMS;
+        int start_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
+        int end_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
+        
+        if((end_time - start_time)<= 0)//is start/end time valid?
+        {
+            start_time = 0;
+            end_time = mSequenceEndMS;
+        }
+
         int interval_ms = (end_time-start_time) / num_phrases;
         for( int i = 0; i < total_num_phrases; i++ )
         {

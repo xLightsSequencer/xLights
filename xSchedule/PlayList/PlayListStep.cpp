@@ -338,18 +338,21 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
         {
             if ((*it)->GetTitle() == "FSEQ" || (*it)->GetTitle() == "FSEQ & Video")
             {
-                size_t msec = (*it)->GetFrameMS();
-                if (timesource == nullptr)
+                if ((*it)->GetDurationMS() > 0)
                 {
-                    timesource = *it;
-                    ms = msec;
-                }
-                else
-                {
-                    if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                    size_t msec = (*it)->GetFrameMS();
+                    if (timesource == nullptr)
                     {
                         timesource = *it;
                         ms = msec;
+                    }
+                    else
+                    {
+                        if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                        {
+                            timesource = *it;
+                            ms = msec;
+                        }
                     }
                 }
             }

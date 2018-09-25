@@ -291,11 +291,11 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString> rows)
         model->GetNodeCoords(i, pts);
         if (pts.size() > 0)
         {
-            GridNodes->SetCellValue(sizey - pts[0].y, pts[0].x, wxString::Format("%i", i + 1));
+            GridNodes->SetCellValue(maxy - pts[0].y, pts[0].x - minx, wxString::Format("%i", i + 1));
             if (std::find(prevValue.begin(), prevValue.end(), i) != prevValue.end())
             {
-                GridNodes->SetCellTextColour(sizey - pts[0].y, pts[0].x, selectColor);
-                GridNodes->SetCellBackgroundColour(sizey - pts[0].y, pts[0].x, selectBackColor);
+                GridNodes->SetCellTextColour(maxy - pts[0].y, pts[0].x - minx, selectColor);
+                GridNodes->SetCellBackgroundColour(maxy - pts[0].y, pts[0].x - minx, selectBackColor);
             }
         }
     }

@@ -647,6 +647,7 @@ void xLightsXmlFile::SetNodeContent(wxXmlNode* node, const wxString& content)
 
 void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& node_value)
 {
+    wxString clean_node_value(XmlSafe(node_value));
     wxXmlNode* root=seqDocument.GetRoot();
 
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
@@ -657,8 +658,8 @@ void xLightsXmlFile::SetHeaderInfo(HEADER_INFO_TYPES name_name, const wxString& 
             {
                 if( element->GetName() == HEADER_STRINGS[name_name])
                 {
-                    SetNodeContent(element, node_value);
-                    header_info[name_name] = node_value;
+                    SetNodeContent(element, clean_node_value);
+                    header_info[name_name] = clean_node_value;
                 }
             }
        }
@@ -1003,7 +1004,6 @@ bool xLightsXmlFile::LoadV3Sequence()
 
     is_open = true;
 
-
     version_string = "4.2.19";
 
     timing_protection.Clear();
@@ -1017,7 +1017,6 @@ bool xLightsXmlFile::LoadV3Sequence()
 
     UpdateVersion("4.2.19");
     seqDocument.Save(GetFullPath());
-
 
     was_converted = true;
 
@@ -1093,35 +1092,35 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                 }
                 else if( element->GetName() == "author")
                 {
-                    header_info[AUTHOR] = element->GetNodeContent();
+                    header_info[AUTHOR] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "author-email")
                 {
-                    header_info[AUTHOR_EMAIL] = element->GetNodeContent();
+                    header_info[AUTHOR_EMAIL] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "author-website")
                 {
-                    header_info[WEBSITE] = element->GetNodeContent();
+                    header_info[WEBSITE] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "song")
                 {
-                    header_info[SONG] = element->GetNodeContent();
+                    header_info[SONG] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "artist")
                 {
-                    header_info[ARTIST] = element->GetNodeContent();
+                    header_info[ARTIST] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "album")
                 {
-                    header_info[ALBUM] = element->GetNodeContent();
+                    header_info[ALBUM] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "MusicURL")
                 {
-                    header_info[URL] = element->GetNodeContent();
+                    header_info[URL] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "comment")
                 {
-                    header_info[COMMENT] = element->GetNodeContent();
+                    header_info[COMMENT] = UnXmlSafe(element->GetNodeContent());
                 }
                 else if( element->GetName() == "sequenceTiming")
                 {

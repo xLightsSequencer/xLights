@@ -1899,7 +1899,7 @@ AudioManager::~AudioManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    while (!IsDataLoaded())
+    while (IsOk() && !IsDataLoaded())
     {
         logger_base.debug("~AudioManager waiting for audio data to complete loading before destroying it.");
         wxMilliSleep(100);

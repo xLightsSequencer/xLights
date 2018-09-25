@@ -532,9 +532,11 @@ bool Schedule::CheckActiveAt(const wxDateTime& now)
     {
         // dates are ok ... now check the times
         start.SetYear(now.GetYear());
+        start.SetDay(1); // do this to ensure day is valid within month
         start.SetMonth(now.GetMonth());
         start.SetDay(now.GetDay());
         end.SetYear(now.GetYear());
+        end.SetDay(1); // do this to ensure day is valid within month
         end.SetMonth(now.GetMonth());
         end.SetDay(now.GetDay());
 

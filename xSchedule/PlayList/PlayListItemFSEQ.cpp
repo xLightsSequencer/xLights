@@ -106,17 +106,25 @@ void PlayListItemFSEQ::LoadAudio()
     }
     else if (wxFile::Exists(af))
     {
-        logger_base.error("FSEQ: Loading audio file '%s'.", (const char *)af.c_str());
+        logger_base.debug("FSEQ: Loading audio file '%s'.", (const char *)af.c_str());
         _audioManager = new AudioManager(af);
 
         if (!_audioManager->IsOk())
         {
             logger_base.error("FSEQ: Audio file '%s' has a problem opening.", (const char *)af.c_str());
+            if (_fseqFile != nullptr)
+                _durationMS = _fseqFile->GetLengthMS();
+            delete _audioManager;
+            _audioManager = nullptr;
+        }
+        else
+        {
+            logger_base.debug("    Loaded ok.");
+            _durationMS = _audioManager->LengthMS();
         }
 
-        if (_volume != -1)
+        if (_volume != -1 && _audioManager != nullptr)
             _audioManager->SetVolume(_volume);
-        _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
 
         // If the FSEQ is shorter than the audio ... then override the length
@@ -366,7 +374,12 @@ void PlayListItemFSEQ::FastSetDuration()
 
             // If the FSEQ is shorter than the audio ... then override the length
             size_t durationFSEQ = fseq.GetLengthMS();
-            if (durationFSEQ < _durationMS)
+            if (_durationMS == 0)
+            {
+                logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+                _durationMS = durationFSEQ;
+            }
+            else if (durationFSEQ < _durationMS)
             {
                 logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
                 _durationMS = durationFSEQ;
@@ -385,7 +398,12 @@ void PlayListItemFSEQ::FastSetDuration()
         // If the FSEQ is shorter than the audio ... then override the length
         FSEQFile fseq(_fseqFileName);
         size_t durationFSEQ = fseq.GetLengthMS();
-        if (durationFSEQ < _durationMS)
+        if (_durationMS == 0)
+        {
+            logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+            _durationMS = durationFSEQ;
+        }
+        else if (durationFSEQ < _durationMS)
         {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
