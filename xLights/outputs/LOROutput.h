@@ -11,7 +11,7 @@ class LOROutput : public SerialOutput
 protected:
     #pragma region LOR Constants
     static const unsigned int LOR_PACKET_LEN = 256;
-    static const unsigned int LOR_MAX_CHANNELS = 3840;
+    static const unsigned int LOR_MAX_CHANNELS = 8192;
     #pragma endregion LOR Constants
 
     #pragma region Member Variables
