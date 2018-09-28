@@ -492,6 +492,7 @@
 		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
 		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
 		67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C78D091FBA2A4900B82E48 /* VideoCache.cpp */; };
+		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -1978,6 +1979,7 @@
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
 				67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */,
 				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
+				67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */,
 				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
 				67A14C8220DD3345006EFCFA /* libSystem.tbd in Frameworks */,
 				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,

@@ -174,6 +174,7 @@ public:
     void Pause(int id, bool pause);
     bool HasAudio(int id);
     static std::list<std::string> GetAudioDevices();
+    bool AudioDeviceChanged();
     bool OpenAudioDevice(const std::string device);
     bool OpenInputAudioDevice(const std::string device);
     void SetAudioDevice(const std::string device);
@@ -287,6 +288,10 @@ public:
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+    
+    
+    bool AudioDeviceChanged();
+
     static SDL* GetSDL();
 };
 
