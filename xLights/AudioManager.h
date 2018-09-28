@@ -7,9 +7,10 @@
 
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswresample/swresample.h>
+    struct AVFormatContext;
+    struct AVCodecContext;
+    struct AVStream;
+    struct AVFrame;
 }
 
 extern "C"
@@ -23,40 +24,6 @@ extern "C"
 #include <wx/progdlg.h>
 
 class AudioManager;
-
-class AudioScanJob : Job
-{
-private:
-	AudioManager* _audio;
-	std::string _status;
-
-public:
-	AudioScanJob(AudioManager* audio);
-	virtual ~AudioScanJob() {};
-	virtual void Process() override;
-	virtual std::string GetStatus() override { return _status; }
-    virtual bool DeleteWhenComplete() override { return true; }
-    virtual const std::string GetName() const override { return "AudioScan"; }
-};
-
-class AudioLoadJob : Job
-{
-private:
-    AudioManager* _audio;
-    std::string _status;
-    AVFormatContext* _formatContext;
-    AVCodecContext* _codecContext;
-    AVStream* _audioStream;
-    AVFrame* _frame;
-
-public:
-    AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
-    virtual ~AudioLoadJob() {};
-    virtual void Process() override;
-    virtual std::string GetStatus() override { return _status; }
-    virtual bool DeleteWhenComplete() override { return true; }
-    virtual const std::string GetName() const override { return "AudioLoad"; }
-};
 
 class xLightsVamp
 {
@@ -226,6 +193,8 @@ class AudioManager
     bool _ok;
     std::string _hash;
 
+    
+    
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void ExtractMP3Tags(AVFormatContext* formatContext);

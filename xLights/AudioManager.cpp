@@ -12,6 +12,14 @@
 #include "../xSchedule/md5.h"
 #include "osxMacUtils.h"
 
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
+}
+
+
 using namespace Vamp;
 
 // SDL Functions
@@ -74,6 +82,43 @@ void fill_audio(void *udata, Uint8 *stream, int len)
         }
     }
 }
+
+
+class AudioLoadJob : Job
+{
+private:
+    AudioManager* _audio;
+    std::string _status;
+    AVFormatContext* _formatContext;
+    AVCodecContext* _codecContext;
+    AVStream* _audioStream;
+    AVFrame* _frame;
+    
+public:
+    AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+    virtual ~AudioLoadJob() {};
+    virtual void Process() override;
+    virtual std::string GetStatus() override { return _status; }
+    virtual bool DeleteWhenComplete() override { return true; }
+    virtual const std::string GetName() const override { return "AudioLoad"; }
+};
+
+class AudioScanJob : Job
+{
+private:
+    AudioManager* _audio;
+    std::string _status;
+    
+public:
+    AudioScanJob(AudioManager* audio);
+    virtual ~AudioScanJob() {};
+    virtual void Process() override;
+    virtual std::string GetStatus() override { return _status; }
+    virtual bool DeleteWhenComplete() override { return true; }
+    virtual const std::string GetName() const override { return "AudioScan"; }
+};
+
+
 
 void SDL::SetGlobalVolume(int volume)
 {
