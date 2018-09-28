@@ -56,7 +56,7 @@ bool HttpServer::Start(const HttpContext &context)
     logger_base.info("starting server on %s:%u...", (const char *)_address.IPAddress().c_str(), _address.Service());
 
 	// Create the socket
-	_server = new wxSocketServer(_address);
+	_server = new wxSocketServer(_address, wxSOCKET_REUSEADDR);
 
 	// We use IsOk() here to see if the server is really listening
     if (!_server->IsOk())
