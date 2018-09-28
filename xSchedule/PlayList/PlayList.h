@@ -108,7 +108,7 @@ public:
     void AddStep(PlayListStep* item, int pos);
     void RemoveStep(PlayListStep* item);
     void RemoveSchedule(Schedule* item);
-    void MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis);
+    void MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforethis);
     void AddSchedule(Schedule* schedule);
     bool IsRunning() const;
     void Start(bool loop = false, bool random = false, int loops = -1, const std::string& step = "");
