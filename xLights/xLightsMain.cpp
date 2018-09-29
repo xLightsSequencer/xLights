@@ -4262,13 +4262,13 @@ void xLightsFrame::ExportModels(wxString filename)
             }
             int w, h;
             model->GetBufferSize("Default", "None", w, h);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%d,%d,%d x %d,%s,,,,,,,,\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%ld,%ld,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
                 model->GetChanCount(),
-                model->NodeStartChannel(0) + 1,
-                model->NodeStartChannel(0) + 1 + model->GetChanCount() - 1,
+                (long)model->GetFirstChannel() + 1,
+                (long)model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup()
             ));
@@ -4276,8 +4276,7 @@ void xLightsFrame::ExportModels(wxString filename)
         else
         {
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-            int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
-            if (ch == 0) ch = 1;
+            int ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud;
             long channeloffset;
             int output;

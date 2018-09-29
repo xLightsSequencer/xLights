@@ -239,11 +239,11 @@ public:
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
-    unsigned int GetLastChannel();
+    virtual unsigned int GetLastChannel();
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
     std::string GetStartChannelInDisplayFormat();
     bool IsValidStartChannelString() const;
-    unsigned int GetFirstChannel();
+    virtual unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;

@@ -278,6 +278,47 @@ void ModelGroup::ResetModels()
 
 ModelGroup::~ModelGroup() {}
 
+unsigned ModelGroup::GetFirstChannel()
+{
+    unsigned first = 999999999;
+    for (auto it = ModelNames().begin(); it != ModelNames().end(); ++it)
+    {
+        Model* mm = modelManager.GetModel(*it);
+        if (mm != nullptr)
+        {
+            if (mm->GetFirstChannel() < first)
+            {
+                first = mm->GetFirstChannel();
+            }
+        }
+    }
+
+    if (first == 999999999)
+    {
+        first = 0;
+    }
+
+    return first;
+}
+
+unsigned ModelGroup::GetLastChannel()
+{
+    unsigned last = 0;
+    for (auto it = ModelNames().begin(); it != ModelNames().end(); ++it)
+    {
+        Model* mm = modelManager.GetModel(*it);
+        if (mm != nullptr)
+        {
+            if (mm->GetLastChannel() > last)
+            {
+                last = mm->GetLastChannel();
+            }
+        }
+    }
+
+    return last;
+}
+
 void ModelGroup::AddModel(const std::string &name) {
     wxString newVal = ModelXml->GetAttribute("models", "");
     if (newVal.size() > 0) {
