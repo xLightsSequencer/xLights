@@ -266,7 +266,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
         SetSize(sz);
     }
 
-    modelPreview = new ModelPreview(ModelPreviewPanelLocation);
+    modelPreview = new ModelPreview(ModelPreviewPanelLocation, nullptr);
     modelPreview->SetMinSize(wxSize(150, 150));
     PreviewSizer->Add(modelPreview, 1, wxALL|wxEXPAND, 0);
     PreviewSizer->Fit(ModelPreviewPanelLocation);

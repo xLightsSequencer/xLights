@@ -85,7 +85,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
 		SetCameraView(delta_x, delta_y, false);
-        Render();
+        if(xlights != nullptr && xlights->GetPlayStatus() == PLAY_TYPE_STOPPED)
+        {
+            Refresh();
+            Update();
+        }
     }
     else if (m_wheel_down) {
         float new_x = event.GetX() - m_last_mouse_x;
@@ -102,7 +106,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         SetPan(delta_x, delta_y);
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
-        Render();
+        if (xlights != nullptr && xlights->GetPlayStatus() == PLAY_TYPE_STOPPED)
+        {
+            Refresh();
+            Update();
+        }
     }
 
     if (_model != nullptr)
@@ -146,7 +154,11 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         delta *= -1.0f;
     }
     SetZoomDelta(delta);
-    Render();
+    if (xlights != nullptr && xlights->GetPlayStatus() == PLAY_TYPE_STOPPED)
+    {
+        Refresh();
+        Update();
+    }
 
     event.ResumePropagation(1);
     event.Skip(); // continue the event
@@ -361,7 +373,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     setupCameras();
 }
 
-ModelPreview::ModelPreview(wxPanel* parent)
+ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", false), PreviewModels(nullptr), allowSelected(false), image(nullptr)
 {
     _model = nullptr;

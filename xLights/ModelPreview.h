@@ -25,7 +25,7 @@ class ModelPreview : public xlGLCanvas
 {
 
 public:
-    ModelPreview(wxPanel* parent);
+    ModelPreview(wxPanel* parent, xLightsFrame* xlights_);
 	ModelPreview(wxPanel* parent,
                  xLightsFrame* xlights_,
                  std::vector<Model*> &models,
