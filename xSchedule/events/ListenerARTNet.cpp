@@ -61,7 +61,7 @@ void ListenerARTNet::StartProcess()
     }
     localaddr.Service(ARTNET_PORT);
 
-    _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
+    _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_REUSEADDR);
     if (_socket == nullptr)
     {
         logger_base.error("Error opening datagram for ARTNet reception.");
@@ -83,6 +83,7 @@ void ListenerARTNet::StartProcess()
         _socket->SetTimeout(1);
         _socket->Notify(false);
         logger_base.info("ARTNet reception datagram opened successfully.");
+        _isOk = true;
     }
 }
 
@@ -139,11 +140,11 @@ void ListenerARTNet::Poll()
                 else if (buffer[9] == 0x97)
                 {
                     // Timecode data packet
-                    wxByte frames = buffer[14];
-                    wxByte secs = buffer[15];
-                    wxByte mins = buffer[16];
-                    wxByte hours = buffer[17];
-                    wxByte mode = buffer[18];
+                    int frames = buffer[14];
+                    int secs = buffer[15];
+                    int mins = buffer[16];
+                    int hours = buffer[17];
+                    int mode = buffer[18];
 
                     long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
                     switch (mode)
@@ -167,8 +168,18 @@ void ListenerARTNet::Poll()
                     default:
                         break;
                     }
-                    // TODO add sync using ARTNet timecode packets
-                    _listenerManager->Sync("", ms, GetType());
+
+                    //logger_base.debug("Timecode packet mode %d %d:%d:%d.%d => %ldms", mode, hours, mins, secs, frames, ms);
+
+                    if (ms == 0)
+                    {
+                        // This is a stop
+                        _listenerManager->Sync("", 0xFFFFFFFF, GetType());
+                    }
+                    else
+                    {
+                        _listenerManager->Sync("", ms, GetType());
+                    }
                 }
                 //logger_base.debug("Processing packet done.");
             }
