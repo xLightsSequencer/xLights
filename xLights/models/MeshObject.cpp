@@ -23,8 +23,11 @@ MeshObject::~MeshObject()
 {
     for (auto it = textures.begin(); it != textures.end(); ++it)
     {
-        if (it->second != nullptr) {
-            delete it->second;
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+            if (it2->second != nullptr) {
+                delete it2->second;
+            }
         }
     }
 }
@@ -68,8 +71,11 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         obj_loaded = false;
         for (auto it = textures.begin(); it != textures.end(); ++it)
         {
-            if (it->second != nullptr) {
-                delete it->second;
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+            {
+                if (it2->second != nullptr) {
+                    delete it2->second;
+                }
             }
         }
         _objFile = event.GetValue().GetString();
@@ -252,7 +258,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
 
                     if (mp->diffuse_texname.length() > 0) {
                         // Only load the texture if it is not already loaded
-                        if (textures.find(mp->diffuse_texname) == textures.end()) {
+                        if (textures[preview->GetName().ToStdString()].find(mp->diffuse_texname) == textures[preview->GetName().ToStdString()].end()) {
                             std::string texture_filename = mp->diffuse_texname;
                             if (!wxFileExists(texture_filename)) {
                                 // Append base dir.
@@ -264,7 +270,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                                     continue;
                                 }
                             }
-                            textures[mp->diffuse_texname] = new Image(texture_filename, false, true);
+                            textures[preview->GetName().ToStdString()][mp->diffuse_texname] = new Image(texture_filename, false, true);
                         }
                     }
                 }
@@ -342,8 +348,8 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
 
                 if (current_material_id != last_material_id) {
                     std::string diffuse_texname = materials[current_material_id].diffuse_texname;
-                    if (textures.find(diffuse_texname) != textures.end()) {
-                        image_id = textures[diffuse_texname]->getID();
+                    if (textures[preview->GetName().ToStdString()].find(diffuse_texname) != textures[preview->GetName().ToStdString()].end()) {
+                        image_id = textures[preview->GetName().ToStdString()][diffuse_texname]->getID();
                     }
                     else {
                         image_id = -1;
