@@ -94,15 +94,14 @@
 									<cols>3</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_On_Transparency" subclass="BulkEditSlider" variable="Slider_On_Transparency" member="yes">
-										</object>
+										<object class="wxSlider" name="IDD_SLIDER_On_Transparency" subclass="BulkEditSlider" variable="Slider_On_Transparency" member="yes" />
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
 										<object class="wxBitmapButton" name="ID_VALUECURVE_On_Transparency" subclass="BulkEditValueCurveButton" variable="BitmapButton_On_Transparency" member="yes">
-                                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+											<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 										</object>
@@ -136,7 +135,7 @@
 									<cols>2</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxSlider" name="IDD_SLIDER_On_Cycles" subclass="BulkEditSlider" variable="SliderCycles" member="yes">
+										<object class="wxSlider" name="IDD_SLIDER_On_Cycles" subclass="BulkEditSliderF1" variable="SliderCycles" member="yes">
 											<value>10</value>
 											<max>1000</max>
 										</object>
@@ -145,7 +144,7 @@
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Cycles" subclass="BulkEditTextCtrl" variable="TextCtrlCycles" member="yes">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_On_Cycles" subclass="BulkEditTextCtrlF1" variable="TextCtrlCycles" member="yes">
 											<value>1.0</value>
 											<maxlength>5</maxlength>
 											<size>30,-1d</size>
