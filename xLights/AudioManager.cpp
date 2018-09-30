@@ -10,6 +10,15 @@
 #include "kiss_fft/tools/kiss_fftr.h"
 #include <log4cpp/Category.hh>
 #include "../xSchedule/md5.h"
+#include "osxMacUtils.h"
+
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswresample/swresample.h>
+}
+
 
 using namespace Vamp;
 
@@ -73,6 +82,43 @@ void fill_audio(void *udata, Uint8 *stream, int len)
         }
     }
 }
+
+
+class AudioLoadJob : Job
+{
+private:
+    AudioManager* _audio;
+    std::string _status;
+    AVFormatContext* _formatContext;
+    AVCodecContext* _codecContext;
+    AVStream* _audioStream;
+    AVFrame* _frame;
+    
+public:
+    AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
+    virtual ~AudioLoadJob() {};
+    virtual void Process() override;
+    virtual std::string GetStatus() override { return _status; }
+    virtual bool DeleteWhenComplete() override { return true; }
+    virtual const std::string GetName() const override { return "AudioLoad"; }
+};
+
+class AudioScanJob : Job
+{
+private:
+    AudioManager* _audio;
+    std::string _status;
+    
+public:
+    AudioScanJob(AudioManager* audio);
+    virtual ~AudioScanJob() {};
+    virtual void Process() override;
+    virtual std::string GetStatus() override { return _status; }
+    virtual bool DeleteWhenComplete() override { return true; }
+    virtual const std::string GetName() const override { return "AudioScan"; }
+};
+
+
 
 void SDL::SetGlobalVolume(int volume)
 {
@@ -444,6 +490,11 @@ void SDL::DumpState(std::string device, int devid, SDL_AudioSpec* wanted, SDL_Au
     logger_base.debug("    Padding Asked %d Received %d", wanted->padding, actual->padding);
     logger_base.debug("    Samples Asked %d Received %d", wanted->samples, actual->samples);
     logger_base.debug("    Silence Asked %d Received %d", wanted->silence, actual->silence);
+}
+bool SDL::AudioDeviceChanged() {
+    CloseAudioDevice();
+    OpenAudioDevice(_device);
+    return true;
 }
 
 bool SDL::OpenAudioDevice(const std::string device)
@@ -946,6 +997,24 @@ void AudioManager::Stop()
 	_media_state = MEDIAPLAYINGSTATE::STOPPED;
 }
 
+bool AudioManager::AudioDeviceChanged() {
+    MEDIAPLAYINGSTATE oldMediaState = _media_state;
+    long ts = 0;
+    if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
+        ts = Tell();
+    }
+    Stop();
+    bool b = __sdl.AudioDeviceChanged();
+    if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING || oldMediaState == MEDIAPLAYINGSTATE::PAUSED) {
+        Seek(ts);
+        if (oldMediaState == MEDIAPLAYINGSTATE::PLAYING) {
+            Play();
+        }
+    }
+    return b;
+}
+
+
 void AudioManager::AbsoluteStop()
 {
     __sdl.Stop();
@@ -1130,6 +1199,7 @@ AudioManager::AudioManager(const std::string& audio_file, int step, int block)
     {
         logger_base.error("Audio file not loaded: %s.", _resultMessage.c_str());
     }
+    AddAudioDeviceChangeListener(this);
 }
 
 std::list<float> AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max, int id) const
@@ -1898,6 +1968,7 @@ void AudioManager::SetStepBlock(int step, int block)
 AudioManager::~AudioManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    RemoveAudioDeviceChangeListener(this);
 
     while (IsOk() && !IsDataLoaded())
     {

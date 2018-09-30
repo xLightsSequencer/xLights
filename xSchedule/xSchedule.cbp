@@ -350,6 +350,8 @@
 		<Unit filename="ColourOrderDialog.h" />
 		<Unit filename="CommandManager.cpp" />
 		<Unit filename="CommandManager.h" />
+		<Unit filename="ConfigureMIDITimecodeDialog.cpp" />
+		<Unit filename="ConfigureMIDITimecodeDialog.h" />
 		<Unit filename="ConfigureOSC.cpp" />
 		<Unit filename="ConfigureOSC.h" />
 		<Unit filename="Control.h" />
@@ -468,6 +470,10 @@
 		<Unit filename="PlayList/PlayListItemJukebox.h" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.h" />
+		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophone.h" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemOSC.cpp" />
 		<Unit filename="PlayList/PlayListItemOSC.h" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.cpp" />
@@ -504,10 +510,6 @@
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemTestPanel.h" />
-		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophone.h" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemText.cpp" />
 		<Unit filename="PlayList/PlayListItemText.h" />
 		<Unit filename="PlayList/PlayListItemTextPanel.cpp" />
@@ -630,6 +632,7 @@
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
+		<Unit filename="wxsmith/ConfigureMIDITimecodeDialog.wxs" />
 		<Unit filename="wxsmith/ConfigureOSC.wxs" />
 		<Unit filename="wxsmith/DeadChannelDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
@@ -663,6 +666,7 @@
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemJukeboxPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemOSCPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemProjectorPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
@@ -672,7 +676,6 @@
 		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemSetColourPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
@@ -763,6 +766,7 @@
 					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EventPingPanel.wxs" src="EventPingPanel.cpp" hdr="EventPingPanel.h" fwddecl="0" i18n="1" name="EventPingPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/ConfigureMIDITimecodeDialog.wxs" src="ConfigureMIDITimecodeDialog.cpp" hdr="ConfigureMIDITimecodeDialog.h" fwddecl="0" i18n="1" name="ConfigureMIDITimecodeDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

@@ -496,6 +496,7 @@
 		67C9E660211FC07E00379E2A /* ViewpointDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65C211FC07E00379E2A /* ViewpointDialog.cpp */; };
 		67C9E661211FC07E00379E2A /* ViewpointMgr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */; };
 		67C9E664211FC08C00379E2A /* VectorMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E662211FC08C00379E2A /* VectorMath.cpp */; };
+		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -2011,6 +2012,7 @@
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
 				67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */,
 				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
+				67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */,
 				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
 				67A14C8220DD3345006EFCFA /* libSystem.tbd in Frameworks */,
 				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,

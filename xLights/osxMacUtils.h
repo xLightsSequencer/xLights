@@ -23,6 +23,9 @@ void DisableSleepModes();
 void ModalPopup(wxWindow *p, wxMenu &menu);
 
 bool IsMouseEventFromTouchpad();
+class AudioManager;
+void AddAudioDeviceChangeListener(AudioManager *am);
+void RemoveAudioDeviceChangeListener(AudioManager *am);
 
 #define WINDOW_LOCKER(a, b)
 
@@ -35,6 +38,8 @@ bool IsMouseEventFromTouchpad();
 #define DisableSleepModes()
 #define ModalPopup(p, a) p->PopupMenu(&a)
 #define WINDOW_LOCKER(a, b) wxWindowUpdateLocker b(a)
+#define AddAudioDeviceChangeListener(a)
+#define RemoveAudioDeviceChangeListener(a)
 #endif
 
 

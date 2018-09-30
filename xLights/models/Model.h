@@ -230,11 +230,11 @@ public:
     void UpdateXmlWithScale();
     void SetPosition(double posx, double posy);
     void AddOffset(double deltax, double deltay, double deltaz);
-    unsigned int GetLastChannel();
+    virtual unsigned int GetLastChannel();
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
     std::string GetStartChannelInDisplayFormat();
     bool IsValidStartChannelString() const;
-    unsigned int GetFirstChannel();
+    virtual unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);

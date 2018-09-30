@@ -8,6 +8,7 @@
 //*)
 
 #include "outputs/OutputManager.h"
+#include "outputs/Output.h"
 
 //(*IdInit(StartChannelDialog)
 const long StartChannelDialog::ID_SPINCTRL1 = wxNewId();
@@ -275,11 +276,14 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
     universeChoice->Clear();
     if (ip == "ANY")
     {
-        auto uus = _outputManager->GetIPUniverses();
+        auto uus = _outputManager->GetAllOutputs();
         std::list<int> us;
         for (auto it = uus.begin(); it != uus.end(); ++it)
         {
-            us.push_back(*it);
+            if (std::find(us.begin(), us.end(), (*it)->GetUniverse()) == us.end())
+            {
+                us.push_back((*it)->GetUniverse());
+            }
         }
         us.sort();
         for (auto it = us.begin(); it != us.end(); ++it)

@@ -846,7 +846,7 @@ bool PlayList::JumpToStep(const std::string& step)
     _loopStep = false;
     _forceNextStep = "";
 
-    if (_currentStep != nullptr && wxString(_currentStep->GetName()).Lower() == wxString(step).Lower())
+    if (_currentStep != nullptr && wxString(_currentStep->GetNameNoTime()).Lower() == wxString(step).Lower())
     {
         _currentStep->Restart();
         return success;

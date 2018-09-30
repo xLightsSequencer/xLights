@@ -14,6 +14,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 
+        virtual unsigned int GetFirstChannel() override;
+        virtual unsigned int GetLastChannel() override;
         void ModelRemoved(const std::string &name);
         virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);
