@@ -6291,7 +6291,14 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
 
 void EffectsGrid::PasteModelEffects(int row_number, bool allLayers)
 {
-    mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
+    if (allLayers)
+    {
+        mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
+    }
+    else
+    {
+        mDropRow = row_number;
+    }
     ((MainSequencer*)mParent)->Paste(true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
