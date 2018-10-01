@@ -430,6 +430,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_UNDO)
     {
         logger_base.debug("OnGridPopup - UNDO");
+        mSelectedEffect = nullptr; // lets clear it as the undo may delete that effect ... and i cant be sure
         mSequenceElements->get_undo_mgr().UndoLastStep();
         sendRenderDirtyEvent();
     }

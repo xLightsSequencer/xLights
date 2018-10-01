@@ -835,6 +835,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 if( mSequenceElements != nullptr &&
                    mSequenceElements->get_undo_mgr().CanUndo() ) {
                     mSequenceElements->get_undo_mgr().UndoLastStep();
+                    PanelEffectGrid->ClearSelection();
                     PanelEffectGrid->Refresh();
                     PanelEffectGrid->sendRenderDirtyEvent();
                 }
@@ -920,6 +921,7 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
 
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
         mSequenceElements->get_undo_mgr().UndoLastStep();
+        PanelEffectGrid->ClearSelection();
         PanelEffectGrid->Refresh();
         PanelEffectGrid->sendRenderDirtyEvent();
     }
