@@ -22,14 +22,14 @@ class OnPanel: public wxPanel
 
 		//(*Declarations(OnPanel)
 		BulkEditCheckBox* CheckBoxShimmer;
-		BulkEditSlider* SliderCycles;
 		BulkEditSlider* SliderEnd;
 		BulkEditSlider* SliderStart;
 		BulkEditSlider* Slider_On_Transparency;
-		BulkEditTextCtrl* TextCtrlCycles;
+		BulkEditSliderF1* SliderCycles;
 		BulkEditTextCtrl* TextCtrlEnd;
 		BulkEditTextCtrl* TextCtrlOnTransparency;
 		BulkEditTextCtrl* TextCtrlStart;
+		BulkEditTextCtrlF1* TextCtrlCycles;
 		BulkEditValueCurveButton* BitmapButton_On_Transparency;
 		wxStaticText* StaticText113;
 		wxStaticText* StaticText114;

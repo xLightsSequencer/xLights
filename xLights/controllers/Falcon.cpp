@@ -13,6 +13,139 @@
 
 #include <log4cpp/Category.hh>
 
+<<<<<<< HEAD
+=======
+class FalconControllerRules : public ControllerRules
+{
+    int _type;
+    int _version;
+    int _expansions;
+
+public:
+    FalconControllerRules(int type, int version) : ControllerRules()
+    {
+        _type = type;
+        _version = version;
+    }
+    virtual ~FalconControllerRules() {}
+    virtual int GetMaxPixelPortChannels() const override
+    {
+        if (_version == 2)
+        {
+            return 680 * 3;
+        }
+        else
+        {
+            return 1024 * 3;
+        }
+    }
+    virtual int GetMaxPixelPort() const override
+    {
+        if (_type == 4)
+        {
+            return 12;
+        }
+        else if (_type == 16)
+        {
+            return 48;
+        }
+        else if (_type == 48)
+        {
+            return 48;
+        }
+
+        return 48;
+    }
+    virtual int GetMaxSerialPortChannels() const override
+    {
+        return 512;
+    }
+    virtual int GetMaxSerialPort() const override
+    {
+        if (_type == 4)
+        {
+            return 1;
+        }
+        else
+        {
+            return 4;
+        }
+    }
+    virtual bool IsValidPixelProtocol(const std::string protocol) const override
+    {
+        if (protocol == "ws2811") return true;
+        if (protocol == "tm18xx") return true;
+        if (protocol == "lx1203") return true;
+        if (protocol == "ws2801") return true;
+        if (protocol == "tls3001") return true;
+        if (protocol == "lpd6803") return true;
+        if (protocol == "gece") return true;
+
+        return false;
+    }
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override
+    {
+        if (protocol == "dmx") return true;
+        if (protocol == "pixelnet") return true;
+        if (protocol == "renard") return true;
+
+        return false;
+    }
+    virtual bool SupportsMultipleProtocols() const override
+    {
+        return true;
+    }
+    virtual bool AllUniversesSameSize() const override
+    {
+        return false;
+    }
+    virtual std::list<std::string> GetSupportedInputProtocols() const override
+    {
+        std::list<std::string> res;
+        res.push_back("E131");
+        res.push_back("ARTNET");
+        return res;
+    }
+    virtual bool UniversesMustBeSequential() const override
+    {
+        return false;
+    }
+};
+
+void Falcon::DecodeModelVersion(int p, int& model, int& version)
+{
+    switch(p)
+    {
+    case 1:
+    case 2:
+    case 3:
+        model = 16;
+        version = 2;
+        break;
+    case 4:
+        model = 4;
+        version = 2;
+        break;
+    case 5:
+        model = 16;
+        version = 3;
+        break;
+    case 6:
+        model = 4;
+        version = 3;
+        break;
+    case 7:
+        model = 48;
+        version = 3;
+        break;
+    default:
+        model = 16;
+        version = 3;
+        break;
+    }
+}
+
+>>>>>>> origin/master
 Falcon::Falcon(const std::string& ip)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -29,6 +162,7 @@ Falcon::Falcon(const std::string& ip)
 
     if (_connected)
     {
+        int p = 0;
         std::string versionxml = GetURL("/status.xml");
         if (versionxml == "")
         {
@@ -47,64 +181,47 @@ Falcon::Falcon(const std::string& ip)
             {
                 _firmwareVersion = versionregex.GetMatch(wxString(versionxml), 2).ToStdString();
             }
-        }
 
-        std::string version = GetURL("/index.htm");
-        if (version == "")
-        {
-            logger_base.error("    Error retrieving index.htm from falcon controller.");
-            _connected = false;
-            return;
-        }
-
-        if (_firmwareVersion == "")
-        {
-            //<title>F4V2            - v1.10</title>
-            static wxRegEx firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
-            if (firmwareversionregex.Matches(wxString(version)))
+            if (_firmwareVersion == "")
             {
-                _firmwareVersion = firmwareversionregex.GetMatch(wxString(version), 2).ToStdString();
+                static wxRegEx version1regex("(\\<fv\\>)([0-9]+\\.[0-9]+)\\<\\/fv\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+                if (version1regex.Matches(wxString(versionxml)))
+                {
+                    _firmwareVersion = version1regex.GetMatch(wxString(versionxml), 2).ToStdString();
+                }
+            }
+
+            static wxRegEx versionmodelregex("(\\<p\\>)([0-9]+)\\<\\/p\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+            if (versionmodelregex.Matches(wxString(versionxml)))
+            {
+                p = wxAtoi(versionmodelregex.GetMatch(wxString(versionxml), 2));
+                DecodeModelVersion(p, _model, _version);
+                _modelString = wxString::Format("F%dV%d", _model, _version).ToStdString();
             }
         }
 
-        static wxRegEx modelstringregex("(SW Version:.*?\\>)(F[0-9]+V[0-9]+)", wxRE_ADVANCED);
-        if (modelstringregex.Matches(wxString(version)))
+        if (_version == 0 || _model == 0 || _firmwareVersion == "")
         {
-            _modelString = modelstringregex.GetMatch(wxString(version), 2).ToStdString();
-        }
-
-        if (_modelString == "")
-        {
-            static wxRegEx modelstringregex2("(SW Version:.*?\\>)(F[0-9]+)[^0-9]", wxRE_ADVANCED);
-            if (modelstringregex2.Matches(wxString(version)))
+            std::string version = GetURL("/index.htm");
+            if (version == "")
             {
-                _modelString = modelstringregex2.GetMatch(wxString(version), 2).ToStdString();
+                logger_base.error("    Error retrieving index.htm from falcon controller.");
+                _connected = false;
+                return;
+            }
+
+            if (_firmwareVersion == "")
+            {
+                //<title>F4V2            - v1.10</title>
+                static wxRegEx firmwareversionregex("(title.*?v)([0-9]+\\.[0-9]+)\\<\\/title\\>", wxRE_ADVANCED | wxRE_NEWLINE);
+                if (firmwareversionregex.Matches(wxString(version)))
+                {
+                    _firmwareVersion = firmwareversionregex.GetMatch(wxString(version), 2).ToStdString();
+                }
             }
         }
 
-        if (_modelString == "")
-        {
-            logger_base.error("Unable to find model in html:\n%s", (const char*)version.c_str());
-        }
-
-        static wxRegEx versionregex("(F[0-9]+V)([0-9]+)$", wxRE_ADVANCED);
-        if (versionregex.Matches(wxString(_modelString)))
-        {
-            _version = wxAtoi(versionregex.GetMatch(wxString(_modelString), 2));
-        }
-
-        if (_version == 0)
-        {
-            _version = 3;
-        }
-
-        static wxRegEx modelregex2("(F)([0-9]+)(V|$)", wxRE_ADVANCED);
-        if (modelregex2.Matches(wxString(_modelString)))
-        {
-            _model = wxAtoi(modelregex2.GetMatch(wxString(_modelString), 2));
-        }
-
-        logger_base.debug("Connected to falcon - Model: '%s' Firmware Version '%s'. F%d:V%d", (const char*)_modelString.c_str(), (const char*)_firmwareVersion.c_str(), _model, _version);
+        logger_base.debug("Connected to falcon - p=%d Model: '%s' Firmware Version '%s'. F%d:V%d", p, (const char*)_modelString.c_str(), (const char*)_firmwareVersion.c_str(), _model, _version);
     }
     else
     {
@@ -114,6 +231,7 @@ Falcon::Falcon(const std::string& ip)
     if (_version == 0 || _model == 0)
     {
         _connected = false;
+        logger_base.error("Error connecting to falcon controller on %s. Unable to determine model/version.", (const char *)_ip.c_str());
     }
 }
 

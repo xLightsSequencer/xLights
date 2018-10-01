@@ -430,6 +430,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_UNDO)
     {
         logger_base.debug("OnGridPopup - UNDO");
+        mSelectedEffect = nullptr; // lets clear it as the undo may delete that effect ... and i cant be sure
         mSequenceElements->get_undo_mgr().UndoLastStep();
         sendRenderDirtyEvent();
     }
@@ -6290,7 +6291,14 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
 
 void EffectsGrid::PasteModelEffects(int row_number, bool allLayers)
 {
-    mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
+    if (allLayers)
+    {
+        mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
+    }
+    else
+    {
+        mDropRow = row_number;
+    }
     ((MainSequencer*)mParent)->Paste(true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);

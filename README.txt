@@ -1,4 +1,4 @@
-﻿xLights is a show sequencer and player/scheduler designed to control
+xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -11,6 +11,29 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.34 October 1, 2018
+   -- enh (dkulp)  On OSX, detect if default audio device changes and move audio to new device
+   -- enh (dkulp)  Update to newer standard dictionary
+   -- bug (dkulp)  Loading dictionaries did not properly use utf-8.  Fixes #1247
+   -- enh (scott)  Added Start and End Time to the Lyric Dialog
+   -- bug (scott)  Fixed Missing Nodes on Node Select Dialog
+   -- bug (keith)  Fix row paste always pastes to top row on model
+   -- bug (keith)  Get artnet timecode working correctly proven with TimeLord and Madrix
+   -- enh (keith)  Add MIDI timecode support
+   -- bug (keith)  Fix crash on right click after undoing an effect add
+   -- bug (keith)  Fix start channel dialog does not list outputs which use ids rather than universes
+   -- bug (keith)  Fix on effect cycles should be 0-100 not 0-1000 and value of 10 acted like 1
+   -- bug (keith)  Fix models list export gets end channel on model groups wrong
+   -- bug (keith)  Fix xschedule rapid restart on linux unable to listen on http port
+   -- bug (keith)  Fix custom model background image does weird colour things when you dim it down
+   -- enh (keith)  Add 7 pixel fonts to text effect
+   -- bug (keith)  Allow blink for rest and off static phonemes
+   -- bug (keith)  Fix some quirks in xschedule date handling that only show up in months with less than 31 days
+2018.33 September 7, 2018
+   -- enh (dkulp)  Bunch of performance updates for Test dialog on OSX
+   -- bug (keith)  FPP Upload extra logging and delete any existing file before upload
+   -- bug (keith)  Change the way we detect falcon model/version as 2.01 firmware broke it
+   -- bug (keith)  Fix hang selecting model group on layout panel
 2018.32 September 6, 2018
    -- enh (scott)  Added Node Select Dialog to the SubModel, Faces, and State Dialogs
    -- enh (scott)  Added import/export to colour manager dialog

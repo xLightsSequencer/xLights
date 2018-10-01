@@ -1973,10 +1973,10 @@ unsigned int Model::GetLastChannel() {
 }
 
 unsigned int Model::GetFirstChannel() {
-    unsigned int LastChan=-1;
-    size_t NodeCount=GetNodeCount();
-    for(size_t idx=0; idx<NodeCount; idx++) {
-        LastChan=std::min(LastChan,Nodes[idx]->ActChan);
+    unsigned int LastChan = -1;
+    size_t NodeCount = GetNodeCount();
+    for (size_t idx = 0; idx < NodeCount; idx++) {
+        LastChan = std::min(LastChan, Nodes[idx]->ActChan);
     }
     return LastChan;
 }

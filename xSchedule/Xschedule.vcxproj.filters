@@ -465,6 +465,7 @@
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -908,6 +909,7 @@
     <ClInclude Include="..\xLights\outputs\ZCPPOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
+    <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

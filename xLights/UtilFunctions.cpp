@@ -285,7 +285,11 @@ std::string XmlSafe(const std::string& s)
         if ((int)(*c) < 32)
         {
             //res += wxString::Format("&#x%x;", (int)(*c));
-            res += wxString::Format("&#%d;", (int)(*c)).ToStdString();
+            int cc = (int)*c;
+            if (cc == 9 || cc == 10 || cc == 13)
+            {
+                res += wxString::Format("&#%d;", (int)(*c)).ToStdString();
+            }
         }
         else if (*c == '&')
         {

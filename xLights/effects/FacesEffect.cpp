@@ -812,6 +812,23 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             }
         }
     }
+    else if (phoneme == "rest" || phoneme == "(off)")
+    {
+        if ("Auto" == eyes) {
+            if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
+                //roughly every 5 seconds we'll blink
+                cache->nextBlinkTime += (4500 + (rand() % 1000));
+                cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                eyes = "Closed";
+            }
+            else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+                eyes = "Closed";
+            }
+            else {
+                eyes = "Open";
+            }
+        }
+    }
 
     int colorOffset = 0;
     xlColor color;
@@ -855,7 +872,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             colors.push_back(color);
         }
     }
-    if (eyes == "Closed") {
+    else if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
         if (customColor) {
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed-Color"];
@@ -870,7 +887,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             colors.push_back(color);
         }
     }
-    if (eyes == "(off)") {
+    else if (eyes == "(off)") {
         //no eyes
     }
     if (buffer.palette.Size() > (1 + colorOffset)) {

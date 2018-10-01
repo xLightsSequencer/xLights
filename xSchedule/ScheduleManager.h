@@ -9,6 +9,7 @@
 #include "FSEQFile.h"
 #include <wx/socket.h>
 #include <wx/thread.h>
+#include "wxMIDI/src/wxMidi.h"
 
 class PlayListItemText;
 class ScheduleOptions;
@@ -33,7 +34,9 @@ typedef enum
     ARTNETSLAVE,
     OSCMASTER,
     FPPOSCMASTER,
-    OSCSLAVE
+    OSCSLAVE,
+    MIDIMASTER,
+    MIDISLAVE
 } SYNCMODE;
 
 class PixelData
@@ -93,6 +96,7 @@ class ScheduleManager
     int _brightness;
     int _lastBrightness;
     wxByte _brightnessArray[255];
+    wxMidiOutDevice* _midiMaster;
     wxDatagramSocket* _fppSyncMaster;
     wxDatagramSocket* _artNetSyncMaster;
     wxDatagramSocket* _oscSyncMaster;
@@ -112,11 +116,13 @@ class ScheduleManager
     void CreateBrightnessArray();
     void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
     void SendARTNetSync(size_t msec, size_t frameMS);
+    void SendMIDISync(size_t msec, size_t frameMS);
     void SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS);
     void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
     void CloseFPPSyncSendSocket();
     void CloseARTNetSyncSendSocket();
     void CloseOSCSyncSendSocket();
+    void CloseMIDIMaster();
     void ManageBackground();
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
@@ -141,6 +147,7 @@ class ScheduleManager
         void ManualOutputToLightsClick(xScheduleFrame* frame);
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
+        void OpenMIDIMaster();
         void OpenFPPSyncSendSocket();
         void OpenARTNetSyncSendSocket();
         void OpenOSCSyncSendSocket();

@@ -692,27 +692,19 @@ void wxModelGridCellRenderer::CreateImage()
     if( image != nullptr )
     {
         wxImage img(*image);
+        img.Rescale(width, height);
 
-        for(int x = 0; x < img.GetWidth(); x++)
+        img.InitAlpha();
+        int alpha = (100 - lightness) * 255 / 100;
+
+        for (int x = 0; x < img.GetWidth(); x++)
         {
-            for(int y = 0; y < img.GetHeight(); y++)
+            for (int y = 0; y < img.GetHeight(); y++)
             {
-                unsigned char red = img.GetRed(x,y);
-                unsigned char green = img.GetGreen(x,y);
-                unsigned char blue = img.GetBlue(x,y);
-                xlColor pixel(red, green, blue);
-                HSLValue hsl(pixel);
-
-               if (lightness > 0.0)
-                    hsl.lightness = lightness/100.0 * (1.0 - hsl.lightness) + hsl.lightness;
-                else if (lightness < 0.0)
-                    hsl.lightness *= (1.0 + lightness/100.0);
-
-                pixel.fromHSL(hsl);
-                img.SetRGB(x,y,pixel.red,pixel.green,pixel.blue);
+                img.SetAlpha(x, y, alpha);
             }
         }
-        img.Rescale(width, height);
+
         bmp = wxBitmap(img);
     }
 }

@@ -22,6 +22,10 @@ void DisableSleepModes();
 
 void ModalPopup(wxWindow *p, wxMenu &menu);
 
+class AudioManager;
+void AddAudioDeviceChangeListener(AudioManager *am);
+void RemoveAudioDeviceChangeListener(AudioManager *am);
+
 #define WINDOW_LOCKER(a, b)
 
 #else
@@ -33,6 +37,8 @@ void ModalPopup(wxWindow *p, wxMenu &menu);
 #define DisableSleepModes()
 #define ModalPopup(p, a) p->PopupMenu(&a)
 #define WINDOW_LOCKER(a, b) wxWindowUpdateLocker b(a)
+#define AddAudioDeviceChangeListener(a)
+#define RemoveAudioDeviceChangeListener(a)
 #endif
 
 

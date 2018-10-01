@@ -68,7 +68,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Servo" subclass="BulkEditTextCtrl" variable="TextCtrl_Servo" member="no">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Servo" subclass="BulkEditTextCtrlF1" variable="TextCtrl_Servo" member="no">
 							<value>0</value>
 							<size>25,-1d</size>
 							<style>wxTE_PROCESS_ENTER</style>
