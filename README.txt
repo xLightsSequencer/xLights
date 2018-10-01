@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.34 3D Beta October 1, 2018
+   -- enh (gil)    Add obj file import
+   -- bug (gil)    Lots of fixes
 2018.34 October 1, 2018
    -- enh (dkulp)  On OSX, detect if default audio device changes and move audio to new device
    -- enh (dkulp)  Update to newer standard dictionary
