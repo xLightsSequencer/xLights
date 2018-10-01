@@ -4899,7 +4899,7 @@ void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
 
     if (!dosend)
     {
-        if (msec - lastmsec > 1000)
+        //if (msec - lastmsec > 1000)
         {
             dosend = true;
         }
@@ -4931,30 +4931,36 @@ void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
         buffer[11] = 0x0E;
 
         size_t ms = msec;
-        buffer[15] = ms / (3600000);
+
+		if (ms == 0xFFFFFFFF)
+		{
+			ms = 0;
+		}
+		
+        buffer[17] = ms / (3600000);
         ms = ms % 360000;
 
-        buffer[14] = ms / 60000;
+        buffer[16] = ms / 60000;
         ms = ms % 60000;
 
-        buffer[13] = ms / 1000;
+        buffer[15] = ms / 1000;
         ms = ms % 1000;
 
-        buffer[16] = GetOptions()->GetARTNetTimeCodeFormat();
+        buffer[18] = GetOptions()->GetARTNetTimeCodeFormat();
 
         switch(buffer[16])
         {
         case 0: //24 fps
-            buffer[12] = ms * 24 / 1000;
+            buffer[14] = ms * 24 / 1000;
             break;
         case 1: // 25 fps
-            buffer[12] = ms * 25 / 1000;
+            buffer[14] = ms * 25 / 1000;
             break;
         case 2: // 29.97 fps
-            buffer[12] = ms * 2997 / 100000;
+            buffer[14] = ms * 2997 / 100000;
             break;
         case 3: // 30 fps
-            buffer[12] = ms * 30 / 1000;
+            buffer[14] = ms * 30 / 1000;
             break;
         }
 
