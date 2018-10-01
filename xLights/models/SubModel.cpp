@@ -19,7 +19,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     parm2 = 1;
     parm3 = 1;
 
-    logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
+    //logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
 
     bool vert = n->GetAttribute("layout") == "vertical";
     bool isRanges = n->GetAttribute("type", "ranges") == "ranges";
@@ -33,7 +33,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
         int maxCol = 0;
         while (n->HasAttribute(wxString::Format("line%d", line))) {
             wxString nodes = n->GetAttribute(wxString::Format("line%d", line));
-            logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
+            //logger_base.debug("    Line %d: %s", line, (const char*)nodes.c_str());
             wxStringTokenizer wtkz(nodes, ",");
             while (wtkz.HasMoreTokens()) {
                 wxString valstr = wtkz.GetNextToken();
