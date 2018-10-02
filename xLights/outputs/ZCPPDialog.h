@@ -28,9 +28,11 @@ public:
     //(*Declarations(ZCPPDialog)
     wxButton* Button_Cancel;
     wxButton* Button_Ok;
+    wxCheckBox* CheckBoxAutoSizeOutput;
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxSpinCtrl* SpinCtrl_Channels;
     wxStaticText* StaticText1;
+    wxStaticText* StaticText2;
     wxStaticText* StaticText3;
     wxStaticText* StaticText4;
     wxStaticText* StaticText8;
@@ -51,6 +53,8 @@ protected:
     static const long ID_TEXTCTRL_DESCRIPTION;
     static const long ID_STATICTEXT9;
     static const long ID_CHECKBOX2;
+    static const long ID_STATICTEXT2;
+    static const long ID_CHECKBOX1;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     //*)

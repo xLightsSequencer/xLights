@@ -19,6 +19,8 @@ const long ZCPPDialog::ID_STATICTEXT8 = wxNewId();
 const long ZCPPDialog::ID_TEXTCTRL_DESCRIPTION = wxNewId();
 const long ZCPPDialog::ID_STATICTEXT9 = wxNewId();
 const long ZCPPDialog::ID_CHECKBOX2 = wxNewId();
+const long ZCPPDialog::ID_STATICTEXT2 = wxNewId();
+const long ZCPPDialog::ID_CHECKBOX1 = wxNewId();
 const long ZCPPDialog::ID_BUTTON1 = wxNewId();
 const long ZCPPDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -64,6 +66,11 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
     CheckBox_SuppressDuplicates = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
     CheckBox_SuppressDuplicates->SetValue(false);
     FlexGridSizer2->Add(CheckBox_SuppressDuplicates, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Autosize output"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBoxAutoSizeOutput = new wxCheckBox(this, ID_CHECKBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBoxAutoSizeOutput->SetValue(false);
+    FlexGridSizer2->Add(CheckBoxAutoSizeOutput, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -85,6 +92,7 @@ ZCPPDialog::ZCPPDialog(wxWindow* parent, ZCPPOutput* zcpp, OutputManager* output
     SpinCtrl_Channels->SetValue(_zcpp->GetChannels());
     TextCtrl_Description->SetValue(_zcpp->GetDescription());
     TextCtrlIpAddr->SetValue(_zcpp->GetIP());
+    CheckBoxAutoSizeOutput->SetValue(_zcpp->GetAutoSize());
 
     Button_Ok->SetDefault();
     ValidateWindow();
@@ -111,6 +119,7 @@ void ZCPPDialog::OnButton_OkClick(wxCommandEvent& event)
     _zcpp->SetChannels(SpinCtrl_Channels->GetValue());
     _zcpp->SetDescription(TextCtrl_Description->GetValue().ToStdString());
     _zcpp->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
+    _zcpp->SetAutoSize(CheckBoxAutoSizeOutput->IsChecked());
 
     EndDialog(wxID_OK);
 }

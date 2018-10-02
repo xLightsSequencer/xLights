@@ -620,6 +620,7 @@ void xLightsFrame::ChangeSelectedNetwork()
             _outputManager.Replace(o, newoutput);
         }
 
+        AllModels.ReworkStartChannel();
         NetworkChange();
         UpdateNetworkList(true);
     }
@@ -1079,6 +1080,7 @@ void xLightsFrame::SetupZCPP(Output* e, int after)
 
     if (zcpp->Configure(this, &_outputManager) != nullptr)
     {
+        AllModels.ReworkStartChannel();
         NetworkChange();
         UpdateNetworkList(true);
     }
@@ -2186,6 +2188,13 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     strncpy((char*)&buffer[8], zcpp->GetDescription().c_str(), 30);
     buffer[38] = cud.GetMaxPixelPort() + cud.GetMaxSerialPort();
 
+    std::list<wxByte*> extraConfig;
+    int extraConfigPortsInPacket = 0;
+    int extraConfigPos = 39;
+    wxByte* currentExtraConfig = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
+    
+    ZCPPOutput::InitialiseExtraConfigPacket(currentExtraConfig, modelsChangeCount, zcpp->GetDescription());
+
     unsigned char* current = &buffer[39];
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)
     {
@@ -2196,6 +2205,23 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
         SetZCPPPort(current, port, baseStart);
 
         current += 9;
+
+        std::string desc = port->GetPortName();
+        if (extraConfigPos + 2 + desc.size() > ZCPP_EXTRACONFIG_PACKET_SIZE)
+        {
+            currentExtraConfig[38] = extraConfigPortsInPacket;
+            extraConfig.push_back(currentExtraConfig);
+            extraConfigPortsInPacket = 0;
+            extraConfigPos = 39;
+            currentExtraConfig = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
+        }
+
+        extraConfigPortsInPacket++;
+        currentExtraConfig[extraConfigPos++] = port->GetPort();
+        int len = std::min(255, (int)desc.size());
+        currentExtraConfig[extraConfigPos++] = len;
+        strncpy((char*)&currentExtraConfig[extraConfigPos], desc.c_str(), len);
+        extraConfigPos += len;
     }
 
     for (int i = 0; i < cud.GetMaxSerialPort(); i++)
@@ -2207,9 +2233,32 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
         SetZCPPPort(current, port, baseStart);
 
         current += 9;
+
+        std::string desc = port->GetPortName();
+        if (extraConfigPos + 2 + desc.size() > ZCPP_EXTRACONFIG_PACKET_SIZE)
+        {
+            currentExtraConfig[38] = extraConfigPortsInPacket;
+            extraConfig.push_back(currentExtraConfig);
+            extraConfigPortsInPacket = 0;
+            extraConfigPos = 39;
+            currentExtraConfig = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
+        }
+
+        extraConfigPortsInPacket++;
+        currentExtraConfig[extraConfigPos++] = 0x80 + port->GetPort();
+        int len = std::min(255, (int)desc.size());
+        currentExtraConfig[extraConfigPos++] = len;
+        strncpy((char*)&currentExtraConfig[extraConfigPos], desc.c_str(), len);
+        extraConfigPos += len;
     }
 
-    if (zcpp->SetModelData(buffer, sizeof(buffer), showDir))
+    if (extraConfigPortsInPacket > 0)
+    {
+        currentExtraConfig[38] = extraConfigPortsInPacket;
+        extraConfig.push_back(currentExtraConfig);
+    }
+
+    if (zcpp->SetModelData(buffer, sizeof(buffer), extraConfig, showDir))
     {
         //#ifdef DEBUG
         cud.Dump();

@@ -2941,6 +2941,7 @@ void LayoutPanel::DeleteSelectedModel() {
             xlights->AllModels.Delete(selectedModel->name);
         }
         selectedModel = nullptr;
+        xlights->AllModels.ReworkStartChannel();
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
     }

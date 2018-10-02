@@ -2,17 +2,15 @@
 
 #include <wx/xml/xml.h>
 #include <wx/file.h>
+#include <wx/filename.h>
 
 #include "ZCPPDialog.h"
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
-#include "../controllers/ControllerUploadData.h"
-#include "../models/ModelManager.h"
 
 #include <list>
 
 #include <log4cpp/Category.hh>
-#include <wx/filename.h>
 
 #pragma region Constructors and Destructors
 ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
@@ -28,6 +26,7 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
     memset(_packet, 0, sizeof(_packet));
     _vendor = wxAtoi(node->GetAttribute("Vendor", "65535"));
     _model = wxAtoi(node->GetAttribute("Model", "65535"));
+    _sendConfiguration = node->GetAttribute("SendConfig", "TRUE") != "FALSE";
 
     wxString fileName = GetIP();
     fileName.Replace(".", "_");
@@ -40,6 +39,12 @@ ZCPPOutput::ZCPPOutput(wxXmlNode* node, std::string showdir) : IPOutput(node)
         if (zf.Open(fileName))
         {
             zf.Read(_modelData, sizeof(_modelData));
+            while (!zf.Eof())
+            {
+                wxByte* descPacket = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
+                zf.Read(descPacket, ZCPP_EXTRACONFIG_PACKET_SIZE);
+                _extraConfig.push_back(descPacket);
+            }
             zf.Close();
             logger_base.debug("ZCPP Model data file %s loaded.", (const char*)fileName.c_str());
             ExtractUsedChannelsFromModelData();
@@ -63,7 +68,11 @@ ZCPPOutput::ZCPPOutput() : IPOutput()
     _usedChannels = 1;
     _universe = -1;
     _sequenceNum = 0;
+    _sendConfiguration = true;
     _datagram = nullptr;
+    _vendor = -1;
+    _autoSize = true;
+    _model = -1;
     _data = (wxByte*)malloc(_channels);
     memset(_data, 0, _channels);
     memset(_packet, 0, sizeof(_packet));
@@ -73,6 +82,11 @@ ZCPPOutput::~ZCPPOutput()
 {
     if (_datagram != nullptr) delete _datagram;
     if (_data != nullptr) free(_data);
+    while (_extraConfig.size() > 0)
+    {
+        free(_extraConfig.front());
+        _extraConfig.pop_front();
+    }
 }
 #pragma endregion Constructors and Destructors
 
@@ -96,13 +110,42 @@ void ZCPPOutput::ExtractUsedChannelsFromModelData()
     }
 }
 
-bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::string showDir)
+bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<wxByte*> extraConfig, std::string showDir)
 {
     // before byte 9 there can be differences
-    if (memcmp(&_modelData[8], &buffer[8], std::min(bufsize, sizeof(_modelData)) - 8) == 0)
+    if (memcmp(&_modelData[8], &buffer[8], std::min(bufsize, sizeof(_modelData)) - 8) == 0 &&
+        _extraConfig.size() == _extraConfig.size())
     {
-        // nothing has changed
-        return false;
+        bool extraConfigSame = true;
+        auto it1 = _extraConfig.begin();
+        auto it2 = extraConfig.begin();
+
+        while (extraConfigSame && it1 != _extraConfig.end())
+        {
+            if (memcmp(&(*it1)[8], &(*it2)[8], ZCPP_EXTRACONFIG_PACKET_SIZE - 8) != 0)
+            {
+                extraConfigSame = false;
+            }
+            ++it1;
+            ++it2;
+        }
+
+        if (extraConfigSame)
+        {
+            // nothing has changed
+            return false;
+        }
+    }
+
+    while (_extraConfig.size() > 0)
+    {
+        free(_extraConfig.front());
+        _extraConfig.pop_front();
+    }
+
+    for (auto it = extraConfig.begin(); it != extraConfig.end(); ++it)
+    {
+        _extraConfig.push_back(*it);
     }
 
     wxString fileName = GetIP();
@@ -114,6 +157,10 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::string
     if (zf.Create(fileName, true))
     {
         zf.Write(buffer, bufsize);
+        for (auto it = _extraConfig.begin(); it != _extraConfig.end(); ++it)
+        {
+            zf.Write(*it, ZCPP_EXTRACONFIG_PACKET_SIZE);
+        }
         zf.Close();
     }
 
@@ -131,6 +178,7 @@ wxXmlNode* ZCPPOutput::Save()
     wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, "network");
     node->AddAttribute("Vendor", wxString::Format("%d", _vendor));
     node->AddAttribute("Model", wxString::Format("%d", _model));
+    if (!_sendConfiguration) node->AddAttribute("SendConfiguration", "FALSE");
     IPOutput::Save(node);
 
     return node;
@@ -196,7 +244,7 @@ void ZCPPOutput::SendSync(int syncUniverse)
         }
 
         // multicast - universe number must be in lower 2 bytes
-        wxString ipaddrWithUniv = "255.255.255.255";
+        wxString ipaddrWithUniv = ZCPP_MULTICAST_TO;
         syncremoteAddr.Hostname(ipaddrWithUniv);
         syncremoteAddr.Service(ZCPP_PORT);
     }
@@ -208,6 +256,20 @@ void ZCPPOutput::SendSync(int syncUniverse)
     {
         syncdatagram->SendTo(syncremoteAddr, syncdata, ZCPP_SYNCPACKET_LEN);
     }
+}
+
+void ZCPPOutput::InitialiseExtraConfigPacket(wxByte* buffer, int seq, std::string userControllerId)
+{
+    memset(buffer, 0x00, ZCPP_EXTRACONFIG_PACKET_SIZE);
+    buffer[0] = 'Z';
+    buffer[1] = 'C';   // ACN Packet Identifier (12 bytes)
+    buffer[2] = 'P';
+    buffer[3] = 'P';
+    buffer[4] = 0x0B;
+    buffer[5] = 0x00;
+    buffer[6] = (seq & 0xff00) >> 8;
+    buffer[7] = seq & 0xff;
+    strncpy((char*)&buffer[8], userControllerId.c_str(), 30);
 }
 
 std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
@@ -260,7 +322,7 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
 
     // multicast - universe number must be in lower 2 bytes
     wxIPV4address remoteaddr;
-    wxString ipaddrWithUniv = "255.255.255.255";
+    wxString ipaddrWithUniv = ZCPP_MULTICAST_TO;
     remoteaddr.Hostname(ipaddrWithUniv);
     remoteaddr.Service(ZCPP_PORT);
 
@@ -299,11 +361,11 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                     if (buffer[0] == 'Z' && buffer[1] == 'C' && buffer[2] == 'P' && buffer[3] == 'P' && buffer[4] == 0x01)
                     {
                         logger_base.debug(" Valid response.");
+
                         long channels = ((long)buffer[66] << 24) + ((long)buffer[67] << 16) + ((long)buffer[68] << 8) + (long)buffer[69];
                         ZCPPOutput* output = new ZCPPOutput();
                         output->SetDescription(std::string((char*)&buffer[31]));
-                        output->SetChannels(channels);
-                        auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[90], (int)buffer[91], (int)buffer[92], (int)buffer[93]);
+                        auto ip = wxString::Format("%d.%d.%d.%d", (int)buffer[110], (int)buffer[111], (int)buffer[112], (int)buffer[113]);
                         output->SetIP(ip.ToStdString());
                         int vendor = ((int)buffer[6] << 8) + buffer[7];
                         output->SetVendor(vendor);
@@ -322,6 +384,21 @@ std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
                                 output = nullptr;
                                 break;
                             }
+                        }
+
+                        if (buffer[115] & 0x04)
+                        {
+                            // Dan this is where you would need to do your special adjustments to ensure it is in the right place
+                            logger_base.info("ZCPP Discovery found controller %s but it doesnt want us to configure it.", (const char*)output->GetIP().c_str());
+                            delete output;
+                            output = nullptr;
+                            break;
+                        }
+                        else
+                        {
+                            output->SetAutoSize(true);
+                            output->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
+                            output->SetSendConfiguration(true);
                         }
 
                         if (output != nullptr)
@@ -434,14 +511,25 @@ void ZCPPOutput::EndFrame(int suppressFrames)
 
     if (_datagram == nullptr || _usedChannels == 0) return;
 
-    long second = wxGetLocalTime();
-    if (_lastSecond == -1 || (second - _lastSecond) % 10 == 0)
+    if (IsSendConfiguration())
     {
-        if (_modelData[0] != 0x00)
+        long second = wxGetLocalTime();
+        if (_lastSecond == -1 || (second - _lastSecond) % 10 == 0)
         {
-            _lastSecond = second;
+            if (_lastSecond == -1 || second % 600 == 0)
+            {
+                // Send descriptions every 10 mins
+                for (auto it = _extraConfig.begin(); it != _extraConfig.end(); ++it)
+                {
+                    _datagram->SendTo(_remoteAddr, *it, ZCPP_EXTRACONFIG_PACKET_SIZE);
+                }
+            }
 
-            _datagram->SendTo(_remoteAddr, _modelData, sizeof(_modelData));
+            if (_modelData[0] != 0x00)
+            {
+                _lastSecond = second;
+                _datagram->SendTo(_remoteAddr, _modelData, sizeof(_modelData));
+            }
         }
     }
 
@@ -457,7 +545,7 @@ void ZCPPOutput::EndFrame(int suppressFrames)
             _packet[9] = (wxByte)((startAddress >> 8) & 0xFF);
             _packet[10] = (wxByte)((startAddress) & 0xFF);
             int packetlen = _usedChannels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _usedChannels - i;
-            _packet[11] = (OutputManager::IsSyncEnabled_() ? 0x01 : 0x00) + (i + packetlen == _usedChannels ? 0xF0 : 0x00);
+            _packet[11] = (OutputManager::IsSyncEnabled_() ? 0x01 : 0x00) + (i + packetlen == _usedChannels ? 0x80 : 0x00);
             _packet[12] = (wxByte)((packetlen >> 8) & 0xFF);
             _packet[13] = (wxByte)((packetlen) & 0xFF);
             memcpy(&_packet[14], &_data[i], packetlen);

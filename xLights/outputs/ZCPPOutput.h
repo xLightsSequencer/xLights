@@ -16,6 +16,9 @@
 #define ZCPP_PORT 30005
 #define ZCPP_MAXCHANNELS (16*1024)
 #define ZCPP_MODELDATASIZE (40 + 10 * 100)
+#define ZCPP_MULTICAST_TO "224.0.30.5"
+#define ZCPP_EXTRACONFIG_PACKET_SIZE ZCPP_PACKET_LEN
+
 #pragma endregion ZCPP Constants
 
 class ZCPPOutput : public IPOutput
@@ -31,6 +34,8 @@ class ZCPPOutput : public IPOutput
     int _vendor;
     int _model;
     long _usedChannels;
+    bool _sendConfiguration;
+    std::list<wxByte*> _extraConfig;
     #pragma endregion Member Variables
 
     void ExtractUsedChannelsFromModelData();
@@ -46,6 +51,7 @@ public:
     #pragma region Static Functions
     static void SendSync(int syncUniverse);
     static std::list<Output*> Discover(OutputManager* outputManager);
+    static void InitialiseExtraConfigPacket(wxByte* buffer, int seq, std::string userControllerId);
     #pragma endregion Static Functions
 
     #pragma region Getters and Setters
@@ -58,11 +64,13 @@ public:
     virtual long GetEndChannel() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
+    void SetSendConfiguration(bool send) { if (_sendConfiguration != send) { _sendConfiguration = send; _dirty = true; } }
+    bool IsSendConfiguration() const { return _sendConfiguration; }
     void SetVendor(int vendor) { _vendor = vendor; _dirty = true; }
     void SetModel(int model) { _model = model; _dirty = true; }
     int GetVendor() const { return _vendor; }
     int GetModel() const { return _model; }
-    bool SetModelData(unsigned char* buffer, size_t bufsize, std::string showDir);
+    bool SetModelData(unsigned char* buffer, size_t bufsize, std::list<wxByte*> extraConfig, std::string showDir);
     virtual bool IsLookedUpByControllerName() const override { return true; }
     virtual std::string GetUniverseString() const override { return ""; }
     #pragma region Getters and Setters

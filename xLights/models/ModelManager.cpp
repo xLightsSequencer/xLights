@@ -311,6 +311,8 @@ void ModelManager::DisplayStartChannelCalcWarning() const
 
 void ModelManager::ReworkStartChannel() const
 {
+    bool  outputsChanged = false;
+
     OutputManager* outputManager = xlights->GetOutputManager();
     auto outputs = outputManager->GetOutputs();
 
@@ -385,7 +387,23 @@ void ModelManager::ReworkStartChannel() const
                     ch += (*itm)->GetChanCount();
                 }
             }
+
+            if ((*it)->GetAutoSize())
+            {
+                if ((*it)->GetChannels() != std::max((long)1, (long)ch - 1))
+                {
+                    (*it)->SetChannels(std::max((long)1, (long)ch - 1));
+                    outputsChanged = true;
+                }
+            }
         }
+    }
+
+    if (outputsChanged)
+    {
+        xlights->GetOutputManager()->SomethingChanged();
+        xlights->UpdateNetworkList(false);
+        xlights->NetworkChange();
     }
 }
 

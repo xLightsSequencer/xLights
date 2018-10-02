@@ -40,6 +40,7 @@ Output::Output(Output* output)
     _description = output->GetDescription();
     _channels = output->GetChannels();
     _controller = output->GetController();
+    _autoSize = output->GetAutoSize();
 }
 
 Output::Output(wxXmlNode* node)
@@ -61,6 +62,7 @@ Output::Output(wxXmlNode* node)
     _lastOutputTime = 0 ;
     _skippedFrames = 9999;
 
+    _autoSize = node->GetAttribute("AutoSize", "FALSE") == "TRUE";
     _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
     _suppressDuplicateFrames = (node->GetAttribute("SuppressDuplicates", "No") == "Yes");
     _description = UnXmlSafe(node->GetAttribute("Description"));
@@ -75,6 +77,7 @@ Output::Output(wxXmlNode* node)
 
 Output::Output()
 {
+    _autoSize = false;
     _suspend = false;
     _changed = false;
     _timer_msec = 0;
@@ -104,6 +107,11 @@ void Output::Save(wxXmlNode* node)
     if (!_enabled)
     {
         node->AddAttribute("Enabled", "No");
+    }
+
+    if (_autoSize)
+    {
+        node->AddAttribute("AutoSize", "TRUE");
     }
 
     if (_suppressDuplicateFrames)

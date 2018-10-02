@@ -59,6 +59,7 @@ protected:
     wxLongLong _lastOutputTime;
     int _skippedFrames;
     bool _changed; // set to true when something in the packed has changed
+    bool _autoSize;
     #pragma endregion Member Variables
 
     virtual void Save(wxXmlNode* node);
@@ -102,6 +103,8 @@ public:
     virtual std::string GetBaudRateString() const { return wxString::Format(wxT("%i"), GetBaudRate()).ToStdString(); }
     virtual int GetUniverses() const { return 1; }
     int GetBaudRate() const;
+    void SetAutoSize(bool autosize) { _autoSize = autosize; _dirty = true; }
+    bool GetAutoSize() const { return _autoSize; }
     void SetBaudRate(int baudRate) { _baudRate = baudRate; _dirty = true; }
     bool IsEnabled() const { return _enabled; }
     void Enable(bool enable) { _enabled = enable; _dirty = true; }
