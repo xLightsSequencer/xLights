@@ -329,6 +329,8 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Run event playlist step looped", 2, plst, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Run event playlist step unique looped", 2, plst, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Run event playlist step if idle looped", 2, plst, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Stop event playlist", 1, pl, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Stop event playlist if playing step", 2, plst, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Activate specified schedule", 1, sch, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Deactivate specified schedule", 1, sch, false, false, false, false, true, true, true, false));
 }

@@ -1819,6 +1819,69 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         }
                     }
                 }
+                else if (command == "Stop event playlist if playing step")
+                {
+                    wxString parameter = parameters;
+                    wxArrayString split = wxSplit(parameter, ',');
+
+                    std::string pl = DecodePlayList(split[0].ToStdString());
+                    std::string step = DecodeStep(split[1].ToStdString());
+
+                    PlayList* p = GetPlayList(pl);
+                    if (p != nullptr)
+                    {
+                        PlayListStep* pls = p->GetStep(step);
+
+                        if (pls != nullptr)
+                        {
+                            // stop and remove any existing items from the specified playlist
+                            auto it2 = _eventPlayLists.begin();
+                            while (it2 != _eventPlayLists.end())
+                            {
+                                if ((*it2)->GetId() == p->GetId() &&
+                                    ((*it2)->GetRunningStep()->GetId() == pls->GetId()))
+                                {
+                                    auto temp = it2;
+                                    ++it2;
+                                    (*temp)->Stop();
+                                    delete *temp;
+                                    _eventPlayLists.remove(*temp);
+                                    logger_base.info("Stopped event playlist %s step %s.", (const char*)p->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
+                                }
+                                else
+                                {
+                                    ++it2;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (command == "Stop event playlist")
+                {
+                    std::string pl = DecodePlayList(parameters);
+
+                    PlayList* p = GetPlayList(pl);
+                    if (p != nullptr)
+                    {
+                        auto it2 = _eventPlayLists.begin();
+                        while (it2 != _eventPlayLists.end())
+                        {
+                            if ((*it2)->GetId() == p->GetId())
+                            {
+                                auto temp = it2;
+                                ++it2;
+                                (*temp)->Stop();
+                                delete *temp;
+                                _eventPlayLists.remove(*temp);
+                                logger_base.info("Stopped event playlist %s.", (const char*)p->GetNameNoTime().c_str());
+                            }
+                            else
+                            {
+                                ++it2;
+                            }
+                        }
+                    }
+                }
                 else if (command == "Run event playlist step unique looped")
                 {
                     wxString parameter = parameters;
