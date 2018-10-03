@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  When clicking/modifying a single effect, the restricted node range was not being used correctly
+                   (all channels above the max node in the model were not considered restricted)
+                   Fixes #1253
 2018.34 October 1, 2018
    -- enh (dkulp)  On OSX, detect if default audio device changes and move audio to new device
    -- enh (dkulp)  Update to newer standard dictionary
