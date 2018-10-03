@@ -733,7 +733,10 @@ void xLightsFrame::UpdateSelectedChannels()
             }
             else
             {
-                o->SetChannels(dlg.GetValue());
+                if (!o->GetAutoSize())
+                {
+                    o->SetChannels(dlg.GetValue());
+                }
             }
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
