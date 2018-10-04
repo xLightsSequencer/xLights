@@ -972,7 +972,7 @@ void EffectLayer::ButtUpStretchAllSelectedEffects(bool right, int lengthMS, Undo
     std::unique_lock<std::recursive_mutex> locker(lock);
     for (int i = 0; i<mEffects.size(); i++)
     {
-        if (mEffects[i]->IsLocked())
+        if (!mEffects[i]->IsLocked())
         {
             if (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED && mEffects[i]->GetTagged())
             {
