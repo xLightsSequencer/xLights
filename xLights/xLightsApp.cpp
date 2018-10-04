@@ -322,8 +322,9 @@ void handleCrash(void *data) {
         std::string id = ret.str();
         trace += wxString::Format("\nCrashed thread id: %s\n", id.c_str());
     }
-    trace += topFrame->GetThreadStatusReport();
-    trace += ParallelJobPool::POOL.GetThreadStatus();
+    //These will be added on the main thread
+    //trace += topFrame->GetThreadStatusReport();
+    //trace += ParallelJobPool::POOL.GetThreadStatus();
 
     report->AddText("backtrace.txt", trace, "Backtrace");
 
@@ -378,11 +379,27 @@ wxString xLightsFrame::GetThreadStatusReport() {
 }
 
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     static bool inHere = false;
 
     // if we are in here a second time ... just exit
     if (inHere) exit(1);
+
+    //add thread status - must be done on main thread
+    //due to mutex locks potentially being problematic
+    std::string status = "Render Pool:\n";
+    status += topFrame->GetThreadStatusReport();
+    status += "\nParallel Job Pool:\n";
+    status += ParallelJobPool::POOL.GetThreadStatus();
+
+    wxFileName fileName(report->GetDirectory(), "backtrace.txt");
+    wxFile file(fileName.GetFullPath(),  wxFile::write_append);
+    file.Write("\n");
+    file.Write(status);
+    file.Flush();
+    file.Close();
+    logger_base.crit("%s", (const char *)status.c_str());
 
     inHere = true;
 
@@ -391,7 +408,6 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
         SendReport("crashUpload", *report);
         wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Exiting after creating debug report: %s", (const char *)report->GetCompressedFileName().c_str());
 	delete report;
 

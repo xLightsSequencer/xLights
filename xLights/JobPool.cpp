@@ -53,6 +53,8 @@ public:
 
     void ProcessJob(Job *job);
     std::string GetStatus();
+    
+    std::string GetThreadName();
 };
 
 static void startFunc(JobPoolWorker *jpw) {
@@ -85,10 +87,13 @@ std::string JobPoolWorker::GetStatus()
         << "    ";
     
     Job *j = currentJob;
+    if (j != nullptr && j->SetThreadName()) {
+        ret << j->GetName() << " - ";
+    } else {
+        ret << pool->threadNameBase << " - ";
+    }
+    
     if (j != nullptr) {
-        if (j->SetThreadName()) {
-            ret << j->GetName() << " - ";
-        }
         ret << j->GetStatus();
     } else if (status == STARTING) {
         ret << "<starting>";
@@ -147,6 +152,16 @@ static void SetThreadName(const std::string &name)
     __threadNames[::GetCurrentThreadId()] = name;
 }
 #endif
+
+std::string JobPoolWorker::GetThreadName() {
+    Job *j = currentJob;
+    if (j != nullptr) {
+        if (j->SetThreadName()) {
+            return j->GetName();
+        }
+    }
+    return pool->threadNameBase;
+}
 
 void JobPoolWorker::Entry()
 {
@@ -226,7 +241,7 @@ void JobPoolWorker::ProcessJob(Job *job)
 	}
 }
 
-JobPool::JobPool(const std::string &n) : threadNameBase(n), queueLock(), threadLock(), signal(), queue(), idleThreads(0),  numThreads(0), inFlight(0), maxNumThreads(8)
+JobPool::JobPool(const std::string &n) : threadNameBase(n), queueLock(), threadLock(false), signal(), queue(), idleThreads(0),  numThreads(0), inFlight(0), maxNumThreads(8)
 {
 }
 
@@ -242,12 +257,22 @@ JobPool::~JobPool()
     Stop();
 }
 
+void JobPool::LockThreads() {
+    while (threadLock.exchange(true, std::memory_order_relaxed)) std::this_thread::yield();
+    std::atomic_thread_fence(std::memory_order_acquire);
+}
+void JobPool::UnlockThreads() {
+    std::atomic_thread_fence(std::memory_order_release);
+    threadLock.store(false, std::memory_order_relaxed);
+}
+
 void JobPool::RemoveWorker(JobPoolWorker *w) {
-    std::unique_lock<std::mutex> locker(threadLock);
+    LockThreads();
     auto loc = std::find(threads.begin(), threads.end(), w);
     if (loc != threads.end()) {
         threads.erase(loc);
     }
+    UnlockThreads();
 }
 
 Job *JobPool::GetNextJob() {
@@ -280,11 +305,16 @@ void JobPool::PushJob(Job *job)
     count -= numThreads;
     count = std::min(count, maxNumThreads - numThreads);
     if (count > 0) {
-        std::unique_lock<std::mutex> tlocker(threadLock);
+        LockThreads();
+        if (numThreads == 0 && count < 4 && 4 < maxNumThreads) {
+            //when we create first thread, assume we'll need extras real soon
+            count = 4;
+        }
         for (int i = 0; i < count; i++) {
             threads.push_back(new JobPoolWorker(this));
             numThreads++;
         }
+        UnlockThreads();
     }
     signal.notify_all();
 }
@@ -304,31 +334,33 @@ void JobPool::Start(size_t poolSize)
 
 void JobPool::Stop()
 {
-    std::unique_lock<std::mutex> locker(threadLock);
+    LockThreads();
     for (JobPoolWorker *worker : threads) {
         worker->Stop();
     }
     
     while (!threads.empty()) {
-        locker.unlock();
+        UnlockThreads();
 
         std::unique_lock<std::mutex> qlocker(queueLock);
         signal.notify_all();
         qlocker.unlock();
         
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        locker.lock();
+        LockThreads();
     }
+    UnlockThreads();
 }
 
 std::string JobPool::GetThreadStatus() {
-    std::unique_lock<std::mutex> locker(threadLock);
     std::stringstream ret;
     ret << "\n";
+    LockThreads();
     for (JobPoolWorker *worker : threads) {
         ret << worker->GetStatus();
         ret << "\n";
     }
+    UnlockThreads();
     return ret.str();
 }
 
