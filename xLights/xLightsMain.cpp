@@ -2942,12 +2942,8 @@ void xLightsFrame::ShowSequenceSettings()
 {
     if (xLightsFrame::CurrentSeqXmlFile == nullptr) return;
 
-    // abort any in progress render ... as it may be using any already open media
-    bool aborted = false;
-    if (CurrentSeqXmlFile->GetMedia() != nullptr)
-    {
-        aborted = AbortRender();
-    }
+    // abort any in progress render ... it may be using media or we may change the sequence length ... and that would be bad
+    bool aborted = AbortRender();
 
     // populate dialog
     SeqSettingsDialog dialog(this, xLightsFrame::CurrentSeqXmlFile, mediaDirectory, wxEmptyString);
