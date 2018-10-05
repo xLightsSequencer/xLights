@@ -79,7 +79,15 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if( !TxEmpty() ) {
+        logger_base.debug("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
+        return;
+    }
+
     int cur_channel = channel;
+    int total_bytes_sent = 0;
 
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
@@ -217,6 +225,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             if (_serial != nullptr && frame_changed)
             {
                 _serial->Write((char *)d, idx);
+                total_bytes_sent += idx;
             }
 
             for (int bank = 0; bank < lorBankData.size(); bank++) {
@@ -227,6 +236,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             unit_id++;
         }
     }
+    logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
 }
 
 void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb)
@@ -277,6 +287,8 @@ void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, i
 void LOROptimisedOutput::AllOff()
 {
     int bank = 0;
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("    LOROptimisedOutput: AllOff starting");
 
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
@@ -319,6 +331,7 @@ void LOROptimisedOutput::AllOff()
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
     wxMilliSleep(50);
+    logger_base.debug("    LOROptimisedOutput: AllOff finished");
 }
 #pragma endregion Data Setting
 
