@@ -707,7 +707,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         // enables depth testing to draw things in proper order
         glEnable(GL_DEPTH_TEST);
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        glDepthFunc(GL_ALWAYS);
+        glDepthFunc(GL_LESS);
 
         prepare3DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
