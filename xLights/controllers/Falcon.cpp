@@ -333,11 +333,19 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
 
 bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString request;
     int output = 0;
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+
+    if (outputs.size() > 96)
+    {
+        logger_base.error("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size());
+        wxMessageBox("Attempt to upload more than 96 universes to falcon controller. This is not supported.");
+        return false;
+    }
 
     for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
