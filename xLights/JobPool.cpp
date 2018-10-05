@@ -34,7 +34,6 @@ class JobPoolWorker
     JobPool *pool;
     volatile bool stopped;
     std::atomic<Job  *> currentJob;
-    std::thread *thread;
     enum {
         STARTING,
         IDLE,
@@ -44,6 +43,8 @@ class JobPoolWorker
         STOPPED,
         UNKNOWN
     } status;
+    std::thread *thread;
+    std::thread::id tid;
 public:
     JobPoolWorker(JobPool *p);
     virtual ~JobPoolWorker();
@@ -67,11 +68,16 @@ static void startFunc(JobPoolWorker *jpw) {
 JobPoolWorker::JobPoolWorker(JobPool *p)
 : pool(p), currentJob(nullptr), stopped(false), status(STARTING), thread(nullptr)
 {
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    logger_jobpool.debug("JobPoolWorker created  %X\n", this);
     thread = new std::thread(startFunc, this);
+    tid = thread->get_id();
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    logger_jobpool.debug("JobPoolWorker destroyed  %X\n", this);
     status = UNKNOWN;
     thread->detach();
     delete thread;
@@ -79,16 +85,22 @@ JobPoolWorker::~JobPoolWorker()
 
 std::string JobPoolWorker::GetStatus()
 {
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+
+    logger_jobpool.debug("Getting status for %X\n", this);
     std::stringstream ret;
     ret << "Thread: ";
         
     ret << std::showbase // show the 0x prefix
         << std::internal // fill between the prefix and the number
         << std::setfill('0') << std::setw(10)
-        << std::hex << thread->get_id()
+        << std::hex << tid
         << "    ";
     
     Job *j = currentJob;
+    
+    logger_jobpool.debug("     current job %X\n", j);
+
     if (j != nullptr && j->SetThreadName()) {
         ret << j->GetName() << " - ";
     } else {
@@ -167,8 +179,10 @@ std::string JobPoolWorker::GetThreadName() {
 
 void JobPoolWorker::Entry()
 {
-    // KW - extra logging to try to work out why this function crashes so often on windows ... I have tried to limit it to rare events
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    logger_jobpool.debug("JobPoolWorker started  %X\n", this);
+
+    // KW - extra logging to try to work out why this function crashes so often on windows ... I have tried to limit it to rare events
     try {
         SetThreadName(pool->threadNameBase);
         while ( !stopped ) {
@@ -176,11 +190,11 @@ void JobPoolWorker::Entry()
 
             Job *job = pool->GetNextJob();
             if (job != nullptr) {
-                logger_jobpool.debug("JobPoolWorker::Entry processing job.");
+                logger_jobpool.debug("JobPoolWorker::Entry processing job.   %X", this);
                 status = RUNNING_JOB;
                 // Call user's implementation for processing request
                 ProcessJob(job);
-                logger_jobpool.debug("JobPoolWorker::Entry processed job.");
+                logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
                 pool->inFlight--;
             } else if (pool->idleThreads > 12) {
@@ -193,24 +207,25 @@ void JobPoolWorker::Entry()
     // cancelled, otherwise the thread library would simply terminate the
     // program, see http://udrepper.livejournal.com/21541.html
     }  catch ( abi::__forced_unwind& ) {
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.");
+        logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.  %X", this);
         pool->numThreads--;
         status = STOPPED;
         pool->RemoveWorker(this);
         throw;
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.");
+        logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.  %X", this);
         pool->numThreads--;
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
         return;
     }
-    logger_jobpool.debug("JobPoolWorker::Entry exiting.");
+    logger_jobpool.debug("JobPoolWorker::Entry exiting.  %X", this);
     pool->numThreads--;
     status = STOPPED;
     pool->RemoveWorker(this);
+    logger_jobpool.debug("JobPoolWorker::Entry removed.  %X", this);
 }
 
 void JobPoolWorker::ProcessJob(Job *job)
@@ -359,6 +374,14 @@ std::string JobPool::GetThreadStatus() {
     ret << "\n";
     LockThreads();
     for (JobPoolWorker *worker : threads) {
+        /*
+        uint64_t t = (uint64_t)worker;
+        ret << std::showbase // show the 0x prefix
+            << std::internal // fill between the prefix and the number
+            << std::setfill('0') << std::setw(10)
+            << std::hex << t
+            << "\n";
+        */
         ret << worker->GetStatus();
         ret << "\n";
     }
