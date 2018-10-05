@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
    -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.
    -- bug (gil)    Fix WiringDialog scaling for some Windows machines.
    -- bug (gil)    Prevent Arches and Icicles from drawing upside down when drawn right to left.
