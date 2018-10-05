@@ -120,7 +120,7 @@ void ArchesModel::InitRenderBufferNodes(const std::string &type,  const std::str
                 }
                 else
                 {
-                    idx = (y + 1) * SegmentsPerArch - x - 1;
+                    idx = (NumArches - y) * SegmentsPerArch - x - 1;
                 }
                 newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
                 for(size_t c=0; c < newNodes[cur]->Coords.size(); c++) {
@@ -168,7 +168,7 @@ void ArchesModel::InitModel() {
 
     for (int y=0; y < NumArches; y++) {
         for(int x=0; x<SegmentsPerArch; x++) {
-            int idx = y * SegmentsPerArch + x;
+            int idx = (IsLtoR ? y : NumArches - y - 1) * SegmentsPerArch + x;
             Nodes[idx]->ActChan = stringStartChan[y] + x*GetNodeChannelCount(StringType);
             Nodes[idx]->StringNum=y;
             for(size_t c=0; c < GetCoordCount(idx); c++) {
