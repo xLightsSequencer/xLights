@@ -764,7 +764,6 @@ public:
 	}
 
     void AbortRender() {
-        std::unique_lock<std::mutex> lock(nextLock);
         abort = true;
     }
 
@@ -840,8 +839,8 @@ private:
     log4cpp::Category &renderLog;
 
     wxGauge *gauge;
-    int currentFrame;
-    bool abort;
+    std::atomic_int currentFrame;
+    std::atomic_bool abort;
 
     std::vector<EffectLayerInfo *> subModelInfos;
 

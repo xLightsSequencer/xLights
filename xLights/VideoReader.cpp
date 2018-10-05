@@ -203,6 +203,11 @@ static int64_t MStoDTS(int ms, double dtspersec)
 
 static int DTStoMS(int64_t dts , double dtspersec)
 {
+    if (dtspersec > 1000 && dtspersec < UINT_MAX) {
+        int64_t dtsps = (int64_t)dtspersec;
+        dts /= dtsps;
+        return dts * 1000;
+    }
     return (int)((1000.0 * (double)dts) / dtspersec);
 }
 

@@ -34,7 +34,7 @@ class JobPoolWorker
     JobPool *pool;
     volatile bool stopped;
     std::atomic<Job  *> currentJob;
-    std::thread thread;
+    std::thread *thread;
     enum {
         STARTING,
         IDLE,
@@ -65,14 +65,16 @@ static void startFunc(JobPoolWorker *jpw) {
     delete jpw;
 }
 JobPoolWorker::JobPoolWorker(JobPool *p)
-: pool(p), currentJob(nullptr), stopped(false), status(STARTING), thread(startFunc, this)
+: pool(p), currentJob(nullptr), stopped(false), status(STARTING), thread(nullptr)
 {
+    thread = new std::thread(startFunc, this);
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
     status = UNKNOWN;
-    thread.detach();
+    thread->detach();
+    delete thread;
 }
 
 std::string JobPoolWorker::GetStatus()
@@ -83,7 +85,7 @@ std::string JobPoolWorker::GetStatus()
     ret << std::showbase // show the 0x prefix
         << std::internal // fill between the prefix and the number
         << std::setfill('0') << std::setw(10)
-        << std::hex << thread.get_id()
+        << std::hex << thread->get_id()
         << "    ";
     
     Job *j = currentJob;
