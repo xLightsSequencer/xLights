@@ -21,6 +21,7 @@ class LOROptimisedOutput : public LOROutput
     wxByte _unit_id = 0x01;
     bool banks_changed[32];
     bool unit_id_in_use[256];
+    wxByte _curData[LOR_MAX_CHANNELS];
     LorControllers _controllers;
     #pragma endregion Member Variables
 
@@ -43,7 +44,12 @@ public:
     virtual std::string GetSetupHelp() const override;
     #pragma endregion Getters and Setters
 
+    #pragma region Frame Handling
+    virtual void EndFrame(int suppressFrames) override;
+    #pragma endregion Frame Handling
+
     #pragma region Data Setting
+    virtual void SetOneChannel(long channel, unsigned char data) override;
     virtual void SetManyChannels(long channel, unsigned char data[], long size) override;
     virtual void AllOff() override;
     void GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb);

@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix LOROptimized output to work in Test dialog. Fixes #1262.
    -- bug (dkulp)  Fix issues if rgbeffects.xml does not contain ALL the colors we need to things get mapped to black
    -- bug (dkulp)  When clicking/modifying a single effect, the restricted node range was not being used correctly
                    (all channels above the max node in the model were not considered restricted)

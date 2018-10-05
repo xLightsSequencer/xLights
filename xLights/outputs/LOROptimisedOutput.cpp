@@ -7,7 +7,6 @@
 #pragma region Constructors and Destructors
 LOROptimisedOutput::LOROptimisedOutput(SerialOutput* output)
 : LOROutput(output)
-
 {
     SetupHistory();
 }
@@ -46,10 +45,38 @@ void LOROptimisedOutput::Save(wxXmlNode* node)
 }
 #pragma endregion Save
 
+#pragma region Frame Handling
+void LOROptimisedOutput::EndFrame(int suppressFrames)
+{
+    if (!_enabled || _suspend) return;
+
+    if (_changed)
+    {
+        SetManyChannels(0, _curData, 0);
+        _changed = false;
+    }
+    LOROutput::EndFrame(suppressFrames);
+}
+#pragma endregion Frame Handling
+
 #pragma region Data Setting
+void LOROptimisedOutput::SetOneChannel(long channel, unsigned char data)
+{
+    if (!_enabled || _serial == nullptr || !_ok) return;
+
+    if( !_changed ) {
+        // Don't try to only send changes since this is used for test mode
+        // and not all channels are written every frame
+        SetupHistory();
+        memset(_curData, 0x00, sizeof(_curData));
+        memset(_lastSent, 0xFF, sizeof(_curData));
+        _changed = true;
+    }
+    _curData[channel] = data;
+}
+
 void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], long size)
 {
-
     if (!_enabled || _serial == nullptr || !_ok) return;
 
     int cur_channel = channel;
@@ -200,8 +227,6 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             unit_id++;
         }
     }
-
-
 }
 
 void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb)
