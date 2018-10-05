@@ -483,7 +483,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                         // check we dont already have this model in our list
                         if (std::find(models.begin(), models.end(), it->second) == models.end()) {
                             logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s:%d ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort(), it->second->GetNumPhysicalStrings());
-                            if (it->second->GetProtocol() == "DMX") {
+                            if (it->second->GetProtocol() == "dmx") {
                                 if (it->second->GetFirstChannel() < DMXMin[it->second->GetPort()]) {
                                     DMXMin[it->second->GetPort()] = it->second->GetFirstChannel();
                                 }
