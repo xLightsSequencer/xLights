@@ -406,7 +406,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "0");
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventPeriodInMilliseconds");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ud", SeqData.FrameTime()));
+    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%d", (int)SeqData.FrameTime()));
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Time");
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", TotalTime));

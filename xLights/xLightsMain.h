@@ -1161,7 +1161,6 @@ private:
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
 
-    JobPool jobPool;
 
     void OnNetworkPopup(wxCommandEvent &event);
 
@@ -1317,6 +1316,7 @@ private:
     } renderTree;
     int AutoSaveInterval;
     int BackupPurgeDays;
+    JobPool jobPool;
 
     Model *playModel;
     int playType;

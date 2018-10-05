@@ -367,7 +367,7 @@ void SerialOutput::Close()
         _serial->Purge();
 
         int i = 0;
-        while( !TxEmpty() && (i < 10) )
+        while( !TxEmpty() && (i < 200) )
         {
             wxMilliSleep(5);
             i++;
@@ -375,7 +375,7 @@ void SerialOutput::Close()
         _serial->Close();
         delete _serial;
         _serial = nullptr;
-        logger_base.debug("    Serial port %s closed.", (const char *)_commPort.c_str());
+        logger_base.debug("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
     }
 }
 #pragma endregion Start and Stop
