@@ -71,7 +71,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
     logger_base.debug("        Model preview.");
-    _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
+    _modelPreviewPanel = new ModelPreview(PanelSequencer);
     m_mgr->AddPane(_modelPreviewPanel,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250));
 

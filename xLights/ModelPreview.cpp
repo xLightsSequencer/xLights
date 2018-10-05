@@ -85,10 +85,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
 		int delta_y = event.GetPosition().y - m_last_mouse_y;
 		SetCameraView(delta_x, delta_y, false);
-        if(xlights != nullptr && xlights->GetPlayStatus() == PLAY_TYPE_STOPPED)
-        {
-            Refresh();
-            Update();
+        if (xlights != nullptr) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+                Refresh();
+                Update();
+            }
         }
     }
     else if (m_wheel_down) {
@@ -106,10 +107,11 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         SetPan(delta_x, delta_y);
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
-        if (xlights != nullptr && xlights->GetPlayStatus() == PLAY_TYPE_STOPPED)
-        {
-            Refresh();
-            Update();
+        if (xlights != nullptr) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+                Refresh();
+                Update();
+            }
         }
     }
 
@@ -154,10 +156,11 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         delta *= -1.0f;
     }
     SetZoomDelta(delta);
-    if (xlights != nullptr && xlights->GetPlayStatus() == PLAY_TYPE_STOPPED)
-    {
-        Refresh();
-        Update();
+    if (xlights != nullptr) {
+        if(xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+            Refresh();
+            Update();
+        }
     }
 
     event.ResumePropagation(1);
@@ -361,31 +364,22 @@ void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
-      image(nullptr), PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_),
-      m_mouse_down(false), m_wheel_down(false), is_3d(false), camera3d(nullptr), camera2d(nullptr)
+    virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr), PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups),
+    allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr), _model(nullptr), xlights(xlights_), is_3d(false),
+    m_mouse_down(false), m_wheel_down(false),  m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
 {
-    maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
-    virtualWidth = 0;
-    virtualHeight = 0;
-    sprite = nullptr;
-    _model = nullptr;
     setupCameras();
 }
 
-ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", false), PreviewModels(nullptr), allowSelected(false), image(nullptr)
+ModelPreview::ModelPreview(wxPanel* parent)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", false),
+    virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr), PreviewModels(nullptr), HouseModels(nullptr), LayoutGroups(nullptr),
+    allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr), _model(nullptr), xlights(nullptr), is_3d(false),
+    m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
 {
-    _model = nullptr;
-    maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
-    virtualWidth = 0;
-    virtualHeight = 0;
-    is_3d = false;
     setupCameras();
-    image = nullptr;
-    sprite = nullptr;
-    xlights = nullptr;
 }
 
 ModelPreview::~ModelPreview()
