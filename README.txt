@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)    Fix WiringDialog scaling for some Windows machines.
    -- bug (gil)    Prevent Arches and Icicles from drawing upside down when drawn right to left.
    -- enh (gil)    LOROptimised output nows skips frames when not keeping up.  Prevents blue screen crash when turning off output to lights.
    -- bug (gil)    Fix LOROptimised output to work in Test dialog. Fixes #1262.
