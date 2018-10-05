@@ -317,12 +317,12 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     int id = event.GetId() - 1;
     if (id == 0) {
         SetModels(*HouseModels);
-        SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness());
+        SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness(), xlights->GetDefaultPreviewBackgroundAlpha());
         SetbackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
     }
     else if (id > 0 && id <= LayoutGroups->size()) {
         SetModels((*LayoutGroups)[id - 1]->GetModels());
-        SetBackgroundBrightness((*LayoutGroups)[id - 1]->GetBackgroundBrightness());
+        SetBackgroundBrightness((*LayoutGroups)[id - 1]->GetBackgroundBrightness(), (*LayoutGroups)[id - 1]->GetBackgroundAlpha());
         SetbackgroundImage((*LayoutGroups)[id - 1]->GetBackgroundImage());
     }
     else if (id == 0x1000) {
@@ -419,7 +419,7 @@ void ModelPreview::SetVirtualCanvasSize(int width, int height) {
     virtualHeight = height;
 }
 
-void ModelPreview::InitializePreview(wxString img, int brightness)
+void ModelPreview::InitializePreview(wxString img, int brightness, int alpha)
 {
     if (img != mBackgroundImage) {
         if (image) {
@@ -438,6 +438,7 @@ void ModelPreview::InitializePreview(wxString img, int brightness)
         mBackgroundImageExists = wxFileExists(mBackgroundImage) && wxIsReadable(mBackgroundImage) ? true : false;
     }
     mBackgroundBrightness = brightness;
+    mBackgroundAlpha = alpha;
 }
 
 void ModelPreview::InitializeGLCanvas()
@@ -487,11 +488,15 @@ void ModelPreview::SetbackgroundImage(wxString img)
     }
 }
 
-void ModelPreview::SetBackgroundBrightness(int brightness)
+void ModelPreview::SetBackgroundBrightness(int brightness, int alpha)
 {
     mBackgroundBrightness = brightness;
+    mBackgroundAlpha = alpha;
     if(mBackgroundBrightness < 0 || mBackgroundBrightness > 100) {
         mBackgroundBrightness = 100;
+    }
+    if(mBackgroundAlpha < 0 || mBackgroundAlpha > 100) {
+        mBackgroundAlpha = 100;
     }
 }
 
@@ -702,7 +707,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         // enables depth testing to draw things in proper order
         glEnable(GL_DEPTH_TEST);
         LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        glDepthFunc(GL_LESS);
+        glDepthFunc(GL_ALWAYS);
 
         prepare3DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
@@ -710,10 +715,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         DrawGLUtils::PushMatrix();
         accumulator.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
-        if( mBackgroundImageExists ) {
-            accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-            accumulator.Finish(GL_TRIANGLES);
-        }
     }
 
     if (mBackgroundImageExists) {
@@ -749,7 +750,9 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
         accumulator.AddTextureVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
 
         float i = mBackgroundBrightness;
-        accumulator.FinishTextures(GL_TRIANGLES, image->getID(), 255, i);
+        float a = mBackgroundAlpha * 255.0f;
+        a /= 100;
+        accumulator.FinishTextures(GL_TRIANGLES, image->getID(), (uint8_t)a, i);
     }
     return true;
 }

@@ -2408,9 +2408,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
-        // these commented out lines were already setup when rgbeffects file was loaded and it messes up multiple preview loading.
-        //modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
-        //modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
         UpdatePreview();
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);

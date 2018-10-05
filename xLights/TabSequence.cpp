@@ -355,13 +355,14 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
 
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
-    SetPreviewBackgroundBrightness(mBackgroundBrightness);
+    mBackgroundAlpha = wxAtoi(GetXmlSetting("backgroundAlpha","100"));
+    SetPreviewBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
     mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0")) > 0;
     SetPreviewBackgroundScaled(mScaleBackgroundImage);
 
     std::string group = layoutPanel->GetCurrentLayoutGroup();
     if( group != "Default" && group != "All Models" && group != "Unassigned" ) {
-        modelPreview->SetBackgroundBrightness(layoutPanel->GetBackgroundBrightnessForSelectedPreview());
+        modelPreview->SetBackgroundBrightness(layoutPanel->GetBackgroundBrightnessForSelectedPreview(), layoutPanel->GetBackgroundAlphaForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(layoutPanel->GetBackgroundScaledForSelectedPreview());
     }
 

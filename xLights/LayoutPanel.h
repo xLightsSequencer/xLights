@@ -231,6 +231,7 @@ class LayoutPanel: public wxPanel
         ModelPreview* GetMainPreview() const {return modelPreview;}
         bool GetBackgroundScaledForSelectedPreview();
         int GetBackgroundBrightnessForSelectedPreview();
+        int GetBackgroundAlphaForSelectedPreview();
         const std::string& GetCurrentLayoutGroup() const {return currentLayoutGroup;}
         void Reset();
         void SetDirtyHiLight(bool dirty);
@@ -381,6 +382,7 @@ class LayoutPanel: public wxPanel
         wxString previewBackgroundFile;
         bool previewBackgroundScaled;
         int previewBackgroundBrightness;
+        int previewBackgroundAlpha;
         wxPanel* main_sequencer;
         wxImageList* m_imageList;
 

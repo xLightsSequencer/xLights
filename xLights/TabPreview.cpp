@@ -59,15 +59,20 @@ const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
     return mBackgroundImage;
 }
 
-void xLightsFrame::SetPreviewBackgroundBrightness(int i)
+void xLightsFrame::SetPreviewBackgroundBrightness(int i, int a)
 {
     if (mBackgroundBrightness != i) {
         mBackgroundBrightness = i;
         SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
         UnsavedRgbEffectsChanges=true;
     }
-    modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
-    _housePreviewPanel->GetModelPreview()->SetBackgroundBrightness(mBackgroundBrightness);
+    if (mBackgroundAlpha != a) {
+        mBackgroundAlpha = a;
+        SetXmlSetting("backgroundAlpha",wxString::Format("%d",mBackgroundAlpha));
+        UnsavedRgbEffectsChanges=true;
+    }
+    modelPreview->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
+    _housePreviewPanel->GetModelPreview()->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
     UpdatePreview();
 }
 
@@ -89,4 +94,8 @@ void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
 int xLightsFrame::GetDefaultPreviewBackgroundBrightness()
 {
     return mBackgroundBrightness;
+}
+int xLightsFrame::GetDefaultPreviewBackgroundAlpha()
+{
+    return mBackgroundAlpha;
 }

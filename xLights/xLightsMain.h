@@ -1130,6 +1130,7 @@ public:
 
     wxString mBackgroundImage;
     int mBackgroundBrightness;
+    int mBackgroundAlpha;
     bool mScaleBackgroundImage = false;
     std::string mStoredLayoutGroup;
     int _suppressDuplicateFrames;
@@ -1354,7 +1355,8 @@ public:
     const wxString & GetDefaultPreviewBackgroundImage();
     bool GetDefaultPreviewBackgroundScaled();
     int GetDefaultPreviewBackgroundBrightness();
-    void SetPreviewBackgroundBrightness(int i);
+    int GetDefaultPreviewBackgroundAlpha();
+    void SetPreviewBackgroundBrightness(int brightness, int alpha);
     void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);

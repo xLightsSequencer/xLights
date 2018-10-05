@@ -245,7 +245,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     m_over_handle(-1), selectedButton(nullptr), obj_button(nullptr), newModel(nullptr), selectedBaseObject(nullptr), highlightedBaseObject(nullptr),
     colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(nullptr), last_highlight(nullptr),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
+    previewBackgroundBrightness(100), previewBackgroundAlpha(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
     ModelGroupWindow(nullptr), ViewObjectWindow(nullptr), editing_models(true), m_mouse_down(false), m_wheel_down(false),
     selectionLatched(false), over_handle(-1), creating_model(false)
 {
@@ -692,10 +692,19 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     updatingProperty = true;
     if (name == "BkgBrightness") {
        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
-            xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong());
+            xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
          } else {
-            pGrp->SetBackgroundBrightness(event.GetValue().GetLong());
-            modelPreview->SetBackgroundBrightness(event.GetValue().GetLong());
+            pGrp->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
+            modelPreview->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
+            xlights->MarkEffectsFileDirty(false);
+            UpdatePreview();
+        }
+    } else if (name == "BkgTransparency") {
+        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+            xlights->SetPreviewBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
+        } else {
+            pGrp->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
+            modelPreview->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
             xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
@@ -1624,6 +1633,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         GetBackgroundImageForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundFile
         GetBackgroundScaledForSelectedPreview();      // don't need return value....just let it set local variable previewBackgroundScaled
         GetBackgroundBrightnessForSelectedPreview();  // don't need return value....just let it set local variable previewBackgroundBrightness
+        GetBackgroundAlphaForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundBrightness
 
         if (backgroundFile != previewBackgroundFile) {
             delete background;
@@ -1656,6 +1666,12 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         prop->SetAttribute("Min", 0);
         prop->SetAttribute("Max", 100);
         prop->SetEditor("SpinCtrl");
+
+        prop = propertyEditor->Append(new wxUIntProperty("Transparency", "BkgTransparency",  100 - previewBackgroundAlpha));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 100);
+        prop->SetEditor("SpinCtrl");
+
         propertyEditor->Thaw();
     }
 }
@@ -4834,7 +4850,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     }
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
     modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
-    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
+    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
     UpdatePreview();
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
@@ -4970,7 +4986,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
                 ChoiceLayoutGroups->SetSelection(i);
                 modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
                 modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
-                modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
+                modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
                 UpdatePreview();
                 break;
             }
@@ -5002,6 +5018,14 @@ int LayoutPanel::GetBackgroundBrightnessForSelectedPreview()
         previewBackgroundBrightness = pGrp->GetBackgroundBrightness();
     }
     return previewBackgroundBrightness;
+}
+int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
+{
+    previewBackgroundAlpha = xlights->GetDefaultPreviewBackgroundAlpha();
+    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+        previewBackgroundAlpha = pGrp->GetBackgroundAlpha();
+    }
+    return previewBackgroundAlpha;
 }
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
@@ -5057,7 +5081,7 @@ void LayoutPanel::DeleteCurrentPreview()
         UpdateModelList(true);
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
-        modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
+        modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
         UpdatePreview();
     }
 }

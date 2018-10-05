@@ -36,7 +36,7 @@ public:
 	virtual ~ModelPreview();
 
     // Public Methods
-	void InitializePreview(wxString img,int brightness);
+	void InitializePreview(wxString img,int brightness,int alpha);
     bool StartDrawing(wxDouble pointSize);
     void SetPointSize(wxDouble pointSize);
     void EndDrawing(bool swapBuffers=true);
@@ -56,8 +56,10 @@ public:
     }
 	void SetbackgroundImage(wxString image);
     const wxString &GetBackgroundImage() const { return mBackgroundImage;}
-	void SetBackgroundBrightness(int brightness);
+	void SetBackgroundBrightness(int brightness, int alpha);
+/*
     int GetBackgroundBrightness() const { return mBackgroundBrightness;}
+     */
     void SetScaleBackgroundImage(bool b);
     bool GetScaleBackgroundImage() const { return scaleImage; }
 
@@ -132,7 +134,8 @@ private:
     bool mIsDrawing = false;
     bool mBackgroundImageExists = false;
     wxString mBackgroundImage;
-    int  mBackgroundBrightness=100;
+    int mBackgroundBrightness=100;
+    int mBackgroundAlpha=100;
     wxDouble mPointSize = 2.0;
     int virtualWidth, virtualHeight;
 
