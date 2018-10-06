@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Fix horizontal and vertical distribute in Layout panel.  Fixes #1219.
+   -- enh (gil)    Prevent creating LOR data unless sequence timing is a multiple of 10ms.  Add warnings.
 2018.35 October 6, 2018
    -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
    -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.
