@@ -17,6 +17,7 @@ PlayListItem::PlayListItem(wxXmlNode* node)
     _msPerFrame = 50;
     _delay = 0;
     _name = "";
+    _restOfStep = false;
     PlayListItem::Load(node);
 }
 
@@ -26,6 +27,10 @@ void PlayListItem::Load(wxXmlNode* node)
     _volume = wxAtoi(node->GetAttribute("Volume", "-1"));
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
     _name = node->GetAttribute("Name", "");
+    if (node->GetAttribute("RestOfStep", "FALSE") == "TRUE")
+    {
+        _restOfStep = true;
+    }
 }
 
 PlayListItem::PlayListItem()
@@ -40,6 +45,8 @@ PlayListItem::PlayListItem()
     _msPerFrame = 50;
     _delay = 0;
     _priority = 0;
+    _restOfStep = false;
+    _stepLengthMS = 0;
 }
 
 void PlayListItem::Save(wxXmlNode* node)
@@ -53,6 +60,10 @@ void PlayListItem::Save(wxXmlNode* node)
     if (_priority != 0)
     {
         node->AddAttribute("Priority", wxString::Format(wxT("%i"), (int)_priority));
+    }
+    if (_restOfStep)
+    {
+        node->AddAttribute("RestOfStep", "TRUE");
     }
 }
 
@@ -85,6 +96,8 @@ void PlayListItem::Copy(PlayListItem* to) const
     to->_name = _name;
     to->_priority = _priority;
     to->_volume = _volume;
+    to->_restOfStep = _restOfStep;
+    to->_stepLengthMS = _stepLengthMS;
 }
 
 bool PlayListItem::IsInSlaveMode() const

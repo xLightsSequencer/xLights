@@ -446,6 +446,10 @@
 		<Unit filename="PlayList/PlayListItemESEQ.h" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.h" />
+		<Unit filename="PlayList/PlayListItemFade.cpp" />
+		<Unit filename="PlayList/PlayListItemFade.h" />
+		<Unit filename="PlayList/PlayListItemFadePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemFadePanel.h" />
 		<Unit filename="PlayList/PlayListItemFPPEvent.cpp" />
 		<Unit filename="PlayList/PlayListItemFPPEvent.h" />
 		<Unit filename="PlayList/PlayListItemFPPEventPanel.cpp" />
@@ -660,6 +664,7 @@
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemFadePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFPPEventPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQVideoPanel.wxs" />
@@ -717,6 +722,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemCURLPanel.wxs" src="PlayList/PlayListItemCURLPanel.cpp" hdr="PlayList/PlayListItemCURLPanel.h" fwddecl="0" i18n="1" name="PlayListItemCURLPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemSerialPanel.wxs" src="PlayList/PlayListItemSerialPanel.cpp" hdr="PlayList/PlayListItemSerialPanel.h" fwddecl="0" i18n="1" name="PlayListItemSerialPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemESEQPanel.wxs" src="PlayList/PlayListItemESEQPanel.cpp" hdr="PlayList/PlayListItemESEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemESEQPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemFadePanel.wxs" src="PlayList/PlayListItemFadePanel.cpp" hdr="PlayList/PlayListItemFadePanel.h" fwddecl="0" i18n="1" name="PlayListItemFadePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFilePanel.wxs" src="PlayList/PlayListItemFilePanel.cpp" hdr="PlayList/PlayListItemFilePanel.h" fwddecl="0" i18n="1" name="PlayListItemFilePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFPPEventPanel.wxs" src="PlayList/PlayListItemFPPEventPanel.cpp" hdr="PlayList/PlayListItemFPPEventPanel.h" fwddecl="0" i18n="1" name="PlayListItemFPPEventPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />

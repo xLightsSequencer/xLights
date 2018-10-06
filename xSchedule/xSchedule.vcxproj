@@ -271,6 +271,8 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFade.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFadePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFile.cpp" />
     <ClCompile Include="PlayList\PlayListItemFilePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFPPEvent.cpp" />
@@ -458,6 +460,8 @@
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="PlayList\PlayListItemFade.h" />
+    <ClInclude Include="PlayList\PlayListItemFadePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFile.h" />
     <ClInclude Include="PlayList\PlayListItemFilePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFPPEvent.h" />
