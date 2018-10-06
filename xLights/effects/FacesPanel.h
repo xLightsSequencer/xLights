@@ -26,11 +26,11 @@ class FacesPanel: public wxPanel
 		BulkEditCheckBox* CheckBox_Faces_Outline;
 		BulkEditCheckBox* CheckBox_TransparentBlack;
 		BulkEditChoice* Choice_Faces_Eyes;
+		BulkEditFaceChoice* Face_FaceDefinitonChoice;
 		BulkEditSlider* Slider1;
 		BulkEditTextCtrl* TextCtrl3;
 		wxChoice* Choice_Faces_Phoneme;
 		wxChoice* Choice_Faces_TimingTrack;
-		wxChoice* Face_FaceDefinitonChoice;
 		wxRadioButton* RadioButton1;
 		wxRadioButton* RadioButton2;
 		wxStaticText* StaticText14;
