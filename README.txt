@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.35 October 6, 2018
+   -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
+   -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.
+   -- bug (gil)    Fix WiringDialog scaling for some Windows machines.
    -- bug (gil)    Prevent Arches and Icicles from drawing upside down when drawn right to left.
    -- enh (gil)    LOROptimised output nows skips frames when not keeping up.  Prevents blue screen crash when turning off output to lights.
    -- bug (gil)    Fix LOROptimised output to work in Test dialog. Fixes #1262.
@@ -18,6 +22,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp)  When clicking/modifying a single effect, the restricted node range was not being used correctly
                    (all channels above the max node in the model were not considered restricted)
                    Fixes #1253
+   -- bug (keith)  Flag as an error attempts to define too many input universes on a falcon controller
+   -- bug (keith)  Prevent crash in animation sequence if length is changes to zero
+   -- bug (keith)  Fix ctrl-shift-right arrow doesnt always stretch effects
+   -- bug (keith)  Guarantee minimum size of the display elements panel when it is shown
+   -- bug (keith)  Fix vixen export generates illegal sequence timing
+   -- enh (keith)  Add new xSchedule APIs for stopping event playlists: Stop event playlist; Stop event playlist if playing step
 2018.34 3D Beta October 1, 2018
    -- enh (gil)    Add obj file import
    -- bug (gil)    Lots of fixes
