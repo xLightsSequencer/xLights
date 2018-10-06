@@ -2144,8 +2144,15 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         }
         else
         {
-            modelPreview->GetModels()[found[0]]->GroupSelected = true;
             modelPreview->GetModels()[found[0]]->Highlighted = true;
+            if( ModelsSelectedCount() == 0 ) {
+                modelPreview->GetModels()[found[0]]->Selected = true;
+                SelectModel(modelPreview->GetModels()[found[0]]);
+                modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+                modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+            } else {
+                modelPreview->GetModels()[found[0]]->GroupSelected = true;
+            }
         }
         UpdatePreview();
         return true;

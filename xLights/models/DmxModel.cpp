@@ -888,7 +888,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
         DrawModelOnWindow(preview, va, c, sx, sy, !allowSelected);
     }
 
-    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -921,7 +921,7 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
         DrawModelOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
     }
 
-    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -1031,7 +1031,7 @@ void DmxModel::DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     float min_size = (float)(std::min(rh, rw));
 
     glm::vec3 rotation = GetModelScreenLocation().GetRotation();
-   
+
     va.AddTrianglesRotatedCircle(sx, sy, sz, rotation, min_size / 2.0f, beam_color, ecolor);
     va.Finish(GL_TRIANGLES);
 }

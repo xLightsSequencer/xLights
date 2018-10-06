@@ -267,7 +267,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
     DrawModelOnWindow(preview, va, c, x1, y1, x2, y2, x3, y3, x4, y4, !allowSelected);
 
-    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -300,7 +300,7 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Acc
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
     DrawModelOnWindow(preview, va, c, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, !allowSelected);
 
-    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }

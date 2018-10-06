@@ -3007,7 +3007,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     } else {
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
-    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -3140,7 +3140,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     } else {
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
-    if ((Selected || Highlighted) && c != nullptr && allowSelected) {
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
