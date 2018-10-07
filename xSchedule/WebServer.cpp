@@ -1,15 +1,17 @@
-#include "WebServer.h"
-
 #include <wx/wx.h>
-#include <log4cpp/Category.hh>
+#include <wx/dir.h> // Linus needs this
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+#include <wx/uri.h>
+
+#include "WebServer.h"
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
-#include <wx/uri.h>
 #include "xScheduleApp.h"
 #include "ScheduleOptions.h"
 #include "md5.h"
+
+#include <log4cpp/Category.hh>
 
 #undef WXUSINGDLL
 #include "wxJSON/jsonreader.h"

@@ -94,7 +94,7 @@ public:
     {
         // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-        const float zenith = 90.83333333333333;
+        const float zenith = 90.83333333333333f;
 
         wxDateTime res = wxDateTime::Now();
         res.SetHour(0);

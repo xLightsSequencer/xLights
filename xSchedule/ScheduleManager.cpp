@@ -1094,7 +1094,8 @@ void ScheduleManager::CreateBrightnessArray()
 {
     for (size_t i = 0; i < 256; i++)
     {
-        _brightnessArray[i] = (wxByte)(((i * _brightness) / 100) & 0xFF);
+        int b = (i * _brightness) / 100;
+        _brightnessArray[i] = (wxByte)(b & 0xFF);
     }
 }
 
@@ -5089,7 +5090,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
         buffer[3] = 0x01;
         buffer[4] = 0x01;
 
-        buffer[5] = GetOptions()->GetMIDITimecodeFormat() << 5 + ms / (3600000);
+        buffer[5] = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
         ms = ms % 360000;
 
         buffer[6] = ms / 60000;
@@ -5120,7 +5121,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
     else
     {
         size_t ms = msec;
-        int hours = GetOptions()->GetMIDITimecodeFormat() << 5 + ms / (3600000);
+        int hours = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
         ms = ms % 360000;
 
         int mins = ms / 60000;
