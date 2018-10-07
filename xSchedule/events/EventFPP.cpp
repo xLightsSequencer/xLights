@@ -1,5 +1,4 @@
 #include "EventFPP.h"
-#include <wx/wx.h>
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 #include "../ScheduleManager.h"

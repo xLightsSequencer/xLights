@@ -1925,7 +1925,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 }
                 else if (command == "Run event playlist step if idle")
                 {
-                    bool run = false;
                     wxString parameter = parameters;
                     wxArrayString split = wxSplit(parameter, ',');
 
@@ -1973,7 +1972,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 }
                 else if (command == "Run event playlist step if idle looped")
                 {
-                    bool run = false;
                     wxString parameter = parameters;
                     wxArrayString split = wxSplit(parameter, ',');
 
@@ -2674,7 +2672,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
     if (!result)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Action failed: %s", (const char *)msg.c_str());
 
         wxCommandEvent event(EVT_STATUSMSG);
@@ -2880,16 +2877,15 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         {
             // parameters holds the subdirectory to scan ... blank is the web directory
 
-            wxString d;
 #ifdef __WXMSW__
-            d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+            wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #elif __LINUX__
-            d = wxStandardPaths::Get().GetDataDir();
+            wxString d = wxStandardPaths::Get().GetDataDir();
             if (!wxDir::Exists(d)) {
                 d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
             }
 #else
-            d = wxStandardPaths::Get().GetResourcesDir();
+            wxString d = wxStandardPaths::Get().GetResourcesDir();
 #endif
             d += "/" + _scheduleOptions->GetWWWRoot();
 
@@ -3877,7 +3873,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
     {
         auto n1 = n;
-        n1++;
+        ++n1;
 
         while (n1 != _playLists.end())
         {
@@ -3888,7 +3884,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                 errcount++;
             }
 
-            n1++;
+            ++n1;
         }
     }
 
@@ -4944,7 +4940,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
 void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
 {
-    static size_t lastmsec = 0;
+    // static size_t lastmsec = 0;
 
     if ((_mode == SYNCMODE::ARTNETMASTER) && _artNetSyncMaster == nullptr)
     {
@@ -4966,7 +4962,7 @@ void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
 
     if (!dosend) return;
 
-    lastmsec = msec;
+    // lastmsec = msec;
 
     wxIPV4address remoteAddr;
     //remoteAddr.BroadcastAddress();
@@ -5020,6 +5016,8 @@ void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
             break;
         case 3: // 30 fps
             buffer[14] = ms * 30 / 1000;
+            break;
+        default:
             break;
         }
 
@@ -5178,6 +5176,8 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
             case 7:
                 data = (hours & 0xF0) >> 4;
                 break;
+            default:
+                break;
             }
             wxMidiShortMessage msg(0xF1, (i<<4) + data, 0);
             msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
@@ -5194,7 +5194,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
 void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS)
 {
     static std::string lastfseq = "";
-    static size_t lastfseqmsec = 0;
+    // static size_t lastfseqmsec = 0;
 
     if ((_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _oscSyncMaster == nullptr)
     {
@@ -5286,6 +5286,8 @@ void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& 
         break;
     case CTRL_PKT_BLANK:
         sprintf(buffer, "FPP,%d\n", CTRL_PKT_BLANK);
+        break;
+    default:
         break;
     }
 

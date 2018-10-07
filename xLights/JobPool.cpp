@@ -66,7 +66,7 @@ static void startFunc(JobPoolWorker *jpw) {
     delete jpw;
 }
 JobPoolWorker::JobPoolWorker(JobPool *p)
-: pool(p), currentJob(nullptr), stopped(false), status(STARTING), thread(nullptr)
+: pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
 {
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
     logger_jobpool.debug("JobPoolWorker created  %X\n", this);
@@ -258,7 +258,7 @@ void JobPoolWorker::ProcessJob(Job *job)
 	}
 }
 
-JobPool::JobPool(const std::string &n) : threadNameBase(n), queueLock(), threadLock(false), signal(), queue(), idleThreads(0),  numThreads(0), inFlight(0), maxNumThreads(8)
+JobPool::JobPool(const std::string &n) : threadLock(false), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8),  idleThreads(0), inFlight(0), threadNameBase(n)
 {
 }
 

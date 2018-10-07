@@ -16,7 +16,7 @@ class EventFPPPanel: public EventPanel
 
 		EventFPPPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~EventFPPPanel();
-        virtual bool ValidateWindow() { return true; }
+        virtual bool ValidateWindow() override { return true; }
         virtual void Save(EventBase* event) override;
         virtual void Load(EventBase* event) override;
 

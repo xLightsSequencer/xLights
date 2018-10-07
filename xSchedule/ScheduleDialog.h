@@ -123,7 +123,6 @@ class ScheduleDialog: public wxDialog
 		//(*Handlers(ScheduleDialog)
 		void OnDatePickerCtrl_StartChanged(wxDateEvent& event);
 		void OnDatePickerCtrl_EndChanged(wxDateEvent& event);
-		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnTextCtrl_OnTimeText(wxCommandEvent& event);
 		void OnTextCtrl_OffTimeText(wxCommandEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);

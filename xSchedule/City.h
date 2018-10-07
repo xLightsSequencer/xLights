@@ -92,7 +92,7 @@ public:
 
     wxDateTime GetSunRiseSet(wxDateTime date, bool sunset)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
         const float zenith = 90.83333333333333;
 
@@ -103,7 +103,7 @@ public:
 
         // Algorithm from http://edwilliams.org/sunrise_sunset_algorithm.htm
 
-        int month = date.GetMonth() + 1;
+        // int month = date.GetMonth() + 1;
 
         // first calculate the day of the year
         int N = date.GetDayOfYear();

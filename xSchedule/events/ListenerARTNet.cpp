@@ -132,8 +132,8 @@ void ListenerARTNet::Poll()
                 else if (buffer[9] == 0x99)
                 {
                     // Trigger data packet
-                    wxByte key = buffer[14];
-                    wxByte subkey = buffer[15];
+                    // wxByte key = buffer[14];
+                    // wxByte subkey = buffer[15];
                     // TODO add event using ARTNet trigger packets
                     //_listenerManager->ProcessPacket(GetType() + " Trigger", (key << 8) + subkey, &buffer[16], size);
                 }

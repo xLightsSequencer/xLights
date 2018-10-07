@@ -3,7 +3,6 @@
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include <wx/dir.h>
 #include "UserButton.h"
 #include "CommandManager.h"
 #include "../xLights/AudioManager.h"
@@ -381,16 +380,15 @@ UserButton* ScheduleOptions::GetButton(wxUint32 id) const
 
 std::string ScheduleOptions::GetDefaultRoot() const
 {
-    wxString d;
 #ifdef __WXMSW__
-    d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+    wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #elif __LINUX__
-    d = wxStandardPaths::Get().GetDataDir();
+    wxString d = wxStandardPaths::Get().GetDataDir();
     if (!wxDir::Exists(d)) {
         d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
     }
 #else
-    d = wxStandardPaths::Get().GetResourcesDir();
+    wxString d = wxStandardPaths::Get().GetResourcesDir();
 #endif
     return d.ToStdString();
 }

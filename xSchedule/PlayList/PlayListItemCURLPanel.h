@@ -52,8 +52,6 @@ class PlayListItemCURLPanel: public wxPanel
 
 		//(*Handlers(PlayListItemCURLPanel)
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
-		void OnCheckBox_WaitForCompletionClick(wxCommandEvent& event);
-		void OnTextCtrl_CommandText(wxCommandEvent& event);
 		void OnTextCtrl_CURLNameText(wxCommandEvent& event);
 		//*)
 

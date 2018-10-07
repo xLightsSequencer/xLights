@@ -376,6 +376,8 @@ std::string PlayListItemRDS::GetMode() const
         return "Mode 2 - Scroll Word Aligned";
     case 3:
         return "Mode 3 - Scroll 1 Character Leading Spaces";
+    default:
+        break;
     }
 
     return "";

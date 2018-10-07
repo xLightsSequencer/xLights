@@ -1,8 +1,5 @@
 #ifndef RUNNINGSCHEDULE_H
 #define RUNNINGSCHEDULE_H
-#include <list>
-#include <string>
-#include <wx/wx.h>
 
 class Schedule;
 class PlayList;

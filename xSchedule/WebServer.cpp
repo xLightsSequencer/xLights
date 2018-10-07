@@ -4,7 +4,6 @@
 #include <log4cpp/Category.hh>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include <wx/dir.h>
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
 #include <wx/uri.h>
@@ -324,7 +323,6 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
             command + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
             connection.Address().IPAddress().ToStdString() + "\"}";
-        data = "";
     }
 
     logger_base.info("xScheduleStash received command = '%s' key = '%s'.", (const char *)command.c_str(), (const char *)key.c_str());
@@ -533,16 +531,15 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
         {
-            wxString d;
 #ifdef __WXMSW__
-            d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+            wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #elif __LINUX__
-            d = wxStandardPaths::Get().GetDataDir();
+            wxString d = wxStandardPaths::Get().GetDataDir();
             if (!wxDir::Exists(d)) {
                 d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
             }
 #else
-            d = wxStandardPaths::Get().GetResourcesDir();
+            wxString d = wxStandardPaths::Get().GetResourcesDir();
 #endif
 
             wxString file = d + wxURI(request.URI()).GetPath();

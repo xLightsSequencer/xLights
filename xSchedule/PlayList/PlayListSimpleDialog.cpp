@@ -214,8 +214,8 @@ void PlayListSimpleDialog::PopulateTree(PlayList* selplaylist, PlayListStep* sel
         TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(*it));
         select = step;
 
-        size_t ms;
-        PlayListItem* ts = (*it)->GetTimeSource(ms);
+        // size_t ms;
+        // PlayListItem* ts = (*it)->GetTimeSource(ms);
     }
 
     if (select == nullptr) select = TreeCtrl_PlayList->GetRootItem();

@@ -4,7 +4,6 @@
 #include <mutex>
 #include <wx/wx.h>
 #include <string>
-#include <list>
 #include <map>
 #include "../xLights/JobPool.h"
 

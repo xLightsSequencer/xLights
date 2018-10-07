@@ -23,7 +23,7 @@ class ListenerSerial : public ListenerBase
 		virtual ~ListenerSerial() {}
 		virtual void Start() override;
         virtual void Stop() override;
-        virtual std::string GetType() const { return "Serial"; }
+        virtual std::string GetType() const override { return "Serial"; }
         std::string GetCommPort() const { return _commPort; }
         virtual void StartProcess() override;
         virtual void StopProcess() override;

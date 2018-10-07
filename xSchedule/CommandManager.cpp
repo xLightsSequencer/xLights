@@ -262,11 +262,11 @@ CommandManager::CommandManager()
     PARMTYPE plsti[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::INTEGER };
     PARMTYPE i[] = { PARMTYPE::INTEGER };
     PARMTYPE s[] = { PARMTYPE::STRING };
-    PARMTYPE ss[] = { PARMTYPE::STRING, PARMTYPE::STRING };
+    // PARMTYPE ss[] = { PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sss[] = { PARMTYPE::STRING, PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE iiss[] = { PARMTYPE::INTEGER, PARMTYPE::INTEGER, PARMTYPE::STRING, PARMTYPE::STRING };
     PARMTYPE sch[] = { PARMTYPE::SCHEDULE };
-    PARMTYPE c[] = { PARMTYPE::COMMAND };
+    // PARMTYPE c[] = { PARMTYPE::COMMAND };
     PARMTYPE plstit[] = { PARMTYPE::PLAYLIST, PARMTYPE::STEP, PARMTYPE::ITEM };
 
     _commands.push_back(new Command("Stop all now", 0, {}, false, false, true, false, false, true, true, false));

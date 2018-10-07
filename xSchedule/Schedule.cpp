@@ -29,7 +29,7 @@ wxDateTime Schedule::GetNextFireTime() const
     wxDateTime now = wxDateTime::Now();
     wxDateTime res = now;
 
-    int minute = now.GetMinute();
+    // int minute = now.GetMinute();
 
     res.SetMinute(start.GetMinute());
     if (_fireFrequency == "Fire every hour")

@@ -71,7 +71,6 @@ class LorControllerDialog: public wxDialog
 
 		//(*Handlers(LorControllerDialog)
 		void OnChoice_TypeSelect(wxCommandEvent& event);
-		void OnTextCtrl_ChannelsText(wxCommandEvent& event);
 		void OnSpinCtrl_UnitIDChange(wxSpinEvent& event);
 		void OnChoice_ModeSelect(wxCommandEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);

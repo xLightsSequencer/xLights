@@ -2,7 +2,6 @@
 #define SCHEDULEOPTIONS_H
 #include <list>
 #include <string>
-#include <map>
 #include <vector>
 #include "MatrixMapper.h"
 #include "VirtualMatrix.h"
