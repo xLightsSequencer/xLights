@@ -6,7 +6,7 @@
 #include "xScheduleApp.h"
 #include "../xLights/outputs/OutputManager.h"
 
-VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc)
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier)
 {
     _suppress = false;
     _outputManager = outputManager;
@@ -16,6 +16,8 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
     _width = width;
     _height = height;
     _topMost = topMost;
+    _useMatrixSize = useMatrixSize;
+    _matrixMultiplier = matrixMultiplier;
     _rotation = rotation;
     _quality = quality;
     _size = size;
@@ -34,6 +36,8 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
     _width = 32;
     _height = 16;
     _topMost = true;
+    _useMatrixSize = false;
+    _matrixMultiplier = 1;
     _rotation = VMROTATION::VM_NORMAL;
     _quality = wxIMAGE_QUALITY_HIGH;
     _size = wxSize(300, 300);
@@ -42,7 +46,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
     _window = nullptr;
 }
 
-VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc)
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier)
 {
     _suppress = false;
     _outputManager = outputManager;
@@ -52,6 +56,8 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
     _width = width;
     _height = height;
     _topMost = topMost;
+    _useMatrixSize = useMatrixSize;
+    _matrixMultiplier = matrixMultiplier;
     _rotation = EncodeRotation(rotation);
     _quality = EncodeScalingQuality(quality);
     _size = size;
@@ -70,9 +76,11 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
     _width = wxAtoi(n->GetAttribute("Width", "32"));
     _height = wxAtoi(n->GetAttribute("Height", "16"));
     _topMost = (n->GetAttribute("TopMost", "TRUE") == "TRUE");
+    _useMatrixSize = (n->GetAttribute("UseMatrixSize", "FALSE") == "TRUE");
     _rotation = EncodeRotation(n->GetAttribute("Rotation", "None").ToStdString());
     _quality = EncodeScalingQuality(n->GetAttribute("Quality", "High").ToStdString());
     _size = wxSize(wxAtoi(n->GetAttribute("WW", "300")), wxAtoi(n->GetAttribute("WH", "300")));
+    _matrixMultiplier = wxAtoi(n->GetAttribute("MatrixMultiplier", "1"));
     _location = wxPoint(wxAtoi(n->GetAttribute("X", "0")), wxAtoi(n->GetAttribute("Y", "0")));
     _startChannel = n->GetAttribute("StartChannel", "1");
     _window = nullptr;
@@ -89,12 +97,17 @@ wxXmlNode* VirtualMatrix::Save()
     {
         res->AddAttribute("TopMost", "FALSE");
     }
+    if (_useMatrixSize)
+    {
+        res->AddAttribute("UseMatrixSize", "TRUE");
+    }
     res->AddAttribute("Rotation", DecodeRotation(_rotation));
     res->AddAttribute("Quality", DecodeScalingQuality(_quality));
     res->AddAttribute("WW", wxString::Format(wxT("%i"), (long)_size.GetWidth()));
     res->AddAttribute("WH", wxString::Format(wxT("%i"), (long)_size.GetHeight()));
     res->AddAttribute("X", wxString::Format(wxT("%i"), (long)_location.x));
     res->AddAttribute("Y", wxString::Format(wxT("%i"), (long)_location.y));
+    res->AddAttribute("MatrixMultiplier", wxString::Format(wxT("%d"), _matrixMultiplier));
     res->AddAttribute("StartChannel", _startChannel);
 
     return res;
