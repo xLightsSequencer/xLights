@@ -1,3 +1,5 @@
+#include <map>
+
 #include <wx/msgdlg.h>
 #include <wx/sstream.h>
 #include <wx/regex.h>
@@ -438,9 +440,48 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
+    
+    std::string fppFileName = "co-bbbStrings.json";
+    if (controller == "PiHat") {
+        fppFileName = "co-pixelStrings.json";
+    }
+
+    wxFileName fnOrig;
+    fnOrig.AssignTempFileName("pixelOutputs");
+    std::string file = fnOrig.GetFullPath().ToStdString();
+    wxJSONValue origJson;
+    if (!_ftp.GetFile(file, "/home/fpp/media/config", fppFileName, false, parent)) {
+        wxFileInputStream ufile(fnOrig.GetFullPath());
+        wxJSONReader reader;
+        reader.Parse(ufile, &origJson);
+    }
+    ::wxRemoveFile(wxString(file));
+    
+    wxString pinout = "1.x";
+    std::map<std::string, wxJSONValue> origStrings;
+    if (origJson["channelOutputs"].IsArray()) {
+        for (int x = 0; x < origJson["channelOutputs"].Size(); x++) {
+            wxJSONValue &f = origJson["channelOutputs"][x];
+            if (f["type"].AsString() == "BBB48String") {
+                pinout = f["pinoutVersion"].AsString();
+                if (pinout == "") {
+                    pinout = "1.x";
+                }
+            }
+            for (int o = 0; o < f["outputs"].Size(); o++) {
+                for (int vs = 0; vs < f["outputs"][o]["virtualStrings"].Size(); vs++) {
+                    wxJSONValue val = f["outputs"][o]["virtualStrings"][vs];
+                    if (val["description"].AsString() != "") {
+                        origStrings[val["description"].AsString()] = val;
+                    }
+                }
+            }
+        }
+    }
+    
 
     // build a list of models on this controller
-    std::list<Model*> models;
+    std::map<int, Model*> models;
     std::list<Model*> warnedmodels;
     int maxport = 0;
 
@@ -480,23 +521,24 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                         }
                     } else {
                         // model uses channels in this universe
-                        // check we dont already have this model in our list
-                        if (std::find(models.begin(), models.end(), it->second) == models.end()) {
-                            logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s:%d ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort(), it->second->GetNumPhysicalStrings());
-                            if (it->second->GetProtocol() == "dmx") {
-                                if (it->second->GetFirstChannel() < DMXMin[it->second->GetPort()]) {
-                                    DMXMin[it->second->GetPort()] = it->second->GetFirstChannel();
-                                }
-                                if (it->second->GetLastChannel() > DMXMax[it->second->GetPort()]) {
-                                    DMXMax[it->second->GetPort()] = it->second->GetLastChannel();
-                                }
-                                maxDMXPort = std::max(maxDMXPort, it->second->GetPort());
-                            } else {
-                                models.push_back(it->second);
-                                int mp = it->second->GetPort() + it->second->GetNumPhysicalStrings() - 1;
-                                if (mp > maxport) {
-                                    maxport = mp;
-                                }
+                        logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s:%d ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort(), it->second->GetNumPhysicalStrings());
+                        if (it->second->GetProtocol() == "dmx") {
+                            if (it->second->GetFirstChannel() < DMXMin[it->second->GetPort()]) {
+                                DMXMin[it->second->GetPort()] = it->second->GetFirstChannel();
+                            }
+                            if (it->second->GetLastChannel() > DMXMax[it->second->GetPort()]) {
+                                DMXMax[it->second->GetPort()] = it->second->GetLastChannel();
+                            }
+                            maxDMXPort = std::max(maxDMXPort, it->second->GetPort());
+                        } else {
+                            int st = it->second->GetFirstChannel();
+                            while (models[st] != nullptr) {
+                                st++;
+                            }
+                            models[st] = it->second;
+                            int mp = it->second->GetPort() + it->second->GetNumPhysicalStrings() - 1;
+                            if (mp > maxport) {
+                                maxport = mp;
                             }
                         }
                     }
@@ -512,6 +554,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     } else {
         stringData["type"] = wxString("BBB48String");
         stringData["subType"] = wxString(controller);
+        stringData["pinoutVersion"] = pinout;
     }
     stringData["outputCount"] = maxport;
     dmxData["device"] = wxString(controller);
@@ -523,30 +566,42 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
 
         stringData["outputs"].Append(port);
     }
-    for (auto model = models.begin(); model != models.end(); ++model) {
-        for (int x = 0; x < (*model)->GetNumPhysicalStrings(); x++) {
-            int port = x + (*model)->GetPort() - 1;
+    for (auto mm = models.begin(); mm != models.end(); ++mm) {
+        Model *model = mm->second;
+        for (int x = 0; x < model->GetNumPhysicalStrings(); x++) {
+            int port = x + model->GetPort() - 1;
             
             wxJSONValue vs;
-            if ((*model)->GetNumPhysicalStrings() == 1) {
-                vs["description"] = wxString((*model)->GetName());
+            if (model->GetNumPhysicalStrings() == 1) {
+                vs["description"] = wxString(model->GetName());
             } else {
-                vs["description"] = ((*model)->GetName()) + wxString::Format(" String-%d", (x + 1));
+                vs["description"] = (model->GetName()) + wxString::Format(" String-%d", (x + 1));
             }
-            vs["startChannel"] = (*model)->GetStringStartChan(x);
-            vs["pixelCount"] = (*model)->NodesPerString();
-            vs["groupCount"] = 0;
-            vs["reverse"] = 0;
-            if ((*model)->GetNodeChannelCount(((*model)->GetStringType())) == 4) {
-                vs["colorOrder"] = wxString("RGBW");
+            vs["startChannel"] = model->GetStringStartChan(x);
+            vs["pixelCount"] = model->NodesPerString();
+            
+            if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
+                wxJSONValue &vo = origStrings[vs["description"].AsString()];
+                vs["groupCount"] = vo["groupCount"];
+                vs["reverse"] = vo["reverse"];
+                vs["colorOrder"] = vo["colorOrder"];
+                vs["nullNodes"] = vo["nullNodes"];
+                vs["zigZag"] = vo["zigZag"];
+                vs["brightness"] = vo["brightness"];
+                vs["gamma"] =vo["gamma"];
             } else {
-                vs["colorOrder"] = wxString("RGB");
+                vs["groupCount"] = 0;
+                vs["reverse"] = 0;
+                if (model->GetNodeChannelCount((model->GetStringType())) == 4) {
+                    vs["colorOrder"] = wxString("RGBW");
+                } else {
+                    vs["colorOrder"] = wxString("RGB");
+                }
+                vs["nullNodes"] = 0;
+                vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
+                vs["brightness"] = 100;
+                vs["gamma"] = wxString("1.0");
             }
-            vs["nullNodes"] = 0;
-            vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
-            vs["brightness"] = 100;
-            vs["gamma"] = wxString("1.0");
-
             stringData["outputs"][port]["virtualStrings"].Append(vs);
         }
     }
@@ -605,17 +660,13 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     
     wxFileName fn;
     fn.AssignTempFileName("pixelOutputs");
-    std::string file = fn.GetFullPath().ToStdString();
+    file = fn.GetFullPath().ToStdString();
     wxFileOutputStream ufile(fn.GetFullPath());
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
     writer.Write(root, ufile);
     ufile.Close();
     
-    std::string uploadName = "co-bbbStrings.json";
-    if (controller == "PiHat") {
-        uploadName = "co-pixelStrings.json";
-    }
-    bool cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", uploadName, true, false, parent);
+    bool cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", fppFileName, true, false, parent);
     ::wxRemoveFile(wxString(file));
     
     // restart ffpd
