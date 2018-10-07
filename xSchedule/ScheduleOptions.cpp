@@ -3,6 +3,7 @@
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+#include <wx/dir.h> // Linux needs this
 #include "UserButton.h"
 #include "CommandManager.h"
 #include "../xLights/AudioManager.h"
