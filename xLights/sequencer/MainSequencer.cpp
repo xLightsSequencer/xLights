@@ -1232,6 +1232,11 @@ int MainSequencer::GetSelectedEffectCount(const std::string effectName) const
     return PanelEffectGrid->GetSelectedEffectCount(effectName);
 }
 
+bool MainSequencer::AreAllSelectedEffectsOnTheSameElement() const
+{
+    return PanelEffectGrid->AreAllSelectedEffectsOnTheSameElement();
+}
+
 void MainSequencer::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
 {
     return PanelEffectGrid->ApplyEffectSettingToSelected(effectName, id, value, vc, vcid);

@@ -1164,6 +1164,32 @@ Effect* EffectsGrid::GetSelectedEffect() const
     return mSelectedEffect;
 }
 
+bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
+{
+    Element* selected = nullptr;
+
+    for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
+    {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+        if (el->GetSelectedEffectCount() > 0)
+        {
+            if (selected == nullptr)
+            {
+                selected = el->GetParentElement();
+            }
+            else
+            {
+                if (selected != el->GetParentElement())
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
 {
     int count = 0;

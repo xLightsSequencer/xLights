@@ -75,7 +75,7 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	FlexGridSizer98->AddGrowableCol(1);
 	StaticText14 = new wxStaticText(this, ID_STATICTEXT15, _("Face Definition"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT15"));
 	FlexGridSizer98->Add(StaticText14, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	Face_FaceDefinitonChoice = new wxChoice(this, ID_CHOICE_Faces_FaceDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_FaceDefinition"));
+	Face_FaceDefinitonChoice = new BulkEditFaceChoice(this, ID_CHOICE_Faces_FaceDefinition, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_FaceDefinition"));
 	FlexGridSizer98->Add(Face_FaceDefinitonChoice, 1, wxALL|wxEXPAND, 5);
 	StaticText71 = new wxStaticText(this, ID_STATICTEXT_Faces_Eyes, _("Eyes"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Faces_Eyes"));
 	FlexGridSizer98->Add(StaticText71, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);

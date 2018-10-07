@@ -6,6 +6,7 @@
 #include "PlayListItemImage.h"
 #include "PlayListItemJukebox.h"
 #include "PlayListItemESEQ.h"
+#include "PlayListItemFade.h"
 #include "PlayListItemFile.h"
 #include "PlayListItemFSEQ.h"
 #include "PlayListItemText.h"
@@ -205,6 +206,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         {
             _items.push_back(new PlayListItemESEQ(n));
         }
+        else if (n->GetName() == "PLIFade")
+        {
+            _items.push_back(new PlayListItemFade(outputManager, n));
+        }
         else if (n->GetName() == "PLIImage")
         {
             _items.push_back(new PlayListItemImage(n));
@@ -260,6 +265,11 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
     }
 
     _items.sort(compare_priority);
+
+    for (auto it = _items.begin(); it != _items.end(); ++it)
+    {
+        (*it)->SetStepLength(GetLengthMS());
+    }
 }
 
 bool PlayListStep::IsDirty()
@@ -608,7 +618,11 @@ size_t PlayListStep::GetLengthMS()
             size_t len = 0;
             for (auto it = _items.begin(); it != _items.end(); ++it)
             {
-                len = std::max(len, (*it)->GetDurationMS());
+                // duration has to look valid
+                if ((*it)->GetDurationMS() < 99999999999)
+                {
+                    len = std::max(len, (*it)->GetDurationMS());
+                }
             }
 
             if (len == 0)

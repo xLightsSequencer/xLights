@@ -64,6 +64,11 @@ BulkEditChoice::BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &p
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditChoice::OnRightDown, nullptr, this);
 }
 
+BulkEditFaceChoice::BulkEditFaceChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int n, const wxString choices[], long style, const wxValidator &validator, const wxString &name) : BulkEditChoice(parent, id, pos, size, n, choices, style, validator, name)
+{
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFaceChoice::OnRightDown, nullptr, this);
+}
+
 BulkEditCheckBox::BulkEditCheckBox(wxWindow *parent, wxWindowID id, const wxString &label, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxCheckBox(parent, id, label, pos, size, style, validator, name)
 {
     _supportsBulkEdit = true;
@@ -107,7 +112,7 @@ BulkEditTextCtrlF360::BulkEditTextCtrlF360(wxWindow *parent, wxWindowID id, wxSt
 void BulkEditSlider::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_SLIDER_BULKEDIT, "Bulk Edit");
@@ -118,7 +123,7 @@ void BulkEditSlider::OnRightDown(wxMouseEvent& event)
 void BulkEditValueCurveButton::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_VALUECURVE_BULKEDIT, "Bulk Edit");
@@ -129,7 +134,7 @@ void BulkEditValueCurveButton::OnRightDown(wxMouseEvent& event)
 void BulkEditTextCtrl::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_TEXTCTRL_BULKEDIT, "Bulk Edit");
@@ -140,7 +145,7 @@ void BulkEditTextCtrl::OnRightDown(wxMouseEvent& event)
 void BulkEditSpinCtrl::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_SPINCTRL_BULKEDIT, "Bulk Edit");
@@ -151,7 +156,18 @@ void BulkEditSpinCtrl::OnRightDown(wxMouseEvent& event)
 void BulkEditChoice::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditChoice::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditFaceChoice::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), true)) return;
 
     wxMenu mnu;
     mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
@@ -162,7 +178,7 @@ void BulkEditChoice::OnRightDown(wxMouseEvent& event)
 void BulkEditCheckBox::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu* cc = new wxMenu();
     cc->Append(ID_CHECKBOX_BULKEDIT_CHECKED, "Checked");
@@ -773,7 +789,7 @@ bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType)
 }
 
 // Check if bulk edit is appropriate ... ie sequence is open and suitable effects are selected
-bool IsBulkEditAvailable(wxWindow* w)
+bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -800,6 +816,14 @@ bool IsBulkEditAvailable(wxWindow* w)
         {
             logger_base.debug("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
             return false;
+        }
+
+        if (requireOneElement)
+        {
+            if (!xLightsApp::GetFrame()->GetMainSequencer()->AreAllSelectedEffectsOnTheSameElement())
+            {
+                return false;
+            }
         }
 
         // mixed effect types is ok ... we will just skip those that dont match the current effect panel

@@ -1671,7 +1671,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         }
                         else
                         {
-                            p->LoopStep(step);
+                            GetRunningPlayList()->SetStepLooping(true);
                         }
                     }
                     scheduleChanged = true;
@@ -3251,15 +3251,11 @@ bool ScheduleManager::ToggleCurrentPlayListStepLoop(std::string& msg)
     {
         if (p->IsStepLooping())
         {
-            p->ClearStepLooping();
+            p->SetStepLooping(false);
         }
         else
         {
-            if (!p->LoopStep(p->GetRunningStep()->GetNameNoTime()))
-            {
-                msg = "Unable to loop the current step.";
-                return false;
-            }
+            p->SetStepLooping(true);
         }
         return true;
     }
