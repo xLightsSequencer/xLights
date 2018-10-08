@@ -82,7 +82,12 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
             settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos
             )
         {
-            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active may not render correctly. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+
+        if (settings.Get("B_CUSTOM_SubBuffer", "") != "")
+        {
+            res.push_back(wxString::Format("    WARN: Face effect with subbuffer defined '%s' may not render correctly. Model '%s', Start %s", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
 
