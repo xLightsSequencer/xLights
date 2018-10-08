@@ -23,6 +23,7 @@ const long FacesPanel::ID_CHOICE_Faces_FaceDefinition = wxNewId();
 const long FacesPanel::ID_STATICTEXT_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHOICE_Faces_Eyes = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_Outline = wxNewId();
+const long FacesPanel::ID_CHECKBOX_Faces_SuppressWhenNotSinging = wxNewId();
 const long FacesPanel::ID_CHECKBOX_Faces_TransparentBlack = wxNewId();
 const long FacesPanel::IDD_SLIDER_Faces_TransparentBlack = wxNewId();
 const long FacesPanel::ID_TEXTCTRL_Faces_TransparentBlack = wxNewId();
@@ -66,7 +67,7 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	FlexGridSizer97->Add(Choice_Faces_Phoneme, 1, wxALL|wxEXPAND, 5);
 	RadioButton2 = new wxRadioButton(this, IDD_RADIOBUTTON_Faces_TimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_RADIOBUTTON_Faces_TimingTrack"));
 	FlexGridSizer97->Add(RadioButton2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_Faces_TimingTrack = new wxChoice(this, ID_CHOICE_Faces_TimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_TimingTrack"));
+	Choice_Faces_TimingTrack = new BulkEditChoice(this, ID_CHOICE_Faces_TimingTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Faces_TimingTrack"));
 	Choice_Faces_TimingTrack->Disable();
 	FlexGridSizer97->Add(Choice_Faces_TimingTrack, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizer2->Add(FlexGridSizer97, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
@@ -89,6 +90,10 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	CheckBox_Faces_Outline = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_Outline, _("Show outline"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_Outline"));
 	CheckBox_Faces_Outline->SetValue(false);
 	FlexGridSizer98->Add(CheckBox_Faces_Outline, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer98->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressWhenNotSinging = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_SuppressWhenNotSinging, _("Suppress when not singing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_SuppressWhenNotSinging"));
+	CheckBox_SuppressWhenNotSinging->SetValue(false);
+	FlexGridSizer98->Add(CheckBox_SuppressWhenNotSinging, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer47->Add(FlexGridSizer98, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer7->AddGrowableCol(1);
