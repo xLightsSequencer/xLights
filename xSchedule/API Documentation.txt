@@ -79,7 +79,7 @@ http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
 		GetButtons
 			- This returns a list of user defined button labels which the user has setup. The UI can use the "PressButton" command to cause the scheduler to process the command as if the user had pressed it. This allows a website to show the same user defined buttons on a webpage.
 				
-http://<host:port>/xScheduleCommand?Command-<command>&Parameters=<parameters>
+http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 
 	This API is used to trigger an action by the scheduler. Some are simple actions, but some are complex compound actions. 
 	
