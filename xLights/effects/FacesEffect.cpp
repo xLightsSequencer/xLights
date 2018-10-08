@@ -72,8 +72,12 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
         if (settings.GetInt("B_SLIDER_Rotation", 0) != 0 || 
             settings.GetInt("B_SLIDER_Rotations", 0) != 0 ||
+            settings.GetInt("B_SLIDER_XRotation", 0) != 0 ||
+            settings.GetInt("B_SLIDER_YRotation", 0) != 0 ||
             settings.GetInt("B_SLIDER_Zoom",1) != 1 || 
             settings.Get("B_VALUECURVE_Rotation", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_XRotation", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_YRotation", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Rotations", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos
             )
