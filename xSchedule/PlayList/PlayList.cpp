@@ -27,6 +27,7 @@ PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node)
     _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
+    _suspendAtEndOfStep = false;
     _lastLoop = false;
     _looping = false;
     _random = false;
@@ -103,6 +104,7 @@ PlayList::PlayList(PlayList& playlist, bool newid)
     _commandParametersAtEndOfCurrentStep = "";
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
+    _suspendAtEndOfStep = false;
     _loopStep = false;
     _lastLoop = false;
     _random = false;
@@ -144,6 +146,7 @@ PlayList::PlayList()
     _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
+    _suspendAtEndOfStep = false;
     _loopStep = false;
     _lastLoop = false;
     _random = false;
@@ -516,6 +519,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         _loopStep = false;
         _stopAtEndOfCurrentStep = false;
         _jumpToEndStepsAtEndOfCurrentStep = false;
+        _suspendAtEndOfStep = false;
         _lastLoop = false;
         _stopAtEndOfCurrentStep = false;
 
@@ -826,6 +830,13 @@ bool PlayList::MoveToNextStep()
     if (_currentStep == nullptr) return false;
 
     _currentStep->Start(-1);
+
+    if (_suspendAtEndOfStep)
+    {
+        Suspend(true);
+        _suspendAtEndOfStep = false;
+        return false;
+    }
 
     return success;
 }

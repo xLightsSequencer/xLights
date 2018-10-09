@@ -926,7 +926,10 @@ int ScheduleManager::Frame(bool outputframe)
                 SendMIDISync(0xFFFFFFFF, rate);
 
                 // playlist is done
-                StopPlayList(running, false);
+                if (!running->IsSuspended())
+                {
+                    StopPlayList(running, false);
+                }
             }
 
             wxCommandEvent event(EVT_DOCHECKSCHEDULE);
@@ -1253,31 +1256,49 @@ int ScheduleManager::CheckSchedule()
                     if (!(*it)->IsStopped() && ((*it)->GetPlayList()->IsRunning() || ((*it)->GetSchedule()->GetFireFrequency() != "Fire once" && (*it)->GetSchedule()->ShouldFire())))
                     {
                         first = false;
-                        if (!(*it)->GetPlayList()->IsRunning() && (*it)->GetSchedule()->GetFireFrequency() != "Fire once" && (*it)->GetSchedule()->ShouldFire())
+
+                        PlayList* actuallyRunningPlaylist = GetRunningPlayList();
+
+                        if (actuallyRunningPlaylist != nullptr  && actuallyRunningPlaylist != (*it)->GetPlayList() && (*it)->GetSchedule()->GetGracefullyInterrupt())
                         {
-                            (*it)->GetPlayList()->StartSuspended();
-                            toUnsuspend = *it;
+                            logger_base.info("   Playlist %s being gracefully interupted by schedule %s on Playlist %s.", (const char*)actuallyRunningPlaylist->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str(), (const char *)(*it)->GetPlayList()->GetNameNoTime().c_str());
+                            actuallyRunningPlaylist->SetSuspendAtEndOfCurrentStep();
+                            if (!(*it)->GetPlayList()->IsRunning() &&
+                                (*it)->GetSchedule()->GetFireFrequency() != "Fire once" &&
+                                (*it)->GetSchedule()->ShouldFire())
+                            {
+                                (*it)->GetPlayList()->StartSuspended();
+                            }
                         }
-                        else if ((*it)->GetPlayList()->IsSuspended())
+                        else
                         {
-                            toUnsuspend = *it;
+                            if (!(*it)->GetPlayList()->IsRunning() && 
+                                (*it)->GetSchedule()->GetFireFrequency() != "Fire once" && 
+                                (*it)->GetSchedule()->ShouldFire())
+                            {
+                                (*it)->GetPlayList()->StartSuspended();
+                                toUnsuspend = *it;
+                            }
+                            else if ((*it)->GetPlayList()->IsSuspended())
+                            {
+                                toUnsuspend = *it;
+                            }
                         }
                     }
                 }
                 else
                 {
-                    if (!(*it)->GetPlayList()->IsSuspended())
+                    if (!(*it)->GetPlayList()->IsSuspended() && toUnsuspend != nullptr)
                     {
                         logger_base.info("   Suspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                         (*it)->GetPlayList()->Suspend(true);
                     }
                 }
-
-                if (toUnsuspend != nullptr)
-                {
-                    logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char *)toUnsuspend->GetSchedule()->GetName().c_str());
-                    framems = toUnsuspend->GetPlayList()->Suspend(false);
-                }
+            }
+            if (toUnsuspend != nullptr)
+            {
+                logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char *)toUnsuspend->GetSchedule()->GetName().c_str());
+                framems = toUnsuspend->GetPlayList()->Suspend(false);
             }
         }
         else
@@ -1341,8 +1362,12 @@ int ScheduleManager::CheckSchedule()
     logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s", (const char *)(*it)->GetPlayList()->GetName().c_str(), 
-            (const char *)(*it)->GetSchedule()->GetName().c_str(), (*it)->GetSchedule()->GetPriority(), (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")));
+        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s", 
+            (const char *)(*it)->GetPlayList()->GetName().c_str(), 
+            (const char *)(*it)->GetSchedule()->GetName().c_str(), 
+            (*it)->GetSchedule()->GetPriority(), 
+            (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")),
+            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""));
     }
 
     return framems;
@@ -3289,7 +3314,7 @@ RunningSchedule* ScheduleManager::GetRunningSchedule() const
 
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        if ((*it)->GetPlayList()->IsRunning())
+        if ((*it)->GetPlayList()->IsRunning() && !(*it)->GetPlayList()->IsSuspended())
         {
             return *it;
         }

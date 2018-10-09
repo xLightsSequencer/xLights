@@ -38,6 +38,7 @@ protected:
     bool _loopStep;
     int _loops;
     bool _random;
+    bool _suspendAtEndOfStep;
     bool _jumpToEndStepsAtEndOfCurrentStep;
     std::string _forceNextStep;
     #pragma endregion Member Variables
@@ -64,6 +65,7 @@ public:
     void SetCommandAtEndOfCurrentStep(const std::string& command, const std::string& parameters) { _commandAtEndOfCurrentStep = command; _commandParametersAtEndOfCurrentStep = parameters; }
     wxUint32 GetId() const { return _id; }
     bool IsFinishingUp() const { return _jumpToEndStepsAtEndOfCurrentStep; }
+    void SetSuspendAtEndOfCurrentStep() { _suspendAtEndOfStep = true; }
     void JumpToStepAtEndOfCurrentStep(const std::string& step) { _forceNextStep = step; }
     PlayListStep* GetNextStep(bool& didloop);
     PlayListStep* GetRunningStep() const { return _currentStep; }
