@@ -2449,6 +2449,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         MenuItem_File_Save->SetItemLabel("Save");
         SetStatusText(_(""));
     }
+    SetAudioControls();
 }
 
 void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
@@ -2976,7 +2977,7 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
         wxPostEvent(this, playEvent);
@@ -2996,7 +2997,7 @@ void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable
 
 void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
         wxPostEvent(this, playEvent);
@@ -3005,7 +3006,7 @@ void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         //playStartTime = playEndTime = 0;
         wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
@@ -3015,7 +3016,7 @@ void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarFirstFrameClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
         wxPostEvent(this, playEvent);
@@ -3024,7 +3025,7 @@ void xLightsFrame::OnAuiToolBarFirstFrameClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarLastFrameClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
         wxPostEvent(this, playEvent);
@@ -3033,7 +3034,7 @@ void xLightsFrame::OnAuiToolBarLastFrameClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_SEQUENCE_REPLAY_SECTION);
         wxPostEvent(this, playEvent);
