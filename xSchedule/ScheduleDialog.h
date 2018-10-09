@@ -32,6 +32,7 @@ class ScheduleDialog: public wxDialog
 		wxCheckBox* CheckBox_Enabled;
 		wxCheckBox* CheckBox_EveryYear;
 		wxCheckBox* CheckBox_Fri;
+		wxCheckBox* CheckBox_GracefullyInterrupt;
 		wxCheckBox* CheckBox_Loop;
 		wxCheckBox* CheckBox_Mon;
 		wxCheckBox* CheckBox_Sat;
@@ -106,6 +107,7 @@ class ScheduleDialog: public wxDialog
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT11;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX12;
 		static const long ID_STATICTEXT19;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX9;

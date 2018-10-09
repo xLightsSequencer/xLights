@@ -783,7 +783,8 @@ void PlayListDialog::DeleteSelectedItem()
                 PlayListItem* playlistitem = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
                 PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(TreeCtrl_PlayList->GetItemParent(treeitem)))->GetData();
                 playliststep->RemoveItem(playlistitem);
-                for (auto it = playliststep->GetItems().begin(); it != playliststep->GetItems().end(); ++it)
+                auto items = playliststep->GetItems();
+                for (auto it = items.begin(); it != items.end(); ++it)
                 {
                     (*it)->SetStepLength(playliststep->GetLengthMS());
                 }
@@ -961,7 +962,8 @@ void PlayListDialog::AddItem(PlayList* playlist, PlayListStep* step, PlayListIte
     }
     pls->AddItem(newitem);
 
-    for (auto it = pls->GetItems().begin(); it != pls->GetItems().end(); ++it)
+    auto items = pls->GetItems();
+    for (auto it = items.begin(); it != items.end(); ++it)
     {
         (*it)->SetStepLength(pls->GetLengthMS());
     }
