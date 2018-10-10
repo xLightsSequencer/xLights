@@ -1248,9 +1248,9 @@ protected:
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
-    bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
-    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
-    void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
+    bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
