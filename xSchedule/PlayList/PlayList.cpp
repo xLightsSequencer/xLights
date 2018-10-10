@@ -422,29 +422,33 @@ void PlayList::RemoveSchedule(Schedule* schedule)
     _changeCount++;
 }
 
-void PlayList::MoveStepAfterStep(PlayListStep* movethis, PlayListStep* afterthis)
+void PlayList::MoveStepBeforeStep(PlayListStep* movethis, PlayListStep* beforethis)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        if (_steps.size() == 1 || (afterthis != nullptr && movethis->GetId() == afterthis->GetId())) return;
+        if (_steps.size() == 1 || (beforethis != nullptr && movethis->GetId() == beforethis->GetId())) return;
 
-        if (afterthis == nullptr)
+        if (beforethis == nullptr)
         {
             RemoveStep(movethis);
             _steps.push_front(movethis);
         }
         else
         {
+            int mPos = GetPos(movethis);
             RemoveStep(movethis);
-            int pos = GetPos(afterthis);
-            if (pos == -1)
+            int bPos = GetPos(beforethis);
+            if (bPos == -1)
             {
                 wxASSERT(false);
                 _steps.push_back(movethis);
             }
             else
             {
-                AddStep(movethis, pos + 1);
+                if(bPos < mPos)
+                    AddStep(movethis, bPos);
+                else
+                    AddStep(movethis, bPos + 1);
             }
         }
     }

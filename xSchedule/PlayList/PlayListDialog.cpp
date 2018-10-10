@@ -482,14 +482,14 @@ void PlayListDialog::OnTreeDragEnd(wxMouseEvent& event)
         // if dropped on playlist make it the first step
         if (IsPlayList(dropitem))
         {
-            _playlist->MoveStepAfterStep(dragstep, nullptr);
+            _playlist->MoveStepBeforeStep(dragstep, nullptr);
             PopulateTree(_playlist, dragstep, nullptr);
         }
         // if dropped on a step make it the step after the dropped step
         else if (IsPlayListStep(dropitem))
         {
             PlayListStep* dropstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dropitem))->GetData();
-            _playlist->MoveStepAfterStep(dragstep, dropstep);
+            _playlist->MoveStepBeforeStep(dragstep, dropstep);
             PopulateTree(_playlist, dragstep, nullptr);
         }
     }

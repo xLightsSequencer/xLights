@@ -212,8 +212,11 @@ void PlayListSimpleDialog::PopulateTree(PlayList* selplaylist, PlayListStep* sel
     {
         wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), (*it)->GetName());
         TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(*it));
-        select = step;
 
+        if ( selstep != nullptr && (*it)->GetId() == selstep->GetId())
+        {
+            select = step;
+        }
         // size_t ms;
         // PlayListItem* ts = (*it)->GetTimeSource(ms);
     }
@@ -389,14 +392,14 @@ void PlayListSimpleDialog::OnTreeDragEnd(wxMouseEvent& event)
         // if dropped on playlist make it the first step
         if (IsPlayList(dropitem))
         {
-            _playlist->MoveStepAfterStep(dragstep, nullptr);
+            _playlist->MoveStepBeforeStep(dragstep, nullptr);
             PopulateTree(_playlist, dragstep);
         }
         // if dropped on a step make it the step after the dropped step
         else if (IsPlayListStep(dropitem))
         {
             PlayListStep* dropstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dropitem))->GetData();
-            _playlist->MoveStepAfterStep(dragstep, dropstep);
+            _playlist->MoveStepBeforeStep(dragstep, dropstep);
             PopulateTree(_playlist, dragstep);
         }
     }

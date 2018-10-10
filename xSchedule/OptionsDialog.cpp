@@ -463,17 +463,17 @@ void OptionsDialog::OnButtonsDragEnd(wxMouseEvent& event)
 
                 ListView_Buttons->DeleteItem(dragitem);
 
-                if (dropitem > dragitem) dropitem--;
+                if (dropitem < 0) dropitem = 0;
 
-                ListView_Buttons->InsertItem(dropitem + 1, label);
-                ListView_Buttons->SetItem(dropitem + 1, 1, command);
-                ListView_Buttons->SetItem(dropitem + 1, 2, parameters);
-                ListView_Buttons->SetItem(dropitem + 1, 3, hotkey);
-                ListView_Buttons->SetItem(dropitem + 1, 4, color);
+                ListView_Buttons->InsertItem(dropitem, label);
+                ListView_Buttons->SetItem(dropitem, 1, command);
+                ListView_Buttons->SetItem(dropitem, 2, parameters);
+                ListView_Buttons->SetItem(dropitem, 3, hotkey);
+                ListView_Buttons->SetItem(dropitem, 4, color);
 
-                ListView_Buttons->EnsureVisible(dropitem + 1);
+                ListView_Buttons->EnsureVisible(dropitem);
 
-                if (dropitem + 1 == ListView_Buttons->GetItemCount() - 1)
+                if (dropitem == ListView_Buttons->GetItemCount() - 1)
                 {
                     ListView_Buttons->ScrollLines(1);
                 }

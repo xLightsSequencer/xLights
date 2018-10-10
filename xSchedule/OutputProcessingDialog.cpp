@@ -253,25 +253,25 @@ void OutputProcessingDialog::OnDragEnd(wxMouseEvent& event)
 
                 ListView_Processes->DeleteItem(dragitem);
 
-                if (dropitem > dragitem) dropitem--;
+                if (dropitem < 0) dropitem = 0;
 
-                ListView_Processes->InsertItem(dropitem + 1, type);
-                ListView_Processes->SetItem(dropitem + 1, 1, sc);
-                ListView_Processes->SetItem(dropitem + 1, 2, p1);
-                ListView_Processes->SetItem(dropitem + 1, 3, p1);
-                ListView_Processes->SetItem(dropitem + 1, 4, d);
+                ListView_Processes->InsertItem(dropitem, type);
+                ListView_Processes->SetItem(dropitem, 1, sc);
+                ListView_Processes->SetItem(dropitem, 2, p1);
+                ListView_Processes->SetItem(dropitem, 3, p1);
+                ListView_Processes->SetItem(dropitem, 4, d);
                 if (!e)
-		{
-			ListView_Processes->SetItemTextColour(dropitem + 1 , *wxLIGHT_GREY);
-		}
-	        else
-	        {
-			ListView_Processes->SetItemTextColour(dropitem + 1 , *wxBLACK);
-	        }
+                {
+                    ListView_Processes->SetItemTextColour(dropitem, *wxLIGHT_GREY);
+                }
+                else
+                {
+                    ListView_Processes->SetItemTextColour(dropitem, *wxBLACK);
+                }
 
-                ListView_Processes->EnsureVisible(dropitem + 1);
+                ListView_Processes->EnsureVisible(dropitem);
 
-                if (dropitem + 1 == ListView_Processes->GetItemCount() - 1)
+                if (dropitem == ListView_Processes->GetItemCount() - 1)
                 {
                     ListView_Processes->ScrollLines(1);
                 }
