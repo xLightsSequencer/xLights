@@ -436,6 +436,13 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long n
 {
     wxString ChannelName, TestName;
     int p, csec;
+
+    int interval = SeqData.FrameTime() / 10;  // in centiseconds
+    if( interval * 10 != SeqData.FrameTime() ) {
+        wxMessageBox("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
+        return;
+    }
+
     wxFile f;
     if (!f.Create(filename, true))
     {
@@ -449,7 +456,6 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long n
     //  printf("'%s' is split as '%s', '%s', '%s'\n", m_FileName, m_Path,
     //  m_Name, m_Ext);
 
-    int interval = SeqData.FrameTime() / 10;  // in centiseconds
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write(string_format("<channelsClipboard version=\"%d\" name=\"%s\">\n", ver, (const char *)m_Name.c_str()));
 

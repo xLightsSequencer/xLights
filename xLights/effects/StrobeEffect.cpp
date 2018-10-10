@@ -23,8 +23,7 @@ std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& sett
 {
     std::list<std::string> res;
 
-    if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false))
-    {
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false)) {
         res.push_back(wxString::Format("    WARN: Strobe effect cant follow music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
@@ -86,14 +85,11 @@ void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", 1);
     bool reactToMusic = SettingsMap.GetBool("CHECKBOX_Strobe_Music", false);
 
-    if (reactToMusic)
-    {
+    if (reactToMusic) {
         float f = 0.0;
-        if (buffer.GetMedia() != nullptr)
-        {
+        if (buffer.GetMedia() != nullptr) {
             std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
-            if (pf != nullptr)
-            {
+            if (pf != nullptr) {
                 f = *pf->begin();
             }
         }
@@ -120,8 +116,7 @@ void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
         strobe.clear();
 
         // prepopulate first frame
-        for (int i = 0; i < Number_Strobes * StrobeDuration; i++)
-        {
+        for (int i = 0; i < Number_Strobes * StrobeDuration; i++) {
             xlColor color;
             ColorIdx = rand() % colorcnt;
             buffer.palette.GetHSV(ColorIdx, hsv); // take first checked color as color of flash
@@ -132,8 +127,7 @@ void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     }
 
     // create new strobe, randomly place a strobe
-    while (strobe.size() < Number_Strobes * StrobeDuration)
-    {
+    while (strobe.size() < Number_Strobes * StrobeDuration) {
         HSVValue hsv;
         xlColor color;
         ColorIdx = rand() % colorcnt;
@@ -146,69 +140,53 @@ void StrobeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     // render strobe, we go through all storbes and decide if they should be turned on
     int n = 0;
     std::list<StrobeClass>::iterator it = strobe.begin();
-    while (it != strobe.end())
-    {
+    while (it != strobe.end()) {
         n++;
         hsv = it->hsv;
         xlColor color(it->color);
         int x = it->x;
         int y = it->y;
-        if (it->duration > 0)
-        {
+        if (it->duration > 0) {
             buffer.SetPixel(x, y, color);
         }
 
         double v = 1.0;
-        if (it->duration == 1)
-        {
+        if (it->duration == 1) {
             v = 0.5;
-        }
-        else if (it->duration == 2)
-        {
+        } else if (it->duration == 2) {
             v = 0.75;
         }
         if (buffer.allowAlpha) {
             color.alpha = 255.0 * v;
-        }
-        else {
+        } else {
             hsv.value *= v;
             color = hsv;
         }
 
-        if (Strobe_Type == 2)
-        {
+        if (Strobe_Type == 2) {
             int r = rand() % 2;
-            if (r == 0)
-            {
+            if (r == 0) {
                 buffer.SetPixel(x, y - 1, color);
                 buffer.SetPixel(x, y + 1, color);
-            }
-            else
-            {
+            } else {
                 buffer.SetPixel(x - 1, y, color);
                 buffer.SetPixel(x + 1, y, color);
             }
-
         }
-        if (Strobe_Type == 3)
-        {
+        if (Strobe_Type == 3) {
             buffer.SetPixel(x, y - 1, color);
             buffer.SetPixel(x, y + 1, color);
             buffer.SetPixel(x - 1, y, color);
             buffer.SetPixel(x + 1, y, color);
         }
-        if (Strobe_Type == 4)
-        {
+        if (Strobe_Type == 4) {
             int r = rand() % 2;
-            if (r == 0)
-            {
+            if (r == 0) {
                 buffer.SetPixel(x, y - 1, color);
                 buffer.SetPixel(x, y + 1, color);
                 buffer.SetPixel(x - 1, y, color);
                 buffer.SetPixel(x + 1, y, color);
-            }
-            else
-            {
+            } else {
                 buffer.SetPixel(x + 1, y - 1, color);
                 buffer.SetPixel(x + 1, y + 1, color);
                 buffer.SetPixel(x - 1, y - 1, color);

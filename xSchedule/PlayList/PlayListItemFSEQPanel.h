@@ -87,7 +87,6 @@ class PlayListItemFSEQPanel: public wxPanel
 		void OnCheckBox_OverrideVolumeClick(wxCommandEvent& event);
 		void OnCheckBox_LimitChannelsClick(wxCommandEvent& event);
 		void OnTextCtrl_StartChannelText(wxCommandEvent& event);
-		void OnTextCtrl_StartChannelText1(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

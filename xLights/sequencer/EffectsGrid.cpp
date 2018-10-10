@@ -430,6 +430,7 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event)
     else if(id == ID_GRID_MNU_UNDO)
     {
         logger_base.debug("OnGridPopup - UNDO");
+        mSelectedEffect = nullptr; // lets clear it as the undo may delete that effect ... and i cant be sure
         mSequenceElements->get_undo_mgr().UndoLastStep();
         sendRenderDirtyEvent();
     }
@@ -1161,6 +1162,32 @@ void EffectsGrid::mouseDown(wxMouseEvent& event)
 Effect* EffectsGrid::GetSelectedEffect() const
 {
     return mSelectedEffect;
+}
+
+bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
+{
+    Element* selected = nullptr;
+
+    for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
+    {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+        if (el->GetSelectedEffectCount() > 0)
+        {
+            if (selected == nullptr)
+            {
+                selected = el->GetParentElement();
+            }
+            else
+            {
+                if (selected != el->GetParentElement())
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
@@ -6290,7 +6317,14 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers)
 
 void EffectsGrid::PasteModelEffects(int row_number, bool allLayers)
 {
-    mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
+    if (allLayers)
+    {
+        mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
+    }
+    else
+    {
+        mDropRow = row_number;
+    }
     ((MainSequencer*)mParent)->Paste(true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);

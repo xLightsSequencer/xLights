@@ -19,10 +19,10 @@
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
 
 ListenerManager::ListenerManager(ScheduleManager* scheduleManager) :
-    _scheduleManager(scheduleManager),
-    _pause(false),
-    _stop(false),
     _sync(0),
+    _stop(false),
+    _pause(false),
+    _scheduleManager(scheduleManager),
     _notifyScan(nullptr)
 {
     StartListeners();
@@ -109,24 +109,31 @@ void ListenerManager::StartListeners()
 		}
         else if ((*it)->GetType() == "MIDI")
         {
-            ListenerMIDI* l = (ListenerMIDI*)(*it);
-            bool found = false;
-            for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+            if (_sync == 5)
             {
-                if ((*it2)->GetType() == "MIDI")
-                {
-                    found = true;
-                }
-            }
-            if (!found)
-            {
-                l->Stop();
-                _listeners.erase(it++);
-                delete l;
+                ++it;
             }
             else
             {
-                ++it;
+                ListenerMIDI* l = (ListenerMIDI*)(*it);
+                bool found = false;
+                for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+                {
+                    if ((*it2)->GetType() == "MIDI")
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    l->Stop();
+                    _listeners.erase(it++);
+                    delete l;
+                }
+                else
+                {
+                    ++it;
+                }
             }
         }
         else if ((*it)->GetType() == "ARTNet")
@@ -459,6 +466,27 @@ void ListenerManager::StartListeners()
             _listeners.back()->Start();
         }
     }
+    else if (_sync == 5)
+    {
+        bool midiExists = false;
+        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+        {
+            if ((*it2)->GetType() == "MIDI")
+            {
+                midiExists = true;
+                break;
+            }
+        }
+
+        if (!midiExists)
+        {
+            if (_scheduleManager->GetOptions()->GetMIDITimecodeDevice() != "")
+            {
+                _listeners.push_back(new ListenerMIDI(wxAtoi(wxString(_scheduleManager->GetOptions()->GetMIDITimecodeDevice()).AfterLast(' ')), this));
+                _listeners.back()->Start();
+            }
+        }
+    }
 }
 
 void ListenerManager::SetRemoteOSC()
@@ -470,6 +498,12 @@ void ListenerManager::SetRemoteOSC()
 void ListenerManager::SetRemoteFPP()
 {
     _sync = 1;
+    StartListeners();
+}
+
+void ListenerManager::SetRemoteMIDI()
+{
+    _sync = 5;
     StartListeners();
 }
 
@@ -534,6 +568,7 @@ int ListenerManager::Sync(const std::string filename, long ms, const std::string
     if ((_sync == 3 && type == "ARTNet") ||
         (_sync == 4 && type == "FPP Unicast") ||
         (_sync == 2 && type == "OSC") ||
+        (_sync == 5 && type == "MIDI") ||
         (_sync == 1 && type == "FPP"))
     {
         return _scheduleManager->Sync(filename, ms);

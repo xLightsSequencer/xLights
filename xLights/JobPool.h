@@ -32,7 +32,7 @@ public:
 class JobPoolWorker;
 class JobPool
 {
-    std::mutex threadLock;
+    std::atomic_bool threadLock;
     std::mutex queueLock;
     std::condition_variable signal;
     std::vector<JobPoolWorker*> threads;
@@ -58,6 +58,8 @@ public:
 private:
     friend class JobPoolWorker;
     void RemoveWorker(JobPoolWorker*);
+    void LockThreads();
+    void UnlockThreads();
     Job *GetNextJob();
 };
 

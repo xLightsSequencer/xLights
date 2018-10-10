@@ -327,11 +327,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     sizer1->SetSizeHints(FirstPanel);
 
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
-    
+
     wxConfigBase* config = wxConfigBase::Get();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
-    
+
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
     propertyEditor->Connect(wxEVT_PG_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridSelection,0,this);
@@ -551,7 +551,7 @@ void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
                   wxIMAGE_QUALITY_HIGH);
     wxBitmap bitmap(image);
 #endif
-    
+
     NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bitmap, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
@@ -942,7 +942,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     unsigned sortcol;
     bool ascending;
     bool sorted = TreeListViewModels->GetSortColumn(&sortcol, &ascending);
-    
+
     if (full_refresh) {
         UnSelectAllModels();
     }
@@ -975,7 +975,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             //sort column to 0 which is faster due to straight string compare
             TreeListViewModels->GetDataView()->GetSortingColumn()->UnsetAsSortKey();
         }
-        
+
         //delete all items will atempt to resort as each item is deleted, however, our Model pointers
         //stored in the items may be invalid
         wxTreeListItem child = TreeListViewModels->GetFirstItem();
@@ -1813,7 +1813,12 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         }
         else
         {
-            modelPreview->GetModels()[found[0]]->GroupSelected = true;
+            if( ModelsSelectedCount() == 0 ) {
+                modelPreview->GetModels()[found[0]]->Selected = true;
+                SelectModel(modelPreview->GetModels()[found[0]]);
+            } else {
+                modelPreview->GetModels()[found[0]]->GroupSelected = true;
+            }
         }
         UpdatePreview();
         return true;
@@ -2544,7 +2549,7 @@ void LayoutPanel::PreviewModelHDistribute()
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         Model* m = modelPreview->GetModels()[i];
-        if (m->GroupSelected)
+        if (m->GroupSelected || m->Selected)
         {
             count++;
             float x = m->GetHcenterOffset();
@@ -2594,7 +2599,7 @@ void LayoutPanel::PreviewModelVDistribute()
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         Model* m = modelPreview->GetModels()[i];
-        if (m->GroupSelected)
+        if (m->GroupSelected || m->Selected)
         {
             count++;
             float y = m->GetVcenterOffset();
@@ -2978,7 +2983,7 @@ void LayoutPanel::ReplaceModel()
         // they are not already the same and the new model uses a chaining start
         // channel ... the theory being if you took time to set the start channel
         // you probably want to keep it and so a prompt will just be annoying
-        if (replaceModel->ModelStartChannel != 
+        if (replaceModel->ModelStartChannel !=
             modelToReplaceItWith->ModelStartChannel &&
             wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">"))
         {
@@ -3953,7 +3958,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     {
         ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
         if (data != nullptr && data->GetModel() != nullptr) {
-            if (data->GetModel()->GetFullName() == grp->GetFullName()) 
+            if (data->GetModel()->GetFullName() == grp->GetFullName())
             {
                 bool expanded = TreeListViewModels->IsExpanded(item);
                 wxTreeListItem child = TreeListViewModels->GetFirstChild(item);
@@ -3966,9 +3971,9 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
                     Model *m = xlights->AllModels[*it];
                     if (m != nullptr)
                     {
-                        if (currentLayoutGroup == "All Models" || 
+                        if (currentLayoutGroup == "All Models" ||
                             m->GetLayoutGroup() == currentLayoutGroup ||
-                            (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned")) 
+                            (m->GetLayoutGroup() == "All Previews" && currentLayoutGroup != "Unassigned"))
                         {
                             AddModelToTree(m, &item, false, i, true);
                         }
@@ -4104,7 +4109,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     {
         // let crontrol A through
         // Just a regular key ... If current focus is a control then we need to not process this
-        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr && 
+        if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
             (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL))
         {
             return false;

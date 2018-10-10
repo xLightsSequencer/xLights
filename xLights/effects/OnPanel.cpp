@@ -91,9 +91,9 @@ OnPanel::OnPanel(wxWindow* parent)
 	FlexGridSizer95->Add(StaticText174, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
-	SliderCycles = new BulkEditSlider(this, IDD_SLIDER_On_Cycles, 10, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_On_Cycles"));
+	SliderCycles = new BulkEditSliderF1(this, IDD_SLIDER_On_Cycles, 10, 0, 1000, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_On_Cycles"));
 	FlexGridSizer3->Add(SliderCycles, 1, wxALL|wxEXPAND, 2);
-	TextCtrlCycles = new BulkEditTextCtrl(this, ID_TEXTCTRL_On_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Cycles"));
+	TextCtrlCycles = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_On_Cycles, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_On_Cycles"));
 	TextCtrlCycles->SetMaxLength(5);
 	FlexGridSizer3->Add(TextCtrlCycles, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer95->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);

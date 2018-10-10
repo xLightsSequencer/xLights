@@ -239,11 +239,11 @@ public:
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
-    unsigned int GetLastChannel();
+    virtual unsigned int GetLastChannel();
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
     std::string GetStartChannelInDisplayFormat();
     bool IsValidStartChannelString() const;
-    unsigned int GetFirstChannel();
+    virtual unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
@@ -257,7 +257,7 @@ public:
 
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
-    std::list<std::string> GetFaceFiles() const;
+    std::list<std::string> GetFaceFiles(bool all = false) const;
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     void SelectHandle(int handle);
     int GetSelectedHandle();

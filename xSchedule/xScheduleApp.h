@@ -28,10 +28,10 @@ class xScheduleApp : public wxApp
     wxSingleInstanceChecker* _checker;
 
     public:
-        virtual bool OnInit();
-        virtual void OnFatalException();
+        virtual bool OnInit() override;
+        virtual void OnFatalException() override;
         void WipeSettings();
-        virtual int OnExit();
+        virtual int OnExit() override;
 };
 
 DECLARE_APP(xScheduleApp)

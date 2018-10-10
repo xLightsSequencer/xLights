@@ -34,7 +34,7 @@ BEGIN_EVENT_TABLE(VirtualMatrixDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _rotation(rotation), _startChannel(startChannel), _width(width), _height(height), _topMost(topMost), _size(vmsize), _location(vmlocation), _quality(quality)
+VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _size(vmsize), _location(vmlocation), _rotation(rotation), _quality(quality)
 {
     _outputManager = outputManager;
     _tempSize = _size;
@@ -151,19 +151,14 @@ void VirtualMatrixDialog::OnButton_CancelClick(wxCommandEvent& event)
 
 void VirtualMatrixDialog::OnButton_PositionClick(wxCommandEvent& event)
 {
-    VideoWindowPositionDialog dlg(this, wxID_ANY, _tempLocation, _tempSize);
+    VideoWindowPositionDialog dlg(this, wxID_ANY, _tempLocation, _tempSize, wxSize(SpinCtrl_Width->GetValue(), SpinCtrl_Height->GetValue()), _useMatrixSize, _matrixMultiplier);
 
-    dlg.ShowModal();
-
-    if (dlg.IsFullScreen())
+    if (dlg.ShowModal() == wxID_OK)
     {
-        _tempLocation = dlg.GetClientAreaOrigin();
-        _tempSize = dlg.GetClientSize();
-    }
-    else
-    {
-        _tempLocation = dlg.GetPosition();
-        _tempSize = dlg.GetSize();
+        _tempLocation = dlg.GetDesiredPosition();
+        _tempSize = dlg.GetDesiredSize();
+        _useMatrixSize = dlg.CheckBox_SetSizeBasedOnMatrix->GetValue();
+        _matrixMultiplier = dlg.SpinCtrl_SizeMultiplier->GetValue();
     }
 }
 

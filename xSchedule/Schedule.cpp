@@ -29,7 +29,7 @@ wxDateTime Schedule::GetNextFireTime() const
     wxDateTime now = wxDateTime::Now();
     wxDateTime res = now;
 
-    int minute = now.GetMinute();
+    // int minute = now.GetMinute();
 
     res.SetMinute(start.GetMinute());
     if (_fireFrequency == "Fire every hour")
@@ -107,6 +107,7 @@ void Schedule::Load(wxXmlNode* node)
     _loop = node->GetAttribute("Loop", "FALSE") == "TRUE";
     _random = node->GetAttribute("Random", "FALSE") == "TRUE";
     _everyYear = node->GetAttribute("EveryYear", "FALSE") == "TRUE";
+    _gracefullyInterrupt = node->GetAttribute("GracefullyInterrupt", "FALSE") == "TRUE";
     _enabled = node->GetAttribute("Enabled", "FALSE") == "TRUE";
     _loops = wxAtoi(node->GetAttribute("Loops", "0"));
     _priority = wxAtoi(node->GetAttribute("Priority", "0"));
@@ -146,6 +147,10 @@ wxXmlNode* Schedule::Save()
     {
         node->AddAttribute("EveryYear", "TRUE");
     }
+    if (_gracefullyInterrupt)
+    {
+        node->AddAttribute("GracefullyInterrupt", "TRUE");
+    }
 
     return node;
 }
@@ -168,6 +173,7 @@ Schedule::Schedule()
     _random = false;
     _loops = 0;
     _everyYear = false;
+    _gracefullyInterrupt = false;
     _priority = 5;
     _dow = "MonTueWedThuFriSatSun";
     _nthDay = 1;
@@ -222,6 +228,7 @@ Schedule::Schedule(const Schedule& schedule, bool newid)
     _random = schedule._random;
     _loops = schedule._loops;
     _everyYear = schedule._everyYear;
+    _gracefullyInterrupt = schedule._gracefullyInterrupt;
     _priority = schedule._priority;
     _dow = schedule._dow;
     _nthDay = schedule._nthDay;

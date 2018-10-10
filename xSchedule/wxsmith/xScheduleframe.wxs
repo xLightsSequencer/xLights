@@ -426,6 +426,11 @@
 					<handler function="OnMenuItem_ARTNetTimeCodeMasterSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="MNU_MIDITIMECODE_MASTER" variable="MenuItem_MIDITimeCodeMaster" member="yes">
+					<label>MIDI Timecode Master</label>
+					<handler function="OnMenuItem_MIDITimeCodeMasterSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_FPPRemote" member="yes">
 					<label>FPP Remote</label>
 					<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
@@ -441,6 +446,11 @@
 					<handler function="OnMenuItem_ARTNetTimeCodeSlaveSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="MNU_MIDITIMECODEREMOTE" variable="MenuItem_MIDITimeCodeSlave" member="yes">
+					<label>MIDI Timecode Slave</label>
+					<handler function="OnMenuItem_MIDITimeCodeSlaveSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_FPPUnicastRemote" member="yes">
 					<label>FPP Unicast Remote</label>
 					<handler function="OnMenuItem_FPPUnicastRemoteSelected" entry="EVT_MENU" />
@@ -454,6 +464,10 @@
 				<object class="wxMenuItem" name="ID_MNU_OSCOPTION" variable="MenuItem_ConfigureOSC" member="yes">
 					<label>Configure OSC</label>
 					<handler function="OnMenuItem_ConfigureOSCSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="MNU_CONFIGUREMIDITIMECODE" variable="MenuItem5MenuItem_ConfigureMIDITimecode" member="yes">
+					<label>Configure MIDI Timecode</label>
+					<handler function="OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">

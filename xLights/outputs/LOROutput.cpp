@@ -1,7 +1,6 @@
 #include "LOROutput.h"
 
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
 LOROutput::LOROutput(SerialOutput* output) : SerialOutput(output)

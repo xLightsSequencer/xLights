@@ -2,7 +2,6 @@
 #define SCHEDULEOPTIONS_H
 #include <list>
 #include <string>
-#include <map>
 #include <vector>
 #include "MatrixMapper.h"
 #include "VirtualMatrix.h"
@@ -104,6 +103,8 @@ class ScheduleOptions
     std::list<EventBase*> _events;
     int _artNetTimeCodeFormat;
     std::string _city;
+    std::string _MIDITimecodeDevice;
+    int _MIDITimecodeFormat;
 
     public:
 
@@ -120,6 +121,10 @@ class ScheduleOptions
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }
         std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
         std::list<EventBase*>* GetEvents() { return &_events; }
+        std::string GetMIDITimecodeDevice() const { return _MIDITimecodeDevice; }
+        void SetMIDITimecodeDevice(std::string midi) { if (midi != _MIDITimecodeDevice) { _MIDITimecodeDevice = midi; _changeCount++; } }
+        int GetMIDITimecodeFormat() const { return _MIDITimecodeFormat; }
+        void SetMIDITimecodeFormat(int format) { if (format != _MIDITimecodeFormat) { _MIDITimecodeFormat = format; _changeCount++; } }
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }

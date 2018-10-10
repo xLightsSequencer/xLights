@@ -54,7 +54,61 @@ bool SimpleFTP::IsConnected()
 {
     return (_ftp.IsConnected() && _ftp.IsOk() && !_ftp.IsClosed());
 }
+bool SimpleFTP::GetFile(std::string targetfile, std::string folder, std::string file, bool binary, wxWindow* parent) {
+    if (!IsConnected()) return false;
+    
+    _ftp.ChDir(folder);
+    
+    if (binary) {
+        _ftp.SetBinary();
+    } else {
+        _ftp.SetAscii();
+    }
+    
+    bool cancelled = false;
+    
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
+    int length = _ftp.GetFileSize(folder + "/" + file);
+    wxInputStream* in = _ftp.GetInputStream(folder + "/" + file);
+    if (in == nullptr) {
+        return true;
+    }
 
+    wxProgressDialog progress("FTP Download", wxString(file.c_str()), 100, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    progress.Show();
+    progress.Update(0, wxEmptyString, &cancelled);
+    
+    wxFile out;
+    out.Open(targetfile, wxFile::write);
+    
+    uint8_t buffer[8192]; // 8KB at a time
+    int lastDone = 0;
+    int done = 0;
+    while (!in->Eof() && !cancelled) {
+        ssize_t read = in->Read(&buffer[0], sizeof(buffer)).LastRead();
+        done += read;
+        
+        int bufPos = 0;
+        while (read) {
+            size_t written = out.Write(&buffer[bufPos], read);
+            bufPos += written;
+            read -= written;
+        }
+        
+        int donePct = (int)(done * 100 / length);
+        if (donePct != lastDone) {
+            wxASSERT(donePct > lastDone);
+            lastDone = donePct;
+            cancelled = !progress.Update(donePct, wxEmptyString, &cancelled);
+            wxYield();
+        }
+    }
+    progress.Update(100, wxEmptyString, &cancelled);
+    
+    out.Close();
+    delete in;
+    return cancelled;
+}
 bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string newfilename, bool backup, bool binary, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

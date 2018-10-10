@@ -886,12 +886,13 @@ void OutputManager::StopOutput()
 
     logger_base.debug("Stopping light output.");
 
+    _outputting = false;
+
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
         (*it)->Close();
     }
 
-    _outputting = false;
     SetGlobalOutputtingFlag(false);
     _outputCriticalSection.Leave();
 

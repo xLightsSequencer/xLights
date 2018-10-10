@@ -8,16 +8,6 @@
 
 #include <log4cpp/Category.hh>
 
-PhonemeDictionary::PhonemeDictionary()
-{
-
-}
-
-PhonemeDictionary::~PhonemeDictionary()
-{
-
-}
-
 void PhonemeDictionary::LoadDictionaries(const wxString &showDir)
 {
 	if (phoneme_dict.size() > 0)
@@ -116,46 +106,36 @@ void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phone
     word.Replace("]", "");
     phonemes.Clear();
 
-    if (!phoneme_dict.count(word.Upper()))
-        return;
-	wxArrayString pronunciation = phoneme_dict.at(word.Upper());
-    if (pronunciation.size() > 1)
-    {
-        for (int i = 1; i < pronunciation.size(); i++)
-        {
+    if (!phoneme_dict.count(word.Upper())) return;
+
+    wxArrayString pronunciation = phoneme_dict.at(word.Upper());
+    if (pronunciation.size() > 1) {
+        for (int i = 1; i < pronunciation.size(); i++) {
+
             wxString p = pronunciation[i];
-            if (p.length() == 0)
-                continue;
-            if (phoneme_map.count(p))
-            {
+            if (p.length() == 0) continue;
+            
+            if (phoneme_map.count(p)) {
                 bool skip = false;
-                if( phoneme_map[p] == "etc" )
-                {
-                    if( phonemes.Count() > 0 )
-                    {
-                        if( phonemes.Last() == "etc" )
-                        {
+                if (phoneme_map[p] == "etc") {
+                    if (phonemes.Count() > 0) {
+                        if (phonemes.Last() == "etc") {
                             skip = true;
                         }
                     }
                 }
-                if( !skip )
-                {
+                if (!skip) {
                     phonemes.push_back(phoneme_map[p]);
                 }
             }
-            else
-            {
+            else {
                 bool skip = false;
-                if( phonemes.Count() > 0 )
-                {
-                    if( phonemes.Last() == "etc" )
-                    {
+                if (phonemes.Count() > 0) {
+                    if (phonemes.Last() == "etc") {
                         skip = true;
                     }
                 }
-                if( !skip )
-                {
+                if (!skip) {
                     phonemes.push_back(phoneme_map[p]);
                 }
             }

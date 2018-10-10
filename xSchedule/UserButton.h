@@ -2,7 +2,6 @@
 #define USERBUTTON_H
 
 #include <string>
-#include <list>
 #include <wx/wx.h>
 #include "CommandManager.h"
 

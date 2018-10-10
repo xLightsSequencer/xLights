@@ -28,6 +28,7 @@ class Schedule
     int _priority;
     bool _active;
     bool _enabled;
+    bool _gracefullyInterrupt;
     int _nthDay;
     int _nthDayOffset;
     std::string _fireFrequency;
@@ -69,6 +70,8 @@ class Schedule
         std::string GetFireFrequency() const { return _fireFrequency; }
         void SetEveryYear(bool everyYear) { if (_everyYear != everyYear) { _everyYear = everyYear; _changeCount++; } }
         bool GetEveryYear() const { return _everyYear; }
+        void SetGracefullyInterrupt(bool gracefullyInterrupt) { if (_gracefullyInterrupt != gracefullyInterrupt) { _gracefullyInterrupt = gracefullyInterrupt; _changeCount++; } }
+        bool GetGracefullyInterrupt() const { return _gracefullyInterrupt; }
         bool IsOnDOW(const std::string& dow) const;
         void SetDOW(bool mon, bool tue, bool wed, bool thu, bool fri, bool sat, bool sun);
         wxDateTime GetStartDate() const { return _startDate; }

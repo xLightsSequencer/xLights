@@ -3,7 +3,7 @@
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include <wx/dir.h>
+#include <wx/dir.h> // Linux needs this
 #include "UserButton.h"
 #include "CommandManager.h"
 #include "../xLights/AudioManager.h"
@@ -25,6 +25,8 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _oscOptions = nullptr;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
+    _MIDITimecodeDevice = node->GetAttribute("MIDITimecodeDevice", "").ToStdString();
+    _MIDITimecodeFormat = wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
@@ -159,6 +161,8 @@ ScheduleOptions::ScheduleOptions()
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
     _crashBehaviour = "Prompt user";
+    _MIDITimecodeDevice = "";
+    _MIDITimecodeFormat = 0;
 }
 
 ScheduleOptions::~ScheduleOptions()
@@ -178,6 +182,8 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("AudioDevice", _audioDevice);
     res->AddAttribute("WWWRoot", _wwwRoot);
     res->AddAttribute("CrashBehaviour", _crashBehaviour);
+    res->AddAttribute("MIDITimecodeDevice", _MIDITimecodeDevice);
+    res->AddAttribute("MIDITimecodeFormat", wxString::Format("%d", _MIDITimecodeFormat));
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
     if (IsSync())
@@ -375,16 +381,15 @@ UserButton* ScheduleOptions::GetButton(wxUint32 id) const
 
 std::string ScheduleOptions::GetDefaultRoot() const
 {
-    wxString d;
 #ifdef __WXMSW__
-    d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+    wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #elif __LINUX__
-    d = wxStandardPaths::Get().GetDataDir();
+    wxString d = wxStandardPaths::Get().GetDataDir();
     if (!wxDir::Exists(d)) {
         d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
     }
 #else
-    d = wxStandardPaths::Get().GetResourcesDir();
+    wxString d = wxStandardPaths::Get().GetResourcesDir();
 #endif
     return d.ToStdString();
 }

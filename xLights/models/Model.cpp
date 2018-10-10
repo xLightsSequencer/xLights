@@ -1777,10 +1777,10 @@ unsigned int Model::GetLastChannel() {
 }
 
 unsigned int Model::GetFirstChannel() {
-    unsigned int LastChan=-1;
-    size_t NodeCount=GetNodeCount();
-    for(size_t idx=0; idx<NodeCount; idx++) {
-        LastChan=std::min(LastChan,Nodes[idx]->ActChan);
+    unsigned int LastChan = -1;
+    size_t NodeCount = GetNodeCount();
+    for (size_t idx = 0; idx < NodeCount; idx++) {
+        LastChan = std::min(LastChan, Nodes[idx]->ActChan);
     }
     return LastChan;
 }
@@ -3661,17 +3661,24 @@ bool Model::IsProtocolValid(std::string protocol)
     return (std::find(protocols.begin(), protocols.end(), protocol) != protocols.end());
 }
 
-std::list<std::string> Model::GetFaceFiles() const
+// all when true includes all image files ... even if they dont really exist
+std::list<std::string> Model::GetFaceFiles(bool all) const
 {
     std::list<std::string> res;
 
     for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it)
     {
-        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        if (it->second.find("Type") != it->second.end() && it->second.at("Type") == "Matrix")
         {
-            if (wxFile::Exists(it2->second))
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
             {
-                res.push_back(it2->second);
+                if (it2->first != "CustomColors" && it2->first != "ImagePlacement" && it2->first != "Type" && it2->second != "")
+                {
+                    if (all || wxFile::Exists(it2->second))
+                    {
+                        res.push_back(it2->second);
+                    }
+                }
             }
         }
     }

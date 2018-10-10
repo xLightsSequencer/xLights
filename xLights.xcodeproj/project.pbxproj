@@ -68,6 +68,7 @@
 		670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EF2024C19B0002B617 /* LorOptimisedDialog.cpp */; };
 		670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */; };
 		670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */; };
+		670B31BD2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */; };
 		670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */; };
 		670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827F1C45C48B000AA5D8 /* StarModel.cpp */; };
 		670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82811C45C48B000AA5D8 /* TreeModel.cpp */; };
@@ -492,6 +493,7 @@
 		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
 		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
 		67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C78D091FBA2A4900B82E48 /* VideoCache.cpp */; };
+		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -850,6 +852,8 @@
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
 		670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelFaceDialog.h; sourceTree = "<group>"; };
 		670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelFaceDialog.cpp; sourceTree = "<group>"; };
+		670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigureMIDITimecodeDialog.h; sourceTree = "<group>"; };
+		670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigureMIDITimecodeDialog.cpp; sourceTree = "<group>"; };
 		670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArchesModel.cpp; path = models/ArchesModel.cpp; sourceTree = "<group>"; };
 		670C827E1C45C48B000AA5D8 /* ArchesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArchesModel.h; path = models/ArchesModel.h; sourceTree = "<group>"; };
 		670C827F1C45C48B000AA5D8 /* StarModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StarModel.cpp; path = models/StarModel.cpp; sourceTree = "<group>"; };
@@ -1978,6 +1982,7 @@
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
 				67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */,
 				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
+				67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */,
 				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
 				67A14C8220DD3345006EFCFA /* libSystem.tbd in Frameworks */,
 				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,
@@ -3098,6 +3103,8 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */,
+				670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */,
 				670E0C2B20B641D70055F891 /* City.cpp */,
 				670E0C2A20B641D60055F891 /* City.h */,
 				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
@@ -4073,6 +4080,7 @@
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
 				67D75E582020ED60005BAC6E /* ListenerARTNet.cpp in Sources */,
 				1ECB4F7F1FF63621006D57AA /* Pinger.cpp in Sources */,
+				670B31BD2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
 				67D75E5A2020ED60005BAC6E /* ListenerOSC.cpp in Sources */,
 				67D75E2E2020ED1B005BAC6E /* EventDialog.cpp in Sources */,

@@ -1691,8 +1691,11 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 }
 
 static inline bool IsInRange(const std::vector<bool> &restrictRange, size_t start) {
-    if (start >= restrictRange.size()) {
+    if (restrictRange.empty()) {
         return true;
+    }
+    if (start >= restrictRange.size()) {
+        return false;
     }
     return restrictRange[start];
 }

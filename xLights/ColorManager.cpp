@@ -84,7 +84,11 @@ xlColor ColorManager::GetColor(ColorNames name)
     if(search != colors.end()) {
         return search->second;
     }
-    return colors_system[xLights_color[name].name];
+    auto search2 = colors_system.find(xLights_color[name].name);
+    if(search2 != colors_system.end()) {
+        return search2->second;
+    }
+    return xLights_color[name].color;
 }
 
 const xlColor* ColorManager::GetColorPtr(ColorNames name)

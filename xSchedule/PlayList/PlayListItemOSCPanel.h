@@ -84,8 +84,6 @@ class PlayListItemOSCPanel: public wxPanel
 
 		//(*Handlers(PlayListItemOSCPanel)
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
-		void OnCheckBox_WaitForCompletionClick(wxCommandEvent& event);
-		void OnTextCtrl_CommandText(wxCommandEvent& event);
 		void OnTextCtrl_RunProcessNameText(wxCommandEvent& event);
 		void OnChoice_TypeSelect(wxCommandEvent& event);
 		//*)

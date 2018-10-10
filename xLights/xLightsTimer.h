@@ -26,9 +26,9 @@ class xLightsTimer :
 public:
     xLightsTimer();
     virtual ~xLightsTimer();
-    virtual void Stop();
-    virtual bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS);
-    virtual void Notify();
+    virtual void Stop() override;
+    virtual bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS) override;
+    virtual void Notify() override;
     virtual void DoSendTimer();
     int GetInterval() const;
 

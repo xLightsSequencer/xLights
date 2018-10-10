@@ -27,6 +27,7 @@ PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node)
     _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
+    _suspendAtEndOfStep = false;
     _lastLoop = false;
     _looping = false;
     _random = false;
@@ -103,6 +104,7 @@ PlayList::PlayList(PlayList& playlist, bool newid)
     _commandParametersAtEndOfCurrentStep = "";
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
+    _suspendAtEndOfStep = false;
     _loopStep = false;
     _lastLoop = false;
     _random = false;
@@ -144,6 +146,7 @@ PlayList::PlayList()
     _id = __playlistid++;
     _forceNextStep = "";
     _jumpToEndStepsAtEndOfCurrentStep = false;
+    _suspendAtEndOfStep = false;
     _loopStep = false;
     _lastLoop = false;
     _random = false;
@@ -520,6 +523,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         _loopStep = false;
         _stopAtEndOfCurrentStep = false;
         _jumpToEndStepsAtEndOfCurrentStep = false;
+        _suspendAtEndOfStep = false;
         _lastLoop = false;
         _stopAtEndOfCurrentStep = false;
 
@@ -831,6 +835,13 @@ bool PlayList::MoveToNextStep()
 
     _currentStep->Start(-1);
 
+    if (_suspendAtEndOfStep)
+    {
+        Suspend(true);
+        _suspendAtEndOfStep = false;
+        return false;
+    }
+
     return success;
 }
 
@@ -850,7 +861,7 @@ bool PlayList::JumpToStep(const std::string& step)
     _loopStep = false;
     _forceNextStep = "";
 
-    if (_currentStep != nullptr && wxString(_currentStep->GetName()).Lower() == wxString(step).Lower())
+    if (_currentStep != nullptr && wxString(_currentStep->GetNameNoTime()).Lower() == wxString(step).Lower())
     {
         _currentStep->Restart();
         return success;

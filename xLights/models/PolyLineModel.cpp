@@ -279,11 +279,23 @@ void PolyLineModel::InitModel() {
     // normalize all points from 0.0 to 1.0 and create
     // a matrix for each line segment
     for( int i = 0; i < num_points-1; ++i ) {
-        float x1p = (pPos[i].x - minX) / deltax;
-        float x2p = (pPos[i+1].x - minX) / deltax;
-        float y1p = (pPos[i].y - minY) / deltay;
-        float y2p = (pPos[i+1].y - minY) / deltay;
-
+        float x1p, y1p, x2p, y2p;
+        if (deltax == 0.0f) {
+            x1p = 0.0f;
+            x2p = 0.0f;
+        }
+        else {
+            x1p = (pPos[i].x - minX) / deltax;
+            x2p = (pPos[i+1].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            y1p = 0.0f;
+            y2p = 0.0f;
+        }
+        else {
+            y1p = (pPos[i].y - minY) / deltay;
+            y2p = (pPos[i + 1].y - minY) / deltay;
+        }
         float angle = (float)M_PI/2.0f;
         if (pPos[i+1].x != pPos[i].x) {
             float slope = (y2p - y1p)/(x2p - x1p);
@@ -965,8 +977,18 @@ void PolyLineModel::NormalizePointData()
 
     // normalize all the point data
     for( int i = 0; i < num_points; ++i ) {
-        pPos[i].x = (pPos[i].x - minX) / deltax;
-        pPos[i].y = (pPos[i].y - minY) / deltay;
+        if (deltax == 0.0f) {
+            pPos[i].x = 0.0f;
+        }
+        else {
+            pPos[i].x = (pPos[i].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            pPos[i].y = 0.0f;
+        }
+        else {
+            pPos[i].y = (pPos[i].y - minY) / deltay;
+        }
         if( pPos[i].has_curve ) {
             float cp0x = pPos[i].curve->get_cp0x();
             float cp0y = pPos[i].curve->get_cp0y();

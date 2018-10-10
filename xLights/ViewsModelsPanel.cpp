@@ -239,9 +239,9 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     mdt = new MyTextDropTarget(this, ListCtrlNonModels, "NonModel");
     ListCtrlNonModels->SetDropTarget(mdt);
 
-    //Panel_Sizer->SetMinSize(wxSize(600, 400));
-    //MainSizer->SetMinSize(600, 400);
-    //SetMinSize(wxSize(600, 400));
+    int w, h;
+    GetSize(&w, &h);
+    SetSize(std::max(600, w), std::max(400, h));
 
     ValidateWindow();
 }

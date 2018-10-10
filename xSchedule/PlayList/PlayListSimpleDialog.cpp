@@ -212,12 +212,13 @@ void PlayListSimpleDialog::PopulateTree(PlayList* selplaylist, PlayListStep* sel
     {
         wxTreeItemId step = TreeCtrl_PlayList->AppendItem(TreeCtrl_PlayList->GetRootItem(), (*it)->GetName());
         TreeCtrl_PlayList->SetItemData(step, new MyTreeItemData(*it));
+
         if ( selstep != nullptr && (*it)->GetId() == selstep->GetId())
         {
             select = step;
         }
-        size_t ms;
-        PlayListItem* ts = (*it)->GetTimeSource(ms);
+        // size_t ms;
+        // PlayListItem* ts = (*it)->GetTimeSource(ms);
     }
 
     if (select == nullptr) select = TreeCtrl_PlayList->GetRootItem();

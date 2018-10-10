@@ -32,8 +32,9 @@ class EventMIDI: public EventBase
         std::string GetData1() const { return _data1; }
         void SetChannel(std::string channel) { if (_channel != channel) { DoSetChannel(channel); _changeCount++; } }
         std::string GetChannel() const { return _channel; }
-        virtual void Process(wxByte status, wxByte channel, wxByte data1, wxByte data2, ScheduleManager* scheduleManager);
+        void Process(wxByte status, wxByte channel, wxByte data1, wxByte data2, ScheduleManager* scheduleManager);
         static std::list<std::string> GetDevices();
+        static std::list<std::string> GetOutputDevices();
         int GetDeviceId() const;
         void ProcessMIDICommand(wxByte data1, wxByte data2, ScheduleManager* scheduleManager);
         static std::string GetParmToolTip();

@@ -11,10 +11,54 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
+   -- enh (gil)    Fix horizontal and vertical distribute in Layout panel.  Fixes #1219.
+   -- enh (gil)    Prevent creating LOR data unless sequence timing is a multiple of 10ms.  Add warnings.
+   -- enh (keith)  Add Vixen 3 timing mark import
+   -- enh (keith)  Add higher priority schedules optional graceful interruption of lower priority schedules
+   -- enh (keith)  Add to check sequence check on matrix face effect files
+   -- bug (keith)  Fix F48 upload where controller in as new state and attempting to put 1074 or more pixels on bank 1 & 2.
+   -- bug (keith)  Fix audio controls dont work properly on tabs other than sequencer
+   -- enh (keith)  Add to face effect the ability to auto hide when no phoneme to single
+   -- enh (keith)  Add more bulk edits to the face effect
+   -- enh (keith)  Add more rotozoom and subbuffer checks to face effect ... these produce unexpected results that are hard to troubleshoot
+   -- enh (keith)  Make it easier to define virtual matrices 1:1 sized with pixel data and even multiples thereof
+   -- enh (keith)  Add a fade in/out play list item
+2018.35 October 6, 2018
+   -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
+   -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.
+   -- bug (gil)    Fix WiringDialog scaling for some Windows machines.
+   -- bug (gil)    Prevent Arches and Icicles from drawing upside down when drawn right to left.
+   -- enh (gil)    LOROptimised output nows skips frames when not keeping up.  Prevents blue screen crash when turning off output to lights.
+   -- bug (gil)    Fix LOROptimised output to work in Test dialog. Fixes #1262.
+   -- bug (dkulp)  Fix issues if rgbeffects.xml does not contain ALL the colors we need to things get mapped to black
+   -- bug (dkulp)  When clicking/modifying a single effect, the restricted node range was not being used correctly
+                   (all channels above the max node in the model were not considered restricted)
+                   Fixes #1253
+   -- bug (keith)  Flag as an error attempts to define too many input universes on a falcon controller
+   -- bug (keith)  Prevent crash in animation sequence if length is changes to zero
+   -- bug (keith)  Fix ctrl-shift-right arrow doesnt always stretch effects
+   -- bug (keith)  Guarantee minimum size of the display elements panel when it is shown
+   -- bug (keith)  Fix vixen export generates illegal sequence timing
+   -- enh (keith)  Add new xSchedule APIs for stopping event playlists: Stop event playlist; Stop event playlist if playing step
+2018.34 October 1, 2018
+   -- enh (dkulp)  On OSX, detect if default audio device changes and move audio to new device
    -- enh (dkulp)  Update to newer standard dictionary
    -- bug (dkulp)  Loading dictionaries did not properly use utf-8.  Fixes #1247
    -- enh (scott)  Added Start and End Time to the Lyric Dialog
    -- bug (scott)  Fixed Missing Nodes on Node Select Dialog
+   -- bug (keith)  Fix row paste always pastes to top row on model
+   -- bug (keith)  Get artnet timecode working correctly proven with TimeLord and Madrix
+   -- enh (keith)  Add MIDI timecode support
+   -- bug (keith)  Fix crash on right click after undoing an effect add
+   -- bug (keith)  Fix start channel dialog does not list outputs which use ids rather than universes
+   -- bug (keith)  Fix on effect cycles should be 0-100 not 0-1000 and value of 10 acted like 1
+   -- bug (keith)  Fix models list export gets end channel on model groups wrong
+   -- bug (keith)  Fix xschedule rapid restart on linux unable to listen on http port
+   -- bug (keith)  Fix custom model background image does weird colour things when you dim it down
+   -- enh (keith)  Add 7 pixel fonts to text effect
+   -- bug (keith)  Allow blink for rest and off static phonemes
+   -- bug (keith)  Fix some quirks in xschedule date handling that only show up in months with less than 31 days
 2018.33 September 7, 2018
    -- enh (dkulp)  Bunch of performance updates for Test dialog on OSX
    -- bug (keith)  FPP Upload extra logging and delete any existing file before upload
