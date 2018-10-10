@@ -29,7 +29,7 @@ LOROptimisedOutput::~LOROptimisedOutput()
 
 void LOROptimisedOutput::SetupHistory()
 {
-    for( size_t i=0; i < 32; ++i ) {
+    for( size_t i=0; i < MAX_BANKS; ++i ) {
         banks_changed[i] = true;
     }
 }
@@ -100,13 +100,13 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
 
         while( controller_channels_to_process > 0 ) {
             size_t idx = 0;  // running index for placing next byte
-            wxByte d[1024];
+            wxByte d[8192];
             std::vector< std::vector<LORDataPair> > lorBankData;
             lorBankData.resize((channels_per_pass/16)+1);
 
             bool bank_changed = false;
             bool frame_changed = false;
-            bool color_mode[32];
+            bool color_mode[MAX_BANKS];
 
             // gather all the data and compress common values on a per 16 channel bank basis
             int channels_to_process = channels_per_pass;
