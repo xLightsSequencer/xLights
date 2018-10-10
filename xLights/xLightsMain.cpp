@@ -5362,6 +5362,32 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // Check for matrix faces where the file does not exist
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Missing matrix face images");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        auto facefiles = it->second->GetFaceFiles(true);
+
+        for (auto fit = facefiles.begin(); fit != facefiles.end(); ++fit)
+        {
+            if (!wxFile::Exists(*fit))
+            {
+                wxString msg = wxString::Format("    ERR: Model '%s' face image missing %s.", it->second->GetFullName(), *fit);
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     // Check for large blocks of unused channels
     LogAndWrite(f, "");
     LogAndWrite(f, "Large blocks of unused channels that bloats memory usage and the the fseq file.");

@@ -257,7 +257,7 @@ public:
 
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
-    std::list<std::string> GetFaceFiles() const;
+    std::list<std::string> GetFaceFiles(bool all = false) const;
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     void SelectHandle(int handle);
     int GetSelectedHandle();
