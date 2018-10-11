@@ -1179,7 +1179,6 @@ private:
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
 
-    JobPool jobPool;
 
     void OnNetworkPopup(wxCommandEvent &event);
 
@@ -1260,9 +1259,9 @@ protected:
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
-    bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
-    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
-    void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
+    bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);
@@ -1334,6 +1333,7 @@ private:
     } renderTree;
     int AutoSaveInterval;
     int BackupPurgeDays;
+    JobPool jobPool;
 
     Model *playModel;
     int playType;

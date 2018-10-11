@@ -11,6 +11,37 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
+   -- enh (gil)    Fix horizontal and vertical distribute in Layout panel.  Fixes #1219.
+   -- enh (gil)    Prevent creating LOR data unless sequence timing is a multiple of 10ms.  Add warnings.
+   -- enh (keith)  Add Vixen 3 timing mark import
+   -- enh (keith)  Add higher priority schedules optional graceful interruption of lower priority schedules
+   -- enh (keith)  Add to check sequence check on matrix face effect files
+   -- bug (keith)  Fix F48 upload where controller in as new state and attempting to put 1074 or more pixels on bank 1 & 2.
+   -- bug (keith)  Fix audio controls dont work properly on tabs other than sequencer
+   -- enh (keith)  Add to face effect the ability to auto hide when no phoneme to single
+   -- enh (keith)  Add more bulk edits to the face effect
+   -- enh (keith)  Add more rotozoom and subbuffer checks to face effect ... these produce unexpected results that are hard to troubleshoot
+   -- enh (keith)  Make it easier to define virtual matrices 1:1 sized with pixel data and even multiples thereof
+   -- enh (keith)  Add a fade in/out play list item
+   -- enh (keith)  Add manual video speed control to video effect
+2018.35 October 6, 2018
+   -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
+   -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.
+   -- bug (gil)    Fix WiringDialog scaling for some Windows machines.
+   -- bug (gil)    Prevent Arches and Icicles from drawing upside down when drawn right to left.
+   -- enh (gil)    LOROptimised output nows skips frames when not keeping up.  Prevents blue screen crash when turning off output to lights.
+   -- bug (gil)    Fix LOROptimised output to work in Test dialog. Fixes #1262.
+   -- bug (dkulp)  Fix issues if rgbeffects.xml does not contain ALL the colors we need to things get mapped to black
+   -- bug (dkulp)  When clicking/modifying a single effect, the restricted node range was not being used correctly
+                   (all channels above the max node in the model were not considered restricted)
+                   Fixes #1253
+   -- bug (keith)  Flag as an error attempts to define too many input universes on a falcon controller
+   -- bug (keith)  Prevent crash in animation sequence if length is changes to zero
+   -- bug (keith)  Fix ctrl-shift-right arrow doesnt always stretch effects
+   -- bug (keith)  Guarantee minimum size of the display elements panel when it is shown
+   -- bug (keith)  Fix vixen export generates illegal sequence timing
+   -- enh (keith)  Add new xSchedule APIs for stopping event playlists: Stop event playlist; Stop event playlist if playing step
 2018.34 October 1, 2018
    -- enh (dkulp)  On OSX, detect if default audio device changes and move audio to new device
    -- enh (dkulp)  Update to newer standard dictionary

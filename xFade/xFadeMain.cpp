@@ -27,7 +27,6 @@
 #include "../xLights/osxMacUtils.h"
 #include <wx/protocol/http.h>
 #include "UniverseEntryDialog.h"
-#include "../xLights/IPEntryDialog.h"
 #include "Emitter.h"
 #include "../xLights/UtilFunctions.h"
 #include "MIDIListener.h"
@@ -250,7 +249,7 @@ bool xFadeFrame::IsUniverseToBeCaptured(int universe)
 
 xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _e131SocketReceive = nullptr;
     _artNETSocketReceive = nullptr;
@@ -1352,7 +1351,7 @@ void xFadeFrame::OnUITimerTrigger(wxTimerEvent& event)
 {
     // this is where i need to move the fade slider
     float fadeTime = wxAtof(TextCtrl_CrossFadeTime->GetValue());
-    if (fadeTime == 0.0) fadeTime = 0.025;
+    if (fadeTime == 0.0f) fadeTime = 0.025f;
     float per = 10000 / (fadeTime * 40);
     if (per < 1) per = 1;
     if (_direction < 0)

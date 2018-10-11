@@ -57,8 +57,6 @@ class PlayListItemRunCommandPanel: public wxPanel
 
 		//(*Handlers(PlayListItemRunCommandPanel)
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
-		void OnCheckBox_WaitForCompletionClick(wxCommandEvent& event);
-		void OnTextCtrl_CommandText(wxCommandEvent& event);
 		void OnTextCtrl_RunCommandNameText(wxCommandEvent& event);
 		void OnTextCtrl_Parm1Text(wxCommandEvent& event);
 		void OnTextCtrl_Parm2Text(wxCommandEvent& event);

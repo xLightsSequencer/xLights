@@ -3,8 +3,6 @@
 #include "ListenerManager.h"
 #include "../wxMIDI/src/wxMidi.h"
 #include "../xScheduleMain.h"
-#include "../ScheduleManager.h"
-#include "../ScheduleOptions.h"
 
 ListenerMIDI::ListenerMIDI(int deviceId, ListenerManager* listenerManager) : ListenerBase(listenerManager)
 {
@@ -65,7 +63,7 @@ void ListenerMIDI::StartProcess()
 
 void ListenerMIDI::StopProcess()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_midiIn != nullptr)
     {
         _midiIn->Close();
@@ -172,6 +170,8 @@ void ListenerMIDI::Poll()
                         qfmode = (msg->GetData1() & 0x06) >> 1;
                         DoSync(qfmode, qfhours, qfmins, qfsecs, qfframes);
                         break;
+                    default:
+                        break;
                 }
             }
             _listenerManager->ProcessPacket(GetType(), msg->GetStatus() & 0xF0, msg->GetStatus() & 0x0F, msg->GetData1(), msg->GetData2());
@@ -199,25 +199,15 @@ void ListenerMIDI::Poll()
             }
                 break;
             case 0xF1: // MIDI Time Code	0xF1
-                {
-                int a = 0;
-                }
-                break;
             case 0xF2: // Song Position Pointer	0xF2
             case 0xF3: // Song Select	0xF3
             case 0xF4: // Tune Request	0xF6
             case 0xF7: // End System Exclusive	0xF7
-                break;
             case 0xF8: // Real - time Clock	0xF8
-                {
-                int a = 0;
-                }
-                break;
             case 0xF9: // Undefined	0xF9
             case 0xFA: // Start	0xFA
             case 0xFB: // Continue	0xFB
             case 0xFC: // Stop	0xFC
-                break;
             case 0xFD: // Undefined	0xFD
             case 0xFE: // Active Sensing	0xFE
             case 0xFF: // System Reset	0xFF

@@ -41,7 +41,7 @@ std::string NullOutput::GetLongDescription() const
 std::string NullOutput::GetChannelMapping(long ch) const
 {
     std::string res = "Channel " + std::string(wxString::Format(wxT("%ld"), ch)) + " maps to ...\n";
-    res += "Type: NULL (" + std::string(wxString::Format(wxT("%ld"), _nullNumber)) + ")\nChannel: " + std::string(wxString::Format(wxT("%ld"), ch - _startChannel)) + "\n";
+    res += "Type: NULL (" + std::string(wxString::Format(wxT("%d"), _nullNumber)) + ")\nChannel: " + std::string(wxString::Format(wxT("%ld"), ch - _startChannel)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
 

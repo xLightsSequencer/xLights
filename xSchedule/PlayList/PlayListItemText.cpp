@@ -404,7 +404,7 @@ wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
 
 void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_matrixMapper == nullptr) return;
 

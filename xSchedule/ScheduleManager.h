@@ -95,7 +95,7 @@ class ScheduleManager
     wxThreadIdType _mainThread;
     int _brightness;
     int _lastBrightness;
-    wxByte _brightnessArray[255];
+    wxByte _brightnessArray[256];
     wxMidiOutDevice* _midiMaster;
     wxDatagramSocket* _fppSyncMaster;
     wxDatagramSocket* _artNetSyncMaster;

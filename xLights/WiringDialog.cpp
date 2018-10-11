@@ -221,7 +221,7 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
         if (r > 5) r = 5;
         if (r < 3) r = 3;
     }
-    
+
     int printScale = 1;
     int fontSize = _fontSize;
     if (printer)
@@ -422,7 +422,7 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
 
     int r = 0.6 * std::min(pageWidth / width / 2, pageHeight / height / 2);
     if (r == 0) r = 1;
-    
+
     if (!printer)
     {
         if (r > 5) r = 5;
@@ -672,7 +672,7 @@ void WiringDialog::Render()
 {
     int w, h;
     GetClientSize(&w, &h);
-    _bmp.CreateScaled(w, h, wxBITMAP_SCREEN_DEPTH, GetContentScaleFactor());
+    _bmp.CreateScaled(w, h, wxBITMAP_SCREEN_DEPTH, 1.0);  // Using GetContentScaleFactor() was causing it to scale too much on some Windows systems.
 
     DrawBitmap(_bmp);
 

@@ -134,6 +134,15 @@ public:
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
+class BulkEditFaceChoice : public BulkEditChoice
+{
+public:
+
+    BulkEditFaceChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, long style = 0, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxChoiceNameStr);
+    virtual ~BulkEditFaceChoice() {}
+    void OnRightDown(wxMouseEvent& event);
+};
+
 class BulkEditValueCurveButton : public ValueCurveButton
 {
 protected:
@@ -179,6 +188,6 @@ wxStaticText* GetSettingLabelControl(wxWindow* w, std::string ourName, std::stri
 BulkEditTextCtrl* GetSettingTextControl(wxWindow* w, std::string ourName, std::string ourType);
 BulkEditSlider* GetSettingSliderControl(wxWindow* w, std::string ourName, std::string ourType);
 bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType);
-bool IsBulkEditAvailable(wxWindow* w);
+bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement = false);
 
 #endif

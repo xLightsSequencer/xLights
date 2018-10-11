@@ -102,6 +102,7 @@ class xLightsXmlFile : public wxFileName
         void ProcessPapagayo(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessLSPTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
+        void ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent);
         void ProcessError(const wxString& s);
         wxString UniqueTimingName(xLightsFrame* xLightsParent, wxString name) const;
         void UpdateVersion();

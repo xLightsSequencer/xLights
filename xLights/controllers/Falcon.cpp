@@ -236,11 +236,19 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
 
 bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString request;
     int output = 0;
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
+
+    if (outputs.size() > 96)
+    {
+        logger_base.error("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size());
+        wxMessageBox("Attempt to upload more than 96 universes to falcon controller. This is not supported.");
+        return false;
+    }
 
     for (auto it = outputs.begin(); it != outputs.end(); ++it)
     {
@@ -523,7 +531,48 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
         {
             success = false;
-            check += "Total pixels exceeded maximum allowed on a pixel port";
+            check += "Total pixels exceeded maximum allowed on a pixel port\n";
+
+            logger_base.warn("Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
+
+            if (_model == 48)
+            {
+                check += "Trying to disable unused banks on the F48.\n";
+                logger_base.debug("Trying to disable unused banks on the F48.");
+                // if it looks like we arent using the last 16 ports and everything is still set to the default
+                if (cud.GetMaxPixelPort() <= 16 && maxDaughter1 == 50 && maxDaughter2 == 50)
+                {
+                    int left = maxPixels - maxMain;
+                    maxDaughter1 = left / 2;
+                    maxDaughter1 = std::max(1, maxDaughter1);
+                    maxDaughter2 = left - maxDaughter1;
+                    maxDaughter2 = std::max(1, maxDaughter2);
+                    success = true;
+                    if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
+                    {
+                        success = false;
+                        check += "It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.\n";
+                        logger_base.error("It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.");
+                    }
+                }
+                else if (cud.GetMaxPixelPort() <= 32 && maxDaughter2 == 50)
+                {
+                    maxDaughter2 = maxPixels - maxMain - maxDaughter1;
+                    maxDaughter2 = std::max(1, maxDaughter2);
+                    success = true;
+                    if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
+                    {
+                        success = false;
+                        check += "It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.\n";
+                        logger_base.error("It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.");
+                    }
+                }
+                else
+                {
+                    check += "Unable to adjust banks. Resetting your controller to its defaults may help.\n";
+                    logger_base.error("    Unable to adjust banks. Resetting your controller to its defaults may help.");
+                }
+            }
         }
 
         if (maxMain + maxDaughter1 + maxDaughter2 < maxPixels)

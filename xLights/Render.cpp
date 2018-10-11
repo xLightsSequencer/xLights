@@ -764,7 +764,6 @@ public:
 	}
 
     void AbortRender() {
-        std::unique_lock<std::mutex> lock(nextLock);
         abort = true;
     }
 
@@ -840,8 +839,8 @@ private:
     log4cpp::Category &renderLog;
 
     wxGauge *gauge;
-    int currentFrame;
-    bool abort;
+    std::atomic_int currentFrame;
+    std::atomic_bool abort;
 
     std::vector<EffectLayerInfo *> subModelInfos;
 
@@ -1795,11 +1794,9 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         return false;
     }
 
-    if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0)
-    {
+    if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0) {
         // this happens with custom models with no nodes defined
-        if (buffer.BufferForLayer(layer, 0).curEffStartPer == period)
-        {
+        if (buffer.BufferForLayer(layer, 0).curEffStartPer == period) {
             logger_base.warn("Model %s has no nodes so skipping rendering.", (const char *)buffer.GetModel()->GetName().c_str());
         }
         return false;
@@ -1819,21 +1816,17 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         // need to do it every render as effects can move around
         const Model* m = buffer.GetModel();
 
-        if (m == nullptr)
-        {
+        if (m == nullptr) {
             // this could be a strand or node
             m = GetSequenceElements().GetXLightsFrame()->GetModel(buffer.GetModelName());
         }
 
-        if (m != nullptr)
-        {
-            if (m->GetStringType().compare(0, 12, "Single Color") == 0)
-            {
+        if (m != nullptr) {
+            if (m->GetStringType().compare(0, 12, "Single Color") == 0) {
                 colorMask = buffer.GetNodeMaskColor(0);
 
                 // If black ... then dont mask
-                if (colorMask == xlBLACK)
-                {
+                if (colorMask == xlBLACK) {
                     colorMask = xlColor::NilColor();
                 }
             }
@@ -1861,8 +1854,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                     reff->Render(effectObj, SettingsMap, b);
                 }
                 // Log slow render frames ... this takes time but at this point it is already slow
-                if (sw.Time() > 150)
-                {
+                if (sw.Time() > 150) {
                     logger_render.info("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
                 }
             } else {

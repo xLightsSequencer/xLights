@@ -105,16 +105,14 @@ void E131Output::SendSync(int syncUniverse)
         syncdata[17] = 0x21;  // 0x021 = 49 - 16
         syncdata[21] = 0x08;
 
-        // CID/UUID
-        wxChar msb, lsb;
         wxString id = XLIGHTS_UUID;
         id.Replace("-", "");
         id.MakeLower();
         if (id.Len() != 32) throw "invalid CID";
         for (int i = 0, j = 22; i < 32; i += 2)
         {
-            msb = id.GetChar(i);
-            lsb = id.GetChar(i + 1);
+            wxChar msb = id.GetChar(i);
+            wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
             syncdata[j++] = (wxByte)((msb << 4) | lsb);
@@ -237,15 +235,14 @@ bool E131Output::Open()
 
         // CID/UUID
 
-        wxChar msb, lsb;
         wxString id = XLIGHTS_UUID;
         id.Replace("-", "");
         id.MakeLower();
         if (id.Len() != 32) throw "invalid CID";
         for (int i = 0, j = 22; i < 32; i += 2)
         {
-            msb = id.GetChar(i);
-            lsb = id.GetChar(i + 1);
+            wxChar msb = id.GetChar(i);
+            wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
             _data[j++] = (wxByte)((msb << 4) | lsb);
@@ -602,11 +599,11 @@ std::string E131Output::GetChannelMapping(long ch) const
         res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
 
         res += "Type: E1.31\n";
-        int u = _universe;
+        // int u = _universe;
         long channeloffset = ch - GetStartChannel() + 1;
         if (_numUniverses > 1)
         {
-            u += (ch - GetStartChannel()) / _channels;
+            // u += (ch - GetStartChannel()) / _channels;
             channeloffset -= (ch - GetStartChannel()) / _channels * _channels;
         }
         res += "IP: " + _ip + "\n";

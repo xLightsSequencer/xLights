@@ -34,7 +34,6 @@ class JobPoolWorker
     JobPool *pool;
     volatile bool stopped;
     std::atomic<Job  *> currentJob;
-    std::thread thread;
     enum {
         STARTING,
         IDLE,
@@ -44,6 +43,8 @@ class JobPoolWorker
         STOPPED,
         UNKNOWN
     } status;
+    std::thread *thread;
+    std::thread::id tid;
 public:
     JobPoolWorker(JobPool *p);
     virtual ~JobPoolWorker();
@@ -53,6 +54,8 @@ public:
 
     void ProcessJob(Job *job);
     std::string GetStatus();
+    
+    std::string GetThreadName();
 };
 
 static void startFunc(JobPoolWorker *jpw) {
@@ -63,29 +66,47 @@ static void startFunc(JobPoolWorker *jpw) {
     delete jpw;
 }
 JobPoolWorker::JobPoolWorker(JobPool *p)
-: pool(p), currentJob(nullptr), stopped(false), status(STARTING), thread(startFunc, this)
+: pool(p), stopped(false), currentJob(nullptr), status(STARTING), thread(nullptr)
 {
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    logger_jobpool.debug("JobPoolWorker created  %X\n", this);
+    thread = new std::thread(startFunc, this);
+    tid = thread->get_id();
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
-    thread.detach();
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+    logger_jobpool.debug("JobPoolWorker destroyed  %X\n", this);
     status = UNKNOWN;
-    pool->RemoveWorker(this);
+    thread->detach();
+    delete thread;
 }
 
 std::string JobPoolWorker::GetStatus()
 {
+    static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
+
+    logger_jobpool.debug("Getting status for %X\n", this);
     std::stringstream ret;
     ret << "Thread: ";
         
     ret << std::showbase // show the 0x prefix
         << std::internal // fill between the prefix and the number
         << std::setfill('0') << std::setw(10)
-        << std::hex << thread.get_id()
+        << std::hex << tid
         << "    ";
     
     Job *j = currentJob;
+    
+    logger_jobpool.debug("     current job %X\n", j);
+
+    if (j != nullptr && j->SetThreadName()) {
+        ret << j->GetName() << " - ";
+    } else {
+        ret << pool->threadNameBase << " - ";
+    }
+    
     if (j != nullptr) {
         ret << j->GetStatus();
     } else if (status == STARTING) {
@@ -135,8 +156,7 @@ static void SetThreadName(const std::string &name) {
 static std::map<DWORD, std::string> __threadNames;
 static std::string OriginalThreadName()
 {
-    if (__threadNames.find(::GetCurrentThreadId()) != __threadNames.end())
-    {
+    if (__threadNames.find(::GetCurrentThreadId()) != __threadNames.end()) {
         return __threadNames[::GetCurrentThreadId()];
     }
     return "";
@@ -147,25 +167,36 @@ static void SetThreadName(const std::string &name)
 }
 #endif
 
+std::string JobPoolWorker::GetThreadName() {
+    Job *j = currentJob;
+    if (j != nullptr) {
+        if (j->SetThreadName()) {
+            return j->GetName();
+        }
+    }
+    return pool->threadNameBase;
+}
+
 void JobPoolWorker::Entry()
 {
-    // KW - extra logging to try to work out why this function crashes so often on windows ... I have tried to limit it to rare events
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
-    try {
+    logger_jobpool.debug("JobPoolWorker started  %X\n", this);
 
+    // KW - extra logging to try to work out why this function crashes so often on windows ... I have tried to limit it to rare events
+    try {
         SetThreadName(pool->threadNameBase);
         while ( !stopped ) {
             status = IDLE;
 
             Job *job = pool->GetNextJob();
             if (job != nullptr) {
-                logger_jobpool.debug("JobPoolWorker::Entry processing job.");
+                logger_jobpool.debug("JobPoolWorker::Entry processing job.   %X", this);
                 status = RUNNING_JOB;
                 // Call user's implementation for processing request
                 ProcessJob(job);
-                logger_jobpool.debug("JobPoolWorker::Entry processed job.");
+                logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
-                --pool->inFlight;
+                pool->inFlight--;
             } else if (pool->idleThreads > 12) {
                 break;
             }
@@ -176,18 +207,25 @@ void JobPoolWorker::Entry()
     // cancelled, otherwise the thread library would simply terminate the
     // program, see http://udrepper.livejournal.com/21541.html
     }  catch ( abi::__forced_unwind& ) {
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.");
-        --pool->numThreads;
+        logger_jobpool.warn("JobPoolWorker::Entry exiting due to __forced_unwind.  %X", this);
+        pool->numThreads--;
         status = STOPPED;
+        pool->RemoveWorker(this);
         throw;
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
-        logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.");
+        logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.  %X", this);
+        pool->numThreads--;
+        status = STOPPED;
+        pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
+        return;
     }
-    logger_jobpool.debug("JobPoolWorker::Entry exiting.");
-    --pool->numThreads;
+    logger_jobpool.debug("JobPoolWorker::Entry exiting.  %X", this);
+    pool->numThreads--;
     status = STOPPED;
+    pool->RemoveWorker(this);
+    logger_jobpool.debug("JobPoolWorker::Entry removed.  %X", this);
 }
 
 void JobPoolWorker::ProcessJob(Job *job)
@@ -213,16 +251,14 @@ void JobPoolWorker::ProcessJob(Job *job)
             status = DELETING_JOB;
             logger_jobpool.debug("Job on background thread done ... deleting job.");
             delete job;
-        }
-        else
-        {
+        } else {
             logger_jobpool.debug("Job on background thread done.");
         }
         status = FINISHED_JOB;
 	}
 }
 
-JobPool::JobPool(const std::string &n) : threadNameBase(n), queueLock(), threadLock(), signal(), queue(), idleThreads(0),  numThreads(0), inFlight(0), maxNumThreads(8)
+JobPool::JobPool(const std::string &n) : threadLock(false), queueLock(), signal(), queue(), numThreads(0), maxNumThreads(8),  idleThreads(0), inFlight(0), threadNameBase(n)
 {
 }
 
@@ -238,12 +274,22 @@ JobPool::~JobPool()
     Stop();
 }
 
+void JobPool::LockThreads() {
+    while (threadLock.exchange(true, std::memory_order_relaxed)) std::this_thread::yield();
+    std::atomic_thread_fence(std::memory_order_acquire);
+}
+void JobPool::UnlockThreads() {
+    std::atomic_thread_fence(std::memory_order_release);
+    threadLock.store(false, std::memory_order_relaxed);
+}
+
 void JobPool::RemoveWorker(JobPoolWorker *w) {
-    std::unique_lock<std::mutex> locker(threadLock);
+    LockThreads();
     auto loc = std::find(threads.begin(), threads.end(), w);
     if (loc != threads.end()) {
         threads.erase(loc);
     }
+    UnlockThreads();
 }
 
 Job *JobPool::GetNextJob() {
@@ -271,14 +317,21 @@ void JobPool::PushJob(Job *job)
     queue.push_back(job);
     inFlight++;
     
-    std::unique_lock<std::mutex> tlocker(threadLock);
     int count = inFlight;
     count -= idleThreads;
     count -= numThreads;
-    while (count > 0 && (numThreads < maxNumThreads)) {
-        count--;
-        threads.push_back(new JobPoolWorker(this));
-        numThreads++;
+    count = std::min(count, maxNumThreads - numThreads);
+    if (count > 0) {
+        LockThreads();
+        if (numThreads == 0 && count < 4 && 4 < maxNumThreads) {
+            //when we create first thread, assume we'll need extras real soon
+            count = 4;
+        }
+        for (int i = 0; i < count; i++) {
+            threads.push_back(new JobPoolWorker(this));
+            numThreads++;
+        }
+        UnlockThreads();
     }
     signal.notify_all();
 }
@@ -298,33 +351,41 @@ void JobPool::Start(size_t poolSize)
 
 void JobPool::Stop()
 {
-    std::unique_lock<std::mutex> locker(threadLock);
-    for(size_t i=0; i<threads.size(); i++){
-        JobPoolWorker *worker = threads.at(i);
+    LockThreads();
+    for (JobPoolWorker *worker : threads) {
         worker->Stop();
     }
     
     while (!threads.empty()) {
-        locker.unlock();
+        UnlockThreads();
 
         std::unique_lock<std::mutex> qlocker(queueLock);
         signal.notify_all();
         qlocker.unlock();
         
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        locker.lock();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        LockThreads();
     }
+    UnlockThreads();
 }
 
 std::string JobPool::GetThreadStatus() {
-    std::unique_lock<std::mutex> locker(threadLock);
     std::stringstream ret;
     ret << "\n";
-    for(size_t i=0; i<threads.size(); i++){
-        JobPoolWorker *worker = threads.at(i);
+    LockThreads();
+    for (JobPoolWorker *worker : threads) {
+        /*
+        uint64_t t = (uint64_t)worker;
+        ret << std::showbase // show the 0x prefix
+            << std::internal // fill between the prefix and the number
+            << std::setfill('0') << std::setw(10)
+            << std::hex << t
+            << "\n";
+        */
         ret << worker->GetStatus();
         ret << "\n";
     }
+    UnlockThreads();
     return ret.str();
 }
 

@@ -53,8 +53,6 @@ class PlayListItemESEQPanel: public wxPanel
 		//(*Handlers(PlayListItemESEQPanel)
 		void OnTextCtrl_DelayText(wxCommandEvent& event);
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
-		void OnFilePickerCtrl2FileChanged(wxFileDirPickerEvent& event);
-		void OnCheckBox_OverrideAudioClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

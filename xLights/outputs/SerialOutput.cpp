@@ -244,9 +244,9 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 
     //enum serial comm ports (more user friendly, especially if USB-to-serial ports change):
     //logic based on http://www.cplusplus.com/forum/windows/73821/
-    if (!(err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey)))
+    if (!((err = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hkey))))
     {
-        for (DWORD inx = 0; !(err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, nullptr, nullptr, (LPBYTE)portname, &portlen)) || (err == ERROR_MORE_DATA); ++inx)
+        for (DWORD inx = 0; !((err = RegEnumValue(hkey, inx, (LPTSTR)valname, &vallen, nullptr, nullptr, (LPBYTE)portname, &portlen))) || (err == ERROR_MORE_DATA); ++inx)
         {
             if (err == ERROR_MORE_DATA)
             {
@@ -367,7 +367,7 @@ void SerialOutput::Close()
         _serial->Purge();
 
         int i = 0;
-        while( !TxEmpty() && (i < 10) )
+        while( !TxEmpty() && (i < 200) )
         {
             wxMilliSleep(5);
             i++;
@@ -375,7 +375,7 @@ void SerialOutput::Close()
         _serial->Close();
         delete _serial;
         _serial = nullptr;
-        logger_base.debug("    Serial port %s closed.", (const char *)_commPort.c_str());
+        logger_base.debug("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
     }
 }
 #pragma endregion Start and Stop
@@ -449,8 +449,6 @@ PINGSTATE SerialOutput::Ping() const
         delete serial;
         return res;
     }
-
-    return PINGSTATE::PING_ALLFAILED;
 }
 
 #pragma region UI

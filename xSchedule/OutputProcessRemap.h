@@ -19,7 +19,7 @@ class OutputProcessRemap : public OutputProcess
         virtual void Frame(wxByte* buffer, size_t size) override;
         virtual size_t GetP1() const override { return _to; }
         virtual size_t GetP2() const override { return _channels; }
-        virtual std::string GetType() const { return "Remap"; }
+        virtual std::string GetType() const override { return "Remap"; }
 };
 
 #endif

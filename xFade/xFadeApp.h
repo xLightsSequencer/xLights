@@ -24,10 +24,10 @@
 class xFadeApp : public wxApp
 {
     public:
-        virtual bool OnInit();
-        virtual void OnFatalException();
+        virtual bool OnInit() override;
+        virtual void OnFatalException() override;
         void WipeSettings();
-        virtual int OnExit();
+        virtual int OnExit() override;
 };
 
 DECLARE_APP(xFadeApp)

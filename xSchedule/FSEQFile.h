@@ -1,9 +1,7 @@
 #ifndef FSEQFILE_H
 #define FSEQFILE_H
 
-#include <wx/wx.h>
 #include <string>
-#include <list>
 #include "Blend.h"
 
 class wxFile;

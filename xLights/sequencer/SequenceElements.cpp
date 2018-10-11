@@ -1891,14 +1891,15 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 
         int start_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
         int end_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
+        int total_time = end_time - start_time;
         
-        if((end_time - start_time)<= 0)//is start/end time valid?
+        if(total_time <= 0 || total_time > mSequenceEndMS)//is start/end time valid?
         {
             start_time = 0;
             end_time = mSequenceEndMS;
         }
 
-        int interval_ms = (end_time-start_time) / num_phrases;
+        int interval_ms = (end_time - start_time) / num_phrases;
         for( int i = 0; i < total_num_phrases; i++ )
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i).Trim(true).Trim(false);

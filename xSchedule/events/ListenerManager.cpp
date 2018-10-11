@@ -19,10 +19,10 @@
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
 
 ListenerManager::ListenerManager(ScheduleManager* scheduleManager) :
-    _scheduleManager(scheduleManager),
-    _pause(false),
-    _stop(false),
     _sync(0),
+    _stop(false),
+    _pause(false),
+    _scheduleManager(scheduleManager),
     _notifyScan(nullptr)
 {
     StartListeners();

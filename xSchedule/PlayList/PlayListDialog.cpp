@@ -25,6 +25,7 @@
 #include "PlayListItemRDS.h"
 #include "PlayListItemAudio.h"
 #include "PlayListItemESEQ.h"
+#include "PlayListItemFade.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemJukebox.h"
 #include "PlayListItemDelay.h"
@@ -64,6 +65,7 @@ const long PlayListDialog::ID_MNU_ADDSTEP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDVIDEO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDAUDIO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDESEQ = wxNewId();
+const long PlayListDialog::ID_MNU_ADDFADE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEXT = wxNewId();
 const long PlayListDialog::ID_MNU_ADDSCREENMAP = wxNewId();
@@ -480,14 +482,14 @@ void PlayListDialog::OnTreeDragEnd(wxMouseEvent& event)
         // if dropped on playlist make it the first step
         if (IsPlayList(dropitem))
         {
-            _playlist->MoveStepAfterStep(dragstep, nullptr);
+            _playlist->MoveStepBeforeStep(dragstep, nullptr);
             PopulateTree(_playlist, dragstep, nullptr);
         }
         // if dropped on a step make it the step after the dropped step
         else if (IsPlayListStep(dropitem))
         {
             PlayListStep* dropstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dropitem))->GetData();
-            _playlist->MoveStepAfterStep(dragstep, dropstep);
+            _playlist->MoveStepBeforeStep(dragstep, dropstep);
             PopulateTree(_playlist, dragstep, nullptr);
         }
     }
@@ -573,6 +575,7 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDSCREENMAP, "Add Screen Map");
     mnu.Append(ID_MNU_ADDTEXT, "Add Text");
     mnu.Append(ID_MNU_ADDFILE, "Add File");
+    mnu.Append(ID_MNU_ADDFADE, "Add Fade");
 
     wxMenuItem* mi = mnu.Append(ID_MNU_ADDSTEP, "Add Step");
     if (!IsPlayList(treeitem) && !IsPlayListStep(treeitem))
@@ -731,6 +734,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
         PlayListItemESEQ* pli = new PlayListItemESEQ();
         AddItem(_playlist, step, pli);
     }
+    else if (event.GetId() == ID_MNU_ADDFADE)
+    {
+        PlayListItemFade* pli = new PlayListItemFade(_outputManager);
+        AddItem(_playlist, step, pli);
+    }
     else if (event.GetId() == ID_MNU_ADDSTEP)
     {
         PlayListStep* pls = new PlayListStep();
@@ -775,6 +783,12 @@ void PlayListDialog::DeleteSelectedItem()
                 PlayListItem* playlistitem = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
                 PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(TreeCtrl_PlayList->GetItemParent(treeitem)))->GetData();
                 playliststep->RemoveItem(playlistitem);
+                auto items = playliststep->GetItems();
+                for (auto it = items.begin(); it != items.end(); ++it)
+                {
+                    (*it)->SetStepLength(playliststep->GetLengthMS());
+                }
+
                 PopulateTree(_playlist, playliststep, nullptr);
             }
         }
@@ -947,6 +961,13 @@ void PlayListDialog::AddItem(PlayList* playlist, PlayListStep* step, PlayListIte
         playlist->AddStep(pls, 0);
     }
     pls->AddItem(newitem);
+
+    auto items = pls->GetItems();
+    for (auto it = items.begin(); it != items.end(); ++it)
+    {
+        (*it)->SetStepLength(pls->GetLengthMS());
+    }
+
     PopulateTree(_playlist, pls, newitem);
 }
 

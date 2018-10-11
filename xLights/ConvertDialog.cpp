@@ -406,7 +406,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "0");
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventPeriodInMilliseconds");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ud", SeqData.FrameTime()));
+    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%d", (int)SeqData.FrameTime()));
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Time");
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", TotalTime));
@@ -481,13 +481,18 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     int rgbChanIndexes[3] = { 0,0,0 };
     int curRgbChanCount = 0;
 
+    int interval = SeqData.FrameTime() / 10;  // in centiseconds
+    long centiseconds = SeqData.NumFrames() * interval;
+    if( interval * 10 != SeqData.FrameTime() ) {
+        _parent->ConversionError(wxString("Cannot convert to LOR unless the sequence timing is evenly divisible by 10ms"));
+        return;
+    }
+
     if (!f.Create(filename, true))
     {
         _parent->ConversionError(wxString("Unable to create file: ") + filename);
         return;
     }
-    int interval = SeqData.FrameTime() / 10;  // in centiseconds
-    long centiseconds = SeqData.NumFrames() * interval;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write("<sequence saveFileVersion=\"3\"");
@@ -1347,7 +1352,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 cnt = context.size();
                 break;
             }
-            default: 
+            default:
                 break;
             }
             delete event;

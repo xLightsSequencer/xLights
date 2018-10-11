@@ -7,7 +7,6 @@
 #pragma region Constructors and Destructors
 LOROptimisedOutput::LOROptimisedOutput(SerialOutput* output)
 : LOROutput(output)
-
 {
     SetupHistory();
 }
@@ -30,7 +29,7 @@ LOROptimisedOutput::~LOROptimisedOutput()
 
 void LOROptimisedOutput::SetupHistory()
 {
-    for( size_t i=0; i < 32; ++i ) {
+    for( size_t i=0; i < MAX_BANKS; ++i ) {
         banks_changed[i] = true;
     }
 }
@@ -46,13 +45,49 @@ void LOROptimisedOutput::Save(wxXmlNode* node)
 }
 #pragma endregion Save
 
-#pragma region Data Setting
-void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], long size)
+#pragma region Frame Handling
+void LOROptimisedOutput::EndFrame(int suppressFrames)
 {
+    if (!_enabled || _suspend) return;
 
+    if (_changed)
+    {
+        SetManyChannels(0, _curData, 0);
+        _changed = false;
+    }
+    LOROutput::EndFrame(suppressFrames);
+}
+#pragma endregion Frame Handling
+
+#pragma region Data Setting
+void LOROptimisedOutput::SetOneChannel(long channel, unsigned char data)
+{
     if (!_enabled || _serial == nullptr || !_ok) return;
 
+    if( !_changed ) {
+        // Don't try to only send changes since this is used for test mode
+        // and not all channels are written every frame
+        SetupHistory();
+        memset(_curData, 0x00, sizeof(_curData));
+        memset(_lastSent, 0xFF, sizeof(_curData));
+        _changed = true;
+    }
+    _curData[channel] = data;
+}
+
+void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], long size)
+{
+    if (!_enabled || _serial == nullptr || !_ok) return;
+
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if( !TxEmpty() ) {
+        logger_base.debug("    LOROptimisedOutput: SetManyChannels skipped due to transmit buffer stackup");
+        return;
+    }
+
     int cur_channel = channel;
+    int total_bytes_sent = 0;
 
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
@@ -65,13 +100,13 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
 
         while( controller_channels_to_process > 0 ) {
             size_t idx = 0;  // running index for placing next byte
-            wxByte d[1024];
+            wxByte d[8192];
             std::vector< std::vector<LORDataPair> > lorBankData;
             lorBankData.resize((channels_per_pass/16)+1);
 
             bool bank_changed = false;
             bool frame_changed = false;
-            bool color_mode[32];
+            bool color_mode[MAX_BANKS];
 
             // gather all the data and compress common values on a per 16 channel bank basis
             int channels_to_process = channels_per_pass;
@@ -190,6 +225,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             if (_serial != nullptr && frame_changed)
             {
                 _serial->Write((char *)d, idx);
+                total_bytes_sent += idx;
             }
 
             for (int bank = 0; bank < lorBankData.size(); bank++) {
@@ -200,8 +236,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             unit_id++;
         }
     }
-
-
+    logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
 }
 
 void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb)
@@ -252,6 +287,8 @@ void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, i
 void LOROptimisedOutput::AllOff()
 {
     int bank = 0;
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("    LOROptimisedOutput: AllOff starting");
 
     for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
     {
@@ -294,6 +331,7 @@ void LOROptimisedOutput::AllOff()
     SendHeartbeat();
     _lastheartbeat = _timer_msec;
     wxMilliSleep(50);
+    logger_base.debug("    LOROptimisedOutput: AllOff finished");
 }
 #pragma endregion Data Setting
 

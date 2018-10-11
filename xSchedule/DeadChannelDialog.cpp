@@ -82,7 +82,7 @@ DeadChannelDialog::DeadChannelDialog(wxWindow* parent, OutputManager* outputMana
 
     if (_channel == 0) _channel = 1;
 
-    long chs = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
+    // long chs = xScheduleFrame::GetScheduleManager()->GetTotalChannels();
 
     TextCtrl_StartChannel->SetValue(_nodeStartChannel);
     Choice_Channel->SetSelection(_channel - 1);

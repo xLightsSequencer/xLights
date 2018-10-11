@@ -104,7 +104,6 @@ void FSEQFile::Load(const std::string& filename)
 
     if (_fh->IsOpened())
     {
-        int offset = 0;
         char tag[5];
         memset(tag, 0x00, sizeof(tag));
         _fh->Read(tag, sizeof(tag)-1);
@@ -113,15 +112,15 @@ void FSEQFile::Load(const std::string& filename)
             _frame0Offset = ReadInt16(_fh);
             _fh->Read(&_minorVersion, sizeof(_minorVersion));
             _fh->Read(&_majorVersion, sizeof(_majorVersion));
-            int fixedheader = ReadInt16(_fh); // fixed header length
+            ReadInt16(_fh); // fixed header length - read and ignore
             _channelsPerFrame = ReadInt32(_fh);
             _frames = ReadInt32(_fh);
             _frameMS = ReadInt16(_fh);
-            int universes = ReadInt16(_fh); // universes
-            int usize  = ReadInt16(_fh); // universe size
+            ReadInt16(_fh); // universes - read and ignore
+            ReadInt16(_fh); // universe size - read and ignore
             _gamma = _fh->Read(&_gamma, sizeof(_gamma));
             _fh->Read(&_colourEncoding, sizeof(_colourEncoding));
-            int fill = ReadInt16(_fh); // fill
+            ReadInt16(_fh); // fill - read and ignore
             if (_frame0Offset > 28)
             {
                 int mediafilenamelength = ReadInt16(_fh);

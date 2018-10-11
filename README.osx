@@ -100,7 +100,7 @@ https://www.videolan.org/developers/x264.html
 make
 make install
 
-ffmpeg:   currently using 3.4.2 - needs x264 installed as above
+ffmpeg:   currently using 3.4.4 - needs x264 installed as above
 export MACOSX_DEPLOYMENT_TARGET=10.10
 ./configure --disable-videotoolbox --disable-vda --disable-x86asm --disable-securetransport --enable-shared --extra-cflags="-mmacosx-version-min=10.10 -Dx264_bit_depth=8" --disable-indev=lavfi --enable-libx264 --enable-gpl --enable-opengl
 make

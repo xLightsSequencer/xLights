@@ -1,7 +1,6 @@
 #include "ListenerLor.h"
 #include <log4cpp/Category.hh>
 #include "../../xLights/outputs/serial.h"
-#include "../../xLights/outputs/SerialOutput.h"
 #include "ListenerManager.h"
 
 ListenerLor::ListenerLor(ListenerManager* listenerManager, std::string commPort, std::string serialConfig, int baudRate, std::string protocol, std::string unit_id_str)
@@ -38,7 +37,7 @@ void ListenerLor::AddNewUnitId( int unit_id )
 
 void ListenerLor::Poll()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStopWatch sw3;
 	int inputs1 = 0;
 	int inputs2 = 0;

@@ -1,7 +1,6 @@
 #ifndef EVENTDATA_H
 #define EVENTDATA_H
 
-#include <wx/wx.h>
 #include "EventBase.h"
 
 class EventData: public EventBase

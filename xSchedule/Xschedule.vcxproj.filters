@@ -466,6 +466,12 @@
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFade.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemFadePanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -910,6 +916,12 @@
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
+    <ClInclude Include="PlayList\PlayListItemFadePanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemFade.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

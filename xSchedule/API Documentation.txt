@@ -79,7 +79,7 @@ http://<host:port>/xScheduleQuery?Query=<query>&Parameters=<parameters>
 		GetButtons
 			- This returns a list of user defined button labels which the user has setup. The UI can use the "PressButton" command to cause the scheduler to process the command as if the user had pressed it. This allows a website to show the same user defined buttons on a webpage.
 				
-http://<host:port>/xScheduleCommand?Command-<command>&Parameters=<parameters>
+http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 
 	This API is used to trigger an action by the scheduler. Some are simple actions, but some are complex compound actions. 
 	
@@ -275,6 +275,12 @@ http://<host:port>/xScheduleCommand?Command-<command>&Parameters=<parameters>
 
 		Run event playlist step if idle looped <playlistname>,<step name>
 			This api will run the specified playlist step continuously immediately without interrupting anything else as long as there isnt already an event playing in that playlist. Data from this step will overwrite almost everything.
+			
+		Stop event playlist <playlistname>
+			This api will stop the specified playlist if it is running as an event playlist.
+		
+		Stop event playlist if running step <playlistname>,<step name>
+			This api will stop the specified playlist if it is running as an event playlist and the specified step happens to be playing.
 
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 

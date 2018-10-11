@@ -33,7 +33,7 @@ BEGIN_EVENT_TABLE(MatrixDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-MatrixDialog::MatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& orientation, std::string& startingLocation, int& stringLength, int& strings, int& strandsPerString, std::string& startChannel, wxWindowID id,const wxPoint& pos,const wxSize& size) : _name(name), _orientation(orientation), _startChannel(startChannel), _startingLocation(startingLocation), _strandsPerString(strandsPerString), _strings(strings), _stringLength(stringLength)
+MatrixDialog::MatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& orientation, std::string& startingLocation, int& stringLength, int& strings, int& strandsPerString, std::string& startChannel, wxWindowID id,const wxPoint& pos,const wxSize& size) : _name(name), _stringLength(stringLength), _strings(strings), _strandsPerString(strandsPerString), _startChannel(startChannel), _orientation(orientation), _startingLocation(startingLocation)
 {
     _outputManager = outputManager;
 

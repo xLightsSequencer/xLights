@@ -18,13 +18,13 @@ END_EVENT_TABLE ()
 wxLed::wxLed (wxWindow * parent, wxWindowID id, const char * disabledColor, const wxPoint & pos, const wxSize & size)
 :
 	wxWindow (parent, id, pos, size),
-	m_bitmap (NULL)
+	m_bitmap (nullptr)
 {
 	this->m_isEnabled = false ;
 	strncpy (this->m_enabledColor, "FFFFFF", 7) ;
 	strncpy (this->m_disabledColor, disabledColor, 7) ;
 	* this->m_color = '\0' ;
-	this->SetBitmap (this->m_disabledColor) ;
+	this->SetBitmap(this->m_disabledColor) ;
 }
 
 wxLed::~wxLed ()
