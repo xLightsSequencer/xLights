@@ -637,10 +637,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     mPointSize = pointSize;
     mIsDrawing = true;
     SetCurrentGLContext();
-    LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
 
     /*****************************   2D   ********************************/
     if (!is_3d) {
+        glDisable(GL_DEPTH_TEST);
+        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         float scale2d = 1.0f;
         float scale_corrx = 0.0f;
         float scale_corry = 0.0f;
