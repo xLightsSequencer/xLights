@@ -641,7 +641,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
     /*****************************   2D   ********************************/
     if (!is_3d) {
         glDisable(GL_DEPTH_TEST);
-        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         float scale2d = 1.0f;
         float scale_corrx = 0.0f;
         float scale_corry = 0.0f;
@@ -667,7 +666,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize)
 
         prepare2DViewport(0, mWindowHeight, mWindowWidth, 0);
         LOG_GL_ERRORV(glClearColor(0, 0, 0, 0));   // background color
-        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+        LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
