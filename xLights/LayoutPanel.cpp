@@ -2424,35 +2424,24 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     else if (selectedButton != nullptr)
     {
         //create a new model
-        int wi, ht;
-        modelPreview->GetVirtualCanvasSize(wi, ht);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
-        int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
-        if (m_previous_mouse_x < wi
-            && cy < ht
-            && cy >= 0) {
+        m_moving_handle = true;
+        m_creating_bound_rect = false;
+        const std::string& model_type = selectedButton->GetModelType();
+        newModel = CreateNewModel(model_type);
+        newModel->SetLayoutGroup(currentLayoutGroup);
 
-            m_moving_handle = true;
-            m_creating_bound_rect = false;
-            const std::string& model_type = selectedButton->GetModelType();
-            newModel = CreateNewModel(model_type);
-            newModel->SetLayoutGroup(currentLayoutGroup);
-
-            if (newModel != nullptr) {
-                if (model_type == "Poly Line") {
-                    m_polyline_active = true;
-                }
-                UnSelectAllModels();
-                newModel->Selected = true;
-                if (wi > 0 && ht > 0)
-                {
-                    modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
-                    newModel->UpdateXmlWithScale();
-                }
-                lastModelName = newModel->name;
-                modelPreview->GetModels().push_back(newModel);
+        if (newModel != nullptr) {
+            if (model_type == "Poly Line") {
+                m_polyline_active = true;
             }
+            UnSelectAllModels();
+            newModel->Selected = true;
+            modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+            newModel->UpdateXmlWithScale();
+            lastModelName = newModel->name;
+            modelPreview->GetModels().push_back(newModel);
         }
     }
     else
