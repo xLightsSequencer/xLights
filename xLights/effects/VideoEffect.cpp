@@ -345,6 +345,22 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             frame = starttime * 1000 + _nextManualMS;
             _nextManualMS += speed * _frameMS;
         }
+        else if (durationTreatment == "Manual and Loop")
+        {
+            frame = starttime * 1000 + _nextManualMS;
+
+            while (frame < 0)
+            {
+                frame += _videoreader->GetLengthMS();
+            }
+
+            while (frame > _videoreader->GetLengthMS())
+            {
+                frame -= _videoreader->GetLengthMS();
+            }
+
+            _nextManualMS += speed * _frameMS;
+        }
         else
         {
             frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
@@ -380,7 +396,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         //wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
         // check it looks valid
-        if (image != nullptr)
+        if (image != nullptr && frame >= 0)
         {
             // draw the image
             xlColor c;

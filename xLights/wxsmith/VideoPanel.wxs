@@ -105,6 +105,7 @@
 												<item>Loop</item>
 												<item>Slow/Accelerate</item>
 												<item>Manual</item>
+												<item>Manual and Loop</item>
 											</content>
 											<selection>0</selection>
 											<handler function="OnChoice_Video_DurationTreatmentSelect" entry="EVT_CHOICE" />
@@ -133,7 +134,7 @@
 									<object class="sizeritem">
 										<object class="wxSlider" name="IDD_SLIDER_Video_Speed" subclass="BulkEditSliderF2" variable="Slider_Video_Speed" member="yes">
 											<value>100</value>
-											<min>1</min>
+											<min>-1000</min>
 											<max>1000</max>
 											<size>200,-1</size>
 										</object>

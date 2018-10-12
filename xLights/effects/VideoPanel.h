@@ -19,7 +19,7 @@ class wxTextCtrl;
 
 #include "../BulkEditControls.h"
 
-#define VIDEO_SPEED_MIN 1
+#define VIDEO_SPEED_MIN -1000
 #define VIDEO_SPEED_MAX 1000
 #define VIDEO_SPEED_DIVISOR 100
 
