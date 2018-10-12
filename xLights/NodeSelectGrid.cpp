@@ -162,7 +162,7 @@ NodeSelectGrid::NodeSelectGrid(Model *m, wxString row, wxWindow* parent, wxWindo
     : NodeSelectGrid(m, std::vector<wxString>(1, row), parent, id)
 {
 
-};
+}
 
 NodeSelectGrid::NodeSelectGrid(Model *m, std::vector<wxString> rows, wxWindow* parent, wxWindowID id)
 

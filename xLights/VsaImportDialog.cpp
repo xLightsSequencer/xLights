@@ -109,6 +109,7 @@ VsaImportDialog::VsaImportDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&VsaImportDialog::OnResize);
 	//*)
 
+    SetEscapeId(Button_Cancel->GetId());
 }
 
 VsaImportDialog::~VsaImportDialog()

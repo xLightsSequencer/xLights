@@ -1,3 +1,6 @@
+#ifndef PROJECTORCODES_H
+#define PROJECTORCODES_H
+
 #include <string>
 #include <list>
 
@@ -721,3 +724,5 @@ static std::list<std::list<std::string>> __projectorCodes =
         "PARITY", "NONE"
     }
 };
+
+#endif

@@ -5,7 +5,6 @@
 
 #undef min
 #include <algorithm>
-#include <cmath>
 #include <wx/filename.h>
 
 VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution/*false*/)
@@ -388,8 +387,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 	{
 		AVPacket pkt2;
 
-        int rc;
-		while (currenttime + (_frameMS / 2.0) < timestampMS && (rc = av_read_frame(_formatContext, &_packet)) >= 0 &&  currenttime <= _lengthMS)
+		while (currenttime + (_frameMS / 2.0) < timestampMS && (av_read_frame(_formatContext, &_packet)) >= 0 &&  currenttime <= _lengthMS)
 		{
             // Is this a packet from the video stream?
 			if (_packet.stream_index == _streamIndex)

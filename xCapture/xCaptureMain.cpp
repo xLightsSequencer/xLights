@@ -234,7 +234,7 @@ int xCaptureFrame::GuessFrameMS()
 
 xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     _e131Socket = nullptr;
     _artNETSocket = nullptr;

@@ -2,7 +2,6 @@
 #define IPOUTPUT_H
 
 #include "Output.h"
-#include <wx/socket.h>
 
 class IPOutput : public Output
 {

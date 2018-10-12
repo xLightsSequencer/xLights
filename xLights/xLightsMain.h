@@ -1182,6 +1182,7 @@ public:
     Model *GetModel(const std::string& name) const;
     void RenderGridToSeqData(std::function<void()>&& callback);
     bool AbortRender();
+    std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, SettingsMap& SettingsMap,
@@ -1243,9 +1244,9 @@ protected:
     void ResetEffectsXml();
     void SeqLoadXlightsXSEQ(const wxString& filename);
     std::string CreateEffectStringRandom(std::string &settings, std::string &palette);
-    bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
-    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles);
-    void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory);
+    bool CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors);
+    void CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors);
     void OpenRenderAndSaveSequences(const wxArrayString &filenames, bool exitOnDone);
     void AddAllModelsToSequence();
     void ShowPreviewTime(long ElapsedMSec);

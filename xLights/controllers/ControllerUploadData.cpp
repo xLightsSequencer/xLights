@@ -44,7 +44,6 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
                         if (std::find(noConnectionModels.begin(), noConnectionModels.end(), it->second) == noConnectionModels.end())
                         {
                             noConnectionModels.push_back(it->second);
-                            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.\n", (const char *)it->first.c_str(), (const char *)ip.c_str(), (const char *)it->second->GetControllerConnection().c_str()).ToStdString();
                         }
                     }
                     else
@@ -84,6 +83,25 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
                     }
                 }
             }
+        }
+    }
+
+    for (auto it = noConnectionModels.begin(); it != noConnectionModels.end(); ++it)
+    {
+        bool ok = false;
+
+        for (auto p = _pixelPorts.begin(); !ok && p != _pixelPorts.end(); ++p)
+        {
+            if (p->second->GetStartChannel() <= (*it)->GetFirstChannel()+1 &&
+                p->second->GetEndChannel() >= (*it)->GetLastChannel()+1)
+            {
+                ok = true;
+            }
+        }
+
+        if (!ok)
+        {
+            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.\n", (const char *)(*it)->GetFullName().c_str(), (const char *)ip.c_str(), (const char *)(*it)->GetControllerConnection().c_str()).ToStdString();
         }
     }
 }

@@ -49,6 +49,7 @@ CustomTimingDialog::CustomTimingDialog(wxWindow* parent,wxWindowID id,const wxPo
 	//*)
 	init = true;
     UpdateFPS();
+    SetEscapeId(wxID_CANCEL);
 }
 
 CustomTimingDialog::~CustomTimingDialog()

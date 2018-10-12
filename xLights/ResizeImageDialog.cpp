@@ -61,6 +61,7 @@ ResizeImageDialog::ResizeImageDialog(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+    SetEscapeId(wxID_CANCEL);
 }
 
 ResizeImageDialog::~ResizeImageDialog()

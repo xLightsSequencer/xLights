@@ -23,7 +23,7 @@ private:
     int _interval;
     int _fudgefactor;
     wxTimer* _timer;
-    virtual ExitCode Entry();
+    virtual ExitCode Entry() override;
 };
 
 #pragma region xlTimerTimer

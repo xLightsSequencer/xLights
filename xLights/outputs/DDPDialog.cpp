@@ -114,6 +114,7 @@ DDPDialog::DDPDialog(wxWindow* parent, DDPOutput* DDP, OutputManager* outputMana
     CheckBox1->SetValue(DDP->IsSuppressDuplicateFrames());
     SpinCtrl1->SetValue(DDP->GetId());
 
+    SetEscapeId(ButtonCancel->GetId());
     ButtonOk->SetDefault();
 
     ValidateWindow();

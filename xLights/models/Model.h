@@ -246,7 +246,7 @@ public:
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
 
-    std::list<std::string> GetFaceFiles() const;
+    std::list<std::string> GetFaceFiles(bool all = false) const;
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     int GetSelectedHandle();
     int GetNumHandles();

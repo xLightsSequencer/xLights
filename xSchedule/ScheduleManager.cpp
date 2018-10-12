@@ -926,7 +926,10 @@ int ScheduleManager::Frame(bool outputframe)
                 SendMIDISync(0xFFFFFFFF, rate);
 
                 // playlist is done
-                StopPlayList(running, false);
+                if (!running->IsSuspended())
+                {
+                    StopPlayList(running, false);
+                }
             }
 
             wxCommandEvent event(EVT_DOCHECKSCHEDULE);
@@ -1094,7 +1097,8 @@ void ScheduleManager::CreateBrightnessArray()
 {
     for (size_t i = 0; i < 256; i++)
     {
-        _brightnessArray[i] = (wxByte)(((i * _brightness) / 100) & 0xFF);
+        int b = (i * _brightness) / 100;
+        _brightnessArray[i] = (wxByte)(b & 0xFF);
     }
 }
 
@@ -1252,31 +1256,49 @@ int ScheduleManager::CheckSchedule()
                     if (!(*it)->IsStopped() && ((*it)->GetPlayList()->IsRunning() || ((*it)->GetSchedule()->GetFireFrequency() != "Fire once" && (*it)->GetSchedule()->ShouldFire())))
                     {
                         first = false;
-                        if (!(*it)->GetPlayList()->IsRunning() && (*it)->GetSchedule()->GetFireFrequency() != "Fire once" && (*it)->GetSchedule()->ShouldFire())
+
+                        PlayList* actuallyRunningPlaylist = GetRunningPlayList();
+
+                        if (actuallyRunningPlaylist != nullptr  && actuallyRunningPlaylist != (*it)->GetPlayList() && (*it)->GetSchedule()->GetGracefullyInterrupt())
                         {
-                            (*it)->GetPlayList()->StartSuspended();
-                            toUnsuspend = *it;
+                            logger_base.info("   Playlist %s being gracefully interupted by schedule %s on Playlist %s.", (const char*)actuallyRunningPlaylist->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str(), (const char *)(*it)->GetPlayList()->GetNameNoTime().c_str());
+                            actuallyRunningPlaylist->SetSuspendAtEndOfCurrentStep();
+                            if (!(*it)->GetPlayList()->IsRunning() &&
+                                (*it)->GetSchedule()->GetFireFrequency() != "Fire once" &&
+                                (*it)->GetSchedule()->ShouldFire())
+                            {
+                                (*it)->GetPlayList()->StartSuspended();
+                            }
                         }
-                        else if ((*it)->GetPlayList()->IsSuspended())
+                        else
                         {
-                            toUnsuspend = *it;
+                            if (!(*it)->GetPlayList()->IsRunning() && 
+                                (*it)->GetSchedule()->GetFireFrequency() != "Fire once" && 
+                                (*it)->GetSchedule()->ShouldFire())
+                            {
+                                (*it)->GetPlayList()->StartSuspended();
+                                toUnsuspend = *it;
+                            }
+                            else if ((*it)->GetPlayList()->IsSuspended())
+                            {
+                                toUnsuspend = *it;
+                            }
                         }
                     }
                 }
                 else
                 {
-                    if (!(*it)->GetPlayList()->IsSuspended())
+                    if (!(*it)->GetPlayList()->IsSuspended() && toUnsuspend != nullptr)
                     {
                         logger_base.info("   Suspending playlist %s due to schedule %s.", (const char*)(*it)->GetPlayList()->GetNameNoTime().c_str(), (const char *)(*it)->GetSchedule()->GetName().c_str());
                         (*it)->GetPlayList()->Suspend(true);
                     }
                 }
-
-                if (toUnsuspend != nullptr)
-                {
-                    logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char *)toUnsuspend->GetSchedule()->GetName().c_str());
-                    framems = toUnsuspend->GetPlayList()->Suspend(false);
-                }
+            }
+            if (toUnsuspend != nullptr)
+            {
+                logger_base.info("   Unsuspending playlist %s due to schedule %s.", (const char*)toUnsuspend->GetPlayList()->GetNameNoTime().c_str(), (const char *)toUnsuspend->GetSchedule()->GetName().c_str());
+                framems = toUnsuspend->GetPlayList()->Suspend(false);
             }
         }
         else
@@ -1340,8 +1362,12 @@ int ScheduleManager::CheckSchedule()
     logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s", (const char *)(*it)->GetPlayList()->GetName().c_str(), 
-            (const char *)(*it)->GetSchedule()->GetName().c_str(), (*it)->GetSchedule()->GetPriority(), (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")));
+        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s", 
+            (const char *)(*it)->GetPlayList()->GetName().c_str(), 
+            (const char *)(*it)->GetSchedule()->GetName().c_str(), 
+            (*it)->GetSchedule()->GetPriority(), 
+            (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")),
+            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""));
     }
 
     return framems;
@@ -1856,6 +1882,17 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         }
                     }
                 }
+                else if (command == "Set playlist as background")
+                {
+                    std::string pl = DecodePlayList(parameters);
+
+                    PlayList* p = GetPlayList(pl);
+                    if (p != nullptr)
+                    {
+                        SetBackgroundPlayList(p);
+                        logger_base.info("Set playlist as background %s.", (const char*)p->GetNameNoTime().c_str());
+                    }
+                }
                 else if (command == "Stop event playlist")
                 {
                     std::string pl = DecodePlayList(parameters);
@@ -1925,7 +1962,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 }
                 else if (command == "Run event playlist step if idle")
                 {
-                    bool run = false;
                     wxString parameter = parameters;
                     wxArrayString split = wxSplit(parameter, ',');
 
@@ -1973,7 +2009,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 }
                 else if (command == "Run event playlist step if idle looped")
                 {
-                    bool run = false;
                     wxString parameter = parameters;
                     wxArrayString split = wxSplit(parameter, ',');
 
@@ -2674,7 +2709,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
     if (!result)
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Action failed: %s", (const char *)msg.c_str());
 
         wxCommandEvent event(EVT_STATUSMSG);
@@ -2880,16 +2914,15 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
         {
             // parameters holds the subdirectory to scan ... blank is the web directory
 
-            wxString d;
 #ifdef __WXMSW__
-            d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+            wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #elif __LINUX__
-            d = wxStandardPaths::Get().GetDataDir();
+            wxString d = wxStandardPaths::Get().GetDataDir();
             if (!wxDir::Exists(d)) {
                 d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
             }
 #else
-            d = wxStandardPaths::Get().GetResourcesDir();
+            wxString d = wxStandardPaths::Get().GetResourcesDir();
 #endif
             d += "/" + _scheduleOptions->GetWWWRoot();
 
@@ -3292,7 +3325,7 @@ RunningSchedule* ScheduleManager::GetRunningSchedule() const
 
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        if ((*it)->GetPlayList()->IsRunning())
+        if ((*it)->GetPlayList()->IsRunning() && !(*it)->GetPlayList()->IsSuspended())
         {
             return *it;
         }
@@ -3877,7 +3910,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     for (auto n = _playLists.begin(); n != _playLists.end(); ++n)
     {
         auto n1 = n;
-        n1++;
+        ++n1;
 
         while (n1 != _playLists.end())
         {
@@ -3888,7 +3921,7 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                 errcount++;
             }
 
-            n1++;
+            ++n1;
         }
     }
 
@@ -4944,7 +4977,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
 void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
 {
-    static size_t lastmsec = 0;
+    // static size_t lastmsec = 0;
 
     if ((_mode == SYNCMODE::ARTNETMASTER) && _artNetSyncMaster == nullptr)
     {
@@ -4966,7 +4999,7 @@ void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
 
     if (!dosend) return;
 
-    lastmsec = msec;
+    // lastmsec = msec;
 
     wxIPV4address remoteAddr;
     //remoteAddr.BroadcastAddress();
@@ -5020,6 +5053,8 @@ void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
             break;
         case 3: // 30 fps
             buffer[14] = ms * 30 / 1000;
+            break;
+        default:
             break;
         }
 
@@ -5091,7 +5126,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
         buffer[3] = 0x01;
         buffer[4] = 0x01;
 
-        buffer[5] = GetOptions()->GetMIDITimecodeFormat() << 5 + ms / (3600000);
+        buffer[5] = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
         ms = ms % 360000;
 
         buffer[6] = ms / 60000;
@@ -5122,7 +5157,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
     else
     {
         size_t ms = msec;
-        int hours = GetOptions()->GetMIDITimecodeFormat() << 5 + ms / (3600000);
+        int hours = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
         ms = ms % 360000;
 
         int mins = ms / 60000;
@@ -5178,6 +5213,8 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
             case 7:
                 data = (hours & 0xF0) >> 4;
                 break;
+            default:
+                break;
             }
             wxMidiShortMessage msg(0xF1, (i<<4) + data, 0);
             msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
@@ -5194,7 +5231,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
 void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS)
 {
     static std::string lastfseq = "";
-    static size_t lastfseqmsec = 0;
+    // static size_t lastfseqmsec = 0;
 
     if ((_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _oscSyncMaster == nullptr)
     {
@@ -5286,6 +5323,8 @@ void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& 
         break;
     case CTRL_PKT_BLANK:
         sprintf(buffer, "FPP,%d\n", CTRL_PKT_BLANK);
+        break;
+    default:
         break;
     }
 

@@ -3,7 +3,6 @@
 
 #include "PlayListItem.h"
 #include <string>
-#include <list>
 
 class wxXmlNode;
 class wxWindow;

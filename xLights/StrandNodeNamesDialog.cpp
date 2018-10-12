@@ -66,6 +66,8 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+
+    SetEscapeId(wxID_CANCEL);
 }
 
 StrandNodeNamesDialog::~StrandNodeNamesDialog()
@@ -73,7 +75,6 @@ StrandNodeNamesDialog::~StrandNodeNamesDialog()
 	//(*Destroy(StrandNodeNamesDialog)
 	//*)
 }
-
 
 void StrandNodeNamesDialog::Setup(const Model *md, const std::string &nodeNames, const std::string &strandNames) {
     std::vector<wxString> strands;

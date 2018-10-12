@@ -42,6 +42,7 @@ RenameTextDialog::RenameTextDialog(wxWindow* parent,wxWindowID id)
 
 	Connect(ID_TEXTCTRL_Rename_Text,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&RenameTextDialog::OnTextCtrl_Rename_TextText);
 	//*)
+    SetEscapeId(wxID_CANCEL);
 }
 
 RenameTextDialog::~RenameTextDialog()

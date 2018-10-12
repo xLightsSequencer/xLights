@@ -24,13 +24,14 @@ class FacesPanel: public wxPanel
 
 		//(*Declarations(FacesPanel)
 		BulkEditCheckBox* CheckBox_Faces_Outline;
+		BulkEditCheckBox* CheckBox_SuppressWhenNotSinging;
 		BulkEditCheckBox* CheckBox_TransparentBlack;
 		BulkEditChoice* Choice_Faces_Eyes;
+		BulkEditChoice* Choice_Faces_TimingTrack;
 		BulkEditFaceChoice* Face_FaceDefinitonChoice;
 		BulkEditSlider* Slider1;
 		BulkEditTextCtrl* TextCtrl3;
 		wxChoice* Choice_Faces_Phoneme;
-		wxChoice* Choice_Faces_TimingTrack;
 		wxRadioButton* RadioButton1;
 		wxRadioButton* RadioButton2;
 		wxStaticText* StaticText14;
@@ -49,6 +50,7 @@ class FacesPanel: public wxPanel
 		static const long ID_STATICTEXT_Faces_Eyes;
 		static const long ID_CHOICE_Faces_Eyes;
 		static const long ID_CHECKBOX_Faces_Outline;
+		static const long ID_CHECKBOX_Faces_SuppressWhenNotSinging;
 		static const long ID_CHECKBOX_Faces_TransparentBlack;
 		static const long IDD_SLIDER_Faces_TransparentBlack;
 		static const long ID_TEXTCTRL_Faces_TransparentBlack;

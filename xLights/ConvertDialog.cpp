@@ -181,6 +181,8 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
         ConvertDir = dir;
     }
     FileDialogConvert->SetDirectory(ConvertDir);
+
+    SetEscapeId(ButtonClose->GetId());
 }
 
 ConvertDialog::~ConvertDialog()

@@ -11,8 +11,26 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- end (will)   Ability to hide header/footer on buttons plugin. Add &args=noheader to URL.
+   -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
    -- enh (gil)    Fix horizontal and vertical distribute in Layout panel.  Fixes #1219.
    -- enh (gil)    Prevent creating LOR data unless sequence timing is a multiple of 10ms.  Add warnings.
+   -- enh (keith)  Add Vixen 3 timing mark import
+   -- enh (keith)  Add higher priority schedules optional graceful interruption of lower priority schedules
+   -- enh (keith)  Add to check sequence check on matrix face effect files
+   -- bug (keith)  Fix F48 upload where controller in as new state and attempting to put 1074 or more pixels on bank 1 & 2.
+   -- bug (keith)  Fix audio controls dont work properly on tabs other than sequencer
+   -- enh (keith)  Add to face effect the ability to auto hide when no phoneme to single
+   -- enh (keith)  Add more bulk edits to the face effect
+   -- enh (keith)  Add more rotozoom and subbuffer checks to face effect ... these produce unexpected results that are hard to troubleshoot
+   -- enh (keith)  Make it easier to define virtual matrices 1:1 sized with pixel data and even multiples thereof
+   -- enh (keith)  Add a fade in/out play list item
+   -- enh (keith)  Add manual video speed control to video effect including the ability to play it backwards
+   -- enh (keith)  Add a "Set playlist as background" api to xschedule
+   -- bug (keith)  Handle overlapping models better in falcon/esp pixel stick uploads
+   -- enh (keith)  Smart entry of start channel and controller connection. #1 -> #1:1, 1 -> WS2811:1
+   -- enh (keith)  In start channel dialog allow user to filter to just models in current preview
+   -- enh (keith)  Get ESC working as shortcut to cancel most dialogs
 2018.35 October 6, 2018
    -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
    -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.

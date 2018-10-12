@@ -293,6 +293,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
     NodesGrid->SetCellHighlightColour(*wxLIGHT_GREY);
     NodesGrid->SetCellHighlightROPenWidth(3);
     NodesGrid->SetCellHighlightPenWidth(3);
+    SetEscapeId(wxID_CANCEL);
 }
 
 SubModelsDialog::~SubModelsDialog()

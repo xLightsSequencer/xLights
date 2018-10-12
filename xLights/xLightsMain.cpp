@@ -2432,6 +2432,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         MenuItem_File_Save->SetItemLabel("Save");
         SetStatusText(_(""));
     }
+    SetAudioControls();
 }
 
 void xLightsFrame::OnButtonLightsOffClick(wxCommandEvent& event)
@@ -2680,7 +2681,13 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
         logger_base.info("Backup directory '%s' created", (const char *)newDir.c_str());
     }
 
-    BackupDirectory(CurrentDir, newDir, newDir, forceallfiles);
+    std::string errors = "";
+    BackupDirectory(CurrentDir, newDir, newDir, forceallfiles, errors);
+
+    if (errors != "")
+    {
+        wxMessageBox(errors, "Backup errors", 4 | wxCENTRE, this);
+    }
 }
 
 void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
@@ -2690,10 +2697,15 @@ void xLightsFrame::OnMenuItemBackupSelected(wxCommandEvent& event)
     DoBackup(true);
 }
 
-void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory)
+void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString lastCreatedDirectory, std::string& errors)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (wxDir::Exists(targetDirName)) return;
+
+    if (targetDirName.Length() > 256)
+    {
+        logger_base.warn("Target directory is %d characters long. This may be an issue on your operating system.", targetDirName.Length());
+    }
 
     wxFileName tgt(targetDirName);
     wxFileName lst(lastCreatedDirectory);
@@ -2706,7 +2718,8 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
     wxArrayString lstd = wxSplit(lastCreatedDirectory, wxFileName::GetPathSeparator());
     wxString newDir = lastCreatedDirectory;
 
-    for (size_t i = lstd.Count(); i < tgtd.Count(); i++)
+    bool cont = true;
+    for (size_t i = lstd.Count(); cont && i < tgtd.Count(); i++)
     {
         wxDir dir(newDir);
         newDir += wxFileName::GetPathSeparator() + tgtd[i];
@@ -2715,13 +2728,15 @@ void xLightsFrame::CreateMissingDirectories(wxString targetDirName, wxString las
             logger_base.debug("    Create folder '%s'.", (const char*)newDir.c_str());
             if (!dir.Make(newDir))
             {
+                cont = false;
+                errors += wxString::Format("Failed to create folder %s\n", newDir);
                 logger_base.error("        Folder Create failed.");
             }
         }
     }
 }
 
-bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles)
+bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool res = false;
@@ -2736,7 +2751,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
         logger_base.debug("Backing up file %s.", (const char *)(srcDirName + fname).c_str());
         res = true;
 
-        CreateMissingDirectories(targetDirName, lastCreatedDirectory);
+        CreateMissingDirectories(targetDirName, lastCreatedDirectory, errors);
 
         srcFile.SetFullName(fname);
 
@@ -2755,8 +2770,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
         if (!success)
         {
             logger_base.error("    Copy Failed.");
-            wxMessageBox("Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"",
-                "Error", wxICON_ERROR | wxOK);
+            errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
         }
         cont = srcDir.GetNext(&fname);
     }
@@ -2764,7 +2778,7 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
     return res;
 }
 
-void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles)
+void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, wxString lastCreatedDirectory, bool forceallfiles, std::string& errors)
 {
     wxDir srcDir(sourceDir);
 
@@ -2773,9 +2787,9 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
         return;
     }
 
-    if (CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) +
-        CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) +
-        CopyFiles("*.xschedule", srcDir, targetDirName, lastCreatedDirectory, forceallfiles) > 0)
+    if (CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
+        CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
+        CopyFiles("*.xschedule", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) > 0)
     {
         lastCreatedDirectory = targetDirName;
     }
@@ -2790,7 +2804,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
             if (dir != "Backup")
             {
                 wxDir subdir(srcDir.GetNameWithSep() + dir);
-                BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles);
+                BackupDirectory(subdir.GetNameWithSep(), targetDirName + wxFileName::GetPathSeparator() + dir, lastCreatedDirectory, forceallfiles, errors);
             }
             cont = srcDir.GetNext(&dir);
         }
@@ -2959,7 +2973,7 @@ void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
         wxPostEvent(this, playEvent);
@@ -2979,7 +2993,7 @@ void xLightsFrame::EnableToolbarButton(wxAuiToolBar* toolbar,int id, bool enable
 
 void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_PAUSE_SEQUENCE);
         wxPostEvent(this, playEvent);
@@ -2988,7 +3002,7 @@ void xLightsFrame::OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         //playStartTime = playEndTime = 0;
         wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
@@ -2998,7 +3012,7 @@ void xLightsFrame::OnAuiToolBarItemStopClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarFirstFrameClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
         wxPostEvent(this, playEvent);
@@ -3007,7 +3021,7 @@ void xLightsFrame::OnAuiToolBarFirstFrameClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarLastFrameClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_SEQUENCE_LAST_FRAME);
         wxPostEvent(this, playEvent);
@@ -3016,7 +3030,7 @@ void xLightsFrame::OnAuiToolBarLastFrameClick(wxCommandEvent& event)
 
 void xLightsFrame::OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event)
 {
-    if (Notebook1->GetSelection() == NEWSEQUENCER)
+    //if (Notebook1->GetSelection() == NEWSEQUENCER)
     {
         wxCommandEvent playEvent(EVT_SEQUENCE_REPLAY_SECTION);
         wxPostEvent(this, playEvent);
@@ -4179,7 +4193,13 @@ void xLightsFrame::DoAltBackup(bool prompt)
         return;
     }
 
-    BackupDirectory(CurrentDir, newDir, newDir, false);
+    std::string errors = "";
+    BackupDirectory(CurrentDir, newDir, newDir, false, errors);
+
+    if (errors != "")
+    {
+        wxMessageBox(errors, "Backup errors", 4 | wxCENTRE, this);
+    }
 }
 
 void xLightsFrame::OnmAltBackupMenuItemSelected(wxCommandEvent& event)
@@ -5095,7 +5115,7 @@ void xLightsFrame::CheckSequence(bool display)
                 int m1end = m1start + (*it2)->GetChanCount() - 1;
                 int m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
 
-                if (m1end + 1 != m2start)
+                if (m1end + 1 != m2start && m2start - m1end - 1 > 0)
                 {
                     long sc;
                     Output* o = _outputManager.GetOutput(m1start, sc);
@@ -5337,6 +5357,32 @@ void xLightsFrame::CheckSequence(bool display)
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for matrix faces where the file does not exist
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Missing matrix face images");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        auto facefiles = it->second->GetFaceFiles(true);
+
+        for (auto fit = facefiles.begin(); fit != facefiles.end(); ++fit)
+        {
+            if (!wxFile::Exists(*fit))
+            {
+                wxString msg = wxString::Format("    ERR: Model '%s' face image missing %s.", it->second->GetFullName(), *fit);
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
             }
         }
     }

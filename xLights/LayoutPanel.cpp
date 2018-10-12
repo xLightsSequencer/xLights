@@ -517,6 +517,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
     TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
+    TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
 
     if (ModelSplitter->GetSashPosition() < 200)
     {
@@ -609,6 +610,10 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
                        tree->WidthFor(CHNUMWIDTH),
                        wxALIGN_LEFT,
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
+    tree->AppendColumn("Ctrlr Conn",
+                       wxCOL_WIDTH_AUTOSIZE,
+                       wxALIGN_LEFT,
+                       wxCOL_RESIZABLE);
     tree->SetSortColumn(0, true);
     return tree;
 }
@@ -655,6 +660,11 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
         ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
 #endif
+}
+
+std::string LayoutPanel::GetCurrentPreview() const
+{
+    return ChoiceLayoutGroups->GetStringSelection().ToStdString();
 }
 
 NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
@@ -965,6 +975,12 @@ void LayoutPanel::refreshModelList() {
                     data->endingChannel = end_channel;
                     TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
                 }
+                cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
+                std::string cc = model->GetControllerConnection();
+                if (cv != cc)
+                {
+                    TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
+                }
             }
         }
     }
@@ -1058,6 +1074,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
             TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + startStr);
         }
         TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
+        TreeListViewModels->SetItemText(item, Col_ControllerConnection, model->GetControllerConnection());
         width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
     }
 
@@ -1188,8 +1205,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         if (_firstTreeLoad) {
             _firstTreeLoad = false;
             width = std::max(width, TreeListViewModels->WidthFor("Start Chan"));
-            TreeListViewModels->SetColumnWidth(2, width);
             TreeListViewModels->SetColumnWidth(1, width);
+            TreeListViewModels->SetColumnWidth(2, width);
+            TreeListViewModels->SetColumnWidth(3, width);
         }
 
         TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);

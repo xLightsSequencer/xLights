@@ -54,7 +54,6 @@ std::string OSCPacket::GetP(int p) const
                 *((int8_t*)&f + 1) = *pcur++;
                 *((int8_t*)&f) = *pcur;
                 return wxString::Format("%f", f).ToStdString();
-                break;
             case 'i':
                 int ii;
                 *((int8_t*)&ii + 3) = *pcur++;
@@ -62,10 +61,8 @@ std::string OSCPacket::GetP(int p) const
                 *((int8_t*)&ii + 1) = *pcur++;
                 *((int8_t*)&ii) = *pcur;
                 return wxString::Format("%d", ii).ToStdString();
-                break;
             case 's':
                 return std::string((char*)pcur);
-                break;
             default:
                 break;
             }

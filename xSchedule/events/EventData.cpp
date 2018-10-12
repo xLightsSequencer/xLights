@@ -1,5 +1,4 @@
 #include "EventData.h"
-#include <wx/wx.h>
 #include <wx/xml/xml.h>
 #include "../ScheduleManager.h"
 #include "../../xLights/outputs/OutputManager.h"

@@ -476,6 +476,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     x += w;
     _plog = new ConvertLogDialog(this, -1, wxPoint(x,y));
     _plog->Show(false);
+    SetEscapeId(Button_Cancel->GetId());
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()

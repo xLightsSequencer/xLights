@@ -58,7 +58,8 @@ SaveChangesDialog::SaveChangesDialog(wxWindow* parent)
 	Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SaveChangesDialog::OnButton_CancelClick);
 	//*)
 
-	Button_Cancel->SetFocus();
+    SetEscapeId(Button_Cancel->GetId());
+    Button_Cancel->SetFocus();
 }
 
 SaveChangesDialog::~SaveChangesDialog()

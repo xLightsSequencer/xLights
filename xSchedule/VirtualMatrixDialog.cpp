@@ -34,7 +34,7 @@ BEGIN_EVENT_TABLE(VirtualMatrixDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _rotation(rotation), _startChannel(startChannel), _width(width), _height(height), _topMost(topMost), _size(vmsize), _location(vmlocation), _quality(quality), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier)
+VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* outputManager, std::string& name, std::string& rotation, std::string& quality, wxSize& vmsize, wxPoint& vmlocation, int& width, int& height, bool& topMost, std::string& startChannel, bool& useMatrixSize, int& matrixMultiplier, wxWindowID id, const wxPoint& pos, const wxSize& size) : _name(name), _width(width), _height(height), _topMost(topMost), _useMatrixSize(useMatrixSize), _matrixMultiplier(matrixMultiplier), _startChannel(startChannel), _size(vmsize), _location(vmlocation), _rotation(rotation), _quality(quality)
 {
     _outputManager = outputManager;
     _tempSize = _size;

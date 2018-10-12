@@ -1392,7 +1392,23 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::SetAudioControls()
 {
-	if (CurrentSeqXmlFile == nullptr || mRendering)
+    if (Notebook1->GetSelection() != NEWSEQUENCER)
+    {
+        if (playType == PLAY_TYPE_MODEL)
+        {
+            EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
+        }
+        else
+        {
+            EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
+        }
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
+    }
+    else if (CurrentSeqXmlFile == nullptr || mRendering)
 	{
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
@@ -3228,7 +3244,7 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
 void xLightsFrame::ImportTimingElement()
 {
     wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
-        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xml)|*.xml",
+        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xml)|*.xml",
                                                 wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK)
@@ -3258,6 +3274,10 @@ void xLightsFrame::ImportTimingElement()
             else if (file1.GetExt().Lower() == "xml")
             {
                 CurrentSeqXmlFile->ProcessXLightsTiming(fDir, filenames, this);
+            }
+            else if (file1.GetExt().Lower() == "tim")
+            {
+                CurrentSeqXmlFile->ProcessVixen3Timing(fDir, filenames, this);
             }
             else
             {

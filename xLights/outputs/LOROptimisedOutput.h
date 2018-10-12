@@ -17,9 +17,10 @@ struct LORDataPair {
 
 class LOROptimisedOutput : public LOROutput
 {
+    static const unsigned int MAX_BANKS = 64;
     #pragma region Member Variables
     wxByte _unit_id = 0x01;
-    bool banks_changed[32];
+    bool banks_changed[MAX_BANKS];
     bool unit_id_in_use[256];
     wxByte _curData[LOR_MAX_CHANNELS];
     LorControllers _controllers;

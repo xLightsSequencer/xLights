@@ -140,7 +140,7 @@ void FPPRemotesDialog::EditItem(int item)
         else
         {
             bool duplicate = false;
-            for (int i = 0; i < ListBox_Remotes->GetCount(); ++i)
+            for (size_t i = 0; i < ListBox_Remotes->GetCount(); ++i)
             {
                 if (ListBox_Remotes->GetString(i) == dlg.GetValue() && item != i)
                 {
@@ -168,7 +168,7 @@ std::list<std::string> FPPRemotesDialog::GetRemotes()
 {
     std::list<std::string> res;
 
-    for (int i = 0; i < ListBox_Remotes->GetCount(); ++i)
+    for (size_t i = 0; i < ListBox_Remotes->GetCount(); ++i)
     {
         res.push_back(ListBox_Remotes->GetString(i).ToStdString());
     }

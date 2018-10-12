@@ -2301,7 +2301,6 @@ void xLightsXmlFile::ProcessLSPTiming(const wxString& dir, const wxArrayString& 
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
-
 void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxTextFile f;
@@ -2370,6 +2369,119 @@ void xLightsXmlFile::ProcessXLightsTiming(const wxString& dir, const wxArrayStri
                         } else {
                             AddTimingEffect(layer, effect->GetEffectName(), "0", "0", wxString::Format("%d", effect->GetStartTimeMS()),
                                             wxString::Format("%d", effect->GetEndTimeMS()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    xLightsParent->SetCursor(wxCURSOR_ARROW);
+}
+
+void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    xLightsParent->SetCursor(wxCURSOR_WAIT);
+
+    for (size_t i = 0; i < filenames.Count(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        logger_base.info("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
+
+        wxXmlDocument doc(next_file.GetFullPath());
+
+        wxArrayString markNames;
+        for (wxXmlNode *n = doc.GetRoot(); n != nullptr; n = n->GetNext())
+        {
+            if (n->GetName() == "TimedSequenceData")
+            {
+                for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
+                {
+                    if (nn->GetName() == "MarkCollections")
+                    {
+                        for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                        {
+                            if (nnn->GetName() == "MarkCollection")
+                            {
+                                for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
+                                {
+                                    if (nnnn->GetName() == "Name")
+                                    {
+                                        markNames.push_back(nnnn->GetChildren()->GetContent());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", markNames);
+
+        if (dlg.ShowModal() == wxID_OK) {
+            wxArrayInt selections = dlg.GetSelections();
+
+            for (int i1 = 0; i1 < selections.size(); i1++) {
+
+                int count = 0;
+                for (wxXmlNode *n = doc.GetRoot(); n != nullptr; n = n->GetNext())
+                {
+                    if (n->GetName() == "TimedSequenceData")
+                    {
+                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
+                        {
+                            if (nn->GetName() == "MarkCollections")
+                            {
+                                for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                                {
+                                    if (nnn->GetName() == "MarkCollection")
+                                    {
+                                        if (count == selections[i1])
+                                        {
+                                            TimingElement* element = xLightsParent->AddTimingElement(markNames[selections[i1]]);
+                                            EffectLayer* effectLayer = element->GetEffectLayer(0);
+                                            if (effectLayer == nullptr) {
+                                                effectLayer = element->AddEffectLayer();
+                                            }
+
+                                            // This is the one we are importing
+                                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
+                                            {
+                                                if (nnnn->GetName() == "Marks")
+                                                {
+                                                    int last = 0;
+                                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
+                                                    {
+                                                        if (nnnnn->GetName() == "d3p1:duration")
+                                                        {
+                                                            auto markTime = nnnnn->GetChildren()->GetContent();
+                                                            if (markTime.StartsWith("PT"))
+                                                            {
+                                                                markTime = markTime.AfterFirst('T');
+                                                            }
+                                                            if (markTime.EndsWith("S"))
+                                                            {
+                                                                markTime = markTime.BeforeLast('S');
+                                                            }
+
+                                                            int current = std::round(wxAtof(markTime) * 1000.0 / (float)GetFrameMS()) * GetFrameMS();
+
+                                                            effectLayer->AddEffect(0, "", "", "", last, current, EFFECT_NOT_SELECTED, false);
+
+                                                            last = current;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        count++;
+                                    }
+                                }
+                            }
                         }
                     }
                 }

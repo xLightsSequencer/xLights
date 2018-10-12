@@ -3,6 +3,7 @@
 
 //(*Headers(VideoPanel)
 #include <wx/panel.h>
+class wxBitmapButton;
 class wxCheckBox;
 class wxChoice;
 class wxFilePickerCtrl;
@@ -17,6 +18,10 @@ class wxTextCtrl;
 #include <map>
 
 #include "../BulkEditControls.h"
+
+#define VIDEO_SPEED_MIN -1000
+#define VIDEO_SPEED_MAX 1000
+#define VIDEO_SPEED_DIVISOR 100
 
 #define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v"
 
@@ -60,19 +65,25 @@ class VideoPanel: public wxPanel
         BulkEditSlider* Slider_Video_CropLeft;
         BulkEditSlider* Slider_Video_CropRight;
         BulkEditSlider* Slider_Video_CropTop;
+        BulkEditSliderF2* Slider_Video_Speed;
         BulkEditSliderF2* Slider_Video_Starttime;
         BulkEditTextCtrl* TextCtrl1;
         BulkEditTextCtrl* TextCtrl_Video_CropBottom;
         BulkEditTextCtrl* TextCtrl_Video_CropLeft;
         BulkEditTextCtrl* TextCtrl_Video_CropRight;
         BulkEditTextCtrl* TextCtrl_Video_CropTop;
+        BulkEditTextCtrlF2* TextCtrl_Video_Speed;
         BulkEditTextCtrlF2* TextCtrl_Video_Starttime;
+        BulkEditValueCurveButton* BitmapButton_Video_Speed;
         wxStaticText* StaticText1;
         wxStaticText* StaticText2;
         wxStaticText* StaticText3;
         wxStaticText* StaticText4;
         wxStaticText* StaticText5;
+        wxStaticText* StaticText6;
+        wxStaticText* StaticText7;
         wxStaticText* StaticText8;
+        wxTextCtrl* TextCtrl2;
         xlVideoFilePickerCtrl* FilePicker_Video_Filename;
         //*)
 
@@ -86,8 +97,14 @@ protected:
 		static const long ID_STATICTEXT_Video_Starttime;
 		static const long IDD_SLIDER_Video_Starttime;
 		static const long ID_TEXTCTRL_Video_Starttime;
+		static const long ID_STATICTEXT1;
+		static const long ID_TEXTCTRL_Duration;
 		static const long ID_STATICTEXT_Video_DurationTreatment;
 		static const long ID_CHOICE_Video_DurationTreatment;
+		static const long ID_STATICTEXT2;
+		static const long IDD_SLIDER_Video_Speed;
+		static const long ID_VALUECURVE_Video_Speed;
+		static const long ID_TEXTCTRL_Video_Speed;
 		static const long ID_CHECKBOX_Video_AspectRatio;
 		static const long ID_CHECKBOX_SynchroniseWithAudio;
 		static const long ID_STATICTEXT_Video_CropLeft;
@@ -115,6 +132,7 @@ protected:
 		void OnFilePicker_Video_FilenameFileChanged(wxFileDirPickerEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
 		void OnCheckBox_SynchroniseWithAudioClick(wxCommandEvent& event);
+		void OnChoice_Video_DurationTreatmentSelect(wxCommandEvent& event);
 		//*)
 
         void SetVideoDetails(wxCommandEvent& event);

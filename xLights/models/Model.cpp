@@ -294,13 +294,13 @@ protected:
 class StartChannelDialogAdapter : public wxPGEditorDialogAdapter
 {
 public:
-    StartChannelDialogAdapter(Model *model)
-    : wxPGEditorDialogAdapter(), m_model(model) {
+    StartChannelDialogAdapter(Model *model, std::string preview)
+    : wxPGEditorDialogAdapter(), m_model(model), _preview(preview) {
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* property) override {
         StartChannelDialog dlg(propGrid);
-        dlg.Set(property->GetValue().GetString(), m_model->GetModelManager());
+        dlg.Set(property->GetValue().GetString(), m_model->GetModelManager(), _preview);
         if (dlg.ShowModal() == wxID_OK) {
             wxVariant v(dlg.Get());
             SetValue(v);
@@ -310,6 +310,7 @@ public:
     }
 protected:
     Model *m_model;
+    std::string _preview;
 };
 
 class StartChannelProperty : public wxStringProperty
@@ -319,8 +320,9 @@ public:
                          int strand,
                         const wxString& label,
                         const wxString& name,
-                        const wxString& value)
-    : wxStringProperty(label, name, value), m_model(m), m_strand(strand) {
+                        const wxString& value,
+                        std::string preview)
+        : wxStringProperty(label, name, value), m_model(m), m_strand(strand), _preview(preview) {
     }
     // Set editor to have button
     virtual const wxPGEditor* DoGetEditorClass() const override {
@@ -328,10 +330,11 @@ public:
     }
     // Set what happens on button click
     virtual wxPGEditorDialogAdapter* GetEditorDialog() const override {
-        return new StartChannelDialogAdapter(m_model);
+        return new StartChannelDialogAdapter(m_model, _preview);
     }
 protected:
     Model *m_model;
+    std::string _preview;
     int m_strand;
 };
 
@@ -475,13 +478,13 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     AddTypeProperties(grid);
 
     if (HasOneString(DisplayAs)) {
-        grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
+        grid->Append(new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
     } else {
         bool hasIndiv = ModelXml->GetAttribute("Advanced", "0") == "1";
         p = grid->Append(new wxBoolProperty("Indiv Start Chans", "ModelIndividualStartChannels", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
         p->Enable(parm1 > 1);
-        sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1")));
+        sp = grid->AppendIn(p, new StartChannelProperty(this, 0, "Start Channel", "ModelStartChannel", ModelXml->GetAttribute("StartChannel","1"), modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
         if (hasIndiv) {
             int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
             for (int x = 0; x < c; x++) {
@@ -496,7 +499,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
                     sp->SetLabel(nm);
                     sp->SetValue(val);
                 } else {
-                    sp = grid->AppendIn(p, new StartChannelProperty(this, x, nm, nm, val));
+                    sp = grid->AppendIn(p, new StartChannelProperty(this, x, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
                 }
             }
         }
@@ -639,6 +642,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return 2;
     } else if (event.GetPropertyName() == "ControllerConnection") {
         controller_connection = event.GetValue().GetString();
+
+        if (!event.GetValue().GetString().Contains(":") && wxAtoi(controller_connection) != 0)
+        {
+            controller_connection = "WS2811:" + wxString::Format("%d", wxAtoi(controller_connection));
+            event.GetProperty()->SetValue(controller_connection);
+        }
+
         ModelXml->DeleteAttribute("ControllerConnection");
         if (controller_connection != "")
         {
@@ -723,11 +733,20 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         IncrementChangeCount();
         return 3 | ((event.GetPropertyName() == "ModelStringType" ) ? 0x0004 | 0x0008 : 0);
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
+
+        wxString val = event.GetValue().GetString();
+
+        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">")) && !val.Contains(":"))
+        {
+            val = val + ":1";
+            event.GetProperty()->SetValue(val);
+        }
+
         ModelXml->DeleteAttribute("StartChannel");
-        ModelXml->AddAttribute("StartChannel", event.GetValue().GetString());
+        ModelXml->AddAttribute("StartChannel", val);
         if (ModelXml->GetAttribute("Advanced") == "1") {
             ModelXml->DeleteAttribute(StartChanAttrName(0));
-            ModelXml->AddAttribute(StartChanAttrName(0), event.GetValue().GetString());
+            ModelXml->AddAttribute(StartChanAttrName(0), val);
         }
         RecalcStartChannels();
         IncrementChangeCount();
@@ -757,8 +776,16 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
+
+        wxString val = event.GetValue().GetString();
+        if ((val.StartsWith("@") || val.StartsWith("#") || val.StartsWith(">")) && !val.Contains(":"))
+        {
+            val = val + ":1";
+            event.GetProperty()->SetValue(val);
+        }
+
         ModelXml->DeleteAttribute(str);
-        ModelXml->AddAttribute(str, event.GetValue().GetString());
+        ModelXml->AddAttribute(str, val);
         RecalcStartChannels();
         IncrementChangeCount();
         return 3 | 0x0008;
@@ -806,7 +833,7 @@ void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
                     ModelXml->DeleteAttribute(nm);
                     ModelXml->AddAttribute(nm, val);
                 }
-                grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val));
+                grid->AppendIn(p, new StartChannelProperty(this, count, nm, nm, val, modelManager.GetXLightsFrame()->GetSelectedLayoutPanelPreview()));
                 count++;
             }
         } else if (p->GetChildCount() > 1) {
@@ -3749,17 +3776,24 @@ bool Model::IsProtocolValid(std::string protocol)
     return (std::find(protocols.begin(), protocols.end(), protocol) != protocols.end());
 }
 
-std::list<std::string> Model::GetFaceFiles() const
+// all when true includes all image files ... even if they dont really exist
+std::list<std::string> Model::GetFaceFiles(bool all) const
 {
     std::list<std::string> res;
 
     for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it)
     {
-        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        if (it->second.find("Type") != it->second.end() && it->second.at("Type") == "Matrix")
         {
-            if (wxFile::Exists(it2->second))
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
             {
-                res.push_back(it2->second);
+                if (it2->first != "CustomColors" && it2->first != "ImagePlacement" && it2->first != "Type" && it2->second != "")
+                {
+                    if (all || wxFile::Exists(it2->second))
+                    {
+                        res.push_back(it2->second);
+                    }
+                }
             }
         }
     }

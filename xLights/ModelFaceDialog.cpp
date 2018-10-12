@@ -310,6 +310,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     Center();
+    SetEscapeId(wxID_CANCEL);
 }
 
 ModelFaceDialog::~ModelFaceDialog()

@@ -67,6 +67,7 @@ VAMPPluginDialog::VAMPPluginDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
 
+    SetEscapeId(wxID_CANCEL);
 }
 
 VAMPPluginDialog::~VAMPPluginDialog()

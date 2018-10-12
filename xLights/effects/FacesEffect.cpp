@@ -72,13 +72,22 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
         if (settings.GetInt("B_SLIDER_Rotation", 0) != 0 || 
             settings.GetInt("B_SLIDER_Rotations", 0) != 0 ||
+            settings.GetInt("B_SLIDER_XRotation", 0) != 0 ||
+            settings.GetInt("B_SLIDER_YRotation", 0) != 0 ||
             settings.GetInt("B_SLIDER_Zoom",1) != 1 || 
             settings.Get("B_VALUECURVE_Rotation", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_XRotation", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_YRotation", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Rotations", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos
             )
         {
-            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active may not render correctly. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+
+        if (settings.Get("B_CUSTOM_SubBuffer", "") != "")
+        {
+            res.push_back(wxString::Format("    WARN: Face effect with subbuffer defined '%s' may not render correctly. Model '%s', Start %s", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
 
@@ -191,12 +200,13 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
         && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
         //3.x style Faces effect
-        RenderFaces(buffer, SettingsMap["CHOICE_Faces_Phoneme"], "Auto", true);
+        RenderFaces(buffer, SettingsMap["CHOICE_Faces_Phoneme"], "Auto", true, SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false));
     } else if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
         RenderCoroFacesFromPGO(buffer,
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
-                               SettingsMap.GetBool("CHECKBOX_Faces_Outline"));
+                               SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
+                               SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false));
     } else {
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
@@ -206,12 +216,13 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     SettingsMap["CHOICE_Faces_Eyes"],
                     SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
-                    SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0)
+                    SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0), 
+                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)
             );
     }
 }
 
-void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string &eyes, bool outline)
+void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string &eyes, bool outline, bool suppressIfNotSinging)
 {
     static const std::map<wxString, int> phonemeMap = {
         {"AI", 0},
@@ -225,7 +236,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
         {"etc", 8},
         {"rest", 9},
     };
-    wxImage::HSVValue hsv;
+
     std::map<wxString, int>::const_iterator it = phonemeMap.find(Phoneme);
     int PhonemeInt = 0;
     if (it != phonemeMap.end()) {
@@ -339,7 +350,8 @@ void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int Buff
         case 8:       // WQ, etc
             drawline3(buffer, Phoneme, x3, x4, y5, y2);
             break;
-
+        default:
+            break;
     }
 }
 
@@ -531,8 +543,10 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 
-void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline)
+void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, bool suppressIfNotSinging)
 {
+    if (suppressIfNotSinging && Phoneme == "") return;
+
     //NOTE:
     //PixelBufferClass contains 2 RgbEffects members, which this method is a member of
     //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from Model and gives the name of the model currently being used
@@ -545,7 +559,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline);
+        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, suppressIfNotSinging);
         return;
     }
 
@@ -573,6 +587,11 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         std::string info = map[(const char*)Phoneme.c_str()];
         Model::ParseFaceElement(info, first_xy);
     }
+    else if (suppressIfNotSinging)
+    {
+        return;
+    }
+
     if (!eyes.empty())
     {
         std::string eyesLower(eyes);
@@ -634,7 +653,7 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 void FacesEffect::RenderFaces(RenderBuffer &buffer,
     SequenceElements *elements, const std::string &faceDefinition,
     const std::string& Phoneme, const std::string &trackName,
-    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel)
+    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, bool suppressIfNotSinging)
 {
     FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -759,6 +778,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
             Effect *ef = layer->GetEffectByTime(time);
             if (ef == nullptr) {
+                if (suppressIfNotSinging)
+                {
+                    return;
+                }
+
                 phoneme = "rest";
             }
             else {
@@ -828,6 +852,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                 eyes = "Open";
             }
         }
+    }
+
+    if (phoneme == "" && suppressIfNotSinging)
+    {
+        return;
     }
 
     int colorOffset = 0;
@@ -910,7 +939,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     if (type == 2) {
-        RenderFaces(buffer, phoneme, eyes, face_outline);
+        RenderFaces(buffer, phoneme, eyes, face_outline, suppressIfNotSinging);
         return;
     }
     if (type == 3) {

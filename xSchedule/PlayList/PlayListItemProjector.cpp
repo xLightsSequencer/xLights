@@ -427,7 +427,7 @@ bool PlayListItemProjector::PJLinkLogin()
 
     _hash = "";
 
-    ScheduleOptions* options = xScheduleFrame::GetScheduleManager()->GetOptions();
+    // ScheduleOptions* options = xScheduleFrame::GetScheduleManager()->GetOptions();
 
     std::string ip = _ipAddress;
     std::string password = _password;
@@ -466,7 +466,7 @@ bool PlayListItemProjector::PJLinkLogin()
             }
 
             _socket->ReadMsg(buffer.data(), buffer.length());
-            int read = _socket->GetLastIOReadSize();
+            // int read = _socket->GetLastIOReadSize();
 
             wxString response(buffer);
             logger_base.info("Projector response '%s'", (const char*)response.c_str());
