@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- end (will)   Ability to hide header/footer on buttons plugin. Add &args=noheader to URL.
    -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
    -- enh (gil)    Fix horizontal and vertical distribute in Layout panel.  Fixes #1219.
    -- enh (gil)    Prevent creating LOR data unless sequence timing is a multiple of 10ms.  Add warnings.
