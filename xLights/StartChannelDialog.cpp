@@ -109,6 +109,8 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick);
 	Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	//*)
+
+    SetEscapeId(wxID_OK);
 }
 
 StartChannelDialog::~StartChannelDialog()

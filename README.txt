@@ -27,6 +27,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Add a fade in/out play list item
    -- enh (keith)  Add manual video speed control to video effect including the ability to play it backwards
    -- enh (keith)  Add a "Set playlist as background" api to xschedule
+   -- bug (keith)  Handle overlapping models better in falcon/esp pixel stick uploads
+   -- enh (keith)  Smart entry of start channel and controller connection. #1 -> #1:1, 1 -> WS2811:1
+   -- enh (keith)  In start channel dialog allow user to filter to just models in current preview
+   -- enh (keith)  Get ESC working as shortcut to cancel most dialogs
 2018.35 October 6, 2018
    -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
    -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.

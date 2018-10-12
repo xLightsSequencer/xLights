@@ -309,7 +309,8 @@ class LayoutPanel: public wxPanel
         {
             Col_Model,
             Col_StartChan,
-            Col_EndChan
+            Col_EndChan,
+            Col_ControllerConnection
         };
 
         ModelPreview *modelPreview;

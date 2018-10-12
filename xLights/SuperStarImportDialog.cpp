@@ -91,6 +91,7 @@ SuperStarImportDialog::SuperStarImportDialog(wxWindow* parent,wxWindowID id,cons
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+    SetEscapeId(wxID_CANCEL);
 }
 
 SuperStarImportDialog::~SuperStarImportDialog()
