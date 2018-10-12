@@ -22,6 +22,7 @@ PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocat
     segs_collapsed = true;
     num_segments = 0;
     total_length = 0.0f;
+    height = 1.0f;
     hasIndivSeg = false;
 }
 
@@ -163,18 +164,36 @@ void PolyLineModel::DeleteHandle(int handle_) {
 }
 
 void PolyLineModel::InitModel() {
+    wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "1");
+    wxArrayString pat = wxSplit(dropPattern, ',');
+
+    // parse drop sizes
+    std::vector<unsigned int> dropSizes;
+    unsigned int dropset_size = 0;
+    unsigned int maxH = 0;
+    for (int x = 0; x < pat.size(); x++) {
+        dropSizes.push_back(wxAtoi(pat[x]));
+        maxH = std::max(maxH, dropSizes[x]);
+        dropset_size += dropSizes[x];
+    }
+    if (dropSizes.size() == 0) {
+        dropSizes.push_back(5);
+        dropset_size = 5;
+    }
 
     // establish light and segment counts
-    int numLights = parm2;
+    int numLights = 0;
     int num_points = wxAtoi(ModelXml->GetAttribute("NumPoints", "2"));
 	num_segments = num_points - 1;
     hasIndivSeg = ModelXml->GetAttribute("IndivSegs", "0") == "1";
+    numDropPoints = 0;
 
     // setup number of lights per line segment
+    unsigned int drop_index = 0;
     polyLineSizes.resize(num_segments);
+    polyLineSegDropSizes.resize(num_segments);
     if (hasIndivSeg) {
         parm1 = SingleNode ? 1 : num_segments;
-        numLights = 0;
         for (int x = 0; x < num_segments; x++) {
             wxString val = ModelXml->GetAttribute(SegAttrName(x));
             if (val == "") {
@@ -182,15 +201,35 @@ void PolyLineModel::InitModel() {
                 ModelXml->DeleteAttribute(SegAttrName(x));
                 ModelXml->AddAttribute(SegAttrName(x), val);
             }
-            int num_lights_this_segment = wxAtoi(val);
-            polyLineSizes[x] = num_lights_this_segment;
-            numLights += num_lights_this_segment;
+            int num_drop_points_this_segment = wxAtoi(val);
+            unsigned int drop_lights_this_segment = 0;
+            for( size_t z = 0; z < num_drop_points_this_segment; z++ ) {
+                drop_lights_this_segment += dropSizes[drop_index++];
+                drop_index %= dropSizes.size();
+            }
+            numLights += drop_lights_this_segment;
+            numDropPoints += num_drop_points_this_segment;
+            polyLineSizes[x] = num_drop_points_this_segment;
+            polyLineSegDropSizes[x] = drop_lights_this_segment;
         }
         parm2 = numLights;
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%ld", parm2));
     } else {
         parm1 = 1;
+        int lights = parm2;
+        while(lights > 0) {
+            unsigned int lights_this_drop = dropSizes[drop_index++];
+            numLights += lights_this_drop;
+            drop_index %= dropSizes.size();
+            numDropPoints++;
+            lights -= lights_this_drop;
+        }
+        if( numLights != parm2 ) {
+            parm2 = numLights;
+            ModelXml->DeleteAttribute("parm2");
+            ModelXml->AddAttribute("parm2", wxString::Format("%ld", parm2));
+        }
     }
 
     // reset node information
@@ -199,6 +238,7 @@ void PolyLineModel::InitModel() {
     if (num_points == 1) return;  // TODO:  Should we even allow this creation
 
     // process our own start channels
+    drop_index = 0;
     std::string tempstr = ModelXml->GetAttribute("Advanced", "0").ToStdString();
     bool HasIndividualStartChans=tempstr == "1";
     if( HasIndividualStartChans && !SingleNode) {
@@ -213,7 +253,7 @@ void PolyLineModel::InitModel() {
                 stringStartChan[i] = GetNumberFromChannelString(ModelXml->GetAttribute(tempstr, "1").ToStdString(), b, dependsonmodel)-1;
                 CouldComputeStartChannel &= b;
             } else {
-                stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + polyLineSizes[i]*GetNodeChannelCount(StringType);
+                stringStartChan[i] = (zeroBased? 0 : StartChannel-1) + polyLineSegDropSizes[i]*GetNodeChannelCount(StringType);
             }
         }
     }
@@ -222,7 +262,7 @@ void PolyLineModel::InitModel() {
     size_t idx=0;
     if (HasIndividualStartChans && hasIndivSeg && !SingleNode) {
         for (int x = 0; x < (SingleNode ? 1 : num_segments); x++) {
-            for( int n = 0; n < polyLineSizes[x]; ++n ) {
+            for( int n = 0; n < polyLineSegDropSizes[x]; ++n ) {
                 Nodes[idx++]->StringNum = x;
             }
         }
@@ -344,27 +384,55 @@ void PolyLineModel::InitModel() {
     }
 
     // define the buffer positions
-    SetBufferSize(1, (SingleNode?1:numLights));
+    drop_index = 0;
     int chan = 0;
     int LastStringNum=-1;
     int ChanIncr = GetNodeChannelCount(StringType);
-    for(idx=0; idx<(SingleNode?1:numLights); idx++) {
-        if (Nodes[idx]->StringNum != LastStringNum) {
-            LastStringNum=Nodes[idx]->StringNum;
+    int lights = numLights;
+    int y = 0;
+    drop_index = 0;
+    int width = 0;
+    int curNode = 0;
+    int curCoord = 0;
+    while (lights) {
+        if (curCoord >= Nodes[curNode]->Coords.size()) {
+            curNode++;
+            curCoord = 0;
+        }
+        while (y >= dropSizes[drop_index]) {
+            width++;
+            y = 0;
+            drop_index++;
+            if (drop_index >= dropSizes.size()) {
+                drop_index = 0;
+            }
+        }
+        if (Nodes[curNode]->StringNum != LastStringNum) {
+            LastStringNum=Nodes[curNode]->StringNum;
             chan=stringStartChan[LastStringNum];
         }
-        Nodes[idx]->ActChan=chan;
+        Nodes[curNode]->ActChan = chan;
+        Nodes[curNode]->Coords[curCoord].bufX = width;
+        Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+        Nodes[curNode]->Coords[curCoord].screenX = width;
+        Nodes[curNode]->Coords[curCoord].screenY = maxH - y - 1;
         chan+=ChanIncr;
-        Nodes[idx]->Coords.resize(SingleNode?parm2:parm3);
-        size_t CoordCount=GetCoordCount(idx);
-        for(size_t c=0; c < CoordCount; c++) {
-            Nodes[idx]->Coords[c].bufX=IsLtoR ? idx : (SingleNode ? idx : numLights-idx-1);
-            Nodes[idx]->Coords[c].bufY = 0;
-            Nodes[idx]->Coords[c].bufZ = 0;
-        }
+        lights--;
+        y++;
+        curCoord++;
     }
+    SetBufferSize(maxH, SingleNode?1:width+1);
+    screenLocation.SetRenderSize(1.0, maxH);
+
+    height = wxAtof(GetModelXml()->GetAttribute("ModelHeight", "1.0"));
+    double model_height = deltay;
+    if (model_height < GetModelScreenLocation().GetRenderHt()) {
+        model_height = GetModelScreenLocation().GetRenderHt();
+    }
+    float mheight = height * 10.0f / model_height;
 
     // place the nodes/coords along each line segment
+    drop_index = 0;
     idx = IsLtoR ? 0 : numLights-1;
     float loc_x;
     if (hasIndivSeg) {
@@ -389,9 +457,14 @@ void PolyLineModel::InitModel() {
 
                 glm::vec3 v = glm::vec3(*pPos[segment].matrix * glm::vec4(loc_x / (float)polyLineSizes[segment], 0, 0, 1));
 
-                Nodes[0]->Coords[c].screenX = v.x;
-                Nodes[0]->Coords[c].screenY = v.y;
-                Nodes[0]->Coords[c].screenZ = v.z;
+                unsigned int drops_this_node = dropSizes[drop_index++];
+                for(size_t z = 0; z < drops_this_node; z++) {
+                    Nodes[idx]->Coords[c].screenX = v.x;
+                    Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                    Nodes[idx]->Coords[c].screenZ = v.z;
+                    IsLtoR ? idx++ : idx--;
+                }
+                drop_index %= dropSizes.size();
                 seg_idx++;
                 if( seg_idx >= polyLineSizes[segment] ) {
                     segment++;
@@ -406,7 +479,7 @@ void PolyLineModel::InitModel() {
                     }
                 }
                 if( pPos[segment].has_curve ) {
-                    DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos );
+                    DistributeLightsAcrossCurveSegment(polyLineSizes[segment], segment, c, pPos, dropSizes, drop_index, mheight );
                     segment++;
                     for(int x=segment; x < polyLineSizes.size(); ++x ) {
                         if( polyLineSizes[x] == 0 ) {
@@ -420,7 +493,7 @@ void PolyLineModel::InitModel() {
         } else {
             for(size_t m=0; m<num_segments; m++) {
                 if( pPos[m].has_curve ) {
-                    DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos );
+                    DistributeLightsAcrossCurveSegment(polyLineSizes[m], m, idx, pPos, dropSizes, drop_index, mheight);
                 } else {
                     int seg_idx = 0;
                     for(size_t n=0; n<polyLineSizes[m]; n++) {
@@ -432,6 +505,7 @@ void PolyLineModel::InitModel() {
                         }
                         size_t CoordCount=GetCoordCount(idx);
                         int x_pos = seg_idx;
+                        unsigned int drops_this_node = dropSizes[drop_index++];
                         for(size_t c=0; c < CoordCount; c++) {
                             if (num > 1) {
                                 loc_x = x_pos + offset + ((float)count / (float)num);
@@ -442,11 +516,14 @@ void PolyLineModel::InitModel() {
 
                             glm::vec3 v = glm::vec3(*pPos[m].matrix * glm::vec4(loc_x / (float)polyLineSizes[m], 0, 0, 1));
 
-                            Nodes[idx]->Coords[c].screenX = v.x;
-                            Nodes[idx]->Coords[c].screenY = v.y;
-                            Nodes[idx]->Coords[c].screenZ = v.z;
+                            for(size_t z = 0; z < drops_this_node; z++) {
+                                Nodes[idx]->Coords[c].screenX = v.x;
+                                Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                                Nodes[idx]->Coords[c].screenZ = v.z;
+                                IsLtoR ? idx++ : idx--;
+                            }
+                            drop_index %= dropSizes.size();
                         }
-                        IsLtoR ? idx++ : idx--;
                         seg_idx++;
                     }
                 }
@@ -455,7 +532,7 @@ void PolyLineModel::InitModel() {
     } else {
         // distribute the lights evenly across the line segments
         int coords_per_node = Nodes[0].get()->Coords.size();
-        int lights_to_distribute = SingleNode ? coords_per_node : numLights * coords_per_node;
+        int lights_to_distribute = SingleNode ? numDropPoints : numDropPoints * coords_per_node;
         float offset = total_length / (float)lights_to_distribute;
         float current_pos = offset / 2.0f;
         idx = (IsLtoR || SingleNode) ? 0 : numLights-1;
@@ -490,20 +567,23 @@ void PolyLineModel::InitModel() {
             } else {
                 v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
             }
-            Nodes[idx]->Coords[c].screenX = v.x;
-            Nodes[idx]->Coords[c].screenY = v.y;
-            Nodes[idx]->Coords[c].screenZ = v.z;
-            if( c < coords_per_node-1 ) {
-                c++;
-            } else {
-                c = 0;
-                IsLtoR ? idx++ : idx--;
+            unsigned int drops_this_node = dropSizes[drop_index++];
+            for (size_t z = 0; z < drops_this_node; z++) {
+                Nodes[idx]->Coords[c].screenX = v.x;
+                Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                Nodes[idx]->Coords[c].screenZ = v.z;
+                if( c < coords_per_node-1 ) {
+                    c++;
+                } else {
+                    c = 0;
+                    IsLtoR ? idx++ : idx--;
+                }
             }
+            drop_index %= dropSizes.size();
             current_pos += offset;
         }
         polyLineSizes[segment] = lights_to_distribute - last_seg_light_num;
     }
-    screenLocation.SetRenderSize(1.0, 1.0);
 
     // cleanup curves and matrices
     for( int i = 0; i < num_points; ++i ) {
@@ -517,7 +597,8 @@ void PolyLineModel::InitModel() {
     }
 }
 
-void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos )
+void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
+                                                       std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight)
 {
     // distribute the lights evenly across the line segments
     int coords_per_node = Nodes[0].get()->Coords.size();
@@ -531,6 +612,7 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
     float segment_length = pPos[segment].curve->GetSegLength(sub_segment);
     float seg_end = seg_start + segment_length;
     for(size_t m=0; m<lights_to_distribute; m++) {
+        unsigned int drops_this_node = dropSizes[drop_index];
         while( current_pos > seg_end ) {
             sub_segment++;
             seg_start = seg_end;
@@ -539,20 +621,29 @@ void PolyLineModel::DistributeLightsAcrossCurveSegment(int lights, int segment, 
         }
         glm::vec3 v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4((current_pos - seg_start) / segment_length, 0, 0, 1));
         if( SingleNode ) {
-            Nodes[0]->Coords[idx].screenX = v.x;
-            Nodes[0]->Coords[idx].screenY = v.y;
-            Nodes[0]->Coords[idx].screenZ = v.z;
-            IsLtoR ? idx++ : idx--;
+            for( int z = 0; z < drops_this_node; z++) {
+                Nodes[0]->Coords[idx].screenX = v.x;
+                Nodes[0]->Coords[idx].screenY = v.y - z * mheight;
+                Nodes[0]->Coords[idx].screenZ = v.z;
+                IsLtoR ? idx++ : idx--;
+            }
+            drop_index++;
+            drop_index %= dropSizes.size();
         } else {
-            Nodes[idx]->Coords[c].screenX = v.x;
-            Nodes[idx]->Coords[c].screenY = v.y;
-            Nodes[idx]->Coords[c].screenZ = v.z;
+            for( int z = 0; z < drops_this_node; z++) {
+                Nodes[idx]->Coords[c].screenX = v.x;
+                Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
+                Nodes[idx]->Coords[c].screenZ = v.z;
+                IsLtoR ? idx++ : idx--;
+            }
             if( c < coords_per_node-1 ) {
                 c++;
             } else {
                 c = 0;
-                IsLtoR ? idx++ : idx--;
+                //IsLtoR ? idx++ : idx--;
             }
+            drop_index++;
+            drop_index %= dropSizes.size();
         }
         current_pos += offset;
     }
@@ -587,6 +678,13 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     grid->Append(new wxEnumProperty("Starting Location", "PolyLineStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
 
+    grid->Append(new wxStringProperty("Drop Pattern", "IciclesDrops", GetModelXml()->GetAttribute("DropPattern", "1")));
+
+    p = grid->Append(new wxFloatProperty("Height", "ModelHeight", height));
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
+    p->SetEditor("SpinCtrl");
+
     p = grid->Append(new wxBoolProperty("Indiv Segments", "ModelIndividualSegments", hasIndivSeg));
     p->SetAttribute("UseCheckbox", true);
     p->Enable(num_segments > 1);
@@ -615,12 +713,13 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         ModelXml->DeleteAttribute("Advanced");
     }
 }
-
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("PolyLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%ld", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
+        wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
+        sp->SetValueFromInt(parm2);
         return 3 | 0x0008;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
@@ -685,8 +784,31 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         AdjustStringProperties(grid, num_segments);
         IncrementChangeCount();
         return 3 | 0x0008;
+    } else if ("IciclesDrops" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("DropPattern");
+        ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
     }
-
+    else if (!GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
+        height = event.GetValue().GetDouble();
+        if (std::abs(height) < 0.01f) {
+            if (height < 0.0f) {
+                height = -0.01f;
+            }
+            else {
+                height = 0.01f;
+            }
+        }
+        ModelXml->DeleteAttribute("ModelHeight");
+        ModelXml->AddAttribute("ModelHeight", event.GetPropertyValue().GetString());
+        SetFromXml(ModelXml, zeroBased);
+        return 3;
+    }
+    else if (GetModelScreenLocation().IsLocked() && "ModelHeight" == event.GetPropertyName()) {
+        event.Veto();
+        return 0;
+    }
     return Model::OnPropertyGridChange(grid, event);
 }
 

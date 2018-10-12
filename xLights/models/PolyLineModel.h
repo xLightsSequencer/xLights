@@ -61,12 +61,15 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
             return wxString::Format(wxT("Seg%d"),idx+1).ToStdString();
         }
 
-    private:
         std::vector<int> polyLineSizes;
         bool hasIndivSeg;
         bool segs_collapsed;
-        void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos );
+        virtual void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
+                                                        std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight);
         void NormalizePointData();
+        std::vector<int> polyLineSegDropSizes;
+        unsigned int numDropPoints;
+        float height;
 
 };
 

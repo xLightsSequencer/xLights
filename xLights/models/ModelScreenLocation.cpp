@@ -3631,7 +3631,11 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
             mPos[i].curve->UpdatePoints();
         }
     }
-    glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3((maxX - minX) * scalex, (maxY - minY) * scaley, (maxZ - minZ) * scalez));
+    float yscale = (maxY - minY) * scaley;
+    if (RenderHt > 1.0f && (maxY-minY < RenderHt)) {
+        yscale = RenderHt;
+    }
+    glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3((maxX - minX) * scalex, yscale, (maxZ - minZ) * scalez));
     TranslateMatrix = glm::translate(Identity, glm::vec3(minX * scalex + worldPos_x, minY * scaley + worldPos_y, minZ * scalez + worldPos_z));
     main_matrix = TranslateMatrix * scalingMatrix;
 
@@ -4704,30 +4708,46 @@ int PolyPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool 
             newx = (ray_origin.x + boundary_offset - worldPos_x) / scalex;
             newy = (ray_origin.y + boundary_offset - worldPos_y) / scaley;
             if( newx >= maxX-0.01f || newy >= maxY-0.01f ) return 0;
-            trans_x = newx - minX;
-            trans_y = newy - minY;
-            scale_x -= trans_x / (maxX - minX);
-            scale_y -= trans_y / (maxY - minY);
+            if (maxX - minX != 0.0f) {
+                trans_x = newx - minX;
+                scale_x -= trans_x / (maxX - minX);
+            }
+            if (maxY - minY != 0.0f) {
+                trans_y = newy - minY;
+                scale_y -= trans_y / (maxY - minY);
+            }
         } else if( handle == num_points+2 ) {  // top left corner
             newx = (ray_origin.x + boundary_offset - worldPos_x) / scalex;
             newy = (ray_origin.y - boundary_offset - worldPos_y) / scaley;
             if( newx >= maxX-0.01f || newy <= minY+0.01f ) return 0;
-            trans_x = newx - minX;
-            scale_x -= trans_x / (maxX - minX);
-            scale_y = (newy - minY) / (maxY - minY);
+            if (maxX - minX != 0.0f) {
+                trans_x = newx - minX;
+                scale_x -= trans_x / (maxX - minX);
+            }
+            if (maxY - minY != 0.0f) {
+                scale_y = (newy - minY) / (maxY - minY);
+            }
         } else if( handle == num_points+3 ) {  // bottom right corner
             newx = (ray_origin.x - boundary_offset - worldPos_x) / scalex;
             newy = (ray_origin.y + boundary_offset - worldPos_y) / scaley;
             if( newx <= minX+0.01f|| newy >= maxY-0.01f ) return 0;
-            trans_y = newy - minY;
-            scale_x = (newx - minX) / (maxX - minX);
-            scale_y -= trans_y / (maxY - minY);
+            if (maxX - minX != 0.0f) {
+                scale_x = (newx - minX) / (maxX - minX);
+            }
+            if (maxY - minY != 0.0f) {
+                trans_y = newy - minY;
+                scale_y -= trans_y / (maxY - minY);
+            }
         } else if( handle == num_points+4 ) {  // top right corner
             newx = (ray_origin.x - boundary_offset - worldPos_x) / scalex;
             newy = (ray_origin.y - boundary_offset - worldPos_y) / scaley;
             if( newx <= minX+0.01f || newy <= minY+0.01f ) return 0;
-            scale_x = (newx - minX) / (maxX - minX);
-            scale_y = (newy - minY) / (maxY - minY);
+            if (maxX - minX != 0.0f) {
+                scale_x = (newx - minX) / (maxX - minX);
+            }
+            if (maxY - minY != 0.0f) {
+                scale_y = (newy - minY) / (maxY - minY);
+            }
         } else {
             return 0;
         }
