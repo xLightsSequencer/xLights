@@ -2,6 +2,7 @@
 #define STARTCHANNELDIALOG_H
 
 //(*Headers(StartChannelDialog)
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/radiobut.h>
@@ -11,6 +12,7 @@
 //*)
 
 #include <string>
+#include <map>
 class ModelManager;
 class OutputManager;
 
@@ -23,6 +25,7 @@ class StartChannelDialog: public wxDialog
 
 		//(*Declarations(StartChannelDialog)
 		wxChoice* ChoiceController;
+		wxCheckBox* CheckBox_FromThisPreviewOnly;
 		wxChoice* ModelChoice;
 		wxChoice* OutputChoice;
 		wxChoice* ipChoice;
@@ -35,11 +38,14 @@ class StartChannelDialog: public wxDialog
 		wxRadioButton* UniverseButton;
 		wxSpinCtrl* StartChannel;
 		//*)
-    
-        void Set(const wxString &start, const ModelManager &models);
+
+        void Set(const wxString &start, const ModelManager &models, const std::string& preview);
         void SetUniverseOptionsBasedOnIP(wxString ip);
         std::string Get();
+        void UpdateModels();
         OutputManager* _outputManager;
+        std::map<std::string, std::string> _modelsPreview;
+        std::string _preview;
 
 	protected:
 
@@ -53,6 +59,7 @@ class StartChannelDialog: public wxDialog
 		static const long ID_CHOICE4;
 		static const long ID_RADIOBUTTON3;
 		static const long ID_CHOICE1;
+		static const long ID_CHECKBOX1;
 		static const long ID_RADIOBUTTON4;
 		static const long ID_RADIOBUTTON6;
 		static const long ID_CHOICE5;
@@ -63,6 +70,7 @@ class StartChannelDialog: public wxDialog
 		//(*Handlers(StartChannelDialog)
 		void OnButtonSelect(wxCommandEvent& event);
 		void OnipChoiceSelect(wxCommandEvent& event);
+		void OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

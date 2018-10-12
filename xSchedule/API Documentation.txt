@@ -282,6 +282,9 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Stop event playlist if running step <playlistname>,<step name>
 			This api will stop the specified playlist if it is running as an event playlist and the specified step happens to be playing.
 
+		Set playlist as background <playlistname>
+			Sets the named playlist as the current background playlist.
+			
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 

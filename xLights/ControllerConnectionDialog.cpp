@@ -62,6 +62,7 @@ ControllerConnectionDialog::ControllerConnectionDialog(wxWindow* parent,wxWindow
     }
     Choice_Protocol->SetSelection(0);
 
+    SetEscapeId(Button_Cancel->GetId());
     Button_Ok->SetDefault();
 }
 

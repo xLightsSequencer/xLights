@@ -50,6 +50,7 @@ class ModelManager
         //Make sure the Model is deleted when done with
         Model *CreateModel(wxXmlNode *node, bool zeroBased = false) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
+        xLightsFrame* GetXLightsFrame() const { return xlights; }
     protected:
         Model *createAndAddModel(wxXmlNode *node);
     private:

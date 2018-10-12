@@ -81,6 +81,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     //*)
 
     ButtonOk->SetDefault();
+    SetEscapeId(ButtonCancel->GetId());
     ValidateWindow();
 }
 

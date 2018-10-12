@@ -42,6 +42,7 @@ NewTimingDialog::NewTimingDialog(wxWindow* parent,wxWindowID id,const wxPoint& p
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
+    SetEscapeId(wxID_CANCEL);
 }
 
 NewTimingDialog::~NewTimingDialog()

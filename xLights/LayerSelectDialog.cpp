@@ -70,7 +70,9 @@ LayerSelectDialog::LayerSelectDialog(wxWindow* parent, int startLayer, int endLa
         }
     }
 
-	ValidateWindow();
+    SetEscapeId(Button_Cancel->GetId());
+    
+    ValidateWindow();
 }
 
 LayerSelectDialog::~LayerSelectDialog()

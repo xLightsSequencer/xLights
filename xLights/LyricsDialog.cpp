@@ -70,6 +70,8 @@ LyricsDialog::LyricsDialog(int endtime, wxWindow* parent,wxWindowID id,const wxP
 	//*)
 
 	TextCtrl_Lyric_EndTime->SetValue(std::to_string(double(endtime / 1000.0)).substr(0, 7));
+
+    SetEscapeId(wxID_CANCEL);
 }
 
 LyricsDialog::~LyricsDialog()

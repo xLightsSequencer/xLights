@@ -297,6 +297,8 @@ ModelDimmingCurveDialog::ModelDimmingCurveDialog(wxWindow* parent,wxWindowID id,
     RGBRedGammaTextCtrl->SetValidator(gammaValidator);
     RGBGreenGammaTextCtrl->SetValidator(gammaValidator);
     RGBBlueGammaTextCtrl->SetValidator(gammaValidator);
+
+    SetEscapeId(wxID_CANCEL);
 }
 
 ModelDimmingCurveDialog::~ModelDimmingCurveDialog()

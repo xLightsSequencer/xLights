@@ -41,6 +41,7 @@ SelectTimingsDialog::SelectTimingsDialog(wxWindow* parent,wxWindowID id,const wx
 
     SetSize(200, 400);
     SetMinSize(wxSize(200, 400));
+    SetEscapeId(wxID_CANCEL);
 }
 
 SelectTimingsDialog::~SelectTimingsDialog()

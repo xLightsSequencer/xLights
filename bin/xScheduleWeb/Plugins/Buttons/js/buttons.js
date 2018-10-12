@@ -1,5 +1,11 @@
 $(document).ready(function() {
 loadButtonsData()
+
+if (getQueryVariable("args") == 'noheader'){
+  $('#nav').css('display', 'none');
+  $('#header').css('display', 'none');
+  $('#footer').css('display', 'none');
+}
 })
 function loadButtonsData(){
   if (socket.readyState <= '1') {

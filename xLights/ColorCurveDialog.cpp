@@ -178,6 +178,8 @@ ColorCurveDialog::ColorCurveDialog(wxWindow* parent, ColorCurve* cc, wxColourDat
 
     PopulatePresets();
 
+    SetEscapeId(Button_Cancel->GetId());
+
     ValidateWindow();
 }
 

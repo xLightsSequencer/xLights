@@ -153,6 +153,7 @@ LorOptimisedDialog::LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** se
     TextCtrl_Description->SetValue((*_serial)->GetDescription());
     SpinCtrl_Id->SetValue((*_serial)->GetId());
 
+    //SetEscapeId(Button_Cancel->GetId());
     Button_Ok->SetDefault();
 
     LoadList();

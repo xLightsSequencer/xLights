@@ -128,6 +128,8 @@ LyricUserDictDialog::LyricUserDictDialog(PhonemeDictionary* dictionary, const wx
     GridUserLyricDict->HideRowLabels();
     GridUserLyricDict->SetSelectionMode(wxGrid::wxGridSelectRows);
 
+    SetEscapeId(ButtonLyricCancel->GetId());
+
     TextCtrlOldLyric->AutoComplete(m_dictionary->GetPhonemeList());
     ReadUserDictionary();
     ValidateWindow();

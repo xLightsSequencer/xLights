@@ -107,13 +107,14 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	Choice_Video_DurationTreatment->Append(_("Loop"));
 	Choice_Video_DurationTreatment->Append(_("Slow/Accelerate"));
 	Choice_Video_DurationTreatment->Append(_("Manual"));
+	Choice_Video_DurationTreatment->Append(_("Manual and Loop"));
 	FlexGridSizer5->Add(Choice_Video_DurationTreatment, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer8 = new wxFlexGridSizer(0, 4, 0, 0);
 	FlexGridSizer8->AddGrowableCol(1);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT2, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider_Video_Speed = new BulkEditSliderF2(this, IDD_SLIDER_Video_Speed, 100, 1, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_Speed"));
+	Slider_Video_Speed = new BulkEditSliderF2(this, IDD_SLIDER_Video_Speed, 100, -1000, 1000, wxDefaultPosition, wxSize(200,-1), 0, wxDefaultValidator, _T("IDD_SLIDER_Video_Speed"));
 	FlexGridSizer8->Add(Slider_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BitmapButton_Video_Speed = new BulkEditValueCurveButton(this, ID_VALUECURVE_Video_Speed, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Video_Speed"));
 	FlexGridSizer8->Add(BitmapButton_Video_Speed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -251,7 +252,8 @@ void VideoPanel::ValidateWindow()
         FilePicker_Video_Filename->Enable(true);
     }
 
-    if (Choice_Video_DurationTreatment->GetStringSelection() == "Manual")
+    if (Choice_Video_DurationTreatment->GetStringSelection() == "Manual" ||
+        Choice_Video_DurationTreatment->GetStringSelection() == "Manual and Loop")
     {
         Slider_Video_Speed->Enable();
         TextCtrl_Video_Speed->Enable();

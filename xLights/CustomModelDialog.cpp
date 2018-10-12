@@ -275,6 +275,8 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 
     name = "";
 
+    SetEscapeId(ButtonCancel->GetId());
+
     ValidateWindow();
 }
 

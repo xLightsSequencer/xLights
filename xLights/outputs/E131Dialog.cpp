@@ -152,6 +152,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
         RadioButtonUnicast->SetValue(true);
     }
 
+    SetEscapeId(Button_Cancel->GetId());
     Button_Ok->SetDefault();
     ValidateWindow();
 }

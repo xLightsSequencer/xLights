@@ -5329,7 +5329,7 @@ void xLightsFrame::CheckSequence(bool display)
                 int m1end = m1start + (*it2)->GetChanCount() - 1;
                 int m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
 
-                if (m1end + 1 != m2start)
+                if (m1end + 1 != m2start && m2start - m1end - 1 > 0)
                 {
                     long sc;
                     Output* o = _outputManager.GetOutput(m1start, sc);
