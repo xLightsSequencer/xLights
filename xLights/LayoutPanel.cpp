@@ -541,6 +541,11 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
 #endif
 }
 
+std::string LayoutPanel::GetCurrentPreview() const
+{
+    return ChoiceLayoutGroups->GetStringSelection().ToStdString();
+}
+
 void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
 #ifdef __WXOSX__

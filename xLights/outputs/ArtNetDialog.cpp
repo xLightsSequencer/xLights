@@ -169,6 +169,7 @@ ArtNetDialog::ArtNetDialog(wxWindow* parent, ArtNetOutput* artnet, OutputManager
         SpinCtrl_NumUniv->Enable(false);
     }
 
+    SetEscapeId(ButtonCancel->GetId());
     ButtonOk->SetDefault();
 
     ValidateWindow();

@@ -184,6 +184,7 @@ class LayoutPanel: public wxPanel
         const std::string& GetCurrentLayoutGroup() const {return currentLayoutGroup;}
         void Reset();
         void SetDirtyHiLight(bool dirty);
+        std::string GetCurrentPreview() const;
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);

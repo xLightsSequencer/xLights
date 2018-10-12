@@ -1188,6 +1188,7 @@ public:
     Model *GetModel(const std::string& name) const;
     void RenderGridToSeqData(std::function<void()>&& callback);
     bool AbortRender();
+    std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();
     bool RenderEffectFromMap(Effect *effect, int layer, int period, SettingsMap& SettingsMap,

@@ -2,8 +2,8 @@
 #include <vector>
 
 //(*InternalHeaders(StartChannelDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -20,6 +20,7 @@ const long StartChannelDialog::ID_CHOICE3 = wxNewId();
 const long StartChannelDialog::ID_CHOICE4 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON3 = wxNewId();
 const long StartChannelDialog::ID_CHOICE1 = wxNewId();
+const long StartChannelDialog::ID_CHECKBOX1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON4 = wxNewId();
 //*)
 
@@ -36,12 +37,13 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
     _outputManager = nullptr;
 
 	//(*Initialize(StartChannelDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticText* StaticText1;
-	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxStaticBoxSizer* StaticBoxSizer1;
+	wxStaticText* StaticText1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
@@ -77,9 +79,15 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer3->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ModelButton = new wxRadioButton(this, ID_RADIOBUTTON3, _("End of Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON3"));
 	FlexGridSizer3->Add(ModelButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
 	ModelChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	ModelChoice->SetMinSize(wxDLG_UNIT(this,wxSize(100,-1)));
-	FlexGridSizer3->Add(ModelChoice, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer5->Add(ModelChoice, 1, wxALL|wxEXPAND, 5);
+	CheckBox_FromThisPreviewOnly = new wxCheckBox(this, ID_CHECKBOX1, _("From this preview only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+	CheckBox_FromThisPreviewOnly->SetValue(true);
+	FlexGridSizer5->Add(CheckBox_FromThisPreviewOnly, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	StartModelButton = new wxRadioButton(this, ID_RADIOBUTTON4, _("Start of Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON4"));
 	FlexGridSizer3->Add(StartModelButton, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -98,6 +106,7 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	Connect(ID_RADIOBUTTON5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnipChoiceSelect);
 	Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
+	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick);
 	Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	//*)
 }
@@ -108,16 +117,60 @@ StartChannelDialog::~StartChannelDialog()
 	//*)
 }
 
-void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
-    _outputManager = models.GetOutputManager();
-    wxString start = s;
-
+void StartChannelDialog::UpdateModels()
+{
+    auto selected = ModelChoice->GetStringSelection();
+    ModelChoice->Freeze();
+    ModelChoice->Clear();
     wxArrayString  list;
-    for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second->GetDisplayAs() != "ModelGroup") {
+
+    bool contains = false;
+    bool exists = false;
+
+    for (auto it = _modelsPreview.begin(); it != _modelsPreview.end(); ++it) {
+        if (it->first == selected) exists = true;
+        if (CheckBox_FromThisPreviewOnly->GetValue())
+        {
+            if (it->second == "All Previews" || it->second == _preview)
+            {
+                if (it->first == selected) contains = true;
+                list.push_back(it->first);
+            }
+        }
+        else
+        {
+            if (it->first == selected) contains = true;
             list.push_back(it->first);
         }
     }
+
+    // ensure as long as the model exists it is in the list ... otherwise the UI would force the selection change
+    if (exists && !contains)
+    {
+        list.push_back(selected);
+    }
+
+    ModelChoice->Append(list);
+    ModelChoice->Thaw();
+
+    ModelChoice->SetStringSelection(selected);
+}
+
+void StartChannelDialog::Set(const wxString &s, const ModelManager &models, const std::string& preview) {
+    _outputManager = models.GetOutputManager();
+    _preview = preview;
+
+    wxString start = s;
+
+    for (auto it = models.begin(); it != models.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            _modelsPreview[it->first] = it->second->GetLayoutGroup();
+        }
+    }
+
+    UpdateModels();
 
     OutputChoice->Freeze();
     OutputChoice->Clear();
@@ -143,7 +196,6 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
     ipChoice->SetStringSelection("ANY");
     SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
 
-    ModelChoice->Append(list);
     if (start.Contains(":")) {
         wxString sNet = start.SubString(0, start.Find(":")-1);
         if (sNet[0] == '@') {
@@ -189,7 +241,17 @@ void StartChannelDialog::Set(const wxString &s, const ModelManager &models) {
             OutputChoice->Disable();
             ipChoice->Disable();
             universeChoice->Disable();
-            ModelChoice->SetStringSelection(sNet[0] == '<' || sNet[0] == '>'  ? sNet.SubString(1, sNet.size()) : sNet);
+
+            wxString model = sNet[0] == '<' || sNet[0] == '>' ? sNet.SubString(1, sNet.size()) : sNet;
+            ModelChoice->SetStringSelection(model);
+            if (ModelChoice->GetSelection() == -1)
+            {
+                if (_modelsPreview.find(model) != _modelsPreview.end())
+                {
+                    ModelChoice->AppendString(model);
+                    ModelChoice->SetStringSelection(model);
+                }
+            }
         } else {
             OutputChoice->SetStringSelection(sNet);
             if (OutputChoice->GetStringSelection() == "" && OutputChoice->GetCount() > 0)
@@ -324,4 +386,9 @@ void StartChannelDialog::SetUniverseOptionsBasedOnIP(wxString ip)
 void StartChannelDialog::OnipChoiceSelect(wxCommandEvent& event)
 {
     SetUniverseOptionsBasedOnIP(ipChoice->GetStringSelection());
+}
+
+void StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event)
+{
+    UpdateModels();
 }
