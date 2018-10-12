@@ -25,6 +25,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Make it easier to define virtual matrices 1:1 sized with pixel data and even multiples thereof
    -- enh (keith)  Add a fade in/out play list item
    -- enh (keith)  Add manual video speed control to video effect including the ability to play it backwards
+   -- enh (keith)  Add a "Set playlist as background" api to xschedule
 2018.35 October 6, 2018
    -- enh (gil)    Add New Timing Track from row header right-click now provides all timing options. Fixes #377.
    -- bug (gil)    Fix multi-arch nodes incorrectly ordered when using Blue Square start.  Fixes #1162 and Fixes #454.
