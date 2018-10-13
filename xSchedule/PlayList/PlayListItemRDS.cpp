@@ -10,10 +10,10 @@
 #include "../../xLights/AudioManager.h"
 #include "PlayList.h"
 
-#define MRDS_STARTBYTEWRITE (wxByte)214
+#define MRDS_STARTBYTEWRITE (wxByte)0xD6
 #define RDS_STARTBYTEWRITE (wxByte)0xFE
 #define RDS_ENDBYTEWRITE (wxByte)0xFF
-#define RDS_STARTBYTEREAD (wxByte)215
+#define RDS_STARTBYTEREAD (wxByte)0xD7
 
 PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
@@ -179,8 +179,18 @@ void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int bufle
     }
     else
     {
-        Dump(buffer, buflen);
         unsigned char newBuf[100];
+
+        // invert all the bits
+        for (int i = 0; i < buflen; i++)
+        {
+            newBuf[i] = ~buffer[i];
+        }
+
+        serial->Write((char*)newBuf, buflen);
+        return;
+
+        Dump(buffer, buflen);
         int outByte = 0;
         int outBit = 1;
         unsigned char partial = 0;
@@ -257,7 +267,7 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
             }
         }
 
-        logger_base.info("RDS: PS '%s' DPS '%s'.", (const char *)stationName.c_str(), (const char *)text.c_str());
+        logger_base.info("%s: PS '%s' DPS '%s'.", (_mrds ? "MRDS" : "RDS"), (const char *)stationName.c_str(), (const char *)text.c_str());
 
         if (_commPort == "")
         {
@@ -274,12 +284,18 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
         {
             logger_base.warn("RDS: Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
             delete serial;
+            wxASSERT(false);
             return;
         }
 
         logger_base.debug("Serial port open %s, %d baud, %s.", (const char *)_commPort.c_str(), _serialSpeed, serialConfig);
 
         unsigned char outBuffer[100];
+        memset(outBuffer, 0x00, sizeof(outBuffer));
+        
+        outBuffer[0] = 0xD6;
+        Write(serial, outBuffer, 1);
+        wxMilliSleep(100);
 
         // Set station name
         if (_mrds)

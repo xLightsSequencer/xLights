@@ -14,7 +14,7 @@
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemMicrophone.h"
-#include "PlayListItemRDS.h"
+//#include "PlayListItemRDS.h"
 #include "PlayListItemProjector.h"
 #include "PlayListItemAllOff.h"
 #include "PlayListItemSetColour.h"
@@ -191,7 +191,8 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         }
         else if (n->GetName() == "PLIRDS")
         {
-            _items.push_back(new PlayListItemRDS(n));
+            // I am commenting this out until i can find a way to make this work
+            //_items.push_back(new PlayListItemRDS(n));
         }
         else if (n->GetName() == "PLIPJLink")
         {
