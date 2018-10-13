@@ -19,7 +19,6 @@ PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
     _started = false;
     _highSpeed = false;
-    _mrds = false;
     _stationDuration = 0;
     _stationName = "";
     _commPort = "COM1";
@@ -41,14 +40,12 @@ void PlayListItemRDS::Load(wxXmlNode* node)
     _commPort = node->GetAttribute("CommPort", "");
     _text = node->GetAttribute("Text", "");
     _highSpeed = (node->GetAttribute("HighSpeed", "FALSE") == "TRUE");
-    _mrds = (node->GetAttribute("MRDS", "FALSE") == "TRUE");
 }
 
 PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 {
     _started = false;
     _highSpeed = false;
-    _mrds = false;
     _stationDuration = 0;
     _stationName = "";
     _commPort = "COM1";
@@ -63,7 +60,6 @@ PlayListItem* PlayListItemRDS::Copy() const
     PlayListItemRDS* res = new PlayListItemRDS();
     res->_started = false;
     res->_highSpeed = _highSpeed;
-    res->_mrds = _mrds;
     res->_stationDuration = _stationDuration;
     res->_stationName = _stationName;
     res->_commPort = _commPort;
@@ -87,10 +83,6 @@ wxXmlNode* PlayListItemRDS::Save()
     if (_highSpeed)
     {
         node->AddAttribute("HighSpeed", "TRUE");
-    }
-    if (_mrds)
-    {
-        node->AddAttribute("MRDS", "TRUE");
     }
     node->AddAttribute("StationDuration", wxString::Format(wxT("%i"), _stationDuration));
     node->AddAttribute("LineDuration", wxString::Format(wxT("%i"), _lineDuration));
@@ -151,79 +143,69 @@ void AddBit(bool bit, unsigned char newBuf[], int& outByte, int& outBit, unsigne
     }
 }
 
-unsigned char ReverseByte(unsigned char b) {
-    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-    return b;
-}
-
-void ReverseBits(unsigned char* buffer, int buflen)
-{
-    for (int i = 0; i < buflen; i++)
-    {
-        buffer[i] = ReverseByte(buffer[i]);
-    }
-}
-
 void PlayListItemRDS::Write(SerialPort* serial, unsigned char* buffer, int buflen)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!_mrds)
+    Dump(buffer, buflen);
+    SendWithDTRCTS(serial, (char*)buffer, buflen);
+}
+
+#define I2CUNIT 0
+
+void PlayListItemRDS::SendBitWithDTRCTS(SerialPort* serial, bool bit, int hold)
+{
+    // Drop CTS
+    serial->SetRTS(false);
+
+    // Set DTS to the bit value
+    serial->SetDTR(bit);
+    wxMicroSleep(I2CUNIT*hold);
+    // Now lift CTS
+    serial->SetRTS(true);
+    wxMicroSleep(I2CUNIT);
+}
+
+void PlayListItemRDS::InitialiseDTRCTS(SerialPort* serial)
+{
+    // Set DTR and CTS in prep for transfer
+    serial->SetRTS(true);
+    serial->SetDTR(true);
+}
+
+int PlayListItemRDS::SendWithDTRCTS(SerialPort* serial, char* buf, size_t len)
+{
+    // Start bit
+    // Clear DTR then CTS
+    serial->SetDTR(false);
+    wxMicroSleep(I2CUNIT / 10);
+    serial->SetRTS(false);
+
+    wxMicroSleep(I2CUNIT);
+
+    for (int i = 0; i < len; i++)
     {
-        buffer[buflen] = RDS_ENDBYTEWRITE;
-        buflen++;
-        serial->Write((char*)buffer, buflen);
-        Dump(buffer, buflen);
-    }
-    else
-    {
-        Dump(buffer, buflen);
-        unsigned char newBuf[100];
-        int outByte = 0;
-        int outBit = 1;
-        unsigned char partial = 0;
-        for (int i = 0; i < buflen; ++i)
+        wxByte mask = 0x80;
+
+        for (int j = 0; j < 8; j++)
         {
-            unsigned char mask = 0x80;
-            for (int b = 0; b < 8; ++b)
-            {
-                bool bit = (buffer[i] & mask) != 0 ? true : false;
+            bool bit = (buf[i] & mask) != 0;
+            SendBitWithDTRCTS(serial, bit); /// start
 
-                AddBit(bit, newBuf, outByte, outBit, partial);
-
-                mask = mask >> 1;
-            }
-            // ACK
-            AddBit(false, newBuf, outByte, outBit, partial);
+            mask = mask >> 1;
         }
-
-        // Stop bit
-        AddBit(true, newBuf, outByte, outBit, partial);
-        newBuf[outByte] = partial;
-        outByte++;
-
-        if (_mrds)
-        {
-            ReverseBits(newBuf, outByte);
-        }
-
-        serial->Write((char*)newBuf, outByte);
-        logger_base.debug("Encoded:");
-        Dump(newBuf, outByte);
+        SendBitWithDTRCTS(serial, true, 2); // byte stop bit
     }
 
-    //unsigned char read = RDS_STARTBYTEREAD;
-    //serial->Write((char*)&read, 1);
-    //unsigned char inBuffer[100];
-    //int toread = std::min(serial->AvailableToRead(), (int)sizeof(inBuffer));
-    //if (toread > 0)
-    //{
-    //    serial->Read((char*)inBuffer, toread);
-    //    logger_base.debug("Response ...");
-    //    Dump(inBuffer, toread);
-    //}
+    // stop bit
+    serial->SetRTS(false);
+    serial->SetDTR(false);
+    wxMicroSleep(I2CUNIT / 10);
+    serial->SetRTS(true);
+    wxMicroSleep(I2CUNIT);
+    serial->SetDTR(true);
+
+    return len;
 }
 
 void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -279,17 +261,12 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
 
         logger_base.debug("Serial port open %s, %d baud, %s.", (const char *)_commPort.c_str(), _serialSpeed, serialConfig);
 
-        unsigned char outBuffer[100];
+        InitialiseDTRCTS(serial);
 
-        // Set station name
-        if (_mrds)
-        {
+        unsigned char outBuffer[100];
+        memset(outBuffer, 0x00, sizeof(outBuffer));
+
             outBuffer[0] = MRDS_STARTBYTEWRITE;
-        }
-        else
-        {
-            outBuffer[0] = RDS_STARTBYTEWRITE;
-        }
 
         outBuffer[1] = (wxByte)0x02;
         strncpy((char*)&outBuffer[2], stationName.c_str(), 8);
@@ -305,9 +282,9 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
         Write(serial, &outBuffer[0], 3);
 
         // Store ram in eeprom
-        outBuffer[1] = (wxByte)0x71;
-        outBuffer[2] = (wxByte)0x45;
-        Write(serial, &outBuffer[0], 3);
+        //outBuffer[1] = (wxByte)0x71;
+        //outBuffer[2] = (wxByte)0x45;
+        //Write(serial, &outBuffer[0], 3);
 
         // Music program
         outBuffer[1] = (wxByte)0x0C;
@@ -335,7 +312,7 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
         Write(serial, &outBuffer[0], 3);
 
         outBuffer[1] = (wxByte)0x77;
-        strncpy((char*)&outBuffer[1], _text.c_str(), 80);
+        strncpy((char*)&outBuffer[2], _text.c_str(), 80);
         for (int i = text.length(); i < 80; i++)
         {
             outBuffer[2 + i] = ' ';

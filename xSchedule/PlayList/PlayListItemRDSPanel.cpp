@@ -24,7 +24,6 @@ const long PlayListItemRDSPanel::ID_TEXTCTRL2 = wxNewId();
 const long PlayListItemRDSPanel::ID_STATICTEXT6 = wxNewId();
 const long PlayListItemRDSPanel::ID_SPINCTRL2 = wxNewId();
 const long PlayListItemRDSPanel::ID_CHECKBOX1 = wxNewId();
-const long PlayListItemRDSPanel::ID_CHECKBOX2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemRDSPanel,wxPanel)
@@ -37,9 +36,9 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
     _rds = rds;
 
 	//(*Initialize(PlayListItemRDSPanel)
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, id, wxDefaultPosition, wxSize(396,287), wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -98,10 +97,6 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
 	CheckBox_HighSpeed = new wxCheckBox(this, ID_CHECKBOX1, _("High speed scrolling"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_HighSpeed->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_HighSpeed, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_MRDS = new wxCheckBox(this, ID_CHECKBOX2, _("MRDS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-	CheckBox_MRDS->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_MRDS, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
@@ -127,7 +122,6 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
     Choice_ScrollMode->SetStringSelection(_rds->GetMode());
     Choice_SerialSpeed->SetStringSelection(wxString::Format(wxT("%i"), _rds->GetSerialSpeed()).ToStdString());
     CheckBox_HighSpeed->SetValue(_rds->GetHighSpeed());
-    CheckBox_MRDS->SetValue(_rds->GetMRDS());
 
     ValidateWindow();
 }
@@ -144,7 +138,6 @@ PlayListItemRDSPanel::~PlayListItemRDSPanel()
     _rds->SetMode(Choice_ScrollMode->GetStringSelection().ToStdString());
     _rds->SetSerialSpeed(wxAtoi(Choice_SerialSpeed->GetStringSelection()));
     _rds->SetHighSpeed(CheckBox_HighSpeed->GetValue());
-    _rds->SetMRDS(CheckBox_MRDS->GetValue());
 }
 
 void PlayListItemRDSPanel::OnChoice_ScrollModeSelect(wxCommandEvent& event)
