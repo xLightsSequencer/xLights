@@ -136,6 +136,9 @@ class ScheduleDialog: public wxDialog
 		void OnChoice_FireFrequencySelect(wxCommandEvent& event);
 		//*)
 
+        void OnTextCtrl_OnKillFocus(wxFocusEvent& event);
+        void OnTextCtrl_OffKillFocus(wxFocusEvent& event);
+
 		DECLARE_EVENT_TABLE()
 };
 

@@ -152,7 +152,7 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	FlexGridSizer1->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_OffTime = new wxTextCtrl(this, ID_TEXTCTRL1, _("22:00"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	FlexGridSizer1->Add(TextCtrl_OffTime, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_GracefullyInterrupt = new wxCheckBox(this, ID_CHECKBOX12, _("Gracefully interupt any lower priority playing schedule"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX12"));
 	CheckBox_GracefullyInterrupt->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_GracefullyInterrupt, 1, wxALL|wxEXPAND, 5);
@@ -214,6 +214,9 @@ ScheduleDialog::ScheduleDialog(wxWindow* parent, Schedule* schedule, wxWindowID 
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ScheduleDialog::OnButton_CancelClick);
 	//*)
+
+    Connect(ID_TEXTCTRL1, wxEVT_KILL_FOCUS, (wxObjectEventFunction)&ScheduleDialog::OnTextCtrl_OffKillFocus);
+    Connect(ID_TEXTCTRL2, wxEVT_KILL_FOCUS, (wxObjectEventFunction)&ScheduleDialog::OnTextCtrl_OnKillFocus);
 
     TextCtrl_Name->SetValue(schedule->GetName());
     TextCtrl_OnTime->SetValue(schedule->GetStartTimeAsString());
@@ -372,4 +375,26 @@ void ScheduleDialog::OnSpinCtrl_NthDayOffsetChange(wxSpinEvent& event)
 void ScheduleDialog::OnChoice_FireFrequencySelect(wxCommandEvent& event)
 {
     ValidateWindow();
+}
+
+void ScheduleDialog::OnTextCtrl_OnKillFocus(wxFocusEvent& event)
+{
+    wxDateTime dt;
+    dt.ParseFormat(TextCtrl_OnTime->GetValue(), "%H:%M:%S");
+    if (dt.GetSecond() != 0)
+    {
+        dt.SetSecond(0);
+        TextCtrl_OnTime->SetValue(dt.Format("%H:%M:%S"));
+    }
+}
+
+void ScheduleDialog::OnTextCtrl_OffKillFocus(wxFocusEvent& event)
+{
+    wxDateTime dt;
+    dt.ParseFormat(TextCtrl_OffTime->GetValue(), "%H:%M:%S");
+    if (dt.GetSecond() != 0)
+    {
+        dt.SetSecond(0);
+        TextCtrl_OffTime->SetValue(dt.Format("%H:%M:%S"));
+    }
 }
