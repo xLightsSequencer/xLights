@@ -36,11 +36,13 @@ class WiringDialog: public wxDialog
     int _fontSize;
     std::map<int, std::map<int, std::list<wxPoint>>> _points;
     void RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer = false);
+    wxBitmap Render(int w, int h);
     void RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer = false);
     std::map<int, std::list<wxPoint>> ExtractPoints(wxGrid* grid, bool reverse);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
     static const long ID_MNU_EXPORT;
+    static const long ID_MNU_EXPORTLARGE;
     static const long ID_MNU_PRINT;
     static const long ID_MNU_DARK;
     static const long ID_MNU_LIGHT;
