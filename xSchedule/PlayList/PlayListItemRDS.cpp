@@ -15,9 +15,28 @@
 #define RDS_ENDBYTEWRITE (wxByte)0xFF
 #define RDS_STARTBYTEREAD (wxByte)215
 
+class EDMRDSThread : public wxThread
+{
+    PlayListItemRDS* _pliRDS;
+
+public:
+    EDMRDSThread(PlayListItemRDS* pliRDS)
+    {
+        _pliRDS = pliRDS;
+    }
+    virtual ~EDMRDSThread() { }
+
+    virtual void* Entry() override
+    {
+        _pliRDS->Do();
+        return nullptr;
+    }
+};
+
 PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
     _started = false;
+    _done = false;
     _highSpeed = false;
     _stationDuration = 0;
     _stationName = "";
@@ -45,6 +64,7 @@ void PlayListItemRDS::Load(wxXmlNode* node)
 PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 {
     _started = false;
+    _done = false;
     _highSpeed = false;
     _stationDuration = 0;
     _stationName = "";
@@ -53,6 +73,24 @@ PlayListItemRDS::PlayListItemRDS() : PlayListItem()
     _mode = 1;
     _serialSpeed = 19200;
     _text = "";
+}
+
+PlayListItemRDS::~PlayListItemRDS()
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int tries = 0;
+    while (_started && !_done && tries < 200)
+    {
+        // wait for the thread to exit ... but only for up to 2 seconds
+        wxMilliSleep(10);
+        tries++;
+    }
+
+    if (!_done)
+    {
+        logger_base.warn("PlayListItemRDS timed out waiting for thread to die.");
+    }
 }
 
 PlayListItem* PlayListItemRDS::Copy() const
@@ -75,7 +113,6 @@ PlayListItem* PlayListItemRDS::Copy() const
 wxXmlNode* PlayListItemRDS::Save()
 {
     wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIRDS");
-
 
     node->AddAttribute("StationName", _stationName);
     node->AddAttribute("Text", _text);
@@ -208,129 +245,137 @@ int PlayListItemRDS::SendWithDTRCTS(SerialPort* serial, char* buf, size_t len)
     return len;
 }
 
+void PlayListItemRDS::Do()
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto step = xScheduleFrame::GetScheduleManager()->GetRunningPlayList()->GetRunningStep();
+
+    if (step == nullptr)
+    {
+        step = xScheduleFrame::GetScheduleManager()->GetStepContainingPlayListItem(GetId());
+    }
+
+    wxString text = wxString(_text);
+    wxString stationName = wxString(_stationName);
+
+    if (step != nullptr)
+    {
+        text.Replace("%STEPNAME%", step->GetNameNoTime());
+
+        AudioManager* audio = step->GetAudioManager();
+        if (audio != nullptr)
+        {
+            text.Replace("%TITLE%", audio->Title());
+            text.Replace("%ARTIST%", audio->Artist());
+            text.Replace("%ALBUM%", audio->Album());
+        }
+    }
+
+    logger_base.info("RDS: PS '%s' DPS '%s'.", (const char *)stationName.c_str(), (const char *)text.c_str());
+
+    if (_commPort == "")
+    {
+        logger_base.warn("RDS: No comm port specified.");
+        return;
+    }
+
+    auto serial = new SerialPort();
+
+    char serialConfig[4];
+    strcpy(serialConfig, "8N1");
+    int errcode = serial->Open(_commPort, _serialSpeed, serialConfig);
+    if (errcode < 0)
+    {
+        logger_base.warn("RDS: Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
+        delete serial;
+        return;
+    }
+
+    logger_base.debug("Serial port open %s, %d baud, %s.", (const char *)_commPort.c_str(), _serialSpeed, serialConfig);
+
+    InitialiseDTRCTS(serial);
+
+    unsigned char outBuffer[100];
+    memset(outBuffer, 0x00, sizeof(outBuffer));
+
+    outBuffer[0] = MRDS_STARTBYTEWRITE;
+
+    outBuffer[1] = (wxByte)0x02;
+    strncpy((char*)&outBuffer[2], stationName.c_str(), 8);
+    for (int i = stationName.length(); i < 8; i++)
+    {
+        outBuffer[2 + i] = ' ';
+    }
+    Write(serial, &outBuffer[0], 10);
+
+    // Dynamic PS off
+    outBuffer[1] = (wxByte)0x76;
+    outBuffer[2] = (wxByte)0;
+    Write(serial, &outBuffer[0], 3);
+
+    // Store ram in eeprom
+    //outBuffer[1] = (wxByte)0x71;
+    //outBuffer[2] = (wxByte)0x45;
+    //Write(serial, &outBuffer[0], 3);
+
+    // Music program
+    outBuffer[1] = (wxByte)0x0C;
+    outBuffer[2] = (wxByte)1;
+    Write(serial, &outBuffer[0], 3);
+
+    // Static PS period
+    outBuffer[1] = (wxByte)0x72;
+    outBuffer[2] = _stationDuration;
+    Write(serial, &outBuffer[0], 3);
+
+    // Display mode
+    outBuffer[1] = (wxByte)0x73;
+    outBuffer[2] = _mode;
+    Write(serial, &outBuffer[0], 3);
+
+    // Label period
+    outBuffer[1] = (wxByte)0x74;
+    outBuffer[2] = (wxByte)_lineDuration;
+    Write(serial, &outBuffer[0], 3);
+
+    // Scrolling speed
+    outBuffer[1] = (wxByte)0x75;
+    outBuffer[2] = (wxByte)(_highSpeed ? 0 : 1);
+    Write(serial, &outBuffer[0], 3);
+
+    outBuffer[1] = (wxByte)0x77;
+    strncpy((char*)&outBuffer[2], _text.c_str(), 80);
+    for (int i = text.length(); i < 80; i++)
+    {
+        outBuffer[2 + i] = ' ';
+    }
+    Write(serial, &outBuffer[0], 82);
+
+    //outBuffer[1] = (wxByte)0x76;
+    //outBuffer[2] = (wxByte)text.length();
+    //Write(serial, &outBuffer[0], 3);
+
+    // Store ram in eeprom
+    outBuffer[1] = (wxByte)0x71;
+    outBuffer[2] = (wxByte)0x45;
+    Write(serial, &outBuffer[0], 3);
+
+    delete serial;
+
+    logger_base.debug("Serial port closed.");
+
+    _done = true;
+}
+
 void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {
         _started = true;
 
-        log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-        auto step = xScheduleFrame::GetScheduleManager()->GetRunningPlayList()->GetRunningStep();
-
-        if (step == nullptr)
-        {
-            step = xScheduleFrame::GetScheduleManager()->GetStepContainingPlayListItem(GetId());
-        }
-
-        wxString text = wxString(_text);
-        wxString stationName = wxString(_stationName);
-
-        if (step != nullptr)
-        {
-            text.Replace("%STEPNAME%", step->GetNameNoTime());
-
-            AudioManager* audio = step->GetAudioManager();
-            if (audio != nullptr)
-            {
-                text.Replace("%TITLE%", audio->Title());
-                text.Replace("%ARTIST%", audio->Artist());
-                text.Replace("%ALBUM%", audio->Album());
-            }
-        }
-
-        logger_base.info("RDS: PS '%s' DPS '%s'.", (const char *)stationName.c_str(), (const char *)text.c_str());
-
-        if (_commPort == "")
-        {
-            logger_base.warn("RDS: No comm port specified.");
-            return;
-        }
-
-        auto serial = new SerialPort();
-
-        char serialConfig[4];
-        strcpy(serialConfig, "8N1");
-        int errcode = serial->Open(_commPort, _serialSpeed, serialConfig);
-        if (errcode < 0)
-        {
-            logger_base.warn("RDS: Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
-            delete serial;
-            return;
-        }
-
-        logger_base.debug("Serial port open %s, %d baud, %s.", (const char *)_commPort.c_str(), _serialSpeed, serialConfig);
-
-        InitialiseDTRCTS(serial);
-
-        unsigned char outBuffer[100];
-        memset(outBuffer, 0x00, sizeof(outBuffer));
-
-            outBuffer[0] = MRDS_STARTBYTEWRITE;
-
-        outBuffer[1] = (wxByte)0x02;
-        strncpy((char*)&outBuffer[2], stationName.c_str(), 8);
-        for (int i = stationName.length(); i < 8; i++)
-        {
-            outBuffer[2 + i] = ' ';
-        }
-        Write(serial, &outBuffer[0], 10);
-
-        // Dynamic PS off
-        outBuffer[1] = (wxByte)0x76;
-        outBuffer[2] = (wxByte)0;
-        Write(serial, &outBuffer[0], 3);
-
-        // Store ram in eeprom
-        //outBuffer[1] = (wxByte)0x71;
-        //outBuffer[2] = (wxByte)0x45;
-        //Write(serial, &outBuffer[0], 3);
-
-        // Music program
-        outBuffer[1] = (wxByte)0x0C;
-        outBuffer[2] = (wxByte)1;
-        Write(serial, &outBuffer[0], 3);
-
-        // Static PS period
-        outBuffer[1] = (wxByte)0x72;
-        outBuffer[2] = _stationDuration;
-        Write(serial, &outBuffer[0], 3);
-
-        // Display mode
-        outBuffer[1] = (wxByte)0x73;
-        outBuffer[2] = _mode;
-        Write(serial, &outBuffer[0], 3);
-
-        // Label period
-        outBuffer[1] = (wxByte)0x74;
-        outBuffer[2] = (wxByte)_lineDuration;
-        Write(serial, &outBuffer[0], 3);
-
-        // Scrolling speed
-        outBuffer[1] = (wxByte)0x75;
-        outBuffer[2] = (wxByte)(_highSpeed ? 0: 1);
-        Write(serial, &outBuffer[0], 3);
-
-        outBuffer[1] = (wxByte)0x77;
-        strncpy((char*)&outBuffer[2], _text.c_str(), 80);
-        for (int i = text.length(); i < 80; i++)
-        {
-            outBuffer[2 + i] = ' ';
-        }
-        Write(serial, &outBuffer[0], 82);
-
-        //outBuffer[1] = (wxByte)0x76;
-        //outBuffer[2] = (wxByte)text.length();
-        //Write(serial, &outBuffer[0], 3);
-
-        // Store ram in eeprom
-        outBuffer[1] = (wxByte)0x71;
-        outBuffer[2] = (wxByte)0x45;
-        Write(serial, &outBuffer[0], 3);
-
-        delete serial;
-
-        logger_base.debug("Serial port closed.");
+        EDMRDSThread* thread = new EDMRDSThread(this);
+        thread->Run();
     }
 }
 
@@ -339,6 +384,7 @@ void PlayListItemRDS::Start(long stepLengthMS)
     PlayListItem::Start(stepLengthMS);
 
     _started = false;
+    _done = false;
 }
 
 std::string PlayListItemRDS::GetMode() const
@@ -379,6 +425,3 @@ void PlayListItemRDS::SetMode(const std::string& mode)
        _mode = 3;
    }
 }
-
-
-

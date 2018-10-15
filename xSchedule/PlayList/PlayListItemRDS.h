@@ -3,6 +3,7 @@
 
 #include "PlayListItem.h"
 #include <string>
+#include <atomic>
 
 class wxXmlNode;
 class wxWindow;
@@ -13,7 +14,8 @@ class PlayListItemRDS : public PlayListItem
 protected:
 
     #pragma region Member Variables
-    bool _started;
+    std::atomic_bool _started;
+    std::atomic_bool _done;
     std::string _commPort;
     bool _highSpeed;
     int _mode;
@@ -35,7 +37,7 @@ public:
     #pragma region Constructors and Destructors
     PlayListItemRDS(wxXmlNode* node);
     PlayListItemRDS();
-    virtual ~PlayListItemRDS() {};
+    virtual ~PlayListItemRDS();
     virtual PlayListItem* Copy() const override;
     #pragma endregion Constructors and Destructors
 
@@ -59,6 +61,7 @@ public:
     int GetLineDuration() const { return _lineDuration; }
     void SetLineDuration(int lineDuration) { if (_lineDuration != lineDuration) { _lineDuration = lineDuration; _changeCount++; } }
     virtual std::string GetTitle() const override;
+    void Do();
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
