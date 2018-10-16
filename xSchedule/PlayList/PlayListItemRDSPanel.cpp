@@ -10,8 +10,6 @@
 //(*IdInit(PlayListItemRDSPanel)
 const long PlayListItemRDSPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListItemRDSPanel::ID_CHOICE1 = wxNewId();
-const long PlayListItemRDSPanel::ID_STATICTEXT8 = wxNewId();
-const long PlayListItemRDSPanel::ID_CHOICE3 = wxNewId();
 const long PlayListItemRDSPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemRDSPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListItemRDSPanel::ID_STATICTEXT3 = wxNewId();
@@ -24,7 +22,6 @@ const long PlayListItemRDSPanel::ID_TEXTCTRL2 = wxNewId();
 const long PlayListItemRDSPanel::ID_STATICTEXT6 = wxNewId();
 const long PlayListItemRDSPanel::ID_SPINCTRL2 = wxNewId();
 const long PlayListItemRDSPanel::ID_CHECKBOX1 = wxNewId();
-const long PlayListItemRDSPanel::ID_CHECKBOX2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemRDSPanel,wxPanel)
@@ -37,9 +34,9 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
     _rds = rds;
 
 	//(*Initialize(PlayListItemRDSPanel)
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, id, wxDefaultPosition, wxSize(396,287), wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -48,14 +45,6 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_CommPort = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	FlexGridSizer1->Add(Choice_CommPort, 1, wxALL|wxEXPAND, 5);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Speed"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	Choice_SerialSpeed = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-	Choice_SerialSpeed->Append(_("2400"));
-	Choice_SerialSpeed->Append(_("4800"));
-	Choice_SerialSpeed->Append(_("9600"));
-	Choice_SerialSpeed->SetSelection( Choice_SerialSpeed->Append(_("19200")) );
-	FlexGridSizer1->Add(Choice_SerialSpeed, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Station Name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_StationName = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
@@ -98,16 +87,14 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
 	CheckBox_HighSpeed = new wxCheckBox(this, ID_CHECKBOX1, _("High speed scrolling"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_HighSpeed->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_HighSpeed, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_MRDS = new wxCheckBox(this, ID_CHECKBOX2, _("MRDS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-	CheckBox_MRDS->SetValue(false);
-	FlexGridSizer1->Add(CheckBox_MRDS, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
 	Layout();
 
 	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PlayListItemRDSPanel::OnChoice_ScrollModeSelect);
+	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemRDSPanel::OnSpinCtrl_StationDurationChange);
 	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PlayListItemRDSPanel::OnChoice_ScrollModeSelect);
+	Connect(ID_SPINCTRL2,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemRDSPanel::OnSpinCtrl_TextDurationChange);
 	//*)
 
     // populate the commport list
@@ -125,9 +112,10 @@ PlayListItemRDSPanel::PlayListItemRDSPanel(wxWindow* parent, PlayListItemRDS* rd
     SpinCtrl_TextDuration->SetValue(_rds->GetLineDuration());
     Choice_CommPort->SetStringSelection(_rds->GetCommPort());
     Choice_ScrollMode->SetStringSelection(_rds->GetMode());
-    Choice_SerialSpeed->SetStringSelection(wxString::Format(wxT("%i"), _rds->GetSerialSpeed()).ToStdString());
     CheckBox_HighSpeed->SetValue(_rds->GetHighSpeed());
-    CheckBox_MRDS->SetValue(_rds->GetMRDS());
+
+    StaticText_StationDuration->SetLabel(wxString::Format(wxT("%.1f secs"), SpinCtrl_StationDuration->GetValue() * 2.7f));
+    StaticText_TextDuration->SetLabel(wxString::Format(wxT("%.2f secs"), SpinCtrl_TextDuration->GetValue() * 0.54f));
 
     ValidateWindow();
 }
@@ -142,9 +130,7 @@ PlayListItemRDSPanel::~PlayListItemRDSPanel()
     _rds->SetLineDuration(SpinCtrl_TextDuration->GetValue());
     _rds->SetCommPort(Choice_CommPort->GetStringSelection().ToStdString());
     _rds->SetMode(Choice_ScrollMode->GetStringSelection().ToStdString());
-    _rds->SetSerialSpeed(wxAtoi(Choice_SerialSpeed->GetStringSelection()));
     _rds->SetHighSpeed(CheckBox_HighSpeed->GetValue());
-    _rds->SetMRDS(CheckBox_MRDS->GetValue());
 }
 
 void PlayListItemRDSPanel::OnChoice_ScrollModeSelect(wxCommandEvent& event)
@@ -170,11 +156,9 @@ void PlayListItemRDSPanel::ValidateWindow()
         Choice_ScrollMode->GetStringSelection() == "Mode 3 - Scroll 1 Character Leading Spaces")
     {
         CheckBox_HighSpeed->Enable();
-        SpinCtrl_TextDuration->Enable(false);
     }
     else
     {
-        SpinCtrl_TextDuration->Enable();
         CheckBox_HighSpeed->Enable(false);
     }
 }

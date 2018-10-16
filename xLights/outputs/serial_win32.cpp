@@ -265,6 +265,30 @@ int SerialPort::Read(char* buf, size_t len)
     return 0;
 }
 
+void SerialPort::SetDTR(bool state)
+{
+    if (state)
+    {
+        EscapeCommFunction(_fd, SETDTR);
+    }
+    else
+    {
+        EscapeCommFunction(_fd, CLRDTR);
+    }
+}
+
+void SerialPort::SetRTS(bool state)
+{
+    if (state)
+    {
+        EscapeCommFunction(_fd, SETRTS);
+    }
+    else
+    {
+        EscapeCommFunction(_fd, CLRRTS);
+    }
+}
+
 int SerialPort::Write(char* buf, size_t len)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
