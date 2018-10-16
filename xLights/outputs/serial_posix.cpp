@@ -240,11 +240,11 @@ void SerialPort::SetRTS(bool state)
     int RTS_flag = TIOCM_RTS;
     if (state)
     {
-        ioctl(fd, TIOCMBIS, &RTS_flag);
+        ioctl(_fd, TIOCMBIS, &RTS_flag);
     }
     else
     {
-        ioctl(fd, TIOCMBIC, &RTS_flag);
+        ioctl(_fd, TIOCMBIC, &RTS_flag);
     }
 };
 
