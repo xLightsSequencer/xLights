@@ -27,7 +27,6 @@ class PlayListItemRDSPanel: public wxPanel
 		wxCheckBox* CheckBox_HighSpeed;
 		wxChoice* Choice_CommPort;
 		wxChoice* Choice_ScrollMode;
-		wxChoice* Choice_SerialSpeed;
 		wxSpinCtrl* SpinCtrl_StationDuration;
 		wxSpinCtrl* SpinCtrl_TextDuration;
 		wxStaticText* StaticText1;
@@ -36,7 +35,6 @@ class PlayListItemRDSPanel: public wxPanel
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
-		wxStaticText* StaticText8;
 		wxStaticText* StaticText_StationDuration;
 		wxStaticText* StaticText_TextDuration;
 		wxTextCtrl* TextCtrl_StationName;
@@ -48,8 +46,6 @@ class PlayListItemRDSPanel: public wxPanel
 		//(*Identifiers(PlayListItemRDSPanel)
 		static const long ID_STATICTEXT1;
 		static const long ID_CHOICE1;
-		static const long ID_STATICTEXT8;
-		static const long ID_CHOICE3;
 		static const long ID_STATICTEXT2;
 		static const long ID_TEXTCTRL1;
 		static const long ID_STATICTEXT3;

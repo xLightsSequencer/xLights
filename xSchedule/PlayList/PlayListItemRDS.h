@@ -19,7 +19,6 @@ protected:
     std::string _commPort;
     bool _highSpeed;
     int _mode;
-    int _serialSpeed;
     std::string _stationName;
     std::string _text;
     int _stationDuration;
@@ -52,8 +51,6 @@ public:
     std::string GetCommPort() const { return _commPort; }
     std::string GetMode() const;
     void SetMode(const std::string& mode);
-    int GetSerialSpeed() const { return _serialSpeed; }
-    void SetSerialSpeed(int serialSpeed) { if (_serialSpeed != serialSpeed) { _serialSpeed = serialSpeed; _changeCount++; } }
     void SetText(const std::string& text) { if (text != _text) { _text = text; _changeCount++; } }
     std::string GetText() const { return _text; }
     int GetStationDuration() const { return _stationDuration; }
@@ -61,7 +58,7 @@ public:
     int GetLineDuration() const { return _lineDuration; }
     void SetLineDuration(int lineDuration) { if (_lineDuration != lineDuration) { _lineDuration = lineDuration; _changeCount++; } }
     virtual std::string GetTitle() const override;
-    void Do();
+    void Do(std::string text, std::string stationName, wxByte stationDuration, wxByte mode, wxByte lineDuration, wxByte highSpeed, std::string commPort);
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
