@@ -39,6 +39,7 @@
 
 #include <log4cpp/Category.hh>
 #include "controllers/ControllerUploadData.h"
+#include "MultiControllerUploadDialog.h"
 
 const long xLightsFrame::ID_NETWORK_ADDUSB = wxNewId();
 const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
@@ -64,6 +65,7 @@ const long xLightsFrame::ID_NETWORK_UPLOADCONTROLLER = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOUTPUT = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCINPUT = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCIFPPB = wxNewId();
+const long xLightsFrame::ID_NETWORK_MULTIUPLOAD = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFPPB = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCIFALCON = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOFALCON = wxNewId();
@@ -1347,6 +1349,16 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 
     wxMenu* mnuUploadController = new wxMenu();
 
+    wxMenuItem* beMultiUpload = mnuUploadController->Append(ID_NETWORK_MULTIUPLOAD, "Upload To All Controllers");
+    if (_outputManager.GetOutputCount() > 0 && _outputManager.GetIps().size() > 0)
+    {
+        beMultiUpload->Enable();
+    }
+    else
+    {
+        beMultiUpload->Enable(false);
+    }
+
     wxMenu* mnuUCInput = new wxMenu();
 
     wxMenuItem* beUCIFPPB = mnuUCInput->Append(ID_NETWORK_UCIFPPB, "FPP Bridge Mode");
@@ -1608,6 +1620,8 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
         SetupDDP(nullptr, item + 1);
     } else if (id == ID_NETWORK_UCIFPPB) {
         UploadFPPBridgeInput();
+    } else if (id == ID_NETWORK_MULTIUPLOAD) {
+        MultiControllerUpload();
     } else if (id == ID_NETWORK_UCOFPPB) {
         UploadFPPBridgeOutput();
     } else if (id == ID_NETWORK_UCIFALCON) {
@@ -1812,6 +1826,13 @@ void xLightsFrame::UploadFPPBridgeInput()
         }
         SetCursor(wxCURSOR_ARROW);
     }
+}
+
+void xLightsFrame::MultiControllerUpload()
+{
+    MultiControllerUploadDialog dlg(this);
+
+    dlg.ShowModal();
 }
 
 void xLightsFrame::UploadFPPBridgeOutput()

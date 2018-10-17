@@ -489,6 +489,8 @@
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
+		<Unit filename="MultiControllerUploadDialog.cpp" />
+		<Unit filename="MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
 		<Unit filename="NetInfo.h" />
@@ -1106,6 +1108,7 @@
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
+		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/NodeSelectGrid.wxs" />
@@ -1344,6 +1347,7 @@
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
+					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

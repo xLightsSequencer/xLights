@@ -353,6 +353,7 @@
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="ModelChainDialog.cpp" />
+    <ClCompile Include="MultiControllerUploadDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -706,6 +707,7 @@
     <ClInclude Include="outputs\ZCPPDialog.h" />
     <ClInclude Include="NodeSelectGrid.h" />
     <ClInclude Include="ModelChainDialog.h" />
+    <ClInclude Include="MultiControllerUploadDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

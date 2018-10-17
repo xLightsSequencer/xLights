@@ -222,3 +222,23 @@ int SerialPort::Purge()
     return 0;
     //return (tcflush(_fd, TCIOFLUSH));
 };
+
+void SerialPort::SetRTS(bool state)
+{
+    int RTS_flag = TIOCM_RTS;
+    if (state) {
+        ioctl(_fd, TIOCMBIS, &RTS_flag);
+    } else {
+        ioctl(_fd, TIOCMBIC, &RTS_flag);
+    }
+};
+
+void SerialPort::SetDTR(bool state)
+{
+    int DTR_flag = TIOCM_DTR;
+    if (state) {
+        ioctl(_fd, TIOCMBIS, &DTR_flag);         /* setting DTR = 1,~DTR = 0 */
+    } else {
+        ioctl(_fd, TIOCMBIC, &DTR_flag);         /* setting DTR = 0,~DTR = 1 */
+    }
+};

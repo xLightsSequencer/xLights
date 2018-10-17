@@ -1105,6 +1105,7 @@ public:
     void NetworkChange();
     std::list<int> GetSelectedOutputs(wxString& ip);
     void UploadFPPBridgeInput();
+    void MultiControllerUpload();
     void UploadFPPBridgeOutput();
     void UploadFalconInput();
     void UploadFalconOutput();
@@ -1541,6 +1542,7 @@ private:
     static const long ID_NETWORK_UPLOADCONTROLLER;
     static const long ID_NETWORK_UCOUTPUT;
     static const long ID_NETWORK_UCINPUT;
+    static const long ID_NETWORK_MULTIUPLOAD;
     static const long ID_NETWORK_UCIFPPB;
     static const long ID_NETWORK_UCOFPPB;
     static const long ID_NETWORK_UCIFALCON;

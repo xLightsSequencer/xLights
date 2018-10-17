@@ -22,7 +22,7 @@
 #include "PlayListItemFSEQVideo.h"
 #include "PlayListItemTest.h"
 #include "PlayListItemMicrophone.h"
-#include "PlayListItemRDS.h"
+//#include "PlayListItemRDS.h"
 #include "PlayListItemAudio.h"
 #include "PlayListItemESEQ.h"
 #include "PlayListItemFade.h"
@@ -563,7 +563,8 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     mnu.Append(ID_MNU_ADDSETCOLOUR, "Add Set Colour");
     mnu.Append(ID_MNU_ADDPROJECTOR, "Add Projector");
     mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
-    mnu.Append(ID_MNU_ADDRDS, "Add RDS");
+    // Commenting out until i can find a way to make this work
+    //mnu.Append(ID_MNU_ADDRDS, "Add RDS");
     mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
     mnu.Append(ID_MNU_ADDTEST, "Add Test");
     mnu.Append(ID_MNU_ADDMICROPHONE, "Add Microphone");
@@ -716,8 +717,9 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_MNU_ADDRDS)
     {
-        PlayListItemRDS* pli = new PlayListItemRDS();
-        AddItem(_playlist, step, pli);
+        // Commenting out until i can find a way to make this work
+        // PlayListItemRDS* pli = new PlayListItemRDS();
+        // AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDAUDIO)
     {

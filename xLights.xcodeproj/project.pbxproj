@@ -254,6 +254,9 @@
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677989A11F321BC200A26FA9 /* valuecurves in Resources */ = {isa = PBXBuildFile; fileRef = 677989A01F321BC200A26FA9 /* valuecurves */; };
+		678058CB2176600600BFD388 /* MultiControllerUploadDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */; };
+		678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */; };
+		678058D12176619800BFD388 /* PlayListItemFade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058CF2176619800BFD388 /* PlayListItemFade.cpp */; };
 		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
 		6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */; };
 		6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */; };
@@ -1192,6 +1195,12 @@
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
 		677989A01F321BC200A26FA9 /* valuecurves */ = {isa = PBXFileReference; lastKnownFileType = folder; path = valuecurves; sourceTree = "<group>"; };
+		678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MultiControllerUploadDialog.cpp; sourceTree = "<group>"; };
+		678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiControllerUploadDialog.h; sourceTree = "<group>"; };
+		678058CC2176619800BFD388 /* PlayListItemFadePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFadePanel.h; path = PlayList/PlayListItemFadePanel.h; sourceTree = "<group>"; };
+		678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFadePanel.cpp; path = PlayList/PlayListItemFadePanel.cpp; sourceTree = "<group>"; };
+		678058CE2176619800BFD388 /* PlayListItemFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFade.h; path = PlayList/PlayListItemFade.h; sourceTree = "<group>"; };
+		678058CF2176619800BFD388 /* PlayListItemFade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFade.cpp; path = PlayList/PlayListItemFade.cpp; sourceTree = "<group>"; };
 		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
 		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
 		6780E7E81F6EAE81002A8EC9 /* GenerateLyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateLyricsDialog.h; sourceTree = "<group>"; };
@@ -2790,6 +2799,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */,
+				678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */,
 				67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */,
 				67AAC48C214199A7005D55A9 /* NodeSelectGrid.h */,
 				67CE7B502111E02D004005BC /* RenderCache.cpp */,
@@ -3271,6 +3282,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				678058CF2176619800BFD388 /* PlayListItemFade.cpp */,
+				678058CE2176619800BFD388 /* PlayListItemFade.h */,
+				678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */,
+				678058CC2176619800BFD388 /* PlayListItemFadePanel.h */,
 				672F88C620E10BD0005BE1F4 /* PlayListItemMicrophone.cpp */,
 				672F88C720E10BD1005BE1F4 /* PlayListItemMicrophone.h */,
 				672F88C420E10BD0005BE1F4 /* PlayListItemMicrophonePanel.cpp */,
@@ -4037,6 +4052,7 @@
 				67B2B2341E1947BE0024F0BB /* serial_osx.cpp in Sources */,
 				679BD3381C37555C000539FE /* OffPanel.cpp in Sources */,
 				67B2CFE41C3A186A003C17CA /* PinwheelEffect.cpp in Sources */,
+				678058CB2176600600BFD388 /* MultiControllerUploadDialog.cpp in Sources */,
 				671130BD1E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp in Sources */,
 				674E3EE620CEB4EF0087FDA1 /* WarpEffect.cpp in Sources */,
 				67B2CF7A1C39D98A003C17CA /* LightningPanel.cpp in Sources */,
@@ -4243,6 +4259,7 @@
 				1ECB4F761FF635D7006D57AA /* OSCPacket.cpp in Sources */,
 				67DA0AFE1E39C8EB00E2A859 /* OutputProcessRemap.cpp in Sources */,
 				67F23FFE1E329E7400F8B985 /* PlayListItemVideo.cpp in Sources */,
+				678058D12176619800BFD388 /* PlayListItemFade.cpp in Sources */,
 				67F23FA21E329E3300F8B985 /* message.cpp in Sources */,
 				67C5814F1E4B95A400932DFA /* MatricesDialog.cpp in Sources */,
 				1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */,
@@ -4250,6 +4267,7 @@
 				67B6F33C2040F66500B847E0 /* wxMidiDatabase.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
 				1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */,
+				678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */,
 				674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */,
 				67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */,
 			);

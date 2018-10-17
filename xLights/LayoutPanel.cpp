@@ -2862,7 +2862,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
   wxChar uc = event.GetKeyCode();
 
     switch(uc) {
-#ifdef __WXMSW__
+#ifndef __WXOSX__
         case 'z':
         case 'Z':
             if (event.ControlDown()) {
@@ -2908,7 +2908,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
         break;
 #endif
         case WXK_DELETE:
-#ifdef __WXMSW__
+#ifndef __WXOSX__
             if (event.ShiftDown()) // Cut
             {
                 wxCommandEvent evt(wxEVT_MENU, wxID_CUT);

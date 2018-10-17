@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)  Redevelop EDM RDS playlistitem
+   -- bug (keith)  Face and state effect dont recognise backward ranges
+   -- bug (keith)  Force xSchedule to only recognise HH:MM:SS time format
+   -- enh (keith)  Add export to an really large image file the wiring diagram ... useful for really dense models
+   -- enh (keith)  Add bulk controller upload ... upload to multiple controllers (of the same type).
+2018.36 October 12, 2018
    -- end (will)   Ability to hide header/footer on buttons plugin. Add &args=noheader to URL.
    -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
    -- enh (gil)    Fix horizontal and vertical distribute in Layout panel.  Fixes #1219.

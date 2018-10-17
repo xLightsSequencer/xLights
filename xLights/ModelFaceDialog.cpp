@@ -392,7 +392,6 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
     }
 }
 
-
 void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
     if (SingleNodeGrid->IsCellEditControlShown()) {
         SingleNodeGrid->SaveEditControlValue();
