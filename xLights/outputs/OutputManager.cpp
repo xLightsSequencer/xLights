@@ -1195,7 +1195,10 @@ std::list<std::string> OutputManager::GetControllerNames() const
     {
         if ((*it)->IsLookedUpByControllerName())
         {
-            res.push_back((*it)->GetDescription());
+            if ((*it)->GetDescription() != "")
+            {
+                res.push_back((*it)->GetDescription());
+            }
         }
     }
     return res;

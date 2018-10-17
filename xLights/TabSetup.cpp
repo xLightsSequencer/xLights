@@ -614,12 +614,21 @@ void xLightsFrame::ChangeSelectedNetwork()
     }
 
     Output* o = _outputManager.GetOutput(item);
+    std::string oldDesc = o->GetDescription();
     Output* newoutput = o->Configure(this, &_outputManager);
     if (newoutput != nullptr)
     {
         if (newoutput != o)
         {
             _outputManager.Replace(o, newoutput);
+        }
+        else
+        {
+            std::string newDesc = o->GetDescription();
+            if (o->IsLookedUpByControllerName() && oldDesc != "" && oldDesc != newDesc)
+            {
+                AllModels.RenameController(oldDesc, newDesc);
+            }
         }
 
         AllModels.ReworkStartChannel();
@@ -701,7 +710,16 @@ void xLightsFrame::UpdateSelectedDescriptions()
     {
         while (item != -1)
         {
-            _outputManager.GetOutput(item)->SetDescription(dlg.GetValue().ToStdString());
+            Output* o = _outputManager.GetOutput(item);
+            std::string oldDesc = o->GetDescription();
+            std::string newDesc = dlg.GetValue().ToStdString();
+
+            if (o->IsLookedUpByControllerName() && oldDesc != "")
+            {
+                AllModels.RenameController(oldDesc, newDesc);
+            }
+
+            o->SetDescription(newDesc);
 
             item = GridNetwork->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         }
@@ -1083,8 +1101,16 @@ void xLightsFrame::SetupZCPP(Output* e, int after)
     if (zcpp == nullptr) zcpp = new ZCPPOutput();
     _outputManager.AddOutput(zcpp, after);
 
+    std::string oldDesc = zcpp->GetDescription();
+
     if (zcpp->Configure(this, &_outputManager) != nullptr)
     {
+        std::string newDesc = zcpp->GetDescription();
+        if (oldDesc != "" && oldDesc != newDesc)
+        {
+            AllModels.RenameController(oldDesc, newDesc);
+        }
+
         AllModels.ReworkStartChannel();
         NetworkChange();
         UpdateNetworkList(true);
