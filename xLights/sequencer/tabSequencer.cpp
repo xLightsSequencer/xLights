@@ -1391,6 +1391,8 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::SetAudioControls()
 {
+    if (_housePreviewPanel == nullptr) return;
+
     if (Notebook1->GetSelection() != NEWSEQUENCER)
     {
         if (playType == PLAY_TYPE_MODEL)

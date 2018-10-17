@@ -507,6 +507,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
 
+    _exiting = false;
     SplashDialog splash(nullptr);
     splash.Show();
     splash.Update();
@@ -2384,6 +2385,8 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
 void xLightsFrame::RecalcModels(bool force)
 {
+    if (IsExiting()) return;
+
     if (force || _setupChanged)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -2605,9 +2608,12 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         inClose = false;
         return;
     }
+
     selectedEffect = nullptr;
 
     CheckUnsavedChanges();
+
+    _exiting = true;
 
     ShowHideAllSequencerWindows(false);
 
