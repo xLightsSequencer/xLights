@@ -294,6 +294,7 @@ void PlayListItemRDS::Do(std::string text, std::string stationName, wxByte stati
     outBuffer[1] = 0x1F;
     outBuffer[2] = 0x00;
     memset(&outBuffer[3], 0x20, 64);
+    strncpy((char*)&outBuffer[3], text.c_str(), std::min(64, (int)text.size()));
     outBuffer[67] = 0x00;
     outBuffer[68] = 0x10;
     outBuffer[69] = 0x00;
@@ -304,7 +305,7 @@ void PlayListItemRDS::Do(std::string text, std::string stationName, wxByte stati
     Write(serial, &outBuffer[0], 74);
 
     outBuffer[1] = 0x1F;
-    outBuffer[2] = 0x02;
+    outBuffer[2] = 0x01;
     Write(serial, &outBuffer[0], 3);
 
     outBuffer[1] = 0x6E;
@@ -314,9 +315,8 @@ void PlayListItemRDS::Do(std::string text, std::string stationName, wxByte stati
 
     outBuffer[1] = 0x76;
     outBuffer[2] = 0x00; // zero length
-    memset(&outBuffer[3], 0x20, 72);
-    strncpy((char*)&outBuffer[2], text.c_str(), 72);
-    Write(serial, &outBuffer[0], std::min((int)(3 + text.size()), 3 + 72));
+    outBuffer[3] = 0x20;
+    Write(serial, &outBuffer[0], 4);
 
     outBuffer[1] = 0x72;
     outBuffer[2] = (wxByte)stationDuration;
