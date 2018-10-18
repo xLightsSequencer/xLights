@@ -19,28 +19,20 @@ class EDMRDSThread : public wxThread
     std::string _text;
     std::string _stationName;
     std::string _commPort;
-    wxByte _stationDuration;
-    wxByte _mode;
-    wxByte _lineDuration;
-    wxByte _highSpeed;
 
 public:
-    EDMRDSThread(PlayListItemRDS* pliRDS, std::string text, std::string stationName, wxByte stationDuration, wxByte mode, wxByte lineDuration, wxByte highSpeed, std::string commPort)
+    EDMRDSThread(PlayListItemRDS* pliRDS, std::string text, std::string stationName, std::string commPort)
     {
         _pliRDS = pliRDS;
         _text = text;
         _stationName = stationName;
-        _stationDuration = stationDuration;
-        _mode = mode;
-        _lineDuration = lineDuration;
-        _highSpeed = highSpeed;
         _commPort = commPort;
     }
     virtual ~EDMRDSThread() { }
 
     virtual void* Entry() override
     {
-        _pliRDS->Do(_text ,_stationName, _stationDuration, _mode, _lineDuration, _highSpeed, _commPort);
+        _pliRDS->Do(_text ,_stationName, _commPort);
         return nullptr;
     }
 };
@@ -49,12 +41,8 @@ PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 {
     _started = false;
     _done = false;
-    _highSpeed = false;
-    _stationDuration = 0;
     _stationName = "";
     _commPort = "COM1";
-    _lineDuration = 2;
-    _mode = 1;
     _text = "";
     PlayListItemRDS::Load(node);
 }
@@ -62,25 +50,17 @@ PlayListItemRDS::PlayListItemRDS(wxXmlNode* node) : PlayListItem(node)
 void PlayListItemRDS::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
-    _stationDuration = wxAtoi(node->GetAttribute("StationDuration", "0"));
-    _lineDuration = wxAtoi(node->GetAttribute("LineDuration", "2"));
-    _mode = wxAtoi(node->GetAttribute("Mode", "1"));
     _stationName = node->GetAttribute("StationName", "");
     _commPort = node->GetAttribute("CommPort", "");
     _text = node->GetAttribute("Text", "");
-    _highSpeed = (node->GetAttribute("HighSpeed", "FALSE") == "TRUE");
 }
 
 PlayListItemRDS::PlayListItemRDS() : PlayListItem()
 {
     _started = false;
     _done = false;
-    _highSpeed = false;
-    _stationDuration = 0;
     _stationName = "";
     _commPort = "COM1";
-    _lineDuration = 2;
-    _mode = 1;
     _text = "";
 }
 
@@ -110,12 +90,8 @@ PlayListItem* PlayListItemRDS::Copy() const
 {
     PlayListItemRDS* res = new PlayListItemRDS();
     res->_started = false;
-    res->_highSpeed = _highSpeed;
-    res->_stationDuration = _stationDuration;
     res->_stationName = _stationName;
     res->_commPort = _commPort;
-    res->_lineDuration = _lineDuration;
-    res->_mode = _mode;
     res->_text = _text;
     PlayListItem::Copy(res);
 
@@ -129,13 +105,6 @@ wxXmlNode* PlayListItemRDS::Save()
     node->AddAttribute("StationName", _stationName);
     node->AddAttribute("Text", _text);
     node->AddAttribute("CommPort", _commPort);
-    if (_highSpeed)
-    {
-        node->AddAttribute("HighSpeed", "TRUE");
-    }
-    node->AddAttribute("StationDuration", wxString::Format(wxT("%i"), _stationDuration));
-    node->AddAttribute("LineDuration", wxString::Format(wxT("%i"), _lineDuration));
-    node->AddAttribute("Mode", wxString::Format(wxT("%i"), _mode));
 
     PlayListItem::Save(node);
 
@@ -164,7 +133,7 @@ std::string PlayListItemRDS::GetTooltip()
     return "Available variables:\n    %STEPNAME% - current playlist step\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %ALBUM% - from mp3";
 }
 
-void PlayListItemRDS::Dump(unsigned char* buffer, int buflen)
+void PlayListItemRDS::Dump(unsigned char* buffer, int buflen) const
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString debug = "Serial: ";
@@ -241,7 +210,7 @@ int PlayListItemRDS::SendWithDTRCTS(SerialPort* serial, char* buf, size_t len)
 }
 
 // Dont refer to any class variables ... as the object may not still exist
-void PlayListItemRDS::Do(std::string text, std::string stationName, wxByte stationDuration, wxByte mode, wxByte lineDuration, wxByte highSpeed, std::string commPort)
+void PlayListItemRDS::Do(std::string text, std::string stationName, std::string commPort)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -319,11 +288,11 @@ void PlayListItemRDS::Do(std::string text, std::string stationName, wxByte stati
     Write(serial, &outBuffer[0], 4);
 
     outBuffer[1] = 0x72;
-    outBuffer[2] = (wxByte)stationDuration;
-    outBuffer[3] = (wxByte)mode;
-    outBuffer[4] = (wxByte)lineDuration;
-    outBuffer[5] = (wxByte)(highSpeed ? 0x00 : 0x01);
-    outBuffer[6] = (wxByte)std::min((int)text.size(), 72);
+    outBuffer[2] = 0xFF;
+    outBuffer[3] = 0x00;
+    outBuffer[4] = 0x00;
+    outBuffer[5] = 0x00;
+    outBuffer[6] = 0x00; // DPS length
     Write(serial, &outBuffer[0], 7);
 
     delete serial;
@@ -366,7 +335,7 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
             }
         }
 
-        EDMRDSThread* thread = new EDMRDSThread(this, text, stationName, _stationDuration, _mode, _lineDuration, _highSpeed, _commPort);
+        EDMRDSThread* thread = new EDMRDSThread(this, text, stationName, _commPort);
         thread->Run();
         wxMicroSleep(1); // encourage the thread to run
     }
@@ -378,43 +347,4 @@ void PlayListItemRDS::Start(long stepLengthMS)
 
     _started = false;
     _done = false;
-}
-
-std::string PlayListItemRDS::GetMode() const
-{
-    switch(_mode)
-    {
-    case 0:
-        return "Mode 0 - Fixed 8 Characters";
-    case 1:
-        return "Mode 1 - Scroll 1 Character";
-    case 2:
-        return "Mode 2 - Scroll Word Aligned";
-    case 3:
-        return "Mode 3 - Scroll 1 Character Leading Spaces";
-    default:
-        break;
-    }
-
-    return "";
-}
-
-void PlayListItemRDS::SetMode(const std::string& mode)
-{
-   if (mode == "Mode 0 - Fixed 8 Characters")
-   {
-       _mode = 0;
-   }
-   else if (mode == "Mode 1 - Scroll 1 Character")
-   {
-       _mode = 1;
-   }
-   else if (mode == "Mode 2 - Scroll Word Aligned")
-   {
-       _mode = 2;
-   }
-   else if (mode == "Mode 3 - Scroll 1 Character Leading Spaces")
-   {
-       _mode = 3;
-   }
 }

@@ -40,64 +40,6 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-					<label>Station Duration</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-					<cols>2</cols>
-					<growablecols>0</growablecols>
-					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_StationDuration" member="yes">
-							<value>0</value>
-							<max>255</max>
-							<handler function="OnSpinCtrl_StationDurationChange" entry="EVT_SPINCTRL" />
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText_StationDuration" member="yes">
-							<label>0 Secs</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-					<label>Scrolling Mode</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE2" variable="Choice_ScrollMode" member="yes">
-					<content>
-						<item>Mode 0 - Fixed 8 Characters</item>
-						<item>Mode 1 - Scroll 1 Character</item>
-						<item>Mode 2 - Scroll Word Aligned</item>
-						<item>Mode 3 - Scroll 1 Character Leading Spaces</item>
-					</content>
-					<selection>1</selection>
-					<handler function="OnChoice_ScrollModeSelect" entry="EVT_CHOICE" />
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
 					<label>Text</label>
 				</object>
@@ -109,54 +51,6 @@
 				<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Text" member="yes">
 					<maxlength>80</maxlength>
 					<style>wxTE_MULTILINE</style>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
-					<label>Line Duration</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-					<cols>2</cols>
-					<growablecols>0</growablecols>
-					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_TextDuration" member="yes">
-							<value>2</value>
-							<max>255</max>
-							<handler function="OnSpinCtrl_TextDurationChange" entry="EVT_SPINCTRL" />
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxStaticText" name="wxID_ANY" variable="StaticText_TextDuration" member="yes">
-							<label>1.08 secs</label>
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_HighSpeed" member="yes">
-					<label>High speed scrolling</label>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

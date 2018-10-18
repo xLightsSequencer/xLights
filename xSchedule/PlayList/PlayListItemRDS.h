@@ -17,15 +17,11 @@ protected:
     std::atomic_bool _started;
     std::atomic_bool _done;
     std::string _commPort;
-    bool _highSpeed;
-    int _mode;
     std::string _stationName;
     std::string _text;
-    int _stationDuration;
-    int _lineDuration;
     #pragma endregion Member Variables
 
-    void Dump(unsigned char* buffer, int buflen);
+    void Dump(unsigned char* buffer, int buflen) const;
     void Write(SerialPort* serial, unsigned char* buffer, int buflen);
     void SendBitWithDTRCTS(SerialPort* serial, bool bit, int hold = 1);
     void InitialiseDTRCTS(SerialPort* serial);
@@ -45,20 +41,12 @@ public:
     std::string GetNameNoTime() const override;
     void SetStationName(const std::string& stationName) { if (stationName != _stationName) { _stationName = stationName; _changeCount++; } }
     std::string GetStationName() const { return _stationName; }
-    bool GetHighSpeed() const { return _highSpeed; }
-    void SetHighSpeed(bool highSpeed) { if (_highSpeed != highSpeed) { _highSpeed = highSpeed; _changeCount++; } }
     void SetCommPort(const std::string& commPort) { if (commPort != _commPort) { _commPort = commPort; _changeCount++; } }
     std::string GetCommPort() const { return _commPort; }
-    std::string GetMode() const;
-    void SetMode(const std::string& mode);
     void SetText(const std::string& text) { if (text != _text) { _text = text; _changeCount++; } }
     std::string GetText() const { return _text; }
-    int GetStationDuration() const { return _stationDuration; }
-    void SetStationDuration(int stationDuration) { if (_stationDuration != stationDuration) { _stationDuration = stationDuration; _changeCount++; } }
-    int GetLineDuration() const { return _lineDuration; }
-    void SetLineDuration(int lineDuration) { if (_lineDuration != lineDuration) { _lineDuration = lineDuration; _changeCount++; } }
     virtual std::string GetTitle() const override;
-    void Do(std::string text, std::string stationName, wxByte stationDuration, wxByte mode, wxByte lineDuration, wxByte highSpeed, std::string commPort);
+    void Do(std::string text, std::string stationName, std::string commPort);
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() override;
