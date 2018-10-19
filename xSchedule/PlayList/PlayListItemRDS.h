@@ -15,19 +15,18 @@ protected:
 
     #pragma region Member Variables
     std::atomic_bool _started;
-    std::atomic_bool _done;
     std::string _commPort;
     std::string _stationName;
     std::string _text;
     #pragma endregion Member Variables
 
-    void Dump(unsigned char* buffer, int buflen) const;
-    void Write(SerialPort* serial, unsigned char* buffer, int buflen);
-    void SendBitWithDTRCTS(SerialPort* serial, bool bit, int hold = 1);
-    void InitialiseDTRCTS(SerialPort* serial);
-    int SendWithDTRCTS(SerialPort* serial, char* buf, size_t len);
-
 public:
+
+    static void Dump(unsigned char* buffer, int buflen);
+    static void Write(SerialPort* serial, unsigned char* buffer, int buflen);
+    static void SendBitWithDTRCTS(SerialPort* serial, bool bit, int hold = 1);
+    static void InitialiseDTRCTS(SerialPort* serial);
+    static int SendWithDTRCTS(SerialPort* serial, char* buf, size_t len);
 
     #pragma region Constructors and Destructors
     PlayListItemRDS(wxXmlNode* node);
