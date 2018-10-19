@@ -3,6 +3,9 @@
 #include <wx/dcbuffer.h>
 #include <wx/arrstr.h>
 #include "BufferSizeDialog.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
+#include "sequencer/MainSequencer.h"
 
 wxDEFINE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
 
@@ -192,6 +195,8 @@ void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
     menu.Append(wxNewId(), "Oversize");
     menu.AppendSeparator();
     menu.Append(wxNewId(), "Edit");
+    menu.AppendSeparator();
+    menu.Append(wxNewId(), "Apply to selected effects");
     menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
     quarters->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
     thirds->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
@@ -375,6 +380,11 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
                 return;
             }
         }
+        else if (nm == "Apply to selected effects")
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", "B_CUSTOM_SubBuffer", GetValue(), nullptr, "");
+        }
+
         SendChangeEvent();
         Refresh();
     }
