@@ -110,6 +110,7 @@ class ScheduleManager
     bool _webRequestToggle;
     Pinger* _pinger;
 
+    void DisableRemoteOutputs();
     std::string GetPingStatus();
     void SendOSC(const OSCPacket& osc);
     std::string FormatTime(size_t timems);
