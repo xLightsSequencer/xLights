@@ -513,11 +513,6 @@ public:
                 info.effectStates[layer] = true;
             }
 
-            if (ef != nullptr)
-            {
-                ef->FixBuffer(buffer->GetModel());
-            }
-
             if (buffer->IsVariableSubBuffer(layer))
             {
                 buffer->PrepareVariableSubBuffer(frame, layer);

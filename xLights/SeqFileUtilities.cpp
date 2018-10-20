@@ -1237,7 +1237,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                         if (nl->GetEffectCount() > 0) {
                             std::string nodeName = nl->GetName();
                             if (nodeName == "") {
-                                nodeName = wxString::Format("Node %d", (n + 1));
+                                nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
                             dlg.channelNames.push_back(el->GetName() + "/" + smName + "/" + nodeName);
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;

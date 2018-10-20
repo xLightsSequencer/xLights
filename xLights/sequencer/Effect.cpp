@@ -9,6 +9,7 @@
 #include "../UtilClasses.h"
 #include "../RenderCache.h"
 #include "../models/Model.h"
+#include "../xLightsMain.h"
 
 #include <unordered_map>
 
@@ -166,6 +167,9 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
+
+    Model* model = parent->GetParentElement()->GetSequenceElements()->GetXLightsFrame()->AllModels[parent->GetParentElement()->GetModelName()];
+    FixBuffer(model);
 
     // Fixes an erroneous blank settings created by using:
     //  settings["key"] == "test val"
