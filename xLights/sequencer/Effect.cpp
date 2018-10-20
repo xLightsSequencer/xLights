@@ -8,6 +8,7 @@
 #include "../ValueCurve.h"
 #include "../UtilClasses.h"
 #include "../RenderCache.h"
+#include "../models/Model.h"
 
 #include <unordered_map>
 
@@ -430,6 +431,27 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
         {
             name = name.substr(2);
             target[name] = it->second;
+        }
+    }
+}
+
+// When an effect is copied between model types the buffer may not be supported so make it valid
+void Effect::FixBuffer(const Model* m)
+{
+    if (m == nullptr) return;
+
+    auto styles = m->GetBufferStyles();
+    auto style = mSettings.Get("B_CHOICE_BufferStyle", "Default");
+
+    if (std::find(styles.begin(), styles.end(), style) == styles.end())
+    {
+        if (style.substr(0, 9) == "Per Model")
+        {
+            mSettings["B_CHOICE_BufferStyle"] = style.substr(10);
+        }
+        else
+        {
+            mSettings["B_CHOICE_BufferStyle"] = "Default";
         }
     }
 }
