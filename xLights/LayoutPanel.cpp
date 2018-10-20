@@ -1118,8 +1118,36 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                             if (mark_selected) {
                                 for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); ++it3) {
                                     if ((*it3)->DisplayAs != "ModelGroup") {
+                                        if (std::find(prev_models.begin(), prev_models.end(), *it3) == prev_models.end())
+                                        {
+                                            prev_models.push_back(*it3);
+                                        }
                                         (*it3)->GroupSelected = true;
-                                        prev_models.push_back(*it3);
+                                    }
+                                    else
+                                    {
+                                        // need to process groups within groups ... safely
+                                        for (auto itm = xlights->AllModels.begin(); itm != xlights->AllModels.end(); ++itm)
+                                        {
+                                            if (itm->second->GetDisplayAs() == "ModelGroup")
+                                            {
+                                                // ignore these
+                                            }
+                                            else
+                                            {
+                                                if (dynamic_cast<ModelGroup*>(*it3)->ContainsModel(itm->second))
+                                                {
+                                                    if (std::find(prev_models.begin(), prev_models.end(), itm->second) == prev_models.end())
+                                                    {
+                                                        if (modelsAdded.find(itm->first) == modelsAdded.end()) {
+                                                            modelsAdded.insert(itm->first);
+                                                        }
+                                                        prev_models.push_back(itm->second);
+                                                    }
+                                                    itm->second->GroupSelected = true;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }

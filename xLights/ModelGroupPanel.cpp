@@ -278,20 +278,23 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), *it);
         modelsInGroup.push_back(*it);
     }
-    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
-        if (it->first != group) {
-            std::list<std::string> visitedGroups;
-            if (canAddToGroup(g, mModels, it->first, modelsInGroup, visitedGroups)) {
-                ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
-            }
-            if (CheckBox_ShowSubmodels->GetValue())
-            {
-                for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
-                    Model *sm = *smit;
 
-                    if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                        ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
-                    }
+    // dont allow any group that contains this group to be added as that would create a loop
+    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
+        if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it->first) != modelsInGroup.end() || (it->second->GetDisplayAs() == "ModelGroup" && (it->first == group || dynamic_cast<ModelGroup*>(it->second)->ContainsModelGroup(g)))) {
+            // dont add this group
+        }
+        else
+        {
+            ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
+        }
+        if (CheckBox_ShowSubmodels->GetValue())
+        {
+            for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
+                Model *sm = *smit;
+
+                if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
+                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
                 }
             }
         }

@@ -16,6 +16,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Force xSchedule to only recognise HH:MM:SS time format
    -- enh (keith)  Add export to an really large image file the wiring diagram ... useful for really dense models
    -- enh (keith)  Add bulk controller upload ... upload to multiple controllers (of the same type).
+   -- bug (keith)  Fix cant add groups into groups
+   -- enh (keith)  Allow subbuffer to be moved (use ctrl/shift-ctrl to constrain axis of movement)
+   -- enh (keith)  Add ability to apply a subbuffer to selected effects
 2018.36 October 12, 2018
    -- end (will)   Ability to hide header/footer on buttons plugin. Add &args=noheader to URL.
    -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
