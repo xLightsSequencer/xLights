@@ -86,7 +86,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
             {
                 if (std::find(visited.begin(), visited.end(), *it) == visited.end())
                 {
-                    found |= ContainsModelGroup(mg, visited);
+                    found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelGroup(mg, visited);
                 }
                 else
                 {
