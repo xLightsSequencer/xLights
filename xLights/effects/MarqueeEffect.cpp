@@ -92,16 +92,16 @@ void MarqueeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int BandSize = GetValueCurveInt("Marquee_Band_Size", 3, SettingsMap, oset, MARQUEE_BAND_SIZE_MIN, MARQUEE_BAND_SIZE_MAX);
-    int SkipSize = GetValueCurveInt("Marquee_Skip_Size", 0, SettingsMap, oset, MARQUEE_SKIP_SIZE_MIN, MARQUEE_SKIP_SIZE_MAX);
-    int Thickness = GetValueCurveInt("Marquee_Thickness", 1, SettingsMap, oset, MARQUEE_THICKNESS_MIN, MARQUEE_THICKNESS_MAX);
-    int stagger = GetValueCurveInt("Marquee_Stagger", 0, SettingsMap, oset, MARQUEE_STAGGER_MIN, MARQUEE_STAGGER_MAX);
-    int mSpeed = GetValueCurveInt("Marquee_Speed", 3, SettingsMap, oset, MARQUEE_SPEED_MIN, MARQUEE_SPEED_MAX);
-    int mStart = GetValueCurveInt("Marquee_Start", 0, SettingsMap, oset, MARQUEE_START_MIN, MARQUEE_START_MAX);
-    int x_scale = GetValueCurveInt("Marquee_ScaleX", 100, SettingsMap, oset, MARQUEE_SCALEX_MIN, MARQUEE_SCALEX_MAX);
-    int y_scale = GetValueCurveInt("Marquee_ScaleY", 100, SettingsMap, oset, MARQUEE_SCALEY_MIN, MARQUEE_SCALEY_MAX);
-    int xc_adj = GetValueCurveInt("MarqueeXC", 0, SettingsMap, oset, MARQUEE_XC_MIN, MARQUEE_XC_MAX);
-    int yc_adj = GetValueCurveInt("MarqueeYC", 0, SettingsMap, oset, MARQUEE_YC_MIN, MARQUEE_YC_MAX);
+    int BandSize = GetValueCurveInt("Marquee_Band_Size", 3, SettingsMap, oset, MARQUEE_BAND_SIZE_MIN, MARQUEE_BAND_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int SkipSize = GetValueCurveInt("Marquee_Skip_Size", 0, SettingsMap, oset, MARQUEE_SKIP_SIZE_MIN, MARQUEE_SKIP_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Thickness = GetValueCurveInt("Marquee_Thickness", 1, SettingsMap, oset, MARQUEE_THICKNESS_MIN, MARQUEE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int stagger = GetValueCurveInt("Marquee_Stagger", 0, SettingsMap, oset, MARQUEE_STAGGER_MIN, MARQUEE_STAGGER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int mSpeed = GetValueCurveInt("Marquee_Speed", 3, SettingsMap, oset, MARQUEE_SPEED_MIN, MARQUEE_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int mStart = GetValueCurveInt("Marquee_Start", 0, SettingsMap, oset, MARQUEE_START_MIN, MARQUEE_START_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int x_scale = GetValueCurveInt("Marquee_ScaleX", 100, SettingsMap, oset, MARQUEE_SCALEX_MIN, MARQUEE_SCALEX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int y_scale = GetValueCurveInt("Marquee_ScaleY", 100, SettingsMap, oset, MARQUEE_SCALEY_MIN, MARQUEE_SCALEY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xc_adj = GetValueCurveInt("MarqueeXC", 0, SettingsMap, oset, MARQUEE_XC_MIN, MARQUEE_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yc_adj = GetValueCurveInt("MarqueeYC", 0, SettingsMap, oset, MARQUEE_YC_MIN, MARQUEE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Marquee_Reverse");
     bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Marquee_PixelOffsets");

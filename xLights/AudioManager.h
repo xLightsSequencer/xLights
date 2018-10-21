@@ -253,6 +253,7 @@ public:
 	void SetFrameInterval(int intervalMS);
 	int GetFrameInterval() const { return _intervalMS; }
 	std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
+	std::list<float>* GetFrameData(FRAMEDATATYPE fdt, std::string timing, long ms);
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };

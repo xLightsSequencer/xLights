@@ -53,6 +53,7 @@ xLightsXmlFile::~xLightsXmlFile()
     timing_list.Clear();
 	if (audio != nullptr)
 	{
+        ValueCurve::SetAudio(nullptr);
 		delete audio;
 		audio = nullptr;
 	}
@@ -150,6 +151,7 @@ void xLightsXmlFile::SetSequenceType( const wxString& type )
         SetMediaFile("", "", false);
         if (audio != nullptr)
         {
+            ValueCurve::SetAudio(nullptr);
             delete audio;
             audio = nullptr;
         }
@@ -215,6 +217,7 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
 
 	if (audio != nullptr)
 	{
+        ValueCurve::SetAudio(nullptr);
 		delete audio;
 		audio = nullptr;
 	}
@@ -227,6 +230,7 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
 
         if (audio != nullptr)
         {
+            ValueCurve::SetAudio(audio);
             logger_base.info("SetMediaFile: Audio loaded. Audio frame interval %dms. Our frame interval %dms", audio->GetFrameInterval(), GetFrameMS());
             if (audio->GetFrameInterval() < 0 && GetFrameMS() > 0)
             {
@@ -1142,6 +1146,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                         if (audio != nullptr)
                         {
                             logger_base.debug("LoadSequence: removing prior audio.");
+                            ValueCurve::SetAudio(nullptr);
                             delete audio;
                             audio = nullptr;
                         }
@@ -1150,6 +1155,7 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
                             ObtainAccessToURL(media_file.ToStdString());
                             logger_base.debug("LoadSequence: Creating audio manager");
                             audio = new AudioManager(media_file.ToStdString(), 4096, 32768);
+                            ValueCurve::SetAudio(audio);
                             logger_base.debug("LoadSequence: audio manager creation done");
                         }
                         else

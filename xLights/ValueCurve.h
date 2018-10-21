@@ -12,6 +12,8 @@
 
 #define VC_X_POINTS 100.0
 
+class AudioManager;
+
 class vcSortablePoint
 {
 public:
@@ -81,6 +83,7 @@ class ValueCurve
     bool _active;
     bool _wrap;
     bool _realValues;
+    static AudioManager* __audioManager;
 
     void RenderType();
     void SetSerialisedValue(std::string k, std::string s);
@@ -91,7 +94,10 @@ class ValueCurve
     float Denormalise(int parm, float value);
 
 public:
-    ValueCurve() { SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; _divisor = 1; }
+
+    static void SetAudio(AudioManager* am) { __audioManager = am; }
+
+    ValueCurve() { _divisor = 1; SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; }
     ValueCurve(const std::string& serialised);
     ValueCurve(const std::string& id, float min, float max = 100.0f, const std::string type = "Flat", float parameter1 = 0.0f, float parameter2 = 0.0f, float parameter3 = 0.0f, float parameter4 = 0.0f, bool wrap = false, float divisor = 1.0);
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
@@ -110,10 +116,10 @@ public:
     void SetRealValue() { _realValues = true; }
     void SetLimits(float min, float max) { _min = min; _max = max; }
     void FixScale(int scale);
-    float GetValueAt(float offset);
-    float GetOutputValueAt(float offset);
-    float GetOutputValueAtDivided(float offset);
-    float GetOutputValue(float offset) const;
+    float GetValueAt(float offset, long startMS, long endMS);
+    float GetOutputValueAt(float offset, long startMS, long endMS);
+    float GetOutputValueAtDivided(float offset, long startMS, long endMS);
+    float GetScaledValue(float offset) const;
     void SetActive(bool a) { _active = a; RenderType(); }
     bool IsActive() const { return _active && IsOk(); }
     void ToggleActive() { _active = !_active; if (_active) RenderType(); }

@@ -273,17 +273,17 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 	float oset = buffer.GetEffectTimeIntervalPosition();
 
 	std::string Object_To_DrawStr = SettingsMap["CHOICE_Shape_ObjectToDraw"];
-    int thickness = GetValueCurveInt("Shape_Thickness", 1, SettingsMap, oset, SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX);
+    int thickness = GetValueCurveInt("Shape_Thickness", 1, SettingsMap, oset, SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int points = SettingsMap.GetInt("SLIDER_Shape_Points", 5);
     bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", true);
     bool fadeAway = SettingsMap.GetBool("CHECKBOX_Shape_FadeAway", true);
     bool startRandomly = SettingsMap.GetBool("CHECKBOX_Shape_RandomInitial", true);
-    int xc = GetValueCurveInt("Shape_CentreX", 50, SettingsMap, oset, SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX) * buffer.BufferWi / 100;
-    int yc = GetValueCurveInt("Shape_CentreY", 50, SettingsMap, oset, SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX) * buffer.BufferHt / 100;
-    int lifetime = GetValueCurveInt("Shape_Lifetime", 5, SettingsMap, oset, SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX);
-    int growth = GetValueCurveInt("Shape_Growth", 10, SettingsMap, oset, SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX);
-    int count = GetValueCurveInt("Shape_Count", 5, SettingsMap, oset, SHAPE_COUNT_MIN, SHAPE_COUNT_MAX);
-    int startSize = GetValueCurveInt("Shape_StartSize", 5, SettingsMap, oset, SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX);
+    int xc = GetValueCurveInt("Shape_CentreX", 50, SettingsMap, oset, SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
+    int yc = GetValueCurveInt("Shape_CentreY", 50, SettingsMap, oset, SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
+    int lifetime = GetValueCurveInt("Shape_Lifetime", 5, SettingsMap, oset, SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int growth = GetValueCurveInt("Shape_Growth", 10, SettingsMap, oset, SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int count = GetValueCurveInt("Shape_Count", 5, SettingsMap, oset, SHAPE_COUNT_MIN, SHAPE_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int startSize = GetValueCurveInt("Shape_StartSize", 5, SettingsMap, oset, SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int emoji = SettingsMap.GetInt("SPINCTRL_Shape_Char", 65);
     std::string font = SettingsMap["FONTPICKER_Shape_Font"];
 

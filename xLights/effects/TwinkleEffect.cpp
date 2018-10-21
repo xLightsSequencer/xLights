@@ -73,8 +73,8 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
         else
         {
             ValueCurve vc(vcs);
-            starti = vc.GetOutputValueAt(0.0);
-            endi = vc.GetOutputValueAt(1.0);
+            starti = vc.GetOutputValueAt(0.0, e->GetStartTimeMS(), e->GetEndTimeMS());
+            endi = vc.GetOutputValueAt(1.0, e->GetStartTimeMS(), e->GetEndTimeMS());
         }
 
         xlColor color = e->GetPalette()[0];

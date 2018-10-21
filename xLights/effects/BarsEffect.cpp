@@ -104,10 +104,10 @@ void BarsEffect::GetSpatialColor(xlColor& color, size_t colorIndex, float x, flo
 void BarsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX);
-    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, BARCYCLES_MIN, BARCYCLES_MAX, 10);
+    int PaletteRepeat = GetValueCurveInt("Bars_BarCount", 1, SettingsMap, offset, BARCOUNT_MIN, BARCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double cycles = GetValueCurveDouble("Bars_Cycles", 1.0, SettingsMap, offset, BARCYCLES_MIN, BARCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
-    double Center = GetValueCurveDouble("Bars_Center", 0, SettingsMap, position, BARCENTER_MIN, BARCENTER_MAX);
+    double Center = GetValueCurveDouble("Bars_Center", 0, SettingsMap, position, BARCENTER_MIN, BARCENTER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int Direction = GetDirection(SettingsMap["CHOICE_Bars_Direction"]);
     bool Highlight = SettingsMap.GetBool("CHECKBOX_Bars_Highlight", false);
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Bars_3D", false);

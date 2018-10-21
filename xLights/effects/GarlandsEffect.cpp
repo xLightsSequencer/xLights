@@ -65,8 +65,8 @@ void GarlandsEffect::SetDefaultParameters() {
 void GarlandsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int GarlandType = SettingsMap.GetInt("SLIDER_Garlands_Type", 0);
-    int Spacing = GetValueCurveInt("Garlands_Spacing", 10, SettingsMap, oset, GARLANDS_SPACING_MIN, GARLANDS_SPACING_MAX);
-    float cycles = GetValueCurveDouble("Garlands_Cycles", 1.0f, SettingsMap, oset, GARLANDS_CYCLES_MIN, GARLANDS_CYCLES_MAX);
+    int Spacing = GetValueCurveInt("Garlands_Spacing", 10, SettingsMap, oset, GARLANDS_SPACING_MIN, GARLANDS_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float cycles = GetValueCurveDouble("Garlands_Cycles", 1.0f, SettingsMap, oset, GARLANDS_CYCLES_MIN, GARLANDS_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     if (Spacing < 1) {
         Spacing = 1;

@@ -153,9 +153,9 @@ void SnowflakesEffect::SetDefaultParameters()
 void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Count = GetValueCurveInt("Snowflakes_Count", 5, SettingsMap, oset, SNOWFLAKES_COUNT_MIN, SNOWFLAKES_COUNT_MAX);
+    int Count = GetValueCurveInt("Snowflakes_Count", 5, SettingsMap, oset, SNOWFLAKES_COUNT_MIN, SNOWFLAKES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int SnowflakeType = SettingsMap.GetInt("SLIDER_Snowflakes_Type", 1);
-    int sSpeed = GetValueCurveInt("Snowflakes_Speed", 10, SettingsMap, oset, SNOWFLAKES_SPEED_MIN, SNOWFLAKES_SPEED_MAX);
+    int sSpeed = GetValueCurveInt("Snowflakes_Speed", 10, SettingsMap, oset, SNOWFLAKES_SPEED_MIN, SNOWFLAKES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     std::string falling = SettingsMap.Get("CHOICE_Falling", "Driving");
 

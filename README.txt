@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add music value curves that track music intensity
    -- bug (keith)  Redevelop EDM RDS playlistitem
    -- bug (keith)  Face and state effect dont recognise backward ranges
    -- bug (keith)  Force xSchedule to only recognise HH:MM:SS time format
