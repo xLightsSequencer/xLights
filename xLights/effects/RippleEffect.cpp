@@ -64,9 +64,9 @@ void RippleEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
     float oset = buffer.GetEffectTimeIntervalPosition();
     const std::string &Object_To_DrawStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
     const std::string &MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
-    int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX);
+    int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
-    float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, 10);
+    float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 10);
     int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
     int rotation = SettingsMap.GetInt("SLIDER_Ripple_Rotation", 0);
 

@@ -1746,6 +1746,12 @@ std::list<float>* AudioManager::GetFrameData(int frame, FRAMEDATATYPE fdt, std::
     return rc;
 }
 
+std::list<float>* AudioManager::GetFrameData(FRAMEDATATYPE fdt, std::string timing, long ms)
+{
+    int frame = ms / _intervalMS;
+    return GetFrameData(frame, fdt, timing);
+}
+
 // Constant Bitrate Detection Functions
 
 // Decode bitrate
