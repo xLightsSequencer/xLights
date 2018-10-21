@@ -7,8 +7,11 @@
 #include "xLightsMain.h"
 #include "xLightsXmlFile.h"
 #include "UtilFunctions.h"
+#include "AudioManager.h"
 
 #include <log4cpp/Category.hh>
+
+AudioManager* ValueCurve::__audioManager = nullptr;
 
 float ValueCurve::SafeParameter(size_t p, float v)
 {
@@ -136,6 +139,11 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
         low = MINVOID;
         high = MAXVOID;
     }
+    else if (type == "Music")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
     else if (type == "Square")
     {
         low = MINVOID;
@@ -192,6 +200,11 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
         high = MAXVOID;
     }
     else if (type == "Ramp Up/Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Music")
     {
         low = MINVOID;
         high = MAXVOID;
@@ -667,6 +680,10 @@ void ValueCurve::RenderType()
             _values.push_back(vcSortablePoint((i + 1) * per, parameter1 / 100.0, false));
         }
     }
+    else if (_type == "Music")
+    {
+        // ???
+    }
     else if (_type == "Square")
     {
         int count = _parameter3;
@@ -1041,6 +1058,7 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     _wrap = wrap;
     _realValues = true;
     _divisor = divisor;
+    wxASSERT(_divisor == 1 || _divisor == 10 || _divisor == 100);
     _timeOffset = 0;
     _parameter1 = SafeParameter(1, parameter1);
     _parameter2 = SafeParameter(2, parameter2);
@@ -1073,6 +1091,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
     {
         _divisor = divisor;
     }
+    wxASSERT(_divisor == 1 || _divisor == 10 || _divisor == 100);
 
     RenderType();
 }
@@ -1081,8 +1100,8 @@ ValueCurve::ValueCurve(const std::string& s)
 {
     _min = MINVOIDF;
     _max = MAXVOIDF;
-    SetDefault();
     _divisor = 1;
+    SetDefault();
     Deserialise(s);
 }
 
@@ -1324,72 +1343,92 @@ void ValueCurve::SetType(std::string type)
     RenderType();
 }
 
-float ValueCurve::GetOutputValue(float offset) const
+float ValueCurve::GetScaledValue(float offset) const
 {
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);
     return (_min + (_max - _min) * offset) / _divisor;
 }
 
-float ValueCurve::GetOutputValueAt(float offset)
+float ValueCurve::GetOutputValueAt(float offset, long startMS, long endMS)
 {
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);
-    return _min + (_max - _min) * GetValueAt(offset);
+    return _min + (_max - _min) * GetValueAt(offset, startMS, endMS);
 }
 
-float ValueCurve::GetOutputValueAtDivided(float offset)
+float ValueCurve::GetOutputValueAtDivided(float offset, long startMS, long endMS)
 {
     wxASSERT(_min != MINVOIDF);
     wxASSERT(_max != MAXVOIDF);
-    return (_min + (_max - _min) * GetValueAt(offset)) / _divisor;
+    return (_min + (_max - _min) * GetValueAt(offset, startMS, endMS)) / _divisor;
 }
 
-float ValueCurve::GetValueAt(float offset)
+float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
 
-    if (_values.size() < 2) return 1.0f;
-    if (!_active) return 1.0f;
-
-    if (offset < 0.0f) offset = 0.0;
-    if (offset > 1.0f) offset = 1.0;
-
-    offset += (float)_timeOffset / 100;
-    if (offset > 1.0) offset -= 1.0;
-
-    vcSortablePoint last = _values.front();
-    auto it = _values.begin();
-    ++it;
-
-    while (it != _values.end() && it->x < offset)
+    if (_type == "Music")
     {
-        last = *it;
-        ++it;
-    }
+        if (__audioManager != nullptr)
+        {
+            long time = (float)startMS + offset * (endMS - startMS);
+            float f = 0.0;
+            auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", time);
+            if (pf != nullptr)
+            {
+                f = *pf->begin();
+            }
 
-    if (it == _values.end())
-    {
-        res = _values.back().y;
-    }
-    else if (it->x == last.x)
-    {
-        // this should not be possible
-        res = it->y;
+            float min = (GetParameter1() - _min) / (_max - _min);
+            float max = (GetParameter2() - _min) / (_max - _min);
+            res = min + f * (max - min);
+        }
     }
     else
     {
-        if (it->x == offset)
+        if (_values.size() < 2) return 1.0f;
+        if (!_active) return 1.0f;
+
+        if (offset < 0.0f) offset = 0.0;
+        if (offset > 1.0f) offset = 1.0;
+
+        offset += (float)_timeOffset / 100;
+        if (offset > 1.0) offset -= 1.0;
+
+        vcSortablePoint last = _values.front();
+        auto it = _values.begin();
+        ++it;
+
+        while (it != _values.end() && it->x < offset)
         {
-            res = it->y;
+            last = *it;
+            ++it;
         }
-        else if (it->IsWrapped())
+
+        if (it == _values.end())
         {
+            res = _values.back().y;
+        }
+        else if (it->x == last.x)
+        {
+            // this should not be possible
             res = it->y;
         }
         else
         {
-            res = last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
+            if (it->x == offset)
+            {
+                res = it->y;
+            }
+            else if (it->IsWrapped())
+            {
+                res = it->y;
+            }
+            else
+            {
+                res = last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
+            }
         }
     }
 
@@ -1560,17 +1599,34 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
     dc.SetBrush(*wxLIGHT_GREY_BRUSH);
     dc.DrawRectangle(0, 0, width, height);
     dc.SetPen(*wxBLACK_PEN);
-    float lastY = height - 1 - (GetValueAt(0)) * height;
+    float lastY = height - 1 - (GetValueAt(0, 0, 1)) * height;
 
-    for (int x = 1; x < width; x++) {
-        float x1 = x;
-        x1 /= (float)width;
-
-        float y = (GetValueAt(x1)) * (float)width;
-        y = (float)height - 1.0f - y;
-        dc.DrawLine(x - 1, lastY, x, std::round(y));
-        lastY = y;
+    if (_type == "Music")
+    {
+        dc.DrawCircle(width / 4, height - height / 4, wxCoord(std::min(width / 5, height / 5)));
+        dc.DrawLine(width / 4 + width / 5, height - height / 4, width / 4 + width / 5, height / 5);
+        dc.DrawLine(width / 4 + width / 5, height / 5, width - width/10, height/ 4);
+        dc.DrawLine(width / 4 + width / 5, height / 4, width - width/10, height/ 3);
+        float min = (GetParameter1() - _min) / (_max - _min) * height;
+        float max = (GetParameter2() - _min) / (_max - _min) * height;
+        dc.SetPen(*wxGREEN_PEN);
+        dc.DrawLine(0, height - min, width, height - min);
+        dc.SetPen(*wxRED_PEN);
+        dc.DrawLine(0, height - max, width, height - max);
     }
+    else
+    {
+        for (int x = 1; x < width; x++) {
+            float x1 = x;
+            x1 /= (float)width;
+
+            float y = (GetValueAt(x1, 0, 1)) * (float)width;
+            y = (float)height - 1.0f - y;
+            dc.DrawLine(x - 1, lastY, x, std::round(y));
+            lastY = y;
+        }
+    }
+
     if (scaleFactor > 1.0f) {
         wxImage img = bmp.ConvertToImage();
         return wxBitmap(img, 8, scaleFactor);

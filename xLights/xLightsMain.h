@@ -287,9 +287,11 @@ public:
     int TxOverflowCnt, TxOverflowTotal;
     std::mutex saveLock;
     RenderCache _renderCache;
+    std::atomic_bool _exiting;
 
     PhonemeDictionary dictionary;
 
+    bool IsExiting() const { return _exiting; }
     void SetEffectControls(const std::string &modelName, const std::string &name,
                            const SettingsMap &settings, const SettingsMap &palette,
                            bool setDefaults);

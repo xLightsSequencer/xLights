@@ -157,16 +157,16 @@ void MeteorsEffect::SetDefaultParameters() {
 void MeteorsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Count = GetValueCurveInt("Meteors_Count", 10, SettingsMap, oset, METEORS_COUNT_MIN, METEORS_COUNT_MAX);
+    int Count = GetValueCurveInt("Meteors_Count", 10, SettingsMap, oset, METEORS_COUNT_MIN, METEORS_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    int Length = GetValueCurveInt("Meteors_Length", 25, SettingsMap, oset, METEORS_LENGTH_MIN, METEORS_LENGTH_MAX);
-    int SwirlIntensity = GetValueCurveInt("Meteors_Swirl_Intensity", 0, SettingsMap, oset, METEORS_SWIRL_MIN, METEORS_SWIRL_MAX);
-    int mSpeed = GetValueCurveInt("Meteors_Speed", 10, SettingsMap, oset, METEORS_SPEED_MIN, METEORS_SPEED_MAX);
+    int Length = GetValueCurveInt("Meteors_Length", 25, SettingsMap, oset, METEORS_LENGTH_MIN, METEORS_LENGTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int SwirlIntensity = GetValueCurveInt("Meteors_Swirl_Intensity", 0, SettingsMap, oset, METEORS_SWIRL_MIN, METEORS_SWIRL_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int mSpeed = GetValueCurveInt("Meteors_Speed", 10, SettingsMap, oset, METEORS_SPEED_MIN, METEORS_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     int MeteorsEffect = GetMeteorEffect(SettingsMap["CHOICE_Meteors_Effect"]);
     int ColorScheme = GetMeteorColorScheme(SettingsMap["CHOICE_Meteors_Type"]);
-    int xoffset = GetValueCurveInt("Meteors_XOffset", 0, SettingsMap, oset, METEORS_XOFFSET_MIN, METEORS_XOFFSET_MAX);
-    int yoffset = GetValueCurveInt("Meteors_YOffset", 0, SettingsMap, oset, METEORS_YOFFSET_MIN, METEORS_YOFFSET_MAX);
+    int xoffset = GetValueCurveInt("Meteors_XOffset", 0, SettingsMap, oset, METEORS_XOFFSET_MIN, METEORS_XOFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yoffset = GetValueCurveInt("Meteors_YOffset", 0, SettingsMap, oset, METEORS_YOFFSET_MIN, METEORS_YOFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool fadeWithDistance = SettingsMap.GetBool("CHECKBOX_FadeWithDistance", false);
 
     if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", false)) {

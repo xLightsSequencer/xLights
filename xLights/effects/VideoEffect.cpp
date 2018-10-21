@@ -167,7 +167,7 @@ void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
         SettingsMap.GetBool("CHECKBOX_Video_TransparentBlack", false),
         SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0),
-        GetValueCurveDouble("Video_Speed", 1.0, SettingsMap, offset, VIDEO_SPEED_MIN, VIDEO_SPEED_MAX, VIDEO_SPEED_DIVISOR)
+        GetValueCurveDouble("Video_Speed", 1.0, SettingsMap, offset, VIDEO_SPEED_MIN, VIDEO_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), VIDEO_SPEED_DIVISOR)
 		);
 }
 

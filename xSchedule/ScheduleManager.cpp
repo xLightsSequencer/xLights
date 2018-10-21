@@ -158,6 +158,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             {
                 logger_base.warn("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
             }
+            DisableRemoteOutputs();
             _outputManager->StartOutput();
         }
         ManageBackground();
@@ -3152,6 +3153,33 @@ bool ScheduleManager::Query(const std::string command, const std::string paramet
     return result;
 }
 
+void ScheduleManager::DisableRemoteOutputs()
+{
+    // The only way to undo this disable is to restart xSchedule
+    // That is not ideal but solving it would require adding amybe a session disable in output
+    // and at this time of year i am not inclined to introduce that change - fix this in 2019
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) {
+        std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
+
+        for (auto it = remotes.begin(); it != remotes.end(); ++it)
+        {
+            auto outputs = _outputManager->GetOutputs();
+            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            {
+                if ((*ito)->IsIpOutput() && *it == (*ito)->GetIP())
+                {
+                    logger_base.debug("Output '%s' disabled as this is a listed remote to receive FPP Sync packets.", (const char*)(*ito)->GetLongDescription().c_str());
+                    logger_base.debug("    The only way to re-enable these outputs is to shut down xSchedule and restart it.");
+                    (*ito)->Enable(false);
+                }
+            }
+        }
+    }
+}
+
 std::string ScheduleManager::GetPingStatus()
 {
     std::string res = "\"pingstatus\":[";
@@ -3381,6 +3409,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                 {
                     wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
                 }
+                DisableRemoteOutputs();
                 _outputManager->StartOutput();
                 StartVirtualMatrices();
                 ManageBackground();
@@ -3410,6 +3439,7 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
         {
             wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
         }
+        DisableRemoteOutputs();
         _outputManager->StartOutput();
         StartVirtualMatrices();
         ManageBackground();

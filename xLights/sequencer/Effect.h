@@ -17,6 +17,7 @@ class ValueCurve;
 class RenderCacheItem;
 class RenderBuffer;
 class RenderCache;
+class Model;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -96,6 +97,7 @@ public:
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
+    void FixBuffer(const Model* m);
 
     const xlColorVector &GetPalette() const { return mColors; }
     int GetPaletteSize() const { return mColors.size(); }

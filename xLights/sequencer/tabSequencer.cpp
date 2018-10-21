@@ -1166,7 +1166,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     std::string filename = parms[1].ToStdString();
 
     int effectIndex = 0;
-    for (int i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
+    for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
     {
         if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName)
         {
@@ -1391,6 +1391,8 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::SetAudioControls()
 {
+    if (_housePreviewPanel == nullptr) return;
+
     if (Notebook1->GetSelection() != NEWSEQUENCER)
     {
         if (playType == PLAY_TYPE_MODEL)

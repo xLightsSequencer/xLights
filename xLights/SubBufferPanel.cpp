@@ -3,6 +3,9 @@
 #include <wx/dcbuffer.h>
 #include <wx/arrstr.h>
 #include "BufferSizeDialog.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
+#include "sequencer/MainSequencer.h"
 
 wxDEFINE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
 
@@ -162,16 +165,6 @@ inline bool IsWithin(int mx, int my, int x, int y) {
     && my >= (y - 2) && my <= (y + 2);
 }
 
-void SubBufferPanel::Convert(float &x, float &y, wxMouseEvent& event) {
-    wxSize size = GetSize();
-    float startX = size.GetWidth()/10.0;
-    float startY = size.GetHeight() / 10.0;
-    float bw = size.GetWidth()*0.8;
-    float bh = size.GetHeight()*0.8;
-
-    x = (event.GetX() - startX) * 100.0/ bw ;
-    y = 100.0 - (event.GetY() - startY) * 100.0/ bh ;
-}
 void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
     wxMenu menu;
     menu.Append(wxNewId(), "Full Buffer");
@@ -202,6 +195,8 @@ void SubBufferPanel::ContextMenu(wxContextMenuEvent& event) {
     menu.Append(wxNewId(), "Oversize");
     menu.AppendSeparator();
     menu.Append(wxNewId(), "Edit");
+    menu.AppendSeparator();
+    menu.Append(wxNewId(), "Apply to selected effects");
     menu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
     quarters->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
     thirds->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&SubBufferPanel::MenuItemSelected, nullptr, this);
@@ -385,6 +380,11 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
                 return;
             }
         }
+        else if (nm == "Apply to selected effects")
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", "B_CUSTOM_SubBuffer", GetValue(), nullptr, "");
+        }
+
         SendChangeEvent();
         Refresh();
     }
@@ -411,6 +411,12 @@ int SubBufferPanel::OverMouseHandle(wxMouseEvent& event) {
     } else if (IsWithin(event.GetX(), event.GetY(), x2b, y1b)) {
         return 3;
     }
+
+    if (event.GetX() > x1b && event.GetX() < x2b && event.GetY() > y2b && event.GetY() < y1b)
+    {
+        return 4;
+    }
+
     return -1;
 }
 
@@ -428,6 +434,9 @@ void SubBufferPanel::mouseLeftDown( wxMouseEvent& event) {
     if (draggingHandle != -1) {
         CaptureMouse();
     }
+    _startMovePos = event.GetPosition();
+    _start1 = wxPoint(x1, y1);
+    _start2 = wxPoint(x2, y2);
 }
 void SubBufferPanel::mouseLeftUp( wxMouseEvent& event) {
     if (draggingHandle >= 0) {
@@ -439,6 +448,17 @@ void SubBufferPanel::mouseLeftUp( wxMouseEvent& event) {
     if (!IsEnabled()) {
         return;
     }
+}
+
+void SubBufferPanel::Convert(float &x, float &y, wxMouseEvent& event) {
+    wxSize size = GetSize();
+    float startX = size.GetWidth() / 10.0;
+    float startY = size.GetHeight() / 10.0;
+    float bw = size.GetWidth()*0.8;
+    float bh = size.GetHeight()*0.8;
+
+    x = (event.GetX() - startX) * 100.0 / bw;
+    y = 100.0 - (event.GetY() - startY) * 100.0 / bh;
 }
 
 void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
@@ -459,10 +479,52 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
         case 3:
             Convert(x2, y1, event);
             break;
+        case 4:
+            {
+                wxSize size = GetSize();
+                float startX = size.GetWidth() / 10.0;
+                float startY = size.GetHeight() / 10.0;
+                float bw = size.GetWidth() * 0.8;
+                float bh = size.GetHeight() * 0.8;
+                int x = (event.GetX() - _startMovePos.x) * 100 / bw;
+                int y = (event.GetY() - _startMovePos.y) * 100 / bh;
+
+                if (event.ControlDown() && !event.ShiftDown())
+                {
+                    x1 = _start1.x + x;
+                    x2 = _start2.x + x;
+                }
+                else if (event.ControlDown() && event.ShiftDown())
+                {
+                    y1 = _start1.y - y;
+                    y2 = _start2.y - y;
+                }
+                else
+                {
+                    x1 = _start1.x + x;
+                    x2 = _start2.x + x;
+                    y1 = _start1.y - y;
+                    y2 = _start2.y - y;
+                }
+            }
+            break;
         default: {
             int i = OverMouseHandle(event);
             if (i > -1 && !HasVC()) {
-                SetCursor(wxCURSOR_SIZING);
+                switch (i)
+                {
+                case 0:
+                case 2:
+                    SetCursor(wxCURSOR_SIZENESW);
+                    break;
+                case 1:
+                case 3:
+                    SetCursor(wxCURSOR_SIZENWSE);
+                    break;
+                case 4:
+                    SetCursor(wxCURSOR_SIZING);
+                    break;
+                }
             } else {
                 SetCursor(wxCURSOR_DEFAULT);
             }

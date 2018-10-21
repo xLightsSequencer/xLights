@@ -38,6 +38,9 @@ class SubBufferPanel : public wxWindow, public xlCustomControl
         float x1, y1, x2, y2;
         std::string x1vc, y1vc, x2vc, y2vc;
         bool _usevc;
+        wxPoint _startMovePos;
+        wxPoint _start1;
+        wxPoint _start2;
 
         int draggingHandle;    
 };

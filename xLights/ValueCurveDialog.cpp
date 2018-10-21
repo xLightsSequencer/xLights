@@ -153,6 +153,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Choice1->Append(_("Decaying Sine"));
     Choice1->Append(_("Square"));
     Choice1->Append(_("Random"));
+    Choice1->Append(_("Music"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -462,6 +463,11 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter100(2, 100);
         SetParameter100(3, 0);
     }
+    else if (type == "Music")
+    {
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+    }
     else if (type == "Ramp Up/Down Hold")
     {
         SetParameter100(1, 0);
@@ -578,7 +584,7 @@ void ValueCurvePanel::SaveUndoSelected()
 {
     if (_vc->IsSetPoint(_grabbedPoint))
     {
-        SaveUndo(_grabbedPoint, _vc->GetValueAt(_grabbedPoint));
+        SaveUndo(_grabbedPoint, _vc->GetValueAt(_grabbedPoint, 0, 1));
     }
     else
     {
@@ -719,7 +725,7 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
             time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
         }
 
-        SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetOutputValue(y)));
+        SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetScaledValue(y)));
     }
     else
     {
@@ -740,7 +746,7 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
             time = std::string(FORMATTIME((int)(_start + (_end - _start) * x))) + ", ";
         }
 
-        SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetOutputValue(y)));
+        SetToolTip(wxString::Format(wxT("%s%.2f,%.1f"), time, x, _vc->GetScaledValue(y)));
     }
 }
 #pragma endregion Mouse Control
@@ -1022,7 +1028,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
         if (_grabbedPoint != -1 && _type == "Custom" && _timeOffset == 0)
         {
             pdc.SetPen(wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID));
-            pdc.DrawRectangle((_grabbedPoint * w) - 2, h - (_vc->GetValueAt(_grabbedPoint) * h) - 2, 5, 5);
+            pdc.DrawRectangle((_grabbedPoint * w) - 2, h - (_vc->GetValueAt(_grabbedPoint, 0, 1) * h) - 2, 5, 5);
         }
     }
 }
@@ -1086,7 +1092,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down")
+    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down" || type == "Music")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1134,6 +1140,15 @@ void ValueCurveDialog::ValidateWindow()
     {
         StaticText_P1->SetLabel("Start Level");
         StaticText_P2->SetLabel("End Level");
+        StaticText_P3->SetLabel("N/A");
+        StaticText_P4->SetLabel("N/A");
+        _vc->SetParameter3(0);
+        _vc->SetParameter4(0);
+    }
+    else if (type == "Music")
+    {
+        StaticText_P1->SetLabel("Low");
+        StaticText_P2->SetLabel("High");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter3(0);

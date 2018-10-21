@@ -11,11 +11,17 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- bug (keith)  Redevelop EDM RDS playlistitem
+   -- enh (keith)  Add music value curves that track music intensity
+2018.37 October 21, 2018
+   -- bug (keith)  Redevelop EDM RDS playlistitem to use radiotext
    -- bug (keith)  Face and state effect dont recognise backward ranges
    -- bug (keith)  Force xSchedule to only recognise HH:MM:SS time format
    -- enh (keith)  Add export to an really large image file the wiring diagram ... useful for really dense models
    -- enh (keith)  Add bulk controller upload ... upload to multiple controllers (of the same type).
+   -- bug (keith)  Fix cant add groups into groups
+   -- enh (keith)  Allow subbuffer to be moved (use ctrl/shift-ctrl to constrain axis of movement)
+   -- enh (keith)  Add ability to apply a subbuffer to selected effects - kind of like bulk edit
+   -- bug (keith)  Effects copied/imported from groups using group only buffer styles dont render on models when placed there
 2018.36 October 12, 2018
    -- end (will)   Ability to hide header/footer on buttons plugin. Add &args=noheader to URL.
    -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
