@@ -671,7 +671,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     {
                         f.Write("<timings>\n");
                     }
-                    for (int i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++)
+                    for (size_t i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++)
                     {
                         if (dlg.CheckListBox_Timings->IsChecked(i))
                         {
