@@ -606,6 +606,8 @@
 		<Unit filename="VideoReader.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
+		<Unit filename="Vixen3.cpp" />
+		<Unit filename="Vixen3.h" />
 		<Unit filename="VsaImportDialog.cpp" />
 		<Unit filename="VsaImportDialog.h" />
 		<Unit filename="WiringDialog.cpp" />

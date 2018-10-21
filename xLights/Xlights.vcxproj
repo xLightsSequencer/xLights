@@ -496,6 +496,7 @@
     <ClCompile Include="VendorModelDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
+    <ClCompile Include="Vixen3.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
     <ClCompile Include="WiringDialog.cpp" />
@@ -845,6 +846,7 @@
     <ClInclude Include="VendorModelDialog.h" />
     <ClInclude Include="VideoReader.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
+    <ClInclude Include="Vixen3.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />
     <ClInclude Include="wininet.h" />

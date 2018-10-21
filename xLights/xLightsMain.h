@@ -377,6 +377,7 @@ public:
                          int imageResizeType, const wxSize &modelSize);
     bool ImportLMS(wxXmlDocument &doc, const wxFileName &filename);
     bool ImportLPE(wxXmlDocument &doc, const wxFileName &filename);
+    bool ImportVixen3(const wxFileName &filename);
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);

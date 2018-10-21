@@ -17,6 +17,7 @@
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
 #include "sequencer/TimeLine.h"
+#include "Vixen3.h"
 
 #include <log4cpp/Category.hh>
 
@@ -2432,33 +2433,13 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
 
         logger_base.info("Loading Vixen 3 file " + std::string(next_file.GetFullPath().c_str()));
 
-        wxXmlDocument doc(next_file.GetFullPath());
+        Vixen3 vixenFile(next_file.GetFullPath());
 
+        auto timings = vixenFile.GetTimings();
         wxArrayString markNames;
-        for (wxXmlNode *n = doc.GetRoot(); n != nullptr; n = n->GetNext())
+        for (auto it: timings)
         {
-            if (n->GetName() == "TimedSequenceData")
-            {
-                for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                {
-                    if (nn->GetName() == "MarkCollections")
-                    {
-                        for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                        {
-                            if (nnn->GetName() == "MarkCollection")
-                            {
-                                for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
-                                {
-                                    if (nnnn->GetName() == "Name")
-                                    {
-                                        markNames.push_back(nnnn->GetChildren()->GetContent());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            markNames.push_back(it);
         }
 
         wxMultiChoiceDialog dlg(xLightsParent, "Select timing tracks to import", "Import Timing Tracks", markNames);
@@ -2467,69 +2448,27 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
             wxArrayInt selections = dlg.GetSelections();
 
             for (int i1 = 0; i1 < selections.size(); i1++) {
+                wxString sel = markNames[selections[i1]];
 
-                int count = 0;
-                for (wxXmlNode *n = doc.GetRoot(); n != nullptr; n = n->GetNext())
+                TimingElement* element = xLightsParent->AddTimingElement(sel);
+                EffectLayer* effectLayer = element->GetEffectLayer(0);
+                if (effectLayer == nullptr) {
+                    effectLayer = element->AddEffectLayer();
+                }
+
+                auto marks = vixenFile.GetTimings(sel.ToStdString());
+
+                for (auto it : marks)
                 {
-                    if (n->GetName() == "TimedSequenceData")
-                    {
-                        for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
-                        {
-                            if (nn->GetName() == "MarkCollections")
-                            {
-                                for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
-                                {
-                                    if (nnn->GetName() == "MarkCollection")
-                                    {
-                                        if (count == selections[i1])
-                                        {
-                                            TimingElement* element = xLightsParent->AddTimingElement(markNames[selections[i1]]);
-                                            EffectLayer* effectLayer = element->GetEffectLayer(0);
-                                            if (effectLayer == nullptr) {
-                                                effectLayer = element->AddEffectLayer();
-                                            }
+                    int st = Vixen3::ConvertTiming(it.start, GetFrameMS());
+                    int en = Vixen3::ConvertTiming(it.end, GetFrameMS());
 
-                                            // This is the one we are importing
-                                            for (wxXmlNode* nnnn = nnn->GetChildren(); nnnn != nullptr; nnnn = nnnn->GetNext())
-                                            {
-                                                if (nnnn->GetName() == "Marks")
-                                                {
-                                                    int last = 0;
-                                                    for (wxXmlNode* nnnnn = nnnn->GetChildren(); nnnnn != nullptr; nnnnn = nnnnn->GetNext())
-                                                    {
-                                                        if (nnnnn->GetName() == "d3p1:duration")
-                                                        {
-                                                            auto markTime = nnnnn->GetChildren()->GetContent();
-                                                            if (markTime.StartsWith("PT"))
-                                                            {
-                                                                markTime = markTime.AfterFirst('T');
-                                                            }
-                                                            if (markTime.EndsWith("S"))
-                                                            {
-                                                                markTime = markTime.BeforeLast('S');
-                                                            }
-
-                                                            int current = std::round(wxAtof(markTime) * 1000.0 / (float)GetFrameMS()) * GetFrameMS();
-
-                                                            effectLayer->AddEffect(0, "", "", "", last, current, EFFECT_NOT_SELECTED, false);
-
-                                                            last = current;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        count++;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    effectLayer->AddEffect(0, "", "", "", st, en, EFFECT_NOT_SELECTED, false);
                 }
             }
         }
     }
+
     xLightsParent->SetCursor(wxCURSOR_ARROW);
 }
 
