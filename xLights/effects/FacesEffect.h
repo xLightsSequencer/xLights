@@ -22,10 +22,10 @@ protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
         void mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int BufferWt);
-        void drawline1(RenderBuffer &buffer, int Phoneme, int x1,int x2,int y1, int y2);
+        void drawline1(RenderBuffer &buffer, int Phoneme, int x1,int x2,int y1, int y2, int colorIdx);
         void drawoutline(RenderBuffer &buffer, int Phoneme, bool outline, const std::string &eyes, int BufferHt,int BufferWi);
-        void facesCircle(RenderBuffer &buffer, int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees);
-        void drawline3 (RenderBuffer &buffer, int Phoneme, int x1,int x2,int y6,int y7);
+        void facesCircle(RenderBuffer &buffer, int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees, int colorIdx);
+        void drawline3 (RenderBuffer &buffer, int Phoneme, int x1,int x2,int y6,int y7, int colorIdx);
 
         void RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string& eyes, bool face_outline, bool suppressIfNotSinging);
         void RenderCoroFacesFromPGO(RenderBuffer &buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, bool suppressIfNotSinging);
