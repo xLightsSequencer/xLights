@@ -342,10 +342,10 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
 
     for (int ch = 0; ch < SeqData.NumChannels(); ch++)
     {
-        SetStatusText(string_format("Status: Channel %ld ", ch));
+        SetStatusText(string_format("Status: Channel %d ", (int)ch));
 
         node = new wxXmlNode(wxXML_ELEMENT_NODE, "Channel");
-        node->AddAttribute("output", string_format("%d", ch));
+        node->AddAttribute("output", string_format("%d", (int)ch));
         node->AddAttribute("id", "0");
         node->AddAttribute("enabled", "True");
         chparent->AddChild(node);
@@ -361,7 +361,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
         }
         else
         {
-            TestName = string_format("Ch: %d", ch);
+            TestName = string_format("Ch: %d", (int)ch);
         }
         if (ch < ChannelNames.size() && ChannelNames[ch].size() != 0)
         {
@@ -394,7 +394,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
             // default to white
             ChannelColor = 0xffffffff;
         }
-        node->AddAttribute("color", string_format("%d", ChannelColor));
+        node->AddAttribute("color", string_format("%d", (int)ChannelColor));
         textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, ChannelName);
     }
 
@@ -411,22 +411,22 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%d", (int)SeqData.FrameTime()));
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Time");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", TotalTime));
+    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", (long)TotalTime));
 
     return doc.Save(filename);
 }
 
-void ConvertDialog::WriteVirFile(const wxString& filename)
+void ConvertDialog::WriteVirFile(const wxString& filename) const
 {
     _parent->WriteVirFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
 }
 
-void ConvertDialog::WriteHLSFile(const wxString& filename)
+void ConvertDialog::WriteHLSFile(const wxString& filename) const
 {
     _parent->WriteHLSFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
 }
 
-void ConvertDialog::WriteXLightsFile(const wxString& filename)
+void ConvertDialog::WriteXLightsFile(const wxString& filename) const
 {
     wxFile file;
     char hdr[512];
@@ -453,8 +453,8 @@ void ConvertDialog::WriteXLightsFile(const wxString& filename)
     sprintf(hdr, "xLights %2d %8d %8d", xseq_format_version, SeqData.NumChannels(), SeqData.NumFrames());
     strncpy(&hdr[32], mediaFilename.c_str(), 470);
     f.Write(hdr, 512);
-    for (int x = 0; x < SeqData.NumChannels(); x++) {
-        for (int p = 0; p < SeqData.NumFrames(); p++) {
+    for (size_t x = 0; x < SeqData.NumChannels(); x++) {
+        for (size_t p = 0; p < SeqData.NumFrames(); p++) {
             f.Write(&SeqData[p][x], 1);
         }
     }
@@ -463,7 +463,7 @@ void ConvertDialog::WriteXLightsFile(const wxString& filename)
     fout.Close();
 }
 
-void ConvertDialog::WriteLSPFile(const wxString& filename)
+void ConvertDialog::WriteLSPFile(const wxString& filename) const
 {
     _parent->WriteLSPFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData, 0);
 }
@@ -472,12 +472,10 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
 {
     wxString ChannelName, TestName;
     int32_t ChannelColor;
-    int ch, p, csec, StartCSec = 0, ii;
-    int intensity, LastIntensity;
+    int p, csec, StartCSec = 0, ii;
     wxFile f;
-    int* savedIndexes;
     int savedIndexCount = 0;
-    savedIndexes = (int *)calloc(SeqData.NumChannels(), sizeof(int));
+    int * savedIndexes = (int *)calloc(SeqData.NumChannels(), sizeof(int));
 
     int index = 0;
     int rgbChanIndexes[3] = { 0,0,0 };
@@ -504,7 +502,7 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     }
     f.Write(">\n");
     f.Write("\t<channels>\n");
-    for (ch = 0; ch < SeqData.NumChannels(); ch++)
+    for (int ch = 0; ch < SeqData.NumChannels(); ch++)
     {
         SetStatusText(wxString("Status: ") + string_format(" Channel %d ", ch));
 
@@ -554,10 +552,10 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
         }
         f.Write("\t\t<channel name=\"" + ChannelName + string_format("\" color=\"%d\" centiseconds=\"%d\" savedIndex=\"%d\">\n", ChannelColor, centiseconds, index));
         // write intensity values for this channel
-        LastIntensity = 0;
+        int LastIntensity = 0;
         for (p = 0, csec = 0; p < SeqData.NumFrames(); p++, csec += interval)
         {
-            intensity = SeqData[p][ch] * 100 / 255;
+            int intensity = SeqData[p][ch] * 100 / 255;
             if (intensity != LastIntensity)
             {
                 if (LastIntensity != 0)
@@ -624,30 +622,29 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     free(savedIndexes);
 
 }
-void ConvertDialog::WriteLcbFile(const wxString& filename)
+void ConvertDialog::WriteLcbFile(const wxString& filename) const
 {
     _parent->WriteLcbFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData, 1, 1);
 }
 
-void ConvertDialog::WriteConductorFile(const wxString& filename)
+void ConvertDialog::WriteConductorFile(const wxString& filename) const
 {
     wxFile f;
     wxUint8 buf[16384];
-    size_t ch, i, j;
     if (!f.Create(filename, true))
     {
         _parent->ConversionError(wxString("Unable to create file: ") + filename);
         return;
     }
-    for (long period = 0; period < SeqData.NumFrames(); period++)
+    for (size_t period = 0; period < SeqData.NumFrames(); period++)
     {
         //if (period % 500 == 499) AppendConvertStatus (string_format("Writing time period %ld\n",period+1));
         wxYield();
-        for (i = 0; i < 4096; i++)
+        for (size_t i = 0; i < 4096; i++)
         {
-            for (j = 0; j < 4; j++)
+            for (size_t j = 0; j < 4; j++)
             {
-                ch = j * 4096 + i;
+                size_t ch = j * 4096 + i;
                 buf[i * 4 + j] = SeqData[period][ch];
             }
         }
@@ -722,7 +719,6 @@ bool ConvertDialog::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vi
 void ConvertDialog::ReadConductorFile(const wxString& FileName)
 {
     wxFile f;
-    int i, j, ch;
     char row[16384];
     int period = 0;
     _parent->ConversionInit();
@@ -742,11 +738,11 @@ void ConvertDialog::ReadConductorFile(const wxString& FileName)
     while (f.Read(row, 16384) == 16384)
     {
         wxYield();
-        for (i = 0; i < 4096; i++)
+        for (size_t i = 0; i < 4096; i++)
         {
-            for (j = 0; j < 4; j++)
+            for (size_t j = 0; j < 4; j++)
             {
-                ch = j * 4096 + i;
+                size_t ch = j * 4096 + i;
                 if (ch < SeqData.NumChannels())
                 {
                     SeqData[period][ch] = row[i * 4 + j];
@@ -1026,7 +1022,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
         {
             ChannelNames[OutputChannel] = VixChannelNames[ch];
         }
-        for (int newper = 0; newper < SeqData.NumFrames(); newper++)
+        for (size_t newper = 0; newper < SeqData.NumFrames(); newper++)
         {
             int intensity = VixSeqData[ch*VixNumPeriods + newper];
             if (MaxIntensity != 255)
@@ -1338,11 +1334,10 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                             }
                         }
                         const char *dta = Data.c_str();
-                        for (long newper = 0; newper < SeqData.NumFrames(); newper++)
+                        for (size_t newper = 0; newper < SeqData.NumFrames(); newper++)
                         {
-                            long intensity;
                             char tc[3] = { dta[newper*3], dta[newper*3 + 1], 0 };
-                            intensity = strtoul(tc, NULL, 16);
+                            long intensity = strtoul(tc, nullptr, 16);
                             SeqData[newper][channels] = intensity;
                         }
                         Data.clear();

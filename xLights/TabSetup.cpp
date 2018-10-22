@@ -2240,12 +2240,12 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
 
     std::list<wxByte*> extraConfig;
     int extraConfigPortsInPacket = 0;
-    int extraConfigPos = 39;
+    int extraConfigPos = 40;
     wxByte* currentExtraConfig = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
     
     ZCPPOutput::InitialiseExtraConfigPacket(currentExtraConfig, modelsChangeCount, zcpp->GetDescription());
 
-    unsigned char* current = &buffer[39];
+    unsigned char* current = &buffer[40];
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)
     {
         *current = i + 1;
@@ -2259,10 +2259,10 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
         std::string desc = port->GetPortName();
         if (extraConfigPos + 2 + desc.size() > ZCPP_EXTRACONFIG_PACKET_SIZE)
         {
-            currentExtraConfig[38] = extraConfigPortsInPacket;
+            currentExtraConfig[39] = extraConfigPortsInPacket;
             extraConfig.push_back(currentExtraConfig);
             extraConfigPortsInPacket = 0;
-            extraConfigPos = 39;
+            extraConfigPos = 40;
             currentExtraConfig = (wxByte*)malloc(ZCPP_EXTRACONFIG_PACKET_SIZE);
         }
 
@@ -2287,7 +2287,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
         std::string desc = port->GetPortName();
         if (extraConfigPos + 2 + desc.size() > ZCPP_EXTRACONFIG_PACKET_SIZE)
         {
-            currentExtraConfig[38] = extraConfigPortsInPacket;
+            currentExtraConfig[39] = extraConfigPortsInPacket;
             extraConfig.push_back(currentExtraConfig);
             extraConfigPortsInPacket = 0;
             extraConfigPos = 39;
@@ -2304,7 +2304,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
 
     if (extraConfigPortsInPacket > 0)
     {
-        currentExtraConfig[38] = extraConfigPortsInPacket;
+        currentExtraConfig[39] = extraConfigPortsInPacket;
         extraConfig.push_back(currentExtraConfig);
     }
 

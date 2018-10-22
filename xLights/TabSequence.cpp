@@ -584,11 +584,11 @@ void xLightsFrame::SaveModelsFile()
             }
             first = false;
 
-            int ch = model->GetNumberFromChannelString(model->ModelStartChannel);
+            long ch = model->GetNumberFromChannelString(model->ModelStartChannel);
             modelsJSON.Write("{\"name\":\""+model->name+
                               "\",\"type\":\""+model->GetDisplayAs()+
-                              "\",\"startchannel\":\""+wxString::Format("%i", ch)+
-                              "\",\"channels\":\""+ wxString::Format("%i", model->GetChanCount()) +
+                              "\",\"startchannel\":\""+wxString::Format("%ld", (long)ch)+
+                              "\",\"channels\":\""+ wxString::Format("%ld", (long)model->GetChanCount()) +
                               "\",\"stringtype\":\""+ model->GetStringType() +"\"}");
         }
     }

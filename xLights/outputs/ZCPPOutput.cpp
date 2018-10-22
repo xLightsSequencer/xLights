@@ -122,7 +122,7 @@ bool ZCPPOutput::SetModelData(unsigned char* buffer, size_t bufsize, std::list<w
 
         while (extraConfigSame && it1 != _extraConfig.end())
         {
-            if (memcmp(&(*it1)[8], &(*it2)[8], ZCPP_EXTRACONFIG_PACKET_SIZE - 8) != 0)
+            if (memcmp(&(*it1)[9], &(*it2)[9], ZCPP_EXTRACONFIG_PACKET_SIZE - 9) != 0)
             {
                 extraConfigSame = false;
             }
@@ -269,7 +269,8 @@ void ZCPPOutput::InitialiseExtraConfigPacket(wxByte* buffer, int seq, std::strin
     buffer[5] = 0x00;
     buffer[6] = (seq & 0xff00) >> 8;
     buffer[7] = seq & 0xff;
-    strncpy((char*)&buffer[8], userControllerId.c_str(), 30);
+    buffer[8] = 0x00;
+    strncpy((char*)&buffer[9], userControllerId.c_str(), 30);
 }
 
 std::list<Output*> ZCPPOutput::Discover(OutputManager* outputManager)
@@ -514,13 +515,19 @@ void ZCPPOutput::EndFrame(int suppressFrames)
     if (IsSendConfiguration())
     {
         long second = wxGetLocalTime();
-        if (_lastSecond == -1 || (second - _lastSecond) % 10 == 0)
+        if (_lastSecond == -1 || (second != _lastSecond && (second - _lastSecond) % 10 == 0))
         {
             if (_lastSecond == -1 || second % 600 == 0)
             {
                 // Send descriptions every 10 mins
                 for (auto it = _extraConfig.begin(); it != _extraConfig.end(); ++it)
                 {
+                    auto it2 = it;
+                    ++it2;
+                    if (it2 == _extraConfig.end())
+                    {
+                        (*it)[8] = 0x01;
+                    }
                     _datagram->SendTo(_remoteAddr, *it, ZCPP_EXTRACONFIG_PACKET_SIZE);
                 }
             }
