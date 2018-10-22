@@ -1201,6 +1201,7 @@
 		678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFadePanel.cpp; path = PlayList/PlayListItemFadePanel.cpp; sourceTree = "<group>"; };
 		678058CE2176619800BFD388 /* PlayListItemFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFade.h; path = PlayList/PlayListItemFade.h; sourceTree = "<group>"; };
 		678058CF2176619800BFD388 /* PlayListItemFade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFade.cpp; path = PlayList/PlayListItemFade.cpp; sourceTree = "<group>"; };
+		678058D4217A4ED900BFD388 /* xSchedule.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = xSchedule.entitlements; sourceTree = "<group>"; };
 		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
 		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
 		6780E7E81F6EAE81002A8EC9 /* GenerateLyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateLyricsDialog.h; sourceTree = "<group>"; };
@@ -3114,6 +3115,7 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				678058D4217A4ED900BFD388 /* xSchedule.entitlements */,
 				670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */,
 				670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */,
 				670E0C2B20B641D70055F891 /* City.cpp */,
@@ -3495,6 +3497,9 @@
 						DevelopmentTeam = U8ZT9RPC6S;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
 							com.apple.Sandbox = {
 								enabled = 0;
 							};
@@ -3504,6 +3509,9 @@
 						CreatedOnToolsVersion = 9.3;
 						DevelopmentTeam = U8ZT9RPC6S;
 						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
 							com.apple.Sandbox = {
 								enabled = 0;
 							};
@@ -3513,6 +3521,15 @@
 						DevelopmentTeam = U8ZT9RPC6S;
 						LastSwiftMigration = 0810;
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 0;
+							};
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
+							com.apple.NetworkExtensions = {
+								enabled = 0;
+							};
 							com.apple.Sandbox = {
 								enabled = 0;
 							};
@@ -3521,6 +3538,11 @@
 					67F23F201E32994400F8B985 = {
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = U8ZT9RPC6S;
+						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -4282,6 +4304,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xFade/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
@@ -4299,9 +4322,11 @@
 		67025C7720D7E80900BF1AC6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = xFade/xFade.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = U8ZT9RPC6S;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xFade/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
@@ -4310,6 +4335,7 @@
 					"$(PROJECT_DIR)/lib/osx",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xFade;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -4320,6 +4346,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -4335,12 +4363,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = xCapture/xCapture.entitlements;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/local/lib,
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xCapture;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -4517,7 +4548,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				OTHER_CFLAGS = (
@@ -4538,6 +4570,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
 				OTHER_CFLAGS = (
@@ -4545,6 +4578,7 @@
 					"-IxLights",
 					"-IxLights/ffmpeg-dev/include/",
 				);
+				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -4556,6 +4590,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -4571,11 +4607,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = xSchedule/xSchedule.entitlements;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xSchedule;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
