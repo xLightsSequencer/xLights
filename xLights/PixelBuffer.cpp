@@ -1704,24 +1704,30 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<bool> &
 
     // KW ... I think this needs to be optimised
 
-    if (layers[0] != nullptr) // I dont like this ... it should never be null
-    {
+    if (layers[0] != nullptr) { // I dont like this ... it should never be null
         for (auto &n : layers[0]->buffer.Nodes) {
             size_t start = n->ActChan;
             if (IsInRange(restrictRange, start)) {
-                if (n->model != nullptr) // nor this
-                {
+                if (n->model != nullptr) { // nor this
                     DimmingCurve *curve = n->model->modelDimmingCurve;
                     if (curve != nullptr) {
-                        xlColor color;
-                        n->GetColor(color);
-                        curve->apply(color);
-                        n->SetColor(color);
+                        if (n->GetChanCount() == 1) {
+                            uint8_t buf[3];
+                            n->GetForChannels(buf);
+                            xlColor color(buf[0], buf[0], buf[0]);
+                            curve->apply(color);
+                            
+                            n->SetColor(color);
+                        } else {
+                            xlColor color;
+                            n->GetColor(color);
+                            curve->apply(color);
+                            n->SetColor(color);
+                        }
                     }
                 }
                 n->GetForChannels(&fdata[start]);
             }
-
         }
     }
 }

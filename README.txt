@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix dimming/gamma curves on single channel models
    -- enh (keith)  Add music value curves that track music intensity
 2018.37 October 21, 2018
    -- bug (keith)  Redevelop EDM RDS playlistitem to use radiotext
