@@ -29,6 +29,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
         bool ContainsModel(Model* mg);
         bool ContainsModel(Model* mg, std::list<Model*>& visited);
+        int GetModelCount() const { return models.size(); }
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const override;
