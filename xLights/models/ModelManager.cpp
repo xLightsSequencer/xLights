@@ -835,6 +835,7 @@ void ModelManager::Delete(const std::string &name) {
                 models.erase(it);
                 delete model->GetModelXml();
                 delete model;
+                ResetModelGroups();
                 return;
             }
         }

@@ -245,6 +245,42 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
     }
 }
 
+void xLightsXmlFile::ClearMediaFile()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (audio != nullptr)
+    {
+        ValueCurve::SetAudio(nullptr);
+        delete audio;
+        audio = nullptr;
+    }
+
+    wxXmlNode* root = seqDocument.GetRoot();
+
+    bool done = false;
+    for (wxXmlNode* e = root->GetChildren(); !done && e != nullptr; e = e->GetNext())
+    {
+        if (e->GetName() == "head")
+        {
+            for (wxXmlNode* element = e->GetChildren(); !done && element != nullptr; element = element->GetNext())
+            {
+                if (element->GetName() == "mediaFile")
+                {
+                    SetNodeContent(element, "");
+                    done = true;
+                }
+            }
+        }
+    }
+
+    media_file = "";
+    SetHeaderInfo(SONG, "");
+    SetHeaderInfo(ARTIST, "");
+    SetHeaderInfo(ALBUM, "");
+    SetHeaderInfo(URL, "");
+}
+
 void xLightsXmlFile::SetRenderMode(const wxString& mode)
 {
     for(int i = 0; i < mDataLayers.GetNumLayers(); i++)
