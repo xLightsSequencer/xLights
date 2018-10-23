@@ -2977,13 +2977,21 @@ void xLightsFrame::ShowSequenceSettings()
 
     if (ret_code != wxID_OK) return;  // user pressed cancel
 
-    if (CurrentSeqXmlFile->GetMedia() != nullptr)
+    if (CurrentSeqXmlFile->GetSequenceType() == "Animation")
+    {
+        mediaFilename = "";
+        CurrentSeqXmlFile->ClearMediaFile();
+        wxString error;
+        GetMainSequencer()->PanelWaveForm->OpenfileMedia(nullptr, error);
+    }
+    else if (CurrentSeqXmlFile->GetMedia() != nullptr)
     {
         if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
         {
             CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
         }
     }
+
     SetAudioControls();
 
     mSequenceElements.IncrementChangeCount(nullptr);

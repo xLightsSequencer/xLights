@@ -298,7 +298,9 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 	}
 	else
 	{
-		return 0;
+        mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+        SetZoomLevel(GetZoomLevel());
+	    return 0;
 	}
 }
 
