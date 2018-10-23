@@ -1282,6 +1282,7 @@ void LayoutPanel::BulkEditControllerConnection()
             }
         }
 
+        xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
         resetPropertyGrid();
     }
@@ -3038,6 +3039,7 @@ void LayoutPanel::ReplaceModel()
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
             {
                 modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
+                modelToReplaceItWith->SetControllerConnection(replaceModel->GetControllerConnection());
             }
         }
 
