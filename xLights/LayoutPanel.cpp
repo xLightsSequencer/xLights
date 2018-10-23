@@ -3036,15 +3036,17 @@ void LayoutPanel::ReplaceModel()
         // they are not already the same and the new model uses a chaining start
         // channel ... the theory being if you took time to set the start channel
         // you probably want to keep it and so a prompt will just be annoying
-        if (replaceModel->ModelStartChannel !=
+        if ((replaceModel->ModelStartChannel !=
             modelToReplaceItWith->ModelStartChannel &&
-            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">"))
+            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">")) ||
+            (replaceModel->GetControllerName() != modelToReplaceItWith->GetControllerName() && modelToReplaceItWith->GetControllerName() == ""))
         {
-            auto msg = wxString::Format("Should I copy the replaced models start channel %s to the replacement model whose start channel is currently %s?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
+            auto msg = wxString::Format("Should I copy the replaced models start channel '%s' to the replacement model whose start channel is currently '%s'?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
             {
                 modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
                 modelToReplaceItWith->SetControllerConnection(replaceModel->GetControllerConnection());
+                modelToReplaceItWith->SetControllerName(replaceModel->GetControllerName());
             }
         }
 
