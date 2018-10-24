@@ -285,6 +285,9 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Set playlist as background <playlistname>
 			Sets the named playlist as the current background playlist.
 			
+		Clear background playlist
+			Stops any existing background playlist.
+			
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 

@@ -1894,6 +1894,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         logger_base.info("Set playlist as background %s.", (const char*)p->GetNameNoTime().c_str());
                     }
                 }
+                else if (command == "Clear background playlist")
+                {
+                    SetBackgroundPlayList(nullptr);
+                    logger_base.info("Clear background playlist.");
+                }
                 else if (command == "Stop event playlist")
                 {
                     std::string pl = DecodePlayList(parameters);
