@@ -94,7 +94,8 @@ const long xCaptureFrame::ID_BUTTON3 = wxNewId();
 const long xCaptureFrame::ID_BUTTON4 = wxNewId();
 const long xCaptureFrame::ID_BUTTON5 = wxNewId();
 const long xCaptureFrame::ID_STATICTEXT9 = wxNewId();
-const long xCaptureFrame::ID_COMBOBOX1 = wxNewId();
+const long xCaptureFrame::ID_CHOICE1 = wxNewId();
+const long xCaptureFrame::ID_SPINCTRL1 = wxNewId();
 const long xCaptureFrame::ID_BUTTON1 = wxNewId();
 const long xCaptureFrame::ID_BUTTON8 = wxNewId();
 const long xCaptureFrame::ID_BUTTON2 = wxNewId();
@@ -320,18 +321,22 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     FlexGridSizer5->Add(Button_Delete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
     FlexGridSizer7->AddGrowableCol(1);
     StaticText8 = new wxStaticText(this, ID_STATICTEXT9, _("Frame timing (ms):"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
     FlexGridSizer7->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ComboBox1 = new wxComboBox(this, ID_COMBOBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_COMBOBOX1"));
-    ComboBox1->Append(_("25"));
-    ComboBox1->Append(_("30"));
-    ComboBox1->Append(_("33"));
-    ComboBox1->Append(_("50"));
-    ComboBox1->Append(_("100"));
-    ComboBox1->SetSelection( ComboBox1->Append(_("xCapture Detected (rounded to nearest 5ms)")) );
-    FlexGridSizer7->Add(ComboBox1, 1, wxALL|wxEXPAND, 5);
+    Choice_Timing = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+    Choice_Timing->Append(_("25"));
+    Choice_Timing->Append(_("30"));
+    Choice_Timing->Append(_("33"));
+    Choice_Timing->Append(_("50"));
+    Choice_Timing->Append(_("100"));
+    Choice_Timing->SetSelection( Choice_Timing->Append(_("xCapture Detected (rounded to nearest 5ms)")) );
+    Choice_Timing->Append(_("Manual"));
+    FlexGridSizer7->Add(Choice_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    SpinCtrl_ManualTime = new wxSpinCtrl(this, ID_SPINCTRL1, _T("50"), wxDefaultPosition, wxDefaultSize, 0, 20, 1000, 50, _T("ID_SPINCTRL1"));
+    SpinCtrl_ManualTime->SetValue(_T("50"));
+    FlexGridSizer7->Add(SpinCtrl_ManualTime, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
     Button_StartStop = new wxButton(this, ID_BUTTON1, _("Start Capture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -365,6 +370,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_AddClick);
     Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_EditClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_DeleteClick);
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&xCaptureFrame::OnChoice_TimingSelect);
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_StartStopClick);
     Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_AnalyseClick);
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xCaptureFrame::OnButton_SaveClick);
@@ -740,6 +746,15 @@ bool Collector::operator<(const Collector& c) const
 
 void xCaptureFrame::ValidateWindow()
 {
+    if (Choice_Timing->GetStringSelection() == "Manual")
+    {
+        SpinCtrl_ManualTime->Enable();
+    }
+    else
+    {
+        SpinCtrl_ManualTime->Disable();
+    }
+
     if (CheckBox_TriggerOnChannel->GetValue())
     {
         SpinCtrl_Universe->Enable(true);
@@ -1347,10 +1362,19 @@ void xCaptureFrame::SaveFSEQ(wxString file, int frameMS, long channelsPerFrame, 
     wxUint8 gamma = 1;
     wxUint8 colorEncoding = 2;
 
-    int overrideFrameMS = wxAtoi(ComboBox1->GetValue());
+    int overrideFrameMS = 0;
+    if (Choice_Timing->GetStringSelection() == "Manual")
+    {
+        overrideFrameMS = SpinCtrl_ManualTime->GetValue();
+    }
+    else
+    {
+        overrideFrameMS = wxAtoi(Choice_Timing->GetStringSelection());
+    }
+
     if (overrideFrameMS != 0)
     {
-        logger_base.debug("Frame time overriden to %s->%d. It was %d.", (const char*)ComboBox1->GetValue().c_str(), overrideFrameMS, stepTime);
+        logger_base.debug("Frame time overriden to %s->%d. It was %d.", (const char*)Choice_Timing->GetStringSelection().c_str(), overrideFrameMS, stepTime);
         log += "Frame time override to " + wxString::Format("%d", overrideFrameMS) + "ms";
         stepTime = overrideFrameMS;
     }
@@ -1468,10 +1492,19 @@ void xCaptureFrame::SaveESEQ(wxString file, int frameMS, long channelsPerFrame, 
         startAddr = 1;
     }
 
-    int overrideFrameMS = wxAtoi(ComboBox1->GetValue());
+    int overrideFrameMS = 0;
+    if (Choice_Timing->GetStringSelection() == "Manual")
+    {
+        overrideFrameMS = SpinCtrl_ManualTime->GetValue();
+    }
+    else
+    {
+        overrideFrameMS = wxAtoi(Choice_Timing->GetStringSelection());
+    }
+
     if (overrideFrameMS != 0)
     {
-        logger_base.debug("Frame time overriden to %s->%d. It was detected as %d", (const char*)ComboBox1->GetValue().c_str(), overrideFrameMS, frameMS);
+        logger_base.debug("Frame time overriden to %s->%d. It was detected as %d", (const char*)Choice_Timing->GetStringSelection().c_str(), overrideFrameMS, frameMS);
         log += "Frame time override to " + wxString::Format("%d", overrideFrameMS) + "ms";
         frameMS = overrideFrameMS;
     }
@@ -1601,4 +1634,29 @@ void xCaptureFrame::OnButton1Click(wxCommandEvent& event)
         StaticText_IP->SetLabel(_localIP);
         RestartInterfaces();
     }
+}
+
+void xCaptureFrame::OnChoice_TimingSelect(wxCommandEvent& event)
+{
+    if (Choice_Timing->GetStringSelection() == "25")
+    {
+        SpinCtrl_ManualTime->SetValue(25);
+    }
+    else if (Choice_Timing->GetStringSelection() == "30")
+    {
+        SpinCtrl_ManualTime->SetValue(30);
+    }
+    else if (Choice_Timing->GetStringSelection() == "33")
+    {
+        SpinCtrl_ManualTime->SetValue(33);
+    }
+    else if (Choice_Timing->GetStringSelection() == "50")
+    {
+        SpinCtrl_ManualTime->SetValue(50);
+    }
+    else if (Choice_Timing->GetStringSelection() == "100")
+    {
+        SpinCtrl_ManualTime->SetValue(100);
+    }
+    ValidateWindow();
 }
