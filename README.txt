@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Resize FSEQ data during save if sequence timing has changed.
    -- bug (dkulp)  Fix dimming/gamma curves on single channel models
    -- enh (keith)  Add music value curves that track music intensity
 2018.37 October 21, 2018
