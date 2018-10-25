@@ -946,7 +946,7 @@ int ScheduleManager::Frame(bool outputframe)
             if (outputframe)
             {
                 _outputManager->StartFrame(0);
-                _outputManager->AllOff();
+                _outputManager->AllOff(false);
             }
 
             if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning())
@@ -1031,7 +1031,7 @@ int ScheduleManager::Frame(bool outputframe)
                 if (outputframe)
                 {
                     _outputManager->StartFrame(0);
-                    _outputManager->AllOff();
+                    _outputManager->AllOff(false);
                 }
 
                 auto it = _eventPlayLists.begin();

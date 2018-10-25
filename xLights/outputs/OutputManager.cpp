@@ -901,13 +901,16 @@ void OutputManager::StopOutput()
 #pragma endregion Start and Stop
 
 #pragma region Data Setting
-void OutputManager::AllOff()
+void OutputManager::AllOff(bool send)
 {
     if (!_outputCriticalSection.TryEnter()) return;
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
         (*it)->AllOff();
-        (*it)->EndFrame(_suppressFrames);
+        if (send)
+        {
+            (*it)->EndFrame(_suppressFrames);
+        }
     }
     _outputCriticalSection.Leave();
 }
