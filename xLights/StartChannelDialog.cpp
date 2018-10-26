@@ -114,7 +114,7 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnButton_CancelClick);
 	//*)
 
-    SetEscapeId(wxID_OK);
+    SetEscapeId(ID_BUTTON2);
 }
 
 StartChannelDialog::~StartChannelDialog()
