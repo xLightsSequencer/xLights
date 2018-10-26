@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.39 October 27, 2018
+   -- enh (keith)  Add Not So Big Buttons plugin to xschedule
+   -- bug (keith)  Fix face effect not rendering the mouth
 2018.38 October 26, 2018
    -- enh (gil)    Resize FSEQ data during save if sequence timing has changed.
    -- bug (dkulp)  Fix dimming/gamma curves on single channel models
