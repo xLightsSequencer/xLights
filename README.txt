@@ -11,9 +11,24 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.38 October 26, 2018
    -- enh (gil)    Resize FSEQ data during save if sequence timing has changed.
    -- bug (dkulp)  Fix dimming/gamma curves on single channel models
    -- enh (keith)  Add music value curves that track music intensity
+   -- enh (keith)  #1297 Add a to text playlist item ability to count down a number of seconds
+   -- bug (keith)  #1299 Fix start channel cancel button does not work
+   -- bug (keith)  #1300 Crash on initialising single channel spinner model
+   -- bug (keith)  #1287/#1288 Fix controller connection not updating into model list
+   -- bug (keith)  #1289 xschedule eseq off by one problem
+   -- enh (keith)  xCapture allow user to set frame time to specific MS
+   -- enh (keith)  Add bulk edit of filename and pathname on picture, video and glediator effect file picker
+   -- enh (keith)  Add xSchedule API to "Clear background playlist"
+   -- bug (keith)  #1286 switching musical sequence to animation does not completely remove audio
+   -- bug (keith)  Fix xSchedule looks like it needs saving immediately after it is loaded
+   -- enh (keith)  Add to model list right click menu ability to remove all empty groups
+   -- bug (keith)  Fix crash when deleting models on layout panel
+   -- bug (keith)  Address a bunch of issues with the rendered face effect not behaving like other face effects
+   -- bug (keith)  Address start/end schedule time not saving correctly on OSX
 2018.37 October 21, 2018
    -- bug (keith)  Redevelop EDM RDS playlistitem to use radiotext
    -- bug (keith)  Face and state effect dont recognise backward ranges

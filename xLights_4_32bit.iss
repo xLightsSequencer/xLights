@@ -15,7 +15,7 @@
 
 #define MyTitleName "xLights" 
 #define Year 2018
-#define Version 37
+#define Version 38
 #define Bits 32
 
 [Setup]
