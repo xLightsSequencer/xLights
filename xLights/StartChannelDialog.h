@@ -2,6 +2,7 @@
 #define STARTCHANNELDIALOG_H
 
 //(*Headers(StartChannelDialog)
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
@@ -24,6 +25,8 @@ class StartChannelDialog: public wxDialog
 		virtual ~StartChannelDialog();
 
 		//(*Declarations(StartChannelDialog)
+		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_FromThisPreviewOnly;
 		wxChoice* ModelChoice;
 		wxChoice* OutputChoice;
@@ -59,6 +62,8 @@ class StartChannelDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX1;
 		static const long ID_RADIOBUTTON4;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		//*)
 
 	private:
@@ -67,6 +72,8 @@ class StartChannelDialog: public wxDialog
 		void OnButtonSelect(wxCommandEvent& event);
 		void OnipChoiceSelect(wxCommandEvent& event);
 		void OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event);
+		void OnButton_OkClick(wxCommandEvent& event);
+		void OnButton_CancelClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
