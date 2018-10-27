@@ -56,7 +56,7 @@ class Falcon
     int GetDaughter1Threshold() const { if (IsF16() || IsF48()) { return 16; } else { return 4; } }
     int GetDaughter2Threshold() const { if (IsF16() || IsF48()) { return 32; } else { return 12; } }
     bool SupportsVariableExpansions() const { return IsV3(); }
-    int GetMaxPixels() const { if (IsV2()) return 680; else return 1024; }
+    int GetMaxPixels() const;
 
 public:
     Falcon(const std::string& ip);

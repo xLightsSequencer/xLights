@@ -143,6 +143,30 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version)
     }
 }
 
+int Falcon::GetMaxPixels() const
+{
+    if (IsV2())
+    {
+        auto fwv = wxSplit(_firmwareVersion, '.');
+        int majorfw = wxAtoi(fwv[0]);
+        int minorfw = 0;
+        if (fwv.size() > 1)
+        {
+            minorfw = wxAtoi(fwv[1]);
+        }
+        if (majorfw < 2 || (majorfw == 2 && minorfw < 1))
+        {
+            return 680;
+        }
+        else
+        {
+            return 1024;
+        }
+    }
+    else 
+        return 1024;
+}
+
 Falcon::Falcon(const std::string& ip)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
