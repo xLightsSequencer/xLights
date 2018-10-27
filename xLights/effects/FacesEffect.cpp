@@ -230,14 +230,13 @@ void FacesEffect::RenameTimingTrack(std::string oldname, std::string newname, Ef
 }
 
 void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    FacesPanel *fp = (FacesPanel*)panel;
-    int facecount = fp->Face_FaceDefinitonChoice->GetCount();
-    if ((facecount == 1 && SettingsMap.Get("CHOICE_Faces_FaceDefinition", "") == "Default") || SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered") {
+    if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
+        && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
         //3.x style Faces effect
         RenderFaces(buffer, 
             SettingsMap["CHOICE_Faces_Phoneme"], 
-            SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"), 
-            SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
+            "Auto", 
+            true, 
             SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", 
                 false));
     } else if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
