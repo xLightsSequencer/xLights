@@ -2245,7 +2245,7 @@ void xLightsFrame::SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, Ou
     
     ZCPPOutput::InitialiseExtraConfigPacket(currentExtraConfig, modelsChangeCount, zcpp->GetDescription());
 
-    unsigned char* current = &buffer[40];
+    unsigned char* current = &buffer[39];
     for (int i = 0; i < cud.GetMaxPixelPort(); i++)
     {
         *current = i + 1;
