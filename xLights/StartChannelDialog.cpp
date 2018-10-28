@@ -2,7 +2,6 @@
 #include <vector>
 
 //(*InternalHeaders(StartChannelDialog)
-#include <wx/button.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
@@ -24,6 +23,8 @@ const long StartChannelDialog::ID_CHECKBOX1 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON4 = wxNewId();
 const long StartChannelDialog::ID_RADIOBUTTON6 = wxNewId();
 const long StartChannelDialog::ID_CHOICE5 = wxNewId();
+const long StartChannelDialog::ID_BUTTON1 = wxNewId();
+const long StartChannelDialog::ID_BUTTON2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(StartChannelDialog,wxDialog)
@@ -44,9 +45,9 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticText* StaticText1;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -99,11 +100,12 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	FlexGridSizer3->Add(ChoiceController, 1, wxALL|wxEXPAND, 5);
 	StaticBoxSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 3);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer6->Add(Button_Ok, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer6->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -115,9 +117,11 @@ StartChannelDialog::StartChannelDialog(wxWindow* parent,wxWindowID id,const wxPo
 	Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick);
 	Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&StartChannelDialog::OnButtonSelect);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnButton_OkClick);
+	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StartChannelDialog::OnButton_CancelClick);
 	//*)
 
-    SetEscapeId(wxID_OK);
+    SetEscapeId(ID_BUTTON2);
 }
 
 StartChannelDialog::~StartChannelDialog()
@@ -455,4 +459,14 @@ void StartChannelDialog::OnipChoiceSelect(wxCommandEvent& event)
 void StartChannelDialog::OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event)
 {
     UpdateModels();
+}
+
+void StartChannelDialog::OnButton_OkClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_OK);
+}
+
+void StartChannelDialog::OnButton_CancelClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_CANCEL);
 }

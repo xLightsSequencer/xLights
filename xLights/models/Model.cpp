@@ -748,6 +748,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxWHITE);
         }
+        IncrementChangeCount();
         return 3 | 0x0008;
     }
     else if (event.GetPropertyName() == "ModelChain") {
@@ -757,6 +758,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->Enable(false);
         grid->GetPropertyByName("ModelIndividualStartChannels")->Enable(false);
         grid->GetPropertyByName("ModelIndividualStartChannels")->GetPropertyByName("ModelStartChannel")->SetValue(ModelXml->GetAttribute("StartChannel", "1"));
+        IncrementChangeCount();
         return 3 | 0x0008;
     }
     else if (event.GetPropertyName() == "Controller") {
@@ -786,6 +788,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxWHITE);
         }
+        IncrementChangeCount();
         return 3 | 0x0008;
     }
     else if (event.GetPropertyName() == "SubModels") {

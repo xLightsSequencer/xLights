@@ -12,6 +12,7 @@ class ESEQFile
 	size_t _frames;
 	size_t _channelsPerFrame;
 	size_t _offset;
+	size_t _modelSize;
     wxFile* _fh;
     wxByte* _frameBuffer;
     size_t _frame0Offset;

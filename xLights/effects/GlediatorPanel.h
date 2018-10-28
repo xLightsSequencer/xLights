@@ -20,7 +20,7 @@ class GlediatorPanel: public wxPanel
 
 		//(*Declarations(GlediatorPanel)
 		BulkEditChoice* Choice_Glediator_DurationTreatment;
-		wxFilePickerCtrl* FilePickerCtrl_Glediator_Filename;
+		BulkEditFilePickerCtrl* FilePickerCtrl_Glediator_Filename;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		//*)

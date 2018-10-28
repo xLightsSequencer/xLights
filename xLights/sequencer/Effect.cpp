@@ -409,7 +409,30 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         else
         {
             mSettings.erase(vcid);
-            mSettings[id] = value;
+
+            wxString wid = id;
+
+            if (wid.Contains("FILEPICKER"))
+            {
+                wxString realid = wid.substr(0, wid.Length() - 3);
+                if (wid.EndsWith("_FN"))
+                {
+                    mSettings[realid] = value;
+                }
+                else
+                {
+                    if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "")
+                    {
+                        wxFileName fn(mSettings[realid]);
+                        fn.SetPath(value);
+                        mSettings[realid] = fn.GetFullPath();
+                    }
+                }
+            }
+            else
+            {
+                mSettings[id] = value;
+            }
         }
     }
     IncrementChangeCount();

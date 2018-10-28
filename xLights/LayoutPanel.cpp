@@ -2022,7 +2022,7 @@ void LayoutPanel::FinalizeModel()
     m_polyline_active = false;
 
     if (newModel != nullptr) {
-        if (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download")
+        if (selectedButton != nullptr && (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download"))
         {
             float min_x = (float)(newModel->GetModelScreenLocation().GetLeft()) / (float)(newModel->GetModelScreenLocation().previewW);
             float max_x = (float)(newModel->GetModelScreenLocation().GetRight()) / (float)(newModel->GetModelScreenLocation().previewW);
@@ -2034,10 +2034,8 @@ void LayoutPanel::FinalizeModel()
                 newModel = nullptr;
                 m_over_handle = -1;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
-                if (selectedButton != nullptr) {
-                    selectedButton->SetState(0);
-                    selectedButton = nullptr;
-                }
+                selectedButton->SetState(0);
+                selectedButton = nullptr;
                 xlights->UpdateModelsList();
                 UpdatePreview();
                 return;

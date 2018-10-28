@@ -531,6 +531,8 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     {
         if (wwwroot == "") return false;
 
+        wxString uri = wxURI(request.URI()).BuildUnescapedURI();
+
         if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
         {
 #ifdef __WXMSW__
@@ -544,9 +546,14 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
             wxString d = wxStandardPaths::Get().GetResourcesDir();
 #endif
 
-            wxString file = d + wxURI(request.URI()).GetPath();
+            wxString file = d + uri;
 
-            logger_base.info("File request received = '%s' : '%s'.", (const char *)file.c_str(), (const char *)request.URI().c_str());
+            logger_base.info("File request received = '%s' : '%s'.", (const char *)file.c_str(), (const char *)uri.c_str());
+
+            if (!wxFile::Exists(file))
+            {
+                logger_base.error("    404: file not found.");
+            }
 
             HttpResponse response(connection, request, HttpStatus::OK);
 

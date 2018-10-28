@@ -940,4 +940,7 @@
       <UniqueIdentifier>{925bab2a-bd63-40c9-9b2f-189d1d09eb5d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="API Documentation.txt" />
+  </ItemGroup>
 </Project>
