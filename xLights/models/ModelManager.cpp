@@ -394,6 +394,7 @@ void ModelManager::ReworkStartChannel() const
                 {
                     (*it)->SetChannels(std::max((long)1, (long)ch - 1));
                     outputsChanged = true;
+                    xlights->SaveNetworksFile();
                 }
             }
         }
