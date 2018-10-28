@@ -50,8 +50,8 @@ class Schedule
         void SetPriority(int priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
         std::string GetName() const { return _name; }
         void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
-        std::string GetStartTimeAsString() const { if (_startTimeString == "") return _startTime.FormatTime().ToStdString(); else return _startTimeString; }
-        std::string GetEndTimeAsString() const { if (_endTimeString == "") return _endTime.FormatTime().ToStdString(); else return _endTimeString; }
+        std::string GetStartTimeAsString() const { if (_startTimeString == "") return _startTime.Format("%H:%M").ToStdString(); else return _startTimeString; }
+        std::string GetEndTimeAsString() const { if (_endTimeString == "") return _endTime.Format("%H:%M").ToStdString(); else return _endTimeString; }
         void SetStartTime(const std::string& start);
         void SetEndTime(const std::string& end);
         void SetLoops(int loops) { if (_loops != loops) { _loops = loops; _changeCount++; } }

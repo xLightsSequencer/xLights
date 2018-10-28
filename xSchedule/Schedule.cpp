@@ -437,7 +437,7 @@ void Schedule::SetStartTime(const std::string& start)
         {
             _startTimeString = "";
             //_startTime.ParseTime(s);
-            _startTime.ParseFormat(s, "%H:%M:%S");
+            _startTime.ParseFormat(s, "%H:%M");
             _startTime.SetSecond(0);
         }
         _changeCount++;
@@ -459,7 +459,7 @@ void Schedule::SetEndTime(const std::string& end)
         {
             _endTimeString = "";
             //_endTime.ParseTime(e);
-            _endTime.ParseFormat(e, "%H:%M:%S");
+            _endTime.ParseFormat(e, "%H:%M");
             _endTime.SetSecond(0);
         }
         _changeCount++;
