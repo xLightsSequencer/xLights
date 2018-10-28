@@ -524,9 +524,13 @@ void ZCPPOutput::EndFrame(int suppressFrames)
                 {
                     auto it2 = it;
                     ++it2;
+                    if (it == _extraConfig.begin())
+                    {
+                        (*it)[8] |= 0x40;
+                    }
                     if (it2 == _extraConfig.end())
                     {
-                        (*it)[8] = 0x01;
+                        (*it)[8] |= 0x80;
                     }
                     _datagram->SendTo(_remoteAddr, *it, ZCPP_EXTRACONFIG_PACKET_SIZE);
                 }
@@ -552,7 +556,9 @@ void ZCPPOutput::EndFrame(int suppressFrames)
             _packet[9] = (wxByte)((startAddress >> 8) & 0xFF);
             _packet[10] = (wxByte)((startAddress) & 0xFF);
             int packetlen = _usedChannels - i > ZCPP_PACKET_LEN - 14 ? ZCPP_PACKET_LEN - 14 : _usedChannels - i;
-            _packet[11] = (OutputManager::IsSyncEnabled_() ? 0x01 : 0x00) + (i + packetlen == _usedChannels ? 0x80 : 0x00);
+            _packet[11] = (OutputManager::IsSyncEnabled_() ? 0x01 : 0x00) + 
+                          (i + packetlen == _usedChannels ? 0x80 : 0x00) + 
+                          (i == 0 ? 0x40 : 0x00);
             _packet[12] = (wxByte)((packetlen >> 8) & 0xFF);
             _packet[13] = (wxByte)((packetlen) & 0xFF);
             memcpy(&_packet[14], &_data[i], packetlen);
