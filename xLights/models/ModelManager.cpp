@@ -394,7 +394,6 @@ void ModelManager::ReworkStartChannel() const
                 {
                     (*it)->SetChannels(std::max((long)1, (long)ch - 1));
                     outputsChanged = true;
-                    xlights->SaveNetworksFile();
                 }
             }
         }
@@ -405,6 +404,7 @@ void ModelManager::ReworkStartChannel() const
         xlights->GetOutputManager()->SomethingChanged();
         xlights->UpdateNetworkList(false);
         xlights->NetworkChange();
+        xlights->SaveNetworksFile();
     }
 }
 

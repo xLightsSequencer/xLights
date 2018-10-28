@@ -586,6 +586,7 @@ LayoutPanel::~LayoutPanel()
 }
 
 void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString name = event.GetPropertyName();
     updatingProperty = true;
     if (name == "BkgBrightness") {
@@ -659,6 +660,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 CallAfter(&LayoutPanel::resetPropertyGrid);
             }
             if (i & 0x0008) {
+                xlights->AllModels.ReworkStartChannel();
                 CallAfter(&LayoutPanel::refreshModelList);
             }
             if (i & 0x0010) {
@@ -666,7 +668,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 CallAfter(&LayoutPanel::RefreshLayout);
             }
             if (i == 0) {
-                printf("Did not handle %s   %s\n",
+                logger_base.warn("Did not handle %s   %s",
                        (const char *)event.GetPropertyName().c_str(),
                        (const char *)event.GetValue().GetString().c_str());
             }
