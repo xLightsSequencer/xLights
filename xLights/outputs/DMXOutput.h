@@ -7,11 +7,11 @@
 // * This class represents a single DMX universe
 // * Compatible with Entec Pro, Lynx DMX, DIYC RPM, DMXking.com, and DIYblinky.com dongles
 // * Universes are exactly 512 bytes, except for DIYblinky, where they can be up to 3036 bytes
-// * Methods should be called with: 0 <= chindex < 3036
+// * Methods should be called with: 0 <= chindex < 4800
 // ***************************************************************************************
 
 #pragma region DMX Constants
-#define DMX_MAX_CHANNELS 3036
+#define DMX_MAX_CHANNELS 4800
 #pragma endregion DMX Constants
 
 class DMXOutput : public SerialOutput
