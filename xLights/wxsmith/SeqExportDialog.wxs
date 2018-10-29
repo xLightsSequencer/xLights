@@ -2,12 +2,16 @@
 <wxsmith>
 	<object class="wxDialog" name="SeqExportDialog">
 		<title>Export Sequence</title>
+		<size>385,124</size>
 		<id_arg>0</id_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
+			<growablecols>0</growablecols>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
 					<cols>2</cols>
+					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
 							<label>Format</label>
@@ -34,7 +38,7 @@
 							<selection>0</selection>
 							<handler function="OnChoiceFormatSelect" entry="EVT_CHOICE" />
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
@@ -52,6 +56,7 @@
 							<growablecols>0</growablecols>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrlFilename" member="yes">
+									<size>400,-1</size>
 									<handler function="OnTextCtrlFilenameText" entry="EVT_TEXT" />
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -61,7 +66,7 @@
 							<object class="sizeritem">
 								<object class="wxButton" name="ID_BUTTON1" variable="ButtonFilePick" member="yes">
 									<label>...</label>
-									<size>34,28</size>
+									<size>34,-1</size>
 									<handler function="OnButtonFilePickClick" entry="EVT_BUTTON" />
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -100,7 +105,7 @@
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

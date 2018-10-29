@@ -14,6 +14,7 @@ class SeqExportDialog: public wxDialog
 {
     std::string _model;
     void ValidateWindow();
+    void SetDefaultName();
 
 public:
 
