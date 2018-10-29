@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.40 October 29, 2018
+   -- enh (keith)  Allow user to change row header text colour and fix time/frame rate text unreadable on OSX
+   -- enh (keith)  Increase maximum DMX channels
+   -- bug (keith)  Fix crash caused by exporting small model ESEQ files
+   -- bug (keith)  Add tracing of frames intervals that are twice as long as they should be
+   -- bug (keith)  Try again to fix OSX schedule time issues
+   -- bug (keith)  Fix crash creating LCB files
+   -- bug (keith)  More fixes to rendered faces
+   -- bug (keith)  Fixes to Falcon F4 upload
 2018.39 October 27, 2018
    -- enh (keith)  Add Not So Big Buttons plugin to xschedule
    -- bug (keith)  Fix face effect not rendering the mouth

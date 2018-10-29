@@ -1269,19 +1269,24 @@ void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& eve
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
-#ifdef TRACE_SCHEDULE_PERFORMANCE
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#endif
     static int last = -1;
 
     if (__schedule == nullptr) return;
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    static long long lastms;
+    static long long lastms = 0;
     long long now = wxGetLocalTimeMillis().GetValue();
+    if (now - lastms > _timer.GetInterval() * 4)
+    {
+        if (lastms != 0)
+        {
+            logger_base.warn("Frame interval greater than 200%% of what it should have been [%d] %d", _timer.GetInterval() * 2, (int)(now - lastms));
+        }
+    }
+#ifdef TRACE_SCHEDULE_PERFORMANCE
     logger_base.debug("Start frame %d", (int)(now - lastms));
-    lastms = now;
 #endif
+    lastms = now;
 
     wxDateTime frameStart = wxDateTime::UNow();
 
