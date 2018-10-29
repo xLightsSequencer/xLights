@@ -42,6 +42,7 @@ void ColorManager::ResetDefaults()
 	}
     colors_system["WaveformBackground"] = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
     colors_system["RowHeader"] = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+    colors_system["RowHeaderText"] = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT);
 }
 
 void ColorManager::Snapshot()
