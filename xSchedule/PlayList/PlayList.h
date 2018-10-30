@@ -41,6 +41,7 @@ protected:
     bool _suspendAtEndOfStep;
     bool _jumpToEndStepsAtEndOfCurrentStep;
     std::string _forceNextStep;
+    std::list<wxUint32> _played;
     #pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);

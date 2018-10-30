@@ -92,10 +92,10 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started)
     {
+        logger_base.debug("FPP Event");
         _started = true;
 
         std::string eventstring = GetEventString();
-        logger_base.debug("FPP Event");
         logger_base.debug("FPP Event IP %s Event String %s", (const char*)_ip.c_str(), (const char*)eventstring.c_str());
 
         if (IsIPValidOrHostname(_ip) && _ip != "255.255.255.255")
