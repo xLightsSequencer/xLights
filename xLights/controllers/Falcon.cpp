@@ -145,14 +145,21 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version)
 
 bool Falcon::IsEnhancedV2Firmware() const
 {
+    if (_firmwareVersion == "") return false;
+    
     auto fwv = wxSplit(_firmwareVersion, '.');
-    int majorfw = wxAtoi(fwv[0]);
+    int majorfw = 0;
     int minorfw = 0;
-    if (fwv.size() > 1)
+    
+    if (fwv.size() > 0)
     {
-        minorfw = wxAtoi(fwv[1]);
+        majorfw = wxAtoi(fwv[0]);
+        if (fwv.size() > 1)
+        {
+            minorfw = wxAtoi(fwv[1]);
+        }
     }
-
+    
     if (majorfw < 2 || (majorfw == 2 && minorfw < 1))
     {
         return false;
