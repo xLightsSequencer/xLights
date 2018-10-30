@@ -83,7 +83,7 @@ public:
     int GetChangeCount() const { return _changeCount; }
     bool SupportsRandom();
     bool IsRandom() const { return _random; }
-    bool SetRandom(bool random) { _random = random; return true; }
+    bool SetRandom(bool random) { _random = random; if (random) _played.clear(); return true; }
     bool SetLooping(bool looping) { _looping = looping; return true; }
     bool IsStepLooping() const { return _loopStep; }
     int GetLoopsLeft() const { return _loops; }

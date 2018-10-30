@@ -978,7 +978,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             if (event._node != -1)
             {
                 StrandElement* se = (StrandElement*)element;
-                NodeLayer* nodeLayer = se->GetNodeLayer(event._node); // not sure why -2
+                NodeLayer* nodeLayer = se->GetNodeLayer(event._node - 1); // not sure why -2
                 if (nodeLayer != nullptr)
                 {
                     // The +1 guarantees we get the right one
