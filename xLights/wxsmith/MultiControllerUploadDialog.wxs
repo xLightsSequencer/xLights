@@ -3,6 +3,7 @@
 	<object class="wxDialog" name="MultiControllerUploadDialog">
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX</style>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -48,16 +49,8 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="CheckListBox_Controllers" member="yes">
+					<style>wxLB_ALWAYS_SB|wxVSCROLL</style>
 					<handler function="OnCheckListBox_ControllersToggled" entry="EVT_CHECKLISTBOX" />
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Log" member="yes">
-					<size>0,300</size>
-					<style>wxTE_MULTILINE|wxTE_READONLY</style>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -86,6 +79,15 @@
 					</object>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Log" member="yes">
+					<size>0,300</size>
+					<style>wxTE_MULTILINE|wxTE_READONLY</style>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

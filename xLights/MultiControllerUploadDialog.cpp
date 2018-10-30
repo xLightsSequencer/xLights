@@ -20,9 +20,9 @@ const long MultiControllerUploadDialog::ID_STATICTEXT1 = wxNewId();
 const long MultiControllerUploadDialog::ID_STATICTEXT2 = wxNewId();
 const long MultiControllerUploadDialog::ID_CHOICE1 = wxNewId();
 const long MultiControllerUploadDialog::ID_CHECKLISTBOX1 = wxNewId();
-const long MultiControllerUploadDialog::ID_TEXTCTRL1 = wxNewId();
 const long MultiControllerUploadDialog::ID_BUTTON1 = wxNewId();
 const long MultiControllerUploadDialog::ID_BUTTON2 = wxNewId();
+const long MultiControllerUploadDialog::ID_TEXTCTRL1 = wxNewId();
 //*)
 
 const long MultiControllerUploadDialog::ID_MCU_SELECTALL = wxNewId();
@@ -42,7 +42,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer4;
 
-	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
+	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -61,16 +61,16 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
 	Choice1->Append(_("Pixlite"));
 	FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	CheckListBox_Controllers = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
+	CheckListBox_Controllers = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_ALWAYS_SB|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
 	FlexGridSizer1->Add(CheckListBox_Controllers, 1, wxALL|wxEXPAND, 5);
-	TextCtrl_Log = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(0,300), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-	FlexGridSizer1->Add(TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Upload = new wxButton(this, ID_BUTTON1, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON2, _("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer4->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Log = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxSize(0,300), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer1->Add(TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -94,6 +94,8 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
             }
         }
     }
+
+    Fit();
 
     ValidateWindow();
 }
