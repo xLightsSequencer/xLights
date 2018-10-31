@@ -111,7 +111,7 @@ public:
     #pragma region Data Setting
     void SetOneChannel(long channel, unsigned char data);
     void SetManyChannels(long channel, unsigned char* data, long size);
-    void AllOff();
+    void AllOff(bool send = true);
     #pragma endregion Data Setting
 
     #pragma region Test Presets

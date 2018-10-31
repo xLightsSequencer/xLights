@@ -38,6 +38,130 @@ Model* ModelGroup::GetModel(std::string modelName)
     return nullptr;
 }
 
+bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
+{
+    std::list<Model*> visited;
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (*it == mg)
+            {
+                found = true;
+            }
+            else
+            {
+                if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+                {
+                    found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelGroup(mg, visited);
+                }
+                else
+                {
+                    // already seen this group so dont follow
+                }
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
+{
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (*it == mg)
+            {
+                found = true;
+            }
+            else
+            {
+                if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+                {
+                    found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelGroup(mg, visited);
+                }
+                else
+                {
+                    // already seen this group so dont follow
+                }
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModel(Model* m)
+{
+    wxASSERT(m->GetDisplayAs() != "ModelGroup");
+
+    std::list<Model*> visited;
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+            {
+                found |= dynamic_cast<ModelGroup*>(*it)->ContainsModel(m, visited);
+            }
+            else
+            {
+                // already seen this group so dont follow
+            }
+        }
+        else
+        {
+            if (m == *it)
+            {
+                found = true;
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModel(Model* m, std::list<Model*>& visited)
+{
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+            {
+                found |= dynamic_cast<ModelGroup*>(*it)->ContainsModel(m, visited);
+            }
+            else
+            {
+                // already seen this group so dont follow
+            }
+        }
+        else
+        {
+            if (m == *it)
+            {
+                found = true;
+            }
+        }
+    }
+
+    return found;
+}
+
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     struct Initializer {
         Initializer() {

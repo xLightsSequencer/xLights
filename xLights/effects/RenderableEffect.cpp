@@ -792,7 +792,7 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
     r->ProcessWindowEvent(evt);
 }
 
-double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, int divisor)
+double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {
     double res = def;
 
@@ -827,7 +827,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
             //}
             //else
             //{
-                res = valc.GetOutputValueAtDivided(offset);
+                res = valc.GetOutputValueAtDivided(offset, startMS, endMS);
             //}
 
             if (needsUpgrade)
@@ -840,7 +840,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
     return res;
 }
 
-int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, int divisor)
+int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
 {
     int res = def;
     const std::string sn = "SLIDER_" + name;
@@ -872,7 +872,7 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
             // If we ask for an int then we seem to want it undivided
             //if (!slider)
             //{
-                res = valc.GetOutputValueAt(offset);
+                res = valc.GetOutputValueAt(offset, startMS, endMS);
             //}
             //else
             //{

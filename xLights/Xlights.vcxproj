@@ -217,6 +217,7 @@
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
+    <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
     <ClCompile Include="AudioManager.cpp" />
@@ -583,6 +584,7 @@
     <ClInclude Include="effects\ServoEffect.h" />
     <ClInclude Include="effects\ServoPanel.h" />
     <ClInclude Include="IPEntryDialog.h" />
+    <ClInclude Include="MultiControllerUploadDialog.h" />
     <ClInclude Include="OpenGLShaders.h" />
     <ClInclude Include="outputs/ArtNetDialog.h" />
     <ClInclude Include="AudioManager.h" />

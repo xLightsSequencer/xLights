@@ -8,9 +8,9 @@ UserButton::UserButton(wxXmlNode* node, CommandManager* commandManager)
     _commandObj = nullptr;
     _color = "default";
     _id = __buttonid++;
+    Load(node, commandManager);
     _changeCount = 0;
     _lastSavedChangeCount = 0;
-    Load(node, commandManager);
 }
 
 void UserButton::SetCommand(const std::string& command, CommandManager* commandManager)

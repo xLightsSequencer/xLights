@@ -143,6 +143,43 @@ void Falcon::DecodeModelVersion(int p, int& model, int& version)
     }
 }
 
+bool Falcon::IsEnhancedV2Firmware() const
+{
+    if (_firmwareVersion == "") return false;
+    
+    auto fwv = wxSplit(_firmwareVersion, '.');
+    int majorfw = 0;
+    int minorfw = 0;
+    
+    if (fwv.size() > 0)
+    {
+        majorfw = wxAtoi(fwv[0]);
+        if (fwv.size() > 1)
+        {
+            minorfw = wxAtoi(fwv[1]);
+        }
+    }
+    
+    if (majorfw < 2 || (majorfw == 2 && minorfw < 1))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+int Falcon::GetMaxPixels() const
+{
+    if (IsV2() && !IsEnhancedV2Firmware())
+    {
+        return 680;
+    }
+    else
+    {
+        return 1024;
+    }
+}
+
 Falcon::Falcon(const std::string& ip)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -467,7 +504,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
     else
     {
-        if (currentStrings > GetDaughter1Threshold())
+        if (currentStrings > GetBank1Threshold())
         {
             mainPixels = mainPixels / 2;
             daughter1Pixels = mainPixels;
@@ -549,7 +586,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     for (auto i = 0; i < stringData.size(); ++i)
     {
         int pixels = stringData[i]->pixels + GetVirtualStringPixels(virtualStringData, stringData[i]->port);
-        if (i < GetDaughter1Threshold())
+        if (i < GetBank1Threshold())
         {
             if (pixels > maxMain) maxMain = pixels;
         }
@@ -610,7 +647,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             maxDaughter2 = 1;
         }
 
-        if (stringData.size() > GetDaughter1Threshold() && maxDaughter1 == 0)
+        if (stringData.size() > GetBank1Threshold() && maxDaughter1 == 0)
         {
             maxDaughter1 = 1;
         }
@@ -628,9 +665,9 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
         {
             success = false;
-            check += "Total pixels exceeded maximum allowed on a pixel port\n";
+            check += "ERROR: Total pixels exceeded maximum allowed on a pixel port: " + wxString::Format("%d", maxPixels).ToStdString() + "\n";
 
-            logger_base.warn("Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
+            logger_base.warn("ERROR: Total pixels exceeded maximum allowed on a pixel port: %d", maxPixels);
 
             if (_model == 48)
             {
@@ -648,7 +685,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                     if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
                     {
                         success = false;
-                        check += "It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.\n";
+                        check += "ERROR: It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.\n";
                         logger_base.error("It looked like you were only using the first 16 outputs but even accounting for that there are too many pixels on this port.");
                     }
                 }
@@ -660,13 +697,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                     if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
                     {
                         success = false;
-                        check += "It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.\n";
+                        check += "ERROR: It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.\n";
                         logger_base.error("It looked like you were only using the first 32 outputs but even accounting for that there are too many pixels on this port.");
                     }
                 }
                 else
                 {
-                    check += "Unable to adjust banks. Resetting your controller to its defaults may help.\n";
+                    check += "ERROR: Unable to adjust banks. Resetting your controller to its defaults may help.\n";
                     logger_base.error("    Unable to adjust banks. Resetting your controller to its defaults may help.");
                 }
             }
@@ -758,452 +795,6 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     return success;
 }
 
-bool Falcon::SetOutputsOld(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
-{
-    //ResetStringOutputs(); // this shouldnt be used normally
-    wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-    progress.Show();
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Falcon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
-
-    // build a list of models on this controller
-    std::list<Model*> models;
-    std::list<std::string> protocolsused;
-    std::list<Model*> warnedmodels;
-    int maxport = 0;
-    bool success = true;
-
-    // Get universes based on IP
-    std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
-
-    progress.Update(0, "Scanning models");
-    logger_base.info("Scanning models.");
-
-    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
-    {
-        // this universe is sent to the falcon
-
-        // find all the models in this range
-        for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
-        {
-            if (it->second->GetDisplayAs() != "ModelGroup")
-            {
-                int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-                int modelend = modelstart + it->second->GetChanCount() - 1;
-                if ((modelstart >= (*ito)->GetStartChannel() && modelstart <= (*ito)->GetEndChannel()) ||
-                    (modelend >= (*ito)->GetStartChannel() && modelend <= (*ito)->GetEndChannel()))
-                {
-                    //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
-                    //    (const char *)it->first.c_str(), modelstart, modelend,
-                    //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
-                    if (!it->second->IsControllerConnectionValid())
-                    {
-                        // only warn if we have not already warned
-                        if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
-                        {
-                            warnedmodels.push_back(it->second);
-                            logger_base.warn("Falcon Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
-                        }
-                    }
-                    else
-                    {
-                        // model uses channels in this universe
-
-                        // check we dont already have this model in our list
-                        if (std::find(models.begin(), models.end(), it->second) == models.end())
-                        {
-                            logger_base.debug("Falcon Outputs Upload: Uploading Model %s. %s:%d ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort(), it->second->GetNumPhysicalStrings());
-                            models.push_back(it->second);
-                            if (std::find(protocolsused.begin(), protocolsused.end(), it->second->GetProtocol()) == protocolsused.end())
-                            {
-                                protocolsused.push_back(it->second->GetProtocol());
-                            }
-                            if (it->second->GetPort() > maxport)
-                            {
-                                maxport = it->second->GetPort() + it->second->GetNumPhysicalStrings() - 1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (warnedmodels.size() > 0)
-    {
-        std::string m = "";
-
-        for (auto it = warnedmodels.begin(); it != warnedmodels.end(); ++it)
-        {
-            m = m + (*it)->GetName() + "\n";
-        }
-
-        wxMessageBox("Models\n\n" + m + "\non controller " + _ip + " do not have their Contoller Connection details completed. Models ignored.", "Models Ignored");
-    }
-
-    // sort the models by start channel
-    models.sort(compare_startchannel);
-
-    progress.Update(10, "Retrieving string configuration from Falcon.");
-    logger_base.info("Retrieving string configuration from Falcon.");
-
-    // get the current config before I start
-    std::string strings = GetURL("/strings.xml");
-    if (strings == "")
-    {
-        progress.Update(100, "Aborting.");
-        logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
-        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
-        return false;
-    }
-
-    std::vector<FalconString*> stringData;
-    std::vector<FalconString*> virtualStringData;
-
-    wxStringInputStream strm(wxString(strings.c_str()));
-    wxXmlDocument stringsDoc(strm);
-
-    if (!stringsDoc.IsOk())
-    {
-        progress.Update(100, "Aborting.");
-        logger_base.error("Falcon Outputs Upload: Could not parse Falcon strings.xml.");
-        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
-        return false;
-    }
-
-    progress.Update(40, "Processing current configuration data.");
-    logger_base.info("Processing current configuration data.");
-
-    int currentStrings = CountStrings(stringsDoc);
-    int mainPixels = GetMaxPixels();
-    int daughter1Pixels = 0;
-    int daughter2Pixels = 0;
-    if (SupportsVariableExpansions())
-    {
-        mainPixels = MaxPixels(stringsDoc, 0);
-        daughter1Pixels = MaxPixels(stringsDoc, 1);
-        daughter2Pixels = MaxPixels(stringsDoc, 2);
-    }
-    else
-    {
-        if (currentStrings > GetDaughter1Threshold())
-        {
-            mainPixels = mainPixels / 2;
-            daughter1Pixels = mainPixels;
-        }
-    }
- 
-    logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
-    logger_base.info("Maximum string port configured in xLights: %d", maxport);
-
-    int virtualStrings = ReadStringData(stringsDoc, stringData, virtualStringData);
-
-    if (virtualStrings > 0)
-    {
-        if (wxMessageBox("At least one String Port has virtual strings defined. Proceeding will overwrite the first one only and will need to be manually corrected. Are you sure you want to do this?", "Are you sure?", wxYES_NO, parent) == wxYES)
-        {
-            // ok let it happen
-            logger_base.warn("Falcon Outputs Upload: User chose to upload string port outputs even though it had %d virtual strings defined.", virtualStrings);
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    int maxPixels = GetMaxPixels();
-
-    if (maxport > GetDaughter2Threshold() && currentStrings < GetMaxStringOutputs())
-    {
-        logger_base.info("Adjusting string port count to %d.", GetMaxStringOutputs());
-        progress.Update(45, "Adjusting string port count.");
-        InitialiseStrings(stringData, GetMaxStringOutputs(), virtualStrings);
-    }
-    else if (maxport > GetDaughter1Threshold() && currentStrings < GetDaughter2Threshold())
-    {
-        logger_base.info("Adjusting string port count to %d.", GetDaughter2Threshold());
-        progress.Update(45, "Adjusting string port count.");
-        InitialiseStrings(stringData, GetDaughter2Threshold(), virtualStrings);
-    }
-
-    logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
-
-    progress.Update(50, "Configuring string ports.");
-    logger_base.info("Configuring string ports.");
-
-    bool portdone[100];
-    memset(&portdone, 0x00, sizeof(portdone)); // all false
-
-    // for each protocol
-    for (auto protocol = protocolsused.begin(); protocol != protocolsused.end(); ++protocol)
-    {
-        logger_base.info("Protocol %s.", (const char *)protocol->c_str());
-
-        // for each port ... this is the max of any port type but it should be ok
-        for (int i = 1; i <= maxport; i++)
-        {
-            // find the first and last
-            Model* first = nullptr;
-            Model* last = nullptr;
-            int highestend = 0;
-            long loweststart = 999999999;
-
-            for (auto model = models.begin(); model != models.end(); ++model)
-            {
-                if ((*model)->GetProtocol() == *protocol && (*model)->GetPort() == i)
-                {
-                    int modelstart = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
-                    int modelend = modelstart + (*model)->GetChanCount() - 1;
-                    if (modelstart < loweststart)
-                    {
-                        loweststart = modelstart;
-                        first = *model;
-                    }
-                    if (modelend > highestend)
-                    {
-                        highestend = modelend;
-                        last = *model;
-                    }
-                }
-            }
-
-            if (first != nullptr)
-            {
-                logger_base.debug("First model on port %d: %s.", i, (const char *)first->GetName().c_str());
-
-                int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
-                int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
-                int numstrings = first->GetNumPhysicalStrings();
-                int channelsperstring = first->NodesPerString() * first->GetChanCountPerNode();
-
-                if (DecodeStringPortProtocol(*protocol) >= 0)
-                {
-                    if (first == last && numstrings > 1)
-                    {
-                        logger_base.debug("Model has %d strings.", numstrings);
-
-                        if (i + numstrings > stringData.size())
-                        {
-                            logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d with %d strings exceeds the configured number of strings on the controller %d.", (const char *)first->GetName().c_str(), i, numstrings, (int)stringData.size());
-                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d with %d strings exceeds the configured number of strings on the controller %d.", first->GetName(), i, numstrings, (int)stringData.size()));
-                            success = false;
-                        }
-                        else
-                        {
-                            for (int j = 0; j < numstrings; j++)
-                            {
-                                if (portdone[i + j])
-                                {
-                                    logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j);
-                                    wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", first->GetName(), i + j));
-                                    success = false;
-                                }
-                                else
-                                {
-                                    portdone[i + j] = true;
-                                    long startChannel;
-                                    Output* output = outputManager->GetOutput(portstart + j * channelsperstring, startChannel);
-
-                                    if (output == nullptr || FindPort(stringData, i + j - 1) == nullptr)
-
-                                    {
-                                        logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring);
-                                        wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart + j * channelsperstring));
-                                        success = false;
-                                    }
-                                    else
-                                    {
-                                        FindPort(stringData, i + j - 1)->protocol = DecodeStringPortProtocol(*protocol);
-                                        FindPort(stringData, i + j - 1)->universe = output->GetUniverse();
-                                        FindPort(stringData, i + j - 1)->startChannel = startChannel;
-                                        FindPort(stringData, i + j - 1)->pixels = channelsperstring / 3;
-                                        FindPort(stringData, i + j - 1)->description = SafeDescription(first->GetName());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (portdone[i])
-                        {
-                            logger_base.warn("Falcon Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i);
-                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", first->GetName(), i));
-                            success = false;
-                        }
-                        else
-                        {
-                            portdone[i] = true;
-                            long startChannel;
-                            Output* output = outputManager->GetOutput(portstart, startChannel);
-                            if (output == nullptr || FindPort(stringData, i - 1) == nullptr)
-                            {
-                                logger_base.warn("Falcon Outputs Upload: Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart);
-                                wxMessageBox(wxString::Format("Attempt to find output for channel %ld failed. Do you have enough outputs?", portstart));
-                                success = false;
-                            }
-                            else
-                            {
-                                FindPort(stringData, i - 1)->protocol = DecodeStringPortProtocol(*protocol);
-                                FindPort(stringData, i - 1)->universe = output->GetUniverse();
-                                FindPort(stringData, i - 1)->startChannel = startChannel;
-                                FindPort(stringData, i - 1)->pixels = (portend - portstart + 1) / 3;
-                                FindPort(stringData, i - 1)->description = SafeDescription(first->GetName());
-                            }
-                        }
-                    }
-                }
-                else if (DecodeSerialOutputProtocol(*protocol) >= 0)
-                {
-                    UploadSerialOutput(i, outputManager, DecodeSerialOutputProtocol(*protocol), portstart, parent);
-                }
-                else
-                {
-                    logger_base.warn("Falcon Outputs Upload: Controller %s protocol %s not supported by this controller.",
-                        (const char *)_ip.c_str(), (const char *)protocol->c_str());
-                    wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
-                    success = false;
-                }
-            }
-            else
-            {
-                // nothing on this port ... ignore it
-            }
-        }
-    }
-
-    progress.Update(60, "Uploading string ports.");
-    logger_base.info("Working out required pixel splits.");
-
-    int maxMain = 0;
-    int maxDaughter1 = 0;
-    int maxDaughter2 = 0;
-
-    for (auto i = 0; i < stringData.size(); ++i)
-    {
-        int pixels = stringData[i]->pixels + GetVirtualStringPixels(virtualStringData, stringData[i]->port);
-        if (i < GetDaughter1Threshold())
-        {
-            if (pixels > maxMain) maxMain = pixels;
-        }
-        else if (i < GetDaughter2Threshold())
-        {
-            if (pixels > maxDaughter1) maxDaughter1 = pixels;
-        }
-        else
-        {
-            if (pixels > maxDaughter2) maxDaughter2 = pixels;
-        }
-    }
-
-    if (!SupportsVariableExpansions())
-    {
-        // minimum of main is 1
-        if (maxMain == 0)
-        {
-            maxMain = 1;
-        }
-
-        if (maxDaughter1 > 0)
-        {
-            if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2)
-            {
-                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
-                    (const char *)_ip.c_str(), maxMain, maxDaughter1);
-                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
-                    _ip, maxMain, maxDaughter1));
-                success = false;
-            }
-
-            maxMain = maxPixels / 2;
-            maxDaughter1 = maxPixels / 2;
-
-            if (maxDaughter2 > 0)
-            {
-                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
-                    (const char *)_ip.c_str());
-                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
-                    _ip));
-                success = false;
-                maxDaughter2 = 0;
-            }
-        }
-
-        logger_base.info("Falcon pixel fixed split: Main = %d, Expansion1 = %d", maxMain, maxDaughter1);
-    }
-    else
-    {
-        if (maxMain == 0)
-        {
-            maxMain = 1;
-        }
-
-        if (stringData.size() > GetDaughter2Threshold() && maxDaughter2 == 0)
-        {
-            maxDaughter2 = 1;
-        }
-
-        if (stringData.size() > GetDaughter1Threshold() && maxDaughter1 == 0)
-        {
-            maxDaughter1 = 1;
-        }
-
-        if (IsF4() && IsV3())
-        {
-            // v3 supports 1024 on all outputs
-            maxMain = maxPixels;
-            maxDaughter1 = 0;
-            maxDaughter2 = 0;
-        }
-
-        logger_base.info("Falcon pixel required split: Main = %d, Expansion1 = %d, Expansion2 = %d", maxMain, maxDaughter1, maxDaughter2);
-
-        if (maxMain + maxDaughter1 + maxDaughter2 > maxPixels)
-        {
-            maxMain = maxPixels - maxDaughter1 - maxDaughter2;
-            logger_base.warn("     Total was more than %d ... main adjusted to %d.", maxPixels, maxMain);
-        }
-
-        if (maxMain + maxDaughter1 + maxDaughter2 < maxPixels)
-        {
-            if (maxDaughter2 != 0)
-            {
-                maxDaughter2 = maxPixels - maxMain - maxDaughter1;
-            }
-            else if (maxDaughter1 != 0)
-            {
-                maxDaughter1 = maxPixels - maxMain;
-            }
-            else
-            {
-                maxMain = maxPixels;
-            }
-            logger_base.info("Falcon pixel split adjusted to add up to %d: Main = %d, Expansion1 = %d, Expansion2 = %d", maxPixels, maxMain, maxDaughter1, maxDaughter2);
-        }
-    }
-
-    logger_base.info("Uploading string ports.");
-    UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, virtualStringData);
-
-    // delete all our string data
-    while (stringData.size() > 0)
-    {
-        delete stringData[stringData.size() - 1];
-        stringData.pop_back();
-    }
-    while (virtualStringData.size() > 0)
-    {
-        delete virtualStringData[virtualStringData.size() - 1];
-        virtualStringData.pop_back();
-    }
-
-    progress.Update(100, "Done.");
-    logger_base.info("Falcon upload done.");
-
-    return success;
-}
-
 int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, std::vector<FalconString*>& virtualStringData)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1251,6 +842,8 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
             string->port = wxAtoi(e->GetAttribute("p"));
             string->index = i;
             stringData[index] = string;
+            logger_base.debug("   Port %d, Universe %d, Start Channel %d Pixels %d, Description '%s'",
+                string->port + 1, string->universe, string->startChannel, string->pixels, (const char*)string->description.c_str());
         }
         else
         {
@@ -1266,7 +859,8 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
             string->index = i;
             virtualStringData.push_back(string);
 
-            logger_base.warn("     Virtual string exists on port %d.", index + 1);
+            logger_base.debug("         Virtual String: Port %d, Universe %d, Start Channel %d Pixels %d, Description '%s'",
+                string->port + 1, string->universe, string->startChannel, string->pixels, (const char*)string->description.c_str());
             virtualStrings++;
         }
         lastString = index;

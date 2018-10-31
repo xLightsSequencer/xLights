@@ -54,15 +54,15 @@ bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap)
 
 void SpiralsEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
-    float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX, SPIRALS_MOVEMENT_DIVISOR);
-    float Rotation = GetValueCurveDouble("Spirals_Rotation", 0.0, SettingsMap, offset, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX, SPIRALS_ROTATION_DIVISOR);
+    int PaletteRepeat = GetValueCurveInt("Spirals_Count", 1, SettingsMap, offset, SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float Movement = GetValueCurveDouble("Spirals_Movement", 1.0, SettingsMap, offset, SPIRALS_MOVEMENT_MIN, SPIRALS_MOVEMENT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_MOVEMENT_DIVISOR);
+    float Rotation = GetValueCurveDouble("Spirals_Rotation", 0.0, SettingsMap, offset, SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), SPIRALS_ROTATION_DIVISOR);
     // This is because spirals uses the slider while most others use the TextCtrl
     if (SettingsMap.Contains("VALUECURVE_Spirals_Rotation") && wxString(SettingsMap["VALUECURVE_Spirals_Rotation"]).Contains("Active=TRUE"))
     {
         Rotation *= 10;
     }
-    int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX);
+    int Thickness = GetValueCurveInt("Spirals_Thickness", 0, SettingsMap, offset, SPIRALS_THICKNESS_MIN, SPIRALS_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool Blend = SettingsMap.GetBool("CHECKBOX_Spirals_Blend");
     bool Show3D = SettingsMap.GetBool("CHECKBOX_Spirals_3D");
     bool grow = SettingsMap.GetBool("CHECKBOX_Spirals_Grow");

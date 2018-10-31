@@ -1237,7 +1237,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                         if (nl->GetEffectCount() > 0) {
                             std::string nodeName = nl->GetName();
                             if (nodeName == "") {
-                                nodeName = wxString::Format("Node %d", (n + 1));
+                                nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
                             dlg.channelNames.push_back(el->GetName() + "/" + smName + "/" + nodeName);
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
@@ -2495,9 +2495,9 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     wxXmlNode *rchannel = nullptr;
     wxXmlNode *gchannel = nullptr;
     wxXmlNode *bchannel = nullptr;
-    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
+    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); channel == nullptr && e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "channels") {
-            for (wxXmlNode* chan = e->GetChildren(); chan != nullptr; chan = chan->GetNext()) {
+            for (wxXmlNode* chan = e->GetChildren(); channel == nullptr && chan != nullptr; chan = chan->GetNext()) {
                 if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
                     && nm == chan->GetAttribute("name")) {
                     channel = chan;

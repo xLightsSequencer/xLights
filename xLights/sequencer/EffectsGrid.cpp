@@ -1738,7 +1738,7 @@ void EffectsGrid::ACCascade(int startMS, int endMS, int startCol, int endCol, in
     }
 }
 
-int EffectsGrid::GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos)
+int EffectsGrid::GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos, long startMS, long endMS)
 {
     if (effName == "On")
     {
@@ -1750,7 +1750,7 @@ int EffectsGrid::GetEffectBrightnessAt(std::string effName, SettingsMap settings
         {
             ValueCurve vc(settings.Get("C_VALUECURVE_Brightness", ""));
             vc.SetLimits(0, 400);
-            return vc.GetOutputValueAt(pos);
+            return vc.GetOutputValueAt(pos, startMS, endMS);
         }
         else
         {
@@ -1769,8 +1769,8 @@ std::string EffectsGrid::TruncateEffectSettings(SettingsMap settings, std::strin
 
     if (name == "On")
     {
-        int startBrightness = GetEffectBrightnessAt(name, settings, 0.0);
-        int endBrightness = GetEffectBrightnessAt(name, settings, 1.0);
+        int startBrightness = GetEffectBrightnessAt(name, settings, 0.0, startMS, endMS);
+        int endBrightness = GetEffectBrightnessAt(name, settings, 1.0, startMS, endMS);
 
         if (startBrightness != endBrightness)
         {
@@ -1826,12 +1826,12 @@ void EffectsGrid::TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, 
     {
         if (startPos != 0)
         {
-            int newStartBrightness = vc.GetOutputValueAt(startPos);
+            int newStartBrightness = vc.GetOutputValueAt(startPos, startMS, endMS);
             vc.SetParameter1(newStartBrightness / 4);
         }
         if (endPos != 1.0)
         {
-            int newEndBrightness = vc.GetOutputValueAt(endPos);
+            int newEndBrightness = vc.GetOutputValueAt(endPos, startMS, endMS);
             vc.SetParameter2(newEndBrightness / 4);
         }
     }
@@ -1856,8 +1856,8 @@ void EffectsGrid::TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int 
         // now fix the brightness ... the hard part
         if (name == "On")
         {
-            int startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
-            int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+            int startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0, startMS, endMS);
+            int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0, startMS, endMS);
 
             if (startBrightness != endBrightness)
             {
@@ -1892,8 +1892,8 @@ void EffectsGrid::TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int 
         // now fix the brightness ... the hard part
         if (name == "On")
         {
-            int startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
-            int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+            int startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0, startMS, endMS);
+            int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0, startMS, endMS);
 
             if (startBrightness != endBrightness)
             {
@@ -2205,7 +2205,7 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
 
             if (eff->GetEndTimeMS() >= startMS && eff->GetStartTimeMS() <= startMS && eff->GetEndTimeMS() < endMS)
             {
-                startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+                startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0, startMS, endMS);
                 if (eff->GetEndTimeMS() > startTime)
                 {
                     startTime = eff->GetEndTimeMS();
@@ -2213,7 +2213,7 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
             }
             else if (eff->GetStartTimeMS() > startMS && eff->GetStartTimeMS() <= endMS)
             {
-                int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0);
+                int endBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 0.0, startMS, endMS);
 
                 if (startTime < eff->GetStartTimeMS() && (startBrightness != 0 || endBrightness != 0))
                 {
@@ -2228,7 +2228,7 @@ void EffectsGrid::ACFill(ACTYPE type, int startMS, int endMS, int startRow, int 
                     break;
                 }
 
-                startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0);
+                startBrightness = GetEffectBrightnessAt(eff->GetEffectName(), eff->GetSettings(), 1.0, startMS, endMS);
             }
             else if (eff->GetStartTimeMS() > endMS)
             {

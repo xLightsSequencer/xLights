@@ -618,21 +618,28 @@ Rene Nyffenegger rene.nyffenegger@adp-gmbh.ch
 
 */
 
+#define ESEQ_HEADER_LENGTH 20
+
 void xLightsFrame:: WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
     SeqDataType *dataBuf, int startAddr, int modelSize)
 {
-    wxUint16 fixedHeaderLength = 20;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxUint32 stepSize = roundTo4(numChans);
     wxFile f;
+
+    logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.", 
+        (const char*)filename.c_str(),
+        numChans, numPeriods, startAddr, modelSize);
 
     if (!f.Create(filename, true))
     {
         ConversionError(wxString("Unable to create file: ") + filename);
+        logger_base.error("Unable to create file %s.", (const char*)filename.c_str());
         return;
     }
 
-    wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8), stepSize);
+    wxUint8 buf[ESEQ_HEADER_LENGTH];
 
     // Header Information
     // Format Identifier
@@ -660,7 +667,7 @@ void xLightsFrame:: WriteFalconPiModelFile(const wxString& filename, long numCha
     buf[17] = (wxUint8)((modelSize >> 8) & 0xFF);
     buf[18] = (wxUint8)((modelSize >> 16) & 0xFF);
     buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
-    f.Write(buf, fixedHeaderLength);
+    f.Write(buf, ESEQ_HEADER_LENGTH);
 
     size_t size = dataBuf->NumFrames();
     size *= stepSize;
@@ -668,7 +675,6 @@ void xLightsFrame:: WriteFalconPiModelFile(const wxString& filename, long numCha
     f.Write(&(*dataBuf)[0][0], size);
 
     f.Close();
-    free(buf);
 }
 
 // Log messages from libav*

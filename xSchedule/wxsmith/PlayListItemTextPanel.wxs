@@ -46,6 +46,7 @@
 					<content>
 						<item>Normal</item>
 						<item>Countdown</item>
+						<item>Countdown Seconds</item>
 						<item>File Read</item>
 					</content>
 					<selection>0</selection>

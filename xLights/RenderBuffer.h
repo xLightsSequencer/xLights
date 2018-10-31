@@ -408,6 +408,8 @@ public:
     void SetEffectDuration(int startMsec, int endMsec);
     void GetEffectPeriods(int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
     void SetFrameTimeInMs(int i);
+    long GetStartTimeMS() const { return curEffStartPer * frameTimeInMs; }
+    long GetEndTimeMS() const { return curEffEndPer * frameTimeInMs; }
 
     const xlColor &GetPixel(int x, int y);
     void GetPixel(int x, int y, xlColor &color);

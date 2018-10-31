@@ -47,6 +47,9 @@ public:
     int SendBreak();
     int Read(char* buf, size_t len);
     int Write(char* buf, size_t len);
+
+    void SetRTS(bool state);
+    void SetDTR(bool state);
     #pragma endregion Reading and Writing
 
     #pragma region Start and Stop

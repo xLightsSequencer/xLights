@@ -387,7 +387,15 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
 	{
 		AVPacket pkt2;
 
-		while (currenttime + (_frameMS / 2.0) < timestampMS && (av_read_frame(_formatContext, &_packet)) >= 0 &&  currenttime <= _lengthMS)
+        bool firstframe = false;
+        if (currenttime == 0 && timestampMS == 0)
+        {
+            firstframe = true;
+        }
+
+		while ((firstframe || currenttime + (_frameMS / 2.0) < timestampMS) && 
+               (av_read_frame(_formatContext, &_packet)) >= 0 &&  
+               currenttime <= _lengthMS)
 		{
             // Is this a packet from the video stream?
 			if (_packet.stream_index == _streamIndex)
@@ -402,6 +410,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
                     // Did we get a video frame?
                     if (frameFinished)
                     {
+                        firstframe = false;
                         currenttime = GetPos();
                         // only prepare the image if we are close to the desired frame
                         if ((double)currenttime / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0)

@@ -139,7 +139,7 @@ public:
     {
         if(!IsShownOnScreen()) return;
         SetCurrentGLContext();
-        xlColor c(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+        xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
         //c.Set(70,70,70); //54->70
         //
         
@@ -162,7 +162,7 @@ public:
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         
-        DrawGLUtils::xlVertexTextAccumulator va(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+        DrawGLUtils::xlVertexTextAccumulator va(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT));
 #define LINEGAP 1.2
         int y = _fontSize * LINEGAP;
         va.AddVertex(5, y, _time);

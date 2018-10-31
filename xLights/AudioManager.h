@@ -193,8 +193,6 @@ class AudioManager
     bool _ok;
     std::string _hash;
 
-    
-    
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void ExtractMP3Tags(AVFormatContext* formatContext);
@@ -253,6 +251,7 @@ public:
 	void SetFrameInterval(int intervalMS);
 	int GetFrameInterval() const { return _intervalMS; }
 	std::list<float>* GetFrameData(int frame, FRAMEDATATYPE fdt, std::string timing);
+	std::list<float>* GetFrameData(FRAMEDATATYPE fdt, std::string timing, long ms);
 	void DoPrepareFrameData();
 	void DoPolyphonicTranscription(wxProgressDialog* dlg, AudioManagerProgressCallback progresscallback);
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };

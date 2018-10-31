@@ -172,8 +172,10 @@ public:
             delete [] buffers;
             LOG_GL_ERRORV(glDeleteVertexArrays(1, &VertexArrayID));
             delete [] bufferInfo;
+            numBuffers = 0;
         }
     }
+
     void Reset() {
         for (int x = 0; x < numBuffers; x++) {
             if (bufferInfo[x].currentPos > bufferInfo[x].currentSize || !buffersValid) {
@@ -185,25 +187,30 @@ public:
         }
         buffersValid = true;
     }
-
-    GLuint GetBufferID(int idx) {
+    
+    GLuint GetBufferID(int idx) const {
         return buffers[idx];
     }
-    void UseProgram() {
+
+    void UseProgram() const {
         LOG_GL_ERRORV(glUseProgram(ProgramID));
     }
-    void SetMatrix(glm::mat4 &m) {
+
+    void SetMatrix(glm::mat4 &m) const {
         LOG_GL_ERRORV(glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(m)));
     }
+
     void SetRenderType(int i) {
         if (lastRenderType != i) {
             LOG_GL_ERRORV(glUniform1i(RenderTypeID, i));
             lastRenderType = i;
         }
     }
+
     int BindBuffer(int idx, void *data, int sz) {
         return BindBuffer(idx, buffers[idx], data, sz);
     }
+
     int BindBuffer(int idx, GLuint bufId, void *data, int sz) {
         LOG_GL_ERRORV(glEnableVertexAttribArray(idx));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, bufId));
@@ -228,7 +235,8 @@ public:
         bufferInfo[idx].currentPos += sz;
         return i;
     }
-    void UnbindBuffer(int idx) {
+
+    void UnbindBuffer(int idx) const {
         LOG_GL_ERRORV(glDisableVertexAttribArray(idx));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }

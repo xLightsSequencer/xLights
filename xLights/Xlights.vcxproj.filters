@@ -361,6 +361,8 @@
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="NodeSelectGrid.h" />
     <ClCompile Include="models\MeshObject.cpp" />
+    <ClCompile Include="NodeSelectGrid.cpp" />
+    <ClCompile Include="MultiControllerUploadDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -723,6 +725,7 @@
     <ClInclude Include="NodeSelectGrid.h" />
     <ClInclude Include="models\MeshObject.h" />
     <ClInclude Include="models\tiny_obj_loader.h" />
+    <ClInclude Include="MultiControllerUploadDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

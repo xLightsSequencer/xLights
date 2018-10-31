@@ -203,7 +203,7 @@ private:
     void CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select, std::string pal = "");
     void CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select);
     void TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int endMS);
-    int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos);
+    int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos, long startMS, long endMS);
     void DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
 

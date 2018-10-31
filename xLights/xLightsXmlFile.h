@@ -76,6 +76,7 @@ class xLightsXmlFile : public wxFileName
 		AudioManager* GetMedia() const { return audio; }
 		const wxString &GetMediaFile() const { return media_file; }
 		void SetMediaFile(const wxString& ShowDir, const wxString& filename, bool overwrite_tags );
+		void ClearMediaFile();
 
         wxString GetHeaderInfo(HEADER_INFO_TYPES node_type) { return header_info[node_type]; }
         void SetHeaderInfo(HEADER_INFO_TYPES node_type, const wxString& node_value);

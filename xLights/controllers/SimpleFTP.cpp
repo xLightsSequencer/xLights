@@ -50,10 +50,11 @@ SimpleFTP::SimpleFTP(std::string ip, std::string user, std::string password)
     }
 }
 
-bool SimpleFTP::IsConnected()
+bool SimpleFTP::IsConnected() const
 {
     return (_ftp.IsConnected() && _ftp.IsOk() && !_ftp.IsClosed());
 }
+
 bool SimpleFTP::GetFile(std::string targetfile, std::string folder, std::string file, bool binary, wxWindow* parent) {
     if (!IsConnected()) return false;
     
@@ -109,6 +110,7 @@ bool SimpleFTP::GetFile(std::string targetfile, std::string folder, std::string 
     delete in;
     return cancelled;
 }
+
 bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string newfilename, bool backup, bool binary, wxWindow* parent)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -193,7 +195,13 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
         
         wxSocketOutputStream *out = dynamic_cast<wxSocketOutputStream*>(_ftp.GetOutputStream((folder + "/" + basefilenew).c_str()));
 
-        if (out != nullptr && length > 0)
+        if (length <= 0)
+        {
+            wxMessageBox("FTP Upload of file failed as file size zero.");
+            progress.Update(100, wxEmptyString, &cancelled);
+            logger_base.error("   FTP Upload of file %s failed as file size is zero.", (const char *)file.c_str());
+        }
+        else if (out != nullptr)
         {
             logger_base.info("    Remote file created. Uploading content ...");
 
@@ -213,9 +221,9 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
                 while (read) {
                     out->Write(&buffer[bufPos], read);
                     size_t written = out->LastWrite();
+                    // logger_base.error("   FTP Upload wrote %lu -> left %lu.", (unsigned long)written, (unsigned long)read);
                     bufPos += written;
                     read -= written;
-                    //logger_base.debug("   FTP Upload wrote %lu left %lu.", (unsigned long)written, (unsigned long)read);
                 }
 
                 int donePct = (int)(done * 100 / length);

@@ -203,7 +203,7 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
         color = hsv;
     }
     
-    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust, ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX);
+    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust, ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     if (transparency) {
         transparency *= 255;
         transparency /= 100;

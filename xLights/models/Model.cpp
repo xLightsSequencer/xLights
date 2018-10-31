@@ -655,7 +655,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->AddAttribute("ControllerConnection", controller_connection);
         }
         IncrementChangeCount();
-        return 2;
+        return 3 | 0x0008;
     }
     else if (event.GetPropertyName() == "SubModels") {
         SetFromXml(ModelXml, zeroBased);

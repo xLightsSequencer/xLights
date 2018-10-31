@@ -508,6 +508,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("xLightsFrame being constructed.");
 
+    _exiting = false;
     SplashDialog splash(nullptr);
     splash.Show();
     splash.Update();
@@ -2370,6 +2371,8 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
 void xLightsFrame::RecalcModels(bool force)
 {
+    if (IsExiting()) return;
+
     if (force || _setupChanged)
     {
         SetCursor(wxCURSOR_WAIT);
@@ -2588,9 +2591,12 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
         inClose = false;
         return;
     }
+
     selectedEffect = nullptr;
 
     CheckUnsavedChanges();
+
+    _exiting = true;
 
     ShowHideAllSequencerWindows(false);
 
@@ -2954,13 +2960,21 @@ void xLightsFrame::ShowSequenceSettings()
 
     if (ret_code != wxID_OK) return;  // user pressed cancel
 
-    if (CurrentSeqXmlFile->GetMedia() != nullptr)
+    if (CurrentSeqXmlFile->GetSequenceType() == "Animation")
+    {
+        mediaFilename = "";
+        CurrentSeqXmlFile->ClearMediaFile();
+        wxString error;
+        GetMainSequencer()->PanelWaveForm->OpenfileMedia(nullptr, error);
+    }
+    else if (CurrentSeqXmlFile->GetMedia() != nullptr)
     {
         if (CurrentSeqXmlFile->GetMedia()->GetFrameInterval() < 0)
         {
             CurrentSeqXmlFile->GetMedia()->SetFrameInterval(CurrentSeqXmlFile->GetFrameMS());
         }
     }
+
     SetAudioControls();
 
     mSequenceElements.IncrementChangeCount(nullptr);

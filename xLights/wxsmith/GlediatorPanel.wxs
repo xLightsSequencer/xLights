@@ -13,7 +13,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Glediator_Filename" variable="FilePickerCtrl_Glediator_Filename" member="yes">
+				<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL_Glediator_Filename" subclass="BulkEditFilePickerCtrl" variable="FilePickerCtrl_Glediator_Filename" member="yes">
 					<message>Select a glediator file</message>
 					<wildcard>Glediator Files (*.gled)|*.gled|Jinx! Glediator files (*.out)|*.out|CSV files (*.csv)|*.csv</wildcard>
 				</object>

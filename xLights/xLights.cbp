@@ -499,6 +499,8 @@
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
+		<Unit filename="MultiControllerUploadDialog.cpp" />
+		<Unit filename="MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
 		<Unit filename="NetInfo.h" />
@@ -1133,6 +1135,7 @@
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
+		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/NodeSelectGrid.wxs" />
@@ -1373,6 +1376,7 @@
 					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
+					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

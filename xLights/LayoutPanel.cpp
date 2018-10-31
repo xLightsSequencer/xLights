@@ -143,6 +143,7 @@ const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL = wxNewId();
 const long LayoutPanel::ID_MNU_DELETE_MODEL_GROUP = wxNewId();
+const long LayoutPanel::ID_MNU_DELETE_EMPTY_MODEL_GROUPS = wxNewId();
 const long LayoutPanel::ID_MNU_RENAME_MODEL_GROUP = wxNewId();
 const long LayoutPanel::ID_MNU_MAKESCVALID = wxNewId();
 const long LayoutPanel::ID_MNU_MAKEALLSCVALID = wxNewId();
@@ -1297,6 +1298,31 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                                         (*it3)->Highlighted = true;
                                         prev_models.push_back(*it3);
                                     }
+                                    else
+                                    {
+                                        // need to process groups within groups ... safely
+                                        for (auto itm = xlights->AllModels.begin(); itm != xlights->AllModels.end(); ++itm)
+                                        {
+                                            if (itm->second->GetDisplayAs() == "ModelGroup")
+                                            {
+                                                // ignore these
+                                            }
+                                            else
+                                            {
+                                                if (dynamic_cast<ModelGroup*>(*it3)->ContainsModel(itm->second))
+                                                {
+                                                    if (std::find(prev_models.begin(), prev_models.end(), itm->second) == prev_models.end())
+                                                    {
+                                                        if (modelsAdded.find(itm->first) == modelsAdded.end()) {
+                                                            modelsAdded.insert(itm->first);
+                                                        }
+                                                        prev_models.push_back(itm->second);
+                                                    }
+                                                    itm->second->GroupSelected = true;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1429,6 +1455,7 @@ void LayoutPanel::BulkEditControllerConnection()
             }
         }
 
+        xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
         resetPropertyGrid();
     }
@@ -2550,7 +2577,7 @@ void LayoutPanel::FinalizeModel()
     m_over_handle = NO_HANDLE;
 
     if (newModel != nullptr) {
-        if (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download")
+        if (selectedButton != nullptr && (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download"))
         {
             float min_x = (float)(newModel->GetBaseObjectScreenLocation().GetLeft());
             float max_x = (float)(newModel->GetBaseObjectScreenLocation().GetRight());
@@ -2561,10 +2588,8 @@ void LayoutPanel::FinalizeModel()
             if (cancelled || newModel == nullptr) {
                 newModel = nullptr;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
-                if (selectedButton != nullptr) {
-                    selectedButton->SetState(0);
-                    selectedButton = nullptr;
-                }
+                selectedButton->SetState(0);
+                selectedButton = nullptr;
                 xlights->UpdateModelsList();
                 UpdatePreview();
                 return;
@@ -4075,7 +4100,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
   wxChar uc = event.GetKeyCode();
 
     switch(uc) {
-#ifdef __WXMSW__
+#ifndef __WXOSX__
         case 'z':
         case 'Z':
             if (event.ControlDown()) {
@@ -4121,7 +4146,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
         break;
 #endif
         case WXK_DELETE:
-#ifdef __WXMSW__
+#ifndef __WXOSX__
             if (event.ShiftDown()) // Cut
             {
                 wxCommandEvent evt(wxEVT_MENU, wxID_CUT);
@@ -4231,6 +4256,7 @@ void LayoutPanel::ReplaceModel()
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
             {
                 modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
+                modelToReplaceItWith->SetControllerConnection(replaceModel->GetControllerConnection());
             }
         }
 
@@ -4630,6 +4656,41 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
                 xlights->MarkEffectsFileDirty(true);
             }
         }
+    }
+    else if(id == ID_MNU_DELETE_EMPTY_MODEL_GROUPS)
+    {
+        logger_base.debug("LayoutPanel::OnModelsPopup DELETE_EMPTY_MODEL_GROUPS");
+
+        bool deleted = true;
+
+        while (deleted)
+        {
+            deleted = false;
+            auto it = xlights->AllModels.begin();
+            while (it != xlights->AllModels.end())
+            {
+                if (it->second->GetDisplayAs() == "ModelGroup")
+                {
+                    ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+                    ++it;
+                    if (mg->GetModelCount() == 0)
+                    {
+                        xlights->AllModels.Delete(mg->GetName());
+                        deleted = true;
+                    }
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
+
+        mSelectedGroup = nullptr;
+        UnSelectAllModels();
+        ShowPropGrid(true);
+        xlights->UpdateModelsList();
+        xlights->MarkEffectsFileDirty(true);
     }
     else if (id == ID_MNU_MAKEALLSCVALID)
     {
@@ -5164,6 +5225,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         mnuContext.Append(ID_MNU_DELETE_MODEL_GROUP,"Delete Group");
         mnuContext.Append(ID_MNU_RENAME_MODEL_GROUP,"Rename Group");
     }
+    mnuContext.Append(ID_MNU_DELETE_EMPTY_MODEL_GROUPS, "Delete Empty Groups");
 
     bool foundInvalid = false;
     bool foundOverlapping = false;

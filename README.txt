@@ -11,6 +11,47 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.40 October 29, 2018
+   -- enh (keith)  Allow user to change row header text colour and fix time/frame rate text unreadable on OSX
+   -- enh (keith)  Increase maximum DMX channels
+   -- bug (keith)  Fix crash caused by exporting small model ESEQ files
+   -- bug (keith)  Add tracing of frames intervals that are twice as long as they should be
+   -- bug (keith)  Try again to fix OSX schedule time issues
+   -- bug (keith)  Fix crash creating LCB files
+   -- bug (keith)  More fixes to rendered faces
+   -- bug (keith)  Fixes to Falcon F4 upload
+2018.39 October 27, 2018
+   -- enh (keith)  Add Not So Big Buttons plugin to xschedule
+   -- bug (keith)  Fix face effect not rendering the mouth
+2018.38 October 26, 2018
+   -- enh (gil)    Resize FSEQ data during save if sequence timing has changed.
+   -- bug (dkulp)  Fix dimming/gamma curves on single channel models
+   -- enh (keith)  Add music value curves that track music intensity
+   -- enh (keith)  #1297 Add a to text playlist item ability to count down a number of seconds
+   -- bug (keith)  #1299 Fix start channel cancel button does not work
+   -- bug (keith)  #1300 Crash on initialising single channel spinner model
+   -- bug (keith)  #1287/#1288 Fix controller connection not updating into model list
+   -- bug (keith)  #1289 xschedule eseq off by one problem
+   -- enh (keith)  xCapture allow user to set frame time to specific MS
+   -- enh (keith)  Add bulk edit of filename and pathname on picture, video and glediator effect file picker
+   -- enh (keith)  Add xSchedule API to "Clear background playlist"
+   -- bug (keith)  #1286 switching musical sequence to animation does not completely remove audio
+   -- bug (keith)  Fix xSchedule looks like it needs saving immediately after it is loaded
+   -- enh (keith)  Add to model list right click menu ability to remove all empty groups
+   -- bug (keith)  Fix crash when deleting models on layout panel
+   -- bug (keith)  Address a bunch of issues with the rendered face effect not behaving like other face effects
+   -- bug (keith)  Address start/end schedule time not saving correctly on OSX
+2018.37 October 21, 2018
+   -- bug (keith)  Redevelop EDM RDS playlistitem to use radiotext
+   -- bug (keith)  Face and state effect dont recognise backward ranges
+   -- bug (keith)  Force xSchedule to only recognise HH:MM:SS time format
+   -- enh (keith)  Add export to an really large image file the wiring diagram ... useful for really dense models
+   -- enh (keith)  Add bulk controller upload ... upload to multiple controllers (of the same type).
+   -- bug (keith)  Fix cant add groups into groups
+   -- enh (keith)  Allow subbuffer to be moved (use ctrl/shift-ctrl to constrain axis of movement)
+   -- enh (keith)  Add ability to apply a subbuffer to selected effects - kind of like bulk edit
+   -- bug (keith)  Effects copied/imported from groups using group only buffer styles dont render on models when placed there
+2018.36 October 12, 2018
    -- end (will)   Ability to hide header/footer on buttons plugin. Add &args=noheader to URL.
    -- enh (gil)    Increase the packet sized for the LOROptimisedOutput.
    -- enh (gil)    Fix horizontal and vertical distribute in Layout panel.  Fixes #1219.

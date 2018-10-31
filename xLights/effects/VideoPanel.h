@@ -27,7 +27,7 @@ class wxTextCtrl;
 
 wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 
-class xlVideoFilePickerCtrl : public wxFilePickerCtrl {
+class xlVideoFilePickerCtrl : public BulkEditFilePickerCtrl {
 public:
 	xlVideoFilePickerCtrl(wxWindow *parent,
 		wxWindowID id,
@@ -39,7 +39,7 @@ public:
 		long style = wxFLP_DEFAULT_STYLE,
 		const wxValidator& validator = wxDefaultValidator,
 		const wxString& name = wxFilePickerCtrlNameStr)
-		: wxFilePickerCtrl(parent, id, path, message, VIDEOWILDCARD, pos, size, style, validator, name) {
+		: BulkEditFilePickerCtrl(parent, id, path, message, VIDEOWILDCARD, pos, size, style, validator, name) {
 
 	}
 	virtual ~xlVideoFilePickerCtrl() {}

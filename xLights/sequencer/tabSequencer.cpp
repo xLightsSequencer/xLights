@@ -979,7 +979,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             if (event._node != -1)
             {
                 StrandElement* se = (StrandElement*)element;
-                NodeLayer* nodeLayer = se->GetNodeLayer(event._node); // not sure why -2
+                NodeLayer* nodeLayer = se->GetNodeLayer(event._node - 1); // not sure why -2
                 if (nodeLayer != nullptr)
                 {
                     // The +1 guarantees we get the right one
@@ -1167,7 +1167,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     std::string filename = parms[1].ToStdString();
 
     int effectIndex = 0;
-    for (int i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
+    for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
     {
         if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName)
         {
@@ -1392,6 +1392,8 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::SetAudioControls()
 {
+    if (_housePreviewPanel == nullptr) return;
+
     if (Notebook1->GetSelection() != NEWSEQUENCER)
     {
         if (playType == PLAY_TYPE_MODEL)

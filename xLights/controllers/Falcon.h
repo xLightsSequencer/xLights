@@ -54,9 +54,11 @@ class Falcon
     bool IsV2() const { return _version == 2; }
     int GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port);
     int GetDaughter1Threshold() const { if (IsF16() || IsF48()) { return 16; } else { return 4; } }
+    int GetBank1Threshold() const { if (IsF4()) return 6; else return GetDaughter1Threshold(); }
     int GetDaughter2Threshold() const { if (IsF16() || IsF48()) { return 32; } else { return 12; } }
-    bool SupportsVariableExpansions() const { return IsV3(); }
-    int GetMaxPixels() const { if (IsV2()) return 680; else return 1024; }
+    bool SupportsVariableExpansions() const { return IsV3() || IsEnhancedV2Firmware(); }
+    bool IsEnhancedV2Firmware() const;
+    int GetMaxPixels() const;
 
 public:
     Falcon(const std::string& ip);

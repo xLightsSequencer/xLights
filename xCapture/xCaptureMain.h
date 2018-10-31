@@ -25,7 +25,7 @@
 //(*Headers(xCaptureFrame)
 #include <wx/button.h>
 #include <wx/checkbox.h>
-#include <wx/combobox.h>
+#include <wx/choice.h>
 #include <wx/frame.h>
 #include <wx/listctrl.h>
 #include <wx/sizer.h>
@@ -133,6 +133,7 @@ private:
         void OnUITimerTrigger(wxTimerEvent& event);
         void OnButton_AnalyseClick(wxCommandEvent& event);
         void OnButton1Click(wxCommandEvent& event);
+        void OnChoice_TimingSelect(wxCommandEvent& event);
         //*)
 
         //(*Identifiers(xCaptureFrame)
@@ -160,7 +161,8 @@ private:
         static const long ID_BUTTON4;
         static const long ID_BUTTON5;
         static const long ID_STATICTEXT9;
-        static const long ID_COMBOBOX1;
+        static const long ID_CHOICE1;
+        static const long ID_SPINCTRL1;
         static const long ID_BUTTON1;
         static const long ID_BUTTON8;
         static const long ID_BUTTON2;
@@ -182,9 +184,10 @@ private:
         wxCheckBox* CheckBox_ArtNET;
         wxCheckBox* CheckBox_E131;
         wxCheckBox* CheckBox_TriggerOnChannel;
-        wxComboBox* ComboBox1;
+        wxChoice* Choice_Timing;
         wxListView* ListView_Universes;
         wxSpinCtrl* SpinCtrl_Channel;
+        wxSpinCtrl* SpinCtrl_ManualTime;
         wxSpinCtrl* SpinCtrl_TriggerStart;
         wxSpinCtrl* SpinCtrl_TriggerStop;
         wxSpinCtrl* SpinCtrl_Universe;

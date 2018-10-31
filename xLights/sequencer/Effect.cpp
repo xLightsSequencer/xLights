@@ -8,6 +8,8 @@
 #include "../ValueCurve.h"
 #include "../UtilClasses.h"
 #include "../RenderCache.h"
+#include "../models/Model.h"
+#include "../xLightsMain.h"
 
 #include <unordered_map>
 
@@ -165,6 +167,13 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
+
+    Element* parentElement = parent->GetParentElement();
+    if (parentElement != nullptr)
+    {
+        Model* model = parentElement->GetSequenceElements()->GetXLightsFrame()->AllModels[parentElement->GetModelName()];
+        FixBuffer(model);
+    }
 
     // Fixes an erroneous blank settings created by using:
     //  settings["key"] == "test val"
@@ -404,7 +413,30 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
         else
         {
             mSettings.erase(vcid);
-            mSettings[id] = value;
+
+            wxString wid = id;
+
+            if (wid.Contains("FILEPICKER"))
+            {
+                wxString realid = wid.substr(0, wid.Length() - 3);
+                if (wid.EndsWith("_FN"))
+                {
+                    mSettings[realid] = value;
+                }
+                else
+                {
+                    if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "")
+                    {
+                        wxFileName fn(mSettings[realid]);
+                        fn.SetPath(value);
+                        mSettings[realid] = fn.GetFullPath();
+                    }
+                }
+            }
+            else
+            {
+                mSettings[id] = value;
+            }
         }
     }
     IncrementChangeCount();
@@ -430,6 +462,27 @@ void Effect::CopySettingsMap(SettingsMap &target, bool stripPfx) const
         {
             name = name.substr(2);
             target[name] = it->second;
+        }
+    }
+}
+
+// When an effect is copied between model types the buffer may not be supported so make it valid
+void Effect::FixBuffer(const Model* m)
+{
+    if (m == nullptr) return;
+
+    auto styles = m->GetBufferStyles();
+    auto style = mSettings.Get("B_CHOICE_BufferStyle", "Default");
+
+    if (std::find(styles.begin(), styles.end(), style) == styles.end())
+    {
+        if (style.substr(0, 9) == "Per Model")
+        {
+            mSettings["B_CHOICE_BufferStyle"] = style.substr(10);
+        }
+        else
+        {
+            mSettings["B_CHOICE_BufferStyle"] = "Default";
         }
     }
 }

@@ -11,19 +11,181 @@
 			<name>Christmas</name>
 		</category>
 		<category>
-			<id>Disney</id>
-			<name>Disney</name>
-		</category>
-		<category>
 			<id>Halloween</id>
 			<name>Halloween</name>
+		</category>
+		<category>
+			<id>Intros</id>
+			<name>Introductions</name>
+		</category>
+		<category>
+			<id>Kids</id>
+			<name>"Kids" Movies</name>
 		</category>
 		<category>
 			<id>Other</id>
 			<name>Other</name>
 		</category>
+		<category>
+			<id>Patriotic</id>
+			<name>Patriotic</name>
+		</category>
+		<category>
+			<id>Timing</id>
+			<name>Timing files only</name>
+		</category>
+		<category>
+			<id>XATW</id>
+			<name>xLights Around The World</name>
+		</category>
 	</categories>
 	<music>
+		<song>
+			<hash>0d15304f485eca19c54b491d04e2f3f5</hash>
+			<categoryid>Christmas</categoryid>
+			<title>12 Days of Christmas</title>
+			<artist>Straight No Chaser</artist>
+			<creator>Richard Sonnier</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1f4ZpTpM_PKxygxhwbj7aNOS-kqNW1hok&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>2dd2e3f46036920e5656ddc6286e1de8</hash>
+			<categoryid>Christmas</categoryid>
+			<title>All I Want for Christmas</title>
+			<artist>Mariah Carey</artist>
+			<creator>Michael Bourassa</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1as2SU4QQ7fqkuqfiQoYCWR3N_kzV0naM&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>ece55e8c42170cede4c7b64fca60c110</hash>
+			<categoryid>Christmas</categoryid>
+			<title>All I Want for Christmas</title>
+			<artist>Mariah Carey</artist>
+			<creator>Bryan Hammond</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1gkarWmq2TOqpOD4fIxF8Dqaaxudlp9Fn&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Amazing Grace (2008 Party Version)</title>
+			<artist>Yule</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>Sequence includes lyric tracks. </notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1xGpaqO2_KwBoslcz77lVQufKqu4w5e9f&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/Amazing-Grace-2008-Party-Version/dp/B0012DOESS]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Appalachian Snowfall</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1z6gt5TsW5gQ86lf_ApyaYMRfGldN_dji&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Because its Christmas</title>
+			<artist>Sidewalk Prophets</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1ZUaXYs4ZqySaNYjyiKZ4f6ECKHOYH-Pr&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/dp/B00F96NM3C/ref=dm_ws_tlw_trk12]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Boughs of Holly (Deck the Halls)</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>Music Ripped from CD</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1jtzSy5eBO92B8AOUQT4A9pgfrN-gFyvd&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Candy Cane Lane</title>
+			<artist>Sia</artist>
+			<creator>Brent Yakymyk</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Q0sooyNT455E_sJuJMUC6Kp3fXYnycpj&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/Candy-Cane-Lane/dp/B076Q6CKJW?keywords=candy+cane+lane+sia&amp;qid=1540090944&amp;s=MP3+Downloads&amp;sr=1-1-catcorr&amp;ref=sr_1_1]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>733b214fcdcdb52d8d0bdda5670c2aef</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Canon Rock</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Jonathan DePlanche</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1EQe8ThN0hyyt2YWcf1nDq8ZzQEKNEEl8&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>5e50601ad47b7357b94af078d8d25ad7</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Carol of the Bells - Mashup</title>
+			<artist>Pentatonix</artist>
+			<creator>Doug Y</creator>
+			<notes>Music is included in download.  Sequence includes lyric tracks.   Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1qxBRzoPMR5Q0iCHlXTekuaDjEaX7atNk&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Carol of the Bells (aka - Christmas/ Sarajevo 12/24)</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1lshY9MkOEhnsoqm9Opg8OP6q_WEucjMQ&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>0fd317d16471062775fc23e1c8b86e07</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Carol Of The Bells (Instrumental)</title>
+			<artist>David Foster</artist>
+			<creator>Brent Yakymyk</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1OeBruT-BmXs-9ZWazzUtk9ZIgrXhljSm&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>758c5c323790b08305a27a6c447fbf65</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Christmas Eve/Sarajevo 12/24</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Bill Porter</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1bQoDCy5fFMngFWK9Hq_sOF4Nehkljm6G&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
 		<song>
 			<hash>d678989f4b4ffb0df3476b5b22e879f6</hash>
 			<categoryid>Christmas</categoryid>
@@ -36,182 +198,1512 @@
 			<music><![CDATA[https://www.amazon.com/Christmas-Every-Day/dp/B01MYNSHTJ/ref=sr_1_1?ie=UTF8&amp;qid=1525533227&amp;sr=8-1&amp;keywords=simple+plan+christmas+everyday]]></music>
 		</song>
 		<song>
-			<hash>435e12b2ca865106be18ae82f2713a01</hash>
-			<categoryid>Disney</categoryid>
-			<title>You're Welcome</title>
-			<artist>Dwayne Johnson</artist>
-			<creator>Johnathan Landingham</creator>
+			<hash>2c1e3365406e77297d85fe29e6ed859e</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Christmas Medley (7 Songs)</title>
+			<artist>Various</artist>
+			<creator>Doug Y</creator>
+			<notes>Music is included in download.  Sequence includes lyric tracks.   Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1BSx3YTTZSepq0vaSn5QDFAh8DV8PCMwN&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>6c240f42163ce5846c4314a6f4dd3e78</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Christmas Medley: Joy To The World/Deck The Halls/O Come All Ye Faithful/Jingle Bells</title>
+			<artist>The Salsoul Orchestra</artist>
+			<creator>Carolina Mountain Lights</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1vKLpAhJuNOhs2WY-AZ3D_yLpUeBRd6q3&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>7cc331fa7e5a77903aa21f5b359f78ed</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Christmas Song (Christmas don't be late)</title>
+			<artist>Alvin and the Chipmunks</artist>
+			<creator>Jim Gray</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1RDxsKfLjiqyIGV3opwJetqgWpJ8NPoer&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Curse of the Ice Queen</title>
+			<artist>Eric Bode</artist>
+			<creator>Brent Yakymyk</creator>
 			<notes>None</notes>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3ZTRDYm9sQTVueUk&amp;authuser=0&amp;export=download]]></download>
-			<music><![CDATA[https://www.amazon.com/Original-Motion-Picture-Soundtrack-Deluxe/dp/B01M5GYB5N/ref=sr_1_3?ie=UTF8&amp;qid=1525584402&amp;sr=8-3&amp;keywords=you%27re+welcome+dwayne+johnson]]></music>
+			<download><![CDATA[https://drive.google.com/uc?id=1F9get64RfchsQMzxWLXRAVlC9nPlfHvS&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://play.google.com/store/music/album?id=B4udjof5a53qitg4ebdwcp47s3y&amp;amp;tid=song-Tpdqvd6egch2r3ogmce2mfrmf4u&amp;amp;hl=en]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong1</hash>
+			<hash>Nomusicincluded</hash>
 			<categoryid>Christmas</categoryid>
-			<title>Star to Follow</title>
+			<title>Dreams Of Fireflies (On A Christmas Night)</title>
 			<artist>Trans-Siberian Orchestra</artist>
-			<creator>Bill Porter</creator>
+			<creator>Sterling Kaelin</creator>
+			<notes>Music Ripped from CD</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1eHLH0qvEyiYQp8DfYgc3xHR_tBme39Ey&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3bmZ1UVNLX3pjOUU&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong2</hash>
-			<categoryid>Other</categoryid>
-			<title>Can't Stop the Feeling! (Film Version)</title>
-			<artist>Timberlake, Justin</artist>
-			<creator>Logan Carpenter/Brent Yakymyk</creator>
-			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=1s24nsYB_MwAD6V6jJMfY8RbcNFL_WnGH&authuser=0&export=download]]></download>
-		</song>
-		<song>
-			<hash>temporaryhashforsong3</hash>
+			<hash>8277117ece9705f3b9e4a206f4089340</hash>
 			<categoryid>Christmas</categoryid>
-			<title>Christmas Eve/Sarajevo 12/24</title>
-			<artist>Trans-Siberian Orchestra</artist>
-			<creator>Bill Porter</creator>
+			<title>Frosty the Snowman</title>
+			<artist>Willie Nelson</artist>
+			<creator>Beatlerat</creator>
+			<notes>Music is included in download.  Sequence includes lyric tracks.   Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1dIn3Lnrm_tfUVgIs7yMqNyN6wGtr0p_h&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3bjVGSEJPMWo5d1U&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong4</hash>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Good King Joy</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=19Khlk_EKMWpkVW7lNmUEFF1JiG13puZC&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>9d1c4f3d79e2a7a69afd94346e95b504</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Happy Christmas</title>
+			<artist>John Lennon &amp; Yoko</artist>
+			<creator>Gerald Runion</creator>
+			<notes>Music is included in download.  Sequence includes lyric tracks.   Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1FnaqmXWcRgVTccpoWJ6WardDnedZ49bJ&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Hark the Herald Angels Sing</title>
+			<artist>The Blenders</artist>
+			<creator>Kevin Millecam</creator>
+			<notes>Sequence includes lyric tracks.   </notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1JDa77ESdo4TWh1CPg-fqxr5W6uVj9aE3&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/gp/product/B000UTTBEW/ref=oh_aui_d_detailpage_o02_?ie=UTF8&amp;psc=1]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>98bb7c70f6dcb755a98b3b8c3e662afc</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Here Comes Santa Claus</title>
+			<artist>Unknown</artist>
+			<creator>Jerry Kellar</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=107pTS4enJmdoJY23-23gdQYfFw9D38GT&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>8b12faf348126218e7fbfc881798000c</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Holly Jolly Christmas</title>
+			<artist>Michael Buble</artist>
+			<creator>Nick Cosper</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1KOjqk52fG6HLn-oZuQinFJJHoUrhJKey&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>d83e5575ebe4942d7df7f18311728b7b</hash>
+			<categoryid>Christmas</categoryid>
+			<title>I Want a Hippopotamus for Christmas (The Hippo Song)</title>
+			<artist>Dr. Demento</artist>
+			<creator>DJM Arc</creator>
+			<notes>*** No models are included, need to create your own models and map to see effects***   Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1NRCGoImfPQVXm68m-miGUbaMM-nNUUYa&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>0d2b63f224448ad3ab8835f6e9a3442c</hash>
+			<categoryid>Christmas</categoryid>
+			<title>I Want a Hippopotamus for Christmas (The Hippo Song)</title>
+			<artist>Gayla Peevey</artist>
+			<creator>706 Lights</creator>
+			<notes>Music is included in download (in .wav file format).  Sequence includes lyric tracks.   Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1FBPy8OaSpD2wHGwqzZdv08OXXzokzu6p&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>3f969874f0aa93f2e4be5f2c99dc50c2</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Let It Snow Baby, It's Cold Outside</title>
+			<artist>Alex G &amp; Robby Word</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Jj5EB-vDUljPFvDDFYxI39f119sq3EUW&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>3f969874f0aa93f2e4be5f2c99dc50c2</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Let It Snow Baby, It's Cold Outside</title>
+			<artist>Alex G &amp; Robby Word</artist>
+			<creator>Logan Carpenter</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1zxt7vHdapVPxcrlzYvEn-lGePdFZU6Tx&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Light Of Christmas </title>
+			<artist>Owl City feat. TobyMac</artist>
+			<creator>Mike Behnke</creator>
+			<notes>No Music link given, therefore assumed.  There is also another version of this seqeuence which includes the song in the download.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1SgN0qdTj-ssWpGFNcEqAxmtOkuipuNIR&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/dp/B076VZ5N7M/ref=dm_ws_tlw_trk2]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>536558cacc73aebd7e0db1e2ee893685</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Lights of Christmas</title>
+			<artist>Owl City feat. TobyMac</artist>
+			<creator>Coupon Tom</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Ai_isMMIbbb8abgpABD-2_YbHsWqCsVg&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Linus and Lucy (Peanuts)</title>
+			<artist>Vince Guaraldi Trio</artist>
+			<creator>Rob Joyce</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1N0MvFDPXwqTi5TDPhWf1MU4QENWDQMOx&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/Linus-And-Lucy/dp/B009GQ2OPI]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+			<video><![CDATA[https://www.facebook.com/LightsOnSnowfallCourt/]]></video>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Linus and Lucy (Peanuts)</title>
+			<artist>Vince Guaraldi Trio</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1D0QTnvOC7ya_aN-vnphhJ57BORqHs09A&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>493f3a54f0dd3688c3bca846578faecb</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Linus Monologue</title>
+			<artist>Peanuts</artist>
+			<creator>Robin</creator>
+			<notes>Linus monologue from "A Charlie Brown Christmas" movie. Audio file is included in download.  Sequence includes lyric tracks.   Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=16Tx48KOuls0iDnQmwg8CzVYsA4pPGxYX&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>55d39b37303939767e6c9d62a17c2857</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Little Saint Nick</title>
+			<artist>The Beach Boys</artist>
+			<creator>Robert Burton</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1du0j5sK2bpABcNFxGJBJFgZq6Wlmv0kW&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>d289f3c9779a1426cc84dc99eb4faf0e</hash>
 			<categoryid>Christmas</categoryid>
 			<title>Merry Christmas</title>
 			<artist>Smashing Pumpkins</artist>
 			<creator>Nick Cosper</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1YthWbArtlpkIH_ZygGskmCA409bwdKf_&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=18JA0M53vVYAiv4xZY4XNlz11r8tlHyzh&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong5</hash>
+			<hash>9b6ef9bcf9768ab53c4b997925802c8b</hash>
 			<categoryid>Christmas</categoryid>
-			<title>Holly Jolly Christmas</title>
-			<artist>Buble, Michael </artist>
-			<creator>Nick Cosper</creator>
+			<title>Most Wonderful Time of The Year</title>
+			<artist>Andy Williams</artist>
+			<creator>Coupon Tom</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1vnN6aOHSxMMbNsnw-zWviIrGyfsTsoXc&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B8gSdh1p0Ru6Qm5BSVRneVh2SDQ&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong6</hash>
-			<categoryid>Other</categoryid>
-			<title>Believer</title>
-			<artist>Imagine Dragons</artist>
-			<creator>Daniel Kulp</creator>
-			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B4MAfoe7gdL7MDhweERnSVdhWjQ&authuser=0&export=download]]></download>
-		</song>
-		<song>
-			<hash>temporaryhashforsong7</hash>
-			<categoryid>Halloween</categoryid>
-			<title>Purge-Ghostbusters Mix</title>
-			<artist>Various</artist>
-			<creator>Ryan Kasper-Cook</creator>
-			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3WTNRdlJWd2gtc1E&authuser=0&export=download]]></download>
-		</song>
-		<song>
-			<hash>temporaryhashforsong8</hash>
-			<categoryid>Other</categoryid>
-			<title>Jump In The Line - Saw It Coming Mix</title>
-			<artist>Various</artist>
-			<creator>Ryan Kasper-Cook</creator>
-			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3eHd4SzF5YXBxZXM&authuser=0&export=download]]></download>
-		</song>
-		<song>
-			<hash>temporaryhashforsong9</hash>
+			<hash>Nomusicincluded</hash>
 			<categoryid>Christmas</categoryid>
-			<title>Light Of Christmas </title>
-			<artist>TobyMac</artist>
-			<creator>Mike Behnke</creator>
+			<title>Music Box Dancer (Radio Version)</title>
+			<artist>DJ Schwede</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=10YAC6l9ZQ7UVIzO9D5SkFRUfconJV9wg&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/dp/B002QGDNMS/ref=dm_ws_tlw_trk2]]></music>
 			<sequence>Yes</sequence>
-			<notes>No Music link given, therefore assumed.</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=1GGSWulYnDqQcocl0hl1aAgaez-4J_AKF]]></download>
-			<music><![CDATA[https://www.amazon.com/dp/B076VZ5N7M/ref=dm_ws_tlw_trk2&authuser=0&export=download]]></music>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong10</hash>
-			<categoryid>Halloween</categoryid>
-			<title>Oogie Boogie's Song</title>
-			<artist>Unknown</artist>
-			<creator>Bill Porter</creator>
+			<hash>12e045e45a464e82a0823eaf2abf47f9</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Nutrocker</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Doug Y</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1nkf6BA5lVVpEqs1VgLD070MkgmqMekGg&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3OWhXN0JOcUYtVVk&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong11</hash>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Nuttin' for Christmas</title>
+			<artist>BYU Vocal Point</artist>
+			<creator>Kevin Millecam</creator>
+			<notes>Sequence includes lyric tracks.   </notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Yvvr7T-iKeeBrtPb3ZaDQYKO4yrgvfxA&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/gp/product/B016798806/ref=oh_aui_d_detailpage_o01_?ie=UTF8&amp;psc=1]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>O Come All Ye Faithful - O Holy Night</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=19BFk6qojcz8wWq-_VHgUt1W7bDwIPCyj&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>O Come All Ye Faithful/O Holy Night</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1m-m2Bcux0W5jZP5poISVXVqGCxV31CML&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/dp/B00123D088/ref=dm_ws_tlw_trk2]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>42fcb92938a34d933d2fdaee56b9426e</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Polar Express Mashup</title>
+			<artist>Various</artist>
+			<creator>Robin</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1BRbcAQx-XYQJLq5YeWE8YpDmx8YJrZ8a&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>42fcb92938a34d933d2fdaee56b9426e</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Polar Express Mashup</title>
+			<artist>Various</artist>
+			<creator>Justin Ivancovich</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Z5ApY97u0GJ9CRXLNvKgKDUsvymbwDa8&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Rudolph the Red-Nosed Reindeer</title>
+			<artist>The Blenders</artist>
+			<creator>Kevin Millecam</creator>
+			<notes>Sequence includes lyric tracks.   </notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1AUsns_eZr7vFIvBFM3jt6wsMq7vSaV0d&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/gp/product/B018S26PL4/ref=oh_aui_d_detailpage_o05_?ie=UTF8&amp;psc=1]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>faa347500a8c5e93b43eae2325df1d64</hash>
 			<categoryid>Christmas</categoryid>
 			<title>Santa Claus is Coming to Town -  Dance Of The Sugar Plum Fairy Mix</title>
 			<artist>Skeewiff</artist>
 			<creator>Jason Rasmussen</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=10zvQyLXFFvgoYy7PXz3jaq6YEXnZJDGb&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=1m7Lz6U8PYEWL_m0rrRPpDRURTzJXhdSK&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 			<video><![CDATA[https://vimeo.com/242877481]]></video>
 		</song>
 		<song>
-			<hash>temporaryhashforsong12</hash>
-			<categoryid>Halloween</categoryid>
-			<title>Spooky Scary Skeletons</title>
-			<artist>Unknown</artist>
-			<creator>Bill Porter</creator>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Snoopy's Christmas (1999 Digital Remaster)</title>
+			<artist>The Royal Guardsmen</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1NWL74YtV5tQVsDa4RnvZQnIb833idf8R&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3LWlpMGNLcS1aQ2M&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong13</hash>
-			<categoryid>Halloween</categoryid>
-			<title>This Is Halloween (The Nightmare Before Christmas)</title>
-			<artist>Elfman, Danny </artist>
+			<hash>610fb6ba7f6c4700677b6db8c9382b43</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Star to Follow</title>
+			<artist>Trans-Siberian Orchestra</artist>
 			<creator>Bill Porter</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=14VflZ_Jg1U-rf9BeBE2iWRzA9yt-X4YY&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B2ozCEidtWh3VUZYWGFaMm1idkE&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong14</hash>
+			<hash>8751f59f591c18627c171976063304c6</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Text Me Merry Christmas</title>
+			<artist>Straight No Chaser</artist>
+			<creator>Doug Y</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=178VuExU-aYFOTlNMO_asmSfbv6_CnRqp&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>8751f59f591c18627c171976063304c6</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Text Me Merry Christmas</title>
+			<artist>Straight No Chaser</artist>
+			<creator>Adam Ward</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1-ts1Bn7rQHYhqEIh_N6Q-O9UkB6L7M8y&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>3b9167418eafedc506c962cf34a5a4ea</hash>
+			<categoryid>Christmas</categoryid>
+			<title>The Christmas Can Can</title>
+			<artist>Straight No Chaser</artist>
+			<creator>Doug Y</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1HrGJ7Ex5QiM1kLGFe-IYVT8iJ1NH6tfy&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>The Christmas Can Can</title>
+			<artist>Straight No Chaser</artist>
+			<creator>Coupon Tom</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1ELQU2tLnJTWKzX3O_jep5UB_bqM_6Tpq&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>The March Of the Kings/Hark The Herald Angel [Instrumental]</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1BgtnsjzS4OpKPOklsJMtrNJLaXWQ6ds_&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>What Is Christmas?</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1wRzvhuEDuo0qlBDT7v-SnWxjrUPadDgU&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Winter Palace</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1AQKAabGacc9RkPiec7b-om0PP6e9PuaN&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>b5d01b07b8b618cafe2d74db5cfeccc8</hash>
 			<categoryid>Christmas</categoryid>
 			<title>Wish Liszt (Toy Shop Madness) [Instrumental]</title>
 			<artist>Trans-Siberian Orchestra</artist>
 			<creator>Ed Buechner</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Fs1rmlNMTfjYkbBBSPeNDXKKEXMNIME1&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0BwDgEpqsgNhfeFJLTk5OdjRPZFk&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 		<song>
-			<hash>temporaryhashforsong15</hash>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>Wizards In Winter (Instrumental)</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sterling Kaelin</creator>
+			<notes>No Music file or link provided.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1eaGLIgqAFcOowcQu-nH20pyatXTfmSTi&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>d6694b5356c272be20016624d5918d57</hash>
 			<categoryid>Christmas</categoryid>
 			<title>Wonderful Christmastime (Edited Version)</title>
-			<artist>McCartney, Paul</artist>
+			<artist>Paul McCartney</artist>
 			<creator>Nick Cosper</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1KYr5G5OtsZ092SuI2J3T0oRhKu7cLeD-&amp;authuser=0&amp;export=download]]></download>
 			<sequence>Yes</sequence>
-			<notes>Music is included in download. Password to unzip file is "xlights"</notes>
-			<weblink><![CDATA[https://drive.google.com/drive/folders/0B2ozCEidtWh3b1JWSlA0SldWTVk?fref=gc&amp;dti=628061113896314]]></weblink>
-			<download><![CDATA[https://drive.google.com/uc?id=0B8gSdh1p0Ru6X2dHeU9Va0RqUW8&authuser=0&export=download]]></download>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>You're a Mean One Mr. Grinch</title>
+			<artist>Burl Ives</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1RDu9EB7Oucz4YrVTUadU2HMOSFEBToOY&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/dp/B00D3DLQMC/ref=dm_ws_tlw_trk2]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Christmas</categoryid>
+			<title>'Zat You, Santa Claus? (Single Version)</title>
+			<artist>Louis Armstrong &amp; The Commanders</artist>
+			<creator>Jason Rasmussen</creator>
+			<notes>2017 version
+Sequenced by Jason Rasmussen
+www.facebook.com/LightsOnSymphonySt
+lightsonsymphonyst@gmail.com
+NOTES FROM JASON:
+-The xLights community has given so much in helping make my pixels blink, I will give back by sharing my sequences.
+-If you do use this sequence, all I ask is if possible you please email me a video of it being used on your house.
+-I cannot provide direct support with this sequence. Please see xLights support videos on how to map a sequence.
+-Please donate to xLights.org (monthly if you can) to keep the development of this great software going.
+-Merry Christmas!</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1mHTR2t_ULPEc-Wffb4uyvvQfDzDkQEBD&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/dp/B01N8QE6XM/ref=pe_385040_118058080_TE_M1DP]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1W2RMs15oHzP4a6O0f1d-Gyu1yn6ypmMB?fref=gc&amp;dti=628061113896314]]></weblink>
+			<video><![CDATA[https://vimeo.com/242876788]]></video>
+		</song>
+		<song>
+			<hash>f2648db78ececfc2cf5e6a970537e319</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Calling all the Mosters</title>
+			<artist>Unknown</artist>
+			<creator>Coupon Tom</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1xLXpgt11PzCXzgPd8QNPuoKMRO5OAV7I&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>a5e7586074f1459a1da356ed1525021a</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Ghostbusters</title>
+			<artist>Ray Parker Jr. </artist>
+			<creator>Brian Rees</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=133oTKZpaR1xUkYRELhkLKFjrY55g-c_e&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>0f04cfcc64e346178c67f3a4a70f2a09</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Ghostbusters Fun House Baby Shark</title>
+			<artist>Unknown</artist>
+			<creator>Suzanne McDonald</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=16fBwyV-wtLT4q5qf4jo3eRCmTj-mwvXz&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Ghostbuters</title>
+			<artist>Unknown version</artist>
+			<creator>Tinddvall</creator>
+			<notes>No Music file or link provided.  Some errors have been noted opening this sequence.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1nNg8vz5pw0iuz1Bd2-wrjweHtlgF4F38&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+			<video><![CDATA[https://www.facebook.com/Rumley-Crew-Light-Show-435116513342097/]]></video>
+		</song>
+		<song>
+			<hash>b80aa176d2639d688267f6092c32a34b</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Jump In The Line - Saw It Coming Mix</title>
+			<artist>Various</artist>
+			<creator>Ryan Kasper-Cook</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1VEG6O312RE07CDXTYQ0xtYjHB_b7R0Tj&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Moar Ghosts 'n' Stuff</title>
+			<artist>deadmau5</artist>
+			<creator>Brian Rudy</creator>
+			<notes>None</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1wQn9XX4avHiTjQVQ8PdwVZCIW2otT8aC&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://music.amazon.com/albums/B00E38G8FQ?trackAsin=B00E38G94G&amp;ref=dm_sh_7e3e-b435-dmcp-5ac1-84a32&amp;musicTerritory=US&amp;marketplaceId=ATVPDKIKX0DER]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>5ef08de80115c2ceb4afd49d6ae3d3b4</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Monster Mash</title>
+			<artist>Unknown</artist>
+			<creator>Justin Ivancovich</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1lI40FzkzT8m77zyeaTvOMuaOcR6DZGDO&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Halloween</categoryid>
+			<title>NBC Intro - This is Halloween</title>
+			<artist>Unknown</artist>
+			<creator>Tinddvall</creator>
+			<notes>No Music file or link provided.  Some errors have been noted opening this sequence.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=12ns55vENlK4BHgLdukWu15TFOUmVdFJf&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+			<video><![CDATA[https://www.facebook.com/Rumley-Crew-Light-Show-435116513342097/]]></video>
+		</song>
+		<song>
+			<hash>bbe72fd5d850da180492aec927d85339</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Oogie Boogie's Song</title>
+			<artist>Unknown</artist>
+			<creator>Bill Porter</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1V1Bm0Gu4z7a2k651aX6UFy7FrUEWq5LS&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>2601a36a9675e5b70eba47913705815a</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Purge - Ghostbusters - Come Little Children Mix</title>
+			<artist>Various</artist>
+			<creator>Ryan Kasper-Cook</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1bbBlIN4BYqqeIPfkU0_4ZlTdLQK1w6Uf&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>9afd9adcc805ecd11c0b497372188d59</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Purge - Ghostbusters - Come Little Children Mix</title>
+			<artist>Various</artist>
+			<creator>Coupon Tom</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1kiGaips8if69KzH6wgJMH7fKVAkkOcZx&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>ef767868356672c6da10901e81337f8c</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Spooky Scary Skeletons</title>
+			<artist>Unknown</artist>
+			<creator>Bill Porter</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1A9-LgTLemCtuqLY6ri2pjkRbIIj8OCW9&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>1ee239890fe9a65b02981ccb3945b8fe</hash>
+			<categoryid>Halloween</categoryid>
+			<title>This Is Halloween (The Nightmare Before Christmas)</title>
+			<artist>Danny Elfman</artist>
+			<creator>Bill Porter</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1USqojtrELh2ZDFYY1GnPsO_BjqThtlly&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>5be33267d791a9e70cbaed9de2d2036c</hash>
+			<categoryid>Halloween</categoryid>
+			<title>This Is Halloween (The Nightmare Before Christmas) - Extended version</title>
+			<artist>Danny Elfman</artist>
+			<creator>Coupon Tom</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=11kkhb5tK79nBpc_5w7ifTC3j-HLq6N2H&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>c359127028178576ccaf555490e16f39</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Thriller</title>
+			<artist>Michael Jackson</artist>
+			<creator>Jensen Family</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=16ZlA-2IhCJTN7MHrxuK37b5ZLTBJQkou&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Halloween</categoryid>
+			<title>Thriller</title>
+			<artist>Unknown</artist>
+			<creator>Tinddvall</creator>
+			<notes>No Music file or link provided.  Some errors have been noted opening this sequence.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1zywVY2rZjAh2fa-HvgKJWq0wVQusFzlf&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1cetLFsA358cYXKAm6zvjMpLtKHoknHkY?fref=gc&amp;dti=628061113896314]]></weblink>
+			<video><![CDATA[https://www.facebook.com/Rumley-Crew-Light-Show-435116513342097/]]></video>
+		</song>
+		<song>
+			<hash>c56e78ff76c90151cabca74a45c92570</hash>
+			<categoryid>Intros</categoryid>
+			<title>Apollo 13 (1995) - Go for Launch Scene</title>
+			<artist>Various</artist>
+			<creator>Bille Quesse</creator>
+			<notes>This is an countdown to launch sequence.  Audio file is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1seJuFtnV5RpCyv-g2bE6eJwEkWaoKX_a&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/19_Duyto6Ao1EarU1gvylPzdTYBe4kyWO?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Intros</categoryid>
+			<title>Custom Christmas Launch Intro</title>
+			<artist>Unknown</artist>
+			<creator>Unknown</creator>
+			<notes>Audio file only - no sequence included.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1pqZBqBrL5FVrPv_NHe0RIDaQLL_3S5i3&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/19_Duyto6Ao1EarU1gvylPzdTYBe4kyWO?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Intros</categoryid>
+			<title>Talking Tree Intro - Updated</title>
+			<artist>Logan Carpenter (with edits)</artist>
+			<creator>Jay Danielson</creator>
+			<notes>Updated version of Logan Carpenter's Talking Tree Into version 1.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1MSdv7dzBeedvWqzN3gQnieTQpJ8JP0nB&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/19_Duyto6Ao1EarU1gvylPzdTYBe4kyWO?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Intros</categoryid>
+			<title>Talking Tree Intros</title>
+			<artist>Logan Carpenter</artist>
+			<creator>Logan Carpenter</creator>
+			<notes>Sequence includes lyric tracks.  There are 4 different intros included.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Nb8imBs1YosR5Mp551SUoPvD8uaCbh-5&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/19_Duyto6Ao1EarU1gvylPzdTYBe4kyWO?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>4515482b2f0ea72997ccae4758a04a37</hash>
+			<categoryid>Intros</categoryid>
+			<title>THX Tex Intro</title>
+			<artist>THX</artist>
+			<creator>Rob Baldwin</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1CHguTqxwmSIhZ0y9iy2Bzfk_rLbFga38&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/19_Duyto6Ao1EarU1gvylPzdTYBe4kyWO?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Kids</categoryid>
+			<title>Be Our Guest</title>
+			<artist>Ewan McGregor</artist>
+			<creator>Brent Yakymyk</creator>
+			<notes>From Beauty and the Beast (Original Motion Picture Soundtrack/Deluxe Edition)</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1rL7vNyZy9xQd3NqrIJV3rSWNh6LRJcmz&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://play.google.com/store/music/album?id=B7mdpapn7q2rcxoue7juuz5wqim&amp;tid=song-Tptcpjuqxx37fjfoj4lpgbl2u5e]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Kids</categoryid>
+			<title>Can You Feel The Love Tonight/Nants' Ingonyama (From "The Lion King")</title>
+			<artist>Jason Derulo</artist>
+			<creator>Brent Yakymyk</creator>
+			<notes>From The Lion King Movie</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1OcoHMDSkjzmTCk_2HhEXIXRg6c2QLgho&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://play.google.com/store/music/album/Various_Artists_We_Love_Disney_Deluxe?id=Bcqxefztbae6b55oqrta74zwmiy&amp;hl=en]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Kids</categoryid>
+			<title>Fantasmic</title>
+			<artist>Unknown</artist>
+			<creator>Steve Gase</creator>
+			<notes>No Music file or link provided. </notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1YdQpf9MSzWwFBZ1bwvDXhGa6Jx0ta8GA&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>854091e46f1a7bff2216f53315ec6c3e</hash>
+			<categoryid>Kids</categoryid>
+			<title>It's Not Easy Being Green (From "The Muppet Show")</title>
+			<artist>Brenna Whitaker</artist>
+			<creator>Brent Yakymyk</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1PVnVxsRzfq32GZ9ejY3j7kLrYXPPj3M3&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>9df1508be6fac4820f89c1544f12b614</hash>
+			<categoryid>Kids</categoryid>
+			<title>Part of Your World</title>
+			<artist>Jodi Benson</artist>
+			<creator>Brent Yakymyk</creator>
+			<notes>From The Litte Mermaid Movie</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=18ky2IL5-448w32qtEOc245QWONQdFdwk&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://play.google.com/store/music/album?id=B4aetoxzqlqgrvgvd74253k5idm&amp;tid=song-T36n5cx7jumg53g5zoaej37disy&amp;hl=en]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>678e4c79680ac2cac93e288e9e8f8e3d</hash>
+			<categoryid>Kids</categoryid>
+			<title>Phineas and Ferb Christmas Vacation!</title>
+			<artist>Bowling For Soup</artist>
+			<creator>Coupon Tom</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Yfw5MD7vWhFA9k4h10_Y_M_bZd8sunVz&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>5185bcfe51091b1bf1a11783fb75060d</hash>
+			<categoryid>Kids</categoryid>
+			<title>September (Trolls)</title>
+			<artist>Justin Timberlake</artist>
+			<creator>Logan Carpenter</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=122AmdeUOkFWGnBud9t_QBPyjeA9KUL0D&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>18ef2d24b5938b41b1aa4ae02ff21b9b</hash>
+			<categoryid>Kids</categoryid>
+			<title>True Colors</title>
+			<artist>Trolls</artist>
+			<creator>LithgowLights</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1MWHNcv0jdpoxeV5RCvIItrvKChS-WIqu&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>Kids</categoryid>
+			<title>True Colors</title>
+			<artist>Trolls</artist>
+			<creator>Brent Yakymyk</creator>
+			<notes>No Music file or link provided.  (Link in Metadata is incorrect)</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1p3fKk_Tk4MSG_7bWlxw9uHKLSzPfeUBN&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>435e12b2ca865106be18ae82f2713a01</hash>
+			<categoryid>Kids</categoryid>
+			<title>You're Welcome</title>
+			<artist>Dwayne Johnson</artist>
+			<creator>Johnathan Landingham</creator>
+			<notes>From "Moana" Movie.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1MjrrsAjdj5rVBvHQ7x7ysJcL95OMskgm&amp;authuser=0&amp;export=download]]></download>
+			<music><![CDATA[https://www.amazon.com/Original-Motion-Picture-Soundtrack-Deluxe/dp/B01M5GYB5N/ref=sr_1_3?ie=UTF8&amp;qid=1525584402&amp;sr=8-3&amp;keywords=you%27re+welcome+dwayne+johnson]]></music>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>a3432f560ef1966993abbf4036f26546</hash>
+			<categoryid>Kids</categoryid>
+			<title>You're Welcome</title>
+			<artist>Dwayne Johnson</artist>
+			<creator>Chris Ebens</creator>
+			<notes>From "Moana" Movie.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1yoSJmYmTW9A6Jdn09_a-bHGGo5E2vc8i&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/160U0voNQqcpjSFMf4RPRdg18IpMoT-DL?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>4f408b39d9af01ab59ee04a300d703cb</hash>
+			<categoryid>Other</categoryid>
+			<title>Baby Shark</title>
+			<artist>Unknown</artist>
+			<creator>Brian Rees</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1Q2TewX-aSU9QuXt4CuRrsJ26fPr3LkBe&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>29d4bbfcb9f0f35871dfd37e88970298</hash>
+			<categoryid>Other</categoryid>
+			<title>Believer</title>
+			<artist>Imagine Dragons</artist>
+			<creator>Daniel Kulp</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1f7QS8U7nE21rb3DE3hcP4FdlHL4CMA7X&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>9521511b15bb4327b15c8ed2879649ee</hash>
+			<categoryid>Other</categoryid>
+			<title>Darude Sandstorm</title>
+			<artist>Lytnin</artist>
+			<creator>Dave Kenny</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1U4W4br1Dp8ZbfgZTHfmmS7zFZbywMUyK&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>3b41bce98d95196e7bf8df10c7f491b5</hash>
+			<categoryid>Other</categoryid>
+			<title>Fantasmic</title>
+			<artist>Unknown</artist>
+			<creator>Steve Gase</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1W0xZd2GLedylCMmGrzdRrbdjsDTZRjQF&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>face94e28540608acf711ab1fbe358eb</hash>
+			<categoryid>Other</categoryid>
+			<title>Fireball (feat. John Ryan)</title>
+			<artist>Pitbull</artist>
+			<creator>Jimmy Chafins</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1dHtEU5-33zpLzNSvzaGKIFn-UNCyTJ5C&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>1862223a55b6597982062ba4f92a4c3b</hash>
+			<categoryid>Other</categoryid>
+			<title>Knight Rider Theme</title>
+			<artist>Unknown</artist>
+			<creator>Bryan Hammond</creator>
+			<notes>From the Knight Rider TV show.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1V6QcGDdiz17PFtjdviF9HFlreCPZvxUf&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>6e2fff9e44d45cac8810d0a2b4302a48</hash>
+			<categoryid>Other</categoryid>
+			<title>Lithgowlights 2017 Rednex Mix</title>
+			<artist>mixed by dj graham evans</artist>
+			<creator>LithgowLights</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1WgJ81DEinwYskKfo1LS6WZneSnWukLd8&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>49e5329fc9980d6e3baa94f895eab004</hash>
+			<categoryid>Other</categoryid>
+			<title>Michael Jackson Mix</title>
+			<artist>Michael Jackson</artist>
+			<creator>Logan Carpenter</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1EQueIX5IItm7OtmcYda6GmB81-9iFLTd&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>c39f2b2b94b6cb706f2ae00245c7a7a1</hash>
+			<categoryid>Other</categoryid>
+			<title>My Songs Know What You Did in the Dark</title>
+			<artist>Fall Out Boy</artist>
+			<creator>Coupon Tom</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1kj2cX8PyoDcbzRg4klag5kzTdgVBZ5ku&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>eebe7d8d75d2401f3e2a5104ea55605c</hash>
+			<categoryid>Other</categoryid>
+			<title>Starwars Funk</title>
+			<artist>Various</artist>
+			<creator>Logan Carpenter</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1qyMWzstRfSt2rgUUMBrw17vXmYy21itl&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>4332e56dec659cb16206f96afbf5a6b1</hash>
+			<categoryid>Other</categoryid>
+			<title>Stranger Things</title>
+			<artist>Unknown</artist>
+			<creator>Drew Hutchinson</creator>
+			<notes>From the Stranger Things TV show.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1uTr8O6PQRKnOCejOhIDi7h7fio4KPMd6&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>12b55c24bca0994f6245dc23975686a5</hash>
+			<categoryid>Other</categoryid>
+			<title>Thunder</title>
+			<artist>Imagine Dragons</artist>
+			<creator>LithgowLights</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1V4DsRdYPSvE7-98joNRbel3b2ZOqXgjh&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>33ff822303e1a70bc9e45d8385677fc5</hash>
+			<categoryid>Other</categoryid>
+			<title>Thunder</title>
+			<artist>Imagine Dragons</artist>
+			<creator>Brian Rees</creator>
+			<notes>Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1GzZm9_hWhJk4bCWTpDiajO9Tweg5TaI_&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>a0ee3ed404425ba9a5eea61d320e55f7</hash>
+			<categoryid>Other</categoryid>
+			<title>Thunderstruck</title>
+			<artist>AC/DC</artist>
+			<creator>Bryan Hammond</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1-4mnB4O1XE-yKIMsca1P3aJRHSRthIuA&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>cedf510ad39f390def5a5f46d5ff54c5</hash>
+			<categoryid>Other</categoryid>
+			<title>Thunderstruck</title>
+			<artist>AC/DC</artist>
+			<creator>Craig J</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1e_peH_h81WtlakEhxG9gTxB_2ttv9Poa&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1ChnPzBTSZQ-BR3kwW7mB_0FcBOEhCpPe?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>f45d4794c7fd549f593d0721d46f4dd6</hash>
+			<categoryid>Patriotic</categoryid>
+			<title>God Bless the USA and Armed Forces Medley Lyrics</title>
+			<artist>The American Patriots </artist>
+			<creator>Chris Thomas</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1nnEppT4uB-ODihZHP-X5FWz5LQo0rSkf&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B9yw8p0ayfeJd0JYWW5uLVEyM2c?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>e244b049d79b5c5a527e797860ba0768</hash>
+			<categoryid>Patriotic</categoryid>
+			<title>Semper Fidelis</title>
+			<artist>Light Team</artist>
+			<creator>Unknown</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1kHPwAAS3xyFbTNlwFsPHt-4vlLuKmF2q&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B9yw8p0ayfeJd0JYWW5uLVEyM2c?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>26988d6b572a569f8ecb66600b40db57</hash>
+			<categoryid>Patriotic</categoryid>
+			<title>Star Stripes Forever</title>
+			<artist>Light Team</artist>
+			<creator>Unknown</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1raX_Jn9fzIfKZxcQrzx0t2tXS93mFBbX&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/0B9yw8p0ayfeJd0JYWW5uLVEyM2c?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title> 
+All I Want For Christmas Is You (Original Version)</title>
+			<artist>Mariah Carey</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=12RbZ2h58AARvL8w0psEZ4wl8we8TfPuV]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B0017DHRJ6/ref=dm_ws_sp_tlw_trk1_B0017DHRJ6]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title> 
+Amazing Grace (2008 Party Version)</title>
+			<artist>Yule</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1xWyrSu9VNOCmHnmmJmsMdVWKCLDnHok3]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B0012DOESS/ref=dm_ws_sp_tlw_trk1_B0012DOESS]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title> 
+Baby, It's Cold Outside (Glee Cast Version)</title>
+			<artist>Glee Cast feat. Darren Criss</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1G7gmLGcL5lllx6xkrIBxBw5wEMGTG88U]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B004AQRUNK/ref=dm_ws_sp_tlw_trk1_B004AQRUNK]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title> 
+Disney's Electrical Parade (Original Version / Live)</title>
+			<artist>Disney</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=17yBcZ6hS8ZBnyl9ISowkVQa6QlK-h7fp]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00DDYEBJ6/ref=dm_ws_tlw_trk1_B00DDYEBJ6]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title> 
+It's the Most Wonderful Time of the Year</title>
+			<artist>Andy Williams</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1WRALvnjHgtAHb2twdXlPJNFjPQkNUrTl]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00136NIJK/ref=dm_mu_dp_trk4]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>(It Must've Been Ol') Santa Claus</title>
+			<artist>Harry Connick Jr.</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1azCgAzkA1MJh027NHKE_an3EH_cHOl54]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00136NMGY/ref=dm_ws_sp_tlw_trk1_B00136NMGY]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>12 Days of Christmas</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1Kjthp1KItPyHhozOMYfjH3aiYQqTRlO-]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00931IZBS/ref=dm_ws_sp_tlw_trk1_B00931IZBS]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>A Mad Russian's Christmas [Instrumental]</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1fEYK4dTcjH-kTAbYJ7kfqqRqZRuA7jS_]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00123D0CE/ref=dm_ws_sp_tlw_trk1_B00123D0CE]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Carol of the Bells</title>
+			<artist>Monique Danielle</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1CcvY2gpf62dODv8NEy7QwbWpt4h6tEMs]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B0010563IC/ref=dm_ws_sp_tlw_trk1_B0010563IC]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Carol of the Bells</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1iiNhiv2HVPKwgveSAijwKSAkNxmIRl36]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B009ZAY9IA/ref=dm_ws_sp_tlw_trk1_B009ZAY9IA]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Carol Of The Bells (Instrumental)</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.    *** MUSIC NOT KNOWN ***</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1iI8T4Iqp0WnAYVDKAYvq90zvv8sCdaMf]]></download>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Christmas Canon</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1nh6Q7VhJNnuYaRZynywEAv4VG63QXK-e]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B001235DTW/ref=dm_ws_sp_tlw_trk1_B001235DTW]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Christmas Canon Rock</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1S3HLuD0vMSFJU41bO26aZpHtvC9FEWJh]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00123B47C/ref=dm_ws_sp_tlw_trk1_B00123B47C]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Christmas Song (Chestnuts Roasting On An Open Fire)</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.    *** MUSIC NOT KNOWN ***</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1W5OCCJFnLethTcFV8axDPlDrYEBNJ_xf]]></download>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Christmas/ Sarajevo 12/24 [Instrumental]</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1xD7iiFzlfH7aGafY_1pI8yC7W-U8boHr]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B001237DT0/ref=dm_ws_sp_tlw_trk1_B001237DT0]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Do You Hear What I Hear</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1uhZ9r2c4ELeupLFO3mEVonlIKi3RzWBx]]></download>
+			<music><![CDATA[http://spiraling.net/store/index.php?main_page=product_info&amp;products_id=19%3C/a]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Have Yourself A Merry Little Christmas (1999 - Remaster)</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1am4i9Qd0O-wdnkQ2vkEJZ8F5LZjkGEv-]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B0064Z91RS/ref=dm_ws_tlw_trk1_B0064Z91RS]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>It's Beginning To Look A Lot Like Christmas</title>
+			<artist>Bing Crosby</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=14x9wXQtXjFeGGT_vAaWIGK72ZtX5aIN8]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B000W0B0CA/ref=dm_ws_sp_tlw_trk1_B000W0B0CA]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Joy To The World</title>
+			<artist>Go Fish</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1fFDQbDubkFQ-kaaKJQtKEOb3PRiY3d1l]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B0042EEN2Q/ref=dm_ws_sp_tlw_trk1_B0042EEN2Q]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Let it snow! Let it snow! Let it snow!</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1xs1vuJDS-Nvz9GhzE8CMNkonv5e4DB2q]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B004CAVP12/ref=dm_ws_sp_tlw_trk1_B004CAVP12]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Linus And Lucy</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.    *** MUSIC NOT KNOWN ***</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1iqM6oBP0usmQwlWPBD5EBV7qvAN7uSwi]]></download>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Music Box Dancer (Radio Version)</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1Efd0VvJvCeD1dQoWdmeIOg4KdcPodZyy]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B000VKYTBA/ref=dm_ws_tlw_trk1_B000VKYTBA]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Nutrocker</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=141waEGqR99SrbR_3RGE7nokdLbS5Tbwy]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B002TA2D5O/ref=dm_ws_sp_tlw_trk1_B002TA2D5O]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Overture From Miracle On 34th Street</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1SgdUDujfAA6O04Q7u0trehGEUt6kLL-r]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B001EK0HEY/ref=dm_ws_sp_tlw_trk1_B001EK0HEY]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Pour Elise (State Of Trance Remix)</title>
+			<artist>Trance Attack</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1EARyyxQGCLKpg74hhB0AkyEGZzvdSMVL]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00310SN78/ref=dm_ws_sp_tlw_trk1_B00310SN78]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Queen Of The Winter Night (Album Version)</title>
+			<artist>Trans-Siberian Orchestra</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1bRKOUvElvbhbkxo8uIu7wlhgy3_zfgvL]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00123B3VE/ref=dm_ws_sp_tlw_trk1_B00123B3VE]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Sandstorm (Radio Edit)</title>
+			<artist>Darude</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1j_2qsmf3OjuOV8lIfTcyOt_1bwbw1YT3]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B003U036RQ/ref=dm_ws_sp_tlw_trk1_B003U036RQ]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Sleigh Ride (2004 Digital Remaster)</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.    *** MUSIC NOT KNOWN ***</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1k0b1lIO69m1RWd_HjqLz4VVMUC_RggUA]]></download>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Sleigh Ride (Album Version)</title>
+			<artist>Johnny Mathis</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1rTHRB_mXomXqg89aoB48oxlAyffdcXF9]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00EJXW8TA/ref=dm_ws_sp_tlw_trk1_B00EJXW8TA]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Snow Miser - Heat Miser</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1toFMs9c5Kgp35Nt5Ua9zmmoLoVxHVyFM]]></download>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>The 12 Days Of Christmas</title>
+			<artist>Straight No Chaser</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=10_h-MCw2aU-Abw6mNLW8bAcevV943UHQ]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B002UVEJS6/ref=dm_ws_sp_tlw_trk1_B002UVEJS6]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>The Christmas Song (Merry Christmas To You)</title>
+			<artist>Nat King Cole</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=132h4nDPXHN2Wq8_H-2NHwnqvtm32SyAC]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B002L1IUB2/ref=dm_ws_sp_tlw_trk1_B002L1IUB2]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>The Fox (What Does The Fox Say)</title>
+			<artist>Ylvis</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1O-sY_bUvRih5sNay10dcEpnIPGQ7HO2f]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B00F94RZV4/ref=dm_ws_sp_tlw_trk1_B00F94RZV4]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>The House On Christmas Street</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.    *** MUSIC NOT KNOWN ***</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1fLlUyKEfJ_exbgxcd7_99e7h5FophPxS]]></download>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>White Christmas</title>
+			<artist>Michael Bublé  (Duet With Shania Twain)</artist>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.</notes>
+			<download><![CDATA[https://drive.google.com/open?id=188ZvdoB_FSOwavXesmUDlROC3AZAd6sS]]></download>
+			<music><![CDATA[http://www.amazon.com/gp/product/B005UA0GI6/ref=dm_ws_sp_tlw_trk1_B005UA0GI6]]></music>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>Wizards In Winter (Instrumental)</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.    *** MUSIC NOT KNOWN ***</notes>
+			<download><![CDATA[https://drive.google.com/open?id=136zeqVu1EPNL5_f_opmAAOr1x6ySonxe]]></download>
+		</song>
+		<song>
+			<hash>TimingOnly</hash>
+			<categoryid>Timing</categoryid>
+			<title>You_re A Mean One, Mr. Grinch</title>
+			<creator>Sean Meighan</creator>
+			<lyric>Yes</lyric>
+			<notes>Timing file only (no lyrics), created by Sean using the QM Vamp Plugins.  Same as those which were previously included in the xLights download.    *** MUSIC NOT KNOWN ***</notes>
+			<download><![CDATA[https://drive.google.com/open?id=1alsDODPSQUQRKRnTDsGwVfBsFv1rNqHe]]></download>
+		</song>
+		<song>
+			<hash>a763474f69c8a5d1efc4c68b9445106d</hash>
+			<categoryid>XATW</categoryid>
+			<title>CAN'T STOP THE FEELING! (Original Song From DreamWorks Animation's "Trolls")</title>
+			<artist> Justin Timberlake</artist>
+			<creator>Logan Carpenter/Brent Yakymyk</creator>
+			<notes>Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1DVBWKdQvcX517GhynXMXk62x_lt_3SNa&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1KaC7D6VCXfIxt6oVCi7j3qkfqXkqUh8c?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>a763474f69c8a5d1efc4c68b9445106d</hash>
+			<categoryid>XATW</categoryid>
+			<title>CAN'T STOP THE FEELING! (Original Song From DreamWorks Animation's "Trolls")</title>
+			<artist>Justin Timberlake</artist>
+			<creator>Logan Carpenter</creator>
+			<notes>Used for the 2017 xLights Around the World Sequence.  Sequence includes lyric tracks.  Music is included in download.  Password to unzip file is "xlights"</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1rpVPvi6sHbAjS-o5XtukeD48HOPehNJe&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1KaC7D6VCXfIxt6oVCi7j3qkfqXkqUh8c?fref=gc&amp;dti=628061113896314]]></weblink>
+		</song>
+		<song>
+			<hash>Nomusicincluded</hash>
+			<categoryid>XATW</categoryid>
+			<title>The Greatest Show</title>
+			<artist>Various</artist>
+			<creator>Ryan Kasper-Cook</creator>
+			<notes>Used for the 2018 xLights Around the World Sequence.  Sequence includes lyric tracks.  See the weblink for instructions for the music file.</notes>
+			<download><![CDATA[https://drive.google.com/uc?id=1E9-Ln9hT378eBJvOokYZenJmuiIPIOR3&amp;authuser=0&amp;export=download]]></download>
+			<sequence>Yes</sequence>
+			<weblink><![CDATA[https://drive.google.com/drive/folders/1qRlqbUigsHTFOV3Ap8_2aFLWBk9J3QlC?fref=gc&amp;dti=628061113896314]]></weblink>
 		</song>
 	</music>
 </musicinventory>

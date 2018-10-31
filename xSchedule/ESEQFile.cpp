@@ -112,7 +112,7 @@ void ESEQFile::Load(const std::string& filename)
             ReadInt32(_fh); // models count ... should be 1
             _channelsPerFrame = ReadInt32(_fh);
             _offset = ReadInt32(_fh);
-            ReadInt32(_fh); // model size
+            _modelSize = ReadInt32(_fh); // model size
             //_frames = ReadInt32(_fh);
             _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
 
@@ -147,5 +147,5 @@ void ESEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     // read in the frame from disk
     _fh->Read(_frameBuffer, _channelsPerFrame);
 
-    Blend(buffer, buffersize, _frameBuffer, _channelsPerFrame, applyMethod, _offset);
+    Blend(buffer, buffersize, _frameBuffer, _modelSize, applyMethod, _offset - 1);
 }

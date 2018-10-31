@@ -31,7 +31,6 @@ public:
     void UpdateState();
     void UpdateBitmap();
 
-    
     static wxBitmap disabledBitmap;
 };
 

@@ -401,6 +401,7 @@ class LayoutPanel: public wxPanel
 
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
+        static const long ID_MNU_DELETE_EMPTY_MODEL_GROUPS;
         static const long ID_MNU_RENAME_MODEL_GROUP;
         static const long ID_MNU_MAKESCVALID;
         static const long ID_MNU_MAKEALLSCVALID;

@@ -92,8 +92,8 @@ void CurtainEffect::SetDefaultParameters() {
 void CurtainEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int swag = GetValueCurveInt("Curtain_Swag", 3, SettingsMap, oset, CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX);
-    float curtainSpeed = GetValueCurveDouble("Curtain_Speed", 1.0, SettingsMap, oset, CURTAIN_SPEED_MIN, CURTAIN_SPEED_MAX);
+    int swag = GetValueCurveInt("Curtain_Swag", 3, SettingsMap, oset, CURTAIN_SWAG_MIN, CURTAIN_SWAG_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float curtainSpeed = GetValueCurveDouble("Curtain_Speed", 1.0, SettingsMap, oset, CURTAIN_SPEED_MIN, CURTAIN_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     bool repeat = SettingsMap.GetBool("CHECKBOX_Curtain_Repeat", false);
     int edge = GetCurtainEdge(SettingsMap["CHOICE_Curtain_Edge"]);

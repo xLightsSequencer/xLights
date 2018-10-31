@@ -28,6 +28,7 @@ const long WiringDialog::ID_STATICBITMAP1 = wxNewId();
 //*)
 
 const long WiringDialog::ID_MNU_EXPORT = wxNewId();
+const long WiringDialog::ID_MNU_EXPORTLARGE = wxNewId();
 const long WiringDialog::ID_MNU_PRINT = wxNewId();
 const long WiringDialog::ID_MNU_DARK = wxNewId();
 const long WiringDialog::ID_MNU_LIGHT = wxNewId();
@@ -570,6 +571,7 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
 {
     wxMenu mnuLayer;
     mnuLayer.Append(ID_MNU_EXPORT, "Export");
+    mnuLayer.Append(ID_MNU_EXPORTLARGE, "Export Large");
     mnuLayer.Append(ID_MNU_PRINT, "Print");
     auto dark = mnuLayer.Append(ID_MNU_DARK, "Dark", "", wxITEM_RADIO);
     auto light = mnuLayer.Append(ID_MNU_LIGHT, "Light", "", wxITEM_RADIO);
@@ -608,6 +610,15 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
         if (filename != "")
         {
             wxImage img = _bmp.ConvertToImage();
+            img.SaveFile(filename, wxBITMAP_TYPE_PNG);
+        }
+    }
+    else if (id == ID_MNU_EXPORTLARGE)
+    {
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, _modelname, wxEmptyString, "PNG File (*.png)|*.png", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (filename != "")
+        {
+            wxImage img = Render(4096, 2048).ConvertToImage();
             img.SaveFile(filename, wxBITMAP_TYPE_PNG);
         }
     }
@@ -668,10 +679,21 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
     }
 }
 
+wxBitmap WiringDialog::Render(int w, int h)
+{
+    wxBitmap bmp;
+    bmp.CreateScaled(w, h, wxBITMAP_SCREEN_DEPTH, 1.0);
+
+    DrawBitmap(bmp);
+
+    return bmp;
+}
+
 void WiringDialog::Render()
 {
     int w, h;
     GetClientSize(&w, &h);
+
     _bmp.CreateScaled(w, h, wxBITMAP_SCREEN_DEPTH, 1.0);  // Using GetContentScaleFactor() was causing it to scale too much on some Windows systems.
 
     DrawBitmap(_bmp);

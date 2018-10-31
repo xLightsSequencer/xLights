@@ -8,6 +8,7 @@
 #include <wx/checkbox.h>
 #include "ValueCurveButton.h"
 #include "xlLockButton.h"
+#include <wx/filepicker.h>
 
 class wxStaticText;
 
@@ -78,6 +79,24 @@ protected:
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
     void TextUpdate(bool force);
+};
+
+class BulkEditFilePickerCtrl : public wxFilePickerCtrl
+{
+protected:
+    long ID_FILEPICKERCTRL_BULKEDIT_FN;
+    long ID_FILEPICKERCTRL_BULKEDIT_PN;
+    bool _supportsBulkEdit;
+    wxString _wildcard;
+
+    public:
+
+    BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
+    virtual ~BulkEditFilePickerCtrl() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnFilePickerCtrlPopup(wxCommandEvent &event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
 class BulkEditTextCtrlF1 : public BulkEditTextCtrl
@@ -176,6 +195,8 @@ public:
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
+
+
 
 // Helper functions
 wxWindow* GetPanel(wxWindow* w);

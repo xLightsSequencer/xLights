@@ -251,7 +251,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<growablecols>1</growablecols>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT9" variable="StaticText8" member="yes">
@@ -262,7 +262,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxComboBox" name="ID_COMBOBOX1" variable="ComboBox1" member="yes">
+						<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Timing" member="yes">
 							<content>
 								<item>25</item>
 								<item>30</item>
@@ -270,10 +270,22 @@
 								<item>50</item>
 								<item>100</item>
 								<item>xCapture Detected (rounded to nearest 5ms)</item>
+								<item>Manual</item>
 							</content>
 							<selection>5</selection>
+							<handler function="OnChoice_TimingSelect" entry="EVT_CHOICE" />
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_ManualTime" member="yes">
+							<value>50</value>
+							<min>20</min>
+							<max>1000</max>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
