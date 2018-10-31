@@ -144,6 +144,11 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
         low = MINVOID;
         high = MAXVOID;
     }
+    else if (type == "Music Trigger Fade")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
     else if (type == "Square")
     {
         low = MINVOID;
@@ -205,6 +210,11 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
         high = MAXVOID;
     }
     else if (type == "Music")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Music Trigger Fade")
     {
         low = MINVOID;
         high = MAXVOID;
@@ -331,6 +341,9 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
     else if (type == "Abs Sine")
     {
     }
+    else if (type == "Music Trigger Fade")
+    {
+    }
 }
 
 void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
@@ -386,6 +399,9 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
         high = MAXVOID;
     }
     else if (type == "Decaying Sine")
+    {
+    }
+    else if (type == "Music Trigger Fade")
     {
     }
     else if (type == "Abs Sine")
@@ -681,6 +697,10 @@ void ValueCurve::RenderType()
         }
     }
     else if (_type == "Music")
+    {
+        // ???
+    }
+    else if (_type == "Music Trigger Fade")
     {
         // ???
     }
@@ -1368,6 +1388,52 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
 
+    // If we are music trigger fade and we dont have values ... calculate them on the fly
+    if (_type == "Music Trigger Fade")
+    {
+        // Just generate what we need on the fly
+        if (__audioManager != nullptr)
+        {
+            float min = (GetParameter1() - _min) / (_max - _min);
+            float max = (GetParameter2() - _min) / (_max - _min);
+            int step = (endMS - startMS) / VC_X_POINTS;
+            int frameMS = __audioManager->GetFrameInterval();
+            if (step < frameMS) step = frameMS;
+
+            long time = (float)startMS + offset * (endMS - startMS);
+
+            float last = -1000.0;
+            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)) ; cur <= time + frameMS; cur += step)
+            {
+                float x = (float)(cur - startMS) / (float)(endMS - startMS);
+                float f = 0.0;
+                auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", cur);
+                if (pf != nullptr)
+                {
+                    f = *pf->begin();
+                }
+
+                float y = min;
+                if (f * 100.0 > GetParameter3())
+                {
+                    y = min + 1.0 * (max - min);
+                    last = x;
+                }
+                else
+                {
+                    float fadeFrames = (x - last) * (endMS - startMS) / frameMS;
+                    if (fadeFrames < GetParameter4())
+                    {
+                        float fadeamt = 1.0 - fadeFrames / GetParameter4();
+                        y = (min + 1.0 * (max - min)) * fadeamt;
+                    }
+                }
+
+                _values.push_back(vcSortablePoint(x, y, _wrap));
+            }
+        }
+    }
+
     if (_type == "Music")
     {
         if (__audioManager != nullptr)
@@ -1601,7 +1667,7 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
     dc.SetPen(*wxBLACK_PEN);
     float lastY = height - 1 - (GetValueAt(0, 0, 1)) * height;
 
-    if (_type == "Music")
+    if (_type == "Music" || _type == "Music Trigger Fade")
     {
         dc.DrawCircle(width / 4, height - height / 4, wxCoord(std::min(width / 5, height / 5)));
         dc.DrawLine(width / 4 + width / 5, height - height / 4, width / 4 + width / 5, height / 5);

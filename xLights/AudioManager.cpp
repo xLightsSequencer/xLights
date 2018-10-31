@@ -2602,6 +2602,8 @@ void AudioLoadJob::Process()
 // xLightsVamp Functions
 xLightsVamp::xLightsVamp()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Constructing xLightsVamp");
 	_loader = Vamp::HostExt::PluginLoader::getInstance();
 }
 
