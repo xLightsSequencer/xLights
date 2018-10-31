@@ -351,6 +351,7 @@
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
+    <ClCompile Include="wxModelGridCellRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -702,6 +703,7 @@
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="NodeSelectGrid.h" />
     <ClInclude Include="MultiControllerUploadDialog.h" />
+    <ClInclude Include="wxModelGridCellRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
