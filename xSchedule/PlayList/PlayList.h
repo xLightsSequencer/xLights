@@ -41,6 +41,7 @@ protected:
     bool _suspendAtEndOfStep;
     bool _jumpToEndStepsAtEndOfCurrentStep;
     std::string _forceNextStep;
+    std::list<wxUint32> _played;
     #pragma endregion Member Variables
 
     int GetPos(PlayListStep* step);
@@ -82,7 +83,7 @@ public:
     int GetChangeCount() const { return _changeCount; }
     bool SupportsRandom();
     bool IsRandom() const { return _random; }
-    bool SetRandom(bool random) { _random = random; return true; }
+    bool SetRandom(bool random) { _random = random; if (random) _played.clear(); return true; }
     bool SetLooping(bool looping) { _looping = looping; return true; }
     bool IsStepLooping() const { return _loopStep; }
     int GetLoopsLeft() const { return _loops; }

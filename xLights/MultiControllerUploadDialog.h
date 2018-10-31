@@ -9,7 +9,6 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/listbase.h>
 //*)
 
 class xLightsFrame;
@@ -42,9 +41,9 @@ class MultiControllerUploadDialog: public wxDialog
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKLISTBOX1;
-		static const long ID_TEXTCTRL1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
+		static const long ID_TEXTCTRL1;
 		//*)
 
         static const long ID_MCU_SELECTALL;

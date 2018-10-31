@@ -193,8 +193,6 @@ class AudioManager
     bool _ok;
     std::string _hash;
 
-    
-    
 	void GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream);
 	void ExtractMP3Tags(AVFormatContext* formatContext);

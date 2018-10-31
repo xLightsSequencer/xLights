@@ -139,6 +139,9 @@ Effect* EffectLayer::AddEffect(int id, const std::string &n, const std::string &
     std::unique_lock<std::recursive_mutex> locker(lock);
     std::string name(n);
 
+    // really dont want to add effects which look invalid - some imports result in this
+    if (startTimeMS > endTimeMS) return nullptr;
+
     if (GetParentElement() != nullptr && GetParentElement()->GetType() == ELEMENT_TYPE_MODEL) {
         if (name == "") {
             name = "Off";

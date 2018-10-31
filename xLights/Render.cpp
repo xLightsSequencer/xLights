@@ -468,7 +468,8 @@ public:
         return sb;
     }
 
-    PixelBufferClass *getBuffer() {
+    PixelBufferClass *getBuffer() const
+    {
         return mainBuffer;
     }
 
@@ -891,7 +892,15 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
 
 class RenderProgressInfo {
 public:
-    RenderProgressInfo(std::function<void()>&& cb) : callback(cb) {};
+    RenderProgressInfo(std::function<void()>&& cb) : callback(cb)
+    {
+        numRows = 0;
+        startFrame = 0;
+        endFrame = 0;
+        jobs = nullptr;
+        aggregators = nullptr;
+        renderProgressDialog = nullptr;
+    };
     std::function<void()> callback;
     int numRows;
     int startFrame;
@@ -1659,6 +1668,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
     std::string model = command.GetString().ToStdString();
     Model *m = GetModel(model);
+    if (m == nullptr) return;
 
     bool isgroup = (m->GetDisplayAs() == "ModelGroup");
 
@@ -1690,13 +1700,15 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         }
         wxString fullpath;
 
-        SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+        SetStatusText(wxString::Format("Starting Export for %s - %s", format, Out3));
         wxYield();
 
         NextRenderer wait;
         Element * el = mSequenceElements.GetElement(model);
         RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, true);
+        wxASSERT(job != nullptr);
         SequenceData *data = job->createExportBuffer();
+        wxASSERT(data != nullptr);
         int cpn = job->getBuffer()->GetChanCountPerNode();
 
         if (command.GetInt()) {
@@ -1723,7 +1735,6 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             }
         }
         delete job;
-
 
         if (Out3 == "Lcb") {
             oName.SetExt(_("lcb"));
@@ -1776,7 +1787,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             fullpath = oName.GetFullPath();
             WriteMinleonNECModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model));
         }
-        SetStatusText(_("Finished writing model: ") + fullpath + wxString::Format(" in %ld ms ", sw.Time()));
+        SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
 
         delete data;
         EnableSequenceControls(true);

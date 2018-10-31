@@ -154,6 +154,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Choice1->Append(_("Square"));
     Choice1->Append(_("Random"));
     Choice1->Append(_("Music"));
+    Choice1->Append(_("Music Trigger Fade"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -468,6 +469,13 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter100(1, 0);
         SetParameter100(2, 100);
     }
+    else if (type == "Music Trigger Fade")
+    {
+        SetParameter100(1, 0);
+        SetParameter100(2, 100);
+        SetParameter100(3, 50);
+        SetParameter100(4, 10);
+    }
     else if (type == "Ramp Up/Down Hold")
     {
         SetParameter100(1, 0);
@@ -550,7 +558,12 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
     }
     else if (type == "Custom")
     {
-        // Dont do anything
+        // If there are no points add some
+        if (_vc->GetPoints().size() == 0)
+        {
+            _vc->SetValueAt(0.0, 0.5);
+            _vc->SetValueAt(1.0, 0.5);
+        }
     }
 }
 
@@ -1070,7 +1083,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Sine" || type == "Abs Sine" || type == "Decaying Sine")
+    else if (type == "Sine" || type == "Abs Sine" || type == "Decaying Sine" || type == "Music Trigger Fade")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1153,6 +1166,13 @@ void ValueCurveDialog::ValidateWindow()
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
+    }
+    else if (type == "Music Trigger Fade")
+    {
+        StaticText_P1->SetLabel("Low");
+        StaticText_P2->SetLabel("High");
+        StaticText_P3->SetLabel("Trigger");
+        StaticText_P4->SetLabel("Fade");
     }
     else if (type == "Ramp Up/Down")
     {

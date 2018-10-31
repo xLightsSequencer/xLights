@@ -512,6 +512,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
     {
         ReentrancyCounter rec(_reentrancyCounter);
 
+        _played.clear();
         _loops = loops;
         _looping = loop;
         _random = random;
@@ -954,27 +955,64 @@ PlayListStep* PlayList::GetRandomStep()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     {
-        ReentrancyCounter rec(_reentrancyCounter);
-        if (SupportsRandom())
+        int actualsteps = _steps.size();
+        if (_firstOnlyOnce) actualsteps--;
+        if (_lastOnlyOnce) actualsteps--;
+        for (auto it = _steps.begin(); it != _steps.end(); ++it)
         {
-            int selected = rand() % _steps.size();
-            auto it = _steps.begin();
-
-            for (int i = 0; i < selected && it != _steps.end(); i++)
+            if ((*it)->GetExcludeFromRandom())
             {
-                ++it;
+                actualsteps--;
             }
+        }
+        if (actualsteps < 0) actualsteps = 0;
+        int availablesteps = actualsteps - _played.size();
+        if (availablesteps <= 0)
+        {
+            logger_base.debug("Resetting random after %d steps were played of an eligible %d steps in a playlist of size %d",
+                _played.size(), actualsteps, _steps.size());
+            _played.clear();
+            availablesteps = actualsteps;
+        }
 
-            // we dont want the same step so try again or a step that isnt meant to be random
-            if (it == _steps.end() ||
-                (_currentStep != nullptr && (*it)->GetId() == _currentStep->GetId()) ||
-                (*it)->GetExcludeFromRandom() ||
-                (_firstOnlyOnce && (*it)->GetId() == _steps.front()->GetId()) ||
-                (_lastOnlyOnce && (*it)->GetId() == _steps.back()->GetId())
-                )
+        ReentrancyCounter rec(_reentrancyCounter);
+        if (SupportsRandom() && availablesteps > 0)
+        {
+            int selected = rand() % availablesteps;
+
+            auto it = _steps.begin();
+            int i = -1;
+
+            do {
+                bool eligible = !(*it)->GetExcludeFromRandom() &&
+                    !(_firstOnlyOnce && (*it)->GetId() == _steps.front()->GetId()) &&
+                    !(_lastOnlyOnce && (*it)->GetId() == _steps.back()->GetId()) &&
+                    std::find(_played.begin(), _played.end(), (*it)->GetId()) == _played.end();
+
+                if (eligible)
+                {
+                    i++;
+                    if (i != selected)
+                    {
+                        ++it;
+                    }
+                }
+                else
+                {
+                    ++it;
+                }
+            } while (i != selected && it != _steps.end());
+
+            wxASSERT(it != _steps.end());
+
+            // There is a risk after we reset the list of played step that we will get a repeat step so prevent that
+            if (_currentStep != nullptr && (*it)->GetId() == _currentStep->GetId())
             {
+                wxASSERT(_played.size() == 0);
                 return GetRandomStep();
             }
+
+            _played.push_back((*it)->GetId());
 
             logger_base.info("Playlist %s randomly chose step %d of %d.", (const char*)GetName().c_str(), selected, _steps.size());
 
