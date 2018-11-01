@@ -377,7 +377,8 @@ void NodeSelectGrid::LoadGrid(const std::vector<wxString>& rows)
     float maxsy = -1;
 
     const auto nodeCount = model->GetNodeCount();
-    for (auto i = 0; i < nodeCount; i++) {
+    for (auto i = 0; i < nodeCount; i++)
+    {
         std::vector<wxPoint> pts;
         model->GetNodeCoords(i, pts);
         if (pts.size() > 0)
@@ -592,6 +593,82 @@ void NodeSelectGrid::OnDrawGridEvent(DrawGridEvent& event)
     }
 }
 
+void NodeSelectGrid::OnButtonLoadModelClick(wxCommandEvent& event)
+{
+    const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+    if (filename.IsEmpty()) return;
+    ImportModel(filename);
+}
+
+void NodeSelectGrid::OnSliderImgBrightnessCmdScroll(wxScrollEvent& event)
+{
+    UpdateBackground();
+    GridNodes->Refresh();
+}
+
+void NodeSelectGrid::OnButtonZoomPlusClick(wxCommandEvent& event)
+{
+    GridNodes->BeginBatch();
+    wxFont font = GridNodes->GetLabelFont();
+    font.MakeLarger();
+    GridNodes->SetLabelFont(font);
+    font = GridNodes->GetDefaultCellFont();
+    font.MakeLarger();
+    GridNodes->SetDefaultCellFont(font);
+    for (int c = 0; c < GridNodes->GetNumberCols(); ++c)
+        GridNodes->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 5/4);
+    for (int r = 0; r < GridNodes->GetNumberRows(); ++r)
+        GridNodes->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
+    GridNodes->EndBatch();
+    UpdateBackground();
+}
+
+void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
+{
+    GridNodes->BeginBatch();
+    wxFont font = GridNodes->GetLabelFont();
+    font.MakeSmaller();
+    GridNodes->SetLabelFont(font);
+    font = GridNodes->GetDefaultCellFont();
+    font.MakeSmaller();
+    GridNodes->SetDefaultCellFont(font);
+    GridNodes->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
+    GridNodes->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
+    for (int c = 0; c < GridNodes->GetNumberCols(); ++c)
+        GridNodes->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 4/5);
+    for (int r = 0; r < GridNodes->GetNumberRows(); ++r)
+        GridNodes->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
+    GridNodes->EndBatch();
+    UpdateBackground();
+}
+
+void NodeSelectGrid::OnBitmapButton1Click(wxCommandEvent& event)
+{
+    bkgrd_active = !bkgrd_active;
+    GridNodes->Refresh();
+    UpdateBackground();
+}
+
+void NodeSelectGrid::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
+{
+    const wxString background_image = FilePickerCtrl1->GetFileName().GetFullPath();
+
+    if (background_image != "")
+    {
+        if (wxFile::Exists(background_image))
+        {
+            bkg_image = new wxImage(background_image);
+        }
+        else
+        {
+            bkg_image = nullptr;
+        }
+        renderer->SetImage(bkg_image);
+        UpdateBackground();
+        GridNodes->Refresh();
+    }
+}
+
 std::vector<wxString> NodeSelectGrid::GetRowData()
 {
     std::vector<wxString> returnValue;
@@ -634,7 +711,7 @@ std::vector<wxString> NodeSelectGrid::GetRowData()
             }
         }
         row.erase(row.length() - 1, 1);
-        returnValue.insert(returnValue.begin(),row);
+        returnValue.insert(returnValue.begin(), row);
     }
     return returnValue;
 }
@@ -664,31 +741,38 @@ std::vector<int> NodeSelectGrid::DecodeNodeList(const std::vector<wxString> &row
     for (const auto& row : rows)
     {
         wxStringTokenizer wtkz(row, ",");
-        while (wtkz.HasMoreTokens()) {
+        while (wtkz.HasMoreTokens())
+        {
             wxString valstr = wtkz.GetNextToken();
 
             int start2, end2;
-            if (valstr.Contains("-")) {
+            if (valstr.Contains("-"))
+            {
                 const int idx = valstr.Index('-');
                 start2 = wxAtoi(valstr.Left(idx));
                 end2 = wxAtoi(valstr.Right(valstr.size() - idx - 1));
             }
-            else {
+            else
+            {
                 start2 = end2 = wxAtoi(valstr);
             }
             start2--;
             end2--;
             auto done = false;
             auto n = start2;
-            while (!done) {
-                if (n < model->GetNodeCount()) {
+            while (!done)
+            {
+                if (n < model->GetNodeCount())
+                {
                     nodeList.push_back(n);
                 }
-                if (start2 > end2) {
+                if (start2 > end2)
+                {
                     n--;
                     done = n < end2;
                 }
-                else {
+                else
+                {
                     n++;
                     done = n > end2;
                 }
@@ -719,7 +803,7 @@ wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes) cons
             continue;
         }
 
-        if(item != prevValue + 1)
+        if (item != prevValue + 1)
         {
             if (firstValue != prevValue)
                 rowValue += wxString::Format(wxT("%i-%i,"), firstValue, prevValue);
@@ -740,13 +824,6 @@ wxString NodeSelectGrid::EncodeNodeLine(const std::vector<wxString> &nodes) cons
     return rowValue;
 }
 
-void NodeSelectGrid::OnButtonLoadModelClick(wxCommandEvent& event)
-{
-    const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
-    if (filename.IsEmpty()) return;
-    ImportModel(filename);
-}
-
 //Import Model Shape From xModel File
 void NodeSelectGrid::ImportModel(const std::string &filename)
 {
@@ -763,45 +840,52 @@ void NodeSelectGrid::ImportModel(const std::string &filename)
     }
 }
 
+//Load Custom Model As Selection
 void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
 {
-    if (xmlData->GetName() != "custommodel") {
+    if (xmlData->GetName() != "custommodel")
+    {
         wxMessageBox("xModel file not a Custom Model.");
         return;
     }
 
-    const std::string customModel = xmlData->GetAttribute("CustomModel").ToStdString();
+    const auto customModel = xmlData->GetAttribute("CustomModel").ToStdString();
+    const auto rows = wxSplit(customModel, ';');
 
-    const wxArrayString rows = wxSplit(customModel, ';');
-
-    if (GridNodes->GetNumberRows() < rows.size()) {
+    if (GridNodes->GetNumberRows() < rows.size())
+    {
         wxMessageBox("xModel file dimensions are too big.");
         return;
     }
 
-    int height = rows.size();
-    int gridheight = GridNodes->GetNumberRows();
+    const int height = rows.size();
+    const int gridheight = GridNodes->GetNumberRows();
 
-    int rowOffset = ((gridheight - height) / 2);
+    const int rowOffset = ((gridheight - height) / 2);
 
     int row = 0;
-    for (auto rv : rows) {
+    for (const auto& rv : rows)
+    {
         const wxArrayString cols = wxSplit(rv, ',');
-        if (cols.size() > GridNodes->GetNumberCols()) {
+        if (cols.size() > GridNodes->GetNumberCols())
+        {
             wxMessageBox("xModel file dimensions are too big.");
             return;
         }
-        int width = cols.size();
-        int gridhwidth = GridNodes->GetNumberCols();
+        const int width = cols.size();
+        const int gridhwidth = GridNodes->GetNumberCols();
 
-        int colOffset = ((gridhwidth - width) / 2);
+        const int colOffset = ((gridhwidth - width) / 2);
         int col = 0;
-        for (auto value : cols) {
-            while (value.length() > 0 && value[0] == ' ') {
+        for (auto value : cols)
+        {
+            while (value.length() > 0 && value[0] == ' ')
+            {
                 value = value.substr(1);
             }
 
-            if (value != "") {
+            if (!value.empty())
+            {
                 const wxString cellval = GridNodes->GetCellValue(row + rowOffset, col + colOffset);
                 if (!cellval.IsNull() && !cellval.IsEmpty())
                 {
@@ -846,7 +930,7 @@ void NodeSelectGrid::OnPaste(wxCommandEvent& event)
 
 void NodeSelectGrid::OnGridPopup(wxCommandEvent& event)
 {
-    int id = event.GetId();
+    const auto id = event.GetId();
     if (id == NODESELECT_CUT)
     {
         CutOrCopyToClipboard(true);
@@ -921,7 +1005,8 @@ void NodeSelectGrid::Paste()
     copy_data = GetOSXFormattedClipboardData();
 #endif
 
-    if (copy_data == "") {
+    if (copy_data.empty())
+    {
         if (wxTheClipboard->Open())
         {
             if (wxTheClipboard->IsSupported(wxDF_TEXT))
@@ -952,10 +1037,8 @@ void NodeSelectGrid::Paste()
 
     int i = GridNodes->GetGridCursorRow();
     int k = GridNodes->GetGridCursorCol();
-    int numrows = GridNodes->GetNumberRows();
-    int numcols = GridNodes->GetNumberCols();
-    bool errflag = false;
-    wxString errdetails; //-DJ
+    const int numrows = GridNodes->GetNumberRows();
+    const int numcols = GridNodes->GetNumberCols();
 
     copy_data.Replace("\r\r", "\n");
     copy_data.Replace("\r\n", "\n");
@@ -986,10 +1069,6 @@ void NodeSelectGrid::Paste()
         i++;
     } while (copy_data.IsEmpty() == false);
 
-    if (errflag)
-    {
-        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number") + errdetails, _("Paste Error")); //-DJ
-    }
     GridNodes->Refresh();
     ValidateWindow();
 }
@@ -1002,69 +1081,4 @@ void NodeSelectGrid::UpdateBackground()
     }
 }
 
-void NodeSelectGrid::OnSliderImgBrightnessCmdScroll(wxScrollEvent& event)
-{
-    UpdateBackground();
-    GridNodes->Refresh();
-}
 
-void NodeSelectGrid::OnButtonZoomPlusClick(wxCommandEvent& event)
-{
-    GridNodes->BeginBatch();
-    wxFont font = GridNodes->GetLabelFont();
-    font.MakeLarger();
-    GridNodes->SetLabelFont(font);
-    font = GridNodes->GetDefaultCellFont();
-    font.MakeLarger();
-    GridNodes->SetDefaultCellFont(font);
-    for (int c = 0; c < GridNodes->GetNumberCols(); ++c)
-        GridNodes->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 5/4);
-    for (int r = 0; r < GridNodes->GetNumberRows(); ++r)
-        GridNodes->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
-    GridNodes->EndBatch();
-    UpdateBackground();
-}
-
-void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
-{
-    GridNodes->BeginBatch();
-    wxFont font = GridNodes->GetLabelFont();
-    font.MakeSmaller();
-    GridNodes->SetLabelFont(font);
-    font = GridNodes->GetDefaultCellFont();
-    font.MakeSmaller();
-    GridNodes->SetDefaultCellFont(font);
-    GridNodes->SetRowMinimalAcceptableHeight(5); //don't need to read text, just see the shape
-    GridNodes->SetColMinimalAcceptableWidth(5); //don't need to read text, just see the shape
-    for (int c = 0; c < GridNodes->GetNumberCols(); ++c)
-        GridNodes->SetColSize(c, 2 * font.GetPixelSize().y); //GridCustom->GetColSize(c) * 4/5);
-    for (int r = 0; r < GridNodes->GetNumberRows(); ++r)
-        GridNodes->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
-    GridNodes->EndBatch();
-    UpdateBackground();
-}
-
-void NodeSelectGrid::OnBitmapButton1Click(wxCommandEvent& event)
-{
-    bkgrd_active = !bkgrd_active;
-    GridNodes->Refresh();
-    UpdateBackground();
-}
-
-void NodeSelectGrid::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
-{
-    const wxString background_image = FilePickerCtrl1->GetFileName().GetFullPath();
-
-    if (background_image != "") {
-        if (wxFile::Exists(background_image)) {
-            bkg_image = new wxImage(background_image);
-        }
-        else
-        {
-            bkg_image = nullptr;
-        }
-        renderer->SetImage(bkg_image);
-        UpdateBackground();
-        GridNodes->Refresh();
-    }
-}
