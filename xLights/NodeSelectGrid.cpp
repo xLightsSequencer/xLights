@@ -228,11 +228,7 @@ NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWi
 : model(m),
   bkg_image(nullptr),
   renderer(nullptr),
-  bkgrd_active(true),
-  selectColor(wxColour("white")),
-  unselectColor(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXTEXT)),
-  selectBackColor(wxColour("grey")),
-  unselectBackColor(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX))
+  bkgrd_active(true)
 {
 	//(*Initialize(NodeSelectGrid)
 	wxStaticBoxSizer* StaticBoxSizer2;
@@ -486,8 +482,12 @@ void NodeSelectGrid::OnButtonSelectNoneClick(wxCommandEvent& event)
     {
         for (auto y = 0; y < GridNodes->GetNumberRows(); y++)
         {
-            GridNodes->SetCellTextColour(y, x, unselectColor);
-            GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+            const wxString value = GridNodes->GetCellValue(y, x);
+            if (!value.IsNull() && !value.IsEmpty())
+            {
+                GridNodes->SetCellTextColour(y, x, unselectColor);
+                GridNodes->SetCellBackgroundColour(y, x, unselectBackColor);
+            }
         }
     }
     GridNodes->ClearSelection();
@@ -1078,6 +1078,23 @@ void NodeSelectGrid::UpdateBackground()
     if (renderer != nullptr && bkg_image != nullptr)
     {
         renderer->UpdateSize(*GridNodes, bkgrd_active, SliderImgBrightness->GetValue());
+
+        for (int i = 0; i< GridNodes->GetNumberRows(); i++)        // step through all lines
+        {
+            bool something_in_this_line = false;             // nothing found yet
+            for (int k = 0; k < GridNodes->GetNumberCols(); k++)     // step through all colums
+            {
+                const wxString value = GridNodes->GetCellValue(i, k);
+                if (!value.IsNull() && !value.IsEmpty())
+                {
+                    if (GridNodes->GetCellTextColour(i, k) == selectColor)
+                    {
+                        //GridNodes->SetCellTextColour(i, k, unselectColor);
+                        GridNodes->SetCellBackgroundColour(i, k, selectBackColor);
+                    } 
+                }
+            }
+        }
     }
 }
 
