@@ -104,6 +104,7 @@ VideoPanel::VideoPanel(wxWindow* parent)
 	FlexGridSizer5->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_Video_DurationTreatment = new BulkEditChoice(this, ID_CHOICE_Video_DurationTreatment, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Video_DurationTreatment"));
 	Choice_Video_DurationTreatment->SetSelection( Choice_Video_DurationTreatment->Append(_("Normal")) );
+	Choice_Video_DurationTreatment->Append(_("Normal No Blue"));
 	Choice_Video_DurationTreatment->Append(_("Loop"));
 	Choice_Video_DurationTreatment->Append(_("Slow/Accelerate"));
 	Choice_Video_DurationTreatment->Append(_("Manual"));
