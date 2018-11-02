@@ -17,6 +17,7 @@
 #include <wx/renderer.h>
 #include <wx/filepicker.h>
 #include "wxModelGridCellRenderer.h"
+#include "UtilClasses.h"
 
 class Model;
 class DrawGrid;
@@ -34,6 +35,7 @@ class NodeSelectGrid: public wxDialog
 
 		//(*Declarations(NodeSelectGrid)
 		DrawGrid* GridNodes;
+		ImageFilePickerCtrl* FilePickerCtrl1;
 		wxBitmapButton* BitmapButton1;
 		wxButton* ButtonDeselect;
 		wxButton* ButtonLoadModel;
@@ -45,7 +47,6 @@ class NodeSelectGrid: public wxDialog
 		wxButton* ButtonZoomPlus;
 		wxButton* Button_Select;
 		wxCheckBox* CheckBoxFreeHand;
-		wxFilePickerCtrl* FilePickerCtrl1;
 		wxSlider* SliderImgBrightness;
 		//*)
 

@@ -121,7 +121,9 @@
 										<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 											<cols>2</cols>
 											<object class="sizeritem">
-												<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl1" member="yes">
+												<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" subclass="ImageFilePickerCtrl" variable="FilePickerCtrl1" member="yes">
+													<message></message>
+													<wildcard></wildcard>
 													<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />
 												</object>
 												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

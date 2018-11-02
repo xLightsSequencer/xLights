@@ -274,7 +274,7 @@ NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWi
 	FlexGridSizer4->Add(StaticBoxSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Background Image"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Select a file"), _T("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+	FilePickerCtrl1 = new ImageFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
 	FlexGridSizer1->Add(FilePickerCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SliderImgBrightness = new wxSlider(this, ID_SLIDER_IMG_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_IMG_BRIGHTNESS"));
@@ -609,6 +609,7 @@ void NodeSelectGrid::OnSliderImgBrightnessCmdScroll(wxScrollEvent& event)
 
 void NodeSelectGrid::OnButtonZoomPlusClick(wxCommandEvent& event)
 {
+    GridNodes->Freeze();
     GridNodes->BeginBatch();
     wxFont font = GridNodes->GetLabelFont();
     font.MakeLarger();
@@ -621,11 +622,13 @@ void NodeSelectGrid::OnButtonZoomPlusClick(wxCommandEvent& event)
     for (int r = 0; r < GridNodes->GetNumberRows(); ++r)
         GridNodes->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 5/4);
     GridNodes->EndBatch();
+    GridNodes->Thaw();
     UpdateBackground();
 }
 
 void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
 {
+    GridNodes->Freeze();
     GridNodes->BeginBatch();
     wxFont font = GridNodes->GetLabelFont();
     font.MakeSmaller();
@@ -640,6 +643,7 @@ void NodeSelectGrid::OnButtonZoomMinusClick(wxCommandEvent& event)
     for (int r = 0; r < GridNodes->GetNumberRows(); ++r)
         GridNodes->SetRowSize(r, int(1.5 * (float)font.GetPixelSize().y)); //GridCustom->GetRowSize(r) * 4/5);
     GridNodes->EndBatch();
+    GridNodes->Thaw();
     UpdateBackground();
 }
 

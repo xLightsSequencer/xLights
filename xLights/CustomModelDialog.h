@@ -25,7 +25,7 @@ class wxStaticText;
 class CustomModel;
 class CopyPasteGrid;
 class wxModelGridCellRenderer;
-
+class ImageFilePickerCtrl;
 
 class CustomModelDialog: public wxDialog
 {
@@ -52,6 +52,7 @@ class CustomModelDialog: public wxDialog
 
 		//(*Declarations(CustomModelDialog)
 		CopyPasteGrid* GridCustom;
+		ImageFilePickerCtrl* FilePickerCtrl1;
 		wxBitmapButton* BitmapButtonCustomBkgrd;
 		wxBitmapButton* BitmapButtonCustomCopy;
 		wxBitmapButton* BitmapButtonCustomCut;
@@ -63,7 +64,6 @@ class CustomModelDialog: public wxDialog
 		wxButton* Button_CustomModelZoomOut;
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxCheckBox* CheckBoxAutoNumber;
-		wxFilePickerCtrl* FilePickerCtrl1;
 		wxFlexGridSizer* Sizer1;
 		wxSlider* SliderCustomLightness;
 		wxSpinCtrl* HeightSpin;
