@@ -11,9 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.41 November 2, 2018
    -- enh (scott)  Added Cut, Copy, Paste, Zoom In/Out, Background Image, and Model Select to the Node Select Dialog
    -- enh (keith)  Add music trigger fade value curve
    -- enh (keith)  Improve the aparent randomness of random playlists
+   -- enh (keith)  Add a video effect duration mode that ends transparent rather than blue
    -- bug (keith)  Protect user from causing crash by taking actions while models download
    -- bug (keith)  Fix next time shows never if last day is today and show starts later.
    -- bug (keith)  Fix some colour anomalies in LMS import due to invalid effects.
