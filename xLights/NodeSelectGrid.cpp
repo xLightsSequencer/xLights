@@ -1057,7 +1057,6 @@ void NodeSelectGrid::Paste()
                 wxString field = fields[fieldnum].Trim(true).Trim(false);
                 if (!field.IsEmpty())
                 {
-                    //GridNodes->SetCellValue(i, k + fieldnum, fields[fieldnum].Trim(true).Trim(false)); //strip surrounding spaces -DJ
                     const wxString cellval = GridNodes->GetCellValue(i, k + fieldnum);
                     if (!cellval.IsNull() && !cellval.IsEmpty())
                     {
@@ -1082,7 +1081,6 @@ void NodeSelectGrid::UpdateBackground()
 
         for (int i = 0; i< GridNodes->GetNumberRows(); i++)        // step through all lines
         {
-            bool something_in_this_line = false;             // nothing found yet
             for (int k = 0; k < GridNodes->GetNumberCols(); k++)     // step through all colums
             {
                 const wxString value = GridNodes->GetCellValue(i, k);
@@ -1090,7 +1088,6 @@ void NodeSelectGrid::UpdateBackground()
                 {
                     if (GridNodes->GetCellTextColour(i, k) == selectColor)
                     {
-                        //GridNodes->SetCellTextColour(i, k, unselectColor);
                         GridNodes->SetCellBackgroundColour(i, k, selectBackColor);
                     }
                 }
