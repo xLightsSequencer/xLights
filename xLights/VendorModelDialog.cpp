@@ -8,6 +8,7 @@
 #include <log4cpp/Category.hh>
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
+#include <wx/progdlg.h>
 
 #include "CachedFileDownloader.h"
 
@@ -691,7 +692,7 @@ BEGIN_EVENT_TABLE(VendorModelDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-VendorModelDialog::VendorModelDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+VendorModelDialog::VendorModelDialog(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
 	//(*Initialize(VendorModelDialog)
 	wxFlexGridSizer* FlexGridSizer4;
@@ -821,9 +822,9 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent,wxWindowID id,const wxPoin
     ValidateWindow();
 }
 
-bool VendorModelDialog::DlgInit()
+bool VendorModelDialog::DlgInit(wxProgressDialog* prog, int low, int high)
 {
-    if (LoadTree())
+    if (LoadTree(prog, low, high))
     {
         ValidateWindow();
         return true;
@@ -832,10 +833,10 @@ bool VendorModelDialog::DlgInit()
     return false;
 }
 
-wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename) const
+wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const
 {
     filename = "";
-    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION));
+    wxFileName fn = wxFileName(VendorModelDialog::GetCache().GetFile(url, CACHEFOR::CACHETIME_SESSION, prog, low, high));
     if (fn.Exists())
     {
         filename = fn.GetFullPath();
@@ -845,12 +846,12 @@ wxXmlDocument* VendorModelDialog::GetXMLFromURL(wxURI url, std::string& filename
     return nullptr;
 }
 
-bool VendorModelDialog::LoadTree()
+bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 {
     const std::string vendorlink = "http://nutcracker123.com/xlights/vendors/xlights_vendors.xml";
 
     std::string filename;
-    wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename);
+    wxXmlDocument* vd = GetXMLFromURL(wxURI(vendorlink), filename, prog, low, high);
     if (vd != nullptr && vd->IsOk())
     {
         wxXmlNode* root = vd->GetRoot();
@@ -877,7 +878,7 @@ bool VendorModelDialog::LoadTree()
                 if (url != "")
                 {
                     std::string vfilename;
-                    wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename);
+                    wxXmlDocument* d = GetXMLFromURL(wxURI(url), vfilename, prog, low, high);
                     if (d != nullptr)
                     {
                         MVendor* mv = new MVendor(d, maxModels);

@@ -3395,7 +3395,7 @@ void Model::ExportXlightsModel()
 {
 }
 
-Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download)
+Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high)
 {
     if (last_model == "")
     {
@@ -3404,8 +3404,9 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             xlights->SuspendAutoSave(true);
             VendorModelDialog dlg(xlights);
             xlights->SetCursor(wxCURSOR_WAIT);
-            if (dlg.DlgInit())
+            if (dlg.DlgInit(prog, low, high))
             {
+                if (prog != nullptr) prog->Hide();
                 xlights->SetCursor(wxCURSOR_DEFAULT);
                 if (dlg.ShowModal() == wxID_OK)
                 {
@@ -3429,6 +3430,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             }
             else
             {
+                if (prog != nullptr) prog->Hide();
                 xlights->SetCursor(wxCURSOR_DEFAULT);
                 xlights->SuspendAutoSave(false);
                 cancelled = true;
