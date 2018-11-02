@@ -31,7 +31,7 @@ public:
 
     // Public Methods
 	void InitializePreview(wxString img,int brightness);
-    bool StartDrawing(wxDouble pointSize);
+    bool StartDrawing(wxDouble pointSize, bool fromPaint = false);
     void SetPointSize(wxDouble pointSize);
     void EndDrawing(bool swapBuffers=true);
 	void SetCanvasSize(int width,int height);
@@ -99,7 +99,8 @@ private:
 	void keyPressed(wxKeyEvent& event);
 	void keyReleased(wxKeyEvent& event);
     void OnPopup(wxCommandEvent& event);
-
+    void OnSysColourChanged(wxSysColourChangedEvent& event);
+    
     bool mIsDrawing = false;
     bool mBackgroundImageExists = false;
     wxString mBackgroundImage;
