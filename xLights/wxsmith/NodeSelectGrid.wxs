@@ -21,54 +21,62 @@
 									<label>Selection</label>
 									<orient>wxVERTICAL</orient>
 									<object class="sizeritem">
-										<object class="wxCheckBox" name="ID_CHECKBOX_FREE_HAND" variable="CheckBoxFreeHand" member="yes">
-											<label>Free Hand</label>
-											<handler function="OnCheckBoxFreeHandClick" entry="EVT_CHECKBOX" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SELECT" variable="Button_Select" member="yes">
-											<label>Select</label>
-											<handler function="OnButton_SelectClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_DESELECT" variable="ButtonDeselect" member="yes">
-											<label>De-Select</label>
-											<handler function="OnButtonDeselectClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SELECT_ALL" variable="ButtonSelectAll" member="yes">
-											<label>Select All</label>
-											<handler function="OnButtonSelectAllClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_SELECT_NONE" variable="ButtonSelectNone" member="yes">
-											<label>Select None</label>
-											<handler function="OnButtonSelectNoneClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON_LOAD_MODEL" variable="ButtonLoadModel" member="yes">
-											<label>From Model</label>
-											<handler function="OnButtonLoadModelClick" entry="EVT_BUTTON" />
+										<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+											<cols>2</cols>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_SELECT" variable="Button_Select" member="yes">
+													<label>Select</label>
+													<handler function="OnButton_SelectClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_DESELECT" variable="ButtonDeselect" member="yes">
+													<label>De-Select</label>
+													<handler function="OnButtonDeselectClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_SELECT_ALL" variable="ButtonSelectAll" member="yes">
+													<label>Select All</label>
+													<handler function="OnButtonSelectAllClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_SELECT_NONE" variable="ButtonSelectNone" member="yes">
+													<label>Select None</label>
+													<handler function="OnButtonSelectNoneClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxCheckBox" name="ID_CHECKBOX_FREE_HAND" variable="CheckBoxFreeHand" member="yes">
+													<label>Free Hand</label>
+													<handler function="OnCheckBoxFreeHandClick" entry="EVT_CHECKBOX" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_LOAD_MODEL" variable="ButtonLoadModel" member="yes">
+													<label>From Model</label>
+													<handler function="OnButtonLoadModelClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
@@ -85,7 +93,6 @@
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON_ZOOM_PLUS" variable="ButtonZoomPlus" member="yes">
 											<label>+</label>
-											<minsize>30,-1</minsize>
 											<handler function="OnButtonZoomPlusClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -95,7 +102,6 @@
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON_ZOOM_MINUS" variable="ButtonZoomMinus" member="yes">
 											<label>-</label>
-											<minsize>30,-1</minsize>
 											<handler function="OnButtonZoomMinusClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -118,7 +124,7 @@
 												<object class="wxFilePickerCtrl" name="ID_FILEPICKERCTRL1" variable="FilePickerCtrl1" member="yes">
 													<handler function="OnFilePickerCtrl1FileChanged" entry="EVT_FILEPICKER_CHANGED" />
 												</object>
-												<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -145,8 +151,7 @@
 												<option>1</option>
 											</object>
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxSHAPED|wxFIXED_MINSIZE</flag>
 										<option>1</option>
 									</object>
 								</object>
@@ -175,7 +180,7 @@
 										<option>1</option>
 									</object>
 								</object>
-								<flag>wxALL|wxFIXED_MINSIZE</flag>
+								<flag>wxALL</flag>
 								<border>5</border>
 							</object>
 						</object>

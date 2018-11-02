@@ -2,14 +2,14 @@
 #define NodeSelectGrid_H
 
 //(*Headers(NodeSelectGrid)
-#include <wx/sizer.h>
-#include <wx/checkbox.h>
-#include <wx/filepicker.h>
-#include <wx/slider.h>
-#include <wx/grid.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/filepicker.h>
+#include <wx/grid.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
 //*)
 
 #include <wx/wx.h>
@@ -33,20 +33,20 @@ class NodeSelectGrid: public wxDialog
 		virtual ~NodeSelectGrid();
 
 		//(*Declarations(NodeSelectGrid)
-		wxButton* ButtonZoomPlus;
-		wxButton* ButtonSelectAll;
-		wxFilePickerCtrl* FilePickerCtrl1;
-		wxButton* ButtonSelectNone;
-		wxButton* ButtonZoomMinus;
-		wxCheckBox* CheckBoxFreeHand;
-		wxSlider* SliderImgBrightness;
-		wxButton* Button_Select;
+		DrawGrid* GridNodes;
 		wxBitmapButton* BitmapButton1;
 		wxButton* ButtonDeselect;
-		DrawGrid* GridNodes;
+		wxButton* ButtonLoadModel;
 		wxButton* ButtonNodeSelectCancel;
 		wxButton* ButtonNodeSelectOK;
-		wxButton* ButtonLoadModel;
+		wxButton* ButtonSelectAll;
+		wxButton* ButtonSelectNone;
+		wxButton* ButtonZoomMinus;
+		wxButton* ButtonZoomPlus;
+		wxButton* Button_Select;
+		wxCheckBox* CheckBoxFreeHand;
+		wxFilePickerCtrl* FilePickerCtrl1;
+		wxSlider* SliderImgBrightness;
 		//*)
 
         static const long NODESELECT_CUT;
@@ -59,11 +59,11 @@ class NodeSelectGrid: public wxDialog
 	protected:
 
 		//(*Identifiers(NodeSelectGrid)
-		static const long ID_CHECKBOX_FREE_HAND;
 		static const long ID_BUTTON_SELECT;
 		static const long ID_BUTTON_DESELECT;
 		static const long ID_BUTTON_SELECT_ALL;
 		static const long ID_BUTTON_SELECT_NONE;
+		static const long ID_CHECKBOX_FREE_HAND;
 		static const long ID_BUTTON_LOAD_MODEL;
 		static const long ID_BUTTON_ZOOM_PLUS;
 		static const long ID_BUTTON_ZOOM_MINUS;

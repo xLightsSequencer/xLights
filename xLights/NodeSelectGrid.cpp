@@ -1,8 +1,8 @@
 //(*InternalHeaders(NodeSelectGrid)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
-#include <wx/intl.h>
 #include <wx/image.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
@@ -19,11 +19,11 @@
 #include "models/CustomModel.h"
 
 //(*IdInit(NodeSelectGrid)
-const long NodeSelectGrid::ID_CHECKBOX_FREE_HAND = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_SELECT = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_DESELECT = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_SELECT_ALL = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_SELECT_NONE = wxNewId();
+const long NodeSelectGrid::ID_CHECKBOX_FREE_HAND = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_LOAD_MODEL = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_ZOOM_PLUS = wxNewId();
 const long NodeSelectGrid::ID_BUTTON_ZOOM_MINUS = wxNewId();
@@ -231,14 +231,15 @@ NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWi
   bkgrd_active(true)
 {
 	//(*Initialize(NodeSelectGrid)
-	wxStaticBoxSizer* StaticBoxSizer2;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxBoxSizer* wxBoxSizerMain;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxStaticBoxSizer* StaticBoxSizer3;
 	wxBoxSizer* BoxSizer1;
-	wxStaticBoxSizer* StaticBoxSizer1;
+	wxBoxSizer* wxBoxSizerMain;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxStaticBoxSizer* StaticBoxSizer1;
+	wxStaticBoxSizer* StaticBoxSizer2;
+	wxStaticBoxSizer* StaticBoxSizer3;
 
 	Create(parent, wxID_ANY, _("Select Nodes"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX, _T("wxID_ANY"));
 	SetClientSize(wxDLG_UNIT(parent,wxSize(500,450)));
@@ -249,45 +250,45 @@ NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWi
 	FlexGridSizer2->AddGrowableRow(0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	StaticBoxSizer3 = new wxStaticBoxSizer(wxVERTICAL, this, _("Selection"));
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	Button_Select = new wxButton(this, ID_BUTTON_SELECT, _("Select"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT"));
+	FlexGridSizer3->Add(Button_Select, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonDeselect = new wxButton(this, ID_BUTTON_DESELECT, _("De-Select"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DESELECT"));
+	FlexGridSizer3->Add(ButtonDeselect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
+	FlexGridSizer3->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonSelectNone = new wxButton(this, ID_BUTTON_SELECT_NONE, _("Select None"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_NONE"));
+	FlexGridSizer3->Add(ButtonSelectNone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBoxFreeHand = new wxCheckBox(this, ID_CHECKBOX_FREE_HAND, _("Free Hand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_FREE_HAND"));
 	CheckBoxFreeHand->SetValue(false);
-	StaticBoxSizer3->Add(CheckBoxFreeHand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Select = new wxButton(this, ID_BUTTON_SELECT, _("Select"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT"));
-	StaticBoxSizer3->Add(Button_Select, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonDeselect = new wxButton(this, ID_BUTTON_DESELECT, _("De-Select"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DESELECT"));
-	StaticBoxSizer3->Add(ButtonDeselect, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonSelectAll = new wxButton(this, ID_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_ALL"));
-	StaticBoxSizer3->Add(ButtonSelectAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonSelectNone = new wxButton(this, ID_BUTTON_SELECT_NONE, _("Select None"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_NONE"));
-	StaticBoxSizer3->Add(ButtonSelectNone, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(CheckBoxFreeHand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonLoadModel = new wxButton(this, ID_BUTTON_LOAD_MODEL, _("From Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_LOAD_MODEL"));
-	StaticBoxSizer3->Add(ButtonLoadModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(ButtonLoadModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer3->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(StaticBoxSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Zoom"));
 	ButtonZoomPlus = new wxButton(this, ID_BUTTON_ZOOM_PLUS, _("+"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ZOOM_PLUS"));
-	ButtonZoomPlus->SetMinSize(wxSize(30,-1));
 	StaticBoxSizer2->Add(ButtonZoomPlus, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ButtonZoomMinus = new wxButton(this, ID_BUTTON_ZOOM_MINUS, _("-"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ZOOM_MINUS"));
-	ButtonZoomMinus->SetMinSize(wxSize(30,-1));
 	StaticBoxSizer2->Add(ButtonZoomMinus, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(StaticBoxSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Background Image"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
-	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
-	FlexGridSizer1->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Select a file"), _T("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+	FlexGridSizer1->Add(FilePickerCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SliderImgBrightness = new wxSlider(this, ID_SLIDER_IMG_BRIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_IMG_BRIGHTNESS"));
 	FlexGridSizer1->Add(SliderImgBrightness, 1, wxALL|wxEXPAND, 2);
 	BitmapButton1 = new wxBitmapButton(this, ID_BITMAPBUTTON1, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
 	FlexGridSizer1->Add(BitmapButton1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticBoxSizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxSHAPED|wxFIXED_MINSIZE, 0);
 	FlexGridSizer4->Add(StaticBoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	ButtonNodeSelectOK = new wxButton(this, ID_BUTTON_NODE_SELECT_OK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NODE_SELECT_OK"));
 	BoxSizer1->Add(ButtonNodeSelectOK, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonNodeSelectCancel = new wxButton(this, ID_BUTTON_NODE_SELECT_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NODE_SELECT_CANCEL"));
 	BoxSizer1->Add(ButtonNodeSelectCancel, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
-	FlexGridSizer4->Add(BoxSizer1, 0, wxALL|wxFIXED_MINSIZE, 5);
+	FlexGridSizer4->Add(BoxSizer1, 0, wxALL, 5);
 	FlexGridSizer2->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridNodes = new DrawGrid(this, ID_GRID_NODES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_NODES"));
 	GridNodes->CreateGrid(1,1);
@@ -304,11 +305,11 @@ NodeSelectGrid::NodeSelectGrid(Model *m, const std::vector<wxString>& rows, wxWi
 	SetSizer(wxBoxSizerMain);
 	Layout();
 
-	Connect(ID_CHECKBOX_FREE_HAND,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnCheckBoxFreeHandClick);
 	Connect(ID_BUTTON_SELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButton_SelectClick);
 	Connect(ID_BUTTON_DESELECT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonDeselectClick);
 	Connect(ID_BUTTON_SELECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectAllClick);
 	Connect(ID_BUTTON_SELECT_NONE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonSelectNoneClick);
+	Connect(ID_CHECKBOX_FREE_HAND,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnCheckBoxFreeHandClick);
 	Connect(ID_BUTTON_LOAD_MODEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonLoadModelClick);
 	Connect(ID_BUTTON_ZOOM_PLUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomPlusClick);
 	Connect(ID_BUTTON_ZOOM_MINUS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&NodeSelectGrid::OnButtonZoomMinusClick);
@@ -1091,11 +1092,9 @@ void NodeSelectGrid::UpdateBackground()
                     {
                         //GridNodes->SetCellTextColour(i, k, unselectColor);
                         GridNodes->SetCellBackgroundColour(i, k, selectBackColor);
-                    } 
+                    }
                 }
             }
         }
     }
 }
-
-
