@@ -324,6 +324,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                     if (it != models.end()) {
                         delete it->second;
                         it->second = nullptr;
+                        ResetModelGroups();
                     }
                     model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     models[model->name] = model;
@@ -400,6 +401,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 auto it2 = models.find(model->name);
                 if (it2 != models.end()) {
                     delete it2->second;
+                    ResetModelGroups();
                 }
                 models[model->name] = model;
             } else {
@@ -652,6 +654,7 @@ void ModelManager::AddModel(Model *model) {
         if (it != models.end()) {
             delete it->second;
             it->second = nullptr;
+            ResetModelGroups();
         }
         models[model->name] = model;
 
@@ -731,8 +734,6 @@ void ModelManager::Delete(const std::string &name) {
         }
     }
 }
-
-
 
 std::map<std::string, Model*>::const_iterator ModelManager::begin() const {
     return models.begin();

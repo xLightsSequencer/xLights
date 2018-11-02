@@ -2198,6 +2198,8 @@ void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext*
 
 void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame)
 {
+    if (formatContext == nullptr || codecContext == nullptr || audioStream == nullptr || frame == nullptr) return;
+
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("DoLoadAudioData: Doing load of song data.");
 

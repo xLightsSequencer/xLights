@@ -108,14 +108,8 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
             logger_base.debug("   Getting URL");
 #endif
             wxHTTP http;
-#ifdef EXTREME_FPPEVENT_LOGGING
-            logger_base.debug("   Setting timeout");
-#endif
             http.SetTimeout(1);
-#ifdef EXTREME_FPPEVENT_LOGGING
-            logger_base.debug("   Setting method");
-#endif
-            http.SetMethod("GET");
+            // http.SetMethod("GET"); dont set method ... it will default to get
 #ifdef EXTREME_FPPEVENT_LOGGING
             logger_base.debug("   Connecting to '%s'", (const char*)_ip.c_str());
 #endif
