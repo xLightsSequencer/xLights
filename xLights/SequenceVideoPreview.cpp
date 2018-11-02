@@ -26,8 +26,6 @@ SequenceVideoPreview::~SequenceVideoPreview()
 
 void SequenceVideoPreview::InitializeGLCanvas()
 {
-   if ( !IsShownOnScreen() ) return;
-
    wxColour bg = GetBackgroundColour();
    SetCurrentGLContext();
    LOG_GL_ERRORV( glClearColor( bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 0.f ) );
@@ -37,7 +35,6 @@ void SequenceVideoPreview::InitializeGLCanvas()
 void SequenceVideoPreview::paint( wxPaintEvent& evt )
 {
    if ( !mIsInitialized ) { InitializeGLCanvas(); }
-   if ( !IsShownOnScreen() ) return;
    wxPaintDC( this );
    SetCurrentGLContext();
 

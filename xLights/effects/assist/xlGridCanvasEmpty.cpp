@@ -28,7 +28,6 @@ void xlGridCanvasEmpty::SetEffect(Effect* effect_)
 
 void xlGridCanvasEmpty::InitializeGLCanvas()
 {
-    if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -42,7 +41,6 @@ void xlGridCanvasEmpty::InitializeGLCanvas()
 void xlGridCanvasEmpty::render( wxPaintEvent& event )
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
-    if(!IsShownOnScreen()) return;
 
     SetCurrentGLContext();
 

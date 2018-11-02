@@ -591,7 +591,6 @@ void xlGridCanvasPictures::mouseUp()
 
 void xlGridCanvasPictures::InitializeGLCanvas()
 {
-    if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -605,7 +604,6 @@ void xlGridCanvasPictures::InitializeGLCanvas()
 void xlGridCanvasPictures::render( wxPaintEvent& event )
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
-    if(!IsShownOnScreen()) return;
 
     SetCurrentGLContext();
 

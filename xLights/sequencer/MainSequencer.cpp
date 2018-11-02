@@ -137,7 +137,6 @@ public:
     virtual bool UsesAddVertex() override {return false;}
     void InitializeGLCanvas() override
     {
-        if(!IsShownOnScreen()) return;
         SetCurrentGLContext();
         xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
         //c.Set(70,70,70); //54->70
@@ -156,7 +155,6 @@ public:
     void renderGL()
     {
         if(!mIsInitialized) { InitializeGLCanvas(); }
-        if(!IsShownOnScreen()) return;
 
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);

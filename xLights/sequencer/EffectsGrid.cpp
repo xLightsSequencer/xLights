@@ -5396,7 +5396,7 @@ void EffectsGrid::SetStartPixelOffset(int offset)
 
 void EffectsGrid::InitializeGLCanvas()
 {
-    if(!IsShownOnScreen() || xlights == nullptr) return;
+    if(xlights == nullptr) return;
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // Black Background
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
@@ -5938,7 +5938,6 @@ void EffectsGrid::render( wxPaintEvent& evt )
 void EffectsGrid::Draw()
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
-    if(!IsShownOnScreen()) return;
 
     SetCurrentGLContext();
 

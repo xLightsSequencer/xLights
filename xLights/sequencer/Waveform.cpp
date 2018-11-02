@@ -306,7 +306,6 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 
 void Waveform::InitializeGLCanvas()
 {
-    if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
     LOG_GL_ERRORV(glDisable(GL_BLEND));
@@ -322,11 +321,9 @@ void Waveform::renderGL( wxPaintEvent& event )
     renderGL();
 }
 
-void Waveform::renderGL( )
+void Waveform::renderGL()
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
-
-    if(!IsShownOnScreen()) return;
 
     SetCurrentGLContext();
 

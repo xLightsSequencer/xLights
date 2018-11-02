@@ -1080,7 +1080,6 @@ int RowHeading::GetMaxRows()
 
 void RowHeading::render( wxPaintEvent& event )
 {
-    if(!IsShownOnScreen()) return;
     wxPaintDC dc(this);
     Draw();
 }
