@@ -67,12 +67,10 @@ public:
     bool GetCollapsed() const { return mCollapsed; }
     void SetCollapsed(bool collapsed) { mCollapsed = collapsed; }
     
-
     int GetIndex() const {return mIndex;}
     void SetIndex(int index) { mIndex = index;}
     int &Index() { return mIndex;}
     int Index() const { return mIndex;}
-    
     
     std::recursive_mutex &GetChangeLock() { return changeLock; }
     virtual void IncrementChangeCount(int startMs, int endMS);
@@ -172,7 +170,6 @@ public:
 protected:
     ModelElement *mParentModel;
 };
-
 
 class StrandElement : public SubModelElement {
 public:

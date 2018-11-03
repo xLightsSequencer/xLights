@@ -40,7 +40,7 @@ class EffectLayer
         bool SelectEffectUsingTime(int time);
 
         int GetLayerNumber();
-        int GetIndex();
+        int GetIndex() const;
         int GetEffectCount() const;
 
         bool IsStartTimeLinked(int index);

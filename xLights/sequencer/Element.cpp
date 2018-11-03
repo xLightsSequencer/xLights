@@ -205,13 +205,13 @@ std::string SubModelElement::GetFullName() const {
     return GetModelName() + "/" + GetName();
 }
 
-
 StrandElement::StrandElement(ModelElement *p, int strand)
 : SubModelElement(p, ""),
   mStrand(strand),
   mShowNodes(false)
 {
 }
+
 StrandElement::~StrandElement() {
     for (size_t x = 0; x < mNodeLayers.size(); x++) {
         delete mNodeLayers[x];

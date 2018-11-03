@@ -437,7 +437,7 @@ void SequenceElements::DeleteElement(const std::string &name)
     _viewsManager->DeleteModel(name);
 
     // delete element pointer from all views
-    for (size_t i = 0; i < mAllViews.size(); i++)
+    for (size_t i = 1; i < mAllViews.size(); i++)
     {
         for (size_t j = 0; j < mAllViews[i].size(); j++)
         {
@@ -456,6 +456,7 @@ void SequenceElements::DeleteElement(const std::string &name)
         if (name == mAllViews[MASTER_VIEW][j]->GetName())
         {
             Element *e = mAllViews[MASTER_VIEW][j];
+            mAllViews[MASTER_VIEW].erase(mAllViews[MASTER_VIEW].begin() + j);
             delete e;
             mMasterViewChangeCount++;
             break;
