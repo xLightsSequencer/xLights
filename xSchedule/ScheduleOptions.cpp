@@ -27,6 +27,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _lastSavedChangeCount = 0;
     _MIDITimecodeDevice = node->GetAttribute("MIDITimecodeDevice", "").ToStdString();
     _MIDITimecodeFormat = wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0"));
+    _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
@@ -163,6 +164,7 @@ ScheduleOptions::ScheduleOptions()
     _crashBehaviour = "Prompt user";
     _MIDITimecodeDevice = "";
     _MIDITimecodeFormat = 0;
+    _MIDITimecodeOffset = 0;
 }
 
 ScheduleOptions::~ScheduleOptions()
@@ -184,6 +186,7 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("CrashBehaviour", _crashBehaviour);
     res->AddAttribute("MIDITimecodeDevice", _MIDITimecodeDevice);
     res->AddAttribute("MIDITimecodeFormat", wxString::Format("%d", _MIDITimecodeFormat));
+    res->AddAttribute("MIDITimecodeOffset", wxString::Format("%ld", (long)_MIDITimecodeOffset));
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
     if (IsSync())

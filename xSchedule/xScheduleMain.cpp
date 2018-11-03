@@ -3071,15 +3071,18 @@ void xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommandEvent& event)
 {
-    ConfigureMIDITimecodeDialog dlg(this, __schedule->GetOptions()->GetMIDITimecodeDevice(), __schedule->GetOptions()->GetMIDITimecodeFormat());
+    ConfigureMIDITimecodeDialog dlg(this, __schedule->GetOptions()->GetMIDITimecodeDevice(), __schedule->GetOptions()->GetMIDITimecodeFormat(), __schedule->GetOptions()->GetMIDITimecodeOffset());
     if (dlg.ShowModal() == wxID_OK)
     {
         if (dlg.GetMIDI() != __schedule->GetOptions()->GetMIDITimecodeDevice() ||
-            dlg.GetFormat() != __schedule->GetOptions()->GetMIDITimecodeFormat())
+            dlg.GetFormat() != __schedule->GetOptions()->GetMIDITimecodeFormat() ||
+            dlg.GetOffset() != __schedule->GetOptions()->GetMIDITimecodeOffset()
+            )
         {
             __schedule->GetOptions()->SetMIDITimecodeDevice(dlg.GetMIDI());
             __schedule->GetOptions()->SetMIDITimecodeFormat(dlg.GetFormat());
-
+            __schedule->GetOptions()->SetMIDITimecodeOffset(dlg.GetOffset());
+            
             auto m = __schedule->GetMode();
             __schedule->SetMode(SYNCMODE::STANDALONE);
             __schedule->SetMode(m);

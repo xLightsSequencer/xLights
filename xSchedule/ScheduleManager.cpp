@@ -5155,6 +5155,9 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
     {
         wxByte buffer[10];
         size_t ms = msec;
+
+        ms += GetOptions()->GetMIDITimecodeOffset();
+
         buffer[0] = 0xF0;
         buffer[1] = 0x7F;
         buffer[2] = 0x7F;
@@ -5192,6 +5195,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
     else
     {
         size_t ms = msec;
+        ms += GetOptions()->GetMIDITimecodeOffset();
         int hours = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
         ms = ms % 360000;
 
