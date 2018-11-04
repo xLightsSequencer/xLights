@@ -1,11 +1,11 @@
 #include "PlayListStepPanel.h"
 
 #include "PlayListStep.h"
+#include "PlayListDialog.h"
 
 //(*InternalHeaders(PlayListStepPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "PlayListDialog.h"
 //*)
 
 //(*IdInit(PlayListStepPanel)

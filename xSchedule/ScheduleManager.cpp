@@ -5282,6 +5282,7 @@ void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameM
     wxString path = GetOptions()->GetOSCOptions()->GetMasterPath();
 
     path.Replace("%STEPNAME%", step->GetNameNoTime());
+
     if (step->GetTimeSource(frameMS) != nullptr)
         path.Replace("%TIMINGITEM%", step->GetTimeSource(frameMS)->GetNameNoTime());
 

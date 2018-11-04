@@ -193,7 +193,7 @@ std::string PlayListItemRDS::GetNameNoTime() const
 
 std::string PlayListItemRDS::GetTooltip()
 {
-    return "Available variables:\n    %STEPNAME% - current playlist step\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %ALBUM% - from mp3";
+    return "Available variables:\n    %STEPNAME% - current playlist step\n    %NEXTSTEPNAME% - next playlist step\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %ALBUM% - from mp3";
 }
 
 void PlayListItemRDS::Dump(unsigned char* buffer, int buflen)
@@ -282,13 +282,28 @@ void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t frame
 
         _started = true;
 
-        auto step = xScheduleFrame::GetScheduleManager()->GetRunningPlayList()->GetRunningStep();
+        wxString text = wxString(_text);
+
+        auto playlist = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
+        PlayListStep* step = nullptr;
+
+        if (playlist != nullptr && !playlist->IsRandom())
+        {
+            step = playlist->GetRunningStep();
+            bool dummy;
+            auto nextstep = playlist->GetNextStep(dummy);
+            if (nextstep != nullptr)
+            {
+                text.Replace("%NEXTSTEPNAME%", nextstep->GetNameNoTime());
+            }
+        }
+        text.Replace("%NEXTSTEPNAME%", "");
+
         if (step == nullptr)
         {
             step = xScheduleFrame::GetScheduleManager()->GetStepContainingPlayListItem(GetId());
         }
 
-        wxString text = wxString(_text);
         wxString stationName = wxString(_stationName);
 
         if (step != nullptr)

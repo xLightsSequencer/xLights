@@ -2,11 +2,11 @@
 #define PLAYLISTITEMRUNCOMMANDPANEL_H
 
 //(*Headers(PlayListItemRunCommandPanel)
+#include <wx/choice.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class PlayListItemRunCommand;
@@ -23,17 +23,17 @@ class PlayListItemRunCommandPanel: public wxPanel
 
 		//(*Declarations(PlayListItemRunCommandPanel)
 		wxChoice* Choice_Command;
-		wxTextCtrl* TextCtrl_Parm2;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_Parm1;
-		wxTextCtrl* TextCtrl_Delay;
-		wxStaticText* StaticText5;
-		wxTextCtrl* TextCtrl_RunCommandName;
 		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_Parm1;
+		wxTextCtrl* TextCtrl_Parm2;
 		wxTextCtrl* TextCtrl_Parm3;
+		wxTextCtrl* TextCtrl_RunCommandName;
 		//*)
 
 	protected:
