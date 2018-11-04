@@ -1094,6 +1094,15 @@ int ScheduleManager::Frame(bool outputframe)
     return rate;
 }
 
+bool ScheduleManager::IsSlave() const
+{
+    return _mode == FPPSLAVE ||
+        _mode == FPPUNICASTSLAVE ||
+        _mode == ARTNETSLAVE ||
+        _mode == OSCSLAVE ||
+        _mode == MIDISLAVE;
+}
+
 void ScheduleManager::CreateBrightnessArray()
 {
     for (size_t i = 0; i < 256; i++)

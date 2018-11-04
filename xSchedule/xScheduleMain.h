@@ -96,6 +96,7 @@ class xScheduleFrame : public wxFrame
     void DoPaste();
     void DoCopy();
     void AddSchedule();
+    void RemoteWarning();
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -233,6 +234,7 @@ public:
         static const long ID_PANEL1;
         static const long ID_STATICTEXT1;
         static const long ID_STATICTEXT3;
+        static const long ID_STATICTEXT6;
         static const long ID_STATICTEXT4;
         static const long ID_STATICTEXT5;
         static const long ID_STATICTEXT2;
@@ -302,6 +304,7 @@ public:
         wxFileDialog* FileDialog1;
         wxFlexGridSizer* FlexGridSizer1;
         wxFlexGridSizer* FlexGridSizer4;
+        wxFlexGridSizer* FlexGridSizer6;
         wxListView* ListView_Ping;
         wxListView* ListView_Running;
         wxMenu* Menu3;
@@ -348,6 +351,7 @@ public:
         wxStaticText* StaticText2;
         wxStaticText* StaticText_IP;
         wxStaticText* StaticText_PacketsPerSec;
+        wxStaticText* StaticText_RemoteWarning;
         wxStaticText* StaticText_ShowDir;
         wxStaticText* StaticText_Time;
         wxStatusBar* StatusBar1;
