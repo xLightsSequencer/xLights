@@ -203,6 +203,9 @@ void xlColorCanvas::ProcessPaletteClick( int row, int column )
 
 void xlColorCanvas::InitializeGLCanvas()
 {
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -216,6 +219,9 @@ void xlColorCanvas::InitializeGLCanvas()
 void xlColorCanvas::render( wxPaintEvent& event )
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
 
     SetCurrentGLContext();
 

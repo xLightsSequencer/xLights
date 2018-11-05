@@ -359,6 +359,9 @@ void xlGridCanvasMorph::CreateCornerTextures()
 
 void xlGridCanvasMorph::InitializeGLCanvas()
 {
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -373,6 +376,10 @@ void xlGridCanvasMorph::InitializeGLCanvas()
 void xlGridCanvasMorph::render( wxPaintEvent& event )
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
+
 
     SetCurrentGLContext();
 
