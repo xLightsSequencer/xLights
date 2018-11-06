@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.42 November 6, 2018
    -- enh (keith)  Add text effect grabbing text from a file ... so you can have multiple effects changed from one 
                    location even in multiple sequences
    -- enh (keith)  Add MIDI timecode offsets so you can use +1hr offsets
