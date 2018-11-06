@@ -328,13 +328,15 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 ModelGroup *model = new ModelGroup(e, *this, previewW, previewH);
                 if (model->Reset()) {
                     auto it = models.find(model->name);
+                    bool reset = false;
                     if (it != models.end()) {
                         delete it->second;
                         it->second = nullptr;
-                        ResetModelGroups();
+                        reset = true;
                     }
-                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     models[model->name] = model;
+                    if (reset) ResetModelGroups();
+                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                 } else {
                     model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     toBeDone.push_back(model);

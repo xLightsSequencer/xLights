@@ -2598,14 +2598,14 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     inClose = true;
 
-	logger_base.info("xLights Closing");
+    logger_base.info("xLights Closing");
 
-	StopNow();
+    StopNow();
 
-	if (!CloseSequence())
+    if (!CloseSequence())
     {
-		logger_base.info("Closing aborted.");
-		event.Veto();
+        logger_base.info("Closing aborted.");
+        event.Veto();
         inClose = false;
         return;
     }
@@ -2629,10 +2629,10 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     heartbeat("exit", true); //tell fido about graceful exit -DJ
 
     Destroy();
-	logger_base.info("xLights Closed.");
+    logger_base.info("xLights Closed.");
 
     inClose = false;
-    }
+}
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {

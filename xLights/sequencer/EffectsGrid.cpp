@@ -4336,10 +4336,11 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
     logger_base.info("Pasting data: %s", (const char *)data.c_str());
 
     wxArrayString all_efdata = wxSplit(data, '\n');
-    if (all_efdata.size() == 0) {
-        return;
-    }
+    if (all_efdata.size() == 0)  return;
+
     wxArrayString banner_data = wxSplit(all_efdata[0], '\t');
+    if (banner_data.size() == 0) return;
+
     if( banner_data[0] != "CopyFormat1" && banner_data[0] != "CopyFormatAC" )
     {
         OldPaste(data, pasteDataVersion);
@@ -4358,6 +4359,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         return;
     }
 
+    if (banner_data.size() < 7) return;
     bool contains_cell_info = (banner_data[6] != "NO_PASTE_BY_CELL");
     bool paste_by_cell = ((MainSequencer*)mParent)->PasteByCellActive();
     if( paste_by_cell && !row_paste )
@@ -4403,11 +4405,11 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             std::set<std::string> modelsToRender;
 
             wxArrayString eff1data = wxSplit(all_efdata[1], '\t');
-            if (eff1data.size() < 7) {
-                return;
-            }
+            if (eff1data.size() < 7) return;
+
             int column_start_time = wxAtoi(eff1data[6]);
             if( xlights->IsACActive() ) {
+                if (banner_data.size() < 10) return;
                 column_start_time = wxAtoi(banner_data[9]);
             }
             int drop_time_offset = wxAtoi(eff1data[3]);
@@ -4467,6 +4469,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
             // clear the region if AC mode
             if( xlights->IsACActive() ) {
+                if (banner_data.size() < 11) return;
                 int drop_end_time = mDropStartTimeMS + wxAtoi(banner_data[10]) - wxAtoi(banner_data[9]);
                 int rowstopaste = wxAtoi(banner_data[8]) - wxAtoi(banner_data[7]) + 1;
                 if (rowstopaste == 1)
@@ -4502,14 +4505,13 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                 for (size_t i = 1; i < all_efdata.size() - 1; i++)
                 {
                     wxArrayString efdata = wxSplit(all_efdata[i], '\t');
-                    if (efdata.size() < 7) {
-                        break;
-                    }
+                    if (efdata.size() < 8)  break;
                     bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
                     int new_start_time = wxAtoi(efdata[3]);
                     int new_end_time = wxAtoi(efdata[4]);
                     if (paste_by_cell && !is_timing_effect && !row_paste)
                     {
+                        if (efdata.size() < 11)  break;
                         int eff_start_column = wxAtoi(efdata[7]);
                         int eff_end_column = wxAtoi(efdata[8]);
                         int eff_start_pct = wxAtoi(efdata[9]);
@@ -4662,9 +4664,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
         if ( number_of_timings == 0 && number_of_effects == 1 )  // only single effect paste allowed for range
         {
             wxArrayString efdata = wxSplit(all_efdata[1], '\t');
-            if (efdata.size() < 3) {
-                return;
-            }
+            if (efdata.size() < 3)  return;
             if( efdata[0] == "Random" )
             {
                 FillRandomEffects();
@@ -4699,6 +4699,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                     int end_time = tel->GetEffect(col2)->GetEndTimeMS();
                     if( !paste_by_cell )  // use original effect length if paste by time
                     {
+                        if (efdata.size() < 5)  return;
                         int drop_time_offset = wxAtoi(efdata[3]);
                         drop_time_offset = mDropStartTimeMS - drop_time_offset;
                         end_time = wxAtoi(efdata[4]);

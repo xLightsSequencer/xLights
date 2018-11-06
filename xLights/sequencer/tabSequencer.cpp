@@ -418,9 +418,12 @@ void xLightsFrame::CheckForValidModels()
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        AllNames.push_back(it->first);
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            ModelNames.push_back(it->first);
+        if (it->second != nullptr)
+        {
+            AllNames.push_back(it->first);
+            if (it->second->GetDisplayAs() != "ModelGroup") {
+                ModelNames.push_back(it->first);
+            }
         }
     }
 
