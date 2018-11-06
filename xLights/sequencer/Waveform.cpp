@@ -349,8 +349,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     DrawGLUtils::xlAccumulator vac;
     vac.PreAlloc(18);
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    xlColor color = frame->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
+    xlColor color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
 
     vac.AddVertex(0, 0, color);
     vac.AddVertex(mWindowWidth, 0, color);
