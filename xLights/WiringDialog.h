@@ -2,9 +2,9 @@
 #define WIRINGDIALOG_H
 
 //(*Headers(WiringDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
-#include <wx/dialog.h>
 //*)
 
 #include <wx/grid.h>
@@ -12,6 +12,7 @@
 #include <map>
 #include <list>
 #include <wx/prntbase.h>
+#include <wx/generic/statbmpg.h>
 
 class WiringDialog;
 class Model;
@@ -61,7 +62,7 @@ class WiringDialog: public wxDialog
         void DrawBitmap(wxBitmap& bitmap, bool printer = false);
 
 		//(*Declarations(WiringDialog)
-		wxStaticBitmap* StaticBitmap_Wiring;
+		wxGenericStaticBitmap* StaticBitmap_Wiring;
 		//*)
 
 	protected:

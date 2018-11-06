@@ -60,7 +60,7 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	StaticBitmap_Wiring = new wxStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(500,500), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
+	StaticBitmap_Wiring = new wxGenericStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(500,500), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
 	FlexGridSizer1->Add(StaticBitmap_Wiring, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
@@ -70,7 +70,6 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 	//*)
 
     Connect(ID_STATICBITMAP1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&WiringDialog::RightClick);
-
     _modelname = modelname;
 
     wxConfigBase* config = wxConfigBase::Get();
