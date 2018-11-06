@@ -28,7 +28,7 @@ class ModelManager
         bool Rename(const std::string &oldName, const std::string &newName);
         bool RenameSubModel(const std::string &oldName, const std::string &newName);
         bool RenameInListOnly(const std::string &oldName, const std::string &newName);
-        bool IsModelOverlapping(Model* model);
+        bool IsModelOverlapping(Model* model) const;
         void AddModel(Model *m);
         void Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
