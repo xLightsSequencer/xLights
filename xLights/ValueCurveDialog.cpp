@@ -794,7 +794,8 @@ void ValueCurveDialog::UpdateLinkedSlider(wxCommandEvent& event)
         val_str << value;
         txt->ChangeValue(val_str);
     }
-    slider->SetValue(value);
+	int scale = _vc->GetDivisor();
+    slider->SetValue(value * scale);
 }
 
 void ValueCurveDialog::UpdateLinkedTextCtrl(wxScrollEvent& event)

@@ -208,6 +208,10 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
             slideridd = true;
         }
     }
+	else if (slider != nullptr)
+	{
+		slideridd = true;
+	}
 
     name = vc->GetName();
     name.Replace("IDD_VALUECURVE_", "ID_TEXTCTRL_");
