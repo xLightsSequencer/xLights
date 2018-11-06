@@ -9,6 +9,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    _nodesAllValid = true;
     ModelXml = n;
     StrobeRate = 0;
     Nodes.clear();
@@ -76,6 +77,10 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                             else {
                                 col++;
                             }
+                        }
+                        else
+                        {
+                            _nodesAllValid = false;
                         }
                         if (start > end) {
                             nn--;
@@ -169,7 +174,6 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
             }
         }
 
-
         if (maxx < minx || maxy < miny || Nodes.size() == 0) {
             // invalid buffer, set it to just a 1x1 as 0x0 can cause some render issues
             SetBufferSize(1, 1);
@@ -182,7 +186,3 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     //ModelStartChannel is 1 based
     this->ModelStartChannel = wxString::Format("%u", (startChannel + 1));
 }
-
-void SubModel::AddProperties(wxPropertyGridInterface *grid) {
-}
-
