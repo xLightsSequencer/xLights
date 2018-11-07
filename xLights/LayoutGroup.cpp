@@ -162,7 +162,8 @@ void LayoutGroup::ShowPreview(bool show)
         mPreviewPane = preview;
         wxPanel* panel = preview->GetPreviewPanel();
         wxFlexGridSizer* panel_sizer = preview->GetPreviewPanelSizer();
-        ModelPreview* new_preview = new ModelPreview(panel, xlights, GetModels(), xlights->LayoutGroups, false);
+        ModelPreview* new_preview = new ModelPreview(panel, xlights, false);
+        new_preview->SetActiveLayoutGroup(GetName());
         new_preview->SetPreviewPane(preview);
         mModelPreview = new_preview;
         panel_sizer->Add(new_preview, 1, wxALL | wxEXPAND, 0);

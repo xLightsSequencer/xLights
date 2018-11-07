@@ -93,7 +93,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&HousePreviewPanel::OnResize);
 	//*)
 
-    _modelPreview = new ModelPreview(this, _xLights, models ,groups, allowSelected, style, allowPreviewChange);
+    _modelPreview = new ModelPreview(this, _xLights, allowSelected, style, allowPreviewChange);
     ModelPreviewSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
 
     ValidateWindow(GetSize());

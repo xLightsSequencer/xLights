@@ -19,11 +19,9 @@ class ModelPreview : public xlGLCanvas
 {
 
 public:
-    ModelPreview(wxPanel* parent);
+    ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
 	ModelPreview(wxPanel* parent,
-                 xLightsFrame* xlights_,
-                 std::vector<Model*> &models,
-                 std::vector<LayoutGroup *> &groups,
+                 xLightsFrame* xlights,
                  bool allowSelected,
                  int style = 0,
                  bool allowPreviewChange = false);
@@ -59,19 +57,19 @@ public:
     void Render(const unsigned char *data, bool swapBuffers=true);
 
     double calcPixelSize(double i);
-    void SetModels(std::vector<Model*> &models) {
-        previewModels.clear();
-        previewModels = models;
-        PreviewModels = &previewModels;
-    }
-    void SetModel(Model* model) { _model = model; }
-    std::vector<Model*> &GetModels() {
-        if (PreviewModels == nullptr) {
-            return previewModels;
-        }
-        return *PreviewModels;
-    }
 
+    void SetModel(const Model* model);
+    void SetActiveLayoutGroup(const std::string &grp = "Default") {
+        currentLayoutGroup = grp;
+        Refresh();
+    }
+    const std::vector<Model*> &GetModels();
+    void SetAdditionalModel(Model *m) {
+        additionalModel = m;
+        Refresh();
+    }
+    
+    
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive();
@@ -111,17 +109,17 @@ private:
     Image* image = nullptr;
     bool scaleImage = false;
     xLightsDrawable* sprite;
-    std::vector<Model*> previewModels;
-    std::vector<Model*> *PreviewModels;
-    std::vector<Model*> *HouseModels;
-    std::vector<LayoutGroup *> *LayoutGroups;
     bool allowSelected;
     bool allowPreviewChange;
     PreviewPane* mPreviewPane;
     DrawGLUtils::xlAccumulator accumulator;
-    Model* _model;
+    
     xLightsFrame* xlights;
-
+    std::string currentModel;
+    std::string currentLayoutGroup;
+    std::vector<Model*> tmpModelList;
+    Model *additionalModel;
+    
     double currentPixelScaleFactor = 1.0;
 
     int maxVertexCount;
