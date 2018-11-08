@@ -1417,7 +1417,6 @@ void LayoutPanel::CreateModelGroupFromSelected()
         xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
-        xlights->AllModels.ResetModelGroups();
         model_grp_panel->UpdatePanel(name.ToStdString());
         ShowPropGrid(false);
         SelectModel(name.ToStdString());
@@ -3549,7 +3548,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
 
                 xlights->UpdateModelsList();
                 xlights->MarkEffectsFileDirty(true);
-                xlights->AllModels.ResetModelGroups();
                 model_grp_panel->UpdatePanel(name.ToStdString());
             }
         }
@@ -3581,7 +3579,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
             xlights->UpdateModelsList();
             xlights->MarkEffectsFileDirty(true);
-            xlights->AllModels.ResetModelGroups();
             model_grp_panel->UpdatePanel(name.ToStdString());
             ShowPropGrid(false);
         }
@@ -4011,7 +4008,6 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
                 mSelectedGroup = item;
                 ShowPropGrid(false);
                 UpdateModelList(false);
-                xlights->AllModels.ResetModelGroups();
                 model_grp_panel->UpdatePanel(model->name);
             } else {
                 mSelectedGroup = nullptr;

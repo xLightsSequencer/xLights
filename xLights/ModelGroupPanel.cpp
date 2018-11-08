@@ -259,6 +259,7 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
 
 void ModelGroupPanel::UpdatePanel(const std::string group)
 {
+    mModels.ResetModelGroups(); // make sure all our pointers are valid
     mGroup = group;
     LabelModelGroupName->SetLabel(group);
     ListBoxModelsInGroup->Freeze();
