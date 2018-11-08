@@ -3647,6 +3647,9 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	// creating the dialog can take some time so display an hourglass
 	SetCursor(wxCURSOR_WAIT);
 
+    // Make sure all the models in model groups are valid
+    AllModels.ResetModelGroups();
+
 	// display the test dialog
     PixelTestDialog dialog(this, &_outputManager, networkFile, &AllModels);
     dialog.CenterOnParent();
