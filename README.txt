@@ -1,4 +1,4 @@
-﻿xLights is a show sequencer and player/scheduler designed to control
+xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Default DDP packet size should be 1440
+   -- enh (dkulp)  If uploading to FPP 2.4+, gzip the fseq files prior to transmission
+   -- enh (dkulp)  Use HTTP upload method for transferring fseq/mp3 files to FPP instead of FTP
 2018.42 November 6, 2018
    -- enh (keith)  Add text effect grabbing text from a file ... so you can have multiple effects changed from one 
                    location even in multiple sequences

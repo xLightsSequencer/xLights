@@ -122,7 +122,7 @@
 								</object>
 							</object>
 						</object>
-						<label>FTP</label>
+						<label>HTTP/FTP</label>
 						<selected>1</selected>
 					</object>
 					<object class="notebookpage">

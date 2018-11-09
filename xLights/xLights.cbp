@@ -1309,7 +1309,7 @@
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="outputs/ArtNetDialog.cpp" hdr="outputs/ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DDPDialog.wxs" src="outputs/DDPDialog.cpp" hdr="outputs/DDPDialog.h" fwddecl="0" i18n="1" name="DDPDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="controllers/FPPConnectDialog.cpp" hdr="controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="effects/ServoPanel.cpp" hdr="effects/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />

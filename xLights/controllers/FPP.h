@@ -23,6 +23,8 @@ class FPP
     std::string GetURL(const std::string& url, bool logresult = false);
     
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val);
+    
+    bool uploadFileViaHTTP(const std::string &fn, const std::string &localfile, wxWindow* parent, bool compress = false);
 
 public:
     std::string Version() { return _version; };
@@ -39,6 +41,7 @@ public:
     std::string SaveFPPUniversesV1(const std::string& onlyip, const std::list<int>& selected, bool onebased) const;
     std::string SaveFPPUniversesV2(const std::string& onlyip, const std::list<int>& selected, bool onebased, bool input) const;
     std::string SaveFPPChannelMemoryMaps(ModelManager* allmodels) const;
+    
     bool UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent);
     static bool IsDefaultPassword(const std::string& user, const std::string& password);
     static bool Exists(const std::string& ip);
