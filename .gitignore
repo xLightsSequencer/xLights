@@ -37,3 +37,5 @@ xLights/xLights.VC.db
 lib/linux/libliquidfun.a
 *.opensdf
 *.cbp.mak.orig
+/.vs
+/xLights/Xlights.vcxproj.user
