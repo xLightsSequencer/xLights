@@ -459,6 +459,12 @@ void PolyLineModel::InitModel() {
                     seg_start = seg_end;
                     segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
                     seg_end = seg_start + segment_length;
+                    // If this is the last segment then just set the end really high so all remaining lights are on this segment
+                    // This is required when using really large numbers of lights for each node ... root cause ... lack of resolution in floating point number
+                    if (segment == polyLineSizes.size() - 1)
+                    {
+                        seg_end += 1000;
+                    }
                 }
             }
             glm::vec3 v;
