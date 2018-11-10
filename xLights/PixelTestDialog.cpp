@@ -462,7 +462,7 @@ public:
                 long sc = _subModel->NodeStartChannel(i);
                 for (int j = 0; j < _subModel->GetChanCountPerNode(); j++)
                 {
-                    _nonContiguousChannels.push_back(sc + _absoluteStartChannel + 1 + j);
+                    _nonContiguousChannels.push_back(sc + 1 + j);
                 }
             }
             _absoluteStartChannel = -1;
@@ -483,7 +483,7 @@ public:
             }
             else
             {
-                _name += " [1-" + std::string(wxString::Format(wxT("%i"), _nodes)) + "]";
+                _name += " [1-" + std::string(wxString::Format(wxT("%ld"), _nodes)) + "]";
             }
         }
         if (_absoluteStartChannel < 1)
@@ -492,11 +492,11 @@ public:
         }
         else if (_absoluteEndChannel <= _absoluteStartChannel)
         {
-            _name += " (" + std::string(wxString::Format(wxT("%i"), _absoluteStartChannel)) + ")";
+            _name += " (" + std::string(wxString::Format(wxT("%ld"), _absoluteStartChannel)) + ")";
         }
         else
         {
-            _name += " (" + std::string(wxString::Format(wxT("%i"), _absoluteStartChannel)) + "-" + std::string(wxString::Format(wxT("%i"), _absoluteEndChannel)) + ")";
+            _name += " (" + std::string(wxString::Format(wxT("%ld"), _absoluteStartChannel)) + "-" + std::string(wxString::Format(wxT("%ld"), _absoluteEndChannel)) + ")";
         }
     }
     virtual bool IsClickable() const override { return _subModel != nullptr && _channelsAvailable; }
@@ -557,7 +557,7 @@ public:
                     long sc = model->NodeStartChannel(i);
                     for (int j = 0; j < model->GetChanCountPerNode(); j++)
                     {
-                        _nonContiguousChannels.push_back(sc + _absoluteStartChannel + 1 + j);
+                        _nonContiguousChannels.push_back(sc + j + 1);
                     }
                 }
                 _absoluteStartChannel = -1;
@@ -578,7 +578,7 @@ public:
                 }
                 else
                 {
-                    _name += " [1-" + std::string(wxString::Format(wxT("%i"), _nodes)) + "]";
+                    _name += " [1-" + std::string(wxString::Format(wxT("%ld"), _nodes)) + "]";
                 }
             }
             if (_absoluteStartChannel < 1)
@@ -587,11 +587,11 @@ public:
             }
             else if (_absoluteEndChannel <= _absoluteStartChannel)
             {
-                _name += " (" + std::string(wxString::Format(wxT("%i"), _absoluteStartChannel)) + ")";
+                _name += " (" + std::string(wxString::Format(wxT("%ld"), _absoluteStartChannel)) + ")";
             }
             else
             {
-                _name += " (" + std::string(wxString::Format(wxT("%i"), _absoluteStartChannel)) + "-" + std::string(wxString::Format(wxT("%i"), _absoluteEndChannel)) + ")";
+                _name += " (" + std::string(wxString::Format(wxT("%ld"), _absoluteStartChannel)) + "-" + std::string(wxString::Format(wxT("%ld"), _absoluteEndChannel)) + ")";
             }
         }
         else
@@ -1142,15 +1142,15 @@ PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager,
 	TreeListCtrl_Outputs = new wxTreeListCtrl(Panel_Outputs, ID_TREELISTCTRL_Outputs, wxPoint(0, 0), Panel_Outputs->GetSize(), wxTR_FULL_ROW_HIGHLIGHT | wxTR_DEFAULT_STYLE| wxTL_CHECKBOX | wxTL_USER_3STATE, _T("ID_TREELISTCTRL_Outputs"));
     FlexGridSizer_Outputs->Add(TreeListCtrl_Outputs, 1, wxALL | wxEXPAND, 5);
     FlexGridSizer_Outputs->AddGrowableRow(1);
-	TreeListCtrl_Outputs->AppendColumn(L"Select channels ...");
+	TreeListCtrl_Outputs->AppendColumn(L"Select channels ...", 500);
     FlexGridSizer_Outputs->Layout();
 	TreeListCtrl_Models = new wxTreeListCtrl(Panel_Models, ID_TREELISTCTRL_Models, wxPoint(0, 0), Panel_Models->GetSize(), wxTR_FULL_ROW_HIGHLIGHT | wxTR_DEFAULT_STYLE| wxTL_CHECKBOX | wxTL_USER_3STATE, _T("ID_TREELISTCTRL_Models"));
     FlexGridSizer_Models->Add(TreeListCtrl_Models, 1, wxALL | wxEXPAND, 5);
-	TreeListCtrl_Models->AppendColumn(L"Select channels ...");
+	TreeListCtrl_Models->AppendColumn(L"Select channels ...", 500);
     FlexGridSizer_Models->Layout();
 	TreeListCtrl_ModelGroups = new wxTreeListCtrl(Panel_ModelGroups, ID_TREELISTCTRL_ModelGroups, wxPoint(0, 0), Panel_ModelGroups->GetSize(), wxTR_FULL_ROW_HIGHLIGHT | wxTR_DEFAULT_STYLE| wxTL_CHECKBOX | wxTL_USER_3STATE, _T("ID_TREELISTCTRL_ModelGroups"));
     FlexGridSizer_ModelGroups->Add(TreeListCtrl_ModelGroups, 1, wxALL | wxEXPAND, 5);
-	TreeListCtrl_ModelGroups->AppendColumn(L"Select channels ...");
+	TreeListCtrl_ModelGroups->AppendColumn(L"Select channels ...", 500);
     FlexGridSizer_ModelGroups->Layout();
 
 	// add checkbox events
@@ -1654,49 +1654,36 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
 	TestItemBase* tc = (TestItemBase*)tree->GetItemData(item);
 
 	// You cannot check these items
-	if (!tc->IsClickable())
-	{
+	if (!tc->IsClickable()) {
 		tree->CheckItem(item, wxCHK_UNCHECKED);
 		wxBell();
 		return;
 	}
 
 	wxCheckBoxState checked = tree->GetCheckedState(item);
-
-	if (checked == wxCheckBoxState::wxCHK_UNDETERMINED)
-	{
-		tree->CheckItem(item, wxCHK_UNCHECKED);
-		checked = wxCheckBoxState::wxCHK_UNCHECKED;
+	if (checked == wxCheckBoxState::wxCHK_UNDETERMINED) {
+        wxCheckBoxState state = event.GetOldCheckedState() == wxCHK_CHECKED ? wxCHK_UNCHECKED : wxCHK_CHECKED;
+		tree->CheckItem(item, state);
+		checked = state;
 	}
 
-	if (checked == wxCheckBoxState::wxCHK_CHECKED)
-	{
-        if (tc->IsContiguous())
-        {
+	if (checked == wxCheckBoxState::wxCHK_CHECKED) {
+        if (tc->IsContiguous()) {
             _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
-        }
-        else
-        {
+        } else {
             long ch = tc->GetFirstChannel();
-            while (ch != -1)
-            {
+            while (ch != -1) {
                 _channelTracker.AddRange(ch, ch);
                 ch = tc->GetNextChannel();
             }
         }
         CascadeSelected(tree, item, wxCheckBoxState::wxCHK_CHECKED);
-	}
-	else if (checked == wxCheckBoxState::wxCHK_UNCHECKED)
-	{
-        if (tc->IsContiguous())
-        {
+	} else if (checked == wxCheckBoxState::wxCHK_UNCHECKED) {
+        if (tc->IsContiguous()) {
             _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
-        }
-        else
-        {
+        } else {
             long ch = tc->GetFirstChannel();
-            while (ch != -1)
-            {
+            while (ch != -1) {
                 _channelTracker.RemoveRange(ch, ch);
                 ch = tc->GetNextChannel();
             }
@@ -1711,24 +1698,39 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
 	// handle multiple selected items
 	wxTreeListItems selections;
 	tree->GetSelections(selections);
-	if (selections.size() > 1)
-	{
-		for (int i = 0; i < selections.size(); i++)
-		{
+	if (selections.size() > 1) {
+		for (int i = 0; i < selections.size(); i++) {
 			// dont double process the item that was passed into the event
-			if (selections[i] != item)
-			{
-				if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED)
-				{
+			if (selections[i] != item) {
+                tc = (TestItemBase*)tree->GetItemData(selections[i]);
+                if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
 					// check the items
 					tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
-					CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
-				}
-				else if (tree->GetCheckedState(selections[i]) == wxCHK_CHECKED)
-				{
+                    if (tc->IsContiguous()) {
+                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.AddRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
+				} else if (tree->GetCheckedState(selections[i]) == wxCHK_CHECKED) {
 					// uncheck the items
 					tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
-					CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.RemoveRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
 				}
 			}
 		}
@@ -2110,6 +2112,8 @@ void PixelTestDialog::OnTimer(long curtime)
 	if (_checkChannelList)
 	{
         SetSuspend();
+
+        NextSequenceStart = -1;
 
 		// get list of checked channels
         _outputManager->AllOff();
@@ -2803,17 +2807,17 @@ void PixelTestDialog::OnClose(wxCloseEvent& event)
 void PixelTestDialog::SetCheckBoxItemFromTracker(wxTreeListCtrl* tree, wxTreeListItem item, wxCheckBoxState parentState)
 {
     wxTreeListItem i = tree->GetFirstChild(item);
-    while (i != nullptr)
-    {
-        if (tree->GetItemText(i) == "Dummy")
-        {
-            tree->CheckItem(i, parentState);
-        }
-        else
-        {
+    while (i != nullptr) {
+        if (tree->GetItemText(i) == "Dummy") {
+            if (tree->GetCheckedState(i) != parentState) {
+                tree->CheckItem(i, parentState);
+            }
+        } else {
             TestItemBase* tc = (TestItemBase*)tree->GetItemData(i);
             auto state = tc->GetState(_channelTracker);
-            tree->CheckItem(i, state);
+            if (tree->GetCheckedState(i) != state) {
+                tree->CheckItem(i, state);
+            }
             SetCheckBoxItemFromTracker(tree, i, tree->GetCheckedState(i));
         }
         i = tree->GetNextSibling(i);

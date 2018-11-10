@@ -18,8 +18,6 @@ protected:
     bool _started;
     #pragma endregion Member Variables
 
-    std::string PrepareString(const std::string s);
-
 public:
 
     #pragma region Constructors and Destructors

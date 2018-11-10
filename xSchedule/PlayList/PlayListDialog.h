@@ -78,6 +78,7 @@ class PlayListDialog: public wxDialog
 
         static const long ID_MNU_ADDSTEP;
         static const long ID_MNU_ADDESEQ;
+        static const long ID_MNU_ADDFADE;
         static const long ID_MNU_ADDFSEQ;
         static const long ID_MNU_ADDSCREENMAP;
         static const long ID_MNU_ADDTEXT;
@@ -100,6 +101,7 @@ class PlayListDialog: public wxDialog
         static const long ID_MNU_ADDIMAGE;
         static const long ID_MNU_ADDJUKEBOX;
         static const long ID_MNU_ADDDELAY;
+        static const long ID_MNU_ADDDIM;
         static const long ID_MNU_DELETE;
         static const long ID_MNU_REMOVEEMPTYSTEPS;
 

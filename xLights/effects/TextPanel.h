@@ -6,6 +6,7 @@
 class wxBitmapButton;
 class wxCheckBox;
 class wxChoice;
+class wxFilePickerCtrl;
 class wxFlexGridSizer;
 class wxFontPickerCtrl;
 class wxGridBagSizer;
@@ -20,6 +21,8 @@ class wxTextCtrl;
 
 class TextPanel: public wxPanel
 {
+    void ValidateWindow();
+
 	public:
 
 		TextPanel(wxWindow* parent);
@@ -37,6 +40,7 @@ class TextPanel: public wxPanel
 		BulkEditSlider* Slider_Text_YEnd;
 		BulkEditSlider* Slider_Text_YStart;
 		BulkEditTextCtrl* TextCtrl_Text;
+		wxFilePickerCtrl* FilePickerCtrl1;
 		wxPanel* Panel17;
 		wxPanel* Panel_Text1;
 		wxStaticText* StaticText107;
@@ -46,6 +50,7 @@ class TextPanel: public wxPanel
 		wxStaticText* StaticText212;
 		wxStaticText* StaticText213;
 		wxStaticText* StaticText214;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText53;
 		wxStaticText* StaticText78;
 		wxStaticText* StaticText98;
@@ -62,6 +67,8 @@ class TextPanel: public wxPanel
 		//(*Identifiers(TextPanel)
 		static const long ID_STATICTEXT_Text;
 		static const long ID_TEXTCTRL_Text;
+		static const long ID_STATICTEXT1;
+		static const long ID_FILEPICKERCTRL_Text_File;
 		static const long ID_FONTPICKER_Text_Font;
 		static const long ID_BITMAPBUTTON_FONTPICKER_Text_Font;
 		static const long ID_STATICTEXT_Text_Font;
@@ -108,7 +115,8 @@ class TextPanel: public wxPanel
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
-        //*)
+		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
+		//*)
 
 		DECLARE_EVENT_TABLE()
 };

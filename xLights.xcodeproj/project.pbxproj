@@ -51,7 +51,7 @@
 		67025CA820D7EEA300BF1AC6 /* wxMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F33A2040F66500B847E0 /* wxMidi.cpp */; };
 		67025CA920D7EEA300BF1AC6 /* wxMidi.h in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F33B2040F66500B847E0 /* wxMidi.h */; };
 		67025CAA20D7EEA300BF1AC6 /* wxMidiDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3392040F66500B847E0 /* wxMidiDatabase.cpp */; };
-		67025CAB20D7EEB900BF1AC6 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
+		67025CAB20D7EEB900BF1AC6 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; settings = {COMPILER_FLAGS = "-D__NO_AUIDO__"; }; };
 		67025CAC20D7EEF400BF1AC6 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
 		67025CAE20D7EF2E00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025CAD20D7EF2D00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib */; };
 		67025CAF20D7EF5400BF1AC6 /* liblog4cpp.5.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -68,6 +68,9 @@
 		670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EF2024C19B0002B617 /* LorOptimisedDialog.cpp */; };
 		670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */; };
 		670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */; };
+		670B171821973D07004F0993 /* ExtraIPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B171421973D06004F0993 /* ExtraIPDialog.cpp */; };
+		670B171921973D07004F0993 /* ExtraIPsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B171521973D07004F0993 /* ExtraIPsDialog.cpp */; };
+		670B31BD2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */; };
 		670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */; };
 		670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827F1C45C48B000AA5D8 /* StarModel.cpp */; };
 		670C82891C45C48B000AA5D8 /* TreeModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C82811C45C48B000AA5D8 /* TreeModel.cpp */; };
@@ -173,6 +176,8 @@
 		674E3EE920CEB5530087FDA1 /* WarpPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674E3EE820CEB5530087FDA1 /* WarpPanel.cpp */; };
 		674E3EEC20CEB6010087FDA1 /* DissolveTransitionPattern.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674E3EEA20CEB6000087FDA1 /* DissolveTransitionPattern.cpp */; };
 		674E9C641C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 674E9C631C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib */; };
+		675081ED21B80EC600A48CD1 /* EventState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675081EB21B80EC600A48CD1 /* EventState.cpp */; };
+		675081F021B80F0500A48CD1 /* EventStatePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */; };
 		6755B8691F75D304005EEEF5 /* FontManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6755B8671F75D303005EEEF5 /* FontManager.cpp */; };
 		67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC71C73643900850363 /* osx_shared_mutex.cpp */; };
 		67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
@@ -253,6 +258,9 @@
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
 		677989A11F321BC200A26FA9 /* valuecurves in Resources */ = {isa = PBXBuildFile; fileRef = 677989A01F321BC200A26FA9 /* valuecurves */; };
+		678058CB2176600600BFD388 /* MultiControllerUploadDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */; };
+		678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */; };
+		678058D12176619800BFD388 /* PlayListItemFade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 678058CF2176619800BFD388 /* PlayListItemFade.cpp */; };
 		6780AB8A1A65C3480090B26E /* SequenceData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780AB891A65C3480090B26E /* SequenceData.cpp */; };
 		6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */; };
 		6781B1D91AF407A300A75E59 /* LMSImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */; };
@@ -268,10 +276,11 @@
 		6784F9311A5653670018EC0C /* Waveform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6784F9281A5653670018EC0C /* Waveform.cpp */; };
 		6785922720F02CD9001C2929 /* LyricUserDictDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */; };
 		6786DC761D45D00100672F70 /* PolyLineModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6786DC741D45D00100672F70 /* PolyLineModel.cpp */; };
-		679129982134239B00818B73 /* SubModelDrawGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679129972134239B00818B73 /* SubModelDrawGrid.cpp */; };
 		6791299B213423A800818B73 /* ControllerUploadData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67912999213423A800818B73 /* ControllerUploadData.cpp */; };
 		6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */; };
 		6792BF371D0B253B00A5A0CC /* SpinnerModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */; };
+		6794272421CC075C00F7ED59 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6794272221CC075B00F7ED59 /* FSEQFile.cpp */; };
+		6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */; };
 		679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484AB1CD8E998001A7B4F /* VideoReader.cpp */; };
 		6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */; };
@@ -287,6 +296,7 @@
 		679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3401C375D9F000539FE /* OnEffect.cpp */; };
 		679DD28C1DDE3FC800A389E6 /* TouchBars.mm in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28B1DDE3FC800A389E6 /* TouchBars.mm */; };
 		679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28D1DDE493900A389E6 /* TouchBars.cpp */; };
+		679F8FCC218C891500CAC546 /* wxModelGridCellRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */; };
 		67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7720DD313D006EFCFA /* Carbon.framework */; };
 		67A14C7A20DD31D6006EFCFA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7920DD31D6006EFCFA /* WebKit.framework */; };
 		67A14C7C20DD31E4006EFCFA /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7B20DD31E3006EFCFA /* AGL.framework */; };
@@ -329,6 +339,7 @@
 		67AA37AF1C7E4107001D2377 /* libavformat.57.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A11C7E372E001D2377 /* libavformat.57.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		67AA37B01C7E4107001D2377 /* libavcodec.57.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		67AA37B11C7E4107001D2377 /* libswresample.2.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */; };
 		67AAF8F21B63767B00585431 /* PhonemeDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */; };
 		67AAF8F81B63785900585431 /* user_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F41B63785900585431 /* user_dictionary */; };
 		67AAF8F91B63785900585431 /* extended_dictionary in Resources */ = {isa = PBXBuildFile; fileRef = 67AAF8F51B63785900585431 /* extended_dictionary */; };
@@ -431,6 +442,9 @@
 		67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD01C3A186A003C17CA /* FanEffect.cpp */; };
 		67B2CFF21C3A186A003C17CA /* FacesEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD21C3A186A003C17CA /* FacesEffect.cpp */; };
 		67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD41C3A186A003C17CA /* DMXEffect.cpp */; };
+		67B31CB821AC2E5A005ECB82 /* PlayListItemDimPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */; };
+		67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */; };
+		67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674C7C7921132E3E0056FB9D /* Parallel.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50A2045B96000F5B99D /* SequenceVideoPreview.cpp */; };
 		67B5F50F2045B96100F5B99D /* SequenceVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */; };
@@ -492,6 +506,7 @@
 		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
 		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
 		67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C78D091FBA2A4900B82E48 /* VideoCache.cpp */; };
+		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -850,6 +865,12 @@
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
 		670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelFaceDialog.h; sourceTree = "<group>"; };
 		670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelFaceDialog.cpp; sourceTree = "<group>"; };
+		670B171421973D06004F0993 /* ExtraIPDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExtraIPDialog.cpp; sourceTree = "<group>"; };
+		670B171521973D07004F0993 /* ExtraIPsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExtraIPsDialog.cpp; sourceTree = "<group>"; };
+		670B171621973D07004F0993 /* ExtraIPDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExtraIPDialog.h; sourceTree = "<group>"; };
+		670B171721973D07004F0993 /* ExtraIPsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExtraIPsDialog.h; sourceTree = "<group>"; };
+		670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigureMIDITimecodeDialog.h; sourceTree = "<group>"; };
+		670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigureMIDITimecodeDialog.cpp; sourceTree = "<group>"; };
 		670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArchesModel.cpp; path = models/ArchesModel.cpp; sourceTree = "<group>"; };
 		670C827E1C45C48B000AA5D8 /* ArchesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ArchesModel.h; path = models/ArchesModel.h; sourceTree = "<group>"; };
 		670C827F1C45C48B000AA5D8 /* StarModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StarModel.cpp; path = models/StarModel.cpp; sourceTree = "<group>"; };
@@ -1053,6 +1074,10 @@
 		674E3EEA20CEB6000087FDA1 /* DissolveTransitionPattern.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DissolveTransitionPattern.cpp; sourceTree = "<group>"; };
 		674E3EEB20CEB6000087FDA1 /* DissolveTransitionPattern.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DissolveTransitionPattern.h; sourceTree = "<group>"; };
 		674E9C631C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_propgrid-3.1.dylib"; sourceTree = "<group>"; };
+		675081EB21B80EC600A48CD1 /* EventState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventState.cpp; path = events/EventState.cpp; sourceTree = "<group>"; };
+		675081EC21B80EC600A48CD1 /* EventState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventState.h; path = events/EventState.h; sourceTree = "<group>"; };
+		675081EE21B80F0400A48CD1 /* EventStatePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventStatePanel.h; sourceTree = "<group>"; };
+		675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventStatePanel.cpp; sourceTree = "<group>"; };
 		6755B8671F75D303005EEEF5 /* FontManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontManager.cpp; sourceTree = "<group>"; };
 		6755B8681F75D304005EEEF5 /* FontManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontManager.h; sourceTree = "<group>"; };
 		67582EC71C73643900850363 /* osx_shared_mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = osx_shared_mutex.cpp; path = osx_utils/osx_shared_mutex.cpp; sourceTree = "<group>"; };
@@ -1188,6 +1213,13 @@
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
 		677989A01F321BC200A26FA9 /* valuecurves */ = {isa = PBXFileReference; lastKnownFileType = folder; path = valuecurves; sourceTree = "<group>"; };
+		678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MultiControllerUploadDialog.cpp; sourceTree = "<group>"; };
+		678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MultiControllerUploadDialog.h; sourceTree = "<group>"; };
+		678058CC2176619800BFD388 /* PlayListItemFadePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFadePanel.h; path = PlayList/PlayListItemFadePanel.h; sourceTree = "<group>"; };
+		678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFadePanel.cpp; path = PlayList/PlayListItemFadePanel.cpp; sourceTree = "<group>"; };
+		678058CE2176619800BFD388 /* PlayListItemFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemFade.h; path = PlayList/PlayListItemFade.h; sourceTree = "<group>"; };
+		678058CF2176619800BFD388 /* PlayListItemFade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemFade.cpp; path = PlayList/PlayListItemFade.cpp; sourceTree = "<group>"; };
+		678058D4217A4ED900BFD388 /* xSchedule.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = xSchedule.entitlements; sourceTree = "<group>"; };
 		6780AB881A65C3100090B26E /* SequenceData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceData.h; sourceTree = "<group>"; };
 		6780AB891A65C3480090B26E /* SequenceData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceData.cpp; sourceTree = "<group>"; };
 		6780E7E81F6EAE81002A8EC9 /* GenerateLyricsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateLyricsDialog.h; sourceTree = "<group>"; };
@@ -1210,14 +1242,15 @@
 		6785922620F02CD9001C2929 /* LyricUserDictDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LyricUserDictDialog.h; sourceTree = "<group>"; };
 		6786DC741D45D00100672F70 /* PolyLineModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PolyLineModel.cpp; path = models/PolyLineModel.cpp; sourceTree = "<group>"; };
 		6786DC751D45D00100672F70 /* PolyLineModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PolyLineModel.h; path = models/PolyLineModel.h; sourceTree = "<group>"; };
-		679129962134239A00818B73 /* SubModelDrawGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubModelDrawGrid.h; sourceTree = "<group>"; };
-		679129972134239B00818B73 /* SubModelDrawGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SubModelDrawGrid.cpp; sourceTree = "<group>"; };
 		67912999213423A800818B73 /* ControllerUploadData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ControllerUploadData.cpp; path = controllers/ControllerUploadData.cpp; sourceTree = "<group>"; };
 		6791299A213423A800818B73 /* ControllerUploadData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerUploadData.h; path = controllers/ControllerUploadData.h; sourceTree = "<group>"; };
 		679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsImportChannelMapDialog.cpp; sourceTree = "<group>"; };
 		679240791CF15B37000E4D91 /* xLightsImportChannelMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsImportChannelMapDialog.h; sourceTree = "<group>"; };
 		6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SpinnerModel.cpp; path = models/SpinnerModel.cpp; sourceTree = "<group>"; };
 		6792BF361D0B253B00A5A0CC /* SpinnerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpinnerModel.h; path = models/SpinnerModel.h; sourceTree = "<group>"; };
+		6794272221CC075B00F7ED59 /* FSEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FSEQFile.cpp; sourceTree = "<group>"; };
+		6794272321CC075B00F7ED59 /* FSEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEQFile.h; sourceTree = "<group>"; };
+		6794272521CC0E6500F7ED59 /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = lib/osx/libzstd.a; sourceTree = "<group>"; };
 		679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GenerateCustomModelDialog.cpp; sourceTree = "<group>"; };
 		679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateCustomModelDialog.h; sourceTree = "<group>"; };
 		679484AB1CD8E998001A7B4F /* VideoReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoReader.cpp; sourceTree = "<group>"; };
@@ -1247,6 +1280,8 @@
 		679DD2851DDE3BA000A389E6 /* TouchBars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchBars.h; path = osx_utils/TouchBars.h; sourceTree = "<group>"; };
 		679DD28B1DDE3FC800A389E6 /* TouchBars.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = TouchBars.mm; path = osx_utils/TouchBars.mm; sourceTree = "<group>"; };
 		679DD28D1DDE493900A389E6 /* TouchBars.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchBars.cpp; path = osx_utils/TouchBars.cpp; sourceTree = "<group>"; };
+		679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxModelGridCellRenderer.cpp; sourceTree = "<group>"; };
+		679F8FCB218C891400CAC546 /* wxModelGridCellRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxModelGridCellRenderer.h; sourceTree = "<group>"; };
 		67A14C7720DD313D006EFCFA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		67A14C7920DD31D6006EFCFA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		67A14C7B20DD31E3006EFCFA /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = System/Library/Frameworks/AGL.framework; sourceTree = SDKROOT; };
@@ -1286,6 +1321,8 @@
 		67AA37A11C7E372E001D2377 /* libavformat.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavformat.57.dylib; path = lib/osx/libavformat.57.dylib; sourceTree = "<group>"; };
 		67AA37A21C7E372E001D2377 /* libavcodec.57.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavcodec.57.dylib; path = lib/osx/libavcodec.57.dylib; sourceTree = "<group>"; };
 		67AA37AC1C7E40D3001D2377 /* libswresample.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswresample.2.dylib; path = lib/osx/libswresample.2.dylib; sourceTree = "<group>"; };
+		67AAC48C214199A7005D55A9 /* NodeSelectGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeSelectGrid.h; sourceTree = "<group>"; };
+		67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NodeSelectGrid.cpp; sourceTree = "<group>"; };
 		67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PhonemeDictionary.cpp; sourceTree = "<group>"; };
 		67AAF8F11B63767B00585431 /* PhonemeDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhonemeDictionary.h; sourceTree = "<group>"; };
 		67AAF8F41B63785900585431 /* user_dictionary */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = user_dictionary; path = bin/user_dictionary; sourceTree = "<group>"; };
@@ -1485,6 +1522,10 @@
 		67B2CFD31C3A186A003C17CA /* FacesEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FacesEffect.h; path = effects/FacesEffect.h; sourceTree = "<group>"; };
 		67B2CFD41C3A186A003C17CA /* DMXEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DMXEffect.cpp; path = effects/DMXEffect.cpp; sourceTree = "<group>"; };
 		67B2CFD51C3A186A003C17CA /* DMXEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DMXEffect.h; path = effects/DMXEffect.h; sourceTree = "<group>"; };
+		67B31CB421AC2E5A005ECB82 /* PlayListItemDimPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemDimPanel.h; path = PlayList/PlayListItemDimPanel.h; sourceTree = "<group>"; };
+		67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemDimPanel.cpp; path = PlayList/PlayListItemDimPanel.cpp; sourceTree = "<group>"; };
+		67B31CB621AC2E5A005ECB82 /* PlayListItemDim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemDim.h; path = PlayList/PlayListItemDim.h; sourceTree = "<group>"; };
+		67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemDim.cpp; path = PlayList/PlayListItemDim.cpp; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		67B4C92017B53D960006B951 /* CoreMediaIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMediaIO.framework; path = System/Library/Frameworks/CoreMediaIO.framework; sourceTree = SDKROOT; };
 		67B4C92117B53D960006B951 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -1955,6 +1996,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */,
 				675D404E1E896C620033C950 /* libliquidfun.a in Frameworks */,
 				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,
 				67EE95B51C848BF000C62C95 /* libswscale.4.dylib in Frameworks */,
@@ -1978,6 +2020,7 @@
 				674D3D221C207BCC000D632B /* IOKit.framework in Frameworks */,
 				67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */,
 				67D9B0A81D42A9BA005367DB /* Cocoa.framework in Frameworks */,
+				67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */,
 				674D3D241C207BD7000D632B /* AudioToolbox.framework in Frameworks */,
 				67A14C8220DD3345006EFCFA /* libSystem.tbd in Frameworks */,
 				674D3D1D1C207B9F000D632B /* OpenGL.framework in Frameworks */,
@@ -2570,6 +2613,8 @@
 		67D75E352020ED4B005BAC6E /* events */ = {
 			isa = PBXGroup;
 			children = (
+				675081EB21B80EC600A48CD1 /* EventState.cpp */,
+				675081EC21B80EC600A48CD1 /* EventState.h */,
 				67480D522072773F00B3ED60 /* EventPing.cpp */,
 				67480D4F2072773E00B3ED60 /* EventPing.h */,
 				67480D512072773F00B3ED60 /* EventPingPanel.cpp */,
@@ -2686,6 +2731,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6794272521CC0E6500F7ED59 /* libzstd.a */,
 				67A14C8520DD337E006EFCFA /* Security.framework */,
 				67A14C8320DD336E006EFCFA /* libz.tbd */,
 				67A14C8120DD3345006EFCFA /* libSystem.tbd */,
@@ -2785,8 +2831,14 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				679129972134239B00818B73 /* SubModelDrawGrid.cpp */,
-				679129962134239A00818B73 /* SubModelDrawGrid.h */,
+				6794272221CC075B00F7ED59 /* FSEQFile.cpp */,
+				6794272321CC075B00F7ED59 /* FSEQFile.h */,
+				679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */,
+				679F8FCB218C891400CAC546 /* wxModelGridCellRenderer.h */,
+				678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */,
+				678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */,
+				67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */,
+				67AAC48C214199A7005D55A9 /* NodeSelectGrid.h */,
 				67CE7B502111E02D004005BC /* RenderCache.cpp */,
 				67CE7B512111E02D004005BC /* RenderCache.h */,
 				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
@@ -3098,6 +3150,15 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */,
+				675081EE21B80F0400A48CD1 /* EventStatePanel.h */,
+				670B171421973D06004F0993 /* ExtraIPDialog.cpp */,
+				670B171621973D07004F0993 /* ExtraIPDialog.h */,
+				670B171521973D07004F0993 /* ExtraIPsDialog.cpp */,
+				670B171721973D07004F0993 /* ExtraIPsDialog.h */,
+				678058D4217A4ED900BFD388 /* xSchedule.entitlements */,
+				670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */,
+				670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */,
 				670E0C2B20B641D70055F891 /* City.cpp */,
 				670E0C2A20B641D60055F891 /* City.h */,
 				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
@@ -3264,6 +3325,14 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */,
+				67B31CB621AC2E5A005ECB82 /* PlayListItemDim.h */,
+				67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */,
+				67B31CB421AC2E5A005ECB82 /* PlayListItemDimPanel.h */,
+				678058CF2176619800BFD388 /* PlayListItemFade.cpp */,
+				678058CE2176619800BFD388 /* PlayListItemFade.h */,
+				678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */,
+				678058CC2176619800BFD388 /* PlayListItemFadePanel.h */,
 				672F88C620E10BD0005BE1F4 /* PlayListItemMicrophone.cpp */,
 				672F88C720E10BD1005BE1F4 /* PlayListItemMicrophone.h */,
 				672F88C420E10BD0005BE1F4 /* PlayListItemMicrophonePanel.cpp */,
@@ -3465,7 +3534,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = xl;
-				LastUpgradeCheck = 1000;
+				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Daniel Kulp";
 				TargetAttributes = {
 					67025C6720D7E80700BF1AC6 = {
@@ -3473,6 +3542,9 @@
 						DevelopmentTeam = U8ZT9RPC6S;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
 							com.apple.Sandbox = {
 								enabled = 0;
 							};
@@ -3482,6 +3554,9 @@
 						CreatedOnToolsVersion = 9.3;
 						DevelopmentTeam = U8ZT9RPC6S;
 						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
 							com.apple.Sandbox = {
 								enabled = 0;
 							};
@@ -3491,6 +3566,15 @@
 						DevelopmentTeam = U8ZT9RPC6S;
 						LastSwiftMigration = 0810;
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 0;
+							};
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
+							com.apple.NetworkExtensions = {
+								enabled = 0;
+							};
 							com.apple.Sandbox = {
 								enabled = 0;
 							};
@@ -3499,6 +3583,11 @@
 					67F23F201E32994400F8B985 = {
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = U8ZT9RPC6S;
+						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -3600,7 +3689,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = bin/mac_fix_dylibs;
+			shellScript = "bin/mac_fix_dylibs\n";
 			showEnvVarsInLog = 0;
 		};
 		67480D4E20726AD300B3ED60 /* Run Script */ = {
@@ -3768,6 +3857,7 @@
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
 				67E6750A2009993D000E930E /* CachedFileDownloader.cpp in Sources */,
 				676D0F821C72BEBD009C66FC /* kfc.c in Sources */,
+				6794272421CC075C00F7ED59 /* FSEQFile.cpp in Sources */,
 				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				67B2CFE31C3A186A003C17CA /* PlasmaEffect.cpp in Sources */,
@@ -3797,6 +3887,7 @@
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				673C925420A47C4C00E59F5D /* VendorMusicDialog.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
+				679F8FCC218C891500CAC546 /* wxModelGridCellRenderer.cpp in Sources */,
 				6791299B213423A800818B73 /* ControllerUploadData.cpp in Sources */,
 				670827F72024C19D0002B617 /* LorControllers.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
@@ -3844,6 +3935,7 @@
 				6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */,
 				67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
+				67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */,
 				67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */,
 				67D2B0491D54CC6A006D324F /* ColorCurveDialog.cpp in Sources */,
 				675878DB1A89297200205A75 /* DataLayer.cpp in Sources */,
@@ -4021,7 +4113,6 @@
 				67F4C6161A097A35003E978F /* Image_Loader.cpp in Sources */,
 				67A61A7217B51C0F008E95BB /* xLightsMain.cpp in Sources */,
 				67B2CF801C39D98A003C17CA /* PinwheelPanel.cpp in Sources */,
-				679129982134239B00818B73 /* SubModelDrawGrid.cpp in Sources */,
 				67E15F0D17C16A10006F2175 /* EffectTreeDialog.cpp in Sources */,
 				6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */,
 				67B2CF7F1C39D98A003C17CA /* PicturesPanel.cpp in Sources */,
@@ -4030,6 +4121,7 @@
 				67B2B2341E1947BE0024F0BB /* serial_osx.cpp in Sources */,
 				679BD3381C37555C000539FE /* OffPanel.cpp in Sources */,
 				67B2CFE41C3A186A003C17CA /* PinwheelEffect.cpp in Sources */,
+				678058CB2176600600BFD388 /* MultiControllerUploadDialog.cpp in Sources */,
 				671130BD1E4EB29B00AF09A7 /* GridCellChoiceRenderer.cpp in Sources */,
 				674E3EE620CEB4EF0087FDA1 /* WarpEffect.cpp in Sources */,
 				67B2CF7A1C39D98A003C17CA /* LightningPanel.cpp in Sources */,
@@ -4040,6 +4132,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */,
 				672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */,
 				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,
 				67FF749720BD82B6000EA3A3 /* PlayListItemJukebox.cpp in Sources */,
@@ -4073,10 +4166,12 @@
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
 				67D75E582020ED60005BAC6E /* ListenerARTNet.cpp in Sources */,
 				1ECB4F7F1FF63621006D57AA /* Pinger.cpp in Sources */,
+				670B31BD2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
 				67D75E5A2020ED60005BAC6E /* ListenerOSC.cpp in Sources */,
 				67D75E2E2020ED1B005BAC6E /* EventDialog.cpp in Sources */,
 				6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */,
+				67B31CB821AC2E5A005ECB82 /* PlayListItemDimPanel.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
 				67F2401C1E32A09E00F8B985 /* PluginBufferingAdapter.cpp in Sources */,
 				672F88C820E10BD1005BE1F4 /* PlayListItemMicrophonePanel.cpp in Sources */,
@@ -4090,6 +4185,7 @@
 				67F240211E32A09E00F8B985 /* PluginInputDomainAdapter.cpp in Sources */,
 				67F240221E32A09E00F8B985 /* PluginLoader.cpp in Sources */,
 				67F240231E32A09E00F8B985 /* PluginSummarisingAdapter.cpp in Sources */,
+				675081F021B80F0500A48CD1 /* EventStatePanel.cpp in Sources */,
 				67F240241E32A09E00F8B985 /* PluginWrapper.cpp in Sources */,
 				67F240251E32A09E00F8B985 /* RealTime.cpp in Sources */,
 				67F240261E32A09E00F8B985 /* VideoReader.cpp in Sources */,
@@ -4100,6 +4196,7 @@
 				1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */,
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
 				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
+				67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */,
 				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
@@ -4110,6 +4207,7 @@
 				67F2400B1E32A03F00F8B985 /* IPOutput.cpp in Sources */,
 				67F2400C1E32A03F00F8B985 /* LOROutput.cpp in Sources */,
 				67C581511E4B95A400932DFA /* VirtualMatrix.cpp in Sources */,
+				675081ED21B80EC600A48CD1 /* EventState.cpp in Sources */,
 				67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */,
 				67D75E6D2020ED96005BAC6E /* PlayListItemFPPEventPanel.cpp in Sources */,
 				67F2400D1E32A03F00F8B985 /* NullOutput.cpp in Sources */,
@@ -4150,6 +4248,7 @@
 				67F23F611E329AD800F8B985 /* RunningSchedule.cpp in Sources */,
 				67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */,
 				67F23FA61E329E3300F8B985 /* server.cpp in Sources */,
+				670B171921973D07004F0993 /* ExtraIPsDialog.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
 				67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
@@ -4235,6 +4334,7 @@
 				1ECB4F761FF635D7006D57AA /* OSCPacket.cpp in Sources */,
 				67DA0AFE1E39C8EB00E2A859 /* OutputProcessRemap.cpp in Sources */,
 				67F23FFE1E329E7400F8B985 /* PlayListItemVideo.cpp in Sources */,
+				678058D12176619800BFD388 /* PlayListItemFade.cpp in Sources */,
 				67F23FA21E329E3300F8B985 /* message.cpp in Sources */,
 				67C5814F1E4B95A400932DFA /* MatricesDialog.cpp in Sources */,
 				1E3E24FD1E3715BB001D48E3 /* PlayListItemCURL.cpp in Sources */,
@@ -4242,8 +4342,10 @@
 				67B6F33C2040F66500B847E0 /* wxMidiDatabase.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
 				1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */,
+				678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */,
 				674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */,
 				67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */,
+				670B171821973D07004F0993 /* ExtraIPDialog.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4253,9 +4355,11 @@
 		67025C7620D7E80900BF1AC6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xFade/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
@@ -4273,9 +4377,12 @@
 		67025C7720D7E80900BF1AC6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = xFade/xFade.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = U8ZT9RPC6S;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xFade/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = (
@@ -4284,6 +4391,7 @@
 					"$(PROJECT_DIR)/lib/osx",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xFade;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -4294,6 +4402,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -4309,12 +4419,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = xCapture/xCapture.entitlements;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xCapture/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/local/lib,
 					"$(PROJECT_DIR)/lib/osx",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xCapture;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -4462,7 +4575,7 @@
 					"-D_LIBCPP_DISABLE_AVAILABILITY",
 					"-D__WXOSX_COCOA__",
 					"-ferror-limit=0",
-					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-3.1",
+					"-I/opt/local/lib/wx/include/osx_cocoa-unicode-static-3.1",
 					"-I/opt/local/include/wx-3.1",
 					"-DNDEBUG",
 					"-DwxDEBUG_LEVEL=0",
@@ -4491,9 +4604,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",
@@ -4512,13 +4630,19 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xLights/xLights.entitlements;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",
 					"-IxLights/ffmpeg-dev/include/",
 				);
+				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -4530,6 +4654,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -4545,11 +4671,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = xSchedule/xSchedule.entitlements;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = org.xlights.xSchedule;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

@@ -1078,6 +1078,11 @@
 					<label>C&amp;heck Sequence</label>
 					<handler function="OnMenuItemCheckSequenceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_CLEANUPFILE" variable="MenuItem_CleanupFileLocations" member="yes">
+					<label>Cleanup File Locations</label>
+					<help>Moves all files into or under the show folder.</help>
+					<handler function="OnMenuItem_CleanupFileLocationsSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MENU_VIEW_LOG" variable="MenuItem_ViewLog" member="yes">
 					<label>&amp;View Log</label>
 					<handler function="OnMenuItem_ViewLogSelected" entry="EVT_MENU" />

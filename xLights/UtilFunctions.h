@@ -3,10 +3,9 @@
 
 #include <wx/wx.h>
 #include <string>
-#include "SequenceData.h"
 #include <wx/socket.h>
 
-#define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", (ms) / 60000, ((ms) % 60000) / 1000, (ms) % 1000).c_str()
+#define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 
 // Consolidated set of utility functions
 std::string DecodeIPError(wxSocketError err);
@@ -50,7 +49,6 @@ int NumberAwareStringCompare(const std::string &a, const std::string &b);
 inline int NumberAwareStringCompareRev(const std::string &a, const std::string &b) { return NumberAwareStringCompare(b, a); }
 inline int wxStringNumberAwareStringCompare(const wxString& a, const wxString& b) { return NumberAwareStringCompare(a.ToStdString(), b.ToStdString()); }
 inline bool stdlistNumberAwareStringCompare(const std::string& a, const std::string& b) { return NumberAwareStringCompare(a, b) == -1; }
-
 
 double GetSystemContentScaleFactor();
 double ScaleWithSystemDPI(double val);

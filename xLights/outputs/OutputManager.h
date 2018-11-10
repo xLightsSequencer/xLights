@@ -21,6 +21,7 @@ class OutputManager
     bool _syncEnabled;
     bool _dirty;
     int _suppressFrames;
+    bool _parallelTransmission;
     bool _outputting; // true if we are currently sending out data
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
@@ -29,6 +30,8 @@ class OutputManager
     static int _currentSecond;
     static int _lastSecondCount;
     static int _currentSecondCount;
+    static bool _isRetryOpen;
+    static bool _isInteractive;
 
     bool SetGlobalOutputtingFlag(bool state, bool force = false);
 
@@ -43,6 +46,10 @@ public:
     static std::string GetNetworksFileName() { return NETWORKSFILE; }
     int GetPacketsPerSecond() const;
     static void RegisterSentPacket();
+    static bool IsRetryOpen() { return _isRetryOpen; }
+    static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
+    static bool IsInteractive() { return _isInteractive; }
+    static void SetInteractive(bool interactive) { _isInteractive = interactive; }
     #pragma endregion Static Functions
 
     #pragma region Save and Load
@@ -71,6 +78,8 @@ public:
     bool Discover(); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
+    void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
+    bool GetParallelTransmission() const { return _parallelTransmission; }
     #pragma endregion Output Management
 
     void SomethingChanged() const;
@@ -111,7 +120,7 @@ public:
     #pragma region Data Setting
     void SetOneChannel(long channel, unsigned char data);
     void SetManyChannels(long channel, unsigned char* data, long size);
-    void AllOff();
+    void AllOff(bool send = true);
     #pragma endregion Data Setting
 
     #pragma region Test Presets

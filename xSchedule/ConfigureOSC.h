@@ -2,15 +2,15 @@
 #define CONFIGUREOSC_H
 
 //(*Headers(ConfigureOSC)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
+#include <wx/radiobut.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/radiobut.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class OSCOptions;
@@ -28,26 +28,26 @@ class ConfigureOSC: public wxDialog
 		virtual ~ConfigureOSC();
 
 		//(*Declarations(ConfigureOSC)
-		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_ServerIP;
-		wxStaticText* StaticText6;
-		wxStaticText* StaticText8;
+		wxButton* Button_Cancel;
+		wxButton* Button_ok;
+		wxCheckBox* CheckBox_ServerBroadcast;
 		wxChoice* Choice_Frames;
 		wxChoice* Choice_RemotePath;
-		wxButton* Button_ok;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
+		wxChoice* Choice_Time;
+		wxRadioButton* RadioButton_Frames;
+		wxRadioButton* RadioButton_Time;
 		wxSpinCtrl* SpinCtrl_RemotePort;
 		wxSpinCtrl* SpinCtrl_ServerPort;
-		wxRadioButton* RadioButton_Time;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
-		wxRadioButton* RadioButton_Frames;
-		wxButton* Button_Cancel;
-		wxCheckBox* CheckBox_ServerBroadcast;
-		wxTextCtrl* TextCtrl_MasterPath;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
-		wxChoice* Choice_Time;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxTextCtrl* TextCtrl_MasterPath;
+		wxTextCtrl* TextCtrl_ServerIP;
 		//*)
 
 	protected:

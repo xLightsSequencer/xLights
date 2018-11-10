@@ -78,6 +78,9 @@ void OutputProcessColourOrder::Frame(wxByte* buffer, size_t size)
 				*(p+1) = g;
 				*(p+2) = r;
 				break;
+            default:
+                wxASSERT(false);
+                break;
 		}
     }
 }

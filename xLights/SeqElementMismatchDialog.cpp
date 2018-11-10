@@ -56,6 +56,7 @@ SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID i
 
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqElementMismatchDialog::OnChoiceModelsSelect);
     //*)
+    SetEscapeId(wxID_CANCEL);
 }
 
 SeqElementMismatchDialog::~SeqElementMismatchDialog()

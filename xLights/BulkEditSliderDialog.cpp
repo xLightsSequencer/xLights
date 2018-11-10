@@ -88,6 +88,8 @@ BulkEditSliderDialog::BulkEditSliderDialog(wxWindow* parent, const std::string& 
     wxScrollEvent e;
     OnSlider_BulkEditCmdSliderUpdated(e);
 
+    SetEscapeId(Button_Cancel->GetId());
+
     FlexGridSizer1->Fit(this);
 }
 

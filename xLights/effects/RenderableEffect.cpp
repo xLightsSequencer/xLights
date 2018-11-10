@@ -12,6 +12,10 @@
 #include <sstream>
 #include "../UtilFunctions.h"
 #include "../ValueCurveButton.h"
+#include "PixelBuffer.h"
+#include "FanEffect.h"
+#include "SpiralsEffect.h"
+#include "PinwheelEffect.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -240,7 +244,7 @@ std::string RenderableEffect::GetEffectString() {
 }
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2018.12", version);
+    return IsVersionOlder("2018.50", version);
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
@@ -309,6 +313,83 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         {
             sm["T_CHOICE_LayerMethod"] = "Effect 1";
             sm["T_CHECKBOX_Canvas"] = "1";
+        }
+    }
+
+    if (IsVersionOlder("2018.50", version))
+    {
+        SettingsMap& sm = effect->GetSettings();
+
+        // Try to fix value curve issues
+        for (auto s : sm)
+        {
+            wxString f(s.first);
+            if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE"))
+            {
+                ValueCurve vc(s.second);
+                sm[s.first] = vc.Serialise();
+            }
+
+            wxString v(s.second);
+            if (v.Contains("ID_VALUECURVE_Blur"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(BLUR_MIN, BLUR_MAX);
+                vc.SetDivisor(1);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
+                vc.SetDivisor(1);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
+                vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
         }
     }
 }
@@ -792,7 +873,7 @@ void RenderableEffect::SetRadioValue(wxRadioButton *r) {
     r->ProcessWindowEvent(evt);
 }
 
-double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, int divisor)
+double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {
     double res = def;
 
@@ -827,7 +908,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
             //}
             //else
             //{
-                res = valc.GetOutputValueAtDivided(offset);
+                res = valc.GetOutputValueAtDivided(offset, startMS, endMS);
             //}
 
             if (needsUpgrade)
@@ -840,7 +921,7 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
     return res;
 }
 
-int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, int divisor)
+int RenderableEffect::GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
 {
     int res = def;
     const std::string sn = "SLIDER_" + name;
@@ -872,7 +953,7 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, Setting
             // If we ask for an int then we seem to want it undivided
             //if (!slider)
             //{
-                res = valc.GetOutputValueAt(offset);
+                res = valc.GetOutputValueAt(offset, startMS, endMS);
             //}
             //else
             //{

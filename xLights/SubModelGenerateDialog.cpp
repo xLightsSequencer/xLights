@@ -71,6 +71,8 @@ SubModelGenerateDialog::SubModelGenerateDialog(wxWindow* parent, int modelWidth,
 
     _lastCount = SpinCtrl_Count->GetValue();
 
+    SetEscapeId(wxID_CANCEL);
+
     ValidateWindow();
 }
 

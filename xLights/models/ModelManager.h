@@ -28,7 +28,7 @@ class ModelManager
         bool Rename(const std::string &oldName, const std::string &newName);
         bool RenameSubModel(const std::string &oldName, const std::string &newName);
         bool RenameInListOnly(const std::string &oldName, const std::string &newName);
-        bool IsModelOverlapping(Model* model);
+        bool IsModelOverlapping(Model* model) const;
         void AddModel(Model *m);
         void Delete(const std::string &name);
         std::string GenerateModelName(const std::string& candidateModelName) const;
@@ -49,6 +49,7 @@ class ModelManager
         //Make sure the Model is deleted when done with
         Model *CreateModel(wxXmlNode *node, bool zeroBased = false) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
+        xLightsFrame* GetXLightsFrame() const { return xlights; }
     protected:
         Model *createAndAddModel(wxXmlNode *node);
     private:

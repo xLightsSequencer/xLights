@@ -19,7 +19,7 @@ class OutputProcessSet : public OutputProcess
         virtual void Frame(wxByte* buffer, size_t size) override;
         virtual size_t GetP1() const override { return _channels; }
         virtual size_t GetP2() const override { return _value; }
-        virtual std::string GetType() const { return "Set"; }
+        virtual std::string GetType() const override { return "Set"; }
 };
 
 #endif

@@ -476,6 +476,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
     x += w;
     _plog = new ConvertLogDialog(this, -1, wxPoint(x,y));
     _plog->Show(false);
+    SetEscapeId(Button_Cancel->GetId());
 }
 
 SeqSettingsDialog::~SeqSettingsDialog()
@@ -1333,7 +1334,8 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
     TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
     TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
-    int length_ms = xml_file->GetMedia()->LengthMS();
+    int length_ms = 0;
+    if (xml_file->GetMedia() != nullptr) length_ms = xml_file->GetMedia()->LengthMS(); // shouldnt happen but maybe if media load failed
     double length = length_ms / 1000.0f;
     xml_file->SetSequenceDuration(length);
     TextCtrl_Xml_Seq_Duration->ChangeValue(string_format("%.3f", length));
@@ -1350,7 +1352,7 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
 
 void SeqSettingsDialog::MediaChooser()
 {
-	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
+	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP 2.x+ Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a|FPP 1.x Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
     if (wxDir::Exists(media_directory))
     {
         OpenDialog.SetDirectory(media_directory);

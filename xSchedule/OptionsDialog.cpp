@@ -20,6 +20,9 @@ const long OptionsDialog::ID_CHECKBOX4 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX3 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX5 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX6 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX7 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX8 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -84,6 +87,15 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_Sync = new wxCheckBox(this, ID_CHECKBOX2, _("Use ArtNet/E1.31 Synchronisation Protocols"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_Sync->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_Sync, 1, wxALL|wxEXPAND, 5);
+	CheckBox_MultithreadedTransmission = new wxCheckBox(this, ID_CHECKBOX6, _("Multithreaded transmission"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
+	CheckBox_MultithreadedTransmission->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_MultithreadedTransmission, 1, wxALL|wxEXPAND, 5);
+	CheckBox_RetryOpen = new wxCheckBox(this, ID_CHECKBOX7, _("Continually try to open outputs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
+	CheckBox_RetryOpen->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_RetryOpen, 1, wxALL|wxEXPAND, 5);
+	CheckBox_RemoteAllOff = new wxCheckBox(this, ID_CHECKBOX8, _("When in remote mode turn off lights when master stops"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
+	CheckBox_RemoteAllOff->SetValue(true);
+	FlexGridSizer7->Add(CheckBox_RemoteAllOff, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -199,11 +211,14 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 
     Choice_OnCrash->SetStringSelection(options->GetCrashBehaviour());
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
+    CheckBox_MultithreadedTransmission->SetValue(options->IsParallelTransmission());
     Choice_ARTNetTimeCodeFormat->SetSelection(options->GetARTNetTimeCodeFormat());
     CheckBox_RunBackground->SetValue(options->IsSendBackgroundWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
     CheckBox_APIOnly->SetValue(options->GetAPIOnly());
     CheckBox_SimpleMode->SetValue(options->IsAdvancedMode());
+    CheckBox_RetryOpen->SetValue(options->IsRetryOpen());
+    CheckBox_RemoteAllOff->SetValue(options->IsRemoteAllOff());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -273,6 +288,8 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
+    _options->SetParallelTransmission(CheckBox_MultithreadedTransmission->GetValue());
+    _options->SetRetryOutputOpen(CheckBox_RetryOpen->GetValue());
     _options->SetSendBackgroundWhenNotRunning(CheckBox_RunBackground->GetValue());
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
@@ -283,6 +300,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetArtNetTimeCodeFormat(Choice_ARTNetTimeCodeFormat->GetSelection());
     _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
     _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
+    _options->SetRemoteAllOff(CheckBox_RemoteAllOff->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {
@@ -463,17 +481,17 @@ void OptionsDialog::OnButtonsDragEnd(wxMouseEvent& event)
 
                 ListView_Buttons->DeleteItem(dragitem);
 
-                if (dropitem > dragitem) dropitem--;
+                if (dropitem < 0) dropitem = 0;
 
-                ListView_Buttons->InsertItem(dropitem + 1, label);
-                ListView_Buttons->SetItem(dropitem + 1, 1, command);
-                ListView_Buttons->SetItem(dropitem + 1, 2, parameters);
-                ListView_Buttons->SetItem(dropitem + 1, 3, hotkey);
-                ListView_Buttons->SetItem(dropitem + 1, 4, color);
+                ListView_Buttons->InsertItem(dropitem, label);
+                ListView_Buttons->SetItem(dropitem, 1, command);
+                ListView_Buttons->SetItem(dropitem, 2, parameters);
+                ListView_Buttons->SetItem(dropitem, 3, hotkey);
+                ListView_Buttons->SetItem(dropitem, 4, color);
 
-                ListView_Buttons->EnsureVisible(dropitem + 1);
+                ListView_Buttons->EnsureVisible(dropitem);
 
-                if (dropitem + 1 == ListView_Buttons->GetItemCount() - 1)
+                if (dropitem == ListView_Buttons->GetItemCount() - 1)
                 {
                     ListView_Buttons->ScrollLines(1);
                 }

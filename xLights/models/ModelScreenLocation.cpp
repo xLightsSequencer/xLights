@@ -557,16 +557,22 @@ void TwoPointScreenLocation::PrepareToDraw() const {
     if (x2 != x1) {
         float slope = (y2p - y1p)/(x2p - x1p);
         angle = std::atan(slope);
-        if (x1 > x2) {
-            angle += (float)M_PI;
-        }
-    } else if (y2 < y1) {
-        angle += (float)M_PI;
     }
     float scale = std::sqrt((y2p - y1p)*(y2p - y1p) + (x2p - x1p)*(x2p - x1p));
     scale /= RenderWi;
 
-    glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scale, scale * GetVScaleFactor()));
+    // see if we need to flip the model
+    float scalex = scale;
+    if (x2 != x1) {
+        if (x1 > x2) {
+            scalex *= -1.0f;
+        }
+    }
+    else if (y2 < y1) {
+        scalex *= -1.0f;
+    }
+
+    glm::mat3 scalingMatrix = glm::scale(glm::mat3(1.0f), glm::vec2(scalex, scale * GetVScaleFactor()));
     glm::mat3 rotationMatrix = glm::rotate(glm::mat3(1.0f), (float)angle);
     glm::mat3 shearMatrix = glm::shearY(glm::mat3(1.0f), GetYShear());
     glm::mat3 translateMatrix = glm::translate(glm::mat3(1.0f), glm::vec2(x1*previewW, y1*previewH));
@@ -790,7 +796,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     else if (!_locked && "ModelX2" == name) {
         x2 = event.GetValue().GetDouble() / 100.0;
         return 3;
-    } 
+    }
     else if (_locked && "ModelX2" == name) {
         event.Veto();
         return 0;

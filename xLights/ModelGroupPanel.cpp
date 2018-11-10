@@ -221,7 +221,8 @@ void ModelGroupPanel::AddPreviewChoice(const std::string name)
     ChoicePreviews->Append(name);
 }
 
-bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model, std::list<std::string> &modelGroupsInGroup) {
+bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model, std::list<std::string> &modelGroupsInGroup, std::list<std::string>& visitedGroups) {
+
     if (model == g->GetName()) {
         return false;
     }
@@ -230,12 +231,23 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
         if (*it == model) {
             return false;
         }
+
         Model *m = models[model];
         if (m != nullptr) {
             ModelGroup *grp = dynamic_cast<ModelGroup*>(m);
             if (grp != nullptr) {
+
+                // If we have already visited this group dont look at it again
+                for (auto it3 = visitedGroups.begin(); it3 != visitedGroups.end(); ++it3) {
+                    if (*it3 == grp->GetName())
+                    {
+                        return false;
+                    }
+                }
+                visitedGroups.push_back(grp->GetName());
+
                 for (auto it2 = grp->ModelNames().begin(); it2 != grp->ModelNames().end(); ++it2) {
-                    if (!canAddToGroup(g, models, *it2, modelGroupsInGroup)) {
+                    if (!canAddToGroup(g, models, *it2, modelGroupsInGroup, visitedGroups)) {
                         return false;
                     }
                 }
@@ -247,6 +259,7 @@ bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model
 
 void ModelGroupPanel::UpdatePanel(const std::string group)
 {
+    mModels.ResetModelGroups(); // make sure all our pointers are valid
     mGroup = group;
     LabelModelGroupName->SetLabel(group);
     ListBoxModelsInGroup->Freeze();
@@ -266,19 +279,23 @@ void ModelGroupPanel::UpdatePanel(const std::string group)
         ListBoxModelsInGroup->InsertItem(ListBoxModelsInGroup->GetItemCount(), *it);
         modelsInGroup.push_back(*it);
     }
-    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
-        if (it->first != group) {
-            if (canAddToGroup(g, mModels, it->first, modelsInGroup)) {
-                ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
-            }
-            if (CheckBox_ShowSubmodels->GetValue())
-            {
-                for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
-                    Model *sm = *smit;
 
-                    if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
-                        ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
-                    }
+    // dont allow any group that contains this group to be added as that would create a loop
+    for (auto it = mModels.begin(); it != mModels.end(); ++it) {
+        if (std::find(modelsInGroup.begin(), modelsInGroup.end(), it->first) != modelsInGroup.end() || (it->second->GetDisplayAs() == "ModelGroup" && (it->first == group || dynamic_cast<ModelGroup*>(it->second)->ContainsModelGroup(g)))) {
+            // dont add this group
+        }
+        else
+        {
+            ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), it->first);
+        }
+        if (CheckBox_ShowSubmodels->GetValue())
+        {
+            for (auto smit = it->second->GetSubModels().begin(); smit != it->second->GetSubModels().end(); ++smit) {
+                Model *sm = *smit;
+
+                if (std::find(g->ModelNames().begin(), g->ModelNames().end(), sm->GetFullName()) == g->ModelNames().end()) {
+                    ListBoxAddToModelGroup->InsertItem(ListBoxAddToModelGroup->GetItemCount(), sm->GetFullName());
                 }
             }
         }
@@ -821,12 +838,12 @@ void ModelGroupPanel::RemoveSelectedModels()
         {
             std::string modelName = ListBoxModelsInGroup->GetItemText(i, 0).ToStdString();
             Model* model = mModels[modelName];
-            if (model->GetDisplayAs() != "SubModel" || CheckBox_ShowSubmodels->GetValue())
-            {
-                int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
-                ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-            }
             if (model != nullptr) {
+                if (model->GetDisplayAs() != "SubModel" || CheckBox_ShowSubmodels->GetValue())
+                {
+                    int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
+                    ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                }
                 model->GroupSelected = false;
             }
             ListBoxModelsInGroup->DeleteItem(i);

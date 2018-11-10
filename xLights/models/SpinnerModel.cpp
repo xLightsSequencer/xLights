@@ -96,39 +96,39 @@ int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("SpinnerArmNodeCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("FoldCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("Hollow" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("Hollow");
          ModelXml->AddAttribute("Hollow", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
          SetFromXml(ModelXml, zeroBased);
-         return 3 | 0x0008;
+         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("Arc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Arc");
         ModelXml->AddAttribute("Arc", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("ZigZag" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("ZigZag");
         ModelXml->AddAttribute("ZigZag", event.GetPropertyValue().GetBool() ? "true" : "false");
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("MatrixStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
         ModelXml->DeleteAttribute("StartSide");
         ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     
     return Model::OnPropertyGridChange(grid, event);
@@ -224,18 +224,18 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::str
         int nodesperarm = parm2;
         int armsperstring = parm3;
         int cur = 0;
-        for (size_t y = 0; y < stringcount*armsperstring; y++) {
-            if (SingleNode)
-            {
-                newNodes.push_back(NodeBaseClassPtr(Nodes[y]->clone()));
-                for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
-                    newNodes[cur]->Coords[c].bufX = cur;
-                    newNodes[cur]->Coords[c].bufY = 0;
-                }
-                cur++;
+        if (SingleNode)
+        {
+            newNodes.push_back(NodeBaseClassPtr(Nodes[0]->clone()));
+            for (size_t c = 0; c < newNodes[cur]->Coords.size(); c++) {
+                newNodes[cur]->Coords[c].bufX = cur;
+                newNodes[cur]->Coords[c].bufY = 0;
             }
-            else
-            {
+            cur++;
+        }
+        else
+        {
+            for (size_t y = 0; y < stringcount*armsperstring; y++) {
                 for (int x = 0; x < nodesperarm; x++) {
                     int idx = y * nodesperarm + x;
                     newNodes.push_back(NodeBaseClassPtr(Nodes[idx]->clone()));
@@ -373,6 +373,6 @@ int SpinnerModel::CalcCannelsPerString() {
     return GetNodeChannelCount(StringType) * parm2 * parm3;
 }
 
-int SpinnerModel::NodesPerString() {
+int SpinnerModel::NodesPerString() const {
     return SingleNode ? 1 : parm2 * parm3;
 }

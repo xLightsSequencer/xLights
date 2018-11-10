@@ -29,7 +29,7 @@ class ListenerLor : public ListenerSerial
 	public:
         ListenerLor(ListenerManager* _listenerManager, std::string commPort, std::string serialConfig, int baudRate, std::string protocol, std::string unit_id_str);
 		virtual ~ListenerLor();
-        virtual std::string GetType() const { return "LOR"; }
+        virtual std::string GetType() const override { return "LOR"; }
         virtual void Poll() override;
 
         void EndUnitIdList();

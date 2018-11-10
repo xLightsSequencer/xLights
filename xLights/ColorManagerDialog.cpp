@@ -103,6 +103,8 @@ ColorManagerDialog::ColorManagerDialog(wxWindow* parent,ColorManager& color_mgr_
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
+    SetEscapeId(Button_Cancel->GetId());
+
     UpdateButtonColors();
     color_mgr.Snapshot();
 }

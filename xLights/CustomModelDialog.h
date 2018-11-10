@@ -24,28 +24,8 @@ class wxStaticText;
 
 class CustomModel;
 class CopyPasteGrid;
-
-class wxModelGridCellRenderer : public wxGridCellStringRenderer
-{
-public:
-    wxModelGridCellRenderer(wxImage* image_, wxGrid& grid);
-    virtual ~wxModelGridCellRenderer() {}
-
-    virtual void Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected) wxOVERRIDE;
-
-    void UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_);
-    void CreateImage();
-    void SetImage(wxImage* image);
-    void DetermineGridSize(wxGrid& grid);
-
-private:
-    wxImage* image;
-    wxBitmap bmp;
-    int width;
-    int height;
-    bool draw_picture;
-    int lightness;
-};
+class wxModelGridCellRenderer;
+class ImageFilePickerCtrl;
 
 class CustomModelDialog: public wxDialog
 {
@@ -56,6 +36,7 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_PASTE;
     static const long CUSTOMMODELDLGMNU_FLIPH;
     static const long CUSTOMMODELDLGMNU_FLIPV;
+    static const long CUSTOMMODELDLGMNU_ROTATE90;
     static const long CUSTOMMODELDLGMNU_REVERSE;
     static const long CUSTOMMODELDLGMNU_SHIFT;
     static const long CUSTOMMODELDLGMNU_INSERT;
@@ -72,6 +53,7 @@ class CustomModelDialog: public wxDialog
 
 		//(*Declarations(CustomModelDialog)
 		CopyPasteGrid* GridCustom;
+		ImageFilePickerCtrl* FilePickerCtrl1;
 		wxBitmapButton* BitmapButtonCustomBkgrd;
 		wxBitmapButton* BitmapButtonCustomCopy;
 		wxBitmapButton* BitmapButtonCustomCut;
@@ -83,7 +65,6 @@ class CustomModelDialog: public wxDialog
 		wxButton* Button_CustomModelZoomOut;
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxCheckBox* CheckBoxAutoNumber;
-		wxFilePickerCtrl* FilePickerCtrl1;
 		wxFlexGridSizer* Sizer1;
 		wxSlider* SliderCustomLightness;
 		wxSpinCtrl* HeightSpin;
@@ -168,6 +149,7 @@ class CustomModelDialog: public wxDialog
         bool CheckScale(std::list<wxPoint>& points, float scale);
         void FlipHorizontal();
         void FlipVertical();
+        void Rotate90();
         void Insert(int selRow, int selCol);
         void Shift();
         void Compress();

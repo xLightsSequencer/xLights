@@ -309,6 +309,9 @@ bool xScheduleApp::OnInit()
 {
     _checker = nullptr;
 
+    // seed the random number generator
+    srand(wxGetLocalTimeMillis().GetLo());
+
     wxLog::SetLogLevel(wxLOG_FatalError);
 
 #ifdef _MSC_VER

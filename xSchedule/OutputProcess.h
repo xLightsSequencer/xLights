@@ -1,6 +1,6 @@
 #ifndef OUTPUTPROCESS_H
 #define OUTPUTPROCESS_H
-#include <list>
+
 #include <string>
 #include <wx/wx.h>
 

@@ -151,6 +151,7 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     ProtocolChange();
 
     Button_Ok->SetDefault();
+    SetEscapeId(Button_Cancel->GetId());
     ValidateWindow();
 }
 

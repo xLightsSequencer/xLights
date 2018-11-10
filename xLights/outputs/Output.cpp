@@ -56,14 +56,12 @@ Output::Output(wxXmlNode* node)
     _controller = nullptr;
     _dirty = false;
     _ok = true;
-    _suppressDuplicateFrames = false;
     _lastOutputTime = 0 ;
     _skippedFrames = 9999;
 
     _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
     _suppressDuplicateFrames = (node->GetAttribute("SuppressDuplicates", "No") == "Yes");
     _description = UnXmlSafe(node->GetAttribute("Description"));
-    _dirty = false;
     _channels = wxAtoi(node->GetAttribute("MaxChannels"));
     std::string controller = UnXmlSafe(node->GetAttribute("Controller").ToStdString());
     if (controller != "")
@@ -84,7 +82,6 @@ Output::Output()
     _baudRate = 0;
     _commPort = "";
     _controller = nullptr;
-    _dirty = false;
     _enabled = true;
     _description = "";
     _dirty = true;

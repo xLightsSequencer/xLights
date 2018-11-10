@@ -392,12 +392,13 @@ public:
     RenderBuffer(xLightsFrame *frame);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
-    void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform);
-    AudioManager* GetMedia();
+    void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
+    AudioManager* GetMedia() const;
     Model* GetModel() const;
     Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
     std::string GetModelName() const;
 
+    bool IsNodeBuffer() const { return _nodeBuffer; }
     void Clear();
     void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
     size_t GetColorCount();
@@ -408,6 +409,8 @@ public:
     void SetEffectDuration(int startMsec, int endMsec);
     void GetEffectPeriods(int& curEffStartPer, int& curEffEndPer);  // nobody wants endPer?
     void SetFrameTimeInMs(int i);
+    long GetStartTimeMS() const { return curEffStartPer * frameTimeInMs; }
+    long GetEndTimeMS() const { return curEffEndPer * frameTimeInMs; }
 
     const xlColor &GetPixel(int x, int y);
     void GetPixel(int x, int y, xlColor &color);
@@ -473,6 +476,7 @@ public:
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;
     PaletteClass palette;
+    bool _nodeBuffer;
 
     xLightsFrame *frame;
     std::string cur_model; //model currently in effect

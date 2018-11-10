@@ -63,17 +63,17 @@ void ListenerFPPUnicast::StartProcess()
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_NONE);
     if (_socket == nullptr)
     {
-        logger_base.error("Error opening datagram for FPP Unicast reception.");
+        logger_base.error("Error opening datagram for FPP Unicast reception. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_socket->IsOk())
     {
-        logger_base.error("Error opening datagram for FPP Unicast reception. OK : FALSE");
+        logger_base.error("Error opening datagram for FPP Unicast reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for FPP Unicast reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for FPP Unicast reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
@@ -100,7 +100,7 @@ void ListenerFPPUnicast::StopProcess()
 
 void ListenerFPPUnicast::Poll()
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_socket != nullptr)
     {
@@ -137,6 +137,7 @@ void ListenerFPPUnicast::Poll()
                 }
                 else
                 {
+                    logger_base.debug("Pkt %s.", (const char *)msg.c_str());
                     lastMessage = msg;
                     wxArrayString components = wxSplit(msg, ',');
 
@@ -144,13 +145,24 @@ void ListenerFPPUnicast::Poll()
                     {
                         //uint8_t packetType = wxAtoi(components[3]);
                         std::string fileName = components[4].ToStdString();
-                        if (components.size() >= 7)
+                        int action = wxAtoi(components[3]);
+                        if (components.size() >= 7 && action == SYNC_PKT_SYNC)
                         {
-                            int secondsElapsed = ((float)wxAtoi(components[5]) * 1000 + (float)wxAtoi(components[6])) / 1000.0;
-                            _listenerManager->Sync(fileName, secondsElapsed * 1000, GetType());
+                            int secondsElapsed = wxAtoi(components[5]) * 1000 + wxAtoi(components[6]);
+                            _listenerManager->Sync(fileName, secondsElapsed, GetType());
                         }
-                        // logger_base.debug("Pkt %s.", (const char *)msg.c_str());
+                        else if (action == SYNC_PKT_STOP)
+                        {
+                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote stop %s.", (const char *)fileName.c_str());
+                            _listenerManager->Sync(fileName, 0xFFFFFFFF, GetType());
+                        }
+                        else if (action == SYNC_PKT_START)
+                        {
+                            logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
+                            _listenerManager->Sync(fileName, 0, GetType());
+                        }
                     }
+                    logger_base.debug("Pkt dispatched.");
                 }
             }
         }

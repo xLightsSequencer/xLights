@@ -14,6 +14,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 
+        virtual unsigned int GetFirstChannel() const override;
+        virtual unsigned int GetLastChannel() override;
         void ModelRemoved(const std::string &name);
         virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);
@@ -23,6 +25,11 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         const std::vector<std::string> &ModelNames() const { return modelNames;}
         const std::vector<Model *> &Models() const { return models;}
         Model* GetModel(std::string modelName);
+        bool ContainsModelGroup(ModelGroup* mg);
+        bool ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited);
+        bool ContainsModel(Model* mg);
+        bool ContainsModel(Model* mg, std::list<Model*>& visited);
+        int GetModelCount() const { return models.size(); }
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
         virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const override;

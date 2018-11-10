@@ -137,9 +137,11 @@ public:
     virtual bool UsesAddVertex() override {return false;}
     void InitializeGLCanvas() override
     {
+#ifdef __LINUX__
         if(!IsShownOnScreen()) return;
+#endif
         SetCurrentGLContext();
-        xlColor c(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+        xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
         //c.Set(70,70,70); //54->70
         //
         
@@ -156,13 +158,15 @@ public:
     void renderGL()
     {
         if(!mIsInitialized) { InitializeGLCanvas(); }
+#ifdef __LINUX__
         if(!IsShownOnScreen()) return;
+#endif
 
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
         prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
         
-        DrawGLUtils::xlVertexTextAccumulator va(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
+        DrawGLUtils::xlVertexTextAccumulator va(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT));
 #define LINEGAP 1.2
         int y = _fontSize * LINEGAP;
         va.AddVertex(5, y, _time);
@@ -537,6 +541,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         {
             PanelEffectGrid->LockEffects(true);
         }
+        else if (type == "CANCEL_RENDER")
+        {
+            CancelRender();
+        }
         else if (type == "UNLOCK_EFFECT")
         {
             PanelEffectGrid->LockEffects(false);
@@ -600,6 +608,16 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         {
             wxCommandEvent e;
             mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
+        }
+        else if (type == "EFFECT_UPDATE")
+        {
+            wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
+            wxPostEvent(GetParent(), eventEffectUpdated);
+        }
+        else if (type == "COLOR_UPDATE")
+        {
+            wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
+            wxPostEvent(GetParent(), eventEffectUpdated);
         }
         else
         {
@@ -757,21 +775,24 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             }
             break;
         case WXK_ESCAPE:
-            {
-                static bool escapeReenter = false;
-                
-                if (!escapeReenter) {
-                    escapeReenter = true;
-                    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
-                        mSequenceElements->GetXLightsFrame()->AbortRender();
-                    }
-                    escapeReenter = false;
-                }
-            }
+            CancelRender();
             break;
         default:
             event.Skip();
             break;
+    }
+}
+
+void MainSequencer::CancelRender()
+{
+    static bool escapeReenter = false;
+
+    if (!escapeReenter) {
+        escapeReenter = true;
+        if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
+            mSequenceElements->GetXLightsFrame()->AbortRender();
+        }
+        escapeReenter = false;
     }
 }
 
@@ -835,6 +856,7 @@ void MainSequencer::OnChar(wxKeyEvent& event)
                 if( mSequenceElements != nullptr &&
                    mSequenceElements->get_undo_mgr().CanUndo() ) {
                     mSequenceElements->get_undo_mgr().UndoLastStep();
+                    PanelEffectGrid->ClearSelection();
                     PanelEffectGrid->Refresh();
                     PanelEffectGrid->sendRenderDirtyEvent();
                 }
@@ -920,6 +942,7 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
 
     if (mSequenceElements != nullptr && mSequenceElements->get_undo_mgr().CanUndo() ) {
         mSequenceElements->get_undo_mgr().UndoLastStep();
+        PanelEffectGrid->ClearSelection();
         PanelEffectGrid->Refresh();
         PanelEffectGrid->sendRenderDirtyEvent();
     }
@@ -1228,6 +1251,11 @@ Effect* MainSequencer::GetSelectedEffect()
 int MainSequencer::GetSelectedEffectCount(const std::string effectName) const
 {
     return PanelEffectGrid->GetSelectedEffectCount(effectName);
+}
+
+bool MainSequencer::AreAllSelectedEffectsOnTheSameElement() const
+{
+    return PanelEffectGrid->AreAllSelectedEffectsOnTheSameElement();
 }
 
 void MainSequencer::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)

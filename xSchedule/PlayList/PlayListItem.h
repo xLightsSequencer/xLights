@@ -7,6 +7,7 @@
 #include <wx/notebook.h>
 
 class wxXmlNode;
+class AudioManager;
 
 class PlayListItem
 {
@@ -24,13 +25,18 @@ protected:
     int _volume;
     int _currentFrame;
     long _stepLengthMS;
+    bool _restOfStep; // while not used in every item it could be common
     #pragma endregion Member Variables
 
     void Save(wxXmlNode* node);
     void Copy(PlayListItem* to) const;
     bool IsInSlaveMode() const;
+    std::string ReplaceTags(const std::string s) const;
 
-public:
+protected:
+    static std::string GetTagHint();
+
+    public:
 
     #pragma region Constructors and Destructors
     PlayListItem(wxXmlNode* node);
@@ -40,9 +46,11 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    bool GetRestOfStep() const { return _restOfStep; }
+    void SetRestOfStep(bool restOfStep) { if (_restOfStep != restOfStep) { _restOfStep = restOfStep; _changeCount++; } }
     virtual bool HasIP() const { return false; }
     wxUint32 GetId() const { return _id; }
-    virtual size_t GetDurationMS() const { return _delay; }
+    virtual size_t GetDurationMS() const { if (_restOfStep) return _stepLengthMS - _delay; else return _delay; }
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }
@@ -68,6 +76,7 @@ public:
     virtual std::string GetTitle() const = 0;
     virtual std::list<std::string> GetMissingFiles() { return std::list<std::string>(); }
     virtual long GetFSEQChannels() const { return 0; }
+    void SetStepLength(long stepLengthMS) { _stepLengthMS = stepLengthMS; }
     #pragma endregion Getters and Setters
 
     virtual wxXmlNode* Save() = 0;
@@ -79,6 +88,7 @@ public:
     virtual void Restart() {}
     virtual void Pause(bool pause) {}
     virtual void Suspend(bool suspend) {}
+    virtual bool Advance(int seconds) { return false; }
     #pragma endregion Playing
 
     #pragma region UI

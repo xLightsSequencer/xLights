@@ -51,6 +51,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
@@ -66,6 +67,7 @@
 					<Add library="../lib/windows/libliquidfund.a" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
+					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -115,6 +117,7 @@
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add library="../lib/windows/libwxmsw31u.a" />
@@ -131,6 +134,7 @@
 					<Add library="../lib/windows/libliquidfun.a" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
+					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -177,6 +181,8 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
+					<Add option="-lz" />
+					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
@@ -220,6 +226,8 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
+					<Add option="-lz" />
+					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
@@ -268,6 +276,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
+					<Add option="-lz" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/libDbgHelp.a" />
@@ -282,6 +291,7 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
+					<Add library="../lib/windows64/libzstd_static.lib" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
@@ -329,6 +339,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
+					<Add option="-lz" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
 					<Add library="../lib/windows64/libdbghelp.a" />
@@ -343,6 +354,7 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
+					<Add library="../lib/windows64/libzstd_static.lib" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -426,6 +438,8 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="FSEQFile.cpp" />
+		<Unit filename="FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
@@ -487,6 +501,8 @@
 		<Unit filename="ModelPreview.h" />
 		<Unit filename="ModelStateDialog.cpp" />
 		<Unit filename="ModelStateDialog.h" />
+		<Unit filename="MultiControllerUploadDialog.cpp" />
+		<Unit filename="MultiControllerUploadDialog.h" />
 		<Unit filename="MusicXML.cpp" />
 		<Unit filename="MusicXML.h" />
 		<Unit filename="NetInfo.h" />
@@ -1033,6 +1049,8 @@
 		<Unit filename="vamp-hostsdk/vamp.h" />
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
+		<Unit filename="wxModelGridCellRenderer.cpp" />
+		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
@@ -1099,6 +1117,7 @@
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
+		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="wxsmith/MusicPanel.wxs" />
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/NodeSelectGrid.wxs" />
@@ -1304,7 +1323,7 @@
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="outputs/ArtNetDialog.cpp" hdr="outputs/ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DDPDialog.wxs" src="outputs/DDPDialog.cpp" hdr="outputs/DDPDialog.h" fwddecl="0" i18n="1" name="DDPDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="controllers/FPPConnectDialog.cpp" hdr="controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="effects/ServoPanel.cpp" hdr="effects/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
@@ -1335,6 +1354,7 @@
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
+					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

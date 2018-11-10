@@ -214,7 +214,7 @@ void DumpConfig()
 //IMPLEMENT_APP(xLightsApp)
 int main(int argc, char **argv)
 {
-    srand(time(NULL));
+    srand(time(nullptr));
     InitialiseLogging(true);
     // Dan/Chris ... if you get an exception here the most likely reason is the line
     // appender.A1.fileName= in the xlights.xxx.properties file
@@ -245,7 +245,16 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #include <wx/debugrpt.h>
 
 xLightsFrame *topFrame = nullptr;
+
 void handleCrash(void *data) {
+    static volatile bool inCrashHandler = false;
+    
+    if (inCrashHandler) {
+        //need to ignore any crashes in the crash handler
+        return;
+    }
+    inCrashHandler = true;
+    
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Crash handler called.");
 	wxDebugReportCompress *report = new wxDebugReportCompress();
@@ -322,8 +331,9 @@ void handleCrash(void *data) {
         std::string id = ret.str();
         trace += wxString::Format("\nCrashed thread id: %s\n", id.c_str());
     }
-    trace += topFrame->GetThreadStatusReport();
-    trace += ParallelJobPool::POOL.GetThreadStatus();
+    //These will be added on the main thread
+    //trace += topFrame->GetThreadStatusReport();
+    //trace += ParallelJobPool::POOL.GetThreadStatus();
 
     report->AddText("backtrace.txt", trace, "Backtrace");
 
@@ -378,20 +388,36 @@ wxString xLightsFrame::GetThreadStatusReport() {
 }
 
 void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     static bool inHere = false;
 
-    // if we are in here a second time ... just exit
-    if (inHere) exit(1);
+    // if we are in here a second time ... just return
+    if (inHere) return;
 
     inHere = true;
+
+    //add thread status - must be done on main thread
+    //due to mutex locks potentially being problematic
+    std::string status = "Render Pool:\n";
+    status += topFrame->GetThreadStatusReport();
+    status += "\nParallel Job Pool:\n";
+    status += ParallelJobPool::POOL.GetThreadStatus();
+
+    wxFileName fileName(report->GetDirectory(), "backtrace.txt");
+    wxFile file(fileName.GetFullPath(),  wxFile::write_append);
+    file.Write("\n");
+    file.Write(status);
+    file.Flush();
+    file.Close();
+    logger_base.crit("%s", (const char *)status.c_str());
+
 
     if (wxDebugReportPreviewStd().Show(*report)) {
         report->Process();
         SendReport("crashUpload", *report);
         wxMessageBox("Crash report saved to " + report->GetCompressedFileName());
     }
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.crit("Exiting after creating debug report: %s", (const char *)report->GetCompressedFileName().c_str());
 	delete report;
 
@@ -555,6 +581,12 @@ bool xLightsApp::OnInit()
             }
             if (showDir.IsNull()) {
                 showDir=wxPathOnly(sequenceFile);
+                while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml"))
+                {
+                    auto old = showDir;
+                    showDir = wxPathOnly(showDir);
+                    if (showDir == old) showDir = "";
+                }
             }
             sequenceFiles.push_back(sequenceFile);
         }

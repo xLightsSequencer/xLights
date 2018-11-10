@@ -87,25 +87,51 @@ std::string PlayListItemFPPEvent::GetTooltip()
     return "";
 }
 
+//#define EXTREME_FPPEVENT_LOGGING
+
 void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started)
     {
+#ifdef EXTREME_FPPEVENT_LOGGING
+        logger_base.debug("FPP Event");
+#endif
         _started = true;
 
         std::string eventstring = GetEventString();
+        logger_base.debug("FPP Event IP '%s' Event String '%s'", (const char*)_ip.c_str(), (const char*)eventstring.c_str());
 
         if (IsIPValidOrHostname(_ip) && _ip != "255.255.255.255")
         {
+#ifdef EXTREME_FPPEVENT_LOGGING
+            logger_base.debug("   Getting URL");
+#endif
             wxHTTP http;
             http.SetTimeout(1);
-            http.SetMethod("GET");
+            // http.SetMethod("GET"); dont set method ... it will default to get
+#ifdef EXTREME_FPPEVENT_LOGGING
+            logger_base.debug("   Connecting to '%s'", (const char*)_ip.c_str());
+#endif
             if (http.Connect(_ip))
             {
+#ifdef EXTREME_FPPEVENT_LOGGING
+                logger_base.debug("   Connected");
+#endif
                 wxString page = "/fppxml.php?command=triggerEvent&id=" + eventstring;
+                logger_base.debug("FPP Event sent %s%s", (const char*)_ip.c_str(), (const char*)page.c_str());
                 wxInputStream *httpStream = http.GetInputStream(page);
+#ifdef EXTREME_FPPEVENT_LOGGING
+                logger_base.debug("   Page retrieved");
+#endif
                 wxDELETE(httpStream);
+#ifdef EXTREME_FPPEVENT_LOGGING
+                logger_base.debug("   Page deleted");
+#endif
+            }
+            else
+            {
+                logger_base.warn("FPP Event %s not sent because we could not connect to %s.", (const char *)eventstring.c_str(), (const char*)_ip.c_str());
             }
         }
         else
@@ -126,17 +152,17 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
             wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
             if (socket == nullptr)
             {
-                logger_base.error("Error opening datagram for FPP Event send.");
+                logger_base.error("Error opening datagram for FPP Event send. %s", (const char *)localaddr.IPAddress().c_str());
             }
             else if (!socket->IsOk())
             {
-                logger_base.error("Error opening datagram for FPP Event send. OK : FALSE");
+                logger_base.error("Error opening datagram for FPP Event send. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
             }
             else if (socket->Error())
             {
-                logger_base.error("Error opening datagram for FPP Event send. %d : %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str());
+                logger_base.error("Error opening datagram for FPP Event send. %d : %s %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
             }
@@ -167,7 +193,7 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
                     strcpy((char*)(dbuffer + sizeof(ControlPkt)), eventstring.c_str());
 
                     socket->SendTo(remoteAddr, dbuffer, dbufsize - 1);
-                    logger_base.info("FPP Event sent %s.", (const char *)eventstring.c_str());
+                    logger_base.info("FPP Event broadcast %s.", (const char *)eventstring.c_str());
 
                     free(dbuffer);
                 }

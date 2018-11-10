@@ -401,6 +401,22 @@ std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &Sett
     return res;
 }
 
+bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKER_Pictures_Filename"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKER_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            rc = true;
+        }
+    }
+
+    return rc;
+}
+
 bool PicturesEffect::IsPictureFile(std::string filename)
 {
     wxFileName fn(filename);

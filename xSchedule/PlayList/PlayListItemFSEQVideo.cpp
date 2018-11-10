@@ -118,6 +118,14 @@ void PlayListItemFSEQVideo::LoadAudio()
         if (_audioManager->FileName() == af)
         {
             // already open
+
+            // If audio file is shorter than fseq override the duration
+            if (_audioManager->LengthMS() < _durationMS)
+            {
+                logger_base.debug("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
+                _durationMS = _audioManager->LengthMS();
+            }
+
             return;
         }
         else
@@ -132,16 +140,25 @@ void PlayListItemFSEQVideo::LoadAudio()
     }
     else if (wxFile::Exists(af))
     {
+        logger_base.debug("FSEQ Video: Loading audio file '%s'.", (const char *)af.c_str());
         _audioManager = new AudioManager(af);
 
         if (!_audioManager->IsOk())
         {
-            logger_base.error("FSEQ: Audio file '%s' has a problem opening.", (const char *)af.c_str());
+            logger_base.error("FSEQ Video: Audio file '%s' has a problem opening.", (const char *)af.c_str());
+            if (_fseqFile != nullptr)
+                _durationMS = _fseqFile->GetLengthMS();
+            delete _audioManager;
+            _audioManager = nullptr;
+        }
+        else
+        {
+            logger_base.debug("    Loaded ok.");
+            _durationMS = _audioManager->LengthMS();
         }
 
-        if (_volume != -1)
+        if (_volume != -1 && _audioManager != nullptr)
             _audioManager->SetVolume(_volume);
-        _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
 
         // If the FSEQ is shorter than the audio ... then override the length
@@ -157,7 +174,7 @@ void PlayListItemFSEQVideo::LoadAudio()
     {
         if (af != "")
         {
-            logger_base.error("FSEQ: Audio file '%s' cannot be opened because it does not exist.", (const char *)af.c_str());
+            logger_base.error("FSEQ Video: Audio file '%s' cannot be opened because it does not exist.", (const char *)af.c_str());
         }
     }
 }
@@ -176,7 +193,7 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
     }
     else
     {
-        logger_base.error("FSEQ: File does not exist. %s", (const char *)_fseqFileName.c_str());
+        logger_base.error("FSEQ Video: File does not exist. %s", (const char *)_fseqFileName.c_str());
     }
 
     if (_cacheVideo && doCache)
@@ -443,7 +460,12 @@ void PlayListItemFSEQVideo::FastSetDuration()
 
             // If the FSEQ is shorter than the audio ... then override the length
             size_t durationFSEQ = fseq.GetLengthMS();
-            if (durationFSEQ < _durationMS)
+            if (_durationMS == 0)
+            {
+                logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+                _durationMS = durationFSEQ;
+            }
+            else if (durationFSEQ < _durationMS)
             {
                 logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
                 _durationMS = durationFSEQ;
@@ -462,12 +484,35 @@ void PlayListItemFSEQVideo::FastSetDuration()
         // If the FSEQ is shorter than the audio ... then override the length
         FSEQFile fseq(_fseqFileName);
         size_t durationFSEQ = fseq.GetLengthMS();
-        if (durationFSEQ < _durationMS)
+        if (_durationMS == 0)
+        {
+            logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+            _durationMS = durationFSEQ;
+        }
+        else if (durationFSEQ < _durationMS)
         {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
     }
+}
+
+bool PlayListItemFSEQVideo::Advance(int seconds)
+{
+    int adjustFrames = seconds * 1000 / (int)GetFrameMS();
+    _currentFrame += adjustFrames;
+    if (_currentFrame < 0) _currentFrame = 0;
+    if (_currentFrame > _stepLengthMS / GetFrameMS()) _currentFrame = _stepLengthMS / GetFrameMS();
+
+    if (ControlsTiming() && _audioManager != nullptr)
+    {
+        long newPos = _audioManager->Tell() + seconds * 1000;
+        if (newPos < 0) newPos = 0;
+        if (newPos > _audioManager->LengthMS()) newPos = _audioManager->LengthMS() - 5;
+        _audioManager->Seek(newPos);
+    }
+
+    return true;
 }
 
 size_t PlayListItemFSEQVideo::GetPositionMS() const
@@ -619,7 +664,7 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_BILINEAR /*wxIMAGE_QUALITY_HIGH*/, -1, wxID_ANY, _origin, _size);
     }
     else
     {

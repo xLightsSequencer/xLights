@@ -257,6 +257,8 @@
 		<Unit filename="../xLights/JobPool.cpp" />
 		<Unit filename="../xLights/JobPool.h" />
 		<Unit filename="../xLights/MSWStackWalk.h" />
+		<Unit filename="../xLights/Parallel.cpp" />
+		<Unit filename="../xLights/Parallel.h" />
 		<Unit filename="../xLights/SequenceData.cpp" />
 		<Unit filename="../xLights/UtilFunctions.cpp" />
 		<Unit filename="../xLights/UtilFunctions.h" />
@@ -350,6 +352,8 @@
 		<Unit filename="ColourOrderDialog.h" />
 		<Unit filename="CommandManager.cpp" />
 		<Unit filename="CommandManager.h" />
+		<Unit filename="ConfigureMIDITimecodeDialog.cpp" />
+		<Unit filename="ConfigureMIDITimecodeDialog.h" />
 		<Unit filename="ConfigureOSC.cpp" />
 		<Unit filename="ConfigureOSC.h" />
 		<Unit filename="Control.h" />
@@ -375,6 +379,8 @@
 		<Unit filename="EventLorPanel.h" />
 		<Unit filename="EventMIDIPanel.cpp" />
 		<Unit filename="EventMIDIPanel.h" />
+		<Unit filename="EventStatePanel.cpp" />
+		<Unit filename="EventStatePanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
 		<Unit filename="EventPingPanel.cpp" />
@@ -383,6 +389,10 @@
 		<Unit filename="EventSerialPanel.h" />
 		<Unit filename="EventsDialog.cpp" />
 		<Unit filename="EventsDialog.h" />
+		<Unit filename="ExtraIPDialog.cpp" />
+		<Unit filename="ExtraIPDialog.h" />
+		<Unit filename="ExtraIPsDialog.cpp" />
+		<Unit filename="ExtraIPsDialog.h" />
 		<Unit filename="FPPRemotesDialog.cpp" />
 		<Unit filename="FPPRemotesDialog.h" />
 		<Unit filename="FSEQFile.cpp" />
@@ -440,6 +450,10 @@
 		<Unit filename="PlayList/PlayListItemDelay.h" />
 		<Unit filename="PlayList/PlayListItemDelayPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemDelayPanel.h" />
+		<Unit filename="PlayList/PlayListItemDim.cpp" />
+		<Unit filename="PlayList/PlayListItemDim.h" />
+		<Unit filename="PlayList/PlayListItemDimPanel.cpp" />
+		<Unit filename="PlayList/PlayListItemDimPanel.h" />
 		<Unit filename="PlayList/PlayListItemESEQ.cpp" />
 		<Unit filename="PlayList/PlayListItemESEQ.h" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.cpp" />
@@ -456,6 +470,10 @@
 		<Unit filename="PlayList/PlayListItemFSEQVideo.h" />
 		<Unit filename="PlayList/PlayListItemFSEQVideoPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQVideoPanel.h" />
+		<Unit filename="PlayList/PlayListItemFade.cpp" />
+		<Unit filename="PlayList/PlayListItemFade.h" />
+		<Unit filename="PlayList/PlayListItemFadePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemFadePanel.h" />
 		<Unit filename="PlayList/PlayListItemFile.cpp" />
 		<Unit filename="PlayList/PlayListItemFile.h" />
 		<Unit filename="PlayList/PlayListItemFilePanel.cpp" />
@@ -468,6 +486,10 @@
 		<Unit filename="PlayList/PlayListItemJukebox.h" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemJukeboxPanel.h" />
+		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophone.h" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemOSC.cpp" />
 		<Unit filename="PlayList/PlayListItemOSC.h" />
 		<Unit filename="PlayList/PlayListItemOSCPanel.cpp" />
@@ -504,10 +526,6 @@
 		<Unit filename="PlayList/PlayListItemTest.h" />
 		<Unit filename="PlayList/PlayListItemTestPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemTestPanel.h" />
-		<Unit filename="PlayList/PlayListItemMicrophone.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophone.h" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.cpp" />
-		<Unit filename="PlayList/PlayListItemMicrophonePanel.h" />
 		<Unit filename="PlayList/PlayListItemText.cpp" />
 		<Unit filename="PlayList/PlayListItemText.h" />
 		<Unit filename="PlayList/PlayListItemTextPanel.cpp" />
@@ -574,6 +592,8 @@
 		<Unit filename="events/EventLor.h" />
 		<Unit filename="events/EventMIDI.cpp" />
 		<Unit filename="events/EventMIDI.h" />
+		<Unit filename="events/EventState.cpp" />
+		<Unit filename="events/EventState.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
 		<Unit filename="events/EventPing.cpp" />
@@ -630,6 +650,7 @@
 		<Unit filename="wxsmith/BackgroundPlaylistDialog.wxs" />
 		<Unit filename="wxsmith/ButtonDetailsDialog.wxs" />
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
+		<Unit filename="wxsmith/ConfigureMIDITimecodeDialog.wxs" />
 		<Unit filename="wxsmith/ConfigureOSC.wxs" />
 		<Unit filename="wxsmith/DeadChannelDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
@@ -641,10 +662,13 @@
 		<Unit filename="wxsmith/EventFPPPanel.wxs" />
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
+		<Unit filename="wxsmith/EventStatePanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
 		<Unit filename="wxsmith/EventPingPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
 		<Unit filename="wxsmith/EventsDialog.wxs" />
+		<Unit filename="wxsmith/ExtraIPDialog.wxs" />
+		<Unit filename="wxsmith/ExtraIPsDialog.wxs" />
 		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
 		<Unit filename="wxsmith/GammaDialog.wxs" />
 		<Unit filename="wxsmith/MatricesDialog1.wxs" />
@@ -656,13 +680,16 @@
 		<Unit filename="wxsmith/PlayListItemAudioPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemDimPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFPPEventPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQVideoPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemFadePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemJukeboxPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemOSCPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemProjectorPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemRDSPanel.wxs" />
@@ -672,7 +699,6 @@
 		<Unit filename="wxsmith/PlayListItemSerialPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemSetColourPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTestPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemMicrophonePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemTextPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemVideoPanel.wxs" />
 		<Unit filename="wxsmith/PlayListPanel.wxs" />
@@ -707,6 +733,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemAllOffPanel.wxs" src="PlayList/PlayListItemAllOffPanel.cpp" hdr="PlayList/PlayListItemAllOffPanel.h" fwddecl="0" i18n="1" name="PlayListItemAllOffPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemSetColourPanel.wxs" src="PlayList/PlayListItemSetColourPanel.cpp" hdr="PlayList/PlayListItemSetColourPanel.h" fwddecl="0" i18n="1" name="PlayListItemSetColourPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemDelayPanel.wxs" src="PlayList/PlayListItemDelayPanel.cpp" hdr="PlayList/PlayListItemDelayPanel.h" fwddecl="0" i18n="1" name="PlayListItemDelayPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemDimPanel.wxs" src="PlayList/PlayListItemDimPanel.cpp" hdr="PlayList/PlayListItemDimPanel.h" fwddecl="0" i18n="1" name="PlayListItemDimPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemImagePanel.wxs" src="PlayList/PlayListItemImagePanel.cpp" hdr="PlayList/PlayListItemImagePanel.h" fwddecl="0" i18n="1" name="PlayListItemImagePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemJukeboxPanel.wxs" src="PlayList/PlayListItemJukeboxPanel.cpp" hdr="PlayList/PlayListItemJukeboxPanel.h" fwddecl="0" i18n="1" name="PlayListItemJukeboxPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemProjectorPanel.wxs" src="PlayList/PlayListItemProjectorPanel.cpp" hdr="PlayList/PlayListItemProjectorPanel.h" fwddecl="0" i18n="1" name="PlayListItemProjectorPanel" language="CPP" />
@@ -714,6 +741,7 @@
 					<wxPanel wxs="wxsmith/PlayListItemCURLPanel.wxs" src="PlayList/PlayListItemCURLPanel.cpp" hdr="PlayList/PlayListItemCURLPanel.h" fwddecl="0" i18n="1" name="PlayListItemCURLPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemSerialPanel.wxs" src="PlayList/PlayListItemSerialPanel.cpp" hdr="PlayList/PlayListItemSerialPanel.h" fwddecl="0" i18n="1" name="PlayListItemSerialPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemESEQPanel.wxs" src="PlayList/PlayListItemESEQPanel.cpp" hdr="PlayList/PlayListItemESEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemESEQPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/PlayListItemFadePanel.wxs" src="PlayList/PlayListItemFadePanel.cpp" hdr="PlayList/PlayListItemFadePanel.h" fwddecl="0" i18n="1" name="PlayListItemFadePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFilePanel.wxs" src="PlayList/PlayListItemFilePanel.cpp" hdr="PlayList/PlayListItemFilePanel.h" fwddecl="0" i18n="1" name="PlayListItemFilePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFPPEventPanel.wxs" src="PlayList/PlayListItemFPPEventPanel.cpp" hdr="PlayList/PlayListItemFPPEventPanel.h" fwddecl="0" i18n="1" name="PlayListItemFPPEventPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/PlayListItemFSEQPanel.wxs" src="PlayList/PlayListItemFSEQPanel.cpp" hdr="PlayList/PlayListItemFSEQPanel.h" fwddecl="0" i18n="1" name="PlayListItemFSEQPanel" language="CPP" />
@@ -760,9 +788,13 @@
 					<wxPanel wxs="wxsmith/EventOSCPanel.wxs" src="EventOSCPanel.cpp" hdr="EventOSCPanel.h" fwddecl="0" i18n="1" name="EventOSCPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventDataPanel.wxs" src="EventDataPanel.cpp" hdr="EventDataPanel.h" fwddecl="0" i18n="1" name="EventDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventStatePanel.wxs" src="EventStatePanel.cpp" hdr="EventStatePanel.h" fwddecl="0" i18n="1" name="EventStatePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EventPingPanel.wxs" src="EventPingPanel.cpp" hdr="EventPingPanel.h" fwddecl="0" i18n="1" name="EventPingPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/ConfigureMIDITimecodeDialog.wxs" src="ConfigureMIDITimecodeDialog.cpp" hdr="ConfigureMIDITimecodeDialog.h" fwddecl="0" i18n="1" name="ConfigureMIDITimecodeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ExtraIPsDialog.wxs" src="ExtraIPsDialog.cpp" hdr="ExtraIPsDialog.h" fwddecl="0" i18n="1" name="ExtraIPsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ExtraIPDialog.wxs" src="ExtraIPDialog.cpp" hdr="ExtraIPDialog.h" fwddecl="0" i18n="1" name="ExtraIPDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

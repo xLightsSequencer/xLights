@@ -4,42 +4,214 @@
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
-			<cols>2</cols>
-			<growablecols>1</growablecols>
+			<cols>1</cols>
+			<growablecols>0</growablecols>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-					<label>Protocol</label>
+				<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+							<label>Protocol</label>
+						</object>
+						<col>0</col>
+						<row>0</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Protocol" member="yes">
+							<focused>1</focused>
+							<handler function="OnChoice_ProtocolSelect" entry="EVT_CHOICE" />
+						</object>
+						<col>1</col>
+						<row>0</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label>Port</label>
+						</object>
+						<col>0</col>
+						<row>1</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Port" member="yes">
+							<value>1</value>
+							<min>1</min>
+						</object>
+						<col>1</col>
+						<row>1</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_DMX_channel" variable="DMXChannel" member="yes">
+							<value>1</value>
+							<min>1</min>
+							<max>512</max>
+							<enabled>0</enabled>
+						</object>
+						<col>1</col>
+						<row>2</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_PixelDirection" member="yes">
+							<label>Set Direction</label>
+							<handler function="OnPixelDirectionClick" entry="EVT_CHECKBOX" />
+						</object>
+						<col>0</col>
+						<row>4</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_PIXEL_reverse" variable="PixelDirection" member="yes">
+							<content>
+								<item>Forward</item>
+								<item>Reverse</item>
+							</content>
+							<selection>0</selection>
+							<enabled>0</enabled>
+						</object>
+						<col>1</col>
+						<row>4</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX5" variable="CheckBox_ColorOrder" member="yes">
+							<label>Set Color Order</label>
+							<handler function="OnCheckBox_ColorOrderClick" entry="EVT_CHECKBOX" />
+						</object>
+						<col>0</col>
+						<row>5</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_PIXEL_colorOrder" variable="ColorOrder" member="yes">
+							<content>
+								<item>RGB</item>
+								<item>RBG</item>
+								<item>GBR</item>
+								<item>GRB</item>
+								<item>BGR</item>
+								<item>BRG</item>
+								<item>RGBW</item>
+								<item>RBGW</item>
+								<item>GBRW</item>
+								<item>GRBW</item>
+								<item>BGRW</item>
+								<item>BRGW</item>
+								<item>WRGB</item>
+								<item>WRBG</item>
+								<item>WGBR</item>
+								<item>WGRB</item>
+								<item>WBGR</item>
+								<item>WBRG</item>
+							</content>
+							<selection>0</selection>
+							<enabled>0</enabled>
+						</object>
+						<col>1</col>
+						<row>5</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_NullNodes" member="yes">
+							<label>Set Null Nodes</label>
+							<handler function="OnCheckBox_NullNodesClick" entry="EVT_CHECKBOX" />
+						</object>
+						<col>0</col>
+						<row>6</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_PIXEL_nullNodes" variable="NullNodes" member="yes">
+							<value>0</value>
+							<max>25</max>
+							<enabled>0</enabled>
+						</object>
+						<col>1</col>
+						<row>6</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_Brightness" member="yes">
+							<label>Set Brightness</label>
+							<handler function="OnCheckBox_BrightnessClick" entry="EVT_CHECKBOX" />
+						</object>
+						<col>0</col>
+						<row>7</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_PIXEL_brightness" variable="Brightness" member="yes">
+							<value>100</value>
+							<enabled>0</enabled>
+						</object>
+						<col>1</col>
+						<row>7</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_Gamma" member="yes">
+							<label>Set Gamma</label>
+							<handler function="OnCheckBox_GammaClick" entry="EVT_CHECKBOX" />
+						</object>
+						<col>0</col>
+						<row>8</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSpinCtrl" name="ID_PIXEL_gamma" variable="GammaPlaceHolder" member="no">
+							<value></value>
+							<max>10</max>
+						</object>
+						<col>1</col>
+						<row>8</row>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_DMXChannel" member="yes">
+							<label>DMX Channel</label>
+							<handler function="OnCheckBox_DMXChannelClick" entry="EVT_CHECKBOX" />
+						</object>
+						<col>0</col>
+						<row>2</row>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxChoice" name="ID_CHOICE1" variable="Choice_Protocol" member="yes" />
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-					<label>Port</label>
-				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_Port" member="yes">
-					<value>1</value>
-					<min>1</min>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="spacer">
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">

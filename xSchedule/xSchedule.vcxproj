@@ -193,6 +193,7 @@
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\SerialPortWithRate.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
+    <ClCompile Include="..\xLights\Parallel.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
@@ -213,6 +214,7 @@
     <ClCompile Include="City.cpp" />
     <ClCompile Include="ColourOrderDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
+    <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
     <ClCompile Include="DeadChannelDialog.cpp" />
     <ClCompile Include="DimDialog.cpp" />
@@ -229,6 +231,7 @@
     <ClCompile Include="EventPingPanel.cpp" />
     <ClCompile Include="EventsDialog.cpp" />
     <ClCompile Include="EventSerialPanel.cpp" />
+    <ClCompile Include="EventStatePanel.cpp" />
     <ClCompile Include="events\EventARTNet.cpp" />
     <ClCompile Include="events\EventBase.cpp" />
     <ClCompile Include="events\EventData.cpp" />
@@ -239,6 +242,7 @@
     <ClCompile Include="events\EventOSC.cpp" />
     <ClCompile Include="events\EventPing.cpp" />
     <ClCompile Include="events\EventSerial.cpp" />
+    <ClCompile Include="events\EventState.cpp" />
     <ClCompile Include="events\ListenerARTNet.cpp" />
     <ClCompile Include="events\ListenerBase.cpp" />
     <ClCompile Include="events\ListenerE131.cpp" />
@@ -249,6 +253,8 @@
     <ClCompile Include="events\ListenerMIDI.cpp" />
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
+    <ClCompile Include="ExtraIPDialog.cpp" />
+    <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GammaDialog.cpp" />
@@ -270,6 +276,10 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDim.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDimPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFade.cpp" />
+    <ClCompile Include="PlayList\PlayListItemFadePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFile.cpp" />
     <ClCompile Include="PlayList\PlayListItemFilePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFPPEvent.cpp" />
@@ -397,6 +407,7 @@
     <ClInclude Include="City.h" />
     <ClInclude Include="ColourOrderDialog.h" />
     <ClInclude Include="CommandManager.h" />
+    <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
     <ClInclude Include="ConfigureOSC.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="DeadChannelDialog.h" />
@@ -414,6 +425,7 @@
     <ClInclude Include="EventPingPanel.h" />
     <ClInclude Include="EventsDialog.h" />
     <ClInclude Include="EventSerialPanel.h" />
+    <ClInclude Include="EventStatePanel.h" />
     <ClInclude Include="events\EventARTNet.h" />
     <ClInclude Include="events\EventBase.h" />
     <ClInclude Include="events\EventData.h" />
@@ -424,6 +436,7 @@
     <ClInclude Include="events\EventOSC.h" />
     <ClInclude Include="events\EventPing.h" />
     <ClInclude Include="events\EventSerial.h" />
+    <ClInclude Include="events\EventState.h" />
     <ClInclude Include="events\ListenerARTNet.h" />
     <ClInclude Include="events\ListenerBase.h" />
     <ClInclude Include="events\ListenerE131.h" />
@@ -434,6 +447,8 @@
     <ClInclude Include="events\ListenerMIDI.h" />
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
+    <ClInclude Include="ExtraIPDialog.h" />
+    <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GammaDialog.h" />
@@ -456,6 +471,10 @@
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="PlayList\PlayListItemDim.h" />
+    <ClInclude Include="PlayList\PlayListItemDimPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemFade.h" />
+    <ClInclude Include="PlayList\PlayListItemFadePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFile.h" />
     <ClInclude Include="PlayList\PlayListItemFilePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFPPEvent.h" />
@@ -539,6 +558,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="API Documentation.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

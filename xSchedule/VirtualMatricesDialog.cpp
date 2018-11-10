@@ -78,8 +78,9 @@ VirtualMatricesDialog::VirtualMatricesDialog(wxWindow* parent, OutputManager* ou
     ListView1->InsertColumn(6, "Location");
     ListView1->InsertColumn(7, "Start Channel");
     ListView1->InsertColumn(8, "Quality");
+    ListView1->InsertColumn(9, "Matrix Multiplier");
 
-    SetSize(850, 400);
+    SetSize(950, 400);
 
     PopulateList();
 
@@ -155,8 +156,15 @@ void VirtualMatricesDialog::OnButton_OkClick(wxCommandEvent& event)
         }
         std::string startChannel = ListView1->GetItemText(i, 7).ToStdString();
         std::string quality = ListView1->GetItemText(i, 8).ToStdString();
+        bool useMatrixSize = false;
+        int matrixMultiplier = 1;
+        if (ListView1->GetItemText(i, 9) != "")
+        {
+            matrixMultiplier = wxAtoi(ListView1->GetItemText(i, 9));
+            useMatrixSize = true;
+        }
 
-        _vmatrices->push_back(new VirtualMatrix(_outputManager, width, height, topMost, rotation, quality, startChannel, name, size, location));
+        _vmatrices->push_back(new VirtualMatrix(_outputManager, width, height, topMost, rotation, quality, startChannel, name, size, location, useMatrixSize, matrixMultiplier));
     }
 
     EndDialog(wxID_OK);
@@ -192,8 +200,10 @@ void VirtualMatricesDialog::DoAdd()
     wxPoint location(0, 0);
     std::string startChannel = "1";
     std::string quality = "";
+    bool useMatrixSize = false;
+    int matrixMultiplier = 1;
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -207,6 +217,14 @@ void VirtualMatricesDialog::DoAdd()
         ListView1->SetItem(row, 6, wxString::Format(wxT("%i,%i"), location.x, location.y));
         ListView1->SetItem(row, 7, startChannel);
         ListView1->SetItem(row, 8, quality);
+        if (useMatrixSize)
+        {
+            ListView1->SetItem(row, 9, wxString::Format("%d", matrixMultiplier));
+        }
+        else
+        {
+            ListView1->SetItem(row, 9, "");
+        }
     }
 
     ValidateWindow();
@@ -248,8 +266,15 @@ void VirtualMatricesDialog::DoEdit()
     }
     std::string startChannel = ListView1->GetItemText(item, 7).ToStdString();
     std::string quality = ListView1->GetItemText(item, 8).ToStdString();
+    bool useMatrixSize = false;
+    int matrixMultiplier = 1;
+    if (ListView1->GetItemText(item, 9) != "")
+    {
+        matrixMultiplier = wxAtoi(ListView1->GetItemText(item, 9));
+        useMatrixSize = true;
+    }
 
-    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel);
+    VirtualMatrixDialog dlg(this, _outputManager, name, rotation, quality, size, location, width, height, topMost, startChannel, useMatrixSize, matrixMultiplier);
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -262,6 +287,14 @@ void VirtualMatricesDialog::DoEdit()
         ListView1->SetItem(item, 6, wxString::Format(wxT("%i,%i"), location.x, location.y));
         ListView1->SetItem(item, 7, startChannel);
         ListView1->SetItem(item, 8, quality);
+        if (useMatrixSize)
+        {
+            ListView1->SetItem(item, 9, wxString::Format("%d", matrixMultiplier));
+        }
+        else
+        {
+            ListView1->SetItem(item, 9, "");
+        }
     }
 
     ValidateWindow();
@@ -281,5 +314,13 @@ void VirtualMatricesDialog::PopulateList()
         ListView1->SetItem(row, 6, wxString::Format(wxT("%d,%d"), (*it)->GetLocation().x, (*it)->GetLocation().y));
         ListView1->SetItem(row, 7, (*it)->GetStartChannel());
         ListView1->SetItem(row, 8, (*it)->GetScalingQuality());
+        if ((*it)->GetUseMatrixSize())
+        {
+            ListView1->SetItem(row, 9, wxString::Format("%d", (*it)->GetMatrixMultiplier()));
+        }
+        else
+        {
+            ListView1->SetItem(row, 9, "");
+        }
     }
 }

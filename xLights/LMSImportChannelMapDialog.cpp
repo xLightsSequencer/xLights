@@ -122,6 +122,8 @@ LMSImportChannelMapDialog::LMSImportChannelMapDialog(wxWindow* parent, const wxF
     }
 
     _dirty = false;
+
+    SetEscapeId(Button_Cancel->GetId());
 }
 
 LMSImportChannelMapDialog::~LMSImportChannelMapDialog()

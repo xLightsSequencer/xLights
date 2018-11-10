@@ -42,18 +42,20 @@ class FPPConnectDialog: public wxDialog
     std::list<FPPConnectionDetails> _allConnectionDetails;
     OutputManager* _outputManager;
     bool _updating;
-    void LoadSequencesFromFolder(wxString dir);
+    void LoadSequencesFromFolder(wxString dir) const;
     void LoadSequences();
     bool CopyFile(std::string source, std::string target, bool backup, wxProgressDialog &progress, int start, int end);
     bool DoCopyFile(const std::string& source, const std::string& target, wxProgressDialog &progress, int start, int end);
     void ValidateWindow();
-    bool IsValidIP(wxString ip);
+    static bool IsValidIP(wxString ip);
     bool FTPUpload();
     bool USBUpload();
     void OnPopup(wxCommandEvent &event);
     void SaveConnectionDetails();
     void LoadConnectionDetails();
     void CreateDriveList();
+    void SaveSettings();
+    void LoadSettings();
 
 	public:
 
@@ -66,11 +68,16 @@ class FPPConnectDialog: public wxDialog
 		wxButton* Button_Refresh_Drives;
 		wxButton* Button_Upload;
 		wxButton* Button_UploadToAll;
+		wxCheckBox* CheckBox_SuppressMediaUpload;
+		wxCheckBox* CheckBox_SuppressZip;
 		wxCheckBox* CheckBox_UploadController;
 		wxCheckBox* CheckBox_UploadModels;
+		wxCheckBox* PlayListCheckbox;
 		wxCheckListBox* CheckListBox_Sequences;
+		wxChoice* Choice_DefaultVersion;
 		wxChoice* Choice_Drives;
 		wxComboBox* ComboBox_IPAddress;
+		wxComboBox* PlayListName;
 		wxDirPickerCtrl* DirPickerCtrl_FPPMedia;
 		wxNotebook* Notebook_FPP;
 		wxPanel* Panel_FTP;
@@ -81,6 +88,7 @@ class FPPConnectDialog: public wxDialog
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
 		wxTextCtrl* TextCtr_Username;
 		wxTextCtrl* TextCtrl_Description;
 		wxTextCtrl* TextCtrl_Password;
@@ -99,6 +107,12 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL_Password;
 		static const long ID_BUTTON_Console;
+		static const long ID_STATICTEXT7;
+		static const long ID_CHOICE1;
+		static const long ID_CHECKBOX3;
+		static const long ID_CHECKBOX4;
+		static const long ID_CHECKBOX2;
+		static const long ID_COMBOBOX1;
 		static const long ID_PANEL_FTP;
 		static const long ID_STATICTEXT4;
 		static const long ID_CHOICE_Drives;
@@ -139,6 +153,8 @@ class FPPConnectDialog: public wxDialog
 		void OnComboBox_IPAddressTextEnter(wxCommandEvent& event);
 		void OnTextCtrl_DescriptionText(wxCommandEvent& event);
 		void OnButton_Refresh_DrivesClick(wxCommandEvent& event);
+		void OnPlayListCheckboxClick(wxCommandEvent& event);
+		void OnClose(wxCloseEvent& event);
 		//*)
 
         void OnComboBox_IPAddressTextUpdate(wxCommandEvent& event);

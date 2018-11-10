@@ -828,7 +828,6 @@ void xLightsFrame::UpdateModelsList()
 
     playModel = nullptr;
     PreviewModels.clear();
-    layoutPanel->GetMainPreview()->GetModels().clear();
 
     modelsChangeCount++;
     AllModels.LoadModels(ModelsNode,
@@ -1093,7 +1092,8 @@ void xLightsFrame::SaveSequence()
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Rendering."));
 
         // If number of channels is wrong then lets just dump and reallocate before render
-        if (SeqData.NumChannels() != roundTo4(GetMaxNumChannels()))
+        if ((SeqData.NumChannels() != roundTo4(GetMaxNumChannels())) ||
+            (SeqData.FrameTime() != CurrentSeqXmlFile->GetFrameMS()) )
         {
             logger_base.info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
 

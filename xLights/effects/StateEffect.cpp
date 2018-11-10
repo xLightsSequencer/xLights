@@ -484,6 +484,10 @@ void StateEffect::RenderState(RenderBuffer &buffer,
                         int idx = valstr.Index('-');
                         start = wxAtoi(valstr.Left(idx));
                         end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                        if (end < start)
+                        {
+                            std::swap(start, end);
+                        }
                     }
                     else {
                         start = end = wxAtoi(valstr);

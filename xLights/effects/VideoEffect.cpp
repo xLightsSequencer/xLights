@@ -152,7 +152,25 @@ std::list<std::string> VideoEffect::GetFileReferences(const SettingsMap &Setting
     return res;
 }
 
+bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Videos");
+            rc = true;
+        }
+    }
+
+    return rc;
+}
+
 void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    float offset = buffer.GetEffectTimeIntervalPosition();
+
     Render(buffer,
 		   SettingsMap["FILEPICKERCTRL_Video_Filename"],
 		SettingsMap.GetDouble("TEXTCTRL_Video_Starttime", 0.0),
@@ -164,7 +182,8 @@ void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 		SettingsMap.Get("CHOICE_Video_DurationTreatment", "Normal"),
         SettingsMap.GetBool("CHECKBOX_SynchroniseWithAudio", false),
         SettingsMap.GetBool("CHECKBOX_Video_TransparentBlack", false),
-        SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0)
+        SettingsMap.GetInt("TEXTCTRL_Video_TransparentBlack", 0),
+        GetValueCurveDouble("Video_Speed", 1.0, SettingsMap, offset, VIDEO_SPEED_MIN, VIDEO_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), VIDEO_SPEED_DIVISOR)
 		);
 }
 
@@ -176,6 +195,7 @@ public:
 		_videoreader = nullptr;
         _loops = 0;
         _frameMS = 50;
+        _nextManualMS = 0;
 	};
     virtual ~VideoRenderCache() {
 		if (_videoreader != nullptr)
@@ -189,10 +209,11 @@ public:
 	int _videoframerate;
 	int _loops;
     int _frameMS;
+    int _nextManualMS = 0;
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
-    double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel)
+    double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool aspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack, int transparentBlackLevel, double speed)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -242,6 +263,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     int &_loops = cache->_loops;
     VideoReader* &_videoreader = cache->_videoreader;
     int& _frameMS = cache->_frameMS;
+    int& _nextManualMS = cache->_nextManualMS;
 
     if (synchroniseAudio)
     {
@@ -260,6 +282,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         buffer.needToInit = false;
 
         _loops = 0;
+        _nextManualMS = 0;
         _frameMS = buffer.frameTimeInMs;
         if (_videoreader != nullptr)
         {
@@ -331,7 +354,33 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
     if (_videoreader != nullptr && _videoreader->GetLengthMS() > 0)
     {
-        long frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+        long frame = 0;
+        
+        if (durationTreatment == "Manual")
+        {
+            frame = starttime * 1000 + _nextManualMS;
+            _nextManualMS += speed * _frameMS;
+        }
+        else if (durationTreatment == "Manual and Loop")
+        {
+            frame = starttime * 1000 + _nextManualMS;
+
+            while (frame < 0)
+            {
+                frame += _videoreader->GetLengthMS();
+            }
+
+            while (frame > _videoreader->GetLengthMS())
+            {
+                frame -= _videoreader->GetLengthMS();
+            }
+
+            _nextManualMS += speed * _frameMS;
+        }
+        else
+        {
+            frame = starttime * 1000 + (buffer.curPeriod - buffer.curEffStartPer) * _frameMS - _loops * (_videoreader->GetLengthMS() + _frameMS);
+        }
 
         // get the image for the current frame
         AVFrame* image = _videoreader->GetNextFrame(frame);
@@ -363,7 +412,7 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         //wxASSERT(yoffset + ytail + buffer.BufferHt == _videoreader->GetHeight());
 
         // check it looks valid
-        if (image != nullptr)
+        if (image != nullptr && frame >= 0)
         {
             // draw the image
             xlColor c;
@@ -405,12 +454,15 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
         else
         {
-            // display a blue background to show we have gone past end of video
-            for (int y = 0; y < buffer.BufferHt; y++)
+            if (durationTreatment == "Normal")
             {
-                for (int x = 0; x < buffer.BufferWi; x++)
+                // display a blue background to show we have gone past end of video
+                for (int y = 0; y < buffer.BufferHt; y++)
                 {
-                    buffer.SetPixel(x, y, xlBLUE);
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                    {
+                        buffer.SetPixel(x, y, xlBLUE);
+                    }
                 }
             }
         }

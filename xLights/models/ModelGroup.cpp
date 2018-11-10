@@ -38,6 +38,130 @@ Model* ModelGroup::GetModel(std::string modelName)
     return nullptr;
 }
 
+bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
+{
+    std::list<Model*> visited;
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it) != nullptr && (*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (*it == mg)
+            {
+                found = true;
+            }
+            else
+            {
+                if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+                {
+                    found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelGroup(mg, visited);
+                }
+                else
+                {
+                    // already seen this group so dont follow
+                }
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
+{
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it) != nullptr && (*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (*it == mg)
+            {
+                found = true;
+            }
+            else
+            {
+                if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+                {
+                    found |= dynamic_cast<ModelGroup*>(*it)->ContainsModelGroup(mg, visited);
+                }
+                else
+                {
+                    // already seen this group so dont follow
+                }
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModel(Model* m)
+{
+    wxASSERT(m->GetDisplayAs() != "ModelGroup");
+
+    std::list<Model*> visited;
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+            {
+                found |= dynamic_cast<ModelGroup*>(*it)->ContainsModel(m, visited);
+            }
+            else
+            {
+                // already seen this group so dont follow
+            }
+        }
+        else
+        {
+            if (m == *it)
+            {
+                found = true;
+            }
+        }
+    }
+
+    return found;
+}
+
+bool ModelGroup::ContainsModel(Model* m, std::list<Model*>& visited)
+{
+    visited.push_back(this);
+
+    bool found = false;
+    for (auto it = models.begin(); !found && it != models.end(); ++it)
+    {
+        if ((*it)->GetDisplayAs() == "ModelGroup")
+        {
+            if (std::find(visited.begin(), visited.end(), *it) == visited.end())
+            {
+                found |= dynamic_cast<ModelGroup*>(*it)->ContainsModel(m, visited);
+            }
+            else
+            {
+                // already seen this group so dont follow
+            }
+        }
+        else
+        {
+            if (m == *it)
+            {
+                found = true;
+            }
+        }
+    }
+
+    return found;
+}
+
 const std::vector<std::string> &ModelGroup::GetBufferStyles() const {
     struct Initializer {
         Initializer() {
@@ -267,7 +391,6 @@ void ModelGroup::ResetModels()
 {
     models.clear();
     wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
-    int nc = 0;
     for (int x = 0; x < mn.size(); x++) {
         Model *c = modelManager.GetModel(mn[x].ToStdString());
         if (c != nullptr) {
@@ -277,6 +400,47 @@ void ModelGroup::ResetModels()
 }
 
 ModelGroup::~ModelGroup() {}
+
+unsigned ModelGroup::GetFirstChannel() const
+{
+    unsigned first = 999999999;
+    for (auto it = ModelNames().begin(); it != ModelNames().end(); ++it)
+    {
+        Model* mm = modelManager.GetModel(*it);
+        if (mm != nullptr)
+        {
+            if (mm->GetFirstChannel() < first)
+            {
+                first = mm->GetFirstChannel();
+            }
+        }
+    }
+
+    if (first == 999999999)
+    {
+        first = 0;
+    }
+
+    return first;
+}
+
+unsigned ModelGroup::GetLastChannel()
+{
+    unsigned last = 0;
+    for (auto it = ModelNames().begin(); it != ModelNames().end(); ++it)
+    {
+        Model* mm = modelManager.GetModel(*it);
+        if (mm != nullptr)
+        {
+            if (mm->GetLastChannel() > last)
+            {
+                last = mm->GetLastChannel();
+            }
+        }
+    }
+
+    return last;
+}
 
 void ModelGroup::AddModel(const std::string &name) {
     wxString newVal = ModelXml->GetAttribute("models", "");

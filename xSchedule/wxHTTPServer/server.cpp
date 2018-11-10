@@ -56,7 +56,7 @@ bool HttpServer::Start(const HttpContext &context)
     logger_base.info("starting server on %s:%u...", (const char *)_address.IPAddress().c_str(), _address.Service());
 
 	// Create the socket
-	_server = new wxSocketServer(_address);
+	_server = new wxSocketServer(_address, wxSOCKET_REUSEADDR);
 
 	// We use IsOk() here to see if the server is really listening
     if (!_server->IsOk())
@@ -89,7 +89,9 @@ bool HttpServer::Start(const HttpContext &context)
 
 bool HttpServer::Stop()
 {
-	if (!_server) return false;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
+    if (!_server) return false;
 
     // close all open connections
     for (auto it = _connections.begin(); it != _connections.end(); ++it)
@@ -103,6 +105,7 @@ bool HttpServer::Stop()
     _server = nullptr;
 
 	wxLogMessage(_("closed server on %s:%u"), _address.IPAddress(), _address.Service());
+    logger_base.debug("closed server on %s:%u", (const char*)_address.IPAddress().c_str(), _address.Service());
 
 	return true;
 }

@@ -126,7 +126,11 @@ PluginLoader::PluginLoader()
 
 PluginLoader::~PluginLoader()
 {
-    delete m_impl;
+    if (m_impl != nullptr)
+    {
+        delete m_impl;
+        m_impl = nullptr;
+    }
 }
 
 PluginLoader *

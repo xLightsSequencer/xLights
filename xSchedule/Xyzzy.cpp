@@ -781,6 +781,8 @@ XyzzyPiece* XyzzyPiece::CreatePiece()
         case 6:
             hardcount++;
             return new TPiece();
+        default:
+            break;
         }
     }
     else
@@ -799,6 +801,8 @@ XyzzyPiece* XyzzyPiece::CreatePiece()
             return new JPiece();
         case 3:
             return new OPiece();
+        default:
+            break;
         }
     }
 
@@ -860,6 +864,8 @@ std::list<wxPoint> LPiece::GetPoints(int rotation, wxPoint position) const
         res.push_back(wxPoint(position.x, position.y + 1));
         res.push_back(wxPoint(position.x - 1, position.y + 1));
         break;
+    default:
+        break;
     }
 
     return res;
@@ -896,6 +902,8 @@ std::list<wxPoint> JPiece::GetPoints(int rotation, wxPoint position) const
         res.push_back(wxPoint(position.x, position.y + 1));
         res.push_back(wxPoint(position.x - 1, position.y - 1));
         break;
+    default:
+        break;
     }
 
     return res;
@@ -920,6 +928,8 @@ std::list<wxPoint> SPiece::GetPoints(int rotation, wxPoint position) const
         res.push_back(wxPoint(position.x + 1, position.y - 1));
         res.push_back(wxPoint(position.x + 1, position.y));
         break;
+    default:
+        break;
     }
 
     return res;
@@ -943,6 +953,8 @@ std::list<wxPoint> ZPiece::GetPoints(int rotation, wxPoint position) const
         res.push_back(wxPoint(position.x, position.y));
         res.push_back(wxPoint(position.x + 1, position.y + 1));
         res.push_back(wxPoint(position.x + 1, position.y));
+        break;
+    default:
         break;
     }
 
@@ -991,6 +1003,8 @@ std::list<wxPoint> TPiece::GetPoints(int rotation, wxPoint position) const
         res.push_back(wxPoint(position.x, position.y));
         res.push_back(wxPoint(position.x, position.y + 1));
         res.push_back(wxPoint(position.x - 1, position.y));
+        break;
+    default:
         break;
     }
 
@@ -1182,6 +1196,8 @@ void Xyzzy::CheckFullRow()
         break;
     case 4:
         AddToScore(ROWSCORE4);
+        break;
+    default:
         break;
     }
 }

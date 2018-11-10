@@ -13,6 +13,8 @@ class ListenerMIDI : public ListenerBase
     int _deviceId;
     int _frameMS;
 
+    void DoSync(int mode, int hours, int mins, int secs, int frames);
+
 	public:
         ListenerMIDI(int deviceId, ListenerManager* _listenerManager);
 		virtual ~ListenerMIDI() {}

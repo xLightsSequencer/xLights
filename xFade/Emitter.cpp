@@ -134,7 +134,7 @@ public:
                     _emitter->IncrementSent();
                 }
 
-                int ms = _emitter->GetFrameMS();
+                // int ms = _emitter->GetFrameMS();
 
                 auto diff = wxDateTime::UNow() - start;
                 diffMS = _emitter->GetFrameMS() - diff.GetMilliseconds().ToLong();

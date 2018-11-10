@@ -2,7 +2,6 @@
 #define VIDEOREADER_H
 
 #include <string>
-#include <list>
 
 extern "C"
 {

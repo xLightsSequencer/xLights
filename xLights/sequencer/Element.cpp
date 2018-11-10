@@ -60,9 +60,9 @@ bool Element::HasEffects() const {
             return true;
         }
     }
+
     return false;
 }
-
 
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
@@ -167,22 +167,36 @@ void SubModelElement::IncrementChangeCount(int startMs, int endMS) {
     GetModelElement()->IncrementChangeCount(startMs, endMS);
 }
 
+bool SubModelElement::HasEffects() const
+{
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        if (mEffectLayers[x]->GetEffectCount() > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 TimingElement::TimingElement(SequenceElements *p, const std::string &name)
 : Element(p, name),
-    mFixed(0)
-{
-    
-}
+    mFixed(0), mActive(false)
+{ }
+
 TimingElement::~TimingElement() {
 }
 
+void TimingElement::Unfix()
+{
+    mFixed = 0;
+}
 
 SubModelElement::SubModelElement(ModelElement *p, const std::string &name)
 : Element(p->GetSequenceElements(), name), mParentModel(p)
 {
     AddEffectLayerInternal();
 }
+
 SubModelElement::~SubModelElement() {
     
 }
@@ -196,13 +210,13 @@ std::string SubModelElement::GetFullName() const {
     return GetModelName() + "/" + GetName();
 }
 
-
 StrandElement::StrandElement(ModelElement *p, int strand)
 : SubModelElement(p, ""),
   mStrand(strand),
   mShowNodes(false)
 {
 }
+
 StrandElement::~StrandElement() {
     for (size_t x = 0; x < mNodeLayers.size(); x++) {
         delete mNodeLayers[x];
@@ -230,6 +244,15 @@ NodeLayer *StrandElement::GetNodeLayer(int n, bool create) {
     }
     return nullptr;
 }
+
+NodeLayer* StrandElement::GetNodeLayer(int n) const
+{
+    if (n < mNodeLayers.size()) {
+        return mNodeLayers[n];
+    }
+    return nullptr;
+}
+
 void StrandElement::InitFromModel(Model &model) {
     int nc = model.GetStrandLength(mStrand);
     mName = model.GetStrandName(mStrand);
@@ -255,7 +278,23 @@ EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
     return nullptr;
 }
 
+bool StrandElement::HasEffects() const
+{
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        if (mEffectLayers[x]->GetEffectCount() > 0) {
+            return true;
+        }
+    }
 
+    for (size_t x = 0; x < GetNodeLayerCount(); ++x)
+    {
+        NodeLayer* nl = GetNodeLayer(x);
+
+        if (nl != nullptr && nl->HasEffects()) return true;
+    }
+
+    return false;
+}
 
 ModelElement::ModelElement(SequenceElements *l, const std::string &name, bool selected)
 :   Element(l, name),
@@ -351,6 +390,32 @@ EffectLayer* ModelElement::GetEffectLayerFromExclusiveIndex(int index) {
     }
     return nullptr;
 }
+
+bool ModelElement::HasEffects() const
+{
+    for (size_t x = 0; x < mEffectLayers.size(); ++x) {
+        if (mEffectLayers[x]->GetEffectCount() > 0) {
+            return true;
+        }
+    }
+    
+    for (size_t x = 0; x < GetStrandCount(); ++x)
+    {
+        StrandElement* se = GetStrand(x);
+
+        if (se != nullptr && se->HasEffects()) return true;
+    }
+
+    for (size_t x = 0; x < GetSubModelCount(); ++x)
+    {
+        SubModelElement* sme = GetSubModel(x);
+
+        if (sme != nullptr && sme->HasEffects()) return true;
+    }
+
+    return false;
+}
+
 std::string  TimingElement::GetPapagayoExport(int fps) const
 {
     if (mEffectLayers.size() != 3) return "";
@@ -463,6 +528,14 @@ StrandElement* ModelElement::GetStrand(int index, bool create) {
     return mStrands[index];
 }
 
+StrandElement* ModelElement::GetStrand(int strand) const
+{
+    if (strand >= mStrands.size()) {
+        return nullptr;
+    }
+    return mStrands[strand];
+}
+
 int ModelElement::GetSubModelAndStrandCount() const {
     return mSubModels.size() +  mStrands.size();
 }
@@ -481,7 +554,7 @@ void ModelElement::RemoveSubModel(const std::string &name) {
     }
 }
 
-SubModelElement *ModelElement::GetSubModel(int i) {
+SubModelElement* ModelElement::GetSubModel(int i) const {
     if (i < mSubModels.size()) {
         return mSubModels[i];
     }
@@ -492,8 +565,19 @@ SubModelElement *ModelElement::GetSubModel(int i) {
     return mStrands[i];
 }
 
-void ModelElement::AddSubModel(SubModelElement* sme)
+SubModelElement* ModelElement::GetSubModel(int i)
 {
+    if (i < mSubModels.size()) {
+        return mSubModels[i];
+    }
+    i -= mSubModels.size();
+    if (i >= mStrands.size()) {
+        return nullptr;
+    }
+    return mStrands[i];
+}
+
+void ModelElement::AddSubModel(SubModelElement* sme) {
     mSubModels.push_back(sme);
 }
 
@@ -527,6 +611,20 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
         }
     }
     return res;
+}
+
+bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
+{
+    bool rc = false;
+    if (GetType() != ELEMENT_TYPE_TIMING)
+    {
+        for (int j = 0; j < GetEffectLayerCount(); j++)
+        {
+            EffectLayer* el = GetEffectLayer(j);
+            rc = el->CleanupFileLocations(frame, em) || rc;
+        }
+    }
+    return rc;
 }
 
 bool Element::SelectEffectUsingDescription(std::string description)

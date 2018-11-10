@@ -12,7 +12,7 @@ class SpinnerModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumStrands() const override; 
 
         virtual bool StrandsZigZagOnString() const override { return true;};
-        virtual int NodesPerString() override;
+        virtual int NodesPerString() const override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;

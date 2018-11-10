@@ -2,15 +2,18 @@
 #define STARTCHANNELDIALOG_H
 
 //(*Headers(StartChannelDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
-#include <wx/radiobut.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
+#include <wx/radiobut.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 //*)
 
 #include <string>
+#include <map>
 class ModelManager;
 class OutputManager;
 
@@ -22,22 +25,28 @@ class StartChannelDialog: public wxDialog
 		virtual ~StartChannelDialog();
 
 		//(*Declarations(StartChannelDialog)
-		wxRadioButton* NoneButton;
+		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
+		wxCheckBox* CheckBox_FromThisPreviewOnly;
 		wxChoice* ModelChoice;
+		wxChoice* OutputChoice;
 		wxChoice* ipChoice;
 		wxChoice* universeChoice;
-		wxSpinCtrl* StartChannel;
-		wxRadioButton* OutputButton;
 		wxRadioButton* ModelButton;
-		wxChoice* OutputChoice;
+		wxRadioButton* NoneButton;
+		wxRadioButton* OutputButton;
 		wxRadioButton* StartModelButton;
 		wxRadioButton* UniverseButton;
+		wxSpinCtrl* StartChannel;
 		//*)
     
-        void Set(const wxString &start, const ModelManager &models);
+        void Set(const wxString &start, const ModelManager &models, const std::string& preview);
         void SetUniverseOptionsBasedOnIP(wxString ip);
         std::string Get();
+        void UpdateModels();
         OutputManager* _outputManager;
+        std::map<std::string, std::string> _modelsPreview;
+        std::string _preview;
 
 	protected:
 
@@ -51,7 +60,10 @@ class StartChannelDialog: public wxDialog
 		static const long ID_CHOICE4;
 		static const long ID_RADIOBUTTON3;
 		static const long ID_CHOICE1;
+		static const long ID_CHECKBOX1;
 		static const long ID_RADIOBUTTON4;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
 		//*)
 
 	private:
@@ -59,6 +71,9 @@ class StartChannelDialog: public wxDialog
 		//(*Handlers(StartChannelDialog)
 		void OnButtonSelect(wxCommandEvent& event);
 		void OnipChoiceSelect(wxCommandEvent& event);
+		void OnCheckBox_FromThisPreviewOnlyClick(wxCommandEvent& event);
+		void OnButton_OkClick(wxCommandEvent& event);
+		void OnButton_CancelClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

@@ -9,11 +9,11 @@
 class PhonemeDictionary
 {
     public:
-        PhonemeDictionary();
-        virtual ~PhonemeDictionary();
+        PhonemeDictionary() {}
+        virtual ~PhonemeDictionary() {}
 
         void LoadDictionaries(const wxString &showDir);
-        void LoadDictionary(const wxString &filename, const wxString &showDir);
+        void LoadDictionary(const wxString &filename, const wxString &showDir, wxFontEncoding defEnc = wxFONTENCODING_UTF8);
         void BreakdownWord(const wxString& text, wxArrayString& phonemes);
         void InsertSpacesAfterPunctuation(wxString& text);
         void InsertPhoneme(const wxArrayString& phonemes);

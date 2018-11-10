@@ -770,8 +770,6 @@ wxString ColorPanel::GetColorString(bool colourOnly)
     return s;
 }
 
-
-
 wxColour ColorPanel::GetPaletteColor(int idx) const
 {
     if (idx < buttons.size()) {

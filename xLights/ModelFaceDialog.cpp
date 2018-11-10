@@ -310,6 +310,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent,wxWindowID id, const wxPoint& 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
     Center();
+    SetEscapeId(wxID_CANCEL);
 }
 
 ModelFaceDialog::~ModelFaceDialog()
@@ -390,7 +391,6 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
         NodeRangeGrid->SetReadOnly(x, 1);
     }
 }
-
 
 void ModelFaceDialog::GetFaceInfo(std::map< std::string, std::map<std::string, std::string> > &finfo) {
     if (SingleNodeGrid->IsCellEditControlShown()) {
@@ -604,7 +604,7 @@ std::list<std::string> GetPhonemes(std::string key)
     }
     else if (key == "etc")
     {
-        std::list<std::string> phonemes = { "etc", "ETC", "Etc" };
+        std::list<std::string> phonemes = { "etc", "ETC", "Etc", "ect", "ECT" , "Ect" };
         return phonemes;
     }
     else if (key == "FV")
@@ -676,28 +676,17 @@ void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key,
         // because some file systems are case sensitive try some common variants
         for (int i = 0; i < replacecount; i++)
         {
-            wxFileName fn2 = GetFileNamePhoneme(fn, *it, i, "etc");
-            if (fn2.Exists())
+            //get list of etc Phonemes
+            const std::list<std::string> findList = GetPhonemes("etc");
+            //loop through and find the "etc" file
+            for(const auto &phen :findList)
             {
-                DoSetMatrixModels(fn, *it, k, i, col, name);
-                done = true;
-            }
-            else
-            {
-                fn2 = GetFileNamePhoneme(fn, *it, i, "ETC");
+                const wxFileName fn2 = GetFileNamePhoneme(fn, *it, i, phen);
                 if (fn2.Exists())
                 {
                     DoSetMatrixModels(fn, *it, k, i, col, name);
                     done = true;
-                }
-                else
-                {
-                    fn2 = GetFileNamePhoneme(fn, *it, i, "Etc");
-                    if (fn2.Exists())
-                    {
-                        DoSetMatrixModels(fn, *it, k, i, col, name);
-                        done = true;
-                    }
+                    break;
                 }
             }
         }
@@ -853,6 +842,8 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
         if (dialog.ShowModal() == wxID_OK)
         {
             NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            NodeRangeGrid->Refresh();
+            GetValue(NodeRangeGrid, event, faceData[name]);
             dialog.Close();
         }
     }

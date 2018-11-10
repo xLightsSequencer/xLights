@@ -145,7 +145,7 @@ void ColorWashEffect::RemoveDefaults(const std::string &version, Effect *effect)
 void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX);
+    float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);
     bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
@@ -170,7 +170,7 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     if (buffer.cur_model != "") {
         Model* model_info = buffer.GetModel();
         if (model_info != nullptr) {
-            if( model_info->GetDisplayAs() == "DMX" ) {
+            if( model_info->GetDisplayAs() == "DMX" && !buffer.IsNodeBuffer()) {
                 xlColor c;
                 DmxModel* dmx = (DmxModel*)model_info;
 

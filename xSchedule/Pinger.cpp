@@ -157,7 +157,7 @@ std::string APinger::GetName() const
         return _output->GetPingDescription();
     }
 
-    return _why + " " + _ip;
+    return _ip + " " + _why;
 }
 
 void APinger::Stop()

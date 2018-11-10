@@ -40,6 +40,33 @@ wxPanel *FireEffect::CreatePanel(wxWindow *parent) {
     return new FirePanel(parent);
 }
 
+bool FireEffect::needToAdjustSettings(const std::string &version)
+{
+    return IsVersionOlder("2018.44", version);
+}
+
+void FireEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
+{
+    SettingsMap &settings = effect->GetSettings();
+
+    wxString growthcycles = settings.Get("E_VALUECURVE_Fire_GrowthCycles", "");
+
+    if (growthcycles.Contains("Active=TRUE"))
+    {
+        ValueCurve vc(growthcycles);
+        vc.SetLimits(FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
+        vc.SetDivisor(FIRE_GROWTHCYCLES_DIVISOR);
+        vc.FixScale(10);
+        settings["E_VALUECURVE_Fire_GrowthCycles"] = vc.Serialise();
+    }
+
+    // also give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+}
+
 class FirePaletteClass {
 public:
     FirePaletteClass() {
@@ -130,7 +157,6 @@ public:
     std::vector<int> FireBuffer;
 };
 
-
 static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
     FireRenderCache *cache = (FireRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -161,13 +187,12 @@ void FireEffect::SetDefaultParameters() {
 void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int HeightPct = GetValueCurveInt("Fire_Height", 50, SettingsMap, offset, FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX);
-    int HueShift = GetValueCurveInt("Fire_HueShift", 0, SettingsMap, offset, FIRE_HUE_MIN, FIRE_HUE_MAX);
-    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset, FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
+    int HeightPct = GetValueCurveInt("Fire_Height", 50, SettingsMap, offset, FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int HueShift = GetValueCurveInt("Fire_HueShift", 0, SettingsMap, offset, FIRE_HUE_MIN, FIRE_HUE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset, FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), FIRE_GROWTHCYCLES_DIVISOR);
     bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", false);
 
-    int x,y,r,v1,v2,v3,v4,n,new_index;
-    HSVValue hsv;
+    int x,y;
     int loc = GetLocation(SettingsMap.Get("CHOICE_Fire_Location", "Bottom"));
 
     if (withMusic)
@@ -226,21 +251,20 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     }
     // build fire
     for (x=0; x<maxMWi; x++) {
-        r=x%2==0 ? 190+(rand() % 10) : 100+(rand() % 50);
+        int r = x%2==0 ? 190+(rand() % 10) : 100+(rand() % 50);
         SetFireBuffer(x,0,r, cache->FireBuffer, maxMWi, maxMHt);
     }
     int step=255*100/maxHt/HeightPct;
-    int sum;
     for (y=1; y<maxHt; y++)
     {
         for (x=0; x<maxWi; x++)
         {
-            v1=GetFireBuffer(x-1,y-1, cache->FireBuffer, maxMWi, maxMHt);
-            v2=GetFireBuffer(x+1,y-1, cache->FireBuffer, maxMWi, maxMHt);
-            v3=GetFireBuffer(x,y-1, cache->FireBuffer, maxMWi, maxMHt);
-            v4=GetFireBuffer(x,y-1, cache->FireBuffer, maxMWi, maxMHt);
-            n=0;
-            sum=0;
+            int v1 = GetFireBuffer(x-1,y-1, cache->FireBuffer, maxMWi, maxMHt);
+            int v2 = GetFireBuffer(x+1,y-1, cache->FireBuffer, maxMWi, maxMHt);
+            int v3 = GetFireBuffer(x,y-1, cache->FireBuffer, maxMWi, maxMHt);
+            int v4 = GetFireBuffer(x,y-1, cache->FireBuffer, maxMWi, maxMHt);
+            int n = 0;
+            int sum = 0;
             if(v1>=0)
             {
                 sum+=v1;
@@ -261,7 +285,7 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 sum+=v4;
                 n++;
             }
-            new_index=n > 0 ? sum / n : 0;
+            int new_index = n > 0 ? sum / n : 0;
             if (new_index > 0)
             {
                 new_index+=(rand() % 100 < 20) ? step : -step;
@@ -288,7 +312,7 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
                 yp = t;
             }
             if (HueShift>0) {
-                hsv = FirePalette[GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)];
+                HSVValue hsv = FirePalette[GetFireBuffer(x,y, cache->FireBuffer, maxMWi, maxMHt)];
                 hsv.hue = hsv.hue +(HueShift/100.0);
                 if (hsv.hue>1.0) hsv.hue=1.0;
                 if (buffer.allowAlpha) {

@@ -2,7 +2,6 @@
 #define EMITTER_H
 
 #include <string>
-#include <list>
 #include <mutex>
 #include <map>
 #include "PacketData.h"

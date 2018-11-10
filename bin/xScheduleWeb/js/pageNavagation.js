@@ -53,6 +53,7 @@ function updatePage(type, pageName, args) {
         pageName);
     }
   } else if (type == "plugin") {
+	pageName = encodeURI(pageName);
     $('#pageContent').load('plugins/' + pageName + '/' + pageName + '.html');
     $('#navPlugins').attr('class', "dropdown active");
     if (args != "") {

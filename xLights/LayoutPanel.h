@@ -184,6 +184,7 @@ class LayoutPanel: public wxPanel
         const std::string& GetCurrentLayoutGroup() const {return currentLayoutGroup;}
         void Reset();
         void SetDirtyHiLight(bool dirty);
+        std::string GetCurrentPreview() const;
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
@@ -247,6 +248,7 @@ class LayoutPanel: public wxPanel
         void resetPropertyGrid();
         void clearPropGrid();
         bool stringPropsVisible;
+        bool controllerConnectionVisible;
         bool appearanceVisible;
         bool sizeVisible;
         bool colSizesSet;
@@ -308,7 +310,8 @@ class LayoutPanel: public wxPanel
         {
             Col_Model,
             Col_StartChan,
-            Col_EndChan
+            Col_EndChan,
+            Col_ControllerConnection
         };
 
         ModelPreview *modelPreview;
@@ -326,6 +329,7 @@ class LayoutPanel: public wxPanel
 
         static const long ID_MNU_DELETE_MODEL;
         static const long ID_MNU_DELETE_MODEL_GROUP;
+        static const long ID_MNU_DELETE_EMPTY_MODEL_GROUPS;
         static const long ID_MNU_RENAME_MODEL_GROUP;
         static const long ID_MNU_MAKESCVALID;
         static const long ID_MNU_MAKEALLSCVALID;

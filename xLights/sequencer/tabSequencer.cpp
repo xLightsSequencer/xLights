@@ -70,7 +70,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
     logger_base.debug("        Model preview.");
-    _modelPreviewPanel = new ModelPreview(PanelSequencer);
+    _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
     m_mgr->AddPane(_modelPreviewPanel,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250));
 
@@ -126,7 +126,10 @@ void xLightsFrame::CreateSequencer()
                    .Float());
     // Hide the panel on start.
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(displayElementsPanel->GetMinSize());
+    info.BestSize(wxSize(600, 400));
+    int w, h;
+    displayElementsPanel->GetSize(&w, &h);
+    info.FloatingSize(std::max(600, w), std::max(400, h));
     info.Hide();
 
     m_mgr->AddPane(perspectivePanel,wxAuiPaneInfo().Name(wxT("Perspectives")).Caption(wxT("Perspectives")).Left().Layer(1).Hide());
@@ -322,6 +325,8 @@ static void HandleChoices(xLightsFrame *frame,
                           std::vector<Element*> &toMap,
                           std::vector<Element*> &ignore)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxArrayString choices;
     choices.push_back("Rename the model in the sequence");
     choices.push_back("Delete the model in the sequence");
@@ -341,6 +346,8 @@ static void HandleChoices(xLightsFrame *frame,
                                                  "Select Model", ToArrayString(ModelNames));
                     if (namedlg.ShowModal() == wxID_OK) {
                         std::string newName = namedlg.GetStringSelection().ToStdString();
+
+                        logger_base.debug("Sequence Element Mismatch 2: rename '%s' to '%s'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
 
                         // remove the existing element before we rename
                         if (dynamic_cast<SubModelElement*>(element) != nullptr) {
@@ -363,18 +370,22 @@ static void HandleChoices(xLightsFrame *frame,
                     // Delete the model
                     if (dynamic_cast<SubModelElement*>(element) != nullptr) {
                         SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
+                        logger_base.debug("Sequence Element Mismatch 2: delete '%s'", (const char*)sme->GetFullName().c_str());
                         sme->GetModelElement()->RemoveSubModel(sme->GetName());
                     } else {
+                        logger_base.debug("Sequence Element Mismatch 2: delete '%s'", (const char*)element->GetFullName().c_str());
                         frame->GetSequenceElements().DeleteElement(element->GetName());
                     }
                     break;
                 case 2:
                     // Map effects
+                    logger_base.debug("Sequence Element Mismatch 2: map '%s'", (const char*)element->GetFullName().c_str());
                     toMap.push_back(element);
                     //relo
                     break;
                 case 3:
                     // Handle later
+                    logger_base.debug("Sequence Element Mismatch 2: handle later '%s'", (const char*)element->GetFullName().c_str());
                     ignore.push_back(element);
                     break;
                 default:
@@ -409,15 +420,20 @@ static bool HasEffects(ModelElement *el) {
 
 void xLightsFrame::CheckForValidModels()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     //bool cancelled = cancelled_in;
     bool cancelled = false;
 
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        AllNames.push_back(it->first);
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            ModelNames.push_back(it->first);
+        if (it->second != nullptr)
+        {
+            AllNames.push_back(it->first);
+            if (it->second->GetDisplayAs() != "ModelGroup") {
+                ModelNames.push_back(it->first);
+            }
         }
     }
 
@@ -468,15 +484,18 @@ void xLightsFrame::CheckForValidModels()
 
                 if (cancelled || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
                     // Just delete the element from the sequence we are opening
+                    logger_base.debug("Sequence Element Mismatch: deleting '%s'", (const char*)name.c_str());
                     mSequenceElements.DeleteElement(name);
                 }
                 else if (dialog.RadioButtonMap->GetValue()) {
                     // add it to the list of things we will map later
+                    logger_base.debug("Sequence Element Mismatch: map later '%s'", (const char*)name.c_str());
                     mapLater.push_back(me);
                 }
                 else {
                     // change the name of the element to the new name
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
+                    logger_base.debug("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
                     mSequenceElements.DeleteElement(newName); // delete the existing element
                     mSequenceElements.GetElement(x)->SetName(newName);
                     ((ModelElement*)mSequenceElements.GetElement(x))->Init(*AllModels[newName]);
@@ -554,6 +573,7 @@ void xLightsFrame::CheckForValidModels()
                     }
                     else {
                         // no effects at any level so just remove it
+                        logger_base.debug("Sequence Element Mismatch 2: deleting '%s'", (const char*)name.c_str());
                         mSequenceElements.DeleteElement(name);
                     }
                 }
@@ -975,7 +995,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
             if (event._node != -1)
             {
                 StrandElement* se = (StrandElement*)element;
-                NodeLayer* nodeLayer = se->GetNodeLayer(event._node); // not sure why -2
+                NodeLayer* nodeLayer = se->GetNodeLayer(event._node - 1); // not sure why -2
                 if (nodeLayer != nullptr)
                 {
                     // The +1 guarantees we get the right one
@@ -1163,7 +1183,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     std::string filename = parms[1].ToStdString();
 
     int effectIndex = 0;
-    for (int i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
+    for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
     {
         if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName)
         {
@@ -1388,7 +1408,25 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
 
 void xLightsFrame::SetAudioControls()
 {
-	if (CurrentSeqXmlFile == nullptr || mRendering)
+    if (_housePreviewPanel == nullptr) return;
+
+    if (Notebook1->GetSelection() != NEWSEQUENCER)
+    {
+        if (playType == PLAY_TYPE_MODEL)
+        {
+            EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, true);
+        }
+        else
+        {
+            EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
+        }
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PAUSE, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_REPLAY_SECTION, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_FIRST_FRAME, false);
+        EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_LAST_FRAME, false);
+    }
+    else if (CurrentSeqXmlFile == nullptr || mRendering)
 	{
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_STOP, false);
 		EnableToolbarButton(PlayToolBar, ID_AUITOOLBAR_PLAY_NOW, false);
@@ -2597,7 +2635,10 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 {
     displayElementsPanel->Initialize();
     wxAuiPaneInfo & info = m_mgr->GetPane("DisplayElements");
-    info.BestSize(displayElementsPanel->GetMinSize());
+    info.BestSize(wxSize(600, 400));
+    int w, h;
+    displayElementsPanel->GetSize(&w, &h);
+    info.FloatingSize(std::max(600, w), std::max(400, h));
     info.Show();
     m_mgr->Update();
 }
@@ -2620,13 +2661,19 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
-    if (!m_mgr->GetPane("DisplayElements").IsOk()) return;
+    wxAuiPaneInfo& info = m_mgr->GetPane("DisplayElements");
 
-    bool visible = m_mgr->GetPane("DisplayElements").IsShown();
+    if (!info.IsOk()) return;
+
+    bool visible = info.IsShown();
     if (visible) {
-        m_mgr->GetPane("DisplayElements").Hide();
+        info.Hide();
     } else {
-        m_mgr->GetPane("DisplayElements").Show();
+        info.BestSize(wxSize(600, 400));
+        int w, h;
+        displayElementsPanel->GetSize(&w, &h);
+        info.FloatingSize(std::max(600, w), std::max(400, h));
+        info.Show();
     }
     m_mgr->Update();
 }
@@ -3215,7 +3262,7 @@ void xLightsFrame::ExecuteImportTimingElement(wxCommandEvent &command) {
 void xLightsFrame::ImportTimingElement()
 {
     wxFileDialog* OpenDialog = new wxFileDialog( this, "Choose Timing file(s)", wxEmptyString, wxEmptyString,
-        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xml)|*.xml",
+        "Timing files (*.xtiming)|*.xtiming|Papagayo files (*.pgo)|*.pgo|Text files (*.txt)|*.txt|Vixen 3 (*.tim)|*.tim|LOR (*.lms)|*.lms|LOR (*.las)|*.las|LSP (*.msq)|*.msq|xLights (*.xml)|*.xml",
                                                 wxFD_OPEN | wxFD_MULTIPLE, wxDefaultPosition);
     wxString fDir;
     if (OpenDialog->ShowModal() == wxID_OK)
@@ -3245,6 +3292,10 @@ void xLightsFrame::ImportTimingElement()
             else if (file1.GetExt().Lower() == "xml")
             {
                 CurrentSeqXmlFile->ProcessXLightsTiming(fDir, filenames, this);
+            }
+            else if (file1.GetExt().Lower() == "tim")
+            {
+                CurrentSeqXmlFile->ProcessVixen3Timing(fDir, filenames, this);
             }
             else
             {

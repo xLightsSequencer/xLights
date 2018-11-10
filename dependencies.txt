@@ -164,3 +164,11 @@ Version:
 License:
 Strategy:    Source files are included in xLights repository and it is compiled into xFade statically
 
+Library:     libzstd
+Usage:       read/write of v2 FSEQ files
+Link:        https://github.com/facebook/zstd
+Source:      https://github.com/facebook/zstd
+Last Pulled:
+Version:
+License:     BSD
+Strategy:    zstd.h header added to xLights repository, static libraries added to lib for OSX/Windows

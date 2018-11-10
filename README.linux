@@ -134,3 +134,30 @@ cbp2make -in xLights.cbp -cfg ../cbp2make.cfg -out xLights.cbp.mak --with-deps -
 
 This will be run automatically at compile time if cbp2make is installed.
 
+==============================================================================
+
+Troubleshooting:
+
+With so few Linux users and a general lack of experience in the platform I think it is worthwhile
+documenting some troubleshooting steps that can help determine issues.
+
+Hangs & Pauses
+--------------
+
+To capture a log of systems calls
+
+    strace -f -tt <executable> > strace.txt
+    
+    you may also consider adding -y or -yy to capture socket and file descriptor information if 
+    supported on your system
+    
+    These logs files are large and difficult to analyse but provide our best chance of debugging 
+    these types of problems without an interactive debugger.
+
+wxWidgets Bugginess (and possible xLights bugginess)
+
+    There are some situations where limiting xLights to a single CPU can significantly minimise 
+    issues at the expense of parallelism. So if you are getting random issues you may want to try
+    
+    taskset -c 0 <executable>
+    

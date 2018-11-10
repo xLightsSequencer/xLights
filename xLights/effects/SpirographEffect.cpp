@@ -51,17 +51,14 @@ void SpirographEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int int_R   = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset, SPIROGRAPH_R_MIN, SPIROGRAPH_R_MAX);
-    int int_r   = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset, SPIROGRAPH_r_MIN, SPIROGRAPH_r_MAX);
-    int int_d   = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset, SPIROGRAPH_d_MIN, SPIROGRAPH_d_MAX);
-    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset, SPIROGRAPH_ANIMATE_MIN, SPIROGRAPH_ANIMATE_MAX);
-    int sspeed  = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset, SPIROGRAPH_SPEED_MIN, SPIROGRAPH_SPEED_MAX);
-    int length  = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset, SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX);
+    int int_R   = GetValueCurveInt("Spirograph_R", 20, SettingsMap, oset, SPIROGRAPH_R_MIN, SPIROGRAPH_R_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int int_r   = GetValueCurveInt("Spirograph_r", 10, SettingsMap, oset, SPIROGRAPH_r_MIN, SPIROGRAPH_r_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int int_d   = GetValueCurveInt("Spirograph_d", 30, SettingsMap, oset, SPIROGRAPH_d_MIN, SPIROGRAPH_d_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Animate = GetValueCurveInt("Spirograph_Animate", 0, SettingsMap, oset, SPIROGRAPH_ANIMATE_MIN, SPIROGRAPH_ANIMATE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int sspeed  = GetValueCurveInt("Spirograph_Speed", 10, SettingsMap, oset, SPIROGRAPH_SPEED_MIN, SPIROGRAPH_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int length  = GetValueCurveInt("Spirograph_Length", 20, SettingsMap, oset, SPIROGRAPH_LENGTH_MIN, SPIROGRAPH_LENGTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    int i,x,y,xc,yc,ColorIdx;
-    int mod1440,d_mod;
-    float R,r,d,d_orig,t;
-    double hyp,x2,y2;
+    int d_mod;
     HSVValue hsv,hsv0,hsv1;
     size_t colorcnt=buffer.GetColorCount();
 
@@ -70,12 +67,12 @@ void SpirographEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
 
     length = length * 18;
 
-    xc= (int)(buffer.BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
-    yc= (int)(buffer.BufferHt/2);
-    R=xc*(int_R/100.0);   //  Radius of the large circle just fits in the width of model
-    r=xc*(int_r/100.0); // start little circle at 1/4 of max width
+    int xc = (int)(buffer.BufferWi/2); // 20x100 flex strips with 2 fols per strip = 40x50
+    int yc = (int)(buffer.BufferHt/2);
+    float R = xc*(int_R/100.0);   //  Radius of the large circle just fits in the width of model
+    float r = xc*(int_r/100.0); // start little circle at 1/4 of max width
     if(r>R) r=R;
-    d=xc*(int_d/100.0);
+    float d = xc*(int_d/100.0);
 
     //  palette.GetHSV(1, hsv1);
     //
@@ -87,22 +84,22 @@ void SpirographEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
     //x(t) = (R-r) * cos t + d*buffer.cos ((R-r/r)*t);
     //y(t) = (R-r) * sin t + d*buffer.sin ((R-r/r)*t);
 
-    mod1440  = state%1440;
-    d_orig=d;
+    int mod1440 = state%1440;
+    float d_orig = d;
     if (Animate) d = d_orig + animateState * d_orig; // should we modify the distance variable each pass through?
-    for(i=1; i<=length; i++)
+    for(int i = 1; i<=length; i++)
     {
-        t = (i+mod1440)*M_PI/180;
-        x = (R-r) * buffer.cos (t) + d*buffer.cos (((R-r)/r)*t) + xc;
-        y = (R-r) * buffer.sin (t) + d*buffer.sin (((R-r)/r)*t) + yc;
+        float t = (i+mod1440)*M_PI/180;
+        int x = (R-r) * buffer.cos (t) + d*buffer.cos (((R-r)/r)*t) + xc;
+        int y = (R-r) * buffer.sin (t) + d*buffer.sin (((R-r)/r)*t) + yc;
 
         if(colorcnt>0) d_mod = (int) buffer.BufferWi/colorcnt;
         else d_mod=1;
 
-        x2= pow ((double)(x-xc),2);
-        y2= pow ((double)(y-yc),2);
-        hyp = (sqrt(x2 + y2)/buffer.BufferWi) * 100.0;
-        ColorIdx=(int)(hyp / d_mod); // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
+        double x2 = pow ((double)(x-xc),2);
+        double y2 = pow ((double)(y-yc),2);
+        double hyp = (sqrt(x2 + y2)/buffer.BufferWi) * 100.0;
+        int ColorIdx = (int)(hyp / d_mod); // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
 
         if(ColorIdx>=colorcnt) ColorIdx=colorcnt-1;
 

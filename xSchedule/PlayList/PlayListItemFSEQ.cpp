@@ -92,6 +92,14 @@ void PlayListItemFSEQ::LoadAudio()
         if (_audioManager->FileName() == af)
         {
             // already open
+
+            // If audio file is shorter than fseq override the duration
+            if (_audioManager->LengthMS() < _durationMS)
+            {
+                logger_base.debug("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
+                _durationMS = _audioManager->LengthMS();
+            }
+
             return;
         }
         else
@@ -106,17 +114,25 @@ void PlayListItemFSEQ::LoadAudio()
     }
     else if (wxFile::Exists(af))
     {
-        logger_base.error("FSEQ: Loading audio file '%s'.", (const char *)af.c_str());
+        logger_base.debug("FSEQ: Loading audio file '%s'.", (const char *)af.c_str());
         _audioManager = new AudioManager(af);
 
         if (!_audioManager->IsOk())
         {
             logger_base.error("FSEQ: Audio file '%s' has a problem opening.", (const char *)af.c_str());
+            if (_fseqFile != nullptr)
+                _durationMS = _fseqFile->GetLengthMS();
+            delete _audioManager;
+            _audioManager = nullptr;
+        }
+        else
+        {
+            logger_base.debug("    Loaded ok.");
+            _durationMS = _audioManager->LengthMS();
         }
 
-        if (_volume != -1)
+        if (_volume != -1 && _audioManager != nullptr)
             _audioManager->SetVolume(_volume);
-        _durationMS = _audioManager->LengthMS();
         _controlsTimingCache = true;
 
         // If the FSEQ is shorter than the audio ... then override the length
@@ -366,7 +382,12 @@ void PlayListItemFSEQ::FastSetDuration()
 
             // If the FSEQ is shorter than the audio ... then override the length
             size_t durationFSEQ = fseq.GetLengthMS();
-            if (durationFSEQ < _durationMS)
+            if (_durationMS == 0)
+            {
+                logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+                _durationMS = durationFSEQ;
+            }
+            else if (durationFSEQ < _durationMS)
             {
                 logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
                 _durationMS = durationFSEQ;
@@ -385,12 +406,35 @@ void PlayListItemFSEQ::FastSetDuration()
         // If the FSEQ is shorter than the audio ... then override the length
         FSEQFile fseq(_fseqFileName);
         size_t durationFSEQ = fseq.GetLengthMS();
-        if (durationFSEQ < _durationMS)
+        if (_durationMS == 0)
+        {
+            logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+            _durationMS = durationFSEQ;
+        }
+        else if (durationFSEQ < _durationMS)
         {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
             _durationMS = durationFSEQ;
         }
     }
+}
+
+bool PlayListItemFSEQ::Advance(int seconds)
+{
+    int adjustFrames = seconds * 1000 / (int)GetFrameMS();
+    _currentFrame += adjustFrames;
+    if (_currentFrame < 0) _currentFrame = 0;
+    if (_currentFrame > _stepLengthMS / GetFrameMS()) _currentFrame = _stepLengthMS / GetFrameMS();
+
+    if (ControlsTiming() && _audioManager != nullptr)
+    {
+        long newPos = _audioManager->Tell() + seconds * 1000;
+        if (newPos < 0) newPos = 0;
+        if (newPos > _audioManager->LengthMS()) newPos = _audioManager->LengthMS() - 5;
+        _audioManager->Seek(newPos);
+        return true;
+    }
+    return false;
 }
 
 size_t PlayListItemFSEQ::GetPositionMS() const
@@ -399,21 +443,30 @@ size_t PlayListItemFSEQ::GetPositionMS() const
     {
         if (_delay != 0)
         {
-            if (_currentFrame * GetFrameMS() < _delay)
+            if (_currentFrame * _msPerFrame < _delay)
             {
-                return _currentFrame * GetFrameMS();
+                return _currentFrame * _msPerFrame;
             }
         }
         return _delay + _audioManager->Tell();
     }
     else
     {
-        return _currentFrame * GetFrameMS();
+        return _currentFrame * _msPerFrame;
     }
+}
+
+bool PlayListItemFSEQ::Done() const
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("FSEQ Done %d <- %ld >= %ld - %ld", GetPositionMS() >= GetDurationMS() - _msPerFrame, GetPositionMS(), GetDurationMS(), _msPerFrame);
+    return GetPositionMS() >= GetDurationMS() - _msPerFrame;
 }
 
 void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (outputframe)
     {
         if (_fseqFile != nullptr)
@@ -443,6 +496,7 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             }
         }
         _currentFrame++;
+        //logger_base.debug("Current Frame %d", _currentFrame);
     }
 }
 
