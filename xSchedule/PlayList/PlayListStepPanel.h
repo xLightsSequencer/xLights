@@ -2,11 +2,11 @@
 #define PLAYLISTSTEPPANEL_H
 
 //(*Headers(PlayListStepPanel)
+#include <wx/checkbox.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
 //*)
 
 class PlayListStep;

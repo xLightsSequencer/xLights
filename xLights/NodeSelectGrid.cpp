@@ -1000,6 +1000,10 @@ void NodeSelectGrid::CutOrCopyToClipboard(bool isCut)
     }
 }
 
+#ifdef __WXOSX__
+wxString GetOSXFormattedClipboardData();
+#endif
+
 void NodeSelectGrid::Paste()
 {
     wxString copy_data = "";

@@ -46,7 +46,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it)
     {
-        if ((*it)->GetDisplayAs() == "ModelGroup")
+        if ((*it) != nullptr && (*it)->GetDisplayAs() == "ModelGroup")
         {
             if (*it == mg)
             {
@@ -76,7 +76,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::list<Model*>& visited)
     bool found = false;
     for (auto it = models.begin(); !found && it != models.end(); ++it)
     {
-        if ((*it)->GetDisplayAs() == "ModelGroup")
+        if ((*it) != nullptr && (*it)->GetDisplayAs() == "ModelGroup")
         {
             if (*it == mg)
             {

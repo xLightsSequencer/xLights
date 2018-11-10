@@ -27,7 +27,14 @@
 
 #include <log4cpp/Category.hh>
 
-ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) : _outputManager(outputManager), xlights(xl)
+ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
+    _outputManager(outputManager),
+    xlights(xl),
+    modelNode(nullptr),
+    groupNode(nullptr),
+    layoutsNode(nullptr),
+    previewWidth(0),
+    previewHeight(0)
 {
     //ctor
 }
@@ -129,7 +136,7 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
     return true;
 }
 
-bool ModelManager::IsModelOverlapping(Model* model)
+bool ModelManager::IsModelOverlapping(Model* model) const
 {
     long start = model->GetNumberFromChannelString(model->ModelStartChannel);
     long end = start + model->GetChanCount() - 1;
@@ -236,7 +243,7 @@ void ModelManager::ResetModelGroups() const
 {
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
     for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second->GetDisplayAs() == "ModelGroup") {
+        if (it->second != nullptr && it->second->GetDisplayAs() == "ModelGroup") {
             ((ModelGroup*)(it->second))->ResetModels();
         }
     }
@@ -322,13 +329,15 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 ModelGroup *model = new ModelGroup(e, *this, previewW, previewH);
                 if (model->Reset()) {
                     auto it = models.find(model->name);
+                    bool reset = false;
                     if (it != models.end()) {
                         delete it->second;
                         it->second = nullptr;
-                        ResetModelGroups();
+                        reset = true;
                     }
-                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     models[model->name] = model;
+                    if (reset) ResetModelGroups();
+                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                 } else {
                     model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     toBeDone.push_back(model);

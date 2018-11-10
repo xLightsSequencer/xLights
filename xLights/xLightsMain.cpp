@@ -67,6 +67,7 @@
 #include "TopEffectsPanel.h"
 #include "LyricUserDictDialog.h"
 #include "models/ViewObject.h"
+#include "models/SubModel.h"
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -2580,14 +2581,14 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     inClose = true;
 
-	logger_base.info("xLights Closing");
+    logger_base.info("xLights Closing");
 
-	StopNow();
+    StopNow();
 
-	if (!CloseSequence())
+    if (!CloseSequence())
     {
-		logger_base.info("Closing aborted.");
-		event.Veto();
+        logger_base.info("Closing aborted.");
+        event.Veto();
         inClose = false;
         return;
     }
@@ -2611,10 +2612,10 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     heartbeat("exit", true); //tell fido about graceful exit -DJ
 
     Destroy();
-	logger_base.info("xLights Closed.");
+    logger_base.info("xLights Closed.");
 
     inClose = false;
-    }
+}
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
@@ -5368,6 +5369,35 @@ void xLightsFrame::CheckSequence(bool display)
                 if (sm->GetNodeCount() == 0)
                 {
                     wxString msg = wxString::Format("    ERR: Submodel '%s' contains no nodes.", sm->GetFullName());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Check for submodels that point to nodes outside parent model name
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Submodels with nodes not in parent model");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            for (int i = 0; i < it->second->GetNumSubModels(); ++i)
+            {
+                SubModel* sm = (SubModel*)it->second->GetSubModel(i);
+                if (!sm->IsNodesAllValid())
+                {
+                    wxString msg = wxString::Format("    ERR: Submodel '%s' has invalid nodes outside the range of the parent model.", 
+                        sm->GetFullName());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }

@@ -3,6 +3,8 @@
 #include "ListenerManager.h"
 #include "../wxMIDI/src/wxMidi.h"
 #include "../xScheduleMain.h"
+#include "../ScheduleManager.h"
+#include "../ScheduleOptions.h"
 
 ListenerMIDI::ListenerMIDI(int deviceId, ListenerManager* listenerManager) : ListenerBase(listenerManager)
 {
@@ -247,6 +249,8 @@ void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames)
         ms += frames * 1000 / 30;
         break;
     }
+
+    ms -= _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset();
 
     _listenerManager->Sync("", ms, GetType());
 }

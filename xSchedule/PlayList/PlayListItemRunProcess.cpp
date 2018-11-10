@@ -77,7 +77,7 @@ std::string PlayListItemRunProcess::GetNameNoTime() const
 
 std::string PlayListItemRunProcess::GetTooltip()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %SHOWDIR% - the current show directory";
+    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %NEXTSTEPNAME% - Next step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %SHOWDIR% - the current show directory";
 }
 
 void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -137,7 +137,20 @@ void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_
             }
         }
 
-        auto step = xScheduleFrame::GetScheduleManager()->GetRunningPlayList()->GetRunningStep();
+        auto playlist = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
+        PlayListStep* step = nullptr;
+
+        if (playlist != nullptr && !playlist->IsRandom())
+        {
+            step = playlist->GetRunningStep();
+            bool dummy;
+            auto nextstep = playlist->GetNextStep(dummy);
+            if (nextstep != nullptr)
+            {
+                cmd.Replace("%NEXTSTEPNAME%", nextstep->GetNameNoTime());
+            }
+        }
+        cmd.Replace("%NEXTSTEPNAME%", "");
 
         if (step == nullptr)
         {

@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.42 November 6, 2018
+   -- enh (keith)  Add text effect grabbing text from a file ... so you can have multiple effects changed from one 
+                   location even in multiple sequences
+   -- enh (keith)  Add MIDI timecode offsets so you can use +1hr offsets
+   -- enh (keith)  Add delay to the Screen Map playlist item
+   -- enh (keith)  Make common mode/config issues even more obvious in xSchedule
+   -- enh (keith)  Add check schedule check for submodels with nodes not on the parent model
+   -- bug (keith)  Fix xSchedule web server 404 if ? parameter after a file request
+   -- bug (keith)  Fix OSX crash calling FPP event
+   -- bug (keith)  Warn user if removing an element that has effects at the strand, node and submodel level
+   -- bug (keith)  Fix not reclaiming effect memory when they are deleted - this may be a risky change
+   -- bug (keith)  Fix a bunch of crashes from crash reports         
 2018.41 November 2, 2018
    -- enh (scott)  Added Cut, Copy, Paste, Zoom In/Out, Background Image, and Model Select to the Node Select Dialog
    -- enh (keith)  Add music trigger fade value curve

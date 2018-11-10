@@ -34,7 +34,6 @@ EffectLayer::~EffectLayer()
     }
 }
 
-
 void EffectLayer::CleanupAfterRender() {
     std::unique_lock<std::recursive_mutex> locker(lock);
     while (!mEffectsToDelete.empty()) {
@@ -43,7 +42,7 @@ void EffectLayer::CleanupAfterRender() {
     }
 }
 
-int EffectLayer::GetIndex()
+int EffectLayer::GetIndex() const
 {
     return mIndex;
 }

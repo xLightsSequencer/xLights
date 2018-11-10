@@ -1722,6 +1722,9 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 }
 
 void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
+
+    if (base_object == nullptr || propertyEditor == nullptr) return;
+
     propertyEditor->Freeze();
     clearPropGrid();
 

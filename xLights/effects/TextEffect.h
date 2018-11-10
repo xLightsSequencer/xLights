@@ -21,15 +21,16 @@ class TextEffect : public RenderableEffect
         virtual bool CanBeRandom() override {return false;}
         virtual bool SupportsRenderCache() const override { return true; }
 
-        virtual bool needToAdjustSettings(const std::string &version) override;
+        virtual bool needToAdjustSettings(const std::string &version) override { return true; }
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual bool AppropriateOnNodes() const override { return false; }
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
-        void SelectTextColor(std::string& palette, int index);
+        void SelectTextColor(std::string& palette, int index) const;
         void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig);
 
         wxImage *RenderTextLine(RenderBuffer &buffer,

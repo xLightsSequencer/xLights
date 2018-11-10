@@ -291,6 +291,7 @@
 		679BD3431C375D9F000539FE /* OnEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3401C375D9F000539FE /* OnEffect.cpp */; };
 		679DD28C1DDE3FC800A389E6 /* TouchBars.mm in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28B1DDE3FC800A389E6 /* TouchBars.mm */; };
 		679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679DD28D1DDE493900A389E6 /* TouchBars.cpp */; };
+		679F8FCC218C891500CAC546 /* wxModelGridCellRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */; };
 		67A14C7820DD313D006EFCFA /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7720DD313D006EFCFA /* Carbon.framework */; };
 		67A14C7A20DD31D6006EFCFA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7920DD31D6006EFCFA /* WebKit.framework */; };
 		67A14C7C20DD31E4006EFCFA /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A14C7B20DD31E3006EFCFA /* AGL.framework */; };
@@ -1272,6 +1273,8 @@
 		679DD2851DDE3BA000A389E6 /* TouchBars.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchBars.h; path = osx_utils/TouchBars.h; sourceTree = "<group>"; };
 		679DD28B1DDE3FC800A389E6 /* TouchBars.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = TouchBars.mm; path = osx_utils/TouchBars.mm; sourceTree = "<group>"; };
 		679DD28D1DDE493900A389E6 /* TouchBars.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchBars.cpp; path = osx_utils/TouchBars.cpp; sourceTree = "<group>"; };
+		679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wxModelGridCellRenderer.cpp; sourceTree = "<group>"; };
+		679F8FCB218C891400CAC546 /* wxModelGridCellRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wxModelGridCellRenderer.h; sourceTree = "<group>"; };
 		67A14C7720DD313D006EFCFA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		67A14C7920DD31D6006EFCFA /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		67A14C7B20DD31E3006EFCFA /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = System/Library/Frameworks/AGL.framework; sourceTree = SDKROOT; };
@@ -2855,6 +2858,8 @@
 				67C9E65F211FC07E00379E2A /* ViewpointDialog.h */,
 				67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */,
 				67C9E65E211FC07E00379E2A /* ViewpointMgr.h */,
+				679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */,
+				679F8FCB218C891400CAC546 /* wxModelGridCellRenderer.h */,
 				678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */,
 				678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */,
 				67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */,
@@ -3544,7 +3549,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = xl;
-				LastUpgradeCheck = 1000;
+				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Daniel Kulp";
 				TargetAttributes = {
 					67025C6720D7E80700BF1AC6 = {
@@ -3900,6 +3905,7 @@
 				67D11C7C1BEA692300000A7F /* DimmingCurvePanel.cpp in Sources */,
 				673C925420A47C4C00E59F5D /* VendorMusicDialog.cpp in Sources */,
 				67694F1F1A0729220030D020 /* ModelPreview.cpp in Sources */,
+				679F8FCC218C891500CAC546 /* wxModelGridCellRenderer.cpp in Sources */,
 				6791299B213423A800818B73 /* ControllerUploadData.cpp in Sources */,
 				670827F72024C19D0002B617 /* LorControllers.cpp in Sources */,
 				675AB42A1B5ACEDA00853A28 /* PluginChannelAdapter.cpp in Sources */,
@@ -4367,6 +4373,7 @@
 		67025C7620D7E80900BF1AC6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
@@ -4388,6 +4395,7 @@
 		67025C7720D7E80900BF1AC6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = xFade/xFade.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
