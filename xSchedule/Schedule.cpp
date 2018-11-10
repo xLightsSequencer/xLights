@@ -469,6 +469,7 @@ void Schedule::SetEndTime(const std::string& end)
 bool Schedule::CheckActiveAt(const wxDateTime& now)
 {
 #ifdef LOGCALCNEXTTRIGGERTIME
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("   Checking %s.", (const char *)now.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
@@ -660,7 +661,20 @@ std::string Schedule::GetNextTriggerTime()
 #endif
 
     wxDateTime end = _endDate;
-    if (_everyYear) end.SetYear(wxDateTime::Now().GetYear() + 1);
+    end.SetHour(_endTime.GetHour());
+    end.SetMinute(_endTime.GetMinute());
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+    logger_base.debug("End date %s.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+
+    if (_everyYear)
+    {
+        end.SetYear(wxDateTime::Now().GetYear() + 1);
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("Adjusted for every year %s.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+    }
 
     // deal with the simple cases
     if (CheckActive())
@@ -680,7 +694,13 @@ std::string Schedule::GetNextTriggerTime()
         }
     }
 
-    if (end < wxDateTime::Now()) return "Never";
+    if (end < wxDateTime::Now())
+    {
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("End if before today ... so Never.");
+#endif
+        return "Never";
+    }
 
     if (_startDate > wxDateTime::Now()) // tomorrow or later
     {

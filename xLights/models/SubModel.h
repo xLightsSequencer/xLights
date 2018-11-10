@@ -15,13 +15,15 @@ public:
     
     virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
 
-    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override;
+    virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override {}
     virtual bool SupportsExportAsCustom() const override { return false; }
     virtual bool SupportsWiringView() const override { return false; }
+    bool IsNodesAllValid() const { return _nodesAllValid; }
 
     Model* GetParent() const { return parent; }
 private:
     Model *parent;
+    bool _nodesAllValid;
 };
 
 

@@ -472,6 +472,8 @@
     <ClCompile Include="PlayList\PlayListItemFadePanel.cpp">
       <Filter>PlayList</Filter>
     </ClCompile>
+    <ClCompile Include="ExtraIPsDialog.cpp" />
+    <ClCompile Include="ExtraIPDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -922,6 +924,8 @@
     <ClInclude Include="PlayList\PlayListItemFade.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="ExtraIPsDialog.h" />
+    <ClInclude Include="ExtraIPDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

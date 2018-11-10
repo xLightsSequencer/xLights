@@ -26,12 +26,13 @@ BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
     EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
     EVT_RIGHT_DOWN(ModelPreview::rightClick)
     EVT_PAINT(ModelPreview::render)
+    EVT_SYS_COLOUR_CHANGED(ModelPreview::OnSysColourChanged)
 END_EVENT_TABLE()
 
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
-    if (_model != nullptr)
-    {
-        wxString tip =_model->GetNodeNear(this, event.GetPosition());
+    Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
+    if (model != nullptr) {
+        wxString tip = model->GetNodeNear(this, event.GetPosition());
         SetToolTip(tip);
     }
     event.ResumePropagation(1);
@@ -52,6 +53,58 @@ void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
+const std::vector<Model*> &ModelPreview::GetModels() {
+    tmpModelList.clear();
+    if (xlights) {
+        if (currentLayoutGroup == "Default") {
+            if (additionalModel == nullptr) {
+                return xlights->PreviewModels;
+            } else {
+                tmpModelList = xlights->PreviewModels;
+            }
+        } else if (currentLayoutGroup == "All Models") {
+            for (auto a : xlights->AllModels) {
+                if (a.second->GetDisplayAs() != "ModelGroup") {
+                    tmpModelList.push_back(a.second);
+                }
+            }
+        } else if (currentLayoutGroup == "Unassigned") {
+            for (auto a : xlights->AllModels) {
+                if (a.second->GetLayoutGroup() == "Unassigned") {
+                    tmpModelList.push_back(a.second);
+                }
+            }
+        } else {
+            bool foundGrp = false;
+            for (auto grp : xlights->LayoutGroups) {
+                if (currentLayoutGroup == grp->GetName()) {
+                    foundGrp = true;
+                    if (additionalModel == nullptr) {
+                        return grp->GetModels();
+                    } else {
+                        tmpModelList = grp->GetModels();
+                    }
+                    break;
+                }
+            }
+            if (!foundGrp) {
+                tmpModelList = xlights->PreviewModels;
+            }
+        }
+    }
+    if (additionalModel != nullptr) {
+        tmpModelList.push_back(additionalModel);
+    }
+    return tmpModelList;
+}
+void ModelPreview::SetModel(const Model* model) {
+    if (model) {
+        this->xlights = model->GetModelManager().GetXLightsFrame();
+        currentModel = model->GetName();
+    } else {
+        currentModel = "";
+    }
+}
 
 void ModelPreview::render(wxPaintEvent& event)
 {
@@ -61,64 +114,56 @@ void ModelPreview::render(wxPaintEvent& event)
     //SetCurrentGLContext();
     //wxPaintDC(this);
 
-    if (_model != nullptr) {
-        _model->DisplayEffectOnWindow(this, 2);
-    }
-    else {
-        if (!StartDrawing(mPointSize)) return;
+    if (currentModel == "&---none---&") {
+        if (!StartDrawing(mPointSize, true)) return;
         Render();
         EndDrawing();
+    } else {
+        Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
+        if (model != nullptr) {
+            model->DisplayEffectOnWindow(this, 2);
+        }
     }
 }
 
 void ModelPreview::Render()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    if (PreviewModels != nullptr)
-    {
+    const std::vector<Model*> &models = GetModels();
+    if (!models.empty()) {
         bool isModelSelected = false;
-        for (int i = 0; i < PreviewModels->size(); ++i) {
-            if ((*PreviewModels)[i] == nullptr)
-            {
-                logger_base.crit("*PreviewModels[%d] is nullptr ... this is not going to end well.", i);
-            }
-            if (((*PreviewModels)[i])->Selected || ((*PreviewModels)[i])->GroupSelected) {
+        for (auto m : models) {
+            if (m->Selected || m->GroupSelected) {
                 isModelSelected = true;
-                break;
             }
         }
-
-        for (int i = 0; i < PreviewModels->size(); ++i) {
-            const xlColor *color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
-            if (((*PreviewModels)[i])->Selected) {
-                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
-            }
-            else if (((*PreviewModels)[i])->GroupSelected) {
-                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
-            }
-            else if (((*PreviewModels)[i])->Overlapping && isModelSelected) {
-                color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
+        const xlColor *defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
+        const xlColor *selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
+        const xlColor *overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
+        for (auto m : models) {
+            const xlColor *color = defColor;
+            if (m->Selected || m->GroupSelected) {
+                color = selColor;
+            } else if (m->Overlapping && isModelSelected) {
+                color = overlapColor;
             }
             if (!allowSelected) {
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
-            (*PreviewModels)[i]->DisplayModelOnWindow(this, accumulator, color, allowSelected);
+            m->DisplayModelOnWindow(this, accumulator, color, allowSelected);
         }
     }
 }
 
 void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
     if (StartDrawing(mPointSize)) {
-        if (PreviewModels != nullptr) {
-            for (int m = 0; m < PreviewModels->size(); m++) {
-                int NodeCnt = (*PreviewModels)[m]->GetNodeCount();
-                for (size_t n = 0; n < NodeCnt; ++n) {
-                    int start = (*PreviewModels)[m]->NodeStartChannel(n);
-                    (*PreviewModels)[m]->SetNodeChannelValues(n, &data[start]);
-                }
-                (*PreviewModels)[m]->DisplayModelOnWindow(this, accumulator);
+        const std::vector<Model*> &models = GetModels();
+        for (auto m : models) {
+            int NodeCnt = m->GetNodeCount();
+            for (size_t n = 0; n < NodeCnt; ++n) {
+                int start = m->NodeStartChannel(n);
+                m->SetNodeChannelValues(n, &data[start]);
             }
+            m->DisplayModelOnWindow(this, accumulator);
         }
         EndDrawing(swapBuffers);
     }
@@ -131,9 +176,8 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
         wxMenu mnuSelectPreview;
         mnuSelectPreview.Append(1, "House Preview");
         int index = 2;
-        for (auto it = LayoutGroups->begin(); it != LayoutGroups->end(); ++it) {
-            LayoutGroup* grp = (LayoutGroup*)(*it);
-            mnuSelectPreview.Append(index++, grp->GetName());
+        for (auto a : xlights->LayoutGroups) {
+            mnuSelectPreview.Append(index++, a->GetName());
         }
         mnuSelectPreview.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPopup, nullptr, this);
         PopupMenu(&mnuSelectPreview);
@@ -142,16 +186,17 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
 
 void ModelPreview::OnPopup(wxCommandEvent& event)
 {
-    int id = event.GetId() - 1;
-    if (id == 0) {
-        SetModels(*HouseModels);
-        SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness());
-        SetbackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
-    }
-    else if (id > 0 && id <= LayoutGroups->size()) {
-        SetModels((*LayoutGroups)[id - 1]->GetModels());
-        SetBackgroundBrightness((*LayoutGroups)[id - 1]->GetBackgroundBrightness());
-        SetbackgroundImage((*LayoutGroups)[id - 1]->GetBackgroundImage());
+    if (xlights) {
+        int id = event.GetId() - 1;
+        if (id == 0) {
+            currentLayoutGroup = "Default";
+            SetBackgroundBrightness(xlights->GetDefaultPreviewBackgroundBrightness());
+            SetbackgroundImage(xlights->GetDefaultPreviewBackgroundImage());
+        } else if (id > 0 && id <= xlights->LayoutGroups.size()) {
+            currentLayoutGroup = xlights->LayoutGroups[id - 1]->GetName();
+            SetBackgroundBrightness(xlights->LayoutGroups[id - 1]->GetBackgroundBrightness());
+            SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
+        }
     }
     Refresh();
     Update();
@@ -160,9 +205,9 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
 void ModelPreview::keyPressed(wxKeyEvent& event) {}
 void ModelPreview::keyReleased(wxKeyEvent& event) {}
 
-ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<Model*> &models, std::vector<LayoutGroup *> &groups, bool a, int styles, bool apc)
+ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", true),
-      PreviewModels(&models), HouseModels(&models), LayoutGroups(&groups), allowSelected(a), allowPreviewChange(apc), xlights(xlights_)
+      allowSelected(a), allowPreviewChange(apc), xlights(xlights_), additionalModel(nullptr)
 {
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
@@ -170,20 +215,21 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, std::vector<
     virtualHeight = 0;
     image = nullptr;
     sprite = nullptr;
-    _model = nullptr;
+    currentLayoutGroup = "Default";
+    currentModel = "&---none---&";
 }
 
-ModelPreview::ModelPreview(wxPanel* parent)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true), PreviewModels(nullptr), allowSelected(false), image(nullptr)
+ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", true),
+    allowSelected(false), image(nullptr), xlights(xl), additionalModel(nullptr)
 {
-    _model = nullptr;
     maxVertexCount = 5000;
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     virtualWidth = 0;
     virtualHeight = 0;
     image = nullptr;
     sprite = nullptr;
-    xlights = nullptr;
+    currentModel = "";
 }
 
 ModelPreview::~ModelPreview()
@@ -231,14 +277,25 @@ void ModelPreview::InitializePreview(wxString img, int brightness)
     mBackgroundBrightness = brightness;
 }
 
+static inline wxColor GetBackgroundColor() {
+    wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+#ifdef __WXOSX__
+    if (!c.IsSolid()) {
+        c = wxSystemSettings::GetColour(wxSYS_COLOUR_MENUBAR);
+    }
+    if (!c.IsSolid()) {
+        c.Set(204, 204, 204);
+    }
+#endif
+    return c;
+}
 void ModelPreview::InitializeGLCanvas()
 {
-    if (!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
     if (allowSelected) {
-        wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f)); // Black Background
+        wxColor c = GetBackgroundColor();
+        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));
     } else {
         LOG_GL_ERRORV(glClearColor(0.0, 0.0, 0.0, 1.0f)); // Black Background
     }
@@ -247,7 +304,13 @@ void ModelPreview::InitializeGLCanvas()
 
     mIsInitialized = true;
 }
-
+void ModelPreview::OnSysColourChanged(wxSysColourChangedEvent& event) {
+    if (mIsInitialized) {
+        SetCurrentGLContext();
+        wxColor c = GetBackgroundColor();
+        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));
+    }
+}
 void ModelPreview::SetOrigin()
 {
 }
@@ -338,11 +401,11 @@ void ModelPreview::SetActive(bool show) {
     }
 }
 
-bool ModelPreview::StartDrawing(wxDouble pointSize)
+bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (!IsShownOnScreen()) return false;
+    if (!fromPaint && !IsShownOnScreen()) return false;
     if (!mIsInitialized) { InitializeGLCanvas(); }
     mIsInitialized = true;
     mPointSize = pointSize;

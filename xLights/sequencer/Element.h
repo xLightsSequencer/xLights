@@ -48,7 +48,7 @@ public:
     bool GetVisible() const {return mVisible;}
     void SetVisible(bool visible) {mVisible = visible;}
 
-    bool HasEffects() const;
+    virtual bool HasEffects() const;
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
@@ -67,12 +67,10 @@ public:
     bool GetCollapsed() const { return mCollapsed; }
     void SetCollapsed(bool collapsed) { mCollapsed = collapsed; }
     
-
     int GetIndex() const {return mIndex;}
     void SetIndex(int index) { mIndex = index;}
     int &Index() { return mIndex;}
     int Index() const { return mIndex;}
-    
     
     std::recursive_mutex &GetChangeLock() { return changeLock; }
     virtual void IncrementChangeCount(int startMs, int endMS);
@@ -167,10 +165,11 @@ public:
     virtual std::string GetFullName() const override;
     virtual void IncrementChangeCount(int startMs, int endMS) override;
 
+    virtual bool HasEffects() const override;
+
 protected:
     ModelElement *mParentModel;
 };
-
 
 class StrandElement : public SubModelElement {
 public:
@@ -184,9 +183,11 @@ public:
 
     int GetStrand() const { return mStrand; }
     
+    virtual bool HasEffects() const override;
     bool ShowNodes() const { return mShowNodes;}
     void ShowNodes(bool b) { mShowNodes = b;}
-    NodeLayer *GetNodeLayer(int n, bool create = false);
+    NodeLayer *GetNodeLayer(int n, bool create);
+    NodeLayer *GetNodeLayer(int n) const;
     int GetNodeLayerCount() const {
         return mNodeLayers.size();
     }
@@ -224,8 +225,10 @@ class ModelElement : public Element
 
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
+        virtual bool HasEffects() const override;
         int GetSubModelAndStrandCount() const;
         int GetSubModelCount() const;
+        SubModelElement *GetSubModel(int i) const;
         SubModelElement *GetSubModel(int i);
         SubModelElement *GetSubModel(const std::string &name, bool create = false);
         void RemoveSubModel(const std::string &name);
@@ -241,6 +244,7 @@ class ModelElement : public Element
         void DecWaitCount();
 
         StrandElement *GetStrand(int strand, bool create = false);
+        StrandElement *GetStrand(int strand) const;
         int GetStrandCount() const { return mStrands.size(); }
     
         virtual void CleanupAfterRender() override;

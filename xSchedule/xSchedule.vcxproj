@@ -252,6 +252,8 @@
     <ClCompile Include="events\ListenerMIDI.cpp" />
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
+    <ClCompile Include="ExtraIPDialog.cpp" />
+    <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GammaDialog.cpp" />
@@ -442,6 +444,8 @@
     <ClInclude Include="events\ListenerMIDI.h" />
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
+    <ClInclude Include="ExtraIPDialog.h" />
+    <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GammaDialog.h" />

@@ -75,7 +75,7 @@ std::string PlayListItemFile::GetNameNoTime() const
 
 std::string PlayListItemFile::GetTooltip()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %SHOWDIR% - the current show directory";
+    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %NEXTSTEPNAME% - Next step\n    %NEXTSTEPNAME% - Next step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %SHOWDIR% - the current show directory";
 }
 
 std::string PlayListItemFile::ReplaceTags(const std::string s)
@@ -120,8 +120,22 @@ std::string PlayListItemFile::ReplaceTags(const std::string s)
 		}
 	}
 
-	auto step = xScheduleFrame::GetScheduleManager()->GetRunningPlayList()->GetRunningStep();
-	if (step == nullptr)
+	auto playlist = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
+    PlayListStep* step = nullptr;
+
+    if (playlist != nullptr && !playlist->IsRandom())
+    {
+        step = playlist->GetRunningStep();
+        bool dummy;
+        auto nextstep = playlist->GetNextStep(dummy);
+        if (nextstep != nullptr)
+        {
+            res.Replace("%NEXTSTEPNAME%", nextstep->GetNameNoTime());
+        }
+    }
+    res.Replace("%NEXTSTEPNAME%", "");
+
+    if (step == nullptr)
 	{
 		step = xScheduleFrame::GetScheduleManager()->GetStepContainingPlayListItem(GetId());
 	}

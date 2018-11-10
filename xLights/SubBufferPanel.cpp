@@ -547,9 +547,9 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
 
 void SubBufferPanel::Paint( wxPaintEvent& event ) {
     wxPaintDC dc(this);
-    if (!IsShownOnScreen()) {
-        return;
-    }
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);

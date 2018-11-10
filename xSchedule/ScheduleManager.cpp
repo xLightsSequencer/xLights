@@ -1094,6 +1094,15 @@ int ScheduleManager::Frame(bool outputframe)
     return rate;
 }
 
+bool ScheduleManager::IsSlave() const
+{
+    return _mode == FPPSLAVE ||
+        _mode == FPPUNICASTSLAVE ||
+        _mode == ARTNETSLAVE ||
+        _mode == OSCSLAVE ||
+        _mode == MIDISLAVE;
+}
+
 void ScheduleManager::CreateBrightnessArray()
 {
     for (size_t i = 0; i < 256; i++)
@@ -5155,6 +5164,9 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
     {
         wxByte buffer[10];
         size_t ms = msec;
+
+        ms += GetOptions()->GetMIDITimecodeOffset();
+
         buffer[0] = 0xF0;
         buffer[1] = 0x7F;
         buffer[2] = 0x7F;
@@ -5192,6 +5204,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
     else
     {
         size_t ms = msec;
+        ms += GetOptions()->GetMIDITimecodeOffset();
         int hours = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
         ms = ms % 360000;
 
@@ -5278,6 +5291,7 @@ void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameM
     wxString path = GetOptions()->GetOSCOptions()->GetMasterPath();
 
     path.Replace("%STEPNAME%", step->GetNameNoTime());
+
     if (step->GetTimeSource(frameMS) != nullptr)
         path.Replace("%TIMINGITEM%", step->GetTimeSource(frameMS)->GetNameNoTime());
 

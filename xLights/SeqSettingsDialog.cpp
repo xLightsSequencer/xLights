@@ -1334,7 +1334,8 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
     TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
     TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
-    int length_ms = xml_file->GetMedia()->LengthMS();
+    int length_ms = 0;
+    if (xml_file->GetMedia() != nullptr) length_ms = xml_file->GetMedia()->LengthMS(); // shouldnt happen but maybe if media load failed
     double length = length_ms / 1000.0f;
     xml_file->SetSequenceDuration(length);
     TextCtrl_Xml_Seq_Duration->ChangeValue(string_format("%.3f", length));

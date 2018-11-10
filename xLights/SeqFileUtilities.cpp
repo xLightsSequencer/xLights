@@ -2380,18 +2380,33 @@ bool GetRGBEffectData(RGBData &red, RGBData &green, RGBData &blue, xlColor &sc, 
 void LoadRGBData(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
     std::vector<RGBData> red, green, blue;
     while (rchannel != nullptr) {
-        red.resize(red.size() + 1);
-        FillData(rchannel, red[red.size() - 1]);
+        int startms, endms;
+        GetRGBTimes(rchannel, startms, endms);
+        if (startms < endms)
+        {
+            red.resize(red.size() + 1);
+            FillData(rchannel, red[red.size() - 1]);
+        }
         rchannel = rchannel->GetNext();
     }
     while (gchannel != nullptr) {
-        green.resize(green.size() + 1);
-        FillData(gchannel, green[green.size() - 1]);
+        int startms, endms;
+        GetRGBTimes(gchannel, startms, endms);
+        if (startms < endms)
+        {
+            green.resize(green.size() + 1);
+            FillData(gchannel, green[green.size() - 1]);
+        }
         gchannel = gchannel->GetNext();
     }
     while (bchannel != nullptr) {
-        blue.resize(blue.size() + 1);
-        FillData(bchannel, blue[blue.size() - 1]);
+        int startms, endms;
+        GetRGBTimes(bchannel, startms, endms);
+        if (startms < endms)
+        {
+            blue.resize(blue.size() + 1);
+            FillData(bchannel, blue[blue.size() - 1]);
+        }
         bchannel = bchannel->GetNext();
     }
     //have the data, now need to split it so common start/end times

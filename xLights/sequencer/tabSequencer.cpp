@@ -70,7 +70,7 @@ void xLightsFrame::CreateSequencer()
     m_mgr->SetDockSizeConstraint(0.25, 0.15);
 
     logger_base.debug("        Model preview.");
-    _modelPreviewPanel = new ModelPreview(PanelSequencer);
+    _modelPreviewPanel = new ModelPreview(PanelSequencer, this);
     m_mgr->AddPane(_modelPreviewPanel,wxAuiPaneInfo().Name(wxT("ModelPreview")).Caption(wxT("Model Preview")).
                    Left().Layer(1).PaneBorder(true).BestSize(250,250));
 
@@ -418,9 +418,12 @@ void xLightsFrame::CheckForValidModels()
     std::vector<std::string> AllNames;
     std::vector<std::string> ModelNames;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
-        AllNames.push_back(it->first);
-        if (it->second->GetDisplayAs() != "ModelGroup") {
-            ModelNames.push_back(it->first);
+        if (it->second != nullptr)
+        {
+            AllNames.push_back(it->first);
+            if (it->second->GetDisplayAs() != "ModelGroup") {
+                ModelNames.push_back(it->first);
+            }
         }
     }
 

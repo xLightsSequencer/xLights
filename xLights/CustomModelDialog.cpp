@@ -1,6 +1,5 @@
 #include "CustomModelDialog.h"
 
-
 #include <wx/msgdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/graphics.h>
@@ -26,6 +25,8 @@
 
 #include "models/CustomModel.h"
 #include "WiringDialog.h"
+#include "wxModelGridCellRenderer.h"
+#include "UtilClasses.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -196,9 +197,9 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Background Image"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
-	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Select a file"), _T("*.*"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+	FilePickerCtrl1 = new ImageFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
 	FlexGridSizer1->Add(FilePickerCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SliderCustomLightness = new wxSlider(this, ID_SLIDER_CUSTOM_LIGHTNESS, 0, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_CUSTOM_LIGHTNESS"));
 	FlexGridSizer1->Add(SliderCustomLightness, 1, wxTOP|wxBOTTOM|wxLEFT|wxEXPAND, 5);
 	BitmapButtonCustomBkgrd = new wxBitmapButton(this, ID_BITMAPBUTTON_CUSTOM_BKGRD, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_FIND")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON_CUSTOM_BKGRD"));
@@ -641,93 +642,6 @@ void CustomModelDialog::OnSliderCustomLightnessCmdSliderUpdated(wxScrollEvent& e
     lightness = SliderCustomLightness->GetValue();
     UpdateBackground();
     Refresh();
-}
-
-wxModelGridCellRenderer::wxModelGridCellRenderer(wxImage* image_, wxGrid& grid)
-: image(image_),
-  draw_picture(true),
-  lightness(0)
-{
-    UpdateSize(grid, true, lightness);
-}
-
-void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
-{
-    // erase only this cells background
-    if( !isSelected ) {
-        wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
-    }
-
-    // draw bitmap slice
-    if( image != nullptr && draw_picture )
-    {
-        if( bmp.IsOk() )
-        {
-            if( (rect.x + rect.width ) <= bmp.GetWidth() &&
-                (rect.y + rect.height) <= bmp.GetHeight() )
-            {
-                dc.DrawBitmap(bmp.GetSubBitmap(rect), rect.x, rect.y);
-            }
-        }
-    }
-
-    // draw selection color over image if needed
-    if( isSelected ) {
-        wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
-    }
-
-    // draw the text
-    SetTextColoursAndFont(grid, attr, dc, isSelected);
-    grid.DrawTextRectangle(dc, grid.GetCellValue(row, col), rect,  wxALIGN_CENTRE,  wxALIGN_CENTRE);
-}
-
-void wxModelGridCellRenderer::UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_)
-{
-    draw_picture = draw_picture_;
-    lightness = lightness_;
-    DetermineGridSize(grid);
-    CreateImage();
-}
-
-void wxModelGridCellRenderer::CreateImage()
-{
-    if( image != nullptr )
-    {
-        wxImage img(*image);
-        img.Rescale(width, height);
-
-        img.InitAlpha();
-        int alpha = (100 - lightness) * 255 / 100;
-
-        for (int x = 0; x < img.GetWidth(); x++)
-        {
-            for (int y = 0; y < img.GetHeight(); y++)
-            {
-                img.SetAlpha(x, y, alpha);
-            }
-        }
-
-        bmp = wxBitmap(img);
-    }
-}
-
-void wxModelGridCellRenderer::SetImage(wxImage* image_)
-{
-    image = image_;
-    CreateImage();
-}
-
-void wxModelGridCellRenderer::DetermineGridSize(wxGrid& grid)
-{
-    wxFont font = grid.GetDefaultCellFont();
-    width = 0;
-    height = 0;
-    for (int c = 0; c < grid.GetNumberCols(); ++c) {
-        width += 2 * font.GetPixelSize().y;
-    }
-    for (int r = 0; r < grid.GetNumberRows(); ++r) {
-        height += int(1.5 * (float)font.GetPixelSize().y);
-    }
 }
 
 void CustomModelDialog::OnCheckBoxAutoNumberClick(wxCommandEvent& event)

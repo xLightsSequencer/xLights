@@ -102,6 +102,7 @@
 										<object class="wxChoice" name="ID_CHOICE_Video_DurationTreatment" subclass="BulkEditChoice" variable="Choice_Video_DurationTreatment" member="yes">
 											<content>
 												<item>Normal</item>
+												<item>Normal No Blue</item>
 												<item>Loop</item>
 												<item>Slow/Accelerate</item>
 												<item>Manual</item>

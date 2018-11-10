@@ -289,7 +289,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	//*)
 
     logger_base.debug("LayoutPanel basic setup complete");
-    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, xlights->PreviewModels, xlights->LayoutGroups, true);
+    modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, true);
     PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
@@ -979,7 +979,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         if (grp->GetName() == currentLayoutGroup) {
             UpdateModelsForPreview(currentLayoutGroup, grp, models, true);
         } else {
-             UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
+            UpdateModelsForPreview(grp->GetName(), grp, dummy_models, false);
         }
     }
 
@@ -1069,7 +1069,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->SetSortColumn(sortcol, ascending);
         }
     }
-    modelPreview->SetModels(models);
     UpdatePreview();
 
     TreeListViewModels->Thaw();
@@ -1174,7 +1173,7 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
         layout_grp->SetModels(prev_models);
         ModelPreview* preview = layout_grp->GetModelPreview();
         if (layout_grp->GetPreviewCreated()) {
-            preview->SetModels(layout_grp->GetModels());
+            preview->SetActiveLayoutGroup(layout_grp->GetName());
             if (preview->GetActive()) {
                 preview->Refresh();
                 preview->Update();
@@ -1530,6 +1529,9 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 }
 
 void LayoutPanel::SetupPropGrid(Model *model) {
+
+    if (model == nullptr || propertyEditor == nullptr) return;
+
     propertyEditor->Freeze();
     clearPropGrid();
 
@@ -1949,9 +1951,8 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             m_creating_bound_rect = false;
             const std::string& model_type = selectedButton->GetModelType();
             newModel = CreateNewModel(model_type);
-            newModel->SetLayoutGroup(currentLayoutGroup);
-
             if (newModel != nullptr) {
+                newModel->SetLayoutGroup(currentLayoutGroup);
                 if( model_type == "Poly Line" ) {
                     m_polyline_active = true;
                 }
@@ -1963,7 +1964,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                     newModel->UpdateXmlWithScale();
                 }
                 lastModelName = newModel->name;
-                modelPreview->GetModels().push_back(newModel);
+                modelPreview->SetAdditionalModel(newModel);
             }
         }
     }
@@ -2031,7 +2032,13 @@ void LayoutPanel::FinalizeModel()
             float min_y = (float)(newModel->GetModelScreenLocation().GetBottom()) / (float)(newModel->GetModelScreenLocation().previewH);
             float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
             bool cancelled = false;
-            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download");
+
+            wxProgressDialog prog("Model download", "Downloading models ...", 100, this);
+            if (selectedButton->GetModelType() == "Download")
+            {
+                prog.Show();
+            }
+            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download", &prog, 0, 99);
             if (cancelled || newModel == nullptr) {
                 newModel = nullptr;
                 m_over_handle = -1;
@@ -2056,6 +2063,7 @@ void LayoutPanel::FinalizeModel()
 
         m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
+        modelPreview->SetAdditionalModel(nullptr);
         if (selectedButton != nullptr && selectedButton->GetState() == 1) {
             std::string name = newModel->name;
             newModel = nullptr;
@@ -3897,10 +3905,12 @@ void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
         if (grp != nullptr) {
             if( currentLayoutGroup == grp->GetName() ) {
                 pGrp = grp;
-                break;
+                modelPreview->SetActiveLayoutGroup(grp->GetName());
+                return;
             }
         }
     }
+    modelPreview->SetActiveLayoutGroup(group);
 }
 
 void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)

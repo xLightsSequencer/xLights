@@ -96,6 +96,7 @@ class xScheduleFrame : public wxFrame
     void DoPaste();
     void DoCopy();
     void AddSchedule();
+    void RemoteWarning();
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -193,6 +194,7 @@ public:
         bool IsPlayList(wxTreeItemId id) const;
         bool IsSchedule(wxTreeItemId id) const;
         void OnTreeCtrlMenu(wxCommandEvent &event);
+        void OnPingPopup(wxCommandEvent &event);
         void OnButton_UserClick(wxCommandEvent& event);
         void RateNotification(wxCommandEvent& event);
         void StatusMsgNotification(wxCommandEvent& event);
@@ -233,6 +235,7 @@ public:
         static const long ID_PANEL1;
         static const long ID_STATICTEXT1;
         static const long ID_STATICTEXT3;
+        static const long ID_STATICTEXT6;
         static const long ID_STATICTEXT4;
         static const long ID_STATICTEXT5;
         static const long ID_STATICTEXT2;
@@ -273,6 +276,7 @@ public:
         static const long ID_TIMER2;
         //*)
 
+        static const long ID_MNU_EDIT_ADDITIONAL_IPS;
         static const long ID_MNU_ADDPLAYLIST;
         static const long ID_MNU_ADDADVPLAYLIST;
         static const long ID_MNU_DUPLICATEPLAYLIST;
@@ -302,6 +306,7 @@ public:
         wxFileDialog* FileDialog1;
         wxFlexGridSizer* FlexGridSizer1;
         wxFlexGridSizer* FlexGridSizer4;
+        wxFlexGridSizer* FlexGridSizer6;
         wxListView* ListView_Ping;
         wxListView* ListView_Running;
         wxMenu* Menu3;
@@ -348,6 +353,7 @@ public:
         wxStaticText* StaticText2;
         wxStaticText* StaticText_IP;
         wxStaticText* StaticText_PacketsPerSec;
+        wxStaticText* StaticText_RemoteWarning;
         wxStaticText* StaticText_ShowDir;
         wxStaticText* StaticText_Time;
         wxStatusBar* StatusBar1;

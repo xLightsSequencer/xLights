@@ -27,6 +27,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _lastSavedChangeCount = 0;
     _MIDITimecodeDevice = node->GetAttribute("MIDITimecodeDevice", "").ToStdString();
     _MIDITimecodeFormat = wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0"));
+    _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
@@ -59,6 +60,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
         else if (n->GetName() == "VMatrix")
         {
             _virtualMatrices.push_back(new VirtualMatrix(outputManager, n));
+        }
+        else if (n->GetName() == "ExtraIP")
+        {
+            _extraIPs.push_back(new ExtraIP(n));
         }
         else if (n->GetName() == "Events")
         {
@@ -163,13 +168,20 @@ ScheduleOptions::ScheduleOptions()
     _crashBehaviour = "Prompt user";
     _MIDITimecodeDevice = "";
     _MIDITimecodeFormat = 0;
+    _MIDITimecodeOffset = 0;
 }
 
 ScheduleOptions::~ScheduleOptions()
 {
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _extraIPs)
     {
-        delete *it;
+        delete it;
+    }
+    _extraIPs.clear();
+
+    for (auto it : _buttons)
+    {
+        delete it;
     }
     _buttons.clear();
     if (_oscOptions != nullptr) delete _oscOptions;
@@ -184,6 +196,7 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("CrashBehaviour", _crashBehaviour);
     res->AddAttribute("MIDITimecodeDevice", _MIDITimecodeDevice);
     res->AddAttribute("MIDITimecodeFormat", wxString::Format("%d", _MIDITimecodeFormat));
+    res->AddAttribute("MIDITimecodeOffset", wxString::Format("%ld", (long)_MIDITimecodeOffset));
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
     if (IsSync())
@@ -215,32 +228,37 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
     res->AddAttribute("ARTNetTimeCodeFormat", wxString::Format("%d", _artNetTimeCodeFormat));
 
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _buttons)
     {
-        res->AddChild((*it)->Save());
+        res->AddChild(it->Save());
     }
 
-    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    for (auto it : _matrices)
     {
-        res->AddChild((*it)->Save());
+        res->AddChild(it->Save());
     }
 
-    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    for (auto it : _virtualMatrices)
     {
-        res->AddChild((*it)->Save());
+        res->AddChild(it->Save());
+    }
+
+    for (auto it : _extraIPs)
+    {
+        res->AddChild(it->Save());
     }
 
     wxXmlNode* en = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Events");
     res->AddChild(en);
-    for (auto it = _events.begin(); it != _events.end(); ++it)
+    for (auto it : _events)
     {
-        en->AddChild((*it)->Save());
+        en->AddChild(it->Save());
     }
 
-    for (auto it = _fppRemotes.begin(); it != _fppRemotes.end(); ++it)
+    for (auto it : _fppRemotes)
     {
         wxXmlNode* n = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "FPPRemote");
-        n->AddAttribute("IP", wxString(*it));
+        n->AddAttribute("IP", wxString(it));
         res->AddChild(n);
     }
 
@@ -300,24 +318,29 @@ bool ScheduleOptions::IsDirty() const
 {
     bool res = _lastSavedChangeCount != _changeCount;
 
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _buttons)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
     }
 
-    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    for (auto it : _matrices)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
     }
 
-    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    for (auto it : _virtualMatrices)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
     }
 
-    for (auto it = _events.begin(); it != _events.end(); ++it)
+    for (auto it : _events)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
+    }
+
+    for (auto it : _extraIPs)
+    {
+        res = res || it->IsDirty();
     }
 
     if (_oscOptions != nullptr) res = res || _oscOptions->IsDirty();
@@ -329,24 +352,29 @@ void ScheduleOptions::ClearDirty()
 {
     _lastSavedChangeCount = _changeCount;
 
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _buttons)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
     }
 
-    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    for (auto it : _matrices)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
     }
 
-    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    for (auto it : _virtualMatrices)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
     }
 
-    for (auto it = _events.begin(); it != _events.end(); ++it)
+    for (auto it : _events)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
+    }
+
+    for (auto it : _extraIPs)
+    {
+        it->ClearDirty();
     }
 
     if (_oscOptions != nullptr) _oscOptions->ClearDirty();
@@ -498,4 +526,37 @@ OSCOptions::OSCOptions()
     _time_not_frames = true;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
+}
+
+ExtraIP::ExtraIP(const std::string& ip, const std::string& description)
+{
+    _ip = ip;
+    _description = description;
+    _changeCount = 1;
+    _lastSavedChangeCount = 0;
+}
+
+ExtraIP::ExtraIP(wxXmlNode* node)
+{
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+    Load(node);
+}
+
+void ExtraIP::Load(wxXmlNode* node)
+{
+    _ip = node->GetAttribute("IP", "").ToStdString();
+    _description = node->GetAttribute("Description", "").ToStdString();
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+}
+
+wxXmlNode* ExtraIP::Save() const
+{
+    wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "ExtraIP");
+
+    res->AddAttribute("IP", _ip);
+    res->AddAttribute("Description", _description);
+
+    return res;
 }

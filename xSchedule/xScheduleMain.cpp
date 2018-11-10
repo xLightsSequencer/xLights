@@ -45,9 +45,9 @@
 #include "../xLights/outputs/IPOutput.h"
 #include "PlayList/PlayListItemOSC.h"
 #include "../xLights/UtilFunctions.h"
+#include "ConfigureMIDITimecodeDialog.h"
 #include "City.h"
 
-//#include "../include/xs_xyzzy.xpm"
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
 #include "../include/xs_otloff.xpm"
@@ -82,7 +82,7 @@
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "ConfigureMIDITimecodeDialog.h"
+#include "ExtraIPsDialog.h"
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -142,6 +142,7 @@ const long xScheduleFrame::ID_SPLITTERWINDOW1 = wxNewId();
 const long xScheduleFrame::ID_PANEL1 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT1 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT3 = wxNewId();
+const long xScheduleFrame::ID_STATICTEXT6 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT4 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT5 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT2 = wxNewId();
@@ -182,6 +183,7 @@ const long xScheduleFrame::ID_TIMER1 = wxNewId();
 const long xScheduleFrame::ID_TIMER2 = wxNewId();
 //*)
 
+const long xScheduleFrame::ID_MNU_EDIT_ADDITIONAL_IPS = wxNewId();
 const long xScheduleFrame::ID_MNU_ADDPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_ADDADVPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DUPLICATEPLAYLIST = wxNewId();
@@ -339,7 +341,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer5;
-    wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
     wxMenu* Menu1;
@@ -443,12 +444,15 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer4->SetSizeHints(Panel1);
     FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 0);
     Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-    FlexGridSizer6 = new wxFlexGridSizer(0, 6, 0, 0);
+    FlexGridSizer6 = new wxFlexGridSizer(0, 7, 0, 0);
     FlexGridSizer6->AddGrowableCol(1);
     StaticText_ShowDir = new wxStaticText(Panel4, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer6->Add(StaticText_ShowDir, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_IP = new wxStaticText(Panel4, ID_STATICTEXT3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
     FlexGridSizer6->Add(StaticText_IP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_RemoteWarning = new wxStaticText(Panel4, ID_STATICTEXT6, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+    StaticText_RemoteWarning->SetForegroundColour(wxColour(255,0,0));
+    FlexGridSizer6->Add(StaticText_RemoteWarning, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_PacketsPerSec = new wxStaticText(Panel4, ID_STATICTEXT4, _("Packets/Sec: 0          "), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer6->Add(StaticText_PacketsPerSec, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText2 = new wxStaticText(Panel4, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
@@ -617,6 +621,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     SetTitle("xLights Scheduler " + xlights_version_string + " " + GetBitness());
 
+    StaticText_RemoteWarning->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+                                             wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+
     // Force initialise sockets
     wxIPV4address localaddr;
     localaddr.AnyAddress();
@@ -748,6 +755,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 #endif
 
+    RemoteWarning();
+
     UpdateUI();
     ValidateWindow();
 }
@@ -792,16 +801,22 @@ void xScheduleFrame::LoadSchedule()
         if (__schedule->ShowDirectoriesMatch())
         {
             StaticText_ShowDir->SetForegroundColour(*wxBLACK);
+            StaticText_ShowDir->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+                wxFONTWEIGHT_NORMAL, false, wxEmptyString, wxFONTENCODING_DEFAULT));
         }
         else
         {
             StaticText_ShowDir->SetForegroundColour(wxColour(255,128,0));
+            StaticText_ShowDir->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+                wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
         }
     }
     else
     {
         StaticText_ShowDir->SetLabel(_showDir + " : Missing xlights_networks.xml");
         StaticText_ShowDir->SetForegroundColour(*wxRED);
+        StaticText_ShowDir->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+            wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
     }
 
     logger_base.debug("Adding IPs to ping.");
@@ -839,6 +854,12 @@ void xScheduleFrame::AddIPs()
             PlayListItemOSC* osc = (PlayListItemOSC*)*it;
             _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
         }
+    }
+
+    auto extras = __schedule->GetOptions()->GetExtraIPs();
+    for (auto it : *extras)
+    {
+        _pinger->AddIP(it->GetIP(), it->GetDescription());
     }
 }
 
@@ -2360,18 +2381,21 @@ void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 void xScheduleFrame::OnMenuItem_StandaloneSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::STANDALONE);
+    RemoteWarning();
     UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPMASTER);
+    RemoteWarning();
     UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPSLAVE);
+    RemoteWarning();
     UpdateUI();
 }
 
@@ -2978,6 +3002,7 @@ void xScheduleFrame::OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPUNICASTSLAVE);
+    RemoteWarning();
     UpdateUI();
 }
 
@@ -2991,6 +3016,7 @@ void xScheduleFrame::OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event)
             auto m = __schedule->GetMode();
             __schedule->SetMode(SYNCMODE::STANDALONE);
             __schedule->SetMode(m);
+            RemoteWarning();
         }
     }
 
@@ -3000,18 +3026,34 @@ void xScheduleFrame::OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::FPPOSCMASTER);
+    RemoteWarning();
     UpdateUI();
+}
+
+void xScheduleFrame::RemoteWarning()
+{
+    if (__schedule->IsSlave())
+    {
+        StaticText_RemoteWarning->SetLabel("Remote");
+    }
+    else
+    {
+        StaticText_RemoteWarning->SetLabel("");
+    }
+    FlexGridSizer6->Layout();
 }
 
 void xScheduleFrame::OnMenuItem_OSCMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::OSCMASTER);
+    RemoteWarning();
     UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_OSCRemoteSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::OSCSLAVE);
+    RemoteWarning();
     UpdateUI();
 }
 
@@ -3026,6 +3068,23 @@ void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
 
 void xScheduleFrame::OnListView_PingItemRClick(wxListEvent& event)
 {
+    wxMenu mnu;
+    mnu.Append(ID_MNU_EDIT_ADDITIONAL_IPS, "Edit additional IPs");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xScheduleFrame::OnPingPopup, nullptr, this);
+    PopupMenu(&mnu);
+    ValidateWindow();
+}
+
+void xScheduleFrame::OnPingPopup(wxCommandEvent &event)
+{
+    if (event.GetId() == ID_MNU_EDIT_ADDITIONAL_IPS)
+    {
+        ExtraIPsDialog dlg(this, __schedule->GetOptions()->GetExtraIPs());
+        dlg.ShowModal();
+        AddIPs();
+        UpdateUI();
+        ValidateWindow();
+    }
 }
 
 void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
@@ -3040,12 +3099,14 @@ void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::ARTNETSLAVE);
+    RemoteWarning();
     UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::ARTNETMASTER);
+    RemoteWarning();
     UpdateUI();
 }
 
@@ -3060,29 +3121,35 @@ void xScheduleFrame::OnMenuItem_CrashSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_MIDITimeCodeMasterSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::MIDIMASTER);
+    RemoteWarning();
     UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected(wxCommandEvent& event)
 {
     __schedule->SetMode(SYNCMODE::MIDISLAVE);
+    RemoteWarning();
     UpdateUI();
 }
 
 void xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommandEvent& event)
 {
-    ConfigureMIDITimecodeDialog dlg(this, __schedule->GetOptions()->GetMIDITimecodeDevice(), __schedule->GetOptions()->GetMIDITimecodeFormat());
+    ConfigureMIDITimecodeDialog dlg(this, __schedule->GetOptions()->GetMIDITimecodeDevice(), __schedule->GetOptions()->GetMIDITimecodeFormat(), __schedule->GetOptions()->GetMIDITimecodeOffset());
     if (dlg.ShowModal() == wxID_OK)
     {
         if (dlg.GetMIDI() != __schedule->GetOptions()->GetMIDITimecodeDevice() ||
-            dlg.GetFormat() != __schedule->GetOptions()->GetMIDITimecodeFormat())
+            dlg.GetFormat() != __schedule->GetOptions()->GetMIDITimecodeFormat() ||
+            dlg.GetOffset() != __schedule->GetOptions()->GetMIDITimecodeOffset()
+            )
         {
             __schedule->GetOptions()->SetMIDITimecodeDevice(dlg.GetMIDI());
             __schedule->GetOptions()->SetMIDITimecodeFormat(dlg.GetFormat());
+            __schedule->GetOptions()->SetMIDITimecodeOffset(dlg.GetOffset());
 
             auto m = __schedule->GetMode();
             __schedule->SetMode(SYNCMODE::STANDALONE);
             __schedule->SetMode(m);
+            RemoteWarning();
         }
     }
 }

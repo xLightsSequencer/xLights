@@ -11,6 +11,35 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.43 November 10, 2018
+   -- bug (dkulp)  Default DDP packet size should be 1440
+   -- bug (keith)  Fix test doesnt work on non-contiguous submodels
+   -- bug (keith)  Fix a number of crashes
+   -- enh (dkulp)  If uploading to FPP 2.4+, gzip the fseq files prior to transmission
+   -- enh (dkulp)  Use HTTP upload method for transferring fseq/mp3 files to FPP instead of FTP
+   -- enh (keith)  Allow manually adding IP addresses for xSchedule to monitor
+2018.42 November 6, 2018
+   -- enh (keith)  Add text effect grabbing text from a file ... so you can have multiple effects changed from one 
+                   location even in multiple sequences
+   -- enh (keith)  Add MIDI timecode offsets so you can use +1hr offsets
+   -- enh (keith)  Add delay to the Screen Map playlist item
+   -- enh (keith)  Make common mode/config issues even more obvious in xSchedule
+   -- enh (keith)  Add check schedule check for submodels with nodes not on the parent model
+   -- bug (keith)  Fix xSchedule web server 404 if ? parameter after a file request
+   -- bug (keith)  Fix OSX crash calling FPP event
+   -- bug (keith)  Warn user if removing an element that has effects at the strand, node and submodel level
+   -- bug (keith)  Fix not reclaiming effect memory when they are deleted - this may be a risky change
+   -- bug (keith)  Fix a bunch of crashes from crash reports         
+2018.41 November 2, 2018
+   -- enh (scott)  Added Cut, Copy, Paste, Zoom In/Out, Background Image, and Model Select to the Node Select Dialog
+   -- enh (keith)  Add music trigger fade value curve
+   -- enh (keith)  Improve the aparent randomness of random playlists
+   -- enh (keith)  Add a video effect duration mode that ends transparent rather than blue
+   -- bug (keith)  Protect user from causing crash by taking actions while models download
+   -- bug (keith)  Fix next time shows never if last day is today and show starts later.
+   -- bug (keith)  Fix some colour anomalies in LMS import due to invalid effects.
+   -- bug (keith)  Fix crash checking falcon firmware version
+   -- bug (keith)  Fix bulk controller upload buttons not visible if you have lots of controllers   
 2018.40 October 29, 2018
    -- enh (keith)  Allow user to change row header text colour and fix time/frame rate text unreadable on OSX
    -- enh (keith)  Increase maximum DMX channels

@@ -6,6 +6,7 @@
 #include <log4cpp/Category.hh>
 #include <wx/dir.h>
 #include <wx/xml/xml.h>
+#include <wx/progdlg.h>
 
 #include <memory>
 
@@ -18,11 +19,11 @@ FileCacheItem::FileCacheItem(wxXmlNode* n)
     _cacheFor = (CACHEFOR)wxAtoi(n->GetAttribute("CacheFor", "0"));
 }
 
-FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor)
+FileCacheItem::FileCacheItem(wxURI url, CACHEFOR cacheFor, wxProgressDialog* prog, int low, int high)
 {
     _url = url;
     _cacheFor = cacheFor;
-    Download();
+    Download(prog, low, high);
 }
 
 void FileCacheItem::Save(wxFile& f)
@@ -33,9 +34,9 @@ void FileCacheItem::Save(wxFile& f)
         "\"/>\n");
 }
 
-void FileCacheItem::Download()
+void FileCacheItem::Download(wxProgressDialog* prog, int low, int high)
 {
-    _fileName = DownloadURLToTemp(_url);
+    _fileName = DownloadURLToTemp(_url, prog, low, high);
 }
 
 void FileCacheItem::Delete() const
@@ -54,7 +55,7 @@ bool FileCacheItem::operator==(const wxURI& url) const
 }
 
 // A major constraint of this function is that it does not support https
-bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename)
+bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog, int low, int high)
 {
     bool ok = true;
 
@@ -93,8 +94,10 @@ bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename)
                 {
                     return false;
                 }
-                return DownloadURL(redir, filename);
+                return DownloadURL(redir, filename, prog, low, high);
             }
+
+            int upto = low;
 
             wxFile f;
             long size = 0;
@@ -106,6 +109,12 @@ bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename)
                     httpStream->Read(buffer, sizeof(buffer));
                     f.Write(buffer, httpStream->LastRead());
                     size += httpStream->LastRead();
+                    if (prog != nullptr)
+                    {
+                        upto += 10;
+                        if (upto > high) upto = low;
+                        prog->Update(upto);
+                    }
                 }
                 f.Close();
                 logger_base.debug("   File downloaded %.1f kbytes in %ldms.", (float)size / 1024.0, sw.Time());
@@ -131,7 +140,7 @@ bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename)
     return ok;
 }
 
-std::string FileCacheItem::DownloadURLToTemp(wxURI url)
+std::string FileCacheItem::DownloadURLToTemp(wxURI url, wxProgressDialog* prog, int low, int high)
 {
     wxString type = url.GetPath().AfterLast('.');
     wxString fn = wxFileName::CreateTempFileName("xl");
@@ -142,7 +151,7 @@ std::string FileCacheItem::DownloadURLToTemp(wxURI url)
         filename = fn + "." + type;
     }
 
-    if (DownloadURL(url, filename))
+    if (DownloadURL(url, filename, prog, low, high))
     {
         return filename.ToStdString();
     }
@@ -360,7 +369,7 @@ int CachedFileDownloader::size() {
     return _cacheItems.size();
 }
 
-std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor)
+std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor, wxProgressDialog* prog, int low, int high)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -374,18 +383,23 @@ std::string CachedFileDownloader::GetFile(wxURI url, CACHEFOR cacheFor)
     if (fci == nullptr)
     {
         logger_base.debug("File Cache downloading file %s.", (const char *)url.BuildURI().c_str());
-        fci = new FileCacheItem(url, cacheFor);
+        fci = new FileCacheItem(url, cacheFor, prog, low, high);
         _cacheItems.push_back(fci);
     }
     else if (!fci->Exists())
     {
         logger_base.debug("File Cache re-downloading file %s.", (const char *)url.BuildURI().c_str());
-        fci->Download();
+        fci->Download(prog, low, high);
     }
 
     if (fci->GetFileName() == "")
     {
         logger_base.debug("File Cache file %s could not be retrieved.", (const char *)url.BuildURI().c_str());
+    }
+
+    if (prog != nullptr)
+    {
+        prog->Update(high);
     }
 
     return fci->GetFileName();

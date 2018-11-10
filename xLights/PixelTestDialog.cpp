@@ -462,7 +462,7 @@ public:
                 long sc = _subModel->NodeStartChannel(i);
                 for (int j = 0; j < _subModel->GetChanCountPerNode(); j++)
                 {
-                    _nonContiguousChannels.push_back(sc + _absoluteStartChannel + 1 + j);
+                    _nonContiguousChannels.push_back(sc + 1 + j);
                 }
             }
             _absoluteStartChannel = -1;
@@ -2091,6 +2091,8 @@ void PixelTestDialog::OnTimer(long curtime)
 	if (_checkChannelList)
 	{
         SetSuspend();
+
+        NextSequenceStart = -1;
 
 		// get list of checked channels
         _outputManager->AllOff();

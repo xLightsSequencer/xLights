@@ -836,17 +836,12 @@ wxString ConvertDialog::getAttributeValueSafe(SP_XmlStartTagEvent* stagEvent, co
     return FromAscii(val);
 }
 
-
 void ConvertDialog::ReadVixFile(const wxString& filename)
 {
-    wxString NodeValue, msg;
     std::vector<unsigned char> VixSeqData;
     wxArrayInt VixChannels;
     wxArrayString VixChannelNames;
-    long cnt = 0;
     wxArrayString context;
-    long VixEventPeriod = -1;
-    long MaxIntensity = 255;
 
     _parent->ConversionInit();
     AppendConvertStatus(wxString("Reading Vixen sequence\n"));
@@ -862,6 +857,9 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     SP_XmlPullEvent * event = parser->getNext();
     int done = 0;
+    long cnt = 0;
+    long VixEventPeriod = -1;
+    long MaxIntensity = 255;
     while (!done)
     {
         if (!event)
@@ -914,7 +912,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
                 SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                 if (cnt == 2)
                 {
-                    NodeValue = FromAscii(stagEvent->getText());
+                    wxString NodeValue = FromAscii(stagEvent->getText());
                     if (context[1] == wxString("MaximumLevel"))
                     {
                         MaxIntensity = atol(NodeValue.c_str());
@@ -1003,7 +1001,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
     AppendConvertStatus(string_format(wxString("# of Channels=%d\n"), numChannels), false);
     AppendConvertStatus(string_format(wxString("Vix Event Period=%ld\n"), VixEventPeriod), false);
     AppendConvertStatus(string_format(wxString("Vix data len=%ld\n"), VixDataLen), false);
-    if (numChannels == 0)
+    if (numChannels == 0 || VixChannels.size() == 0)
     {
         return;
     }
@@ -1025,7 +1023,12 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
         for (size_t newper = 0; newper < SeqData.NumFrames(); newper++)
         {
             int intensity = VixSeqData[ch*VixNumPeriods + newper];
-            if (MaxIntensity != 255)
+            if (MaxIntensity == 0)
+            {
+                // not sure if this is right ... but otherwise it would divide by zero
+                intensity = 255;
+            }
+            else if (MaxIntensity != 255)
             {
                 intensity = intensity * 255 / MaxIntensity;
             }

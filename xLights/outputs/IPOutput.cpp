@@ -116,7 +116,7 @@ PINGSTATE IPOutput::Ping(const std::string ip)
 #else
 
     wxHTTP http;
-    http.SetMethod("GET");
+    //http.SetMethod("GET");
     http.SetTimeout(2);
     bool connected = false;
     connected = http.Connect(ip, false);

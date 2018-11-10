@@ -12,6 +12,8 @@ const long ConfigureMIDITimecodeDialog::ID_STATICTEXT1 = wxNewId();
 const long ConfigureMIDITimecodeDialog::ID_CHOICE1 = wxNewId();
 const long ConfigureMIDITimecodeDialog::ID_STATICTEXT2 = wxNewId();
 const long ConfigureMIDITimecodeDialog::ID_CHOICE2 = wxNewId();
+const long ConfigureMIDITimecodeDialog::ID_STATICTEXT3 = wxNewId();
+const long ConfigureMIDITimecodeDialog::ID_SPINCTRL1 = wxNewId();
 const long ConfigureMIDITimecodeDialog::ID_BUTTON1 = wxNewId();
 const long ConfigureMIDITimecodeDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -21,7 +23,7 @@ BEGIN_EVENT_TABLE(ConfigureMIDITimecodeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, int format, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, int format, size_t offset, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ConfigureMIDITimecodeDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -44,6 +46,11 @@ ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::
 	ChoiceFormat->Append(_("29.97 fps"));
 	ChoiceFormat->Append(_("30 fps"));
 	FlexGridSizer1->Add(ChoiceFormat, 1, wxALL|wxEXPAND, 5);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Time offset (seconds)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_TimeOffset = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 10000, 0, _T("ID_SPINCTRL1"));
+	SpinCtrl_TimeOffset->SetValue(_T("0"));
+	FlexGridSizer1->Add(SpinCtrl_TimeOffset, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -107,6 +114,8 @@ ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::
         break;
     }
 
+    SpinCtrl_TimeOffset->SetValue((int)offset);
+
 	ValidateWindow();
 }
 
@@ -167,4 +176,9 @@ int ConfigureMIDITimecodeDialog::GetFormat() const
         return 3;
     }
     return 0;
+}
+
+int ConfigureMIDITimecodeDialog::GetOffset() const
+{
+    return SpinCtrl_TimeOffset->GetValue();
 }

@@ -27,7 +27,7 @@ DDPOutput::DDPOutput() : IPOutput()
 {
     _universe = 64001;
     _fulldata = nullptr;
-    _channelsPerPacket = 1410;
+    _channelsPerPacket = 1440;
     _channels = 512;
     _sequenceNum = 0;
     _datagram = nullptr;

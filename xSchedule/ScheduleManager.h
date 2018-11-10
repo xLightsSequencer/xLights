@@ -230,6 +230,7 @@ class ScheduleManager
         int GetPPS() const;
         void StartListeners();
         int Sync(const std::string& filename, long ms);
+        bool IsSlave() const;
 };
 
 #endif
