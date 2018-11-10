@@ -11,9 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.43 November 10, 2018
    -- bug (dkulp)  Default DDP packet size should be 1440
+   -- bug (keith)  Fix test doesnt work on non-contiguous submodels
+   -- bug (keith)  Fix a number of crashes
    -- enh (dkulp)  If uploading to FPP 2.4+, gzip the fseq files prior to transmission
    -- enh (dkulp)  Use HTTP upload method for transferring fseq/mp3 files to FPP instead of FTP
+   -- enh (keith)  Allow manually adding IP addresses for xSchedule to monitor
 2018.42 November 6, 2018
    -- enh (keith)  Add text effect grabbing text from a file ... so you can have multiple effects changed from one 
                    location even in multiple sequences
