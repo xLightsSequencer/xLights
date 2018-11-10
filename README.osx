@@ -27,18 +27,13 @@ Instructions are here:
   http://wiki.wxwidgets.org/Installing_Xcode
 
 
-The latest wxWidgets release (3.1.1) will "mostly work", but does contain several
-bugs that are fixed in the latest master code.   Specifically, support for OSX Mojave
-and a bunch of drag/drop fixes for the outline views (used for the Import Effects
-dialog) are included in master, but not in the last release.   Thus, I highly
-recommend using the wxWidgets code from github instead of the release tar.
+The latest wxWidgets release (3.1.1) will not work anymore as we need some API's that have
+been added since then.  We also have several other fixes in place for background rendering,
+Mojave color support, etc...
 
 To get the latest code that we've tested, do:
 
-git clone --recurse-submodules https://github.com/wxWidgets/wxWidgets
-cd wxWidgets
-git reset --hard 85c2877a6c660c3b59c7a5400bab224374e3324a
-
+git clone  --recurse-submodules -b xlights_fixes https://github.com/dkulp/wxWidgets
 
 Then, from inside a Terminal window:
 
@@ -128,3 +123,4 @@ Feb 26, 2018 - switch to 3.1.1 release tar.bz2
 June 17, 2018 - add notes about wxWidgets for OSX Mojave
 July 16, 2018 - 85c2877a6c660c3b59c7a5400bab224374e3324a Fixes the native wxDataViewCtrl drag/drop
 Aug  1, 2018 - c83f3b39424fd0d6690a64ba05277c77c077b861 Fixes sRGB <-> RGB color space issues
+Oct 30, 2018 - move to dkulp/wxWidgets xlights_fixes branch to grab atomic ref counting, Mojave fixes, color fixes, etc...

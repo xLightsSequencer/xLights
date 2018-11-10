@@ -114,7 +114,7 @@ int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
 
 wxWindow* EffectsPanel::GetWindowPanel(wxWindow* w) {
     wxWindowList &ChildList = w->GetChildren();
-    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    for (wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it)
     {
         wxWindow *ChildWin = *it;
         wxString ChildName = ChildWin->GetName();

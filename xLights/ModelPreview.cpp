@@ -21,17 +21,18 @@
 #include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(ModelPreview, xlGLCanvas)
-EVT_MOTION(ModelPreview::mouseMoved)
-EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
-EVT_LEFT_UP(ModelPreview::mouseLeftUp)
-EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
-EVT_RIGHT_DOWN(ModelPreview::rightClick)
-//EVT_KEY_DOWN(ModelPreview::keyPressed)
-//EVT_KEY_UP(ModelPreview::keyReleased)
-EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
-EVT_MIDDLE_DOWN(ModelPreview::mouseMiddleDown)
-EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
-EVT_PAINT(ModelPreview::render)
+	EVT_MOTION(ModelPreview::mouseMoved)
+	EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
+	EVT_LEFT_UP(ModelPreview::mouseLeftUp)
+	EVT_LEAVE_WINDOW(ModelPreview::mouseLeftWindow)
+	EVT_RIGHT_DOWN(ModelPreview::rightClick)
+	//EVT_KEY_DOWN(ModelPreview::keyPressed)
+	//EVT_KEY_UP(ModelPreview::keyReleased)
+	EVT_MOUSEWHEEL(ModelPreview::mouseWheelMoved)
+	EVT_MIDDLE_DOWN(ModelPreview::mouseMiddleDown)
+	EVT_MIDDLE_UP(ModelPreview::mouseMiddleUp)
+	EVT_PAINT(ModelPreview::render)
+    EVT_SYS_COLOUR_CHANGED(ModelPreview::OnSysColourChanged)
 END_EVENT_TABLE()
 
 const long ModelPreview::ID_VIEWPOINT2D = wxNewId();
@@ -189,7 +190,7 @@ void ModelPreview::render(wxPaintEvent& event)
         _model->DisplayEffectOnWindow(this, 2);
     }
     else {
-        if (!StartDrawing(mPointSize)) return;
+        if (!StartDrawing(mPointSize, true)) return;
         Render();
         EndDrawing();
     }
@@ -435,14 +436,25 @@ void ModelPreview::InitializePreview(wxString img, int brightness, int alpha)
     mBackgroundAlpha = alpha;
 }
 
+static inline wxColor GetBackgroundColor() {
+    wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+#ifdef __WXOSX__
+    if (!c.IsSolid()) {
+        c = wxSystemSettings::GetColour(wxSYS_COLOUR_MENUBAR);
+    }
+    if (!c.IsSolid()) {
+        c.Set(204, 204, 204);
+    }
+#endif
+    return c;
+}
 void ModelPreview::InitializeGLCanvas()
 {
-    if (!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
     if (allowSelected) {
-        wxColor c = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f)); // Black Background
+        wxColor c = GetBackgroundColor();
+        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));
     } else {
         LOG_GL_ERRORV(glClearColor(0.0, 0.0, 0.0, 1.0f)); // Black Background
     }
@@ -451,7 +463,13 @@ void ModelPreview::InitializeGLCanvas()
 
     mIsInitialized = true;
 }
-
+void ModelPreview::OnSysColourChanged(wxSysColourChangedEvent& event) {
+    if (mIsInitialized) {
+        SetCurrentGLContext();
+        wxColor c = GetBackgroundColor();
+        LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));
+    }
+}
 void ModelPreview::SetOrigin()
 {
 }
@@ -628,10 +646,11 @@ void ModelPreview::SetPan(float deltax, float deltay)
     }
 }
 
-bool ModelPreview::StartDrawing(wxDouble pointSize)
+bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (!IsShownOnScreen()) return false;
+
+    if (!fromPaint && !IsShownOnScreen()) return false;
     if (!mIsInitialized) { InitializeGLCanvas(); }
     mIsInitialized = true;
     mPointSize = pointSize;

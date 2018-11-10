@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+﻿xLights is a show sequencer and player/scheduler designed to control
 USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.41 November 2, 2018
+   -- enh (scott)  Added Cut, Copy, Paste, Zoom In/Out, Background Image, and Model Select to the Node Select Dialog
+   -- enh (keith)  Add music trigger fade value curve
+   -- enh (keith)  Improve the aparent randomness of random playlists
+   -- enh (keith)  Add a video effect duration mode that ends transparent rather than blue
+   -- bug (keith)  Protect user from causing crash by taking actions while models download
+   -- bug (keith)  Fix next time shows never if last day is today and show starts later.
+   -- bug (keith)  Fix some colour anomalies in LMS import due to invalid effects.
+   -- bug (keith)  Fix crash checking falcon firmware version
+   -- bug (keith)  Fix bulk controller upload buttons not visible if you have lots of controllers   
 2018.40 October 29, 2018
    -- enh (keith)  Allow user to change row header text colour and fix time/frame rate text unreadable on OSX
    -- enh (keith)  Increase maximum DMX channels

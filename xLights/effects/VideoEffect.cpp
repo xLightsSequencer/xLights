@@ -439,12 +439,15 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         }
         else
         {
-            // display a blue background to show we have gone past end of video
-            for (int y = 0; y < buffer.BufferHt; y++)
+            if (durationTreatment == "Normal")
             {
-                for (int x = 0; x < buffer.BufferWi; x++)
+                // display a blue background to show we have gone past end of video
+                for (int y = 0; y < buffer.BufferHt; y++)
                 {
-                    buffer.SetPixel(x, y, xlBLUE);
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                    {
+                        buffer.SetPixel(x, y, xlBLUE);
+                    }
                 }
             }
         }

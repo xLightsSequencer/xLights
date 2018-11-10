@@ -837,12 +837,12 @@ void ModelGroupPanel::RemoveSelectedModels()
         {
             std::string modelName = ListBoxModelsInGroup->GetItemText(i, 0).ToStdString();
             Model* model = mModels[modelName];
-            if (model->GetDisplayAs() != "SubModel" || CheckBox_ShowSubmodels->GetValue())
-            {
-                int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
-                ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-            }
             if (model != nullptr) {
+                if (model->GetDisplayAs() != "SubModel" || CheckBox_ShowSubmodels->GetValue())
+                {
+                    int idx = ListBoxAddToModelGroup->InsertItem(0, modelName);
+                    ListBoxAddToModelGroup->SetItemState(idx, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                }
                 model->GroupSelected = false;
             }
             ListBoxModelsInGroup->DeleteItem(i);

@@ -2584,7 +2584,13 @@ void LayoutPanel::FinalizeModel()
             float min_y = (float)(newModel->GetBaseObjectScreenLocation().GetBottom());
             float max_y = (float)(newModel->GetBaseObjectScreenLocation().GetTop());
             bool cancelled = false;
-            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download");
+
+            wxProgressDialog prog("Model download", "Downloading models ...", 100, this);
+            if (selectedButton->GetModelType() == "Download")
+            {
+                prog.Show();
+            }
+            newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download", &prog, 0, 99);
             if (cancelled || newModel == nullptr) {
                 newModel = nullptr;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
