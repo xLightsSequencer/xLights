@@ -21,6 +21,7 @@ return; \
 
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
+    _strings = 1;
     SetFromXml(node, zeroBased);
 }
 
@@ -76,7 +77,7 @@ protected:
 void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
-    p = grid->AppendIn(p, new wxUIntProperty("Strings", "CustomModelStrings", _strings));
+    p = grid->Append(new wxUIntProperty("Strings", "CustomModelStrings", _strings));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", 30);
     p->SetEditor("SpinCtrl");
@@ -87,32 +88,38 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     }
     else
     {
-        bool hasIndiv = ModelXml->GetAttribute("CustomStrings", "0") == "1";
+        wxString nm = StartNodeAttrName(0);
+        bool hasIndiv = ModelXml->HasAttribute(nm);
+
         p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", hasIndiv));
         p->SetAttribute("UseCheckbox", true);
-        p->Enable(_strings > 1);
-        p = grid->AppendIn(p, new wxUIntProperty("Start Node", "StringStartNode", wxAtoi(ModelXml->GetAttribute("StartNode", "1"))));
-        p->SetAttribute("Min", 1);
-        p->SetAttribute("Max", (int)GetNodeCount());
-        p->SetEditor("SpinCtrl");
+
+        wxPGProperty *psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(ModelXml->GetAttribute(nm, "1"))));
+        psn->SetAttribute("Min", 1);
+        psn->SetAttribute("Max", (int)GetNodeCount());
+        psn->SetEditor("SpinCtrl");
+
         if (hasIndiv) {
             int c = _strings;
             for (int x = 0; x < c; x++) {
-                wxString nm = StartNodeAttrName(x);
-                std::string val = ModelXml->GetAttribute(nm).ToStdString();
+                nm = StartNodeAttrName(x);
+                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
                 if (val == "") {
                     val = ComputeStringStartNode(x);
                     ModelXml->DeleteAttribute(nm);
                     ModelXml->AddAttribute(nm, val);
                 }
                 if (x == 0) {
-                    p->SetLabel(nm);
-                    p->SetValue(val);
+                    psn->SetValue(wxAtoi(val));
                 }
                 else {
-                    p = grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(val)));
+                    grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(val)));
                 }
             }
+        }
+        else
+        {
+            psn->Enable(false);
         }
     }
 
@@ -128,22 +135,47 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         {
             grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(custom_background));
         }
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if ("CustomBkgImage" == event.GetPropertyName()) {
         custom_background = event.GetValue().GetString();
         ModelXml->DeleteAttribute("CustomBkgImage");
         ModelXml->AddAttribute("CustomBkgImage", custom_background);
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
-    else if (event.GetPropertyName() == "ModelIndividualStartNodes" || event.GetPropertyName() == "ModelIndividualStartNodes.StringStartNode") {
-        if (ModelXml->GetAttribute("CustomStrings") == "1") {
-            ModelXml->DeleteAttribute(StartNodeAttrName(0));
-            ModelXml->AddAttribute(StartNodeAttrName(0), event.GetValue().GetString());
+    else if ("CustomModelStrings" == event.GetPropertyName())
+    {
+        _strings = event.GetValue().GetInteger();
+        ModelXml->DeleteAttribute("CustomStrings");
+        ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", _strings));
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
+    }
+    else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
+        bool hasIndiv = event.GetValue().GetBool();
+        for (int x = 0; x < _strings; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->DeleteAttribute(nm);
         }
-        IncrementChangeCount();
-        return 3 | 0x0008;
+        if (hasIndiv)
+        {
+            for (int x = 0; x < _strings; x++) {
+                wxString nm = StartNodeAttrName(x);
+                ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+            }
+        }
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
+    }
+    else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
+
+        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.String"));
+        int string = wxAtoi(s);
+
+        wxString nm = StartNodeAttrName(string - 1);
+        ModelXml->DeleteAttribute(nm);
+        ModelXml->AddAttribute(nm, event.GetValue().GetString());
+
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     return Model::OnPropertyGridChange(grid, event);
 }
@@ -156,14 +188,12 @@ int CustomModel::MapToNodeIndex(int strand, int node) const {
     return node;
 }
 
-
 void CustomModel::InitModel() {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     InitCustomMatrix(customModel);
     CopyBufCoord2ScreenCoord();
     custom_background = ModelXml->GetAttribute("CustomBkgImage").ToStdString();
-    _strings = wxAtoi(ModelXml->GetAttribute("xxxx").ToStdString());
-    xxx
+    _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1").ToStdString());
 }
 
 void CustomModel::SetCustomWidth(long w) {
@@ -207,8 +237,37 @@ void CustomModel::SetCustomLightness(long lightness)
     SetFromXml(ModelXml, zeroBased);
 }
 
+bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    if (wxFile::Exists(custom_background))
+    {
+        if (!frame->IsInShowFolder(custom_background))
+        {
+            custom_background = frame->MoveToShowFolder(custom_background, wxString(wxFileName::GetPathSeparator()) + "Images");
+            ModelXml->DeleteAttribute("CustomBkgImage");
+            ModelXml->AddAttribute("CustomBkgImage", custom_background);
+            SetFromXml(ModelXml, zeroBased);
+            rc =  true;
+        }
+    }
+
+    return Model::CleanupFileLocations(frame) || rc;
+}
+
+std::list<std::string> CustomModel::GetFileReferences()
+{
+    std::list<std::string> res;
+    if (wxFile::Exists(custom_background))
+    {
+        res.push_back(custom_background);
+    }
+    return res;
+}
+
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
+    _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1").ToStdString());
     int maxval=GetCustomMaxChannel(customModel);
     // fix NumberOfStrings
     if (SingleNode) {
@@ -216,10 +275,25 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
     } else {
         ChannelsPerString=maxval*GetNodeChannelCount(StringType);
     }
-    Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+
+    if (_strings == 1)
+    {
+        Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+    }
+    else
+    {
+        stringStartChan.clear();
+        stringStartChan.resize(_strings);
+
+        for (int i = 0; i<_strings; i++) {
+            wxString nm = StartChanAttrName(i);
+            int node = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+            stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
+        }
+    }
 }
 
-int CustomModel::NodesPerString()
+int CustomModel::NodesPerString() const
 {
     return GetChanCount() / GetChanCountPerNode();
 }
@@ -269,6 +343,12 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     int width=1;
     std::vector<int> nodemap;
 
+    long firstStartChan = 999999999;
+    for (auto it: stringStartChan)
+    {
+        firstStartChan = std::min(it, firstStartChan);
+    }
+
     int cpn = -1;
     std::vector<std::string> rows;
     std::vector<std::string> cols;
@@ -311,7 +391,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
                     if (cpn == -1) {
                         cpn = GetChanCountPerNode();
                     }
-                    Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
+                    Nodes.back()->ActChan=firstStartChan + idx * cpn;
                     if (idx < nodeNames.size() && nodeNames[idx] != "") {
                         Nodes.back()->SetName(nodeNames[idx]);
                     } else {
@@ -344,7 +424,7 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     SetBufferSize(height,width);
 }
 
-std::string CustomModel::ComputeStringStartNode(int x)
+std::string CustomModel::ComputeStringStartNode(int x) const
 {
     if (x == 0) return "1";
 
@@ -353,6 +433,28 @@ std::string CustomModel::ComputeStringStartNode(int x)
     float nodesPerString = (float)nodes / (float)strings;
 
     return wxString::Format("%d", (int)(x * nodesPerString + 1)).ToStdString();
+}
+
+int CustomModel::GetCustomNodeStringNumber(int node) const
+{
+    if (_strings == 1)
+    {
+        return 1;
+    }
+
+    int stringStart = -1;
+    int string = -1;
+    for (int i = 0; i < _strings; i++)
+    {
+        wxString nm = StartNodeAttrName(i);
+        int startNode = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+        if (node >= startNode && startNode >= stringStart)
+        {
+            string = i;
+            stringStart = startNode;
+        }
+    }
+    return string + 1;
 }
 
 std::string CustomModel::GetNodeName(size_t x, bool def) const {
@@ -439,6 +541,28 @@ std::list<std::string> CustomModel::CheckModelSettings()
     return res;
 }
 
+int CustomModel::NodesPerString(int string) const
+{
+    if (_strings == 1)
+    {
+        return NodesPerString();
+    }
+
+    int ss = stringStartChan[string];
+    int len = GetChanCount() - ss;
+    for (int i = 0; i < _strings; i++)
+    {
+        if (i != string)
+        {
+            if (stringStartChan[i] > ss && len > stringStartChan[i] - ss)
+            {
+                len = stringStartChan[i] - ss;
+            }
+        }
+    }
+    return len / GetNodeChannelCount(StringType);
+}
+
 std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     size_t NodeCount=GetNodeCount();
     std::vector<int> chmap;
@@ -457,11 +581,17 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
     if (o != nullptr)
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", (o->GetIP() != "" ? o->GetIP() : o->GetCommPort()), o->GetDescription());
-    if (controller_connection != "" && wxString(controller_connection).Contains(":"))
+    if ("" != GetProtocol())
     {
-        wxArrayString cc = wxSplit(controller_connection, ':');
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", cc[0]);
-        html += wxString::Format("<tr><td>Controller Connection:</td><td>%s</td></tr>", cc[1]);
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetProtocol());
+        if (_strings == 1)
+        {
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetPort());
+        }
+        else
+        {
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d-%d</td></tr>", GetPort(), GetPort() + _strings - 1);
+        }
     }
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
@@ -481,7 +611,15 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
             if (!value.IsEmpty() && value != "0")
             {
                 wxString bgcolor = "#ADD8E6"; //"#90EE90"
-                html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%s</td>",value);
+                if (_strings == 1)
+                {
+                    html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%s</td>", value);
+                }
+                else
+                {
+                    int string = GetCustomNodeStringNumber(wxAtoi(value));
+                    html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>", value, string);
+                }
             }
             else
             {
@@ -893,4 +1031,31 @@ void CustomModel::ExportXlightsModel()
     }
     f.Write("</custommodel>");
     f.Close();
+}
+
+// This is required because users dont need to have their start nodes for each string in ascending
+// order ... this helps us name the strings correctly
+int CustomModel::MapPhysicalStringToLogicalString(int string) const
+{
+    if (_strings == 1) return string;
+
+    // FIXME
+    // This is not very efficient ... n^2 algorithm ... but given most people will have a small 
+    // number of strings and it is super simple and only used on controller upload i am hoping 
+    // to get away with it
+
+    std::vector<int> stringOrder;
+    for (int curr = 0; curr < _strings; curr++)
+    {
+        int count = 0;
+        for (int s = 0; s < _strings; s++)
+        {
+            if (stringStartChan[s] < stringStartChan[curr] && s != curr)
+            {
+                count++;
+            }
+        }
+        stringOrder.push_back(count);
+    }
+    return stringOrder[string];
 }

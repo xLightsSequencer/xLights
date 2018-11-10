@@ -437,7 +437,7 @@ void SequenceElements::DeleteElement(const std::string &name)
     _viewsManager->DeleteModel(name);
 
     // delete element pointer from all views
-    for (size_t i = 0; i < mAllViews.size(); i++)
+    for (size_t i = 1; i < mAllViews.size(); i++)
     {
         for (size_t j = 0; j < mAllViews[i].size(); j++)
         {
@@ -456,6 +456,7 @@ void SequenceElements::DeleteElement(const std::string &name)
         if (name == mAllViews[MASTER_VIEW][j]->GetName())
         {
             Element *e = mAllViews[MASTER_VIEW][j];
+            mAllViews[MASTER_VIEW].erase(mAllViews[MASTER_VIEW].begin() + j);
             delete e;
             mMasterViewChangeCount++;
             break;
@@ -1860,7 +1861,7 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
 
 void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 {
-    LyricsDialog* dlgLyrics = new LyricsDialog(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    LyricsDialog* dlgLyrics = new LyricsDialog(mSequenceEndMS, parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
     if (dlgLyrics->ShowModal() == wxID_OK)
     {
@@ -1889,9 +1890,17 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         }
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
-        int start_time = 0;
-        int end_time = mSequenceEndMS;
-        int interval_ms = (end_time-start_time) / num_phrases;
+        int start_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
+        int end_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
+        int total_time = end_time - start_time;
+        
+        if(total_time <= 0 || total_time > mSequenceEndMS)//is start/end time valid?
+        {
+            start_time = 0;
+            end_time = mSequenceEndMS;
+        }
+
+        int interval_ms = (end_time - start_time) / num_phrases;
         for( int i = 0; i < total_num_phrases; i++ )
         {
             wxString line = dlgLyrics->TextCtrlLyrics->GetLineText(i).Trim(true).Trim(false);
@@ -1947,29 +1956,29 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
     xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
     wxArrayString phonemes;
     xframe->dictionary.BreakdownWord(word, phonemes);
-    if( phonemes.Count() > 0 )
+    if (phonemes.Count() > 0)
     {
         int phoneme_start_time = start_time;
-        double phoneme_interval_ms = (end_time-start_time) / phonemes.Count();
+        double phoneme_interval_ms = (end_time - start_time) / phonemes.Count();
         int grow_next = 0;
         Effect* last_effect = nullptr;
-        for (size_t i = 0; i < phonemes.Count(); i++ )
+        for (size_t i = 0; i < phonemes.Count(); i++)
         {
-            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+grow_next+(phoneme_interval_ms*(i + 1)), GetFrequency());
-            if( i == phonemes.Count() - 1 || phoneme_end_time > end_time)
+            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time + grow_next + (phoneme_interval_ms*(i + 1)), GetFrequency());
+            if (i == phonemes.Count() - 1 || phoneme_end_time > end_time)
             {
                 phoneme_end_time = end_time;
             }
             grow_next = 0;
-            if( phonemes[i].ToStdString() == "etc" || phonemes[i].ToStdString() == "MBP")
+            if (phonemes[i].ToStdString() == "etc" || phonemes[i].ToStdString() == "MBP")
             {
                 int duration = phoneme_end_time - phoneme_start_time;
                 int psize = GetMinPeriod();
-                if( duration >= 50 )
+                if (duration >= 50)
                 {
                     psize = 50;
                 }
-                if( i == 0 || last_effect->GetEffectName() == "etc" || last_effect->GetEffectName() == "MBP" )
+                if (last_effect == nullptr || last_effect->GetEffectName() == "etc" || last_effect->GetEffectName() == "MBP")
                 {
                     grow_next = duration - psize;
                     phoneme_end_time = phoneme_start_time + psize;
@@ -1980,7 +1989,8 @@ void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time,
                     last_effect->SetEndTimeMS(phoneme_start_time);
                 }
             }
-            last_effect = phoneme_layer->AddEffect(0,phonemes[i].ToStdString(),"","",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
+            wxASSERT(phoneme_start_time < phoneme_end_time);
+            last_effect = phoneme_layer->AddEffect(0, phonemes[i].ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
             phoneme_start_time = phoneme_end_time;
         }
     }

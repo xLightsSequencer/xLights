@@ -52,6 +52,7 @@ class GlediatorEffect : public RenderableEffect
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         virtual bool needToAdjustSettings(const std::string &version) override { return true; }
         virtual bool AppropriateOnNodes() const override { return false; }
         static bool IsGlediatorFile(std::string filename);

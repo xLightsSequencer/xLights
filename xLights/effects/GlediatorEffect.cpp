@@ -239,6 +239,22 @@ std::list<std::string> GlediatorEffect::GetFileReferences(const SettingsMap &Set
     return res;
 }
 
+bool GlediatorEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Glediator");
+            rc = true;
+        }
+    }
+
+    return rc;
+}
+
 class GlediatorRenderCache : public EffectRenderCache {
 public:
     GlediatorRenderCache()

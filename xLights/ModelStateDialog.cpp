@@ -210,6 +210,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
     FlexGridSizer1->SetSizeHints(this);
     Center();
 
+    SetEscapeId(wxID_CANCEL);
+
     ValidateWindow();
 }
 

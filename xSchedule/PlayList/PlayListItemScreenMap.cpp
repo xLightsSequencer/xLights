@@ -20,7 +20,7 @@ PlayListItemScreenMap::PlayListItemScreenMap(wxXmlNode* node) : PlayListItem(nod
 	_width = 0;
 	_height = 0;
     _rescale = false;
-    _quality = "High";
+    _quality = "Bilinear";
 
     PlayListItemScreenMap::Load(node);
 }
@@ -40,7 +40,7 @@ void PlayListItemScreenMap::Load(wxXmlNode* node)
     _width = wxAtoi(node->GetAttribute("Width", "0"));
     _height = wxAtoi(node->GetAttribute("Height", "0"));
     _rescale = node->GetAttribute("Rescale", "False") == "True";
-    _quality = node->GetAttribute("Quality", "High").ToStdString();
+    _quality = node->GetAttribute("Quality", "Bilinear").ToStdString();
 }
 
 PlayListItemScreenMap::PlayListItemScreenMap() : PlayListItem()
@@ -54,7 +54,7 @@ PlayListItemScreenMap::PlayListItemScreenMap() : PlayListItem()
 	_width = 0;
 	_height = 0;
     _rescale = false;
-    _quality = "High";
+    _quality = "Bilinear";
 }
 
 PlayListItem* PlayListItemScreenMap::Copy() const
@@ -150,7 +150,7 @@ void PlayListItemScreenMap::Stop()
 
 void PlayListItemScreenMap::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_matrixMapper == nullptr) return;
 
@@ -186,7 +186,8 @@ void PlayListItemScreenMap::Frame(wxByte* buffer, size_t size, size_t ms, size_t
         wxImage image;
         if (_rescale)
         {
-            wxImageResizeQuality quality = VirtualMatrix::EncodeScalingQuality(_quality);
+            int swsQuality = -1;
+            wxImageResizeQuality quality = VirtualMatrix::EncodeScalingQuality(_quality, swsQuality);
             image = sourceBitmap.ConvertToImage().Rescale(_matrixMapper->GetWidth(), _matrixMapper->GetHeight(), quality);
         }
         else

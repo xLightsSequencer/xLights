@@ -298,13 +298,17 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
 	}
 	else
 	{
-		return 0;
+        mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
+        SetZoomLevel(GetZoomLevel());
+	    return 0;
 	}
 }
 
 void Waveform::InitializeGLCanvas()
 {
+#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
+#endif
     SetCurrentGLContext();
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
     LOG_GL_ERRORV(glDisable(GL_BLEND));
@@ -320,11 +324,12 @@ void Waveform::renderGL( wxPaintEvent& event )
     renderGL();
 }
 
-void Waveform::renderGL( )
+void Waveform::renderGL()
 {
     if(!mIsInitialized) { InitializeGLCanvas(); }
-
+#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
+#endif
 
     SetCurrentGLContext();
 
@@ -344,8 +349,7 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     DrawGLUtils::xlAccumulator vac;
     vac.PreAlloc(18);
-    xLightsFrame* frame = xLightsApp::GetFrame();
-    xlColor color = frame->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
+    xlColor color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_BACKGROUND);
 
     vac.AddVertex(0, 0, color);
     vac.AddVertex(mWindowWidth, 0, color);
@@ -382,8 +386,11 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     if(_media != nullptr)
     {
-        //xlColor c(130,178,207,255);
-        xlColor c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
+        xlColor c(130,178,207,255);
+        if (xLightsApp::GetFrame() != nullptr)
+        {
+            c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
+        }
 
         int max = std::min(mWindowWidth, wv.MinMaxs.size());
         if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {

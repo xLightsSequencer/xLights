@@ -136,24 +136,26 @@ void DrawingContext::CleanUp() {
     }
 }
 
-
 PathDrawingContext* PathDrawingContext::GetContext() {
     if (PATH_CONTEXT_POOL != nullptr) {
         return PATH_CONTEXT_POOL->GetContext();
     }
     return nullptr;
 }
+
 void PathDrawingContext::ReleaseContext(PathDrawingContext* pdc) {
     if (PATH_CONTEXT_POOL != nullptr) {
         return PATH_CONTEXT_POOL->ReleaseContext(pdc);
     }
 }
+
 TextDrawingContext* TextDrawingContext::GetContext() {
     if (TEXT_CONTEXT_POOL != nullptr) {
         return TEXT_CONTEXT_POOL->GetContext();
     }
     return nullptr;
 }
+
 void TextDrawingContext::ReleaseContext(TextDrawingContext* pdc) {
     if (TEXT_CONTEXT_POOL != nullptr) {
         return TEXT_CONTEXT_POOL->ReleaseContext(pdc);
@@ -176,6 +178,7 @@ inline void unshare(wxObject &o) {
         o.UnShare();
     }
 }
+
 inline void unshare(const wxObject &o2) {
     wxObject *o = (wxObject*)&o2;
     if (o->GetRefData() != nullptr) {
@@ -183,7 +186,7 @@ inline void unshare(const wxObject &o2) {
     }
 }
 
-AudioManager* RenderBuffer::GetMedia()
+AudioManager* RenderBuffer::GetMedia() const
 {
 	if (xLightsFrame::CurrentSeqXmlFile == nullptr)
 	{
@@ -314,7 +317,10 @@ TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowSha
     // Linux does text rendering on main thread so using the shared stuff is fine
     : DrawingContext(BufferWi, BufferHt, true, true)
 #endif
-{}
+{
+    fontStyle = 0;
+    fontSize = 0;
+}
 
 TextDrawingContext::~TextDrawingContext() {}
 
@@ -389,8 +395,6 @@ void PathDrawingContext::Clear() {
 }
 
 void TextDrawingContext::Clear() {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (gc != nullptr) {
         delete gc;
         gc = nullptr;
@@ -398,6 +402,7 @@ void TextDrawingContext::Clear() {
     DrawingContext::Clear();
 
 #if USE_GRAPHICS_CONTEXT_FOR_TEXT
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifndef __WXOSX__
     gc = wxGraphicsContext::Create(*image);
 #else
@@ -592,6 +597,18 @@ void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &exte
 
 RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 {
+    BufferHt = 0;
+    BufferWi = 0;
+    ModelBufferHt = 0;
+    ModelBufferWi = 0;
+    curPeriod = 0;
+    curEffStartPer = 0;
+    curEffEndPer = 0;
+    fadeinsteps = 0;
+    fadeoutsteps = 0;
+    allowAlpha = false;
+    needToInit = true;
+    _nodeBuffer = false;
     frameTimeInMs = 50;
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
@@ -635,7 +652,7 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
     return _textDrawingContext;
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -645,6 +662,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     if (_textDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _textDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
+    _nodeBuffer = nodeBuffer;
     BufferHt = newBufferHt;
     BufferWi = newBufferWi;
     ModelBufferHt = newModelBufferHt;
@@ -1015,6 +1033,7 @@ void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, c
         case 7:
             if( y0 > 0 )SetPixel(x0,y0-1, color);
             break;
+        default: break;
         }
     }
     lastx = x0;
@@ -1291,6 +1310,19 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 // create a copy of the buffer suitable only for copying out pixel data
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
+    frame = nullptr;
+    curPeriod = 0;
+    curEffStartPer = 0;
+    curEffEndPer = 0;
+    frameTimeInMs = 0;
+    isTransformed = false;
+    fadeinsteps = 0;
+    fadeoutsteps = 0;
+    needToInit = true;
+    tempInt = 0;
+    tempInt2 = 0;
+    allowAlpha = buffer.allowAlpha;
+    _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
     ModelBufferHt = buffer.ModelBufferHt;

@@ -28,6 +28,7 @@ class Schedule
     int _priority;
     bool _active;
     bool _enabled;
+    bool _gracefullyInterrupt;
     int _nthDay;
     int _nthDayOffset;
     std::string _fireFrequency;
@@ -49,8 +50,8 @@ class Schedule
         void SetPriority(int priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
         std::string GetName() const { return _name; }
         void SetName(const std::string& name) { if (_name != name) { _name = name; _changeCount++; } }
-        std::string GetStartTimeAsString() const { if (_startTimeString == "") return _startTime.FormatTime().ToStdString(); else return _startTimeString; }
-        std::string GetEndTimeAsString() const { if (_endTimeString == "") return _endTime.FormatTime().ToStdString(); else return _endTimeString; }
+        std::string GetStartTimeAsString() const { if (_startTimeString == "") return _startTime.Format("%H:%M").ToStdString(); else return _startTimeString; }
+        std::string GetEndTimeAsString() const { if (_endTimeString == "") return _endTime.Format("%H:%M").ToStdString(); else return _endTimeString; }
         void SetStartTime(const std::string& start);
         void SetEndTime(const std::string& end);
         void SetLoops(int loops) { if (_loops != loops) { _loops = loops; _changeCount++; } }
@@ -69,6 +70,8 @@ class Schedule
         std::string GetFireFrequency() const { return _fireFrequency; }
         void SetEveryYear(bool everyYear) { if (_everyYear != everyYear) { _everyYear = everyYear; _changeCount++; } }
         bool GetEveryYear() const { return _everyYear; }
+        void SetGracefullyInterrupt(bool gracefullyInterrupt) { if (_gracefullyInterrupt != gracefullyInterrupt) { _gracefullyInterrupt = gracefullyInterrupt; _changeCount++; } }
+        bool GetGracefullyInterrupt() const { return _gracefullyInterrupt; }
         bool IsOnDOW(const std::string& dow) const;
         void SetDOW(bool mon, bool tue, bool wed, bool thu, bool fri, bool sat, bool sun);
         wxDateTime GetStartDate() const { return _startDate; }

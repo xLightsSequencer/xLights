@@ -1,16 +1,17 @@
-#include "WebServer.h"
-
 #include <wx/wx.h>
-#include <log4cpp/Category.hh>
+#include <wx/dir.h> // Linus needs this
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include <wx/dir.h>
+#include <wx/uri.h>
+
+#include "WebServer.h"
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
-#include <wx/uri.h>
 #include "xScheduleApp.h"
 #include "ScheduleOptions.h"
 #include "md5.h"
+
+#include <log4cpp/Category.hh>
 
 #undef WXUSINGDLL
 #include "wxJSON/jsonreader.h"
@@ -324,7 +325,6 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
             command + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
             connection.Address().IPAddress().ToStdString() + "\"}";
-        data = "";
     }
 
     logger_base.info("xScheduleStash received command = '%s' key = '%s'.", (const char *)command.c_str(), (const char *)key.c_str());
@@ -412,6 +412,10 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    bool res = false;
+
+    logger_base.debug("Web request %s.", (const char *)request.URI().c_str());
+
     xScheduleFrame::GetScheduleManager()->WebRequestReceived();
 
     std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
@@ -430,7 +434,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xyzzy"))
     {
@@ -446,7 +450,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulelogin"))
     {
@@ -462,7 +466,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulestash"))
     {
@@ -487,7 +491,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         }
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulequery"))
     {
@@ -504,13 +508,10 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
-    else if (!__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
+    else if (wwwroot != "" && !__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
     {
-        if (wwwroot == "") return false;
-
-
         // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
         //int port = connection.Server()->Context().Port;
         //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
@@ -525,29 +526,41 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         connection.SendResponse(response);
 
-        return true; // disable default processing
+        res = true; // disable default processing
     }
-    else
+    else if (wwwroot != "")
     {
-        if (wwwroot == "") return false;
+        wxString uri = wxURI(request.URI()).BuildUnescapedURI();
 
         if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
         {
-            wxString d;
 #ifdef __WXMSW__
-            d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+            wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
 #elif __LINUX__
-            d = wxStandardPaths::Get().GetDataDir();
+            wxString d = wxStandardPaths::Get().GetDataDir();
             if (!wxDir::Exists(d)) {
                 d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
             }
 #else
-            d = wxStandardPaths::Get().GetResourcesDir();
+            wxString d = wxStandardPaths::Get().GetResourcesDir();
 #endif
 
-            wxString file = d + wxURI(request.URI()).GetPath();
+            wxString file = d;
+            if (uri.Contains("?"))
+            {
+                file += uri.BeforeFirst('?');
+            }
+            else
+            {
+                file += uri;
+            }
 
-            logger_base.info("File request received = '%s' : '%s'.", (const char *)file.c_str(), (const char *)request.URI().c_str());
+            logger_base.info("File request received = '%s' : '%s'.", (const char *)file.c_str(), (const char *)uri.c_str());
+
+            if (!wxFile::Exists(file))
+            {
+                logger_base.error("    404: file not found.");
+            }
 
             HttpResponse response(connection, request, HttpStatus::OK);
 
@@ -557,11 +570,20 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
             connection.SendResponse(response);
 
-            return true; // disable default processing
+            res = true; // disable default processing
         }
     }
 
-    return false; // lets the library's default processing
+    if (res)
+    {
+        logger_base.debug("Web request handled");
+    }
+    else
+    {
+        logger_base.debug("Web request NOT handled");
+    }
+
+    return res; // lets the library's default processing
 }
 
 void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
@@ -664,6 +686,13 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
 
 void WebServer::SendMessageToAllWebSockets(const std::string& message)
 {
+    static bool reentry = false;
+    if (reentry)
+    {
+        return;
+    }
+    reentry = true;
+
     for (auto it = _connections.begin(); it != _connections.end(); ++it)
     {
         if ((*it).second->IsWebSocket())
@@ -679,6 +708,20 @@ void WebServer::SendMessageToAllWebSockets(const std::string& message)
             }
         }
     }
+
+    reentry = false;
+}
+
+bool WebServer::IsSomeoneListening() const
+{
+    for (auto it : _connections)
+    {
+        if (it.second->IsWebSocket())
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 WebServer::WebServer(int port, bool apionly, const std::string& password, int mins)

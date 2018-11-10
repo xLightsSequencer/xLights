@@ -3,7 +3,7 @@ static const char *spirograph_32[] = {
 /* width height num_colors chars_per_pixel */
 "32 32 265 2", 
 /* colors */
-"   c None",
+"   c #000000",
 ".  c #1A1A00",
 "X  c #414100",
 "o  c #300000",

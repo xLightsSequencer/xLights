@@ -32,6 +32,7 @@ class ScheduleDialog: public wxDialog
 		wxCheckBox* CheckBox_Enabled;
 		wxCheckBox* CheckBox_EveryYear;
 		wxCheckBox* CheckBox_Fri;
+		wxCheckBox* CheckBox_GracefullyInterrupt;
 		wxCheckBox* CheckBox_Loop;
 		wxCheckBox* CheckBox_Mon;
 		wxCheckBox* CheckBox_Sat;
@@ -106,6 +107,7 @@ class ScheduleDialog: public wxDialog
 		static const long ID_TEXTCTRL2;
 		static const long ID_STATICTEXT11;
 		static const long ID_TEXTCTRL1;
+		static const long ID_CHECKBOX12;
 		static const long ID_STATICTEXT19;
 		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX9;
@@ -123,7 +125,6 @@ class ScheduleDialog: public wxDialog
 		//(*Handlers(ScheduleDialog)
 		void OnDatePickerCtrl_StartChanged(wxDateEvent& event);
 		void OnDatePickerCtrl_EndChanged(wxDateEvent& event);
-		void OnTextCtrl1Text(wxCommandEvent& event);
 		void OnTextCtrl_OnTimeText(wxCommandEvent& event);
 		void OnTextCtrl_OffTimeText(wxCommandEvent& event);
 		void OnButton_OkClick(wxCommandEvent& event);
@@ -134,6 +135,9 @@ class ScheduleDialog: public wxDialog
 		void OnSpinCtrl_NthDayOffsetChange(wxSpinEvent& event);
 		void OnChoice_FireFrequencySelect(wxCommandEvent& event);
 		//*)
+
+        void OnTextCtrl_OnKillFocus(wxFocusEvent& event);
+        void OnTextCtrl_OffKillFocus(wxFocusEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

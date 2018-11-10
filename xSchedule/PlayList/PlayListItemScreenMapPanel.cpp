@@ -36,6 +36,8 @@ const long PlayListItemScreenMapPanel::ID_STATICTEXT8 = wxNewId();
 const long PlayListItemScreenMapPanel::ID_SPINCTRL4 = wxNewId();
 const long PlayListItemScreenMapPanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemScreenMapPanel::ID_TEXTCTRL3 = wxNewId();
+const long PlayListItemScreenMapPanel::ID_STATICTEXT4 = wxNewId();
+const long PlayListItemScreenMapPanel::ID_TEXTCTRL2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemScreenMapPanel,wxPanel)
@@ -145,6 +147,10 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
 	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL3, _("0.050"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_Duration, 1, wxALL|wxEXPAND, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT4, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL2, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+	FlexGridSizer1->Add(TextCtrl_Delay, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -155,6 +161,8 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
 	Connect(ID_SPINCTRL5,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
 	//*)
+
+    Choice_Quality->SetStringSelection("Bilinear");
 
     wxScreenDC screenDC;
     int w, h;
@@ -185,6 +193,7 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
     SpinCtrl_Height->SetValue(_screenMap->GetHeight());
     SpinCtrl_Priority->SetValue(_screenMap->GetPriority());
     CheckBox_Rescale->SetValue(_screenMap->GetRescale());
+    TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)_screenMap->GetDelay() / 1000.0));
 
     _outlineWindow = new OutlineWindow(this, _screenMap->GetX(), _screenMap->GetY(), _screenMap->GetWidth(), _screenMap->GetHeight());
     _outlineWindow->Show();
@@ -214,6 +223,7 @@ PlayListItemScreenMapPanel::~PlayListItemScreenMapPanel()
     _screenMap->SetPriority(SpinCtrl_Priority->GetValue());
     _screenMap->SetRescale(CheckBox_Rescale->GetValue());
     _screenMap->SetQuality(Choice_Quality->GetStringSelection().ToStdString());
+    _screenMap->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
 }
 
 void PlayListItemScreenMapPanel::ValidateWindow()

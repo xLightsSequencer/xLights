@@ -35,7 +35,7 @@ BEGIN_EVENT_TABLE(GammaDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-GammaDialog::GammaDialog(wxWindow* parent, OutputManager* outputManager, std::string& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _startChannel(startChannel), _nodes(channels), _gamma(gamma), _gammaR(gammaR), _gammaG(gammaG), _gammaB(gammaB), _description(description), _enabled(enabled)
+GammaDialog::GammaDialog(wxWindow* parent, OutputManager* outputManager, std::string& startChannel, size_t& channels, float& gamma, float& gammaR, float& gammaG, float& gammaB, std::string& description, bool& enabled, wxWindowID id,const wxPoint& pos,const wxSize& size) : _gamma(gamma), _gammaR(gammaR), _gammaG(gammaG), _gammaB(gammaB), _startChannel(startChannel), _nodes(channels), _description(description), _enabled(enabled)
 {
     _outputManager = outputManager;
 

@@ -11,6 +11,8 @@
 #include "ColorManager.h"
 #include "SequenceElements.h"
 #include "../xLightsMain.h"
+#include "NewTimingDialog.h"
+#include "VAMPPluginDialog.h"
 
 #include <log4cpp/Category.hh>
 
@@ -60,6 +62,7 @@ const long RowHeading::ID_ROW_MNU_RENAME_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_UNFIX_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_NOTES = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
@@ -316,11 +319,14 @@ void RowHeading::rightClick( wxMouseEvent& event)
     }
     else
     {
+        EffectLayer* el = element->GetEffectLayer(ri->layerIndex);
+
         mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
         mnuLayer.Append(ID_ROW_MNU_RENAME_TIMING_TRACK, "Rename Timing Track");
         mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
         mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
         mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
+        mnuLayer.Append(ID_ROW_MNU_UNFIX_TIMING_TRACK, "Make Timing Track Variable")->Enable(el->IsFixedTimingLayer());
         mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
@@ -512,36 +518,83 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if(id == ID_ROW_MNU_ADD_TIMING_TRACK)
     {
-        std::string name = wxGetTextFromUser("What is name of new timing track?", "Timing Track Name").ToStdString();
-        if( mSequenceElements->ElementExists(name) )
+        bool timing_added = false;
+        xLightsXmlFile* xml_file;
+        xml_file = mSequenceElements->GetXLightsFrame()->CurrentSeqXmlFile;
+        NewTimingDialog dialog(this);
+        dialog.Fit();
+        if(xml_file->GetFrequency() < 40)
         {
-            wxMessageBox("Timing name already exists in sequence as a model or another timing.", "ERROR");
+            dialog.RemoveChoice("25ms");
         }
-        else if(name.size()>0)
+        if(xml_file->GetFrequency() < 20)
         {
-            // Deactivate active timing mark so new one is selected;
-            mSequenceElements->DeactivateAllTimingElements();
-            int timingCount = mSequenceElements->GetNumberOfTimingElements();
-            Element* e = mSequenceElements->AddElement(timingCount,name,
-                                                       "timing",true,false,true,false);
-            e->AddEffectLayer();
+            dialog.RemoveChoice("50ms");
+        }
 
-            int adjViews = (mSequenceElements->GetCurrentView() == MASTER_VIEW) ? -1 : -2;
-            if (mSequenceElements->GetViewCount() + adjViews > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW)
+        VAMPPluginDialog vamp(this);
+        std::list<std::string> plugins;
+        if (xml_file->HasAudioMedia())
+        {
+            plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
+            for (std::list<std::string>::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
             {
-                if (wxMessageBox("Do you want to add this timing track to all views?", "Add to all views.", wxYES_NO) == wxYES)
+                dialog.Choice_New_Fixed_Timing->Append(*it);
+            }
+        }
+
+        dialog.Fit();
+
+        wxString name = "";
+        if (dialog.ShowModal() == wxID_OK)
+        {
+            std::string selected_timing = dialog.GetTiming().ToStdString();
+            if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
+            {
+                name = vamp.ProcessPlugin(xml_file, mSequenceElements->GetXLightsFrame(), selected_timing, xml_file->GetMedia());
+                if( name != "" ) {
+                    timing_added = true;
+                }
+            }
+            else if( !xml_file->TimingAlreadyExists(selected_timing, mSequenceElements->GetXLightsFrame()) )
+            {
+                name = selected_timing;
+                if (selected_timing == "Metronome")
                 {
-                    mSequenceElements->AddTimingToAllViews(name);
+                    int base_timing = xml_file->GetFrameMS();
+                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                    if (dlg.ShowModal() == wxID_OK)
+                    {
+                        int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+
+                        if (ms != dlg.GetValue())
+                        {
+                            wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
+                            wxMessageBox(msg);
+                        }
+                        wxString ttn = wxString::Format("%dms Metronome", ms);
+                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
+                        {
+                            xml_file->AddFixedTimingSection(ttn.ToStdString(), mSequenceElements->GetXLightsFrame());
+                            timing_added = true;
+                        }
+                    }
                 }
                 else
                 {
-                    mSequenceElements->AddTimingToCurrentView(name);
+                    xml_file->AddFixedTimingSection(selected_timing, mSequenceElements->GetXLightsFrame());
+                    timing_added = true;
                 }
             }
             else
             {
-                mSequenceElements->AddTimingToCurrentView(name);
+                wxMessageBox(wxString::Format("Fixed Timing section %s already exists!", selected_timing), "Error", wxICON_ERROR | wxOK);
             }
+        }
+        dialog.Destroy();
+
+        if(timing_added)
+        {
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
@@ -571,6 +624,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
+    }
+    else if (id == ID_ROW_MNU_UNFIX_TIMING_TRACK)
+    {
+        TimingElement* te = dynamic_cast<TimingElement*>(element);
+        te->Unfix();
     }
     else if (id == ID_ROW_MNU_EXPORT_TIMING_TRACK) {
         wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
@@ -622,7 +680,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     {
                         f.Write("<timings>\n");
                     }
-                    for (int i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++)
+                    for (size_t i = 0; i < dlg.CheckListBox_Timings->GetCount(); i++)
                     {
                         if (dlg.CheckListBox_Timings->IsChecked(i))
                         {
@@ -1031,7 +1089,9 @@ int RowHeading::GetMaxRows()
 
 void RowHeading::render( wxPaintEvent& event )
 {
+#ifdef __LINUX__
     if(!IsShownOnScreen()) return;
+#endif
     wxPaintDC dc(this);
     Draw();
 }
@@ -1072,6 +1132,7 @@ void RowHeading::Draw()
         endY = DEFAULT_ROW_HEADING_HEIGHT*(row+1);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.DrawRectangle(0,startY,w,DEFAULT_ROW_HEADING_HEIGHT);
+        dc.SetTextForeground(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER_TEXT).asWxColor());
         if(rowInfo->layerIndex > 0 || rowInfo->strandIndex >= 0)   // If effect layer = 0
         {
             dc.SetPen(*wxLIGHT_GREY_PEN);

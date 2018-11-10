@@ -169,7 +169,6 @@ void OnEffect::RemoveDefaults(const std::string &version, Effect *effect) {
     RenderableEffect::RemoveDefaults(version, effect);
 }
 
-
 void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, 100);
@@ -204,7 +203,7 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
         color = hsv;
     }
     
-    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust, ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX);
+    int transparency = GetValueCurveInt("On_Transparency", 0, SettingsMap, adjust, ON_TRANSPARENCY_MIN, ON_TRANSPARENCY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     if (transparency) {
         transparency *= 255;
         transparency /= 100;
@@ -218,7 +217,7 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
     if (buffer.cur_model != "") {
         Model* model_info = buffer.GetModel();
         if (model_info != nullptr) {
-            if( model_info->GetDisplayAs() == "DMX" ) {
+            if( model_info->GetDisplayAs() == "DMX" && !buffer.IsNodeBuffer()) {
                 xlColor c;
                 DmxModel* dmx = (DmxModel*)model_info;
 

@@ -468,7 +468,8 @@ public:
         return sb;
     }
 
-    PixelBufferClass *getBuffer() {
+    PixelBufferClass *getBuffer() const
+    {
         return mainBuffer;
     }
 
@@ -505,6 +506,8 @@ public:
         // To support canvas mix type we must render them bottom to top
         for (int layer = numLayers - 1; layer >= 0; --layer) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
+            //must lock the layer so the Effect* stays valid
+            std::unique_lock<std::recursive_mutex> elayerLock(elayer->GetLock());
             Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
             if (ef != info.currentEffects[layer]) {
                 info.currentEffects[layer] = ef;
@@ -642,7 +645,10 @@ public:
             for (int layer = numLayers - 1; layer >= 0; --layer) {
                 wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
-                mainModelInfo.currentEffects[layer] = findEffectForFrame(layer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
+                
+                EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
+                std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
+                mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
                 msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
@@ -703,7 +709,7 @@ public:
                             //deleted node
                             continue;
                         }
-
+                        std::unique_lock<std::recursive_mutex> nlayerLock(nlayer->GetLock());
                         Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
                         if (el != nodeEffects[node] || frame == startFrame) {
                             nodeEffects[node] = el;
@@ -764,7 +770,6 @@ public:
 	}
 
     void AbortRender() {
-        std::unique_lock<std::mutex> lock(nextLock);
         abort = true;
     }
 
@@ -840,8 +845,8 @@ private:
     log4cpp::Category &renderLog;
 
     wxGauge *gauge;
-    int currentFrame;
-    bool abort;
+    std::atomic_int currentFrame;
+    std::atomic_bool abort;
 
     std::vector<EffectLayerInfo *> subModelInfos;
 
@@ -892,7 +897,15 @@ void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
 
 class RenderProgressInfo {
 public:
-    RenderProgressInfo(std::function<void()>&& cb) : callback(cb) {};
+    RenderProgressInfo(std::function<void()>&& cb) : callback(cb)
+    {
+        numRows = 0;
+        startFrame = 0;
+        endFrame = 0;
+        jobs = nullptr;
+        aggregators = nullptr;
+        renderProgressDialog = nullptr;
+    };
     std::function<void()> callback;
     int numRows;
     int startFrame;
@@ -1660,6 +1673,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
 
     std::string model = command.GetString().ToStdString();
     Model *m = GetModel(model);
+    if (m == nullptr) return;
 
     bool isgroup = (m->GetDisplayAs() == "ModelGroup");
 
@@ -1691,13 +1705,15 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         }
         wxString fullpath;
 
-        SetStatusText(_("Starting Export for ") + format + "-" + Out3);
+        SetStatusText(wxString::Format("Starting Export for %s - %s", format, Out3));
         wxYield();
 
         NextRenderer wait;
         Element * el = mSequenceElements.GetElement(model);
         RenderJob *job = new RenderJob(dynamic_cast<ModelElement*>(el), SeqData, this, true);
+        wxASSERT(job != nullptr);
         SequenceData *data = job->createExportBuffer();
+        wxASSERT(data != nullptr);
         int cpn = job->getBuffer()->GetChanCountPerNode();
 
         if (command.GetInt()) {
@@ -1724,7 +1740,6 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             }
         }
         delete job;
-
 
         if (Out3 == "Lcb") {
             oName.SetExt(_("lcb"));
@@ -1777,7 +1792,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             fullpath = oName.GetFullPath();
             WriteMinleonNECModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model));
         }
-        SetStatusText(_("Finished writing model: ") + fullpath + wxString::Format(" in %ld ms ", sw.Time()));
+        SetStatusText(wxString::Format("Finished writing model: %s in %ld ms ", fullpath, sw.Time()));
 
         delete data;
         EnableSequenceControls(true);
@@ -1795,11 +1810,9 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         return false;
     }
 
-    if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0)
-    {
+    if (buffer.GetModel() != nullptr && buffer.GetModel()->GetNodeCount() == 0) {
         // this happens with custom models with no nodes defined
-        if (buffer.BufferForLayer(layer, 0).curEffStartPer == period)
-        {
+        if (buffer.BufferForLayer(layer, 0).curEffStartPer == period) {
             logger_base.warn("Model %s has no nodes so skipping rendering.", (const char *)buffer.GetModel()->GetName().c_str());
         }
         return false;
@@ -1819,21 +1832,17 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
         // need to do it every render as effects can move around
         const Model* m = buffer.GetModel();
 
-        if (m == nullptr)
-        {
+        if (m == nullptr) {
             // this could be a strand or node
             m = GetSequenceElements().GetXLightsFrame()->GetModel(buffer.GetModelName());
         }
 
-        if (m != nullptr)
-        {
-            if (m->GetStringType().compare(0, 12, "Single Color") == 0)
-            {
+        if (m != nullptr) {
+            if (m->GetStringType().compare(0, 12, "Single Color") == 0) {
                 colorMask = buffer.GetNodeMaskColor(0);
 
                 // If black ... then dont mask
-                if (colorMask == xlBLACK)
-                {
+                if (colorMask == xlBLACK) {
                     colorMask = xlColor::NilColor();
                 }
             }
@@ -1861,8 +1870,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                     reff->Render(effectObj, SettingsMap, b);
                 }
                 // Log slow render frames ... this takes time but at this point it is already slow
-                if (sw.Time() > 150)
-                {
+                if (sw.Time() > 150) {
                     logger_render.info("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) took more than 150 ms => %dms.", b.curPeriod, (const char *)buffer.GetModelName().c_str(),b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer, sw.Time());
                 }
             } else {

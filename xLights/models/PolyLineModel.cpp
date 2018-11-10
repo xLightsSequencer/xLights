@@ -279,11 +279,23 @@ void PolyLineModel::InitModel() {
     // normalize all points from 0.0 to 1.0 and create
     // a matrix for each line segment
     for( int i = 0; i < num_points-1; ++i ) {
-        float x1p = (pPos[i].x - minX) / deltax;
-        float x2p = (pPos[i+1].x - minX) / deltax;
-        float y1p = (pPos[i].y - minY) / deltay;
-        float y2p = (pPos[i+1].y - minY) / deltay;
-
+        float x1p, y1p, x2p, y2p;
+        if (deltax == 0.0f) {
+            x1p = 0.0f;
+            x2p = 0.0f;
+        }
+        else {
+            x1p = (pPos[i].x - minX) / deltax;
+            x2p = (pPos[i+1].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            y1p = 0.0f;
+            y2p = 0.0f;
+        }
+        else {
+            y1p = (pPos[i].y - minY) / deltay;
+            y2p = (pPos[i + 1].y - minY) / deltay;
+        }
         float angle = (float)M_PI/2.0f;
         if (pPos[i+1].x != pPos[i].x) {
             float slope = (y2p - y1p)/(x2p - x1p);
@@ -440,13 +452,21 @@ void PolyLineModel::InitModel() {
                     segment_length = pPos[segment].curve->GetSegLength(sub_segment);
                     seg_end = seg_start + segment_length;
                 } else {
-                    sub_segment = 0;
-                    polyLineSizes[segment] = m - last_seg_light_num;
-                    last_seg_light_num = m;
-                    segment++;
-                    seg_start = seg_end;
-                    segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
-                    seg_end = seg_start + segment_length;
+                    if (segment == polyLineSizes.size() - 1)
+                    {
+                        // cant increase segment ... so just fudge the segment end
+                        seg_end += 0.0001f;
+                    }
+                    else
+                    {
+                        sub_segment = 0;
+                        polyLineSizes[segment] = m - last_seg_light_num;
+                        last_seg_light_num = m;
+                        segment++;
+                        seg_start = seg_end;
+                        segment_length = pPos[segment].has_curve ? pPos[segment].curve->GetSegLength(sub_segment) : pPos[segment].length;
+                        seg_end = seg_start + segment_length;
+                    }
                 }
             }
             glm::vec3 v;
@@ -584,17 +604,17 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%ld", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%ld", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("PolyLineStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelIndividualSegments") {
         ModelXml->DeleteAttribute("IndivSegs");
         if (event.GetValue().GetBool()) {
@@ -618,7 +638,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         }
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 3 | 0x0004 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualSegments.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
@@ -626,7 +646,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ModelXml->AddAttribute(str, event.GetValue().GetString());
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 3 | 0x0004 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
         if (event.GetValue().GetBool()) {
@@ -647,7 +667,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         RecalcStartChannels();
         AdjustStringProperties(grid, num_segments);
         IncrementChangeCount();
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -965,8 +985,18 @@ void PolyLineModel::NormalizePointData()
 
     // normalize all the point data
     for( int i = 0; i < num_points; ++i ) {
-        pPos[i].x = (pPos[i].x - minX) / deltax;
-        pPos[i].y = (pPos[i].y - minY) / deltay;
+        if (deltax == 0.0f) {
+            pPos[i].x = 0.0f;
+        }
+        else {
+            pPos[i].x = (pPos[i].x - minX) / deltax;
+        }
+        if (deltay == 0.0f) {
+            pPos[i].y = 0.0f;
+        }
+        else {
+            pPos[i].y = (pPos[i].y - minY) / deltay;
+        }
         if( pPos[i].has_curve ) {
             float cp0x = pPos[i].curve->get_cp0x();
             float cp0y = pPos[i].curve->get_cp0y();

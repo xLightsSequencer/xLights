@@ -239,9 +239,9 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent,wxWindo
     mdt = new MyTextDropTarget(this, ListCtrlNonModels, "NonModel");
     ListCtrlNonModels->SetDropTarget(mdt);
 
-    //Panel_Sizer->SetMinSize(wxSize(600, 400));
-    //MainSizer->SetMinSize(600, 400);
-    //SetMinSize(wxSize(600, 400));
+    int w, h;
+    GetSize(&w, &h);
+    SetSize(std::max(600, w), std::max(400, h));
 
     ValidateWindow();
 }
@@ -2370,6 +2370,26 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
     }
 }
 
+void ViewsModelsPanel::RemoveModelFromLists(const std::string& modelName)
+{
+    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (ListCtrlModels->GetItemText(i, 1) == modelName)
+        {
+            ListCtrlModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
+            break;
+        }
+    }
+    for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
+    {
+        if (ListCtrlNonModels->GetItemText(i, 1) == modelName)
+        {
+            ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
+            break;
+        }
+    }
+}
+
 void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 {
     // this should never happen
@@ -2396,6 +2416,7 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                         // model shouldnt be in master
                         //_sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
                         _sequenceElements->DeleteElement(name);
+                        RemoveModelFromLists(name);
                         --i;
                     }
                     else

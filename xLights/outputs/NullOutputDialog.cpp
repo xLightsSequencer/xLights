@@ -78,6 +78,7 @@ NullOutputDialog::NullOutputDialog(wxWindow* parent, NullOutput* null, OutputMan
     SpinCtrl1->SetValue(null->GetId());
     //Choice_Controller->SetStringValue(_null->GetController()->GetId());
 
+    SetEscapeId(Button_Cancel->GetId());
     Button_Ok->SetDefault();
     ValidateWindow();
 }

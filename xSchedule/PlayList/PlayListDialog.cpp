@@ -25,9 +25,11 @@
 #include "PlayListItemRDS.h"
 #include "PlayListItemAudio.h"
 #include "PlayListItemESEQ.h"
+#include "PlayListItemFade.h"
 #include "PlayListItemImage.h"
 #include "PlayListItemJukebox.h"
 #include "PlayListItemDelay.h"
+#include "PlayListItemDim.h"
 #include "PlayListItemProjector.h"
 
 #include "../xLights/osxMacUtils.h"
@@ -64,6 +66,7 @@ const long PlayListDialog::ID_MNU_ADDSTEP = wxNewId();
 const long PlayListDialog::ID_MNU_ADDVIDEO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDAUDIO = wxNewId();
 const long PlayListDialog::ID_MNU_ADDESEQ = wxNewId();
+const long PlayListDialog::ID_MNU_ADDFADE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDFSEQ = wxNewId();
 const long PlayListDialog::ID_MNU_ADDTEXT = wxNewId();
 const long PlayListDialog::ID_MNU_ADDSCREENMAP = wxNewId();
@@ -78,6 +81,7 @@ const long PlayListDialog::ID_MNU_ADDSETCOLOUR = wxNewId();
 const long PlayListDialog::ID_MNU_ADDIMAGE = wxNewId();
 const long PlayListDialog::ID_MNU_ADDJUKEBOX = wxNewId();
 const long PlayListDialog::ID_MNU_ADDDELAY = wxNewId();
+const long PlayListDialog::ID_MNU_ADDDIM = wxNewId();
 const long PlayListDialog::ID_MNU_ADDCOMMAND = wxNewId();
 const long PlayListDialog::ID_MNU_ADDOSC = wxNewId();
 const long PlayListDialog::ID_MNU_ADDPROCESS = wxNewId();
@@ -185,6 +189,8 @@ PlayListDialog::PlayListDialog(wxWindow* parent, OutputManager* outputManager, P
 
     // save the current state in case the user cancels
     _savedState = new PlayList(*playlist);
+
+    _playlist->ConsolidateEveryDay();
 
     PopulateTree(playlist, nullptr, nullptr);
 
@@ -480,14 +486,14 @@ void PlayListDialog::OnTreeDragEnd(wxMouseEvent& event)
         // if dropped on playlist make it the first step
         if (IsPlayList(dropitem))
         {
-            _playlist->MoveStepAfterStep(dragstep, nullptr);
+            _playlist->MoveStepBeforeStep(dragstep, nullptr);
             PopulateTree(_playlist, dragstep, nullptr);
         }
         // if dropped on a step make it the step after the dropped step
         else if (IsPlayListStep(dropitem))
         {
             PlayListStep* dropstep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(dropitem))->GetData();
-            _playlist->MoveStepAfterStep(dragstep, dropstep);
+            _playlist->MoveStepBeforeStep(dragstep, dropstep);
             PopulateTree(_playlist, dragstep, nullptr);
         }
     }
@@ -550,29 +556,31 @@ void PlayListDialog::OnTreeCtrl_PlayListItemMenu(wxTreeEvent& event)
     TreeCtrl_PlayList->SelectItem(treeitem);
 
     wxMenu mnu;
-    mnu.Append(ID_MNU_ADDFSEQ, "Add FSEQ");
-    mnu.Append(ID_MNU_ADDESEQ, "Add ESEQ");
-    mnu.Append(ID_MNU_ADDFSEQVIDEO, "Add FSEQ & Video");
-    mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
+    mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
     mnu.Append(ID_MNU_ADDAUDIO, "Add Audio");
+    mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
+    mnu.Append(ID_MNU_ADDCURL, "Add CURL");
+    mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
+    mnu.Append(ID_MNU_ADDDIM, "Add Dim");
+    mnu.Append(ID_MNU_ADDESEQ, "Add ESEQ");
+    mnu.Append(ID_MNU_ADDFADE, "Add Fade");
+    mnu.Append(ID_MNU_ADDFILE, "Add File");
+    mnu.Append(ID_MNU_ADDFPPEVENT, "Add FPP Event");
+    mnu.Append(ID_MNU_ADDFSEQ, "Add FSEQ");
+    mnu.Append(ID_MNU_ADDFSEQVIDEO, "Add FSEQ & Video");
     mnu.Append(ID_MNU_ADDIMAGE, "Add Image");
     mnu.Append(ID_MNU_ADDJUKEBOX, "Add xLights Jukebox");
-    mnu.Append(ID_MNU_ADDALLOFF, "Add All Set");
-    mnu.Append(ID_MNU_ADDSETCOLOUR, "Add Set Colour");
-    mnu.Append(ID_MNU_ADDPROJECTOR, "Add Projector");
-    mnu.Append(ID_MNU_ADDDELAY, "Add Delay");
-    mnu.Append(ID_MNU_ADDRDS, "Add RDS");
-    mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
-    mnu.Append(ID_MNU_ADDTEST, "Add Test");
     mnu.Append(ID_MNU_ADDMICROPHONE, "Add Microphone");
-    mnu.Append(ID_MNU_ADDCURL, "Add CURL");
-    mnu.Append(ID_MNU_ADDSERIAL, "Add Serial");
-    mnu.Append(ID_MNU_ADDFPPEVENT, "Add FPP Event");
-    mnu.Append(ID_MNU_ADDCOMMAND, "Add Command");
     mnu.Append(ID_MNU_ADDOSC, "Add OSC");
+    mnu.Append(ID_MNU_ADDPROCESS, "Add Process");
+    mnu.Append(ID_MNU_ADDPROJECTOR, "Add Projector");
+    mnu.Append(ID_MNU_ADDRDS, "Add RDS");
     mnu.Append(ID_MNU_ADDSCREENMAP, "Add Screen Map");
+    mnu.Append(ID_MNU_ADDSERIAL, "Add Serial");
+    mnu.Append(ID_MNU_ADDSETCOLOUR, "Add Set Colour");
+    mnu.Append(ID_MNU_ADDTEST, "Add Test");
     mnu.Append(ID_MNU_ADDTEXT, "Add Text");
-    mnu.Append(ID_MNU_ADDFILE, "Add File");
+    mnu.Append(ID_MNU_ADDVIDEO, "Add Video");
 
     wxMenuItem* mi = mnu.Append(ID_MNU_ADDSTEP, "Add Step");
     if (!IsPlayList(treeitem) && !IsPlayListStep(treeitem))
@@ -644,6 +652,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
     else if (event.GetId() == ID_MNU_ADDDELAY)
     {
         PlayListItemDelay* pli = new PlayListItemDelay();
+        AddItem(_playlist, step, pli);
+    }
+    else if (event.GetId() == ID_MNU_ADDDIM)
+    {
+        PlayListItemDim* pli = new PlayListItemDim(_outputManager);
         AddItem(_playlist, step, pli);
     }
     else if (event.GetId() == ID_MNU_ADDPROCESS)
@@ -731,6 +744,11 @@ void PlayListDialog::OnTreeCtrlMenu(wxCommandEvent &event)
         PlayListItemESEQ* pli = new PlayListItemESEQ();
         AddItem(_playlist, step, pli);
     }
+    else if (event.GetId() == ID_MNU_ADDFADE)
+    {
+        PlayListItemFade* pli = new PlayListItemFade(_outputManager);
+        AddItem(_playlist, step, pli);
+    }
     else if (event.GetId() == ID_MNU_ADDSTEP)
     {
         PlayListStep* pls = new PlayListStep();
@@ -775,6 +793,12 @@ void PlayListDialog::DeleteSelectedItem()
                 PlayListItem* playlistitem = (PlayListItem*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(treeitem))->GetData();
                 PlayListStep* playliststep = (PlayListStep*)((MyTreeItemData*)TreeCtrl_PlayList->GetItemData(TreeCtrl_PlayList->GetItemParent(treeitem)))->GetData();
                 playliststep->RemoveItem(playlistitem);
+                auto items = playliststep->GetItems();
+                for (auto it = items.begin(); it != items.end(); ++it)
+                {
+                    (*it)->SetStepLength(playliststep->GetLengthMS());
+                }
+
                 PopulateTree(_playlist, playliststep, nullptr);
             }
         }
@@ -829,6 +853,7 @@ void PlayListDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     SwapPage(nullptr);
     delete _savedState;
+    _playlist->SeparateEveryDay();
     EndDialog(wxID_OK);
 }
 
@@ -947,6 +972,13 @@ void PlayListDialog::AddItem(PlayList* playlist, PlayListStep* step, PlayListIte
         playlist->AddStep(pls, 0);
     }
     pls->AddItem(newitem);
+
+    auto items = pls->GetItems();
+    for (auto it = items.begin(); it != items.end(); ++it)
+    {
+        (*it)->SetStepLength(pls->GetLengthMS());
+    }
+
     PopulateTree(_playlist, pls, newitem);
 }
 

@@ -27,7 +27,7 @@ DDPOutput::DDPOutput() : IPOutput()
 {
     _universe = 64001;
     _fulldata = nullptr;
-    _channelsPerPacket = 1410;
+    _channelsPerPacket = 1440;
     _channels = 512;
     _sequenceNum = 0;
     _datagram = nullptr;
@@ -78,18 +78,18 @@ void DDPOutput::SendSync()
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
         if (syncdatagram == nullptr)
         {
-            logger_base.error("Error initialising DDP sync datagram.");
+            logger_base.error("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
         } else if (!syncdatagram->IsOk())
         {
-            logger_base.error("Error initialising DDP sync datagram ... is network connected? OK: FALSE");
+            logger_base.error("Error initialising DDP sync datagram ... is network connected? OK: FALSE %s", (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
         }
         else if (syncdatagram->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating DDP sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
+            logger_base.error("Error creating DDP sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -122,6 +122,44 @@ wxXmlNode* DDPOutput::Save()
 }
 
 #pragma region Start and Stop
+void DDPOutput::OpenDatagram()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_datagram != nullptr) return;
+
+    wxIPV4address localaddr;
+    if (IPOutput::__localIP == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    if (_datagram == nullptr)
+    {
+        logger_base.error("Error initialising DDP datagram for %s. %s", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
+        _ok = false;
+    }
+    else if (!_datagram->IsOk())
+    {
+        logger_base.error("Error initialising DDP datagram for %s. %s OK: FALSE", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+        _ok = false;
+    }
+    else if (_datagram->Error() != wxSOCKET_NOERROR)
+    {
+        logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+        _ok = false;
+    }
+}
+
 bool DDPOutput::Open()
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -146,47 +184,48 @@ bool DDPOutput::Open()
     _data[3] = DDP_ID_DISPLAY;
     _sequenceNum = 1;
 
-    wxIPV4address localaddr;
-    if (IPOutput::__localIP == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::__localIP);
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-    if (_datagram == nullptr)
-    {
-        logger_base.error("Error initialising DDP datagram for %s.", (const char *)_ip.c_str());
-        _ok = false;
-        return _ok;
-    } else if (!_datagram->IsOk())
-    {
-        logger_base.error("Error initialising DDP datagram for %s. OK: FALSE", (const char *)_ip.c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-        return _ok;
-    }
-    else if (_datagram->Error() != wxSOCKET_NOERROR)
-    {
-        logger_base.error("Error creating DDP datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-        return _ok;
-    }
+    OpenDatagram();
 
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(DDP_PORT);
 
     return _ok;
 }
+
+void DDPOutput::Close()
+{
+    if (_datagram != nullptr)
+    {
+        delete _datagram;
+        _datagram = nullptr;
+    }
+    if (_fulldata != nullptr)
+    {
+        free(_fulldata);
+        _fulldata = nullptr;
+    }
+}
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
+void DDPOutput::StartFrame(long msec)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!_enabled) return;
+
+    if (_datagram == nullptr && OutputManager::IsRetryOpen())
+    {
+        OpenDatagram();
+        if (_ok)
+        {
+            logger_base.debug("DDPOutput: Open retry successful");
+        }
+    }
+
+    _timer_msec = msec;
+}
+
 void DDPOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _suspend || _datagram == nullptr) return;

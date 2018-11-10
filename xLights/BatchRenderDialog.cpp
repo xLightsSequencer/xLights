@@ -71,6 +71,7 @@ BatchRenderDialog::BatchRenderDialog(wxWindow* parent)
 
     Connect(ID_CHECKLISTBOX_SEQUENCES, wxEVT_CONTEXT_MENU,(wxObjectEventFunction)&BatchRenderDialog::OnPreviewRightDown);
     
+    SetEscapeId(Button_Cancel->GetId());
     ValidateWindow();
 }
 

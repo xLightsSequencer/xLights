@@ -19,7 +19,7 @@ class OutputProcessColourOrder : public OutputProcess
         virtual void Frame(wxByte* buffer, size_t size) override;
         virtual size_t GetP1() const override { return _nodes; }
         virtual size_t GetP2() const override { return _colourOrder; }
-        virtual std::string GetType() const override { return "Colour Order"; }
+        virtual std::string GetType() const override { return "Color Order"; }
 };
 
 #endif

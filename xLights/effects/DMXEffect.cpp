@@ -195,7 +195,7 @@ bool DMXEffect::SetDMXSinglColorPixel(int chan, int num_channels, SettingsMap &S
 {
     if( num_channels >= chan ) {
         std::string name = wxString::Format("DMX%d", chan).ToStdString();
-        int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX);
+        int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
         color.red = value;
         color.green = value;
         color.blue = value;
@@ -225,15 +225,15 @@ bool DMXEffect::SetDMXRGBNode(int node, int num_channels, SettingsMap &SettingsM
     int base_chan = ((node-1)*3+1);
     if( num_channels >= base_chan || buffer.BufferWi < node) {
         std::string name = wxString::Format("DMX%d", base_chan).ToStdString();
-        int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX);
+        int value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
         SetColorBasedOnStringType(value, 1, color, string_type);
         if( num_channels >= base_chan+1 ) {
             name = wxString::Format("DMX%d", base_chan+1);
-            value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX);
+            value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
             SetColorBasedOnStringType(value, 2, color, string_type);
             if( num_channels >= base_chan+2 ) {
                 name = wxString::Format("DMX%d", base_chan+2);
-                value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX);
+                value = GetValueCurveInt(name, 0, SettingsMap, eff_pos, DMX_MIN, DMX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
                 SetColorBasedOnStringType(value, 3, color, string_type);
             } else {
                 return_val = true;

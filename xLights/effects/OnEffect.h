@@ -22,7 +22,6 @@ class OnEffect : public RenderableEffect
     protected:
         virtual void RemoveDefaults(const std::string &version, Effect *effect) override;
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-    private:
 };
 
 #endif // ONEFFECT_H

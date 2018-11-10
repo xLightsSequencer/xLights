@@ -43,11 +43,10 @@ void Controller::LoadControllers()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxStandardPaths stdp = wxStandardPaths::Get();
 
-    wxString d;
 #ifndef __WXMSW__
-    d = wxStandardPaths::Get().GetResourcesDir() + "/controllers";
+    wxString d = wxStandardPaths::Get().GetResourcesDir() + "/controllers";
 #else
-    d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/controllers";
+    wxString d = wxFileName(stdp.GetExecutablePath()).GetPath() + "/controllers";
 #endif
     if (wxDir::Exists(d))
     {

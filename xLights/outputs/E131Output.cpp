@@ -105,16 +105,14 @@ void E131Output::SendSync(int syncUniverse)
         syncdata[17] = 0x21;  // 0x021 = 49 - 16
         syncdata[21] = 0x08;
 
-        // CID/UUID
-        wxChar msb, lsb;
         wxString id = XLIGHTS_UUID;
         id.Replace("-", "");
         id.MakeLower();
         if (id.Len() != 32) throw "invalid CID";
         for (int i = 0, j = 22; i < 32; i += 2)
         {
-            msb = id.GetChar(i);
-            lsb = id.GetChar(i + 1);
+            wxChar msb = id.GetChar(i);
+            wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
             syncdata[j++] = (wxByte)((msb << 4) | lsb);
@@ -153,17 +151,17 @@ void E131Output::SendSync(int syncUniverse)
 
             if (syncdatagram == nullptr)
             {
-                logger_base.error("Error initialising E131 sync datagram.");
+                logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             }
             else if (!syncdatagram->IsOk())
             {
-                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE");
+                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE %s", (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
             else if (syncdatagram->Error() != wxSOCKET_NOERROR)
             {
-                logger_base.error("Error creating E131 sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
+                logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
@@ -196,6 +194,41 @@ std::string E131Output::GetTag()
 #pragma endregion Static Functions
 
 #pragma region Start and Stop
+void E131Output::OpenDatagram()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_datagram != nullptr) return;
+
+    wxIPV4address localaddr;
+    if (IPOutput::__localIP == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    if (_datagram == nullptr)
+    {
+        logger_base.error("E131Output: %s Error opening datagram.", (const char *)localaddr.IPAddress().c_str());
+    }
+    else if (!_datagram->IsOk())
+    {
+        logger_base.error("E131Output: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+    }
+    else if (_datagram->Error() != wxSOCKET_NOERROR)
+    {
+        logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char *)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
+        delete _datagram;
+        _datagram = nullptr;
+    }
+}
+
 bool E131Output::Open()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -237,15 +270,14 @@ bool E131Output::Open()
 
         // CID/UUID
 
-        wxChar msb, lsb;
         wxString id = XLIGHTS_UUID;
         id.Replace("-", "");
         id.MakeLower();
         if (id.Len() != 32) throw "invalid CID";
         for (int i = 0, j = 22; i < 32; i += 2)
         {
-            msb = id.GetChar(i);
-            lsb = id.GetChar(i + 1);
+            wxChar msb = id.GetChar(i);
+            wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
             _data[j++] = (wxByte)((msb << 4) | lsb);
@@ -267,33 +299,7 @@ bool E131Output::Open()
         _data[123] = 0x02;  // Property value count (high)
         _data[124] = 0x01;  // Property value count (low)
 
-        wxIPV4address localaddr;
-        if (IPOutput::__localIP == "")
-        {
-            localaddr.AnyAddress();
-        }
-        else
-        {
-            localaddr.Hostname(IPOutput::__localIP);
-        }
-
-        _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-        if (_datagram == nullptr)
-        {
-            logger_base.error("E131Output: Error opening datagram.");
-        }
-        else if (!_datagram->IsOk())
-        {
-            logger_base.error("E131Output: Error opening datagram. Network may not be connected? OK : FALSE");
-            delete _datagram;
-            _datagram = nullptr;
-        }
-        else if (_datagram->Error() != wxSOCKET_NOERROR)
-        {
-            logger_base.error("Error creating E131 datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
-            delete _datagram;
-            _datagram = nullptr;
-        }
+        OpenDatagram();
 
         if (wxString(_ip).StartsWith("239.255.") || _ip == "MULTICAST")
         {
@@ -346,6 +352,14 @@ void E131Output::Close()
             (*it)->Close();
         }
     }
+    else
+    {
+        if (_datagram != nullptr)
+        {
+            delete _datagram;
+            _datagram = nullptr;
+        }
+    }
 }
 #pragma endregion Start and Stop
 
@@ -374,6 +388,8 @@ void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
 #pragma region Frame Handling
 void E131Output::StartFrame(long msec)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!_enabled) return;
 
     if (IsOutputCollection())
@@ -385,6 +401,15 @@ void E131Output::StartFrame(long msec)
     }
     else
     {
+        if (_datagram == nullptr && OutputManager::IsRetryOpen())
+        {
+            OpenDatagram();
+            if (_ok)
+            {
+                logger_base.debug("E131Output: Open retry successful");
+            }
+        }
+
         _timer_msec = msec;
     }
 }
@@ -596,11 +621,11 @@ std::string E131Output::GetChannelMapping(long ch) const
         res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
 
         res += "Type: E1.31\n";
-        int u = _universe;
+        // int u = _universe;
         long channeloffset = ch - GetStartChannel() + 1;
         if (_numUniverses > 1)
         {
-            u += (ch - GetStartChannel()) / _channels;
+            // u += (ch - GetStartChannel()) / _channels;
             channeloffset -= (ch - GetStartChannel()) / _channels * _channels;
         }
         res += "IP: " + _ip + "\n";

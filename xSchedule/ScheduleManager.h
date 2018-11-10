@@ -9,6 +9,7 @@
 #include "FSEQFile.h"
 #include <wx/socket.h>
 #include <wx/thread.h>
+#include "wxMIDI/src/wxMidi.h"
 
 class PlayListItemText;
 class ScheduleOptions;
@@ -33,7 +34,9 @@ typedef enum
     ARTNETSLAVE,
     OSCMASTER,
     FPPOSCMASTER,
-    OSCSLAVE
+    OSCSLAVE,
+    MIDIMASTER,
+    MIDISLAVE
 } SYNCMODE;
 
 class PixelData
@@ -92,7 +95,8 @@ class ScheduleManager
     wxThreadIdType _mainThread;
     int _brightness;
     int _lastBrightness;
-    wxByte _brightnessArray[255];
+    wxByte _brightnessArray[256];
+    wxMidiOutDevice* _midiMaster;
     wxDatagramSocket* _fppSyncMaster;
     wxDatagramSocket* _artNetSyncMaster;
     wxDatagramSocket* _oscSyncMaster;
@@ -106,22 +110,24 @@ class ScheduleManager
     bool _webRequestToggle;
     Pinger* _pinger;
 
+    void DisableRemoteOutputs();
     std::string GetPingStatus();
     void SendOSC(const OSCPacket& osc);
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
     void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
     void SendARTNetSync(size_t msec, size_t frameMS);
+    void SendMIDISync(size_t msec, size_t frameMS);
     void SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS);
     void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
     void CloseFPPSyncSendSocket();
     void CloseARTNetSyncSendSocket();
     void CloseOSCSyncSendSocket();
+    void CloseMIDIMaster();
     void ManageBackground();
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
     void StopVirtualMatrices();
-    void StartFSEQ(const std::string fseq);
     void StartStep(const std::string stepName);
     void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
@@ -141,6 +147,7 @@ class ScheduleManager
         void ManualOutputToLightsClick(xScheduleFrame* frame);
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
+        void OpenMIDIMaster();
         void OpenFPPSyncSendSocket();
         void OpenARTNetSyncSendSocket();
         void OpenOSCSyncSendSocket();
@@ -171,11 +178,12 @@ class ScheduleManager
         std::string GetStatus() const;
 		static std::string GetScheduleFile() { return "xlights.xschedule"; }
 		void Save();
-        void StopAll();
+        void StopAll(bool sustain = false);
         void AddPlayList(PlayList* playlist);
         bool IsQueuedPlaylistRunning() const;
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
+        PlayList* GetRunningPlayList(int id) const;
         std::list<PlayList*> GetPlayLists();
         std::list<Command*> GetCommands() const { return _commandManager.GetCommands(); }
         Command* GetCommand(std::string command) const { return _commandManager.GetCommand(command); }
@@ -195,7 +203,7 @@ class ScheduleManager
         bool Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference);
         PlayList * GetPlayList(const std::string& playlist) const;
-        void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
+        void StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain = false);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
         bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
         bool ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive);
@@ -211,6 +219,7 @@ class ScheduleManager
         void ImportxLightsSchedule(const std::string& filename);
         bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
         PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
+        std::string FindStepForFSEQ(const std::string& fseq) const;
         std::string DecodePlayList(const std::string& playlistparameter);
         std::string DecodeStep(const std::string& stepparameter);
         std::string DecodeSchedule(const std::string& scheduleparameter);
@@ -222,6 +231,8 @@ class ScheduleManager
         int GetPPS() const;
         void StartListeners();
         int Sync(const std::string& filename, long ms);
+        int DoSync(const std::string& filename, long ms);
+        bool IsSlave() const;
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include <wx/msgdlg.h>
+#include <wx/xml/xml.h>
 
 #include "ControllerUploadData.h"
 #include "../outputs/Output.h"
@@ -44,7 +45,6 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
                         if (std::find(noConnectionModels.begin(), noConnectionModels.end(), it->second) == noConnectionModels.end())
                         {
                             noConnectionModels.push_back(it->second);
-                            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.\n", (const char *)it->first.c_str(), (const char *)ip.c_str(), (const char *)it->second->GetControllerConnection().c_str()).ToStdString();
                         }
                     }
                     else
@@ -84,6 +84,25 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
                     }
                 }
             }
+        }
+    }
+
+    for (auto it = noConnectionModels.begin(); it != noConnectionModels.end(); ++it)
+    {
+        bool ok = false;
+
+        for (auto p = _pixelPorts.begin(); !ok && p != _pixelPorts.end(); ++p)
+        {
+            if (p->second->GetStartChannel() <= (*it)->GetFirstChannel()+1 &&
+                p->second->GetEndChannel() >= (*it)->GetLastChannel()+1)
+            {
+                ok = true;
+            }
+        }
+
+        if (!ok)
+        {
+            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)(*it)->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
         }
     }
 }
@@ -367,10 +386,59 @@ bool UDController::ModelProcessed(Model* m)
     return false;
 }
 
+int UDControllerPortModel::GetBrightness(int currentBrightness)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
+    return currentBrightness;
+}
+
+int UDControllerPortModel::GetNullPixels(int currentNullPixels)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("nullNodes"))  return wxAtoi(node->GetAttribute("nullNodes"));
+    return currentNullPixels;
+}
+
+float UDControllerPortModel::GetGamma(int currentGamma)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("gamma"))  return wxAtof(node->GetAttribute("gamma"));
+    return currentGamma;
+}
+
+std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("colorOrder"))  return node->GetAttribute("colorOrder");
+    return currentColourOrder;
+}
+
+std::string UDControllerPortModel::GetDirection(const std::string& currentDirection)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("reverse"))  return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
+    return currentDirection;
+}
+
+int UDControllerPortModel::GetGroupCount(int currentGroupCount)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("groupCount"))  return wxAtoi(node->GetAttribute("groupCount"));
+    return currentGroupCount;
+}
+
+int UDControllerPortModel::GetDMXChannelOffset()
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("channel"))  return wxAtoi(node->GetAttribute("channel"));
+    return 0;
+}
+
 UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int string)
 {
     _model = m;
-    _string = string;
+    _string = _model->MapPhysicalStringToLogicalString(string);
     _protocol = _model->GetProtocol();
 
     if (string == -1)
@@ -381,7 +449,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int st
     else
     {
         _startChannel = _model->GetStringStartChan(string) + 1;
-        _endChannel = _startChannel + _model->NodesPerString() * _model->GetChanCountPerNode() - 1;
+        _endChannel = _startChannel + _model->NodesPerString(string) * _model->GetChanCountPerNode() - 1;
     }
 
     Output* o = om->GetOutput(_startChannel, _universeStartChannel);
@@ -414,13 +482,13 @@ void UDControllerPortModel::Dump() const
     if (_string == -1)
     {
         logger_base.debug("                Model %s. Controller Connection %s. Start Channel %ld. End Channel %ld. Channels %ld. Pixels %d. Start Channel #%d:%d",
-            (const char*)_model->GetName().c_str(), (const char *)_model->GetControllerConnection().c_str(),
+            (const char*)_model->GetName().c_str(), (const char *)_model->GetControllerConnectionRangeString().c_str(), 
             _startChannel, _endChannel, Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
     }
     else
     {
         logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %ld. End Channel %ld.",
-            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetControllerConnection().c_str(),
+            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetControllerConnectionRangeString().c_str(),
             _startChannel, _endChannel);
     }
 }
@@ -469,6 +537,11 @@ UDControllerPort::~UDControllerPort()
     {
         delete _models.back();
         _models.pop_back();
+    }
+    while (_virtualStrings.size() > 0)
+    {
+        delete _virtualStrings.front();
+        _virtualStrings.pop_front();
     }
 }
 
@@ -682,5 +755,120 @@ int UDControllerPort::GetUniverseStartChannel() const
     else
     {
         return GetFirstModel()->GetUniverseStartChannel();
+    }
+}
+
+void UDControllerPort::CreateVirtualStrings()
+{
+    while (_virtualStrings.size() > 0)
+    {
+        delete _virtualStrings.front();
+        _virtualStrings.pop_front();
+    }
+
+    UDVirtualString* current = nullptr;
+    for (auto it : _models)
+    {
+        bool first = false;
+        int brightness = it->GetBrightness(-9999);
+        int nullPixels = it->GetNullPixels(-9999);
+        std::string reverse = it->GetDirection("unknown");
+        std::string colourOrder = it->GetColourOrder("unknown");
+        float gamma = it->GetGamma(-9999);
+        int groupCount = it->GetGroupCount(-9999);
+
+        if (it == _models.front())
+        {
+            // this is automatically a new virtual string
+            current = new UDVirtualString();
+            _virtualStrings.push_back(current);
+            first = true;
+        }
+        else
+        {
+            if ((brightness != -9999 && current->_brightness != brightness) ||
+                (nullPixels != -9999) ||
+                (reverse != "unknown" && current->_reverse != reverse) ||
+                (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
+                (gamma != -9999 && current->_gamma != gamma) ||
+                (groupCount != -9999 && current->_groupCount != groupCount))
+            {
+                current = new UDVirtualString();
+                _virtualStrings.push_back(current);
+                first = true;
+            }
+        }
+
+        current->_endChannel = it->GetEndChannel();
+
+        if (first)
+        {
+            current->_startChannel = it->GetStartChannel();
+            current->_description = it->GetName();
+            current->_protocol = it->GetProtocol();
+            current->_universe = it->GetUniverse();
+            current->_universeStartChannel = it->GetUniverseStartChannel();
+
+            if (gamma == -9999)
+            {
+                current->_gammaSet = false;
+                current->_gamma = 0;
+            }
+            else
+            {
+                current->_gammaSet = true;
+                current->_gamma = gamma;
+            }
+            if (nullPixels == -9999)
+            {
+                current->_nullPixelsSet = false;
+                current->_nullPixels = 0;
+            }
+            else
+            {
+                current->_nullPixelsSet = true;
+                current->_nullPixels = nullPixels;
+            }
+            if (brightness == -9999)
+            {
+                current->_brightnessSet = false;
+                current->_brightness = 0;
+            }
+            else
+            {
+                current->_brightnessSet = true;
+                current->_brightness = brightness;
+            }
+            if (groupCount == -9999)
+            {
+                current->_groupCountSet = false;
+                current->_groupCount = 0;
+            }
+            else
+            {
+                current->_groupCountSet = true;
+                current->_groupCount = groupCount;
+            }
+            if (reverse == "unknown")
+            {
+                current->_reverseSet = false;
+                current->_reverse = "";
+            }
+            else
+            {
+                current->_reverseSet = true;
+                current->_reverse = reverse;
+            }
+            if (colourOrder == "unknown")
+            {
+                current->_colourOrderSet = false;
+                current->_colourOrder = "";
+            }
+            else
+            {
+                current->_colourOrderSet = true;
+                current->_colourOrder = colourOrder;
+            }
+        }
     }
 }

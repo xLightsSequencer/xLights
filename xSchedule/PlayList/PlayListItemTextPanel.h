@@ -94,7 +94,6 @@ class PlayListItemTextPanel: public wxPanel
 
 		//(*Handlers(PlayListItemTextPanel)
 		void OnChoice_TypeSelect(wxCommandEvent& event);
-		void OnButton_ColorClick(wxCommandEvent& event);
 		void OnTextCtrl_NameText(wxCommandEvent& event);
 		//*)
 

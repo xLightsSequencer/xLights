@@ -41,6 +41,17 @@ BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString val
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditTextCtrl::OnRightDown, nullptr, this);
 }
 
+BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : 
+    wxFilePickerCtrl(parent, id, path, message, wildcard, pos, size, style, validator, name)
+{
+    _wildcard = wildcard;
+    _supportsBulkEdit = true;
+    ID_FILEPICKERCTRL_BULKEDIT_FN = wxNewId();
+    ID_FILEPICKERCTRL_BULKEDIT_PN = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
+    this->GetTextCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnRightDown, nullptr, this);
+}
+
 BulkEditSpinCtrl::BulkEditSpinCtrl(wxWindow *parent, wxWindowID id, const wxString &value, const wxPoint &pos, const wxSize &size, long style, int min, int max, int initial, const wxString &name) : wxSpinCtrl(parent, id, value, pos, size, style, min, max, initial, name)
 {
     _supportsBulkEdit = true;
@@ -62,6 +73,11 @@ BulkEditChoice::BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &p
     _supportsBulkEdit = true;
     ID_CHOICE_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditChoice::OnRightDown, nullptr, this);
+}
+
+BulkEditFaceChoice::BulkEditFaceChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int n, const wxString choices[], long style, const wxValidator &validator, const wxString &name) : BulkEditChoice(parent, id, pos, size, n, choices, style, validator, name)
+{
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditFaceChoice::OnRightDown, nullptr, this);
 }
 
 BulkEditCheckBox::BulkEditCheckBox(wxWindow *parent, wxWindowID id, const wxString &label, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxCheckBox(parent, id, label, pos, size, style, validator, name)
@@ -107,7 +123,7 @@ BulkEditTextCtrlF360::BulkEditTextCtrlF360(wxWindow *parent, wxWindowID id, wxSt
 void BulkEditSlider::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_SLIDER_BULKEDIT, "Bulk Edit");
@@ -118,7 +134,7 @@ void BulkEditSlider::OnRightDown(wxMouseEvent& event)
 void BulkEditValueCurveButton::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_VALUECURVE_BULKEDIT, "Bulk Edit");
@@ -129,7 +145,7 @@ void BulkEditValueCurveButton::OnRightDown(wxMouseEvent& event)
 void BulkEditTextCtrl::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_TEXTCTRL_BULKEDIT, "Bulk Edit");
@@ -137,10 +153,22 @@ void BulkEditTextCtrl::OnRightDown(wxMouseEvent& event)
     PopupMenu(&mnu);
 }
 
+void BulkEditFilePickerCtrl::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_FN, "Bulk Edit Filename");
+    mnu.Append(ID_FILEPICKERCTRL_BULKEDIT_PN, "Bulk Edit Path");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditFilePickerCtrl::OnFilePickerCtrlPopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
 void BulkEditSpinCtrl::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu mnu;
     mnu.Append(ID_SPINCTRL_BULKEDIT, "Bulk Edit");
@@ -151,7 +179,18 @@ void BulkEditSpinCtrl::OnRightDown(wxMouseEvent& event)
 void BulkEditChoice::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditChoice::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditFaceChoice::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), true)) return;
 
     wxMenu mnu;
     mnu.Append(ID_CHOICE_BULKEDIT, "Bulk Edit");
@@ -162,7 +201,7 @@ void BulkEditChoice::OnRightDown(wxMouseEvent& event)
 void BulkEditCheckBox::OnRightDown(wxMouseEvent& event)
 {
     if (!_supportsBulkEdit) return;
-    if (!IsBulkEditAvailable(GetParent())) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
 
     wxMenu* cc = new wxMenu();
     cc->Append(ID_CHECKBOX_BULKEDIT_CHECKED, "Checked");
@@ -341,6 +380,81 @@ void BulkEditTextCtrl::OnTextCtrlPopup(wxCommandEvent& event)
                 {
                     xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id, value, nullptr, "");
                 }
+            }
+        }
+    }
+}
+
+void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_FILEPICKERCTRL_BULKEDIT_FN)
+    {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "FILEPICKERCTRL");
+        if (l != nullptr)
+        {
+            label = l->GetLabel();
+        }
+
+        wxFileName fn(GetFileName());
+
+        wxString filename = wxFileSelector(label, GetPath(), GetFileName().GetName(), "*" + fn.GetExt(), _wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+        if (filename.empty())
+        {
+            // editing cancelled
+        }
+        else
+        {
+            SetFileName(filename);
+
+            std::string id = "";
+            id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id+"_FN", filename, nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id+"_FN", filename, nullptr, "");
+            }
+        }
+    }
+    else if (event.GetId() == ID_FILEPICKERCTRL_BULKEDIT_PN)
+    {
+        // Get the label
+        std::string label = "Bulk Edit";
+        wxStaticText* l = GetSettingLabelControl(GetParent(), GetName().ToStdString(), "FILEPICKERCTRL");
+        if (l != nullptr)
+        {
+            label = l->GetLabel();
+        }
+
+        wxFileName fn(GetFileName());
+
+        wxDirDialog dlg(this, label, fn.GetPath(), wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            fn.SetPath(dlg.GetPath());
+            SetFileName(fn.GetFullPath());
+
+            std::string id = "";
+            id = GetName().ToStdString();
+            id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+            if (GetPanelName(GetParent()) == "Effect")
+            {
+                std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id + "_PN", dlg.GetPath(), nullptr, "");
+            }
+            else
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected("", id+"_PN", dlg.GetPath(), nullptr, "");
             }
         }
     }
@@ -773,7 +887,7 @@ bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType)
 }
 
 // Check if bulk edit is appropriate ... ie sequence is open and suitable effects are selected
-bool IsBulkEditAvailable(wxWindow* w)
+bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -800,6 +914,14 @@ bool IsBulkEditAvailable(wxWindow* w)
         {
             logger_base.debug("Bulk edit refused ... insufficient effects of type %s selected.", (const char *)effect.c_str());
             return false;
+        }
+
+        if (requireOneElement)
+        {
+            if (!xLightsApp::GetFrame()->GetMainSequencer()->AreAllSelectedEffectsOnTheSameElement())
+            {
+                return false;
+            }
         }
 
         // mixed effect types is ok ... we will just skip those that dont match the current effect panel

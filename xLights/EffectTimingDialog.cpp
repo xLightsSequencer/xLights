@@ -95,6 +95,8 @@ EffectTimingDialog::EffectTimingDialog(wxWindow* parent, Effect* eff, EffectLaye
     SpinCtrl_EndTime->SetValue(eff->GetEndTimeMS());
     SpinCtrl_Duration->SetValue(eff->GetEndTimeMS() - eff->GetStartTimeMS());
 
+    SetEscapeId(Button_Cancel->GetId());
+
     ValidateWindow();
 }
 

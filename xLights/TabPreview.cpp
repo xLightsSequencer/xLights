@@ -7,6 +7,11 @@
 
 #define PREVIEWROTATIONFACTOR 3
 
+std::string xLightsFrame::GetSelectedLayoutPanelPreview() const
+{
+    return layoutPanel->GetCurrentPreview();
+}
+
 void xLightsFrame::UpdatePreview()
 {
     layoutPanel->UpdatePreview();

@@ -1,5 +1,4 @@
 #include "EventLor.h"
-#include <wx/wx.h>
 #include <wx/xml/xml.h>
 
 EventLor::EventLor() : EventSerial()

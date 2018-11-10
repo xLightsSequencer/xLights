@@ -16,7 +16,8 @@ typedef enum
     KBSCOPE_ALL,
     KBSCOPE_SETUP,
     KBSCOPE_LAYOUT,
-    KBSCOPE_SEQUENCE
+    KBSCOPE_SEQUENCE,
+    KBSCOPE_INVALID
 } KBSCOPE;
 
 const std::map<std::string, KBSCOPE> KeyBindingTypes = {
@@ -65,6 +66,8 @@ const std::map<std::string, KBSCOPE> KeyBindingTypes = {
 {"SHOW_PRESETS", KBSCOPE_SEQUENCE },
 {"SEARCH_TOGGLE", KBSCOPE_SEQUENCE },
 {"PERSPECTIVES_TOGGLE", KBSCOPE_SEQUENCE },
+{"EFFECT_UPDATE", KBSCOPE_SEQUENCE },
+{"COLOR_UPDATE", KBSCOPE_SEQUENCE },
 {"PLAY_LOOP", KBSCOPE_ALL },
 {   "PLAY", KBSCOPE_ALL },
 {   "TOGGLE_PLAY", KBSCOPE_ALL },
@@ -87,7 +90,8 @@ const std::map<std::string, KBSCOPE> KeyBindingTypes = {
 { "MODEL_ALIGN_CENTER_VERT", KBSCOPE_LAYOUT},
 { "MODEL_ALIGN_CENTER_HORIZ", KBSCOPE_LAYOUT},
 { "MODEL_DISTRIBUTE_HORIZ", KBSCOPE_LAYOUT},
-{ "MODEL_DISTRIBUTE_VERT", KBSCOPE_LAYOUT}
+{ "MODEL_DISTRIBUTE_VERT", KBSCOPE_LAYOUT},
+{ "CANCEL_RENDER", KBSCOPE_SEQUENCE}
 };
 
 class KeyBinding {
@@ -96,32 +100,14 @@ public:
     static wxKeyCode DecodeKey(wxString key);
     static bool IsShiftedKey(wxKeyCode ch);
 
-    KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false) : 
-    _key(k), _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), _alt(alt), 
-    _shift(shift), _disabled(disabled) {
-        _scope = KeyBindingTypes.at(type);
-        if (IsShiftedKey(_key))
-        {
-            _shift = true;
-        }
-    }
+    KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false);
 
-    KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false) : 
-    _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), _alt(alt), 
-    _shift(shift), _disabled(disabled) {
-        _key = DecodeKey(k);
-        if (_key == WXK_NONE) _disabled = true;
-        _scope = KeyBindingTypes.at(type);
-        if (IsShiftedKey(_key))
-        {
-            _shift = true;
-        }
-    }
-    
+    KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control = false, bool alt = false, bool shift = false);
+
     KeyBinding(wxKeyCode k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false)
         : _key(k), _type("EFFECT"), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
     {
-        _scope = KeyBindingTypes.at(_type);
+        _scope = KBSCOPE_SEQUENCE;
         if (IsShiftedKey(_key))
         {
             _shift = true;
@@ -133,7 +119,7 @@ public:
     {
         _key = DecodeKey(k);
         if (_key == WXK_NONE) _disabled = true;
-        _scope = KeyBindingTypes.at(_type);
+        _scope = KBSCOPE_SEQUENCE;
         if (IsShiftedKey(_key))
         {
             _shift = true;
@@ -143,7 +129,7 @@ public:
     KeyBinding(bool disabled, wxKeyCode k, const std::string& presetName, bool control, bool alt, bool shift)
         : _key(k), _type("PRESET"), _effectName(presetName), _effectString(""), _effectDataVersion(""), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
     {
-        _scope = KeyBindingTypes.at(_type);
+        _scope = KBSCOPE_SEQUENCE;
         if (IsShiftedKey(_key))
         {
             _shift = true;
@@ -155,7 +141,7 @@ public:
     {
         _key = DecodeKey(k);
         if (_key == WXK_NONE) _disabled = true;
-        _scope = KeyBindingTypes.at(_type);
+        _scope = KBSCOPE_SEQUENCE;
         if (IsShiftedKey(_key))
         {
             _shift = true;

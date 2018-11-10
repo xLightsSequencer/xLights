@@ -131,6 +131,8 @@ NoteImportDialog::NoteImportDialog(wxWindow* parent, SequenceElements& sequenceE
 
     ValidateWindow();
 
+    SetEscapeId(ButtonCancel->GetId());
+
     // this is slow so we do it outside of the commonly called ValidateWindow
     MIDIExtraValidateWindow();
     AudacityExtraValidateWindow();

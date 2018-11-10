@@ -66,7 +66,7 @@ public:
     virtual bool ControlsTiming() const override { return _controlsTimingCache || _audioManager != nullptr; }
     virtual size_t GetPositionMS() const override;
     virtual size_t GetFrameMS() const override { return _msPerFrame; }
-    virtual bool Done() const override { return GetPositionMS() >= GetDurationMS() - GetFrameMS(); }
+    virtual bool Done() const override;
     virtual std::string GetSyncItemFSEQ() const override { return GetFSEQFileName(); }
     virtual std::string GetSyncItemMedia() override { return GetAudioFilename(); }
     virtual std::string GetTitle() const override;
@@ -90,6 +90,7 @@ public:
     virtual void Restart() override;
     virtual void Pause(bool pause) override;
     virtual void Suspend(bool suspend) override;
+    virtual bool Advance(int seconds) override;
     #pragma endregion Playing
 
 #pragma region UI

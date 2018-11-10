@@ -350,6 +350,9 @@
     <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
+    <ClCompile Include="MultiControllerUploadDialog.cpp" />
+    <ClCompile Include="wxModelGridCellRenderer.cpp" />
+    <ClCompile Include="FSEQFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -700,6 +703,9 @@
     <ClInclude Include="Parallel.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
     <ClInclude Include="NodeSelectGrid.h" />
+    <ClInclude Include="MultiControllerUploadDialog.h" />
+    <ClInclude Include="wxModelGridCellRenderer.h" />
+    <ClInclude Include="FSEQFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

@@ -3,6 +3,8 @@
 LorControllers::LorControllers()
 {
     //ctor
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
 }
 
 LorControllers::LorControllers(wxXmlNode* node)

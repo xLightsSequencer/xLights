@@ -22,6 +22,7 @@
 #include <wx/uri.h>
 #include "CachedFileDownloader.h"
 
+class wxProgressDialog;
 class MVendor;
 class MModel;
 class MModelWiring;
@@ -36,8 +37,8 @@ class VendorModelDialog: public wxDialog
     wxImage _modelImage;
     static CachedFileDownloader _cache;
 
-    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename) const;
-    bool LoadTree();
+    wxXmlDocument* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high) const;
+    bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
     void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories);
     void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId);
     void ValidateWindow();
@@ -50,10 +51,10 @@ class VendorModelDialog: public wxDialog
 
 	public:
 
-		VendorModelDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		VendorModelDialog(wxWindow* parent, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~VendorModelDialog();
         std::string GetModelFile() const { return _modelFile; }
-        bool DlgInit();
+        bool DlgInit(wxProgressDialog* prog, int low, int high);
         static CachedFileDownloader& GetCache() { return _cache; }
 
 		//(*Declarations(VendorModelDialog)

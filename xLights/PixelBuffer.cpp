@@ -66,7 +66,7 @@ PixelBufferClass::~PixelBufferClass()
 }
 
 
-void PixelBufferClass::reset(int nlayers, int timing)
+void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
 {
     for (int x = 0; x < numLayers; x++)
     {
@@ -105,7 +105,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->ypivotValueCurve = "";
         layers[x]->ModelBufferHt = layers[x]->BufferHt;
         layers[x]->ModelBufferWi = layers[x]->BufferWi;
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform);
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform, isNode);
     }
 }
 
@@ -135,6 +135,7 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool
     }
     reset(layers + 1, timing);
 }
+
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing, int layers)
 {
     if (ssModel == nullptr) {
@@ -145,6 +146,7 @@ void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing
     model = ssModel;
     reset(layers + 1, timing);
 }
+
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing)
 {
     modelName = pbc.GetFullName();
@@ -153,7 +155,7 @@ void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, in
     }
     ssModel->Reset(1, pbc, strand, node);
     model = ssModel;
-    reset(2, timing);
+    reset(2, timing, true);
 }
 
 void PixelBufferClass::Clear(int which)
@@ -526,20 +528,20 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
 
                 float ha;
                 if (thelayer->HueAdjustValueCurve.IsActive()) {
-                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
                 } else {
                     ha = (float)thelayer->hueadjust / 100.0;
                 }
                 float sa;
                 if (thelayer->SaturationAdjustValueCurve.IsActive()) {
-                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
                 } else {
                     sa = (float)thelayer->saturationadjust / 100.0;
                 }
                 
                 float va;
                 if (thelayer->ValueAdjustValueCurve.IsActive()) {
-                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
                 } else {
                     va = (float)thelayer->valueadjust / 100.0;
                 }
@@ -588,7 +590,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                         
                     int sc = thelayer->sparkle_count;
                     if (thelayer->SparklesValueCurve.IsActive()) {
-                        sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset);
+                        sc = (int)thelayer->SparklesValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
                     }
                     if (thelayer->use_music_sparkle_count) {
                         sc = (int)(thelayer->music_sparkle_count_factor * (float)sc);
@@ -619,7 +621,7 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
                 }
                 int b;
                 if (thelayer->BrightnessValueCurve.IsActive()) {
-                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
+                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
                 } else {
                     b = thelayer->brightness;
                 }
@@ -731,7 +733,7 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 float ha;
                 if (thelayer->HueAdjustValueCurve.IsActive())
                 {
-                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
                 }
                 else
                 {
@@ -740,7 +742,7 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 float sa;
                 if (thelayer->SaturationAdjustValueCurve.IsActive())
                 {
-                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
                 }
                 else
                 {
@@ -750,7 +752,7 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 float va;
                 if (thelayer->ValueAdjustValueCurve.IsActive())
                 {
-                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset) / 100.0;
+                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
                 }
                 else
                 {
@@ -808,7 +810,7 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
                 int b;
                 if (thelayer->BrightnessValueCurve.IsActive())
                 {
-                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset);
+                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
                 }
                 else
                 {
@@ -1106,7 +1108,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset)
     int b;
     if (layer->BlurValueCurve.IsActive())
     {
-        b = (int)layer->BlurValueCurve.GetOutputValueAt(offset);
+        b = (int)layer->BlurValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
     else
     {
@@ -1268,7 +1270,7 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
 }
 
 // Works out the maximum buffer size reached based on a subbuffer - this may be larger than the model size but never less than the model size
-void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, int& maxHt, int& maxWi)
+void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, int& maxHt, int& maxWi, long startMS, long endMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1302,12 +1304,12 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
                 float valx1 = 0.0;
                 if (fx1vc)
                 {
-                    valx1 = vcx1.GetOutputValueAt((float)i / VCITERATIONS);
+                    valx1 = vcx1.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
                 }
                 float valx2 = BufferWi;
                 if (fx2vc)
                 {
-                    valx2 = vcx2.GetOutputValueAt((float)i / VCITERATIONS);
+                    valx2 = vcx2.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
                 }
                 float diff = std::abs(valx2 - valx1);
                 if (diff > maxX)
@@ -1331,12 +1333,12 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
                 float valy1 = 0.0;
                 if (fy1vc)
                 {
-                    valy1 = vcy1.GetOutputValueAt((float)i / VCITERATIONS);
+                    valy1 = vcy1.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
                 }
                 float valy2 = BufferWi;
                 if (fy2vc)
                 {
-                    valy2 = vcy2.GetOutputValueAt((float)i / VCITERATIONS);
+                    valy2 = vcy2.GetOutputValueAt((float)i / VCITERATIONS, startMS, endMS);
                 }
                 float diff = std::abs(valy2 - valy1);
                 if (diff > maxY)
@@ -1363,7 +1365,7 @@ void ComputeMaxBuffer(const std::string& subBuffer, int BufferHt, int BufferWi, 
     }
 }
 
-void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress) {
+void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi, float progress, long startMS, long endMS) {
 
     if (subBuffer == STR_EMPTY) {
         return;
@@ -1385,7 +1387,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         v[0].Replace("yyz", "Max");
         ValueCurve vc(v[0].ToStdString());
         vc.SetLimits(-100, 200);
-        x1 = vc.GetOutputValueAt(progress);
+        x1 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 0)
     {
@@ -1402,7 +1404,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         v[1].Replace("yyz", "Max");
         ValueCurve vc(v[1].ToStdString());
         vc.SetLimits(-100, 200);
-        y1 = vc.GetOutputValueAt(progress);
+        y1 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 1)
     {
@@ -1419,7 +1421,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         v[2].Replace("yyz", "Max");
         ValueCurve vc(v[2].ToStdString());
         vc.SetLimits(-100, 200);
-        x2 = vc.GetOutputValueAt(progress);
+        x2 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 2)
     {
@@ -1436,7 +1438,7 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
         v[3].Replace("yyz", "Max");
         ValueCurve vc(v[3].ToStdString());
         vc.SetLimits(-100, 200);
-        y2 = vc.GetOutputValueAt(progress);
+        y2 = vc.GetOutputValueAt(progress, startMS, endMS);
     }
     else if (v.size() > 3)
     {
@@ -1565,13 +1567,13 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         
         int curBH = inf->BufferHt;
         int curBW = inf->BufferWi;
-        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0);
+        ComputeSubBuffer(subBuffer, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, 0, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
         
         curBH = std::max(curBH, inf->BufferHt);
         curBW = std::max(curBW, inf->BufferWi);
 
         // save away the full model buffer size ... some effects need to know this
-        ComputeMaxBuffer(subBuffer, curBH, curBW, inf->ModelBufferHt, inf->ModelBufferWi);
+        ComputeMaxBuffer(subBuffer, curBH, curBW, inf->ModelBufferHt, inf->ModelBufferWi, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS());
 
         ComputeValueCurve(brightnessValueCurve, inf->BrightnessValueCurve);
         ComputeValueCurve(hueAdjustValueCurve, inf->HueAdjustValueCurve);
@@ -1629,6 +1631,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         }
     }
 }
+
 bool PixelBufferClass::IsPersistent(int layer) {
     return layers[layer]->persistent;
 }
@@ -1691,8 +1694,11 @@ void PixelBufferClass::SetTimes(int layer, int startTime, int endTime)
 }
 
 static inline bool IsInRange(const std::vector<bool> &restrictRange, size_t start) {
-    if (start >= restrictRange.size()) {
+    if (restrictRange.empty()) {
         return true;
+    }
+    if (start >= restrictRange.size()) {
+        return false;
     }
     return restrictRange[start];
 }
@@ -1701,24 +1707,30 @@ void PixelBufferClass::GetColors(unsigned char *fdata, const std::vector<bool> &
 
     // KW ... I think this needs to be optimised
 
-    if (layers[0] != nullptr) // I dont like this ... it should never be null
-    {
+    if (layers[0] != nullptr) { // I dont like this ... it should never be null
         for (auto &n : layers[0]->buffer.Nodes) {
             size_t start = n->ActChan;
             if (IsInRange(restrictRange, start)) {
-                if (n->model != nullptr) // nor this
-                {
+                if (n->model != nullptr) { // nor this
                     DimmingCurve *curve = n->model->modelDimmingCurve;
                     if (curve != nullptr) {
-                        xlColor color;
-                        n->GetColor(color);
-                        curve->apply(color);
-                        n->SetColor(color);
+                        if (n->GetChanCount() == 1) {
+                            uint8_t buf[3];
+                            n->GetForChannels(buf);
+                            xlColor color(buf[0], buf[0], buf[0]);
+                            curve->apply(color);
+                            
+                            n->SetColor(color);
+                        } else {
+                            xlColor color;
+                            n->GetColor(color);
+                            curve->apply(color);
+                            n->SetColor(color);
+                        }
                     }
                 }
                 n->GetForChannels(&fdata[start]);
             }
-
         }
     }
 }
@@ -1752,7 +1764,7 @@ void PixelBufferClass::RotateX(LayerInfo* layer, float offset)
     float xrotation = layer->xrotation;
     if (layer->XRotationValueCurve.IsActive())
     {
-        xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset);
+        xrotation = layer->XRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
 
     if (xrotation != 0 && xrotation != 360)
@@ -1760,7 +1772,7 @@ void PixelBufferClass::RotateX(LayerInfo* layer, float offset)
         int xpivot = layer->xpivot;
         if (layer->XPivotValueCurve.IsActive())
         {
-            xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset);
+            xpivot = layer->XPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
 
         RenderBuffer orig(layer->buffer);
@@ -1795,7 +1807,7 @@ void PixelBufferClass::RotateY(LayerInfo* layer, float offset)
     float yrotation = layer->yrotation;
     if (layer->YRotationValueCurve.IsActive())
     {
-        yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset);
+        yrotation = layer->YRotationValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
 
     if (yrotation != 0 && yrotation != 360)
@@ -1803,7 +1815,7 @@ void PixelBufferClass::RotateY(LayerInfo* layer, float offset)
         int ypivot = layer->ypivot;
         if (layer->YPivotValueCurve.IsActive())
         {
-            ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset);
+            ypivot = layer->YPivotValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
 
         RenderBuffer orig(layer->buffer);
@@ -1838,14 +1850,14 @@ void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
     float zoom = layer->zoom;
     if (layer->ZoomValueCurve.IsActive())
     {
-        zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset);
+        zoom = layer->ZoomValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
     float rotations = layer->rotations;
     float rotationoffset = offset;
     float offsetperrotation = 1.0f;
     if (layer->RotationsValueCurve.IsActive())
     {
-        rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset);
+        rotations = layer->RotationsValueCurve.GetOutputValueAtDivided(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
     }
     if (rotations > 0)
     {
@@ -1861,7 +1873,7 @@ void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
     {
         if (layer->RotationValueCurve.IsActive())
         {
-            rotation = layer->RotationValueCurve.GetValueAt(rotationoffset);
+            rotation = layer->RotationValueCurve.GetValueAt(rotationoffset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
     }
 
@@ -1874,12 +1886,12 @@ void PixelBufferClass::RotateZAndZoom(LayerInfo* layer, float offset)
         int cx = layer->pivotpointx;
         if (layer->PivotPointXValueCurve.IsActive())
         {
-            cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset);
+            cx = layer->PivotPointXValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
         int cy = layer->pivotpointy;
         if (layer->PivotPointYValueCurve.IsActive())
         {
-            cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset);
+            cy = layer->PivotPointYValueCurve.GetOutputValueAt(offset, layer->buffer.GetStartTimeMS(), layer->buffer.GetEndTimeMS());
         }
         float inc = 1.0 / (float)q;
 
@@ -1975,7 +1987,7 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer)
     const std::string &transform = layers[layer]->transform;
     layers[layer]->buffer.Nodes.clear();
     model->InitRenderBufferNodes(type, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt);
-    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset);
+    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
     layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
     layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
     

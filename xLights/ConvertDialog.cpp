@@ -181,6 +181,8 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
         ConvertDir = dir;
     }
     FileDialogConvert->SetDirectory(ConvertDir);
+
+    SetEscapeId(ButtonClose->GetId());
 }
 
 ConvertDialog::~ConvertDialog()
@@ -406,7 +408,7 @@ bool ConvertDialog::WriteVixenFile(const wxString& filename)
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, "0");
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "EventPeriodInMilliseconds");
-    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ud", SeqData.FrameTime()));
+    textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%d", (int)SeqData.FrameTime()));
 
     node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Time");
     textnode = new wxXmlNode(node, wxXML_TEXT_NODE, wxEmptyString, string_format("%ld", TotalTime));
@@ -481,13 +483,18 @@ void ConvertDialog::WriteLorFile(const wxString& filename)
     int rgbChanIndexes[3] = { 0,0,0 };
     int curRgbChanCount = 0;
 
+    int interval = SeqData.FrameTime() / 10;  // in centiseconds
+    long centiseconds = SeqData.NumFrames() * interval;
+    if( interval * 10 != SeqData.FrameTime() ) {
+        _parent->ConversionError(wxString("Cannot convert to LOR unless the sequence timing is evenly divisible by 10ms"));
+        return;
+    }
+
     if (!f.Create(filename, true))
     {
         _parent->ConversionError(wxString("Unable to create file: ") + filename);
         return;
     }
-    int interval = SeqData.FrameTime() / 10;  // in centiseconds
-    long centiseconds = SeqData.NumFrames() * interval;
 
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
     f.Write("<sequence saveFileVersion=\"3\"");
@@ -833,17 +840,12 @@ wxString ConvertDialog::getAttributeValueSafe(SP_XmlStartTagEvent* stagEvent, co
     return FromAscii(val);
 }
 
-
 void ConvertDialog::ReadVixFile(const wxString& filename)
 {
-    wxString NodeValue, msg;
     std::vector<unsigned char> VixSeqData;
     wxArrayInt VixChannels;
     wxArrayString VixChannelNames;
-    long cnt = 0;
     wxArrayString context;
-    long VixEventPeriod = -1;
-    long MaxIntensity = 255;
 
     _parent->ConversionInit();
     AppendConvertStatus(wxString("Reading Vixen sequence\n"));
@@ -859,6 +861,9 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
     //pass 1, read the length, determine number of networks, units/network, channels per unit
     SP_XmlPullEvent * event = parser->getNext();
     int done = 0;
+    long cnt = 0;
+    long VixEventPeriod = -1;
+    long MaxIntensity = 255;
     while (!done)
     {
         if (!event)
@@ -911,7 +916,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
                 SP_XmlCDataEvent * stagEvent = (SP_XmlCDataEvent*)event;
                 if (cnt == 2)
                 {
-                    NodeValue = FromAscii(stagEvent->getText());
+                    wxString NodeValue = FromAscii(stagEvent->getText());
                     if (context[1] == wxString("MaximumLevel"))
                     {
                         MaxIntensity = atol(NodeValue.c_str());
@@ -1000,7 +1005,7 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
     AppendConvertStatus(string_format(wxString("# of Channels=%d\n"), numChannels), false);
     AppendConvertStatus(string_format(wxString("Vix Event Period=%ld\n"), VixEventPeriod), false);
     AppendConvertStatus(string_format(wxString("Vix data len=%ld\n"), VixDataLen), false);
-    if (numChannels == 0)
+    if (numChannels == 0 || VixChannels.size() == 0)
     {
         return;
     }
@@ -1022,7 +1027,12 @@ void ConvertDialog::ReadVixFile(const wxString& filename)
         for (int newper = 0; newper < SeqData.NumFrames(); newper++)
         {
             int intensity = VixSeqData[ch*VixNumPeriods + newper];
-            if (MaxIntensity != 255)
+            if (MaxIntensity == 0)
+            {
+                // not sure if this is right ... but otherwise it would divide by zero
+                intensity = 255;
+            }
+            else if (MaxIntensity != 255)
             {
                 intensity = intensity * 255 / MaxIntensity;
             }
@@ -1347,7 +1357,7 @@ void ConvertDialog::ReadHLSFile(const wxString& filename)
                 cnt = context.size();
                 break;
             }
-            default: 
+            default:
                 break;
             }
             delete event;

@@ -11,6 +11,7 @@
 
 #include <wx/gdicmn.h>
 
+class wxProgressDialog;
 class DimmingCurve;
 class wxXmlNode;
 class ModelPreview;
@@ -98,7 +99,7 @@ public:
     }
 
     virtual bool SupportsXlightsModel();
-    static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download);
+    static Model* GetXlightsModel(Model* model, std::string &last_model, xLightsFrame* xlights, bool &cancelled, bool download, wxProgressDialog* prog, int low, int high);
     virtual void ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y);
     virtual void ExportXlightsModel();
     void SetStartChannel(std::string startChannel, bool suppressRecalc = false);
@@ -111,6 +112,7 @@ public:
 
     void SetProperty(wxString property, wxString value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface *grid);
+    virtual void AddControllerProperties(wxPropertyGridInterface *grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
@@ -126,6 +128,15 @@ public:
      *     0x0008  -  Rebuild the model list
      *     0x0010  -  Update all model lists
      */
+    enum {
+        GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
+        GRIDCHANGE_MARK_DIRTY = 0x0002,
+        GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
+        GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
+        GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+       
+        GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
+    };
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation &GetModelScreenLocation() = 0;
@@ -179,7 +190,6 @@ protected:
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
     std::string layout_group;
-    std::string controller_connection;
     int rgbwHandlingType;
 
     unsigned long changeCount;
@@ -191,20 +201,24 @@ protected:
 
 public:
     bool IsControllerConnectionValid() const;
+    int GetPort(int string = 1) const;
+    bool IsPixelProtocol() const;
     std::string GetProtocol() const;
+    wxXmlNode *GetControllerConnection() const;
+    std::string GetControllerConnectionString() const;
+    std::string GetControllerConnectionRangeString() const;
+    
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
     static bool IsProtocolValid(std::string protocol);
-    int GetPort() const;
-    bool IsPixelProtocol() const;
-    std::string GetControllerConnection() const { return controller_connection; }
+    static bool IsPixelProtocol(const std::string &protocol);
+
     long GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {
             return stringStartChan[x];
         }
         return 1;
     }
-    void SetControllerConnection(const std::string& controllerConnection);
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}
@@ -239,11 +253,13 @@ public:
     void UpdateXmlWithScale();
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
-    unsigned int GetLastChannel();
-    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
-    std::string GetStartChannelInDisplayFormat();
+    virtual unsigned int GetLastChannel();
+    std::string GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel);
+    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
+    std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
+    std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
     bool IsValidStartChannelString() const;
-    unsigned int GetFirstChannel();
+    virtual unsigned int GetFirstChannel() const;
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
@@ -257,7 +273,9 @@ public:
 
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
-    std::list<std::string> GetFaceFiles() const;
+    std::list<std::string> GetFaceFiles(bool all = false) const;
+    virtual bool CleanupFileLocations(xLightsFrame* frame);
+    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     void SelectHandle(int handle);
     int GetSelectedHandle();
@@ -268,7 +286,6 @@ public:
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);
-    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     std::vector<std::string> GetModelState() const;
@@ -281,7 +298,9 @@ public:
     void SetMinMaxModelScreenCoordinates(int w, int y);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
-    virtual int NodesPerString();
+    virtual int NodesPerString() const;
+    virtual int NodesPerString(int string) const { return NodesPerString(); }
+    virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor CheckIfOverHandles(int &handle, wxCoord x,wxCoord y);
     wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y);

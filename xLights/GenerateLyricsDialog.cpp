@@ -144,6 +144,8 @@ GenerateLyricsDialog::GenerateLyricsDialog(wxWindow* parent, long channels, wxWi
         SingleNodeGrid->SetReadOnly(x, 1);
     }
 
+    SetEscapeId(Button_Cancel->GetId());
+
     ValidateWindow();
 }
 

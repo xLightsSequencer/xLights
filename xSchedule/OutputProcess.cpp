@@ -1,6 +1,5 @@
 #include "OutputProcess.h"
 #include <wx/xml/xml.h>
-#include <wx/wxcrt.h>
 #include "OutputProcessDim.h"
 #include "OutputProcessDimWhite.h"
 #include "OutputProcessThreeToFour.h"

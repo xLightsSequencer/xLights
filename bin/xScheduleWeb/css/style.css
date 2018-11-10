@@ -92,6 +92,24 @@ outline: 0;
 height: 95vh;
 }
 
+.notSoBigButtons{
+   position: relative;
+   width: 24%;
+   /*min-width: 165px;*/
+   min-height: 150px;
+   margin-right: 3px;
+   margin-bottom: 3px;
+ }
+ @media notSoBigButtons and (max-width: 500px) {
+   min-width: 48%;
+}
+
+ .buttonLabel{
+   white-space: pre-line;
+   vertical-align: middle;
+   overflow-wrap: break-word;
+}
+
  .bigButtons{
    position: relative;
    width: 49%;
@@ -106,6 +124,7 @@ height: 95vh;
  @media bigButtons and (max-width: 500px) {
    min-width: 48%;
 }
+
 .navbar-default .navbar-brand{
   color: #fff;}
 

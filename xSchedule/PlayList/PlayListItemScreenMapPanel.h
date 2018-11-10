@@ -2,13 +2,13 @@
 #define PLAYLISTITEMSCREENMAPPANEL_H
 
 //(*Headers(PlayListItemScreenMapPanel)
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class PlayListItemScreenMap;
@@ -26,27 +26,29 @@ class PlayListItemScreenMapPanel: public wxPanel
 		virtual ~PlayListItemScreenMapPanel();
 
 		//(*Declarations(PlayListItemScreenMapPanel)
-		wxStaticText* StaticText10;
-		wxStaticText* StaticText9;
-		wxSpinCtrl* SpinCtrl_Y;
-		wxSpinCtrl* SpinCtrl_X;
 		wxCheckBox* CheckBox_Rescale;
 		wxChoice* Choice_BlendMode;
-		wxTextCtrl* TextCtrl_Name;
-		wxStaticText* StaticText13;
-		wxStaticText* StaticText2;
 		wxChoice* Choice_Matrices;
-		wxStaticText* StaticText8;
-		wxStaticText* StaticText11;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
+		wxChoice* Choice_Quality;
 		wxSpinCtrl* SpinCtrl_Height;
 		wxSpinCtrl* SpinCtrl_Priority;
-		wxStaticText* StaticText12;
-		wxChoice* Choice_Quality;
-		wxTextCtrl* TextCtrl_Duration;
-		wxStaticText* StaticText4;
 		wxSpinCtrl* SpinCtrl_Width;
+		wxSpinCtrl* SpinCtrl_X;
+		wxSpinCtrl* SpinCtrl_Y;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
+		wxStaticText* StaticText12;
+		wxStaticText* StaticText13;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_Duration;
+		wxTextCtrl* TextCtrl_Name;
 		//*)
 
 	protected:
@@ -73,6 +75,8 @@ class PlayListItemScreenMapPanel: public wxPanel
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT9;
 		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT4;
+		static const long ID_TEXTCTRL2;
 		//*)
 
 	private:

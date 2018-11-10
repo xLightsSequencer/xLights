@@ -8,6 +8,7 @@
 #include <wx/checkbox.h>
 #include "ValueCurveButton.h"
 #include "xlLockButton.h"
+#include <wx/filepicker.h>
 
 class wxStaticText;
 
@@ -80,6 +81,24 @@ protected:
     void TextUpdate(bool force);
 };
 
+class BulkEditFilePickerCtrl : public wxFilePickerCtrl
+{
+protected:
+    long ID_FILEPICKERCTRL_BULKEDIT_FN;
+    long ID_FILEPICKERCTRL_BULKEDIT_PN;
+    bool _supportsBulkEdit;
+    wxString _wildcard;
+
+    public:
+
+    BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
+    virtual ~BulkEditFilePickerCtrl() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnFilePickerCtrlPopup(wxCommandEvent &event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+};
+
 class BulkEditTextCtrlF1 : public BulkEditTextCtrl
 {
 public:
@@ -134,6 +153,15 @@ public:
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
+class BulkEditFaceChoice : public BulkEditChoice
+{
+public:
+
+    BulkEditFaceChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, long style = 0, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxChoiceNameStr);
+    virtual ~BulkEditFaceChoice() {}
+    void OnRightDown(wxMouseEvent& event);
+};
+
 class BulkEditValueCurveButton : public ValueCurveButton
 {
 protected:
@@ -168,6 +196,8 @@ public:
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
+
+
 // Helper functions
 wxWindow* GetPanel(wxWindow* w);
 std::string GetPanelName(wxWindow* w);
@@ -179,6 +209,6 @@ wxStaticText* GetSettingLabelControl(wxWindow* w, std::string ourName, std::stri
 BulkEditTextCtrl* GetSettingTextControl(wxWindow* w, std::string ourName, std::string ourType);
 BulkEditSlider* GetSettingSliderControl(wxWindow* w, std::string ourName, std::string ourType);
 bool IsSliderTextPair(wxWindow* w, wxString ourName, wxString ourType);
-bool IsBulkEditAvailable(wxWindow* w);
+bool IsBulkEditAvailable(wxWindow* w, bool requireOneElement = false);
 
 #endif

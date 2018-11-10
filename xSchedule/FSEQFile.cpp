@@ -97,6 +97,9 @@ int FSEQFile::ReadInt32(wxFile* fh)
 void FSEQFile::Load(const std::string& filename)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    wxStopWatch sw;
+
     Close();
 
     _filename = FixFile("", filename);
@@ -104,7 +107,6 @@ void FSEQFile::Load(const std::string& filename)
 
     if (_fh->IsOpened())
     {
-        int offset = 0;
         char tag[5];
         memset(tag, 0x00, sizeof(tag));
         _fh->Read(tag, sizeof(tag)-1);
@@ -113,15 +115,15 @@ void FSEQFile::Load(const std::string& filename)
             _frame0Offset = ReadInt16(_fh);
             _fh->Read(&_minorVersion, sizeof(_minorVersion));
             _fh->Read(&_majorVersion, sizeof(_majorVersion));
-            int fixedheader = ReadInt16(_fh); // fixed header length
+            ReadInt16(_fh); // fixed header length - read and ignore
             _channelsPerFrame = ReadInt32(_fh);
             _frames = ReadInt32(_fh);
             _frameMS = ReadInt16(_fh);
-            int universes = ReadInt16(_fh); // universes
-            int usize  = ReadInt16(_fh); // universe size
+            ReadInt16(_fh); // universes - read and ignore
+            ReadInt16(_fh); // universe size - read and ignore
             _gamma = _fh->Read(&_gamma, sizeof(_gamma));
             _fh->Read(&_colourEncoding, sizeof(_colourEncoding));
-            int fill = ReadInt16(_fh); // fill
+            ReadInt16(_fh); // fill - read and ignore
             if (_frame0Offset > 28)
             {
                 int mediafilenamelength = ReadInt16(_fh);
@@ -140,6 +142,8 @@ void FSEQFile::Load(const std::string& filename)
 
             logger_base.info("FSEQ file %s opened.", (const char *)_filename.c_str());
             _ok = true;
+
+            logger_frame.debug("FSEQ open time %ldms", sw.Time());
         }
         else
         {
@@ -158,14 +162,20 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
 {
     if (frame >= _frames) return; // cant read past end of file
 
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    wxStopWatch sw;
+
     if (_fh->Tell() != _frame0Offset + _channelsPerFrame * frame)
     {
+        logger_frame.debug("FSEQ ReadData had to seek");
         // we need to seek to our frame
         _fh->Seek(_frame0Offset + _channelsPerFrame * frame, wxFromStart);
     }
     
     // read in the frame from disk
     _fh->Read(_frameBuffer, _channelsPerFrame);
+
+    logger_frame.debug("FSEQ read frame %ldms", sw.Time());
 
     if (channels > 0)
     {
@@ -175,5 +185,5 @@ void FSEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYME
     {
         Blend(buffer, buffersize, _frameBuffer, _channelsPerFrame, applyMethod, offset);
     }
+    logger_frame.debug("FSEQ blended %ldms", sw.Time());
 }
-

@@ -155,9 +155,9 @@ void CirclesEffect::SetDefaultParameters() {
 void CirclesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
  
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int number = GetValueCurveInt("Circles_Count", 3, SettingsMap, oset, CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX);
-    int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset, CIRCLES_SPEED_MIN, CIRCLES_SPEED_MAX);
-    int radius = GetValueCurveInt("Circles_Size", 5, SettingsMap, oset, CIRCLES_SIZE_MIN, CIRCLES_SIZE_MAX);
+    int number = GetValueCurveInt("Circles_Count", 3, SettingsMap, oset, CIRCLES_COUNT_MIN, CIRCLES_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int circleSpeed = GetValueCurveInt("Circles_Speed", 10, SettingsMap, oset, CIRCLES_SPEED_MIN, CIRCLES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int radius = GetValueCurveInt("Circles_Size", 5, SettingsMap, oset, CIRCLES_SIZE_MIN, CIRCLES_SIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     bool plasma = SettingsMap.GetBool("CHECKBOX_Circles_Plasma", false);
     bool radial = SettingsMap.GetBool("CHECKBOX_Circles_Radial", false);

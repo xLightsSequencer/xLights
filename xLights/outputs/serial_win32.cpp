@@ -265,6 +265,30 @@ int SerialPort::Read(char* buf, size_t len)
     return 0;
 }
 
+void SerialPort::SetDTR(bool state)
+{
+    if (state)
+    {
+        EscapeCommFunction(_fd, SETDTR);
+    }
+    else
+    {
+        EscapeCommFunction(_fd, CLRDTR);
+    }
+}
+
+void SerialPort::SetRTS(bool state)
+{
+    if (state)
+    {
+        EscapeCommFunction(_fd, SETRTS);
+    }
+    else
+    {
+        EscapeCommFunction(_fd, CLRRTS);
+    }
+}
+
 int SerialPort::Write(char* buf, size_t len)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -306,13 +330,14 @@ int SerialPort::SendBreak()
 
 int SerialPort::Purge()
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Purging commport");
 
-    //if (PurgeComm(_fd, PURGE_RXCLEAR | PURGE_TXCLEAR) == 0)
-    //{
-    //    logger_base.error("Error purging commport 0x%lx.", (long)GetLastError());
-    //    return -1;
-    //}
+    if (PurgeComm(_fd, PURGE_RXCLEAR | PURGE_TXCLEAR) == 0)
+    {
+        logger_base.error("Error purging commport 0x%lx.", (long)GetLastError());
+        return -1;
+    }
 
     return 0;
 }

@@ -113,10 +113,10 @@ PINGSTATE IPOutput::Ping(const std::string ip)
         free(ReplyBuffer);
         return PINGSTATE::PING_ALLFAILED;
     }
-#endif
+#else
 
     wxHTTP http;
-    http.SetMethod("GET");
+    //http.SetMethod("GET");
     http.SetTimeout(2);
     bool connected = false;
     connected = http.Connect(ip, false);
@@ -133,6 +133,7 @@ PINGSTATE IPOutput::Ping(const std::string ip)
     }
 
     return PINGSTATE::PING_UNAVAILABLE;
+#endif
 }
 
 void IPOutput::Save(wxXmlNode* node)

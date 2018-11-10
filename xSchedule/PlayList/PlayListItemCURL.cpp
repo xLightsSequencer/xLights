@@ -1,16 +1,13 @@
-#include "PlayListItemCURL.h"
-#include "PlayListItemCURLPanel.h"
-#include "../xScheduleMain.h"
-#include "../ScheduleManager.h"
-#include "PlayList.h"
-#include "PlayListStep.h"
-#include <wx/xml/xml.h>
-#include <wx/notebook.h>
-#include <log4cpp/Category.hh>
-#include "../RunningSchedule.h"
 #include <wx/uri.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
+#include <wx/xml/xml.h>
+#include <wx/notebook.h>
+
+#include "PlayListItemCURL.h"
+#include "PlayListItemCURLPanel.h"
+
+#include <log4cpp/Category.hh>
 
 PlayListItemCURL::PlayListItemCURL(wxXmlNode* node) : PlayListItem(node)
 {
@@ -87,47 +84,7 @@ std::string PlayListItemCURL::GetNameNoTime() const
 
 std::string PlayListItemCURL::GetTooltip()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule";
-}
-
-std::string PlayListItemCURL::PrepareString(const std::string s)
-{
-	wxString res(s);
-
-        PlayList* pl = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
-        if (pl != nullptr)
-        {
-            if (res.Contains("%RUNNING_PLAYLIST%"))
-            {
-                res.Replace("%RUNNING_PLAYLIST%", pl->GetNameNoTime(), true);
-            }
-            PlayListStep* pls = pl->GetRunningStep();
-            if (pls != nullptr)
-            {
-                if (res.Contains("%RUNNING_PLAYLISTSTEP%"))
-                {
-                    res.Replace("%RUNNING_PLAYLISTSTEP%", pls->GetNameNoTime(), true);
-                }
-                if (res.Contains("%RUNNING_PLAYLISTSTEPMS%"))
-                {
-                    res.Replace("%RUNNING_PLAYLISTSTEPMS%", wxString::Format(wxT("%i"), pls->GetLengthMS()), true);
-                }
-                if (res.Contains("%RUNNING_PLAYLISTSTEPMSLEFT%"))
-                {
-                    res.Replace("%RUNNING_PLAYLISTSTEPMSLEFT%", wxString::Format(wxT("%i"), pls->GetLengthMS() - pls->GetPosition()), true);
-                }
-            }
-        }
-        if (res.Contains("%RUNNING_SCHEDULE%"))
-        {
-            RunningSchedule* rs = xScheduleFrame::GetScheduleManager()->GetRunningSchedule();
-            if (rs != nullptr && rs->GetPlayList()->IsRunning())
-            {
-                res.Replace("%RUNNING_SCHEDULE%", rs->GetSchedule()->GetName(), true);
-            }
-        }
-	
-	return res.ToStdString();
+    return GetTagHint();
 }
 
 void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
@@ -136,8 +93,8 @@ void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     {
         _started = true;
 
-        std::string url = PrepareString(_url);
-        std::string body = PrepareString(_body);
+        std::string url = ReplaceTags(_url);
+        std::string body = ReplaceTags(_body);
 
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Calling URL %s.", (const char *)url.c_str());
@@ -179,6 +136,7 @@ void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
                 http.SetPostText("", "");
             }
             wxDELETE(httpStream);
+	    http.Close();
         }
         else
         {

@@ -248,7 +248,9 @@ CachedVideoReader::~CachedVideoReader()
 
 void CachedVideoReader::CacheImage(long millisecond, const wxImage& image)
 {
+#ifdef VIDEO_EXTRALOGGING
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
 
     std::unique_lock<std::mutex> locker(_cacheAccess);
     auto it = _cache.find(millisecond);

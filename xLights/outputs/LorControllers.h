@@ -23,11 +23,6 @@ public:
     void SetDirty() { _changeCount++; }
     bool IsDirty() const;
     void ClearDirty();
-
-protected:
-
-private:
-
 };
 
 #endif // LORCONTROLLERS_H

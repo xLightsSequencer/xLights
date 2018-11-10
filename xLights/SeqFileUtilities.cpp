@@ -27,7 +27,7 @@
 #include "ModelPreview.h"
 #include "sequencer/MainSequencer.h"
 
-#include "effects/SpiralsPanel.h"
+#include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
 #include "effects/BarsEffect.h"
 #include "effects/CurtainEffect.h"
@@ -521,7 +521,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             displayElementsPanel->SelectView("Master View");
         }
 
-        Timer1.Start(SeqData.FrameTime());
+        Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
 
         if( loaded_fseq )
         {
@@ -557,14 +557,14 @@ bool xLightsFrame::CloseSequence()
         LogPerspective(machinePerspective);
     }
 
-    if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() && !_renderMode)
+    if (mSavedChangeCount != mSequenceElements.GetChangeCount() && !_renderMode)
     {
         SaveChangesDialog* dlg = new SaveChangesDialog(this);
-        if( dlg->ShowModal() == wxID_CANCEL )
+        if (dlg->ShowModal() == wxID_CANCEL)
         {
             return false;
         }
-        if( dlg->GetSaveChanges() )
+        if (dlg->GetSaveChanges())
         {
             SaveSequence();
             //must wait for the rendering to complete
@@ -575,24 +575,27 @@ bool xLightsFrame::CloseSequence()
         }
         else
         {
-            // We discarded the sequence so make sure the sequence file is newer than the backup
-            wxFileName fn(CurrentSeqXmlFile->GetLongPath());
-            wxFileName xx = fn;
-            xx.SetExt("xbkp");
-            wxString asfile = xx.GetLongPath();
-
-            if (wxFile::Exists(asfile))
+            if (CurrentSeqXmlFile != nullptr)
             {
-                // the autosave file exists
-                wxDateTime xmltime = fn.GetModificationTime();
-                wxFileName asfn(asfile);
-                wxDateTime xbkptime = asfn.GetModificationTime();
+                // We discarded the sequence so make sure the sequence file is newer than the backup
+                wxFileName fn(CurrentSeqXmlFile->GetLongPath());
+                wxFileName xx = fn;
+                xx.SetExt("xbkp");
+                wxString asfile = xx.GetLongPath();
 
-                if (xbkptime > xmltime)
+                if (wxFile::Exists(asfile))
                 {
-                    //set the backup to be older than the XML files to avoid re-promting
-                    xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
-                    asfn.SetTimes(&xmltime, &xmltime, &xmltime);
+                    // the autosave file exists
+                    wxDateTime xmltime = fn.GetModificationTime();
+                    wxFileName asfn(asfile);
+                    wxDateTime xbkptime = asfn.GetModificationTime();
+
+                    if (xbkptime > xmltime)
+                    {
+                        //set the backup to be older than the XML files to avoid re-promting
+                        xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                        asfn.SetTimes(&xmltime, &xmltime, &xmltime);
+                    }
                 }
             }
         }
@@ -614,7 +617,7 @@ bool xLightsFrame::CloseSequence()
     previewPlaying = false;
     playType = 0;
     selectedEffect = nullptr;
-    if( CurrentSeqXmlFile )
+    if (CurrentSeqXmlFile)
     {
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = nullptr;
@@ -626,15 +629,16 @@ bool xLightsFrame::CloseSequence()
 
     SetPanelSequencerLabel("");
 
+    mainSequencer->PanelEffectGrid->ClearSelection();
     mainSequencer->PanelWaveForm->CloseMedia();
-    SeqData.init(0,0,50);
+    SeqData.init(0, 0, 50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
     SetStatusText("");
     SetStatusText(CurrentDir, true);
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
 
-    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
+    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date);
 
     return true;
 }
@@ -1195,7 +1199,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -1237,7 +1241,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
                         if (nl->GetEffectCount() > 0) {
                             std::string nodeName = nl->GetName();
                             if (nodeName == "") {
-                                nodeName = wxString::Format("Node %d", (n + 1));
+                                nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
                             dlg.channelNames.push_back(el->GetName() + "/" + smName + "/" + nodeName);
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
@@ -1669,7 +1673,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int time = 0;
     int frameTime = 50;
 
-    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true);
+    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -2380,18 +2384,33 @@ bool GetRGBEffectData(RGBData &red, RGBData &green, RGBData &blue, xlColor &sc, 
 void LoadRGBData(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *rchannel, wxXmlNode *gchannel, wxXmlNode *bchannel) {
     std::vector<RGBData> red, green, blue;
     while (rchannel != nullptr) {
-        red.resize(red.size() + 1);
-        FillData(rchannel, red[red.size() - 1]);
+        int startms, endms;
+        GetRGBTimes(rchannel, startms, endms);
+        if (startms < endms)
+        {
+            red.resize(red.size() + 1);
+            FillData(rchannel, red[red.size() - 1]);
+        }
         rchannel = rchannel->GetNext();
     }
     while (gchannel != nullptr) {
-        green.resize(green.size() + 1);
-        FillData(gchannel, green[green.size() - 1]);
+        int startms, endms;
+        GetRGBTimes(gchannel, startms, endms);
+        if (startms < endms)
+        {
+            green.resize(green.size() + 1);
+            FillData(gchannel, green[green.size() - 1]);
+        }
         gchannel = gchannel->GetNext();
     }
     while (bchannel != nullptr) {
-        blue.resize(blue.size() + 1);
-        FillData(bchannel, blue[blue.size() - 1]);
+        int startms, endms;
+        GetRGBTimes(bchannel, startms, endms);
+        if (startms < endms)
+        {
+            blue.resize(blue.size() + 1);
+            FillData(bchannel, blue[blue.size() - 1]);
+        }
         bchannel = bchannel->GetNext();
     }
     //have the data, now need to split it so common start/end times
@@ -2447,6 +2466,15 @@ void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *
     while (be != nullptr && "effect" != be->GetName()) be = be->GetNext();
     LoadRGBData(effectManager, layer, re, ge, be);
 }
+
+std::string Scale255To100(wxString s, bool doscale)
+{
+    if (doscale)
+    return wxString::Format("%d", wxAtoi(s) * 100 / 255).ToStdString();
+
+    return s.ToStdString();
+}
+
 void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
     std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
@@ -2456,21 +2484,22 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
 
     for (wxXmlNode* ch=channel->GetChildren(); ch!=nullptr; ch=ch->GetNext()) {
         if (ch->GetName() == "effect") {
+            bool doscale = ch->GetAttribute("type", "") == "DMX intensity";
             int starttime = (wxAtoi(ch->GetAttribute("startCentisecond"))) * 10;
             int endtime = (wxAtoi(ch->GetAttribute("endCentisecond"))) * 10;
             std::string intensity = ch->GetAttribute("intensity", "-1").ToStdString();
             std::string starti, endi;
             if (intensity == "-1") {
-                starti = ch->GetAttribute("startIntensity").ToStdString();
-                endi = ch->GetAttribute("endIntensity").ToStdString();
+                starti = Scale255To100(ch->GetAttribute("startIntensity"), doscale);
+                endi = Scale255To100(ch->GetAttribute("endIntensity"), doscale);
             } else {
-                starti = endi = intensity;
+                starti = endi = Scale255To100(intensity, doscale);
             }
             std::string settings;
-            if (100 != starti) {
+            if ("100" != starti) {
                 settings += "E_TEXTCTRL_Eff_On_Start=" + starti;
             }
-            if (100 != endi) {
+            if ("100" != endi) {
                 if (!settings.empty()) {
                     settings += ",";
                 }
@@ -2495,9 +2524,9 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
     wxXmlNode *rchannel = nullptr;
     wxXmlNode *gchannel = nullptr;
     wxXmlNode *bchannel = nullptr;
-    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext()) {
+    for (wxXmlNode* e = input_xml.GetRoot()->GetChildren(); channel == nullptr && e != nullptr; e = e->GetNext()) {
         if (e->GetName() == "channels") {
-            for (wxXmlNode* chan = e->GetChildren(); chan != nullptr; chan = chan->GetNext()) {
+            for (wxXmlNode* chan = e->GetChildren(); channel == nullptr && chan != nullptr; chan = chan->GetNext()) {
                 if ((chan->GetName() == "channel" || chan->GetName() == "rgbChannel")
                     && nm == chan->GetAttribute("name")) {
                     channel = chan;
@@ -3909,7 +3938,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         - what it was when it was converted\n\
         - what you changed it to.\n");
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;

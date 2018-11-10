@@ -69,11 +69,11 @@ static inline int GetLightningEffect(const std::string &dir) {
 
 void LightningEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Number_Bolts = GetValueCurveInt("Number_Bolts", 10, SettingsMap, oset, LIGHTNING_BOLTS_MIN, LIGHTNING_BOLTS_MAX);
-    int Number_Segments = GetValueCurveInt("Number_Segments", 5, SettingsMap, oset, LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX);
+    int Number_Bolts = GetValueCurveInt("Number_Bolts", 10, SettingsMap, oset, LIGHTNING_BOLTS_MIN, LIGHTNING_BOLTS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Number_Segments = GetValueCurveInt("Number_Segments", 5, SettingsMap, oset, LIGHTNING_SEGMENTS_MIN, LIGHTNING_SEGMENTS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool ForkedLightning = SettingsMap.GetBool("CHECKBOX_ForkedLightning", false);
-    int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset, LIGHTNING_TOPX_MIN, LIGHTNING_TOPX_MAX);
-    int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset, LIGHTNING_TOPY_MIN, LIGHTNING_TOPY_MAX);
+    int topX = GetValueCurveInt("Lightning_TopX", 0, SettingsMap, oset, LIGHTNING_TOPX_MIN, LIGHTNING_TOPX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int topY = GetValueCurveInt("Lightning_TopY", 0, SettingsMap, oset, LIGHTNING_TOPY_MIN, LIGHTNING_TOPY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int botX = SettingsMap.GetInt("SLIDER_Lightning_BOTX", 0);
     //int botY = SettingsMap.GetInt("SLIDER_Lightning_BOTY", 0);
     int DIRECTION = GetLightningEffect(SettingsMap["CHOICE_Lightning_Direction"]);

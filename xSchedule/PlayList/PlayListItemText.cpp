@@ -242,6 +242,12 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
         tt += "        %CDD_DAYS%, %CDD_HOURS%, %CDD_MINS%, %CDD_SECS%, %CDD_MS%\n";
         tt += "        %CDD_TSECS% -total seconds until countdown date\n\n";
     }
+    else if (type == "Countdown Seconds")
+    {
+        tt += "    Countdown from\n";
+        tt += "        %CDS_TSECS% - total seconds until zero\n";
+        tt += "        %CDS_MINS%, %CDS_SECS%\n\n";
+    }
     else if (type == "File Read")
     {
         tt += "    File Read Data\n";
@@ -267,6 +273,7 @@ std::string PlayListItemText::GetText(size_t ms)
     wxTimeSpan plicountup = wxTimeSpan::Milliseconds(ms);
     wxDateTime now = wxDateTime::Now();
     wxTimeSpan countdown;
+    int cds = 0;
 
     if (_type == "Normal")
     {
@@ -301,6 +308,12 @@ std::string PlayListItemText::GetText(size_t ms)
             countdown = wxTimeSpan(0);
         }
     }
+    else if (_type == "Countdown Seconds")
+    {
+        int to = wxAtoi(_text);
+
+        cds = to - ms / 1000;
+    }
     else if (_type == "File Read")
     {
         wxFileInputStream input(_text);
@@ -323,6 +336,11 @@ std::string PlayListItemText::GetText(size_t ms)
     working.Replace("%CDD_SECS%", wxString::Format(wxT("%02i"), abs((countdown.GetSeconds() % 60).ToLong())));
     working.Replace("%CDD_TSECS%", wxString::Format(wxT("%i"), abs((countdown.GetMilliseconds() / 1000).ToLong())));
     working.Replace("%CDD_MS%", wxString::Format(wxT("%03i"), abs((countdown.GetMilliseconds() % 1000).ToLong())));
+
+    // countdown seconds
+    working.Replace("%CDS_TSECS%", wxString::Format(wxT("%i"), cds));
+    working.Replace("%CDS_MINS%", wxString::Format(wxT("%i"), cds / 60));
+    working.Replace("%CDS_SECS%", wxString::Format(wxT("%i"), cds % 60));
 
     // countdown to to item end
     working.Replace("%CD_DAYS%", wxString::Format(wxT("%i"), plicountdown.GetDays()));
@@ -404,7 +422,7 @@ wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
 
 void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     if (_matrixMapper == nullptr) return;
 

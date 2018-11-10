@@ -16,10 +16,18 @@ xlFont::~xlFont()
 {
 }
 
+int xlFont::GetCharWidth(int ascii)
+{
+    if (ascii < 0 || ascii >= XL_FONT_WIDTHS)
+    {
+        return 0;
+    }
+
+    return widths[ascii];
+}
+
 void xlFont::GatherInfo()
 {
-    int x_pos, y_pos;
-    int red, green, blue;
     int index = 0;
     for( int i = 0; i < 128; i++ )
     {
@@ -28,15 +36,15 @@ void xlFont::GatherInfo()
     wxImage image = bitmap.ConvertToImage();
     for( int y = 0; y < FONT_BITMAP_ROWS; y++)
     {
-        y_pos = (y * (char_height + 1)) + 1;
+        int y_pos = (y * (char_height + 1)) + 1;
         for( int x = 0; x < FONT_BITMAP_COLUMNS; x++)
         {
-            x_pos = (x * (char_width + 1)) + 1;
+            int x_pos = (x * (char_width + 1)) + 1;
             for( int z = 0; z < char_width; z++ )
             {
-                red = image.GetRed(x_pos+z, y_pos);
-                green = image.GetGreen(x_pos+z, y_pos);
-                blue = image.GetBlue(x_pos+z, y_pos);
+                int red = image.GetRed(x_pos+z, y_pos);
+                int green = image.GetGreen(x_pos+z, y_pos);
+                int blue = image.GetBlue(x_pos+z, y_pos);
                 if( red == 0 && green == 255 && blue == 255 )
                 {
                     widths[index] = z;
@@ -69,6 +77,9 @@ void FontManager::init()
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_5x6_thin_vertical_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_6x6_thin_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_6_6x6_thin_vertical_system));
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_7_7x9_thin));
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_7_7x9_thinnarrow));
+        bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_7_7x9_bold));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_8_8x8_thin_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_8_8x8_thin_vertical_system));
         bitmaps.push_back(wxBITMAP_PNG_FROM_DATA(font_10_12x12_bold_system));
@@ -102,6 +113,9 @@ wxArrayString FontManager::get_font_names()
         names.Add("6-5x6 Thin Vertical");
         names.Add("6-6x6 Thin");
         names.Add("6-6x6 Thin Vertical");
+        names.Add("7-7x9 Thin");
+        names.Add("7-7x9 Thin Narrow");
+        names.Add("7-7x9 Bold");
         names.Add("8-8x8 Thin");
         names.Add("8-8x8 Thin Vertical");
         names.Add("10-12x12 Bold");
@@ -131,9 +145,8 @@ int FontManager::get_length(xlFont* font, wxString& text)
 {
     if( text == "" ) return 0;
     int length = 0;
-    int ascii;
     for( int i = 0; i < text.length(); i++ ) {
-        ascii = (int)text[i];
+        char ascii = text[i];
         length += font->GetCharWidth(ascii);
     }
     return length;

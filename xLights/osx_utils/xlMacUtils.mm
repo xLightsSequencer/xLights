@@ -15,8 +15,12 @@
 #include "xlGLCanvas.h"
 #include "osxMacUtils.h"
 
+
 #include <list>
 
+
+#include <CoreAudio/CoreAudio.h>
+#include <CoreServices/CoreServices.h>
 
 void ObtainAccessToURL(const std::string &path) {
     if ("" == path) {
@@ -210,3 +214,29 @@ void ModalPopup(wxWindow *w, wxMenu &menu) {
     //[menu.GetHMenu() popUpMenuPositioningItem:nil atLocation:NSMakePoint(x, y) inView:view];
     //w->PopupMenu(&menu);
 }
+
+#ifndef __NO_AUIDO__
+#include "AudioManager.h"
+
+static const AudioObjectPropertyAddress devlist_address = {
+    kAudioHardwarePropertyDevices,
+    kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyElementMaster
+};
+
+/* this is called when the system's list of available audio devices changes. */
+static OSStatus
+device_list_changed(AudioObjectID systemObj, UInt32 num_addr, const AudioObjectPropertyAddress *addrs, void *data)
+{
+    AudioManager *am = (AudioManager*)data;
+    am->AudioDeviceChanged();
+    return 0;
+}
+
+void AddAudioDeviceChangeListener(AudioManager *am) {
+    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &devlist_address, device_list_changed, am);
+}
+void RemoveAudioDeviceChangeListener(AudioManager *am) {
+    AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &devlist_address, device_list_changed, am);
+}
+#endif

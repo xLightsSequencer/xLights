@@ -41,6 +41,7 @@ class RenderableEffect
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) { return false; }
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) { return false; }
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) { return std::list<std::string>(); }
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) { return false; }
         virtual bool AppropriateOnNodes() const { return true; }
         virtual bool CanRenderPartialTimeInterval() const { return false; }
 
@@ -80,8 +81,8 @@ class RenderableEffect
         static void SetTextValue(wxTextCtrl* choice, std::string value);
         static void SetCheckBoxValue(wxCheckBox *w, bool b);
 
-        double GetValueCurveDouble(const std::string & name, double def, SettingsMap &SettingsMap, float offset, double min, double max, int divisor = 1);
-        int GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, int divisor = 1);
+        double GetValueCurveDouble(const std::string & name, double def, SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
+        int GetValueCurveInt(const std::string &name, int def, SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
         bool IsVersionOlder(const std::string& compare, const std::string& version);
         void AdjustSettingsToBeFitToTime(int effectIdx, SettingsMap &settings, int startMS, int endMS, xlColorVector &colors);
         virtual void RemoveDefaults(const std::string &version, Effect *effect);

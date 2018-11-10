@@ -34,14 +34,23 @@ ColorManager* ColorManager::instance()
 void ColorManager::ResetDefaults()
 {
     colors.clear();
-    for( size_t i = 0; i < NUM_COLORS; ++i )
-	{
-        if (!xLights_color[i].canUseSystem) {
+    colors_system.clear();
+    for( size_t i = 0; i < NUM_COLORS; ++i ) {
+        if (xLights_color[i].systemColor == wxSYS_COLOUR_MAX) {
             colors[xLights_color[i].name] = xLights_color[i].color;
+        } else {
+            wxColour c = wxSystemSettings::GetColour(xLights_color[i].systemColor);
+#ifdef __WXOSX__
+            if (c.IsSolid()) {
+                colors_system[xLights_color[i].name] = c;
+            } else {
+                colors_system[xLights_color[i].name] = xLights_color[i].color;
+            }
+#else
+            colors_system[xLights_color[i].name] = c;
+#endif
         }
 	}
-    colors_system["WaveformBackground"] = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-    colors_system["RowHeader"] = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 }
 
 void ColorManager::Snapshot()
@@ -84,7 +93,11 @@ xlColor ColorManager::GetColor(ColorNames name)
     if(search != colors.end()) {
         return search->second;
     }
-    return colors_system[xLights_color[name].name];
+    auto search2 = colors_system.find(xLights_color[name].name);
+    if(search2 != colors_system.end()) {
+        return search2->second;
+    }
+    return xLights_color[name].color;
 }
 
 const xlColor* ColorManager::GetColorPtr(ColorNames name)

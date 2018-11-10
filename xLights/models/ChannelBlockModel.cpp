@@ -59,7 +59,7 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
         AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if (event.GetPropertyName().StartsWith("ChannelProperties."))
     {
@@ -69,7 +69,7 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         ModelXml->DeleteAttribute(event.GetPropertyName());
         ModelXml->AddAttribute(event.GetPropertyName(), xc);
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return Model::OnPropertyGridChange(grid, event);

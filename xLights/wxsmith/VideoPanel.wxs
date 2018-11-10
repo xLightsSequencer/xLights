@@ -73,6 +73,24 @@
 									<cols>2</cols>
 									<growablecols>1</growablecols>
 									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText6" member="yes">
+											<label>Duration</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Duration" variable="TextCtrl2" member="yes">
+											<value>0:00:00.000</value>
+											<bg>wxSYS_COLOUR_3DLIGHT</bg>
+											<style>wxTE_READONLY|wxTE_RIGHT</style>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
 										<object class="wxStaticText" name="ID_STATICTEXT_Video_DurationTreatment" variable="StaticText1" member="yes">
 											<label>Duration Treatment</label>
 										</object>
@@ -84,13 +102,65 @@
 										<object class="wxChoice" name="ID_CHOICE_Video_DurationTreatment" subclass="BulkEditChoice" variable="Choice_Video_DurationTreatment" member="yes">
 											<content>
 												<item>Normal</item>
+												<item>Normal No Blue</item>
 												<item>Loop</item>
 												<item>Slow/Accelerate</item>
+												<item>Manual</item>
+												<item>Manual and Loop</item>
 											</content>
 											<selection>0</selection>
+											<handler function="OnChoice_Video_DurationTreatmentSelect" entry="EVT_CHOICE" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>2</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+									<cols>4</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText7" member="yes">
+											<label>Speed</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxSlider" name="IDD_SLIDER_Video_Speed" subclass="BulkEditSliderF2" variable="Slider_Video_Speed" member="yes">
+											<value>100</value>
+											<min>-1000</min>
+											<max>1000</max>
+											<size>200,-1</size>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBitmapButton" name="ID_VALUECURVE_Video_Speed" subclass="BulkEditValueCurveButton" variable="BitmapButton_Video_Speed" member="yes">
+											<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+											<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+											<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_Video_Speed" subclass="BulkEditTextCtrlF2" variable="TextCtrl_Video_Speed" member="yes">
+											<value>1.00</value>
+											<size>40,-1d</size>
+											<style>wxTE_RIGHT</style>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
 										<option>1</option>
 									</object>
 								</object>

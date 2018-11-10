@@ -1,7 +1,6 @@
 #ifndef BLEND_H
 #define BLEND_H
 
-#include <list>
 #include <string>
 #include <wx/wx.h>
 

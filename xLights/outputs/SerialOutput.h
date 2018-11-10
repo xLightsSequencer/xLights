@@ -58,6 +58,8 @@ public:
     virtual void Close() override;
     #pragma endregion Start and Stop
 
+    virtual void StartFrame(long msec) override;
+
     // Create a new serial type of the specified type but copy across this objects settings
     SerialOutput* Mutate(const std::string& newtype);
 

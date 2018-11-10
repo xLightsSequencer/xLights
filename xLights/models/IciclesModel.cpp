@@ -115,22 +115,22 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("IciclesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
         ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("IciclesStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     return Model::OnPropertyGridChange(grid, event);
 }

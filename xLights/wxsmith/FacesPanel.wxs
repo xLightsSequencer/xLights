@@ -53,7 +53,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_Faces_TimingTrack" variable="Choice_Faces_TimingTrack" member="yes">
+								<object class="wxChoice" name="ID_CHOICE_Faces_TimingTrack" subclass="BulkEditChoice" variable="Choice_Faces_TimingTrack" member="yes">
 									<enabled>0</enabled>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
@@ -83,7 +83,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE_Faces_FaceDefinition" variable="Face_FaceDefinitonChoice" member="yes" />
+						<object class="wxChoice" name="ID_CHOICE_Faces_FaceDefinition" subclass="BulkEditFaceChoice" variable="Face_FaceDefinitonChoice" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
@@ -120,6 +120,19 @@
 							<label>Show outline</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_Faces_SuppressWhenNotSinging" subclass="BulkEditCheckBox" variable="CheckBox_SuppressWhenNotSinging" member="yes">
+							<label>Suppress when not singing</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>

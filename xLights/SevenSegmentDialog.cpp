@@ -86,6 +86,7 @@ SevenSegmentDialog::SevenSegmentDialog(wxWindow* parent,wxWindowID id,const wxPo
     CheckBox_Ones->SetLabel("  ");
 
     FlexGridSizer1->Fit(this);
+    SetEscapeId(wxID_CANCEL);
 }
 
 SevenSegmentDialog::~SevenSegmentDialog()

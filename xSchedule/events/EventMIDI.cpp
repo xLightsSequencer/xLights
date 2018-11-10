@@ -174,7 +174,26 @@ std::list<std::string> EventMIDI::GetDevices()
         wxMidiInDevice* midiDev = new wxMidiInDevice(i);
         if (midiDev->IsInputPort()) 
         {
-            res.push_back(wxString::Format("%s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
+            res.push_back(wxString::Format("Input %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
+        }
+        delete midiDev;
+    }
+
+    return res;
+}
+
+std::list<std::string> EventMIDI::GetOutputDevices()
+{
+    std::list<std::string> res;
+
+    wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
+    int devices = midiSystem->CountDevices();
+    for (int i = 0; i < devices; i++)
+    {
+        wxMidiInDevice* midiDev = new wxMidiInDevice(i);
+        if (midiDev->IsOutputPort())
+        {
+            res.push_back(wxString::Format("Output %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
         }
         delete midiDev;
     }

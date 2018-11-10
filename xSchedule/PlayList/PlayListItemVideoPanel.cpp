@@ -144,15 +144,9 @@ void PlayListItemVideoPanel::OnButton_PositionWindowClick(wxCommandEvent& event)
 {
     VideoWindowPositionDialog dlg(this, wxID_ANY, _video->GetPosition(), _video->GetSize());
 
-    dlg.ShowModal();
-
-    if (dlg.IsFullScreen())
+    if (dlg.ShowModal() == wxID_OK)
     {
-        _video->SetLocation(dlg.GetClientAreaOrigin(), dlg.GetClientSize());
-    }
-    else
-    {
-        _video->SetLocation(dlg.GetPosition(), dlg.GetSize());
+        _video->SetLocation(dlg.GetDesiredPosition(), dlg.GetDesiredSize());
     }
 
     SetWindowPositionText();

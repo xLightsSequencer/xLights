@@ -82,14 +82,12 @@ class xFadeFrame : public wxFrame
     void CloseSockets(bool force = false);
     void CreateE131Listener();
     void CreateArtNETListener();
-    void AddUniverseRange(int low, int high, std::string ipAddress, std::string desc, std::string protocol);
     void StashPacket(long type, wxByte* packet, int len);
     bool IsLeft(long type, wxByte* packet, int len);
     bool IsRight(long type, wxByte* packet, int len);
     bool IsUniverseToBeCaptured(int universe);
     void LoadState();
     void SaveState();
-    void LoadUniverses();
     void SetMIDIForControl(wxString controlName, float parm = 0.0);
 
     static const long ID_LED1;

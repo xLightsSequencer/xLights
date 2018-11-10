@@ -19,7 +19,7 @@ class wxTextCtrl;
 #include <wx/filepicker.h>
 #include "../BulkEditControls.h"
 
-class xlPictureFilePickerCtrl : public wxFilePickerCtrl {
+class xlPictureFilePickerCtrl : public BulkEditFilePickerCtrl {
 public:
     xlPictureFilePickerCtrl(wxWindow *parent,
         wxWindowID id,
@@ -31,7 +31,7 @@ public:
         long style = wxFLP_DEFAULT_STYLE,
         const wxValidator& validator = wxDefaultValidator,
         const wxString& name = wxFilePickerCtrlNameStr)
-        : wxFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name) {
+        : BulkEditFilePickerCtrl(parent, id, path, message, wxImage::GetImageExtWildcard(), pos, size, style, validator, name) {
 
     }
     virtual ~xlPictureFilePickerCtrl() {}

@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <wx/filepicker.h>
 
 
 class MapStringString: public std::map<std::string,std::string> {
@@ -215,4 +216,12 @@ public:
     std::pair<int, int> back() const { return _ranges.back(); }
 };
 
+class ImageFilePickerCtrl : public wxFilePickerCtrl
+{
+public:
+    ImageFilePickerCtrl(wxWindow *parent, wxWindowID id, const wxString& path, const wxString& message, const wxString& wildcard, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) :
+        wxFilePickerCtrl(parent, id, path, message, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*", pos, size, style, validator, name)
+    {
+    }
+};
 #endif

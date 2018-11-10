@@ -2,7 +2,6 @@
 #define SCHEDULEOPTIONS_H
 #include <list>
 #include <string>
-#include <map>
 #include <vector>
 #include "MatrixMapper.h"
 #include "VirtualMatrix.h"
@@ -30,6 +29,28 @@ typedef enum
     FRAME_60,
     FRAME_PROGRESS
 } OSCFRAME;
+
+class ExtraIP
+{
+    std::string _ip;
+    std::string _description;
+    int _changeCount;
+    int _lastSavedChangeCount;
+
+    public:
+    ExtraIP(const std::string& ip, const std::string& description);
+    ExtraIP(wxXmlNode* node);
+    void Load(wxXmlNode* node);
+    virtual ~ExtraIP() {}
+    wxXmlNode* Save() const;
+    const std::string& GetDescription() const { return _description; }
+    const std::string& GetIP() const { return _ip; }
+    bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
+    void SetDescription(const std::string description) { _description = description; _changeCount++; }
+    void SetIP(const std::string ip) { _ip = ip; _changeCount++; }
+    void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    bool operator==(const std::string&ip) const { return _ip == ip; }
+};
 
 class OSCOptions
 {
@@ -104,6 +125,13 @@ class ScheduleOptions
     std::list<EventBase*> _events;
     int _artNetTimeCodeFormat;
     std::string _city;
+    std::string _MIDITimecodeDevice;
+    int _MIDITimecodeFormat;
+    size_t _MIDITimecodeOffset;
+    std::list<ExtraIP*> _extraIPs;
+    bool _parallelTransmission;
+    bool _remoteAllOff;
+    bool _retryOutputOpen;
 
     public:
 
@@ -117,13 +145,26 @@ class ScheduleOptions
         UserButton* GetButton(wxUint32 id) const;
         bool IsSync() const { return _sync; }
         bool IsAdvancedMode() const { return _advancedMode; }
+        std::list<ExtraIP*>* GetExtraIPs() { return &_extraIPs; }
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }
         std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
         std::list<EventBase*>* GetEvents() { return &_events; }
+        std::string GetMIDITimecodeDevice() const { return _MIDITimecodeDevice; }
+        void SetMIDITimecodeDevice(std::string midi) { if (midi != _MIDITimecodeDevice) { _MIDITimecodeDevice = midi; _changeCount++; } }
+        int GetMIDITimecodeFormat() const { return _MIDITimecodeFormat; }
+        size_t GetMIDITimecodeOffset() const { return _MIDITimecodeOffset; }
+        void SetMIDITimecodeFormat(int format) { if (format != _MIDITimecodeFormat) { _MIDITimecodeFormat = format; _changeCount++; } }
+        void SetMIDITimecodeOffset(size_t offset) { if (offset != _MIDITimecodeOffset) { _MIDITimecodeOffset = offset; _changeCount++; } }
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
+        void SetParallelTransmission(bool parallel) { if (_parallelTransmission != parallel) { _parallelTransmission = parallel; _changeCount++; } }
+        void SetRemoteAllOff(bool remoteAllOff) { if (_remoteAllOff != remoteAllOff) { _remoteAllOff = remoteAllOff; _changeCount++; } }
+        void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
+        bool IsParallelTransmission() const { return _parallelTransmission; }
+        bool IsRemoteAllOff() const { return _remoteAllOff; }
+        bool IsRetryOpen() const { return _retryOutputOpen; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
         void SetArtNetTimeCodeFormat(int artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }

@@ -30,7 +30,14 @@
 
 #include <log4cpp/Category.hh>
 
-ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) : _outputManager(outputManager), xlights(xl)
+ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
+    _outputManager(outputManager),
+    xlights(xl),
+    modelNode(nullptr),
+    groupNode(nullptr),
+    layoutsNode(nullptr),
+    previewWidth(0),
+    previewHeight(0)
 {
     //ctor
 }
@@ -127,7 +134,7 @@ bool ModelManager::RenameInListOnly(const std::string& oldName, const std::strin
     return true;
 }
 
-bool ModelManager::IsModelOverlapping(Model* model)
+bool ModelManager::IsModelOverlapping(Model* model) const
 {
     long start = model->GetNumberFromChannelString(model->ModelStartChannel);
     long end = start + model->GetChanCount() - 1;
@@ -235,7 +242,7 @@ void ModelManager::ResetModelGroups() const
 {
     // This goes through all the model groups which hold model pointers and ensure their model pointers are correct
     for (auto it = models.begin(); it != models.end(); ++it) {
-        if (it->second->GetDisplayAs() == "ModelGroup") {
+        if (it->second != nullptr && it->second->GetDisplayAs() == "ModelGroup") {
             ((ModelGroup*)(it->second))->ResetModels();
         }
     }
@@ -321,12 +328,15 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 ModelGroup *model = new ModelGroup(e, *this, previewW, previewH);
                 if (model->Reset()) {
                     auto it = models.find(model->name);
+                    bool reset = false;
                     if (it != models.end()) {
                         delete it->second;
                         it->second = nullptr;
+                        reset = true;
                     }
-                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     models[model->name] = model;
+                    if (reset) ResetModelGroups();
+                    model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                 } else {
                     model->SetLayoutGroup( e->GetAttribute("LayoutGroup", "Unassigned").ToStdString() );
                     toBeDone.push_back(model);
@@ -346,7 +356,25 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 wxArrayString mn = wxSplit(orig, ',');
                 std::string modelsRemoved;
                 for (auto it2 = mn.begin(); it2 != mn.end(); ++it2) {
-                    auto m = models.find((*it2).ToStdString());
+
+                    wxString submodel = "";
+                    wxString name = *it2;
+                    if (name.Contains("/"))
+                    {
+                        submodel = name.After('/');
+                        name = name.Before('/');
+                    }
+
+                    auto m = models.find(name.ToStdString());
+
+                    if (m != models.end() && submodel != "")
+                    {
+                        if (m->second->GetSubModel(submodel) == nullptr)
+                        {
+                            m = models.end();
+                        }
+                    }
+
                     if (*it2 == "")
                     {
                         // This can happen if a comma is left behind in the string ... just ignore it
@@ -400,6 +428,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 auto it2 = models.find(model->name);
                 if (it2 != models.end()) {
                     delete it2->second;
+                    ResetModelGroups();
                 }
                 models[model->name] = model;
             } else {
@@ -652,6 +681,7 @@ void ModelManager::AddModel(Model *model) {
         if (it != models.end()) {
             delete it->second;
             it->second = nullptr;
+            ResetModelGroups();
         }
         models[model->name] = model;
 
@@ -723,15 +753,25 @@ void ModelManager::Delete(const std::string &name) {
                     }
                 }
                 models.erase(it);
+
+                // If models are chained to us then make their start channel ... our start channel
+                std::string chainedtous = wxString::Format(">%s:1", model->GetName()).ToStdString();
+                for (auto it3: models)
+                {
+                    if (it3.second->ModelStartChannel == chainedtous)
+                    {
+                        it3.second->SetStartChannel(model->ModelStartChannel);
+                    }
+                }
+
                 delete model->GetModelXml();
                 delete model;
+                ResetModelGroups();
                 return;
             }
         }
     }
 }
-
-
 
 std::map<std::string, Model*>::const_iterator ModelManager::begin() const {
     return models.begin();

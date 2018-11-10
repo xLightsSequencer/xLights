@@ -17,6 +17,7 @@ class Element;
 class Model;
 class ValueCurve;
 class EffectsGrid;
+class xLightsFrame;
 
 class EffectLayer
 {
@@ -32,6 +33,7 @@ class EffectLayer
         void RemoveEffect(int index);
         void RemoveAllEffects(UndoManager *undo_mgr);
         std::list<std::string> GetFileReferences(EffectManager& em) const;
+        bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
 
         int SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS);
@@ -40,7 +42,7 @@ class EffectLayer
         bool SelectEffectUsingTime(int time);
 
         int GetLayerNumber();
-        int GetIndex();
+        int GetIndex() const;
         int GetEffectCount() const;
 
         bool IsStartTimeLinked(int index);
@@ -95,6 +97,8 @@ class EffectLayer
 
         std::recursive_mutex &GetLock() {return lock;}
     
+        bool IsFixedTimingLayer();
+
         void CleanupAfterRender();
     protected:
     private:

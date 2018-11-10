@@ -335,44 +335,48 @@ PluginHostAdapter::getOutputDescriptors() const
 
     for (unsigned int i = 0; i < count; ++i) {
         VampOutputDescriptor *sd = m_descriptor->getOutputDescriptor(m_handle, i);
-        OutputDescriptor d;
-        d.identifier = sd->identifier;
-        d.name = sd->name;
-        d.description = sd->description;
-        d.unit = sd->unit;
-        d.hasFixedBinCount = sd->hasFixedBinCount;
-        d.binCount = sd->binCount;
-        if (d.hasFixedBinCount && sd->binNames) {
-            for (unsigned int j = 0; j < sd->binCount; ++j) {
-                d.binNames.push_back(sd->binNames[j] ? sd->binNames[j] : "");
+        if (sd != nullptr)
+        {
+            OutputDescriptor d;
+            d.identifier = sd->identifier;
+            d.name = sd->name;
+            d.description = sd->description;
+            d.unit = sd->unit;
+            d.hasFixedBinCount = sd->hasFixedBinCount;
+            d.binCount = sd->binCount;
+            if (d.hasFixedBinCount && sd->binNames) {
+                for (unsigned int j = 0; j < sd->binCount; ++j) {
+                    d.binNames.push_back(sd->binNames[j] ? sd->binNames[j] : "");
+                }
             }
+            d.hasKnownExtents = sd->hasKnownExtents;
+            d.minValue = sd->minValue;
+            d.maxValue = sd->maxValue;
+            d.isQuantized = sd->isQuantized;
+            d.quantizeStep = sd->quantizeStep;
+
+            switch (sd->sampleType) {
+            case vampOneSamplePerStep:
+                d.sampleType = OutputDescriptor::OneSamplePerStep; break;
+            case vampFixedSampleRate:
+                d.sampleType = OutputDescriptor::FixedSampleRate; break;
+            case vampVariableSampleRate:
+                d.sampleType = OutputDescriptor::VariableSampleRate; break;
+            }
+
+            d.sampleRate = sd->sampleRate;
+
+            if (m_descriptor->vampApiVersion >= 2) {
+                d.hasDuration = sd->hasDuration;
+            }
+            else {
+                d.hasDuration = false;
+            }
+
+            list.push_back(d);
+
+            m_descriptor->releaseOutputDescriptor(sd);
         }
-        d.hasKnownExtents = sd->hasKnownExtents;
-        d.minValue = sd->minValue;
-        d.maxValue = sd->maxValue;
-        d.isQuantized = sd->isQuantized;
-        d.quantizeStep = sd->quantizeStep;
-
-        switch (sd->sampleType) {
-        case vampOneSamplePerStep:
-            d.sampleType = OutputDescriptor::OneSamplePerStep; break;
-        case vampFixedSampleRate:
-            d.sampleType = OutputDescriptor::FixedSampleRate; break;
-        case vampVariableSampleRate:
-            d.sampleType = OutputDescriptor::VariableSampleRate; break;
-        }
-
-        d.sampleRate = sd->sampleRate;
-
-        if (m_descriptor->vampApiVersion >= 2) {
-            d.hasDuration = sd->hasDuration;
-        } else {
-            d.hasDuration = false;
-        }
-
-        list.push_back(d);
-
-        m_descriptor->releaseOutputDescriptor(sd);
     }
 
     return list;

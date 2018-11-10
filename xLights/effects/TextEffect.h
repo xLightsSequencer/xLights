@@ -21,16 +21,18 @@ class TextEffect : public RenderableEffect
         virtual bool CanBeRandom() override {return false;}
         virtual bool SupportsRenderCache() const override { return true; }
 
-        virtual bool needToAdjustSettings(const std::string &version) override;
+        virtual bool needToAdjustSettings(const std::string &version) override { return true; }
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual bool AppropriateOnNodes() const override { return false; }
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
-        void SelectTextColor(std::string& palette, int index);
-        void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig);
+        void SelectTextColor(std::string& palette, int index) const;
+        void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig) const;
 
         wxImage *RenderTextLine(RenderBuffer &buffer,
                             TextDrawingContext* dc,
@@ -39,11 +41,11 @@ class TextEffect : public RenderableEffect
                             int dir,
                             bool center, int Effect, int Countdown, int tspeed,
                             int startx, int starty, int endx, int endy,
-                            bool isPixelBased);
+                            bool isPixelBased) const;
         void RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap& settings,
                          RenderBuffer &buffer, int txtwidth, int txtheight, int endx, int endy, bool pixelOffset,
-                         int PreOffsetLeft, int PreOffsetTop );
+                         int PreOffsetLeft, int PreOffsetTop ) const;
         FontManager& font_mgr;
 };
 

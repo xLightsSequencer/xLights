@@ -97,6 +97,7 @@ public:
     void PasteModelEffects(int row_number, bool allLayers);
     Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string effectName) const;
+    bool AreAllSelectedEffectsOnTheSameElement() const;
     void ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
 
     bool HandleACKey(wxChar key, bool shift = false);
@@ -176,6 +177,8 @@ private:
     void CheckForPartialCell(int x_pos);
     void RaiseEffectDropped(int x, int y) const;
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect) const;
+    
+    std::set<EffectLayer *> GetLayersWithSelectedEffects() const;
     bool MultipleEffectsSelected() const;
     std::list<Effect*> GetSelectedEffects() const;
     bool PapagayoEffectsSelected() const;
@@ -202,7 +205,7 @@ private:
     void CreateACEffect(EffectLayer* el, std::string name, std::string settings, int startMS, int endMS, bool select, std::string pal = "");
     void CreatePartialACEffect(EffectLayer* el, ACTYPE type, int startMS, int endMS, int partialStart, int partialEnd, int startBrightness, int midBrightness, int endBrightness, bool select);
     void TruncateEffect(EffectLayer* el, Effect* eff, int startMS, int endMS);
-    int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos);
+    int GetEffectBrightnessAt(std::string effName, SettingsMap settings, float pos, long startMS, long endMS);
     void DuplicateAndTruncateEffect(EffectLayer* el, SettingsMap settings, std::string palette, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS, int offsetMS = 0);
     void TruncateBrightnessValueCurve(ValueCurve& vc, double startPos, double endPos, int startMS, int endMS, int originalLength);
 
@@ -224,6 +227,7 @@ private:
     Effect* mSelectedEffect;
 
     DrawGLUtils::xlVertexAccumulator lines;
+    DrawGLUtils::xlVertexAccumulator selectedLinesFixed;
     DrawGLUtils::xlVertexAccumulator selectedLinesLocked;
     DrawGLUtils::xlVertexAccumulator timingEffLines;
     DrawGLUtils::xlVertexColorAccumulator timingLines;

@@ -20,6 +20,39 @@
 
 #define PI 3.1415926
 
+class FacesRenderCache : public EffectRenderCache {
+    std::map<std::string, RenderBuffer*> _imageCache;
+public:
+    int blinkEndTime;
+    int nextBlinkTime;
+    std::map<std::string, int> nodeNameCache;
+
+    FacesRenderCache() : blinkEndTime(0), nextBlinkTime(0) {
+    }
+    virtual ~FacesRenderCache() {
+        for (auto it = _imageCache.begin(); it != _imageCache.end(); ++it)
+        {
+            delete it->second;;
+        }
+    }
+    void Clear() {
+        nodeNameCache.clear();
+    }
+    RenderBuffer* GetImage(std::string key)
+    {
+        if (_imageCache.find(key) != _imageCache.end())
+        {
+            return _imageCache[key];
+        }
+
+        return nullptr;
+    }
+    void AddImage(std::string key, RenderBuffer* crb)
+    {
+        _imageCache[key] = crb;
+    }
+};
+
 FacesEffect::FacesEffect(int id) : RenderableEffect(id, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces)
 {
     //ctor
@@ -72,13 +105,22 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
         if (settings.GetInt("B_SLIDER_Rotation", 0) != 0 || 
             settings.GetInt("B_SLIDER_Rotations", 0) != 0 ||
+            settings.GetInt("B_SLIDER_XRotation", 0) != 0 ||
+            settings.GetInt("B_SLIDER_YRotation", 0) != 0 ||
             settings.GetInt("B_SLIDER_Zoom",1) != 1 || 
             settings.Get("B_VALUECURVE_Rotation", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_XRotation", "").find("Active=TRUE") != std::string::npos ||
+            settings.Get("B_VALUECURVE_YRotation", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Rotations", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos
             )
         {
-            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active '%s' may not render correctly. Model '%s', Start %s", model->GetName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Face effect with rotozoom active may not render correctly. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+
+        if (settings.Get("B_CUSTOM_SubBuffer", "") != "")
+        {
+            res.push_back(wxString::Format("    WARN: Face effect with subbuffer defined '%s' may not render correctly. Model '%s', Start %s", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
     }
 
@@ -191,12 +233,18 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == "Rendered"
         && SettingsMap.Get("CHECKBOX_Faces_Outline", "") == "") {
         //3.x style Faces effect
-        RenderFaces(buffer, SettingsMap["CHOICE_Faces_Phoneme"], "Auto", true);
+        RenderFaces(buffer, 
+            SettingsMap["CHOICE_Faces_Phoneme"], 
+            "Auto", 
+            true, 
+            SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", 
+                false));
     } else if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
         RenderCoroFacesFromPGO(buffer,
                                SettingsMap["CHOICE_Faces_Phoneme"],
                                SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
-                               SettingsMap.GetBool("CHECKBOX_Faces_Outline"));
+                               SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
+                               SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false));
     } else {
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
@@ -206,12 +254,13 @@ void FacesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     SettingsMap["CHOICE_Faces_Eyes"],
                     SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
-                    SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0)
+                    SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0), 
+                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)
             );
     }
 }
 
-void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string &eyes, bool outline)
+void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, const std::string &eyes, bool outline, bool suppressIfNotSinging)
 {
     static const std::map<wxString, int> phonemeMap = {
         {"AI", 0},
@@ -224,8 +273,9 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
         {"WQ", 7},
         {"etc", 8},
         {"rest", 9},
+        {"(off)", 10}
     };
-    wxImage::HSVValue hsv;
+
     std::map<wxString, int>::const_iterator it = phonemeMap.find(Phoneme);
     int PhonemeInt = 0;
     if (it != phonemeMap.end()) {
@@ -240,7 +290,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer, const std::string &Phoneme, 
 }
 
 //TODO: add params for eyes, outline
-void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int BufferWi)
+void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme, int BufferHt, int BufferWi)
 {
     /*
      FacesPhoneme.Add("AI");     0
@@ -292,153 +342,166 @@ void FacesEffect::mouth(RenderBuffer &buffer, int Phoneme,int BufferHt, int Buff
     double offset = 0.0;
     int Ht = BufferHt - 1;
     int Wt = BufferWi - 1;
-    int x1=(int)(offset + Wt*0.25);
-    int x2=(int)(offset + Wt*0.75);
-    int x3=(int)(offset + Wt*0.30);
-    int x4=(int)(offset + Wt*0.70);
+    int x1 = (int)(offset + Wt * 0.25);
+    int x2 = (int)(offset + Wt * 0.75);
+    int x3 = (int)(offset + Wt * 0.30);
+    int x4 = (int)(offset + Wt * 0.70);
 
-    int y1=(int)(offset + Ht*0.48);
-    int y2=(int)(offset + Ht*0.40);
-    int y3=(int)(offset + Ht*0.25);
-    int y4=(int)(offset + Ht*0.20);
-    int y5=(int)(offset + Ht*0.30);
+    int y1 = (int)(offset + Ht * 0.48);
+    int y2 = (int)(offset + Ht * 0.40);
+    int y3 = (int)(offset + Ht * 0.25);
+    int y4 = (int)(offset + Ht * 0.20);
+    int y5 = (int)(offset + Ht * 0.30);
 
     // eyes
     switch (Phoneme)
     {
-        case 0:         // AI
-            drawline1(buffer,  Phoneme, x1, x2, y1,y2);
-            drawline1(buffer,  Phoneme, x1, x2, y1,y4);
-            break;
-        case 3:
-        case 1:       // E, L
-            drawline1(buffer,  Phoneme, x1, x2, y1,y2);
-            drawline1(buffer,  Phoneme, x1, x2, y1,y3);
-            break;
-        case 2:       // FV
-            drawline1(buffer,  Phoneme, x1, x2, y1,y2);
-            drawline1(buffer,  Phoneme, x1, x2, y1,y2-1);
-            break;
-        case 4:
-        case 9:     //  MBP,rest
+    case 0:         // AI
+        drawline1(buffer, Phoneme, x1, x2, y1, y2, 0);
+        drawline1(buffer, Phoneme, x1, x2, y1, y4, 0);
+        break;
+    case 3:
+    case 1:       // E, L
+        drawline1(buffer, Phoneme, x1, x2, y1, y2, 0);
+        drawline1(buffer, Phoneme, x1, x2, y1, y3, 0);
+        break;
+    case 2:       // FV
+        drawline1(buffer, Phoneme, x1, x2, y1, y2, 0);
+        drawline1(buffer, Phoneme, x1, x2, y1, y2 - 1, 0);
+        break;
+    case 4:
+    case 9:     //  MBP,rest
 
-            drawline1(buffer, Phoneme, x1, x2, y1,y2);
-            break;
-        case 5:
-        case 6:       // O,U,WQ
-        case 7:
-        {
-            int xc = (int)(0.5 + Wt * 0.50);
-            int yc = (int)(y2 - y5) / 2 + y5;
-            double radius = Wt * 0.15;  // O
-            if (Phoneme == 6) radius = Wt * 0.10;  // U
-            if (Phoneme == 7) radius = Wt * 0.05;  // WQ
-            facesCircle(buffer, Phoneme, xc, yc, radius, 0, 360);
-        }
-            break;
-        case 8:       // WQ, etc
-            drawline3(buffer, Phoneme, x3, x4, y5, y2);
-            break;
-
+        drawline1(buffer, Phoneme, x1, x2, y1, y2, 0);
+        break;
+    case 5:
+    case 6:       // O,U,WQ
+    case 7:
+    {
+        int xc = (int)(0.5 + Wt * 0.50);
+        int yc = (int)(y2 - y5) / 2 + y5;
+        double radius = (std::min(Wt, Ht)) * 0.15;  // O
+        if (Phoneme == 6) radius = (std::min(Wt, Ht)) * 0.10;  // U
+        if (Phoneme == 7) radius = (std::min(Wt, Ht)) * 0.05;  // WQ
+        facesCircle(buffer, Phoneme, xc, yc, radius, 0, 360, 0);
+    }
+    break;
+    case 8:       // WQ, etc
+        drawline3(buffer, Phoneme, x3, x4, y5, y2, 0);
+        break;
+    default:
+        break;
     }
 }
 
-void FacesEffect::drawline1(RenderBuffer &buffer, int Phoneme, int x1,int x2,int y1,int y2)
+void FacesEffect::drawline1(RenderBuffer &buffer, int Phoneme, int x1, int x2, int y1, int y2, int ColorIdx)
 {
     HSVValue hsv;
-    size_t colorcnt=buffer.GetColorCount();
 
-    int ColorIdx = rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     buffer.palette.GetHSV(ColorIdx, hsv); // Now go and get the hsv value for this ColorIdx
-    hsv.hue = (float)Phoneme/10.0;
-    hsv.value=1.0;
 
-    for(int x = x1 + 1; x < x2; x++)
+    for (int x = x1 + 1; x < x2; x++)
     {
-        buffer.SetPixel(x,y2,hsv); // Turn pixel on
+        buffer.SetPixel(x, y2, hsv); // Turn pixel on
     }
 
-    for(int y = y2 + 1; y <= y1; y++)
+    for (int y = y2 + 1; y <= y1; y++)
     {
         buffer.SetPixel(x1, y, hsv); // Left side of mouyh
         buffer.SetPixel(x2, y, hsv); // rightside
     }
 }
 
-void FacesEffect::drawline3(RenderBuffer &buffer, int Phoneme, int x1,int x2,int y6,int y7)
+void FacesEffect::drawline3(RenderBuffer &buffer, int Phoneme, int x1, int x2, int y6, int y7, int ColorIdx)
 {
-    size_t colorcnt=buffer.GetColorCount();
-
-    int ColorIdx = rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
     HSVValue hsv;
     buffer.palette.GetHSV(ColorIdx, hsv);
-    hsv.hue = (float)Phoneme/10.0;
-    hsv.value = 1.0;
 
-    for(int y=y6+1; y<y7; y++)
+    for (int y = y6 + 1; y < y7; y++)
     {
-        buffer.SetPixel(x1,y,hsv); // Left side of mouyh
-        buffer.SetPixel(x2,y,hsv); // rightside
+        buffer.SetPixel(x1, y, hsv); // Left side of mouyh
+        buffer.SetPixel(x2, y, hsv); // rightside
     }
 
-    for(int x = x1+1; x<x2; x++)
+    for (int x = x1 + 1; x < x2; x++)
     {
-        buffer.SetPixel(x,y6,hsv); // Bottom
-        buffer.SetPixel(x,y7,hsv); // Bottom
+        buffer.SetPixel(x, y6, hsv); // Bottom
+        buffer.SetPixel(x, y7, hsv); // Bottom
     }
 }
 
 /*
  faces draw circle
  */
-void FacesEffect::facesCircle(RenderBuffer &buffer, int Phoneme, int xc,int yc,double radius,int start_degrees, int end_degrees)
+void FacesEffect::facesCircle(RenderBuffer &buffer, int Phoneme, int xc, int yc, double radius, int start_degrees, int end_degrees, int colorIdx)
 {
     HSVValue hsv;
-    buffer.palette.GetHSV(0, hsv);
-    hsv.hue = (float)Phoneme/10.0;
-    hsv.value=1.0;
-    for(int degrees = start_degrees; degrees < end_degrees; degrees++)
+    buffer.palette.GetHSV(colorIdx, hsv);
+
+    for (int degrees = start_degrees; degrees < end_degrees; degrees++)
     {
-        double t = (double)degrees * (PI / 180.0);
-        int x = (int)xc + radius * cos(t);
-        int y = (int)yc + radius * sin(t);
+        double t = ((double)degrees * PI) / 180.0;
+        int x = (int)((double)xc + radius * cos(t));
+        int y = (int)((double)yc + radius * sin(t));
         buffer.SetPixel(x, y, hsv); // Bottom
     }
 }
 
 void FacesEffect::drawoutline(RenderBuffer &buffer, int Phoneme, bool outline, const std::string &eyes, int BufferHt,int BufferWi)
 {
+    std::string eye = eyes;
+
+    FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new FacesRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+
     int Ht = BufferHt-1;
     int Wt = BufferWi-1;
 
     size_t colorcnt = buffer.GetColorCount();
-    int ColorIdx = rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-    HSVValue hsv;
-    buffer.palette.GetHSV(ColorIdx, hsv);
-    hsv.hue = 0.0;
-    hsv.saturation = 1.0;
-    hsv.value=1.0;
 
+    HSVValue hsvOutline;
+    buffer.palette.GetHSV(1 % colorcnt, hsvOutline);
+    
     //  DRAW EYES
     int start_degrees = 0;
     int end_degrees = 360;
-    if (eyes == "Auto") {
-        if (Phoneme == 5 || Phoneme == 6 || Phoneme == 7)
+    if (eye == "Auto") {
+        if (Phoneme == 9 || Phoneme == 10)
         {
-            start_degrees = 180;
-            end_degrees = 360;
+            if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
+                //roughly every 5 seconds we'll blink
+                cache->nextBlinkTime += (4500 + (rand() % 1000));
+                cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                eye = "Closed";
+            }
+            else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+                eye = "Closed";
+            }
+            else {
+                eye = "Open";
+            }
         }
-    } else if (eyes == "Closed") {
+        else
+        {
+            eye = "Open";
+        }
+    }
+
+    if (eye == "Closed") {
         start_degrees = 180;
         end_degrees = 360;
     }
-    if (eyes != "(off)") {
+
+    if (eye != "(off)") {
         int xc = (int)(0.5 + Wt * 0.33); // left eye
         int yc = (int)(0.5 + Ht * 0.75);
         double radius = Wt * 0.08;
-        facesCircle(buffer, Phoneme, xc, yc, radius, start_degrees, end_degrees);
+        facesCircle(buffer, Phoneme, xc, yc, radius, start_degrees, end_degrees, 2 % colorcnt);
         xc = (int)(0.5 + Wt * 0.66); // right eye
-        facesCircle(buffer, Phoneme, xc, yc, radius, start_degrees, end_degrees);
+        facesCircle(buffer, Phoneme, xc, yc, radius, start_degrees, end_degrees, 2 % colorcnt);
     }
 
     /*
@@ -452,25 +515,25 @@ void FacesEffect::drawoutline(RenderBuffer &buffer, int Phoneme, bool outline, c
     if (outline) {
         for(int y = 3; y < BufferHt - 3; y++)
         {
-            buffer.SetPixel(0, y, hsv); // Left side of mouyh
-            buffer.SetPixel(BufferWi - 1, y, hsv); // rightside
+            buffer.SetPixel(0, y, hsvOutline); // Left side of mouyh
+            buffer.SetPixel(BufferWi - 1, y, hsvOutline); // rightside
         }
         for(int x = 3; x < BufferWi - 3; x++)
         {
-            buffer.SetPixel(x, 0, hsv); // Bottom
-            buffer.SetPixel(x, BufferHt - 1, hsv); // Bottom
+            buffer.SetPixel(x, 0, hsvOutline); // Bottom
+            buffer.SetPixel(x, BufferHt - 1, hsvOutline); // Bottom
         }
-        buffer.SetPixel(2, 1, hsv); // Bottom left
-        buffer.SetPixel(1, 2, hsv); //
+        buffer.SetPixel(2, 1, hsvOutline); // Bottom left
+        buffer.SetPixel(1, 2, hsvOutline); //
 
-        buffer.SetPixel(BufferWi - 3, 1, hsv); // Bottom Right
-        buffer.SetPixel(BufferWi - 2, 2, hsv); //
+        buffer.SetPixel(BufferWi - 3, 1, hsvOutline); // Bottom Right
+        buffer.SetPixel(BufferWi - 2, 2, hsvOutline); //
 
-        buffer.SetPixel(BufferWi - 3, BufferHt - 2, hsv); // Bottom Right
-        buffer.SetPixel(BufferWi - 2, BufferHt - 3, hsv); //
+        buffer.SetPixel(BufferWi - 3, BufferHt - 2, hsvOutline); // Bottom Right
+        buffer.SetPixel(BufferWi - 2, BufferHt - 3, hsvOutline); //
 
-        buffer.SetPixel(2, BufferHt - 2, hsv); // Bottom Right
-        buffer.SetPixel(1, BufferHt - 3, hsv); //
+        buffer.SetPixel(2, BufferHt - 2, hsvOutline); // Bottom Right
+        buffer.SetPixel(1, BufferHt - 3, hsvOutline); //
     }
 }
 
@@ -531,8 +594,10 @@ static bool parse_model(const wxString& want_model)
 // Outline_x_y = list of persistent/sticky elements (stays on after frame ends)
 // Eyes_x_y = list of random elements (intended for eye blinks, etc)
 
-void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline)
+void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string& Phoneme, const std::string& eyes, bool face_outline, bool suppressIfNotSinging)
 {
+    if (suppressIfNotSinging && Phoneme == "") return;
+
     //NOTE:
     //PixelBufferClass contains 2 RgbEffects members, which this method is a member of
     //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from Model and gives the name of the model currently being used
@@ -545,7 +610,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
     if (auto_phonemes.find((const char*)Phoneme.c_str()) != auto_phonemes.end())
     {
-        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline);
+        RenderFaces(buffer, auto_phonemes[(const char*)Phoneme.c_str()], eyes, face_outline, suppressIfNotSinging);
         return;
     }
 
@@ -573,6 +638,11 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         std::string info = map[(const char*)Phoneme.c_str()];
         Model::ParseFaceElement(info, first_xy);
     }
+    else if (suppressIfNotSinging)
+    {
+        return;
+    }
+
     if (!eyes.empty())
     {
         std::string eyesLower(eyes);
@@ -593,39 +663,6 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     }
 }
 
-class FacesRenderCache : public EffectRenderCache {
-    std::map<std::string, RenderBuffer*> _imageCache;
-public:
-    int blinkEndTime;
-    int nextBlinkTime;
-    std::map<std::string, int> nodeNameCache;
-
-    FacesRenderCache() : blinkEndTime(0), nextBlinkTime(0) {
-    }
-    virtual ~FacesRenderCache() {
-        for (auto it = _imageCache.begin(); it != _imageCache.end(); ++it)
-        {
-            delete it->second;;
-        }
-    }
-    void Clear() {
-        nodeNameCache.clear();
-    }
-    RenderBuffer* GetImage(std::string key)
-    {
-        if (_imageCache.find(key) != _imageCache.end())
-        {
-            return _imageCache[key];
-        }
-
-        return nullptr;
-    }
-    void AddImage(std::string key, RenderBuffer* crb)
-    {
-        _imageCache[key] = crb;
-    }
-};
-
 std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf)
 {
     return wxString::Format("%d|%d|%s|%s|%s", bufferWi, bufferHt, dirstr, picture, stf).ToStdString();
@@ -634,7 +671,7 @@ std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr,
 void FacesEffect::RenderFaces(RenderBuffer &buffer,
     SequenceElements *elements, const std::string &faceDefinition,
     const std::string& Phoneme, const std::string &trackName,
-    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel)
+    const std::string& eyesIn, bool face_outline, bool transparentBlack, int transparentBlackLevel, bool suppressIfNotSinging)
 {
     FacesRenderCache *cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -759,6 +796,11 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             int time = buffer.curPeriod * buffer.frameTimeInMs + 1;
             Effect *ef = layer->GetEffectByTime(time);
             if (ef == nullptr) {
+                if (suppressIfNotSinging)
+                {
+                    return;
+                }
+
                 phoneme = "rest";
             }
             else {
@@ -812,6 +854,28 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             }
         }
     }
+    else if (phoneme == "rest" || phoneme == "(off)")
+    {
+        if ("Auto" == eyes) {
+            if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
+                //roughly every 5 seconds we'll blink
+                cache->nextBlinkTime += (4500 + (rand() % 1000));
+                cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
+                eyes = "Closed";
+            }
+            else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
+                eyes = "Closed";
+            }
+            else {
+                eyes = "Open";
+            }
+        }
+    }
+
+    if (phoneme == "" && suppressIfNotSinging)
+    {
+        return;
+    }
 
     int colorOffset = 0;
     xlColor color;
@@ -855,7 +919,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             colors.push_back(color);
         }
     }
-    if (eyes == "Closed") {
+    else if (eyes == "Closed") {
         todo.push_back("Eyes-Closed");
         if (customColor) {
             std::string cname = model_info->faceInfo[definition]["Eyes-Closed-Color"];
@@ -870,7 +934,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
             colors.push_back(color);
         }
     }
-    if (eyes == "(off)") {
+    else if (eyes == "(off)") {
         //no eyes
     }
     if (buffer.palette.Size() > (1 + colorOffset)) {
@@ -893,7 +957,7 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     }
 
     if (type == 2) {
-        RenderFaces(buffer, phoneme, eyes, face_outline);
+        RenderFaces(buffer, phoneme, eyes, face_outline, suppressIfNotSinging);
         return;
     }
     if (type == 3) {
@@ -970,6 +1034,10 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
                     int idx = valstr.Index('-');
                     start = wxAtoi(valstr.Left(idx));
                     end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
+                    if (end < start)
+                    {
+                        std::swap(start, end);
+                    }
                 }
                 else {
                     start = end = wxAtoi(valstr);
