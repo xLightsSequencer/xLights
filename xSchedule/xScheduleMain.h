@@ -194,6 +194,7 @@ public:
         bool IsPlayList(wxTreeItemId id) const;
         bool IsSchedule(wxTreeItemId id) const;
         void OnTreeCtrlMenu(wxCommandEvent &event);
+        void OnPingPopup(wxCommandEvent &event);
         void OnButton_UserClick(wxCommandEvent& event);
         void RateNotification(wxCommandEvent& event);
         void StatusMsgNotification(wxCommandEvent& event);
@@ -275,6 +276,7 @@ public:
         static const long ID_TIMER2;
         //*)
 
+        static const long ID_MNU_EDIT_ADDITIONAL_IPS;
         static const long ID_MNU_ADDPLAYLIST;
         static const long ID_MNU_ADDADVPLAYLIST;
         static const long ID_MNU_DUPLICATEPLAYLIST;

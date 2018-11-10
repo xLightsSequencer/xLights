@@ -82,6 +82,7 @@
 //(*InternalHeaders(xScheduleFrame)
 #include <wx/intl.h>
 #include <wx/string.h>
+#include "ExtraIPsDialog.h"
 //*)
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
@@ -182,6 +183,7 @@ const long xScheduleFrame::ID_TIMER1 = wxNewId();
 const long xScheduleFrame::ID_TIMER2 = wxNewId();
 //*)
 
+const long xScheduleFrame::ID_MNU_EDIT_ADDITIONAL_IPS = wxNewId();
 const long xScheduleFrame::ID_MNU_ADDPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_ADDADVPLAYLIST = wxNewId();
 const long xScheduleFrame::ID_MNU_DUPLICATEPLAYLIST = wxNewId();
@@ -619,7 +621,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     SetTitle("xLights Scheduler " + xlights_version_string + " " + GetBitness());
 
-    StaticText_RemoteWarning->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, 
+    StaticText_RemoteWarning->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
                                              wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
 
     // Force initialise sockets
@@ -852,6 +854,12 @@ void xScheduleFrame::AddIPs()
             PlayListItemOSC* osc = (PlayListItemOSC*)*it;
             _pinger->AddIP(osc->GetIP(), "OSC Play List Item");
         }
+    }
+
+    auto extras = __schedule->GetOptions()->GetExtraIPs();
+    for (auto it : *extras)
+    {
+        _pinger->AddIP(it->GetIP(), it->GetDescription());
     }
 }
 
@@ -3060,6 +3068,23 @@ void xScheduleFrame::OnListView_PingItemActivated(wxListEvent& event)
 
 void xScheduleFrame::OnListView_PingItemRClick(wxListEvent& event)
 {
+    wxMenu mnu;
+    mnu.Append(ID_MNU_EDIT_ADDITIONAL_IPS, "Edit additional IPs");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xScheduleFrame::OnPingPopup, nullptr, this);
+    PopupMenu(&mnu);
+    ValidateWindow();
+}
+
+void xScheduleFrame::OnPingPopup(wxCommandEvent &event)
+{
+    if (event.GetId() == ID_MNU_EDIT_ADDITIONAL_IPS)
+    {
+        ExtraIPsDialog dlg(this, __schedule->GetOptions()->GetExtraIPs());
+        dlg.ShowModal();
+        AddIPs();
+        UpdateUI();
+        ValidateWindow();
+    }
 }
 
 void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
@@ -3120,7 +3145,7 @@ void xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommand
             __schedule->GetOptions()->SetMIDITimecodeDevice(dlg.GetMIDI());
             __schedule->GetOptions()->SetMIDITimecodeFormat(dlg.GetFormat());
             __schedule->GetOptions()->SetMIDITimecodeOffset(dlg.GetOffset());
-            
+
             auto m = __schedule->GetMode();
             __schedule->SetMode(SYNCMODE::STANDALONE);
             __schedule->SetMode(m);

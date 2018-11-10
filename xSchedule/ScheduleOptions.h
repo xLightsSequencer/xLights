@@ -30,6 +30,28 @@ typedef enum
     FRAME_PROGRESS
 } OSCFRAME;
 
+class ExtraIP
+{
+    std::string _ip;
+    std::string _description;
+    int _changeCount;
+    int _lastSavedChangeCount;
+
+    public:
+    ExtraIP(const std::string& ip, const std::string& description);
+    ExtraIP(wxXmlNode* node);
+    void Load(wxXmlNode* node);
+    virtual ~ExtraIP() {}
+    wxXmlNode* Save() const;
+    const std::string& GetDescription() const { return _description; }
+    const std::string& GetIP() const { return _ip; }
+    bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
+    void SetDescription(const std::string description) { _description = description; _changeCount++; }
+    void SetIP(const std::string ip) { _ip = ip; _changeCount++; }
+    void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    bool operator==(const std::string&ip) const { return _ip == ip; }
+};
+
 class OSCOptions
 {
     std::string _masterPath;
@@ -106,6 +128,7 @@ class ScheduleOptions
     std::string _MIDITimecodeDevice;
     int _MIDITimecodeFormat;
     size_t _MIDITimecodeOffset;
+    std::list<ExtraIP*> _extraIPs;
 
     public:
 
@@ -119,6 +142,7 @@ class ScheduleOptions
         UserButton* GetButton(wxUint32 id) const;
         bool IsSync() const { return _sync; }
         bool IsAdvancedMode() const { return _advancedMode; }
+        std::list<ExtraIP*>* GetExtraIPs() { return &_extraIPs; }
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }
         std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
         std::list<EventBase*>* GetEvents() { return &_events; }

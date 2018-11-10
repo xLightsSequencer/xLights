@@ -385,6 +385,10 @@
 		<Unit filename="EventSerialPanel.h" />
 		<Unit filename="EventsDialog.cpp" />
 		<Unit filename="EventsDialog.h" />
+		<Unit filename="ExtraIPDialog.cpp" />
+		<Unit filename="ExtraIPDialog.h" />
+		<Unit filename="ExtraIPsDialog.cpp" />
+		<Unit filename="ExtraIPsDialog.h" />
 		<Unit filename="FPPRemotesDialog.cpp" />
 		<Unit filename="FPPRemotesDialog.h" />
 		<Unit filename="FSEQFile.cpp" />
@@ -446,10 +450,6 @@
 		<Unit filename="PlayList/PlayListItemESEQ.h" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemESEQPanel.h" />
-		<Unit filename="PlayList/PlayListItemFade.cpp" />
-		<Unit filename="PlayList/PlayListItemFade.h" />
-		<Unit filename="PlayList/PlayListItemFadePanel.cpp" />
-		<Unit filename="PlayList/PlayListItemFadePanel.h" />
 		<Unit filename="PlayList/PlayListItemFPPEvent.cpp" />
 		<Unit filename="PlayList/PlayListItemFPPEvent.h" />
 		<Unit filename="PlayList/PlayListItemFPPEventPanel.cpp" />
@@ -462,6 +462,10 @@
 		<Unit filename="PlayList/PlayListItemFSEQVideo.h" />
 		<Unit filename="PlayList/PlayListItemFSEQVideoPanel.cpp" />
 		<Unit filename="PlayList/PlayListItemFSEQVideoPanel.h" />
+		<Unit filename="PlayList/PlayListItemFade.cpp" />
+		<Unit filename="PlayList/PlayListItemFade.h" />
+		<Unit filename="PlayList/PlayListItemFadePanel.cpp" />
+		<Unit filename="PlayList/PlayListItemFadePanel.h" />
 		<Unit filename="PlayList/PlayListItemFile.cpp" />
 		<Unit filename="PlayList/PlayListItemFile.h" />
 		<Unit filename="PlayList/PlayListItemFilePanel.cpp" />
@@ -652,6 +656,8 @@
 		<Unit filename="wxsmith/EventPingPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
 		<Unit filename="wxsmith/EventsDialog.wxs" />
+		<Unit filename="wxsmith/ExtraIPDialog.wxs" />
+		<Unit filename="wxsmith/ExtraIPsDialog.wxs" />
 		<Unit filename="wxsmith/FPPRemotesDialog.wxs" />
 		<Unit filename="wxsmith/GammaDialog.wxs" />
 		<Unit filename="wxsmith/MatricesDialog1.wxs" />
@@ -664,10 +670,10 @@
 		<Unit filename="wxsmith/PlayListItemCURLPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemDelayPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemESEQPanel.wxs" />
-		<Unit filename="wxsmith/PlayListItemFadePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFPPEventPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQPanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFSEQVideoPanel.wxs" />
+		<Unit filename="wxsmith/PlayListItemFadePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemFilePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemImagePanel.wxs" />
 		<Unit filename="wxsmith/PlayListItemJukeboxPanel.wxs" />
@@ -773,6 +779,8 @@
 					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EventPingPanel.wxs" src="EventPingPanel.cpp" hdr="EventPingPanel.h" fwddecl="0" i18n="1" name="EventPingPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/ConfigureMIDITimecodeDialog.wxs" src="ConfigureMIDITimecodeDialog.cpp" hdr="ConfigureMIDITimecodeDialog.h" fwddecl="0" i18n="1" name="ConfigureMIDITimecodeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ExtraIPsDialog.wxs" src="ExtraIPsDialog.cpp" hdr="ExtraIPsDialog.h" fwddecl="0" i18n="1" name="ExtraIPsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ExtraIPDialog.wxs" src="ExtraIPDialog.cpp" hdr="ExtraIPDialog.h" fwddecl="0" i18n="1" name="ExtraIPDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
