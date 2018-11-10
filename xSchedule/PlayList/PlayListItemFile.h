@@ -16,7 +16,7 @@ protected:
     bool _started;
     #pragma endregion Member Variables
 
-    std::string ReplaceTags(const std::string s);
+    std::string FileReplaceTags(const std::string s);
 
 public:
 
@@ -41,7 +41,7 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start(long stepLengthMS) override;
     #pragma endregion Playing
 

@@ -1,5 +1,6 @@
 #include "BufferSizeDialog.h"
 #include "ValueCurveDialog.h"
+#include "UtilFunctions.h"
 
 //(*InternalHeaders(BufferSizeDialog)
 #include <wx/artprov.h>
@@ -95,6 +96,11 @@ BufferSizeDialog::BufferSizeDialog(wxWindow* parent, bool usevc,wxWindowID id,co
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&BufferSizeDialog::OnVCChanged, nullptr, this);
 
+    int item = 1;
+    wxWindow* ok_btn = StdDialogButtonSizer1->GetItem(item)->GetWindow();
+    SetDefaultItem(ok_btn);
+    SetEscapeId(wxID_CANCEL);
+
     if (usevc)
     {
         ValueCurve_Top->GetValue()->SetLimits(-100, 200);
@@ -189,6 +195,7 @@ void BufferSizeDialog::OnValueCurve_Click(wxCommandEvent& event)
     if (vc->GetValue()->IsActive())
     {
         ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), true);
+        OptimiseDialogPosition(&vcd);
         if (vcd.ShowModal() != wxOK)
         {
             vc->SetActive(false);

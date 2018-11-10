@@ -110,12 +110,13 @@ PANEL_EVENT_HANDLERS(StatePanel)
 
 void StatePanel::UpdateStateList()
 {
-    if (_effect != NULL)
+    if (_effect != nullptr)
     {
         wxString selected = Choice_State_State->GetStringSelection();
         Choice_State_State->Clear();
         std::list<std::string> states = _effect->GetStates(_model, Choice_StateDefinitonChoice->GetStringSelection().ToStdString());
 
+        Choice_State_State->Append("<ALL>");
         for (auto it = states.begin(); it != states.end(); ++it)
         {
             int item = Choice_State_State->Append(*it);

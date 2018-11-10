@@ -43,13 +43,13 @@ std::string EventSerial::GetSerialConfig() const
     }
 }
 
-void EventSerial::Process(const std::string& commPort, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager)
+void EventSerial::Process(const std::string& commPort, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager)
 {
     if (commPort != _commPort) return;
 
     if (_channel >= 1 && _channel <= buffersize)
     {
-        wxByte value = *(buffer + _channel - 1);
+        uint8_t value = *(buffer + _channel - 1);
 
         if (EvaluateCondition(value))
         {

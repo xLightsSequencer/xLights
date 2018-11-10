@@ -12,6 +12,10 @@
 #include <sstream>
 #include "../UtilFunctions.h"
 #include "../ValueCurveButton.h"
+#include "PixelBuffer.h"
+#include "FanEffect.h"
+#include "SpiralsEffect.h"
+#include "PinwheelEffect.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -133,8 +137,7 @@ bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::str
 // this is recursive
 static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
 {
-    wxString s,ChildName,AttrName;
-    int i;
+    wxString s;
     wxWindowList &ChildList = ParentWin->GetChildren();
     for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
     {
@@ -142,8 +145,8 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
         if (!ChildWin->IsEnabled()) {
             continue;
         }
-        ChildName=ChildWin->GetName();
-        AttrName = "E_" + ChildName.Mid(3);
+        wxString ChildName = ChildWin->GetName();
+        wxString AttrName = "E_" + ChildName.Mid(3);
         if (ChildName.StartsWith("ID_SLIDER"))
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
@@ -182,7 +185,7 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
             wxString checkedVal =(ctrl->IsChecked()) ? "1" : "0";
             s+=AttrName + "=" + checkedVal + ",";
         }
-        else if (ChildName.StartsWith("ID_FILEPICKER"))
+        else if (ChildName.StartsWith("ID_FILEPICKER") || ChildName.StartsWith("ID_0FILEPICKER"))
         {
             wxFilePickerCtrl* ctrl=(wxFilePickerCtrl*)ChildWin;
             s+=AttrName + "=" + ctrl->GetFileName().GetFullPath() + ",";
@@ -208,7 +211,7 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
                 s+=ctrl->GetPageText(ctrl->GetSelection());
                 s+=",";
             }
-            for(i=0; i<ctrl->GetPageCount(); i++)
+            for(int i = 0; i<ctrl->GetPageCount(); i++)
             {
                 wxString pageString = GetEffectStringFromWindow(ctrl->GetPage(i));
                 if (pageString.size() > 0) {
@@ -234,13 +237,32 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
     return s.ToStdString();
 }
 
-
 std::string RenderableEffect::GetEffectString() {
     return GetEffectStringFromWindow(panel);
 }
 
+bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
+{
+    for (auto it : settings)
+    {
+        // we want to cache blur because of compute cost
+        if (Contains(it.first, "SLIDER_Blur") ||
+            Contains(it.first, "VALUECURVE_Blur"))
+        {
+            return true;
+        }
+        
+        // we want to cache rotations because of compute cost
+        if (Contains(it.first, "Rotation"))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2018.12", version);
+    return IsVersionOlder("2018.50", version);
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
@@ -309,6 +331,83 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         {
             sm["T_CHOICE_LayerMethod"] = "Effect 1";
             sm["T_CHECKBOX_Canvas"] = "1";
+        }
+    }
+
+    if (IsVersionOlder("2018.50", version))
+    {
+        SettingsMap& sm = effect->GetSettings();
+
+        // Try to fix value curve issues
+        for (auto s : sm)
+        {
+            wxString f(s.first);
+            if (f.Contains("VALUECURVE") && !f.Contains("RV=TRUE"))
+            {
+                ValueCurve vc(s.second);
+                sm[s.first] = vc.Serialise();
+            }
+
+            wxString v(s.second);
+            if (v.Contains("ID_VALUECURVE_Blur"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(BLUR_MIN, BLUR_MAX);
+                vc.SetDivisor(1);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Fan_Blade_Angle"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX);
+                vc.SetDivisor(1);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Spirals_Rotation"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(SPIRALS_ROTATION_MIN, SPIRALS_ROTATION_MAX);
+                vc.SetDivisor(SPIRALS_ROTATION_DIVISOR);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Fan_Start_Angle"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
         }
     }
 }

@@ -27,7 +27,7 @@ MusicEffect::~MusicEffect()
 {
 }
 
-std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> MusicEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -91,6 +91,7 @@ void MusicEffect::SetDefaultParameters() {
     SetSliderValue(mp->Slider_Music_EndNote, 80);
     SetChoiceValue(mp->Choice_Music_Colour, "Distinct");
     SetCheckBoxValue(mp->CheckBox_Music_Fade, false);
+    SetCheckBoxValue(mp->CheckBox_Music_LogarithmicXAxis, false);
 }
 
 void MusicEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
@@ -105,7 +106,8 @@ void MusicEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         SettingsMap.GetInt("SLIDER_Music_StartNote", 60),
         SettingsMap.GetInt("SLIDER_Music_EndNote", 80),
         SettingsMap.Get("CHOICE_Music_Colour", "Distinct"),
-        SettingsMap.GetBool("CHECKBOX_Music_Fade", false)
+        SettingsMap.GetBool("CHECKBOX_Music_Fade", false),
+        SettingsMap.GetBool("CHECKBOX_Music_LogarithmicX", false)
     );
 }
 
@@ -235,7 +237,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
     const std::string& scalenotes, int offsetx,
     int startnote, int endnote,
     const std::string& colourtreatment,
-    bool fade)
+    bool fade, bool logarithmicX)
 {
     // no point if we have no media
     if (buffer.GetMedia() == nullptr)
@@ -276,7 +278,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
         // We limit bars to the width of the model less the x offset
 
         int nScaleNotes = DecodeScaleNotes(scalenotes);
-        CreateEvents(buffer, _events, startnote, actualendnote, actualbars, nScaleNotes, sensitivity);
+        CreateEvents(buffer, _events, startnote, actualendnote, actualbars, nScaleNotes, sensitivity, logarithmicX);
     }
 
     int per = 1;
@@ -321,7 +323,7 @@ void MusicEffect::Render(RenderBuffer &buffer,
 
 #define MINIMUMEVENTLENGTH 5
 
-void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity)
+void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<MusicEvent*>*>& events, int startNote, int endNote, int bars, int scalenotes, int sensitivity, bool logarithmicX)
 {
     // must have media
     if (buffer.GetMedia() == nullptr)
@@ -352,7 +354,7 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
             auto pn = pdata->begin();
 
             // skip to start note
-            for (int i = 0; i < startNote; i++)
+            for (int i = 0; i < startNote && pn != pdata->end(); i++)
             {
                 ++pn;
             }
@@ -360,7 +362,12 @@ void MusicEffect::CreateEvents(RenderBuffer& buffer, std::vector<std::list<Music
             for (int b = 0; b < bars && pn != pdata->end(); b++)
             {
                 float val = 0.0;
-                for (auto n = 0; n < static_cast<int>(notesperbar); n++)
+                int thisper = static_cast<int>(notesperbar);
+                if (logarithmicX)
+                {
+                    thisper = LogarithmicScale::GetLogSum(b + 1) - LogarithmicScale::GetLogSum(b);
+                }
+                for (auto n = 0; n < thisper && pn != pdata->end(); n++)
                 {
                     val = std::max(val, *pn);
                     ++pn;

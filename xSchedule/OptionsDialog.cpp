@@ -9,17 +9,24 @@
 #include <wx/file.h>
 #include "../xLights/AudioManager.h"
 #include "City.h"
+#include "../xLights/UtilFunctions.h"
+#include "../xLights/outputs/IPOutput.h"
 
 //(*InternalHeaders(OptionsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
+#include <wx/config.h>
 
 //(*IdInit(OptionsDialog)
 const long OptionsDialog::ID_CHECKBOX4 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX3 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX5 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX6 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX7 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX8 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX9 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -44,6 +51,8 @@ const long OptionsDialog::ID_STATICTEXT1 = wxNewId();
 const long OptionsDialog::ID_CHOICE3 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT9 = wxNewId();
 const long OptionsDialog::ID_CHOICE4 = wxNewId();
+const long OptionsDialog::ID_STATICTEXT10 = wxNewId();
+const long OptionsDialog::ID_CHOICE5 = wxNewId();
 const long OptionsDialog::ID_BUTTON1 = wxNewId();
 const long OptionsDialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -84,6 +93,18 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_Sync = new wxCheckBox(this, ID_CHECKBOX2, _("Use ArtNet/E1.31 Synchronisation Protocols"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_Sync->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_Sync, 1, wxALL|wxEXPAND, 5);
+	CheckBox_MultithreadedTransmission = new wxCheckBox(this, ID_CHECKBOX6, _("Multithreaded transmission"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX6"));
+	CheckBox_MultithreadedTransmission->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_MultithreadedTransmission, 1, wxALL|wxEXPAND, 5);
+	CheckBox_RetryOpen = new wxCheckBox(this, ID_CHECKBOX7, _("Continually try to open outputs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
+	CheckBox_RetryOpen->SetValue(false);
+	FlexGridSizer7->Add(CheckBox_RetryOpen, 1, wxALL|wxEXPAND, 5);
+	CheckBox_RemoteAllOff = new wxCheckBox(this, ID_CHECKBOX8, _("When in remote mode turn off lights when master stops"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
+	CheckBox_RemoteAllOff->SetValue(true);
+	FlexGridSizer7->Add(CheckBox_RemoteAllOff, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressAudioOnRemotes = new wxCheckBox(this, ID_CHECKBOX9, _("Suppress audio on remotes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
+	CheckBox_SuppressAudioOnRemotes->SetValue(true);
+	FlexGridSizer7->Add(CheckBox_SuppressAudioOnRemotes, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -153,6 +174,10 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	Choice_OnCrash->Append(_("Silently exit after sending crash log"));
 	Choice_OnCrash->Append(_("Silently exit without sending crash log"));
 	FlexGridSizer8->Add(Choice_OnCrash, 1, wxALL|wxEXPAND, 5);
+	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Force Local IP:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+	FlexGridSizer8->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice1 = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
+	FlexGridSizer8->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -199,11 +224,15 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 
     Choice_OnCrash->SetStringSelection(options->GetCrashBehaviour());
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
-    Choice_ARTNetTimeCodeFormat->SetSelection(options->GetARTNetTimeCodeFormat());
+    CheckBox_MultithreadedTransmission->SetValue(options->IsParallelTransmission());
+    Choice_ARTNetTimeCodeFormat->SetSelection(static_cast<int>(options->GetARTNetTimeCodeFormat()));
     CheckBox_RunBackground->SetValue(options->IsSendBackgroundWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
     CheckBox_APIOnly->SetValue(options->GetAPIOnly());
     CheckBox_SimpleMode->SetValue(options->IsAdvancedMode());
+    CheckBox_RetryOpen->SetValue(options->IsRetryOpen());
+    CheckBox_RemoteAllOff->SetValue(options->IsRemoteAllOff());
+    CheckBox_SuppressAudioOnRemotes->SetValue(options->IsSuppressAudioOnRemotes());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -217,6 +246,13 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     {
         Choice_AudioDevice->SetStringSelection("(Default)");
     }
+
+    Choice1->AppendString("");
+    for (auto it : GetLocalIPs())
+    {
+        Choice1->AppendString(it);
+    }
+    Choice1->SetStringSelection(IPOutput::GetLocalIP());
 
     LoadButtons();
 
@@ -273,6 +309,8 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     _options->SetSync(CheckBox_Sync->GetValue());
     _options->SetSendOffWhenNotRunning(CheckBox_SendOffWhenNotRunning->GetValue());
+    _options->SetParallelTransmission(CheckBox_MultithreadedTransmission->GetValue());
+    _options->SetRetryOutputOpen(CheckBox_RetryOpen->GetValue());
     _options->SetSendBackgroundWhenNotRunning(CheckBox_RunBackground->GetValue());
     _options->SetWebServerPort(SpinCtrl_WebServerPort->GetValue());
     _options->SetWWWRoot(TextCtrl_wwwRoot->GetValue().ToStdString());
@@ -280,9 +318,11 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetPassword(TextCtrl_Password->GetValue().ToStdString());
     _options->SetPasswordTimeout(SpinCtrl_PasswordTimeout->GetValue());
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
-    _options->SetArtNetTimeCodeFormat(Choice_ARTNetTimeCodeFormat->GetSelection());
+    _options->SetArtNetTimeCodeFormat(static_cast<TIMECODEFORMAT>(Choice_ARTNetTimeCodeFormat->GetSelection()));
     _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
     _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
+    _options->SetRemoteAllOff(CheckBox_RemoteAllOff->GetValue());
+    _options->SetSuppressAudioOnRemotes(CheckBox_SuppressAudioOnRemotes->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {
@@ -309,6 +349,18 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
                             hotkey,
                             ListView_Buttons->GetItemText(i, 4).ToStdString(),
                             _commandManager);
+    }
+
+    if (Choice1->GetStringSelection() != IPOutput::GetLocalIP())
+    {
+        IPOutput::SetLocalIP(Choice1->GetStringSelection());
+        wxConfig* xlconfig = new wxConfig(_("xLights"));
+        if (xlconfig != nullptr)
+        {
+            xlconfig->Write("xLightsLocalIP", Choice1->GetStringSelection());
+            delete xlconfig;
+        }
+        wxMessageBox("Local IP changed. If you are outputting to lights please stop and restart light output");
     }
 
     EndDialog(wxID_OK);

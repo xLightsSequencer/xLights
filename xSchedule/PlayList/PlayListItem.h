@@ -7,6 +7,7 @@
 #include <wx/notebook.h>
 
 class wxXmlNode;
+class AudioManager;
 
 class PlayListItem
 {
@@ -14,6 +15,7 @@ protected:
 
     #pragma region Member Variables
     wxUint32 _id;
+    std::string _type;
     int _lastSavedChangeCount;
     int _changeCount;
     std::string _name;
@@ -30,8 +32,12 @@ protected:
     void Save(wxXmlNode* node);
     void Copy(PlayListItem* to) const;
     bool IsInSlaveMode() const;
+    bool IsSuppressAudioOnSlaves() const;
+    std::string ReplaceTags(const std::string s) const;
 
-public:
+    public:
+
+    static std::string GetTagHint();
 
     #pragma region Constructors and Destructors
     PlayListItem(wxXmlNode* node);
@@ -41,6 +47,7 @@ public:
     #pragma endregion Constructors and Destructors
 
     #pragma region Getters and Setters
+    std::string GetType() const { return _type; }
     bool GetRestOfStep() const { return _restOfStep; }
     void SetRestOfStep(bool restOfStep) { if (_restOfStep != restOfStep) { _restOfStep = restOfStep; _changeCount++; } }
     virtual bool HasIP() const { return false; }
@@ -49,6 +56,7 @@ public:
     virtual size_t GetDurationMS(size_t frameMS) const { return GetDurationMS(); }
     bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    void SetDirty() { _changeCount++; }
     std::string GetName() const;
     std::string GetRawName() const { return _name; }
     virtual std::string GetNameNoTime() const;
@@ -65,7 +73,7 @@ public:
     size_t GetPriority() const { return _priority; }
     void SetPriority(size_t priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
     virtual bool Done() const { return false; }
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
     virtual std::string GetSyncItemFSEQ() const { return ""; }
     virtual std::string GetSyncItemMedia() { return ""; }
     virtual std::string GetTitle() const = 0;
@@ -83,6 +91,7 @@ public:
     virtual void Restart() {}
     virtual void Pause(bool pause) {}
     virtual void Suspend(bool suspend) {}
+    virtual bool Advance(int seconds) { return false; }
     #pragma endregion Playing
 
     #pragma region UI

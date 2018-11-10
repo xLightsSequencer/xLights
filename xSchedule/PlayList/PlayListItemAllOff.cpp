@@ -28,6 +28,7 @@ void PlayListItemAllOff::Load(wxXmlNode* node)
 
 PlayListItemAllOff::PlayListItemAllOff(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLIAllOff";
     _outputManager = outputManager;
     _sc = 0;
     _channels = 0;
@@ -64,7 +65,7 @@ size_t PlayListItemAllOff::GetStartChannelAsNumber()
 
 wxXmlNode* PlayListItemAllOff::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAllSet");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("Value", wxString::Format(wxT("%i"), _value));
@@ -87,7 +88,7 @@ void PlayListItemAllOff::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemAllOffPanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
-void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemAllOff::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {
@@ -105,7 +106,7 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
 
             if (toset > 0)
             {
-                wxByte* values = (wxByte*)malloc(toset);
+                uint8_t* values = (uint8_t*)malloc(toset);
                 if (values != nullptr)
                 {
                     memset(values, _value, toset);

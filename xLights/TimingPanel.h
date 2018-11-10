@@ -24,13 +24,14 @@ class TimingPanel: public wxPanel
     std::string _layersSelected;
     int _startLayer;
     int _endLayer;
+    std::vector<int> _layerWithEffect;
 
 	public:
 
 		TimingPanel(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~TimingPanel();
 
-        void SetLayersBelow(int start, int end) { _startLayer = start; _endLayer = end; }
+        void SetLayersBelow(int start, int end, std::vector<int> effects) { _startLayer = start; _endLayer = end; _layerWithEffect = effects; }
         wxString GetTimingString();
         void SetDefaultControls(const Model *model, bool optionbased = false);
         void ValidateWindow();
@@ -51,6 +52,9 @@ class TimingPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Fadeout;
 		BulkEditTextCtrl* TextCtrl_In_Adjust;
 		BulkEditTextCtrl* TextCtrl_Out_Adjust;
+		BulkEditValueCurveButton* BitmapButton_In_Transition_Adjust;
+		BulkEditValueCurveButton* BitmapButton_Out_Transition_Adjust;
+		wxButton* Button_About_Layers;
 		wxButton* Button_Layers;
 		wxCheckBox* CheckBox_LayerMorph;
 		wxCheckBox* CheckBox_ResetTimingPanel;
@@ -74,6 +78,7 @@ class TimingPanel: public wxPanel
 		static const long IDD_TEXTCTRL_EffectLayerMix;
 		static const long ID_BITMAPBUTTON_CHECKBOX_LayerMorph;
 		static const long ID_CHOICE_LayerMethod;
+		static const long ID_BUTTON_ABOUT_LAYERS;
 		static const long ID_BITMAPBUTTON_SLIDER_EffectLayerMix;
 		static const long ID_CHECKBOX_Canvas;
 		static const long ID_BUTTON1;
@@ -82,6 +87,7 @@ class TimingPanel: public wxPanel
 		static const long ID_TEXTCTRL_Fadein;
 		static const long ID_STATICTEXT_In_Transition_Adjust;
 		static const long ID_SLIDER_In_Transition_Adjust;
+		static const long ID_VALUECURVE_In_Transition_Adjust;
 		static const long IDD_TEXTCTRL_In_Transition_Adjust;
 		static const long ID_CHECKBOX_In_Transition_Reverse;
 		static const long ID_PANEL2;
@@ -90,6 +96,7 @@ class TimingPanel: public wxPanel
 		static const long ID_TEXTCTRL_Fadeout;
 		static const long ID_STATICTEXT_Out_Transition_Adjust;
 		static const long ID_SLIDER_Out_Transition_Adjust;
+		static const long ID_VALUECURVE_Out_Transition_Adjust;
 		static const long IDD_TEXTCTRL_Out_Transition_Adjust;
 		static const long ID_CHECKBOX_Out_Transition_Reverse;
 		static const long ID_PANEL3;
@@ -110,6 +117,7 @@ class TimingPanel: public wxPanel
 		void OnButton_LayersClick(wxCommandEvent& event);
 		void OnChoice_LayerMethodSelect(wxCommandEvent& event);
 		void OnCheckBox_CanvasClick(wxCommandEvent& event);
+		void OnButton_AboutClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

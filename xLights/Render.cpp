@@ -14,6 +14,7 @@
 #include "sequencer/MainSequencer.h"
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
+#include "Parallel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -310,7 +311,7 @@ public:
     const std::string GetName() const override {
         return name;
     }
-
+    
     virtual bool DeleteWhenComplete() override {
         return false;
     }
@@ -506,6 +507,8 @@ public:
         // To support canvas mix type we must render them bottom to top
         for (int layer = numLayers - 1; layer >= 0; --layer) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
+            //must lock the layer so the Effect* stays valid
+            std::unique_lock<std::recursive_mutex> elayerLock(elayer->GetLock());
             Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
             if (ef != info.currentEffects[layer]) {
                 info.currentEffects[layer] = ef;
@@ -563,7 +566,7 @@ public:
                 done.resize(rb.pixels.size());
                 rb.CopyNodeColorsToPixels(done);
                 // now fill in any spaces in the buffer that don't have nodes mapped to them
-                for (int y = 0; y < rb.BufferHt; y++) {
+                parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame] (int y) {
                     for (int x = 0; x < rb.BufferWi; x++) {
                         if (!done[y*rb.BufferWi+x]) {
                             xlColor c = xlBLACK;
@@ -571,7 +574,7 @@ public:
                             rb.SetPixel(x, y, c);
                         }
                     }
-                }
+                });
             }
 
             info.validLayers[layer] = xLights->RenderEffectFromMap(ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
@@ -607,7 +610,7 @@ public:
         int ss, es;
 
         rowToRender->IncWaitCount();
-        std::unique_lock<std::recursive_mutex> lock(rowToRender->GetRenderLock());
+        std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
         rowToRender->DecWaitCount();
         SetGenericStatus("Got lock on rendering thread for %s", 0);
 
@@ -641,10 +644,13 @@ public:
         try {
             //for (int layer = 0; layer < numLayers; ++layer) {
             for (int layer = numLayers - 1; layer >= 0; --layer) {
-                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
+                wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, (int)startFrame) + PrintStatusMap();
                 SetStatus(msg);
-                mainModelInfo.currentEffects[layer] = findEffectForFrame(layer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
-                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
+                
+                EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
+                std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
+                mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
+                msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, (int)startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
                 mainModelInfo.effectStates[layer] = true;
@@ -679,7 +685,7 @@ public:
                 if (!subModelInfos.empty()) {
                     for (auto a = subModelInfos.begin(); a != subModelInfos.end(); ++a) {
                         EffectLayerInfo *info = *a;
-                        cleared |= ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
+                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
                     }
                 }
                 if (!nodeBuffers.empty()) {
@@ -704,7 +710,7 @@ public:
                             //deleted node
                             continue;
                         }
-
+                        std::unique_lock<std::recursive_mutex> nlayerLock(nlayer->GetLock());
                         Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
                         if (el != nodeEffects[node] || frame == startFrame) {
                             nodeEffects[node] = el;
@@ -734,6 +740,7 @@ public:
                     FrameDone(frame);
                 }
             }
+            SetGenericStatus("%s: All done - Completed frame %d " + PrintStatusMap(), endFrame, true);
         } catch ( std::exception &ex) {
             wxASSERT(false); // so when we debug we catch them
             printf("Caught an exception %s", ex.what());
@@ -768,6 +775,7 @@ public:
         abort = true;
     }
 
+    ModelElement* GetModelElement() const { return rowToRender; }
 
 private:
 
@@ -818,10 +826,10 @@ private:
 
     ModelElement *rowToRender;
     std::string name;
-    int startFrame;
-    int endFrame;
     PixelBufferClass *mainBuffer;
     int numLayers;
+    std::atomic_int startFrame;
+    std::atomic_int endFrame;
     xLightsFrame *xLights;
     SequenceData *seqData;
     std::vector<bool> rangeRestriction;
@@ -861,10 +869,12 @@ void xLightsFrame::RenderRange(RenderCommandEvent &evt) {
             RenderTimeSlice(evt.start, evt.end, evt.clear);
         } else {
             //render all dirty models
-            RenderDirtyModels();
+            if (!_suspendRender)
+                RenderDirtyModels();
         }
     } else {
-        RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
+        if (!_suspendRender)
+            RenderEffectForModel(evt.model, evt.start,  evt.end, evt.clear);
     }
 }
 
@@ -882,11 +892,20 @@ void xLightsFrame::RenderMainThreadEffects() {
 
 void xLightsFrame::RenderEffectOnMainThread(RenderEvent *ev) {
     std::unique_lock<std::mutex> lock(ev->mutex);
-    ev->returnVal = RenderEffectFromMap(ev->effect,
-                                        ev->layer,
-                                        ev->period,
-                                        *ev->settingsMap,
-                                        *ev->buffer, *ev->ResetEffectState, false, ev);
+
+    // validate that the effect still exists as this could be being processed after the effect was deleted
+    if (mSequenceElements.IsValidEffect(ev->effect))
+    {
+        ev->returnVal = RenderEffectFromMap(ev->effect,
+            ev->layer,
+            ev->period,
+            *ev->settingsMap,
+            *ev->buffer, *ev->ResetEffectState, false, ev);
+    }
+    else
+    {
+        wxASSERT(false);
+    }
     ev->signal.notify_all();
 }
 
@@ -917,21 +936,28 @@ void xLightsFrame::LogRenderStatus()
     logger_base.debug("Logging render status ***************");
     logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
     logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it)
-    {
-        int frames = (*it)->endFrame - (*it)->startFrame + 1;
-        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", (*it)->numRows, (*it)->startFrame, (*it)->endFrame, frames);
-        for (int i = 0; i < (*it)->numRows; i++)
-        {
-            if ((*it)->jobs[i] != nullptr)
-            {
-                int curFrame = (*it)->jobs[i]->GetCurrentFrame();
-                if (curFrame >(*it)->endFrame || curFrame == END_OF_RENDER_FRAME)
-                {
-                    curFrame = (*it)->endFrame;
+    for (auto it : renderProgressInfo) {
+        int frames = it->endFrame - it->startFrame + 1;
+        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
+        for (int i = 0; i < it->numRows; i++) {
+            if (it->jobs[i] != nullptr) {
+                auto job = it->jobs[i];
+                int curFrame = job->GetCurrentFrame();
+                if (curFrame > it->endFrame || curFrame == END_OF_RENDER_FRAME) {
+                    curFrame = it->endFrame;
                 }
 
-                logger_base.debug("    Progress %s - %ld%%.", (const char *)(*it)->jobs[i]->GetName().c_str(), (long)(curFrame - (*it)->startFrame + 1) * 100 / frames);
+                logger_base.debug("    Progress %s - %ld%%.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
+                logger_base.debug("             %s.", (const char *)job->GetStatusForUser().c_str());
+                logger_base.debug("             %s.", (const char *)job->GetStatus().c_str());
+
+                bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
+                auto row = job->GetModelElement();
+                if (row != nullptr) {
+                    logger_base.debug("             Element %s, Blocked %d, Wait Count %d.",
+                                      (const char *)row->GetModelName().c_str(), blocked,
+                                      row->GetWaitCount());
+                }
             }
         }
     }
@@ -1073,8 +1099,7 @@ public:
     RenderTreeData(Model *e): model(e) {
 
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        if (e == nullptr)
-        {
+        if (e == nullptr) {
             logger_base.crit("Render tree has a null model ... this is not going to end well.");
         }
 
@@ -1235,17 +1260,13 @@ void xLightsFrame::Render(const std::list<Model*> models,
 
         Element *rowEl = mSequenceElements.GetElement((*it)->GetName());
 
-        if (rowEl == nullptr)
-        {
+        if (rowEl == nullptr) {
             //logger_base.crit("xLightsFrame::Render rowEl is nullptr ... this is going to crash looking for '%s'.", (const char *)(*it)->GetName().c_str());
-        }
-        else
-        {
+        } else {
             if (rowEl->GetType() == ELEMENT_TYPE_MODEL) {
                 ModelElement *me = dynamic_cast<ModelElement *>(rowEl);
 
-                if (me == nullptr)
-                {
+                if (me == nullptr) {
                     logger_base.crit("xLightsFrame::Render me is nullptr ... this is going to crash.");
                 }
 
@@ -1254,8 +1275,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
                 if (hasEffects || (isRestricted && clear)) {
                     RenderJob *job = new RenderJob(me, SeqData, this, false);
 
-                    if (job == nullptr)
-                    {
+                    if (job == nullptr) {
                         logger_base.crit("xLightsFrame::Render job is nullptr ... this is going to crash.");
                     }
 
@@ -1307,9 +1327,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
         for (int f = startFrame; f <= endFrame; f++) {
             for (auto it = ranges.begin(); it != ranges.end(); ++it) {
                 FrameData fd = SeqData[f];
-                for (int x = it->start; x <= it->end; ++x) {
-                    fd[x] = (unsigned char)0;
-                }
+                fd.Zero(it->start, it->end - it->start + 1);
             }
         }
     }
@@ -1337,6 +1355,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
         }
     }
 
+    logger_render.debug("Job pool start size %d.", (int)jobPool.size());
     for (row = 0; row < numRows; ++row) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
             //now start the rest
@@ -1344,8 +1363,7 @@ void xLightsFrame::Render(const std::list<Model*> models,
             ++count;
         }
     }
-
-    logger_base.debug("Jobs kicked off %d.", jobPool.size());
+    logger_base.debug("Job pool new size %d.", (int)jobPool.size());
 
     if (count) {
         if (progressDialog) {
@@ -1410,6 +1428,9 @@ static void addModelsFrom(std::list<Model*> &models, const std::list<Model *> &t
 }
 
 void xLightsFrame::RenderDirtyModels() {
+
+    if (_suspendRender) return; // dont render if suspended
+
     BuildRenderTree();
     if (renderTree.data.empty()) {
         //nothing to do....
@@ -1555,6 +1576,8 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (_suspendRender) return;
+
     BuildRenderTree();
 
     logger_base.debug("Render tree built for model %s %dms-%dms. %d entries.",
@@ -1563,11 +1586,11 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
         endms,
         renderTree.data.size());
 
-    int startframe = startms / SeqData.FrameTime() - 1;
+    int startframe = startms / SeqData.FrameTime();// -1; by expanding the range we end up rendering more than necessary for no obvious reason
     if (startframe < 0) {
         startframe = 0;
     }
-    int endframe = endms / SeqData.FrameTime() + 1;
+    int endframe = endms / SeqData.FrameTime();// +1; by expanding the range we end up rendering more than necessary for no obvious reason
     if (endframe >= SeqData.NumFrames()) {
         endframe = SeqData.NumFrames() - 1;
     }
@@ -1694,8 +1717,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         }
         wxFileName oName(filename);
 
-        if (oName.GetPathWithSep() == "")
-        {
+        if (oName.GetPathWithSep() == "") {
             oName.SetPath(CurrentDir);
         }
         wxString fullpath;
@@ -1720,8 +1742,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             while (!wait.checkIfDone(SeqData.NumFrames())) {
                 wxYield();
             }
-        }
-        else {
+        } else {
             Model *m2 = GetModel(model);
             for (int frame = 0; frame < SeqData.NumFrames(); ++frame) {
                 for (int x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
@@ -1744,44 +1765,35 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
                 lcbVer = 2;
             }
             WriteLcbFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, lcbVer, cpn);
-        }
-        else if (Out3 == "Vir") {
+        } else if (Out3 == "Vir") {
             oName.SetExt(_("vir"));
             fullpath = oName.GetFullPath();
             WriteVirFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
-        }
-        else if (Out3 == "LSP") {
+        } else if (Out3 == "LSP") {
             oName.SetExt(_("xml"));
             fullpath = oName.GetFullPath();
             WriteLSPFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, cpn);
-        }
-        else if (Out3 == "HLS") {
+        } else if (Out3 == "HLS") {
             oName.SetExt(_("hlsnc"));
             fullpath = oName.GetFullPath();
             WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
-        }
-        else if (Out3 == "Fal") {
+        } else if (Out3 == "Fal") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("eseq"));
             fullpath = oName.GetFullPath();
-            WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
-        }
-        else if (Out3 == "Com")
-        {
+            bool v2 = format.Contains("Compressed");
+            WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), v2);
+        } else if (Out3 == "Com") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
             WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), true);
-        }
-        else if (Out3 == "Unc")
-        {
+        } else if (Out3 == "Unc") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
             WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
-        }
-        else if (Out3 == "Min")
-        {
+        } else if (Out3 == "Min") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("bin"));
             fullpath = oName.GetFullPath();
@@ -1800,6 +1812,13 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static log4cpp::Category &logger_render = log4cpp::Category::getInstance(std::string("log_render"));
+
+    if (layer >= buffer.GetLayerCount()) {
+        logger_base.error("Model %s Effect %s at frame %d tried to render on a layer %d that does not exist (Only %d found).", 
+            (const char*)buffer.GetModel()->GetName().c_str(), (const char*)effectObj->GetEffectName().c_str(), period, layer+1, buffer.GetLayerCount());
+        wxASSERT(false);
+        return false;
+    }
 
     if (buffer.BufferForLayer(layer, -1).BufferHt == 0 || buffer.BufferForLayer(layer, -1).BufferWi == 0) {
         return false;
@@ -1856,7 +1875,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, b)) {
                 wxStopWatch sw;
 
-                if (effectObj != nullptr && reff->SupportsRenderCache()) {
+                if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
                     if (!effectObj->GetFrame(b, _renderCache)) {
                         reff->Render(effectObj, SettingsMap, b);
                         effectObj->AddFrame(b, _renderCache);
@@ -1874,6 +1893,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 event->period = period;
                 event->settingsMap = &SettingsMap;
                 event->ResetEffectState = &resetEffectState;
+                event->buffer = &buffer;
 
                 std::unique_lock<std::mutex> lock(event->mutex);
 
@@ -1882,7 +1902,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
                 qlock.unlock();
 
                 CallAfter(&xLightsFrame::RenderMainThreadEffects);
-                if (event->signal.wait_for(lock, std::chrono::seconds(20)) == std::cv_status::no_timeout) {
+                if (event->signal.wait_for(lock, std::chrono::seconds(5)) == std::cv_status::no_timeout) {
                     retval = event->returnVal;
                 } else {
                     logger_base.warn("Frame #%d render on model %s (%dx%d) layer %d effect %s from %dms (#%d) to %dms (#%d) timed out.", b.curPeriod, (const char *)buffer.GetModelName().c_str(), b.BufferWi, b.BufferHt, layer, (const char *)reff->Name().c_str(), effectObj->GetStartTimeMS(), b.curEffStartPer, effectObj->GetEndTimeMS(), b.curEffEndPer);

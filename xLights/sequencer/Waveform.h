@@ -63,7 +63,8 @@ class Waveform : public xlGLCanvas
         };
 
     protected:
-		virtual void InitializeGLCanvas() override;
+		virtual void InitializeGLContext() override;
+        virtual void InitializeGLCanvas() override;
         virtual bool UsesVertexTextureAccumulator() override {return false;}
         virtual bool UsesVertexColorAccumulator() override {return true;}
         virtual bool UsesVertexAccumulator() override {return true;}
@@ -85,52 +86,55 @@ class Waveform : public xlGLCanvas
         bool m_dragging;
         DRAG_MODE m_drag_mode;
 		AudioManager* _media;
+        AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
+        int _lowNote = 0;
+        int _highNote = 127;
         static const long ID_WAVE_MNU_RENDER;
+        static const long ID_WAVE_MNU_RAW;
+        static const long ID_WAVE_MNU_BASS;
+        static const long ID_WAVE_MNU_TREBLE;
+        static const long ID_WAVE_MNU_ALTO;
+        static const long ID_WAVE_MNU_CUSTOM;
 
         class WaveView
         {
-            private:
-            float mSamplesPerPixel;
-            int mZoomLevel;
+        private:
+            float mSamplesPerPixel = 1;
+            int mZoomLevel = 0;
+            int _lowNote = 0;
+            int _highNote = 127;
+            AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
 
-            public:
+        public:
 
             mutable DrawGLUtils::xlVertexAccumulator background;
             mutable DrawGLUtils::xlVertexAccumulator outline;
             mutable int lastRenderStart;
             mutable int lastRenderSize;
-
             std::vector<MINMAX> MinMaxs;
-            WaveView(int ZoomLevel,float SamplesPerPixel, AudioManager* media)
+
+            WaveView(int ZoomLevel, float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote)
             {
                 mZoomLevel = ZoomLevel;
                 mSamplesPerPixel = SamplesPerPixel;
-                SetMinMaxSampleSet(SamplesPerPixel, media);
+                SetMinMaxSampleSet(SamplesPerPixel, media, type, lowNote, highNote);
                 lastRenderStart = -1;
                 lastRenderSize = 0;
+                _type = type;
+                _lowNote = lowNote;
+                _highNote = highNote;
             }
+            WaveView(int ZoomLevel) { }
+            virtual ~WaveView() { }
 
-
-            WaveView(int ZoomLevel)
-            {
-
-            }
-
-            virtual ~WaveView()
-            {
-            }
-
-            int GetZoomLevel() const
-            {
-                return  mZoomLevel;
-            }
-
-            void SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media);
-
+            int GetZoomLevel() const { return  mZoomLevel; }
+            AUDIOSAMPLETYPE GetType() const { return _type; }
+            int GetLowNote() const { return _lowNote; }
+            int GetHighNote() const { return _highNote; }
+            void SetMinMaxSampleSet(float SamplesPerPixel, AudioManager* media, AUDIOSAMPLETYPE type, int lowNote, int highNote);
         };
 
         void DrawWaveView(const WaveView &wv);
-        //void StartDrawing(wxDouble pointSize);
         void renderGL( wxPaintEvent& event );
         void renderGL();
         void UpdateMousePosition(int time);
@@ -143,9 +147,7 @@ class Waveform : public xlGLCanvas
         void OnGridPopup(wxCommandEvent& event);
         void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
         void mouseLeftWindow(wxMouseEvent& event);
-        //void OutputText(GLfloat x, GLfloat y, char *text);
-        //void drawString (void * font, char *s, float x, float y, float z);
+
         std::vector<WaveView> views;
 };
-
 #endif // WAVEFORM_H

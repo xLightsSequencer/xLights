@@ -25,7 +25,6 @@
 #include <wx/mimetype.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
-#include <wx/stdpaths.h>
 
 #include <cctype>
 
@@ -43,6 +42,7 @@
 #include "PixelTestDialog.h"
 #include "ConvertDialog.h"
 #include "GenerateCustomModelDialog.h"
+#include "PathGenerationDialog.h"
 #include "UtilFunctions.h"
 #include "controllers/FPPConnectDialog.h"
 #include "IPEntryDialog.h"
@@ -50,9 +50,7 @@
 #include "HousePreviewPanel.h"
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
-#include "SequenceVideoPanel.h"
 #include "FolderSelection.h"
-#include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
@@ -66,6 +64,21 @@
 #include "ModelPreview.h"
 #include "TopEffectsPanel.h"
 #include "LyricUserDictDialog.h"
+#include "controllers/ControllerUploadData.h"
+#include "controllers/Falcon.h"
+#include "controllers/ESPixelStick.h"
+#include "outputs/ZCPPOutput.h"
+#include "EffectIconPanel.h"
+#include "models/ViewObject.h"
+#include "models/SubModel.h"
+#include "effects/FacesEffect.h"
+#include "effects/StateEffect.h"
+#include "ShaderDownloadDialog.h"
+#include "CheckboxSelectDialog.h"
+#include "EmailDialog.h"
+
+// Linux needs this
+#include <wx/stdpaths.h>
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -135,6 +148,7 @@ const long xLightsFrame::ID_AUITOOLBARITEM1 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM4 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM6 = wxNewId();
 const long xLightsFrame::ID_AUITOOLBARITEM8 = wxNewId();
+const long xLightsFrame::ID_AUITOOLBARITEM9 = wxNewId();
 const long xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
 const long xLightsFrame::ID_PASTE_BY_TIME = wxNewId();
 const long xLightsFrame::ID_PASTE_BY_CELL = wxNewId();
@@ -174,9 +188,11 @@ const long xLightsFrame::ID_BUTTON1 = wxNewId();
 const long xLightsFrame::ID_BUTTON2 = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_LOR = wxNewId();
 const long xLightsFrame::ID_BUTTON_ADD_DDP = wxNewId();
+const long xLightsFrame::ID_BUTTON4 = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_CHANGE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE = wxNewId();
 const long xLightsFrame::ID_BUTTON_NETWORK_DELETE_ALL = wxNewId();
+const long xLightsFrame::ID_BUTTON5 = wxNewId();
 const long xLightsFrame::ID_STATICTEXT8 = wxNewId();
 const long xLightsFrame::ID_SPINCTRL1 = wxNewId();
 const long xLightsFrame::ID_BITMAPBUTTON1 = wxNewId();
@@ -206,7 +222,10 @@ const long xLightsFrame::ID_MENUITEM13 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
 const long xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
+const long xLightsFrame::ID_MENU_GENERATE2DPATH = wxNewId();
+const long xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
 const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
+const long xLightsFrame::ID_MNU_CLEANUPFILE = wxNewId();
 const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
@@ -284,6 +303,10 @@ const long xLightsFrame::ID_MENUITEM_GRID_ICON_MEDIUM = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_LARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_XLARGE = wxNewId();
 const long xLightsFrame::ID_MENUITEM6 = wxNewId();
+const long xLightsFrame::ID_MENUITEM24 = wxNewId();
+const long xLightsFrame::ID_MENUITEM25 = wxNewId();
+const long xLightsFrame::ID_MENUITEM26 = wxNewId();
+const long xLightsFrame::ID_MENUITEM23 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_ON = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GRID_ICON_BACKGROUND_OFF = wxNewId();
 const long xLightsFrame::ID_MENUITEM_Grid_Icon_Backgrounds = wxNewId();
@@ -307,11 +330,17 @@ const long xLightsFrame::ID_MENU_TIMING_PLAY_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_Timing_DClick_Mode = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_AUTO = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
-const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO1 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO2 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO3 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO4 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO5 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO6 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_AUTOSHOWHOUSEPREVIEW = wxNewId();
+const long xLightsFrame::ID_MNU_SUPPRESS_TRANSITION_HINTS = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_0 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_3 = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_10 = wxNewId();
@@ -331,6 +360,12 @@ const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
 const long xLightsFrame::ID_MNU_DEFAULTMODELBLENDOFF = wxNewId();
 const long xLightsFrame::ID_MNU_SNAP_TO_TIMING = wxNewId();
+const long xLightsFrame::ID_MENUITEM21 = wxNewId();
+const long xLightsFrame::ID_MENUITEM22 = wxNewId();
+const long xLightsFrame::ID_MENUITEM1 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_RANDON = wxNewId();
+const long xLightsFrame::ID_MNU_EMAIL = wxNewId();
+const long xLightsFrame::ID_MNU_MANUAL = wxNewId();
 const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
 const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
@@ -501,7 +536,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
     EffectsToolBar->Realize();
 }
 
-xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
+xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this), AllObjects(this),
     layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr), jobPool("RenderPool")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -555,12 +590,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     wxMenuItem* MenuItem2;
     wxMenuItem* MenuItem30;
     wxMenuItem* MenuItem31;
+    wxMenuItem* MenuItem40;
+    wxMenuItem* MenuItem41;
+    wxMenuItem* MenuItem42;
+    wxMenuItem* MenuItem43;
     wxMenuItem* MenuItem44;
     wxMenuItem* MenuItem45;
     wxMenuItem* MenuItem46;
     wxMenuItem* MenuItem47;
     wxMenuItem* MenuItem48;
     wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem55;
+    wxMenuItem* MenuItem56;
+    wxMenuItem* MenuItem57;
+    wxMenuItem* MenuItem58;
+    wxMenuItem* MenuItem59;
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem6;
     wxMenuItem* MenuItem8;
@@ -602,6 +646,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM4, _("House Preview"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_HOUSE_PREVIEW")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("House Preview"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM6, _("Models"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_SEQUENCE_ELEMENTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Display Elements"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM8, _("Effects"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTS")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Effects"), wxEmptyString, NULL);
+    WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM9, _("Effects Assistant"), wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTASSISTANT")),wxART_TOOLBAR), wxNullBitmap, wxITEM_NORMAL, _("Effects Assistant"), wxEmptyString, NULL);
     WindowMgmtToolbar->Realize();
     MainAuiManager->AddPane(WindowMgmtToolbar, wxAuiPaneInfo().Name(_T("Windows Tool Bar")).ToolbarPane().Caption(_("Windows Tool Bar")).CloseButton(false).Layer(10).Position(12).Top().Gripper());
     EditToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_EDIT, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -716,12 +761,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     BoxSizer1->Add(ButtonAddLOR, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonAddDDP = new wxButton(PanelSetup, ID_BUTTON_ADD_DDP, _("Add DDP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_ADD_DDP"));
     BoxSizer1->Add(ButtonAddDDP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_AddZCPP = new wxButton(PanelSetup, ID_BUTTON4, _("Add ZCPP"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    BoxSizer1->Add(Button_AddZCPP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonNetworkChange = new wxButton(PanelSetup, ID_BUTTON_NETWORK_CHANGE, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_CHANGE"));
     BoxSizer1->Add(ButtonNetworkChange, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     ButtonNetworkDelete = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE"));
     BoxSizer1->Add(ButtonNetworkDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
     ButtonNetworkDeleteAll = new wxButton(PanelSetup, ID_BUTTON_NETWORK_DELETE_ALL, _("Delete All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_NETWORK_DELETE_ALL"));
     BoxSizer1->Add(ButtonNetworkDeleteAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 3);
+    Button_Discover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+    BoxSizer1->Add(Button_Discover, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText5 = new wxStaticText(PanelSetup, ID_STATICTEXT8, _("\nE1.31 Sync Universe:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     BoxSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT, 2);
     SpinCtrl_SyncUniverse = new wxSpinCtrl(PanelSetup, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 63999, 0, _T("ID_SPINCTRL1"));
@@ -843,8 +892,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(Menu_GenerateCustomModel);
     MenuItem_GenerateLyrics = new wxMenuItem(Menu1, ID_MNU_GENERATELYRICS, _("Generate &Lyrics From Data"), _("Generate lyric phenomes from data"), wxITEM_NORMAL);
     Menu1->Append(MenuItem_GenerateLyrics);
+    MenuItem_Generate2DPath = new wxMenuItem(Menu1, ID_MENU_GENERATE2DPATH, _("Generate 2D Path"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_Generate2DPath);
+    MenuItem_PrepareAudio = new wxMenuItem(Menu1, ID_MNU_PREPAREAUDIO, _("Prepare Audio"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_PrepareAudio);
     MenuItemCheckSequence = new wxMenuItem(Menu1, ID_MNU_CHECKSEQ, _("C&heck Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemCheckSequence);
+    MenuItem_CleanupFileLocations = new wxMenuItem(Menu1, ID_MNU_CLEANUPFILE, _("Cleanup File Locations"), _("Moves all files into or under the show folder."), wxITEM_NORMAL);
+    Menu1->Append(MenuItem_CleanupFileLocations);
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
     MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log Files"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
@@ -1019,6 +1074,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItem28 = new wxMenuItem(GridSpacingMenu, ID_MENUITEM_GRID_ICON_XLARGE, _("Extra Large"), wxEmptyString, wxITEM_RADIO);
     GridSpacingMenu->Append(MenuItem28);
     MenuSettings->Append(ID_MENUITEM6, _("Grid Spacing"), GridSpacingMenu, wxEmptyString);
+    MenuItem60 = new wxMenu();
+    MenuItem_MHS_Normal = new wxMenuItem(MenuItem60, ID_MENUITEM24, _("Normal"), wxEmptyString, wxITEM_RADIO);
+    MenuItem60->Append(MenuItem_MHS_Normal);
+    MenuItem_MHS_Large = new wxMenuItem(MenuItem60, ID_MENUITEM25, _("Large"), wxEmptyString, wxITEM_RADIO);
+    MenuItem60->Append(MenuItem_MHS_Large);
+    MenuItem_MHS_ExtraLarge = new wxMenuItem(MenuItem60, ID_MENUITEM26, _("Extra Large"), wxEmptyString, wxITEM_RADIO);
+    MenuItem60->Append(MenuItem_MHS_ExtraLarge);
+    MenuSettings->Append(ID_MENUITEM23, _("Model Handle Size"), MenuItem60, wxEmptyString);
     MenuItem_Grid_Icon_Backgrounds = new wxMenu();
     MenuItemGridIconBackgroundOn = new wxMenuItem(MenuItem_Grid_Icon_Backgrounds, ID_MENUITEM_GRID_ICON_BACKGROUND_ON, _("On"), wxEmptyString, wxITEM_CHECK);
     MenuItem_Grid_Icon_Backgrounds->Append(MenuItemGridIconBackgroundOn);
@@ -1071,15 +1134,28 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     OpenGLMenu->Append(MenuItem40);
     MenuItem41 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem41);
-    MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_RADIO);
-    OpenGLMenu->Append(MenuItem42);
-    MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_RADIO);
+    MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x/2.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem43);
+    OpenGLMenu->AppendSeparator();
+    MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO1, _("Render Order 1"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem42);
+    MenuItem55 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO2, _("Render Order 2"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem55);
+    MenuItem56 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO3, _("Render Order 3"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem56);
+    MenuItem57 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO4, _("Render Order 4"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem57);
+    MenuItem58 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO5, _("Render Order 5"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem58);
+    MenuItem59 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO6, _("Render Order 6"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem59);
     MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), OpenGLMenu, wxEmptyString);
     MenuItem_PlayControlsOnPreview = new wxMenuItem(MenuSettings, ID_MNU_PLAYCONTROLSONPREVIEW, _("Play Controls On Preview"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_PlayControlsOnPreview);
     MenuItem_AutoShowHousePreview = new wxMenuItem(MenuSettings, ID_MNU_AUTOSHOWHOUSEPREVIEW, _("Auto Show House Preview"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_AutoShowHousePreview);
+    MenuItem_SuppressFadeHints = new wxMenuItem(MenuSettings, ID_MNU_SUPPRESS_TRANSITION_HINTS, _("Suppress Transition Hints"), wxEmptyString, wxITEM_CHECK);
+    MenuSettings->Append(MenuItem_SuppressFadeHints);
     AutoSaveMenu = new wxMenu();
     MenuItem44 = new wxMenuItem(AutoSaveMenu, ID_MENUITEM_AUTOSAVE_0, _("Disabled"), wxEmptyString, wxITEM_RADIO);
     AutoSaveMenu->Append(MenuItem44);
@@ -1118,8 +1194,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(MenuItem_ModelBlendDefaultOff);
     MenuItem_SnapToTimingMarks = new wxMenuItem(MenuSettings, ID_MNU_SNAP_TO_TIMING, _("Snap to Timing Marks"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_SnapToTimingMarks);
+    MenuItem54 = new wxMenu();
+    MenuItemFSEQV1 = new wxMenuItem(MenuItem54, ID_MENUITEM21, _("V1"), wxEmptyString, wxITEM_RADIO);
+    MenuItem54->Append(MenuItemFSEQV1);
+    MenuItemFSEQV2 = new wxMenuItem(MenuItem54, ID_MENUITEM22, _("V2"), wxEmptyString, wxITEM_RADIO);
+    MenuItem54->Append(MenuItemFSEQV2);
+    MenuSettings->Append(ID_MENUITEM1, _("FSEQ Version"), MenuItem54, wxEmptyString);
+    MenuItem_Random_Set = new wxMenuItem(MenuSettings, ID_MENUITEM_RANDON, _("Set Allowed Random Effects"), wxEmptyString, wxITEM_NORMAL);
+    MenuSettings->Append(MenuItem_Random_Set);
+    MenuItem_EmailAddress = new wxMenuItem(MenuSettings, ID_MNU_EMAIL, _("eMail Address"), wxEmptyString, wxITEM_NORMAL);
+    MenuSettings->Append(MenuItem_EmailAddress);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
+    MenuItem_UserManual = new wxMenuItem(MenuHelp, ID_MNU_MANUAL, _("User Manual"), wxEmptyString, wxITEM_NORMAL);
+    MenuHelp->Append(MenuItem_UserManual);
     MenuItem_Zoom = new wxMenuItem(MenuHelp, ID_MNU_ZOOM, _("Zoom"), wxEmptyString, wxITEM_NORMAL);
     MenuHelp->Append(MenuItem_Zoom);
     MenuItem_ShowKeyBindings = new wxMenuItem(MenuHelp, ID_MNU_KEYBINDINGS, _("Key Bindings"), wxEmptyString, wxITEM_NORMAL);
@@ -1171,6 +1259,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_AUITOOLBARITEM4,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_AUITOOLBARITEM6,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
     Connect(ID_AUITOOLBARITEM8,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemShowHideEffects);
+    Connect(ID_AUITOOLBARITEM9,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
     Connect(ID_PASTE_BY_TIME,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByTimeClick);
     Connect(ID_PASTE_BY_CELL,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemPasteByCellClick);
     Connect(ID_AUITOOLBARITEM_ACDISABLED,wxEVT_COMMAND_TOOL_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnAC_DisableClick);
@@ -1206,9 +1295,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonArtNETClick);
     Connect(ID_BUTTON_ADD_LOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddLORClick);
     Connect(ID_BUTTON_ADD_DDP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonAddDDPClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_AddZCPPClick);
     Connect(ID_BUTTON_NETWORK_CHANGE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkChangeClick);
     Connect(ID_BUTTON_NETWORK_DELETE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteClick);
     Connect(ID_BUTTON_NETWORK_DELETE_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkDeleteAllClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButton_DiscoverClick);
     Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&xLightsFrame::OnSpinCtrl_SyncUniverseChange);
     Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
     Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
@@ -1239,7 +1330,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_CONVERT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(ID_MNU_GENERATELYRICS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
+    Connect(ID_MENU_GENERATE2DPATH,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Generate2DPathSelected);
+    Connect(ID_MNU_PREPAREAUDIO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
     Connect(ID_MNU_CHECKSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
+    Connect(ID_MNU_CLEANUPFILE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CleanupFileLocationsSelected);
     Connect(ID_MENU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
@@ -1314,6 +1408,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_GRID_ICON_MEDIUM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_LARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
     Connect(ID_MENUITEM_GRID_ICON_XLARGE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::SetIconSize);
+    Connect(ID_MENUITEM24,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MHS_NormalSelected);
+    Connect(ID_MENUITEM25,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MHS_LargeSelected);
+    Connect(ID_MENUITEM26,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_MHS_ExtraLargeSelected);
     Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
     Connect(ID_MENUITEM_GRID_ICON_BACKGROUND_OFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridIconBackground);
     Connect(ID_MENUITEM_GRID_NODE_VALUES_ON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnSetGridNodeValues);
@@ -1331,10 +1428,16 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENU_TIMING_PLAY_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemTimingPlayOnDClick);
     Connect(ID_MENU_OPENGL_AUTO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
-    Connect(ID_MENU_OPENGL_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
+    Connect(ID_MENUITEM_OGL_RO1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO6,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
     Connect(ID_MNU_PLAYCONTROLSONPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected);
     Connect(ID_MNU_AUTOSHOWHOUSEPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_AutoShowHousePreviewSelected);
+    Connect(ID_MNU_SUPPRESS_TRANSITION_HINTS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem61Selected);
     Connect(ID_MENUITEM_AUTOSAVE_0,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
     Connect(ID_MENUITEM_AUTOSAVE_10,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
@@ -1351,6 +1454,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
     Connect(ID_MNU_DEFAULTMODELBLENDOFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected);
     Connect(ID_MNU_SNAP_TO_TIMING,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SnapToTimingMarksSelected);
+    Connect(ID_MENUITEM21,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV1Selected);
+    Connect(ID_MENUITEM22,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2Selected);
+    Connect(ID_MENUITEM_RANDON,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_Random_SetSelected);
+    Connect(ID_MNU_EMAIL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_EmailAddressSelected);
+    Connect(ID_MNU_MANUAL,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_UserManualSelected);
     Connect(ID_MNU_ZOOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ZoomSelected);
     Connect(ID_MNU_KEYBINDINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
@@ -1372,6 +1480,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(xLightsFrame::OnCharHook), nullptr, this);
+    Connect(ID_LISTCTRL_NETWORKS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& xLightsFrame::OnGridNetworkRClick);
 
     _suppressDuplicateFrames = 0;
 
@@ -1413,6 +1522,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     SetPanelSequencerLabel("");
 
+    _outputModelManager.SetFrame(this);
+
 	mRendering = false;
 
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
@@ -1421,7 +1532,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     info.BestSize(sz);
     MainAuiManager->Update();
 
-    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
+    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
@@ -1466,10 +1577,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     mSaveFseqOnSave = true;
     mBackupOnSave = false;
     mBackupOnLaunch = true;
+    mSuppressFadeHints = false;
     me131Sync = false;
     mLocalIP = "";
     mAltBackupDir = "";
     mIconSize = 16;
+    _modelHandleSize = 1;
 
     _acParm1Intensity = 100;
     _acParm1RampUp = 0;
@@ -1529,6 +1642,36 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
     MenuItem_SnapToTimingMarks->Check(_snapToTimingMarks);
     logger_base.debug("Snap To Timing Marks: %s.", _snapToTimingMarks ? "true" : "false");
+
+    config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
+    MenuItemFSEQV1->Check(_fseqVersion == 1);
+    MenuItemFSEQV2->Check(_fseqVersion == 2);
+
+    config->Read("xLightsPlayVolume", &playVolume, 100);
+    MenuItem_LoudVol->Check(playVolume == 100);
+    MenuItem_MedVol->Check(playVolume == 66);
+    MenuItem_QuietVol->Check(playVolume == 33);
+    MenuItem_VQuietVol->Check(playVolume == 10);
+    SDL::SetGlobalVolume(playVolume);
+
+    wxString randomEffects = "";
+    config->Read("xLightsRandomEffects", &randomEffects);
+    if(randomEffects.IsEmpty())
+    {
+        for (int i = 0; i < effectManager.size(); i++)
+        {
+            if (effectManager[i]->CanBeRandom())
+            {
+                _randomEffectsToUse.Add(effectManager[i]->Name());
+            }
+        }
+        randomEffects = wxJoin(_randomEffectsToUse, ',');
+        config->Write("xLightsRandomEffects", randomEffects);
+    }
+    else
+    {
+        _randomEffectsToUse = wxSplit(randomEffects, ',');
+    }
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -1604,6 +1747,14 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     itemCol.SetAlign(wxLIST_FORMAT_LEFT);
     GridNetwork->InsertColumn(8, itemCol);
 
+    itemCol.SetText(_T("Controller Type"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(9, itemCol);
+
+    itemCol.SetText(_T("FPP Proxy"));
+    itemCol.SetAlign(wxLIST_FORMAT_LEFT);
+    GridNetwork->InsertColumn(10, itemCol);
+
     GridNetwork->SetColumnWidth(0, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
     GridNetwork->SetColumnWidth(2, 100);
@@ -1613,6 +1764,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     GridNetwork->SetColumnWidth(6, wxLIST_AUTOSIZE_USEHEADER);
 	GridNetwork->SetColumnWidth(7, wxLIST_AUTOSIZE);
     GridNetwork->SetColumnWidth(8, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(9, wxLIST_AUTOSIZE_USEHEADER);
+    GridNetwork->SetColumnWidth(10, wxLIST_AUTOSIZE_USEHEADER);
 
     _scrollTimer.Connect(wxEVT_TIMER,
         wxTimerEventHandler(xLightsFrame::OnGridNetworkScrollTimer), nullptr, this);
@@ -1664,6 +1817,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         mediaDirectory=dir;
     }
     ObtainAccessToURL(mediaDirectory.ToStdString());
+
+    config->Read("xLightsUserEmail", &_userEmail, "");
+    if (_userEmail == "") CollectUserEmail();
+    if (_userEmail != "noone@nowhere.xlights.org") logger_base.debug("User email address: <email>%s</email>", (const char*)_userEmail.c_str());
 
     logger_base.debug("Media directory %s.", (const char *)mediaDirectory.c_str());
 
@@ -1723,9 +1880,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             _enableRenderCache = "Locked Only";
             MenuItem_RC_LockedOnly->Check(true);
         }
-        logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
-        _renderCache.Enable(_enableRenderCache);
     }
+    logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
+    _renderCache.Enable(_enableRenderCache);
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
@@ -1747,6 +1904,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
         mRenderOnSave = false;
     }
 
+    config->Read("xLightsModelHandleSize", &_modelHandleSize, 1);
+    switch (_modelHandleSize)
+    {
+    case 1:
+        MenuItem_MHS_Normal->Check();
+        break;
+    case 2:
+        MenuItem_MHS_Large->Check();
+        break;
+    case 3:
+        MenuItem_MHS_ExtraLarge->Check();
+        break;
+    }
+    logger_base.debug("Model Handle Size: %d.", _modelHandleSize);
+
     config->Read("xLightsBackupOnSave", &mBackupOnSave, false);
     mBackupOnSaveMenuItem->Check(mBackupOnSave);
     logger_base.debug("Backup on save: %s.", mBackupOnSave? "true" : "false");
@@ -1754,6 +1926,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsBackupOnLaunch", &mBackupOnLaunch, true);
     MenuItem_BackupOnLaunch->Check(mBackupOnLaunch);
     logger_base.debug("Backup on launch: %s.", mBackupOnLaunch? "true" : "false");
+
+    config->Read("xLightsSuppressFadeHints", &mSuppressFadeHints, false);
+    MenuItem_SuppressFadeHints->Check(mSuppressFadeHints);
+    logger_base.debug("Suppress Transition Hints: %s.", mSuppressFadeHints ? "true" : "false");
 
     config->Read(_("xLightsAltBackupDir"), &mAltBackupDir);
     logger_base.debug("Alternate Backup Dir: '%s'.", (const char *)mAltBackupDir.c_str());
@@ -1881,10 +2057,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Write("LastOpenGLVer", glVer);
     switch (glVer) {
         case 1:
+            case 2:
             OpenGLMenu->Check(ID_MENU_OPENGL_1, true);
-            break;
-        case 2:
-            OpenGLMenu->Check(ID_MENU_OPENGL_2, true);
             break;
         case 3:
             OpenGLMenu->Check(ID_MENU_OPENGL_3, true);
@@ -1894,24 +2068,44 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             break;
     }
 
+
+    config->Read("OGLRenderOrder", &glVer, 0);
+    switch (glVer) {
+        case 0:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO1, true);
+            break;
+        case 1:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO2, true);
+            break;
+        case 2:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO3, true);
+            break;
+        case 3:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO4, true);
+            break;
+        case 4:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO5, true);
+            break;
+        case 5:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO6, true);
+            break;
+    }
+
     config->Read("xLightsGridSpacing", &mGridSpacing, 16);
-    if (mGridSpacing != 16)
-    {
+    if (mGridSpacing != 16) {
         int idi = ID_MENUITEM_GRID_ICON_MEDIUM;
-        if (mGridSpacing == 32)
-        {
+        if (mGridSpacing == 32) {
             idi = ID_MENUITEM_GRID_ICON_LARGE;
-        }
-        else if (mGridSpacing >= 48)
-        {
+        } else if (mGridSpacing >= 48) {
             idi = ID_MENUITEM_GRID_ICON_XLARGE;
-        }
-        else if (mGridSpacing <= 12)
-        {
+        } else if (mGridSpacing <= 12) {
             idi = ID_MENUITEM_GRID_ICON_XSMALL;
         }
         wxCommandEvent eventi(wxEVT_NULL, idi);
         SetIconSize(eventi);
+    } else {
+        //make sure the 16 size is checked
+        GridSpacingMenu->Check(ID_MENUITEM_GRID_ICON_SMALL, true);
     }
     logger_base.debug("Grid spacing: %d.", mGridSpacing);
 
@@ -1945,13 +2139,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuItemEffectAssistToggleMode->Check(mEffectAssistMode==EFFECT_ASSIST_TOGGLE_MODE);
     logger_base.debug("Effect Assist Mode: %s.", mEffectAssistMode ? "true" : "false");
 
-    _setupChanged = false;
     InitEffectsPanel(EffectsPanel1);
     logger_base.debug("Effects panel initialised.");
 
     EffectTreeDlg = nullptr;  // must be before any call to SetDir
 
-    SetPlayMode(play_off);
+    starttime = wxDateTime::UNow();
     ResetEffectsXml();
     EnableSequenceControls(true);
     if (ok && !dir.IsEmpty())
@@ -2120,14 +2313,18 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
+    config->Write("xLightsFSEQVersion", _fseqVersion);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
+    config->Write("xLightsSuppressFadeHints", mSuppressFadeHints);
     config->Write("xLightse131Sync", me131Sync);
     config->Write("xLightsLocalIP", mLocalIP);
     config->Write("xLightsEffectAssistMode", mEffectAssistMode);
     config->Write("xLightsAltBackupDir", mAltBackupDir);
     config->Write("xFadePort", _xFadePort);
+    config->Write("xLightsModelHandleSize", _modelHandleSize);
+    config->Write("xLightsPlayVolume", playVolume);
 
     //definitely not outputting data anymore
     config->Write("OutputActive", false);
@@ -2171,7 +2368,12 @@ void xLightsFrame::OnIdle(wxIdleEvent& event) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Idle event called");
     Unbind(wxEVT_IDLE, &xLightsFrame::OnIdle,this);
-    CheckForUpdate(false);
+ 
+    // dont check for updates if batch rendering
+    if (!_renderMode)
+    {
+        CheckForUpdate(false);
+    }
 }
 
 void xLightsFrame::DoMenuAction(wxMenuEvent &evt) {
@@ -2216,33 +2418,18 @@ void xLightsFrame::LogPerspective(const wxString & perspective) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxArrayString entries = wxSplit(perspective, '|');
-    for (auto it = entries.begin(); it != entries.end(); ++it)
+    for (auto it : entries)
     {
-        logger_base.debug("    %s", (const char *)it->c_str());
+        logger_base.debug("    %s", (const char *)it.c_str());
     }
 }
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString hdg = wxString::Format(_("About xLights %s %s"), xlights_version_string, GetBitness());
-    wxString ver = wxString::Format(_("xLights\nVersion: %s  -  %s\n\n"), xlights_version_string, GetBitness());
+    wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
+    wxString ver = wxString::Format(_("xLights\nVersion: %s\n\n"), GetDisplayVersionString());
     wxMessageDialog dlg(this, ver + XLIGHTS_LICENSE, hdg);
     dlg.ShowModal();
-}
-
-void xLightsFrame::SetPlayMode(play_modes newmode)
-{
-    switch (newmode)
-    {
-    case play_off:
-        SetStatusText(_("Playback: off"));
-        break;
-    default:
-        break;
-    }
-
-    play_mode = newmode;
-    starttime = wxDateTime::UNow();
 }
 
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
@@ -2347,9 +2534,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             savedPaneShown[info[x].name] = false;
             if (info[x].IsOk())
             {
-                if (info[x].IsFloating() && info[x].IsShown())
+                if (info[x].frame != nullptr)
                 {
-                    savedPaneShown[info[x].name] = true;
+                    if (info[x].IsFloating() && info[x].IsShown())
+                    {
+                        savedPaneShown[info[x].name] = true;
+                    }
                     info[x].frame->Hide();
                 }
             }
@@ -2383,23 +2573,22 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     logger_base.debug("xLightsFrame::ShowHideAllSequencerWindows - layout previews - done");
 }
 
-void xLightsFrame::RecalcModels(bool force)
+void xLightsFrame::RecalcModels()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        RecalcModels.");
+
     if (IsExiting()) return;
 
-    if (force || _setupChanged)
+    SetCursor(wxCURSOR_WAIT);
+    // Now notify the layout as the model start numbers may have been impacted
+    if (AllModels.RecalcStartChannels())
     {
-        SetCursor(wxCURSOR_WAIT);
-        // Now notify the layout as the model start numbers may have been impacted
-        AllModels.OldRecalcStartChannels();
-        //AllModels.NewRecalcStartChannels();
-        if (layoutPanel != nullptr) {
-            layoutPanel->RefreshLayout();
-        }
-
-        _setupChanged = false;
-        SetCursor(wxCURSOR_ARROW);
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "RecalcModels");
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "RecalcModels");
     }
+
+    SetCursor(wxCURSOR_ARROW);
 }
 
 void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
@@ -2408,15 +2597,34 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
         event.Veto();
         return;
     }
+
     if (event.GetOldSelection() == NEWSEQUENCER)
     {
+        layoutPanel->Set3d(_housePreviewPanel->Is3d());
         ShowHideAllSequencerWindows(false);
     }
     else if (event.GetOldSelection() == SETUPTAB)
     {
         layoutPanel->UnSelectAllModels();
-        RecalcModels();
     }
+    else if (event.GetOldSelection() == LAYOUTTAB)
+    {
+        _housePreviewPanel->Set3d(layoutPanel->Is3d());
+    }
+
+    if (event.GetSelection() == SETUPTAB)
+    {
+        DoSetupWork();
+    }
+    else if (event.GetSelection() == LAYOUTTAB)
+    {
+        DoLayoutWork();
+    }
+}
+
+void xLightsFrame::RenderLayout()
+{
+    layoutPanel->RenderLayout();
 }
 
 void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
@@ -2425,10 +2633,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
-        // these commented out lines were already setup when rgbeffects file was loaded and it messes up multiple preview loading.
-        //modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
-        //modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
-        UpdatePreview();
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "OnNotebook1PageChanged");
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);
         MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
@@ -2437,7 +2642,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
-        EffectSettingsTimer.Start(50);
+        EffectSettingsTimer.Start(50, wxTIMER_CONTINUOUS);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
     }
@@ -2475,7 +2680,7 @@ bool xLightsFrame::EnableOutputs(bool ignoreCheck)
     {
         if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess())
         {
-            wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+            DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
         }
 
         ok = _outputManager.StartOutput();
@@ -2501,6 +2706,7 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonAddE131->Enable(flag);
     ButtonAddDDP->Enable(flag);
     ButtonArtNET->Enable(flag);
+    Button_AddZCPP->Enable(flag);
     ButtonAddNull->Enable(flag);
     ButtonAddLOR->Enable(flag);
     ButtonNetworkChange->Enable(flag);
@@ -2508,6 +2714,7 @@ void xLightsFrame::EnableNetworkChanges()
     ButtonNetworkDeleteAll->Enable(flag);
     BitmapButtonMoveNetworkUp->Enable(flag);
     BitmapButtonMoveNetworkDown->Enable(flag);
+    Button_Discover->Enable(flag);
     SpinCtrl_SyncUniverse->Enable(flag);
     ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
@@ -2528,7 +2735,7 @@ void xLightsFrame::StopNow(void)
 		CurrentSeqXmlFile->GetMedia()->Stop();
 	}
     heartbeat("playback end", true); //tell fido to stop watching -DJ
-    SetPlayMode(play_off);
+    starttime = wxDateTime::UNow();
     switch (actTab)
     {
     case NEWSEQUENCER:
@@ -2597,14 +2804,14 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     inClose = true;
 
-	logger_base.info("xLights Closing");
+    logger_base.info("xLights Closing");
 
-	StopNow();
+    StopNow();
 
-	if (!CloseSequence())
+    if (!CloseSequence())
     {
-		logger_base.info("Closing aborted.");
-		event.Veto();
+        logger_base.info("Closing aborted.");
+        event.Veto();
         inClose = false;
         return;
     }
@@ -2628,10 +2835,10 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     heartbeat("exit", true); //tell fido about graceful exit -DJ
 
     Destroy();
-	logger_base.info("xLights Closed.");
+    logger_base.info("xLights Closed.");
 
     inClose = false;
-    }
+}
 
 void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 {
@@ -2648,8 +2855,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
-        logger_base.error("Unable to create backup directory '%s'", (const char *)newDirBackup.c_str());
-        wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create backup directory '%s'!", newDirBackup).ToStdString());
         return;
     }
 
@@ -2679,8 +2885,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (tries == 11)
     {
-        logger_base.error("Unable to find a unique name for backup directory");
-        wxMessageBox("Unable to find a unique name for backup directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
+        DisplayError("Unable to find a unique name for backup directory! Backup failed.");
         return;
     }
 
@@ -2695,8 +2900,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (!newDirH.Mkdir(newDir))
     {
-        logger_base.error("Unable to create backup directory '%s'", (const char *)newDir.c_str());
-        wxMessageBox("Unable to create directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create directory '%s'! Backup failed.", newDir).ToStdString());
         return;
     }
     else
@@ -2709,7 +2913,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (errors != "")
     {
-        wxMessageBox(errors, "Backup errors", 4 | wxCENTRE, this);
+        DisplayError(errors, this);
     }
 }
 
@@ -2812,6 +3016,7 @@ void xLightsFrame::BackupDirectory(wxString sourceDir, wxString targetDirName, w
 
     if (CopyFiles("*.xml", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
         CopyFiles("*.xbkp", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
+        CopyFiles("*.xmap", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) +
         CopyFiles("*.xschedule", srcDir, targetDirName, lastCreatedDirectory, forceallfiles, errors) > 0)
     {
         lastCreatedDirectory = targetDirName;
@@ -2932,7 +3137,7 @@ void xLightsFrame::SetXmlSetting(const wxString& settingName,const wxString& val
     SettingsNode->AddChild(setting);
 }
 
-wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue)
+wxString xLightsFrame::GetXmlSetting(const wxString& settingName, const wxString& defaultValue) const
 {
     // Delete existing setting node
     for(wxXmlNode* e = SettingsNode->GetChildren(); e != nullptr; e = e->GetNext())
@@ -3223,8 +3428,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     else
     {
-        logger_base.error("Exporting house-preview video failed!");
-        wxMessageBox(_("Exporting house preview video failed"), _("Export failure"), wxOK | wxCENTRE, this);
+        DisplayError("Exporting house preview video failed", this);
     }
 }
 
@@ -3287,7 +3491,7 @@ void xLightsFrame::SetIconSize(wxCommandEvent& event)
 
 void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
 {
-    wxMessageBox("Toolbar locations will reset to defaults upon restart.");
+    DisplayInfo("Toolbar locations will reset to defaults upon restart.", this);
     mResetToolbars = true;
 }
 
@@ -3468,7 +3672,7 @@ void xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event)
         mRenderOnSaveMenuItem->Check(false);
         mRenderOnSaveMenuItem->Enable(false);
         mRenderOnSave = false;
-        wxMessageBox("Turning off save of the FSEQ is really not recommended. This will often require you to re-render a sequence every time you load it ... all to save yourself a couple of seconds save time.");
+        DisplayWarning("Turning off save of the FSEQ is really not recommended. This will often require you to re-render a sequence every time you load it ... all to save yourself a couple of seconds save time.", this);
     }
 }
 
@@ -3585,17 +3789,24 @@ void xLightsFrame::CheckUnsavedChanges()
     }
 }
 
-void xLightsFrame::MarkEffectsFileDirty(bool modelStructureChange)
+void xLightsFrame::MarkEffectsFileDirty()
 {
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkEffectsFileDirty.");
+
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges=true;
-    if (modelStructureChange) {
-        modelsChangeCount++;
-    }
 }
 
-unsigned int xLightsFrame::GetMaxNumChannels() {
-    return std::max(_outputManager.GetTotalChannels(), (long)AllModels.GetLastChannel() + 1);
+void xLightsFrame::MarkModelsAsNeedingRender()
+{
+    static log4cpp::Category& logger_work = log4cpp::Category::getInstance(std::string("log_work"));
+    logger_work.debug("        MarkModelsAsNeedingRender %d.", modelsChangeCount);
+    modelsChangeCount++;
+}
+
+uint32_t xLightsFrame::GetMaxNumChannels() {
+    return std::max((uint32_t)_outputManager.GetTotalChannels(), (uint32_t)(AllModels.GetLastChannel() + 1));
 }
 
 void xLightsFrame::UpdateSequenceLength()
@@ -3620,6 +3831,8 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
 	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
@@ -3627,6 +3840,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 		mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
 		if (mps == MEDIAPLAYINGSTATE::PLAYING)
 		{
+            logger_base.debug("Test: Suspending play.");
 			CurrentSeqXmlFile->GetMedia()->Pause();
 			SetAudioControls();
 		}
@@ -3638,6 +3852,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	bool output = CheckBoxLightOutput->IsChecked();
 	if (output)
 	{
+        logger_base.debug("Test: Turning off output to lights.");
         _outputManager.AllOff();
         CheckBoxLightOutput->SetValue(false);
         EnableOutputs();
@@ -3646,26 +3861,36 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	// creating the dialog can take some time so display an hourglass
 	SetCursor(wxCURSOR_WAIT);
 
+    // Make sure all the models in model groups are valid
+    AllModels.ResetModelGroups();
+
+    logger_base.debug("Test: Opening test dialog.");
+
 	// display the test dialog
     PixelTestDialog dialog(this, &_outputManager, networkFile, &AllModels);
     dialog.CenterOnParent();
     dialog.ShowModal();
+
+    logger_base.debug("Test: Test dialog closed.");
 
 	SetCursor(wxCURSOR_DEFAULT);
 
 	// resume output if it was set
 	if (output)
 	{
+        logger_base.debug("Test: Turning back on output to lights.");
         CheckBoxLightOutput->SetValue(true);
         EnableOutputs();
 	}
 
+    // Restart the timer without changing the interval
 	Timer1.Start();
 
 	// resume playing the media if it was playing
 	if (mps == MEDIAPLAYINGSTATE::PLAYING)
 	{
-		CurrentSeqXmlFile->GetMedia()->Play();
+        logger_base.debug("Test: Resuming play.");
+        CurrentSeqXmlFile->GetMedia()->Play();
 		SetAudioControls();
 	}
 }
@@ -3747,6 +3972,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
         EnableOutputs();
     }
 
+    // restarts the timer without changing the interval
     Timer1.Start();
 
     // resume playing the media if it was playing
@@ -3770,9 +3996,16 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
 
     wxDateTime now = wxDateTime::Now();
     int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+
+    wxString ver = xlights_version_string + xlights_qualifier;
+    ver.Trim();
+    for (int x = 0; x < ver.length(); x++) {
+        if (ver[x] == ' ') ver[x] = '-';
+    }
+
     wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
 
-    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
+    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, GetBitness(), ts);
     const char *ct = "Content-Type: application/octet-stream\n";
     std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
 
@@ -3938,7 +4171,6 @@ static void AddLogFile(const wxString &CurrentDir, const wxString &fileName, wxD
 
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport &report) {
 
-
     wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
     if (fn.Exists()) {
         report.AddFile(fn.GetFullPath(), OutputManager::GetNetworksFileName());
@@ -3998,20 +4230,48 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     OpenGLMenu->Check(ID_MENU_OPENGL_AUTO, false);
     OpenGLMenu->Check(ID_MENU_OPENGL_3, false);
-    OpenGLMenu->Check(ID_MENU_OPENGL_2, false);
     OpenGLMenu->Check(ID_MENU_OPENGL_1, false);
 
     if (event.GetId() == ID_MENU_OPENGL_AUTO) {
         config->Write("ForceOpenGLVer", 99);
     } else if (event.GetId() == ID_MENU_OPENGL_3) {
         config->Write("ForceOpenGLVer", 3);
-    } else if (event.GetId() == ID_MENU_OPENGL_2) {
-        config->Write("ForceOpenGLVer", 2);
     } else if (event.GetId() == ID_MENU_OPENGL_1) {
         config->Write("ForceOpenGLVer", 1);
     }
     OpenGLMenu->Check(event.GetId(), true);
-    wxMessageBox("OpenGL changes require a restart\n");
+    DisplayInfo("OpenGL changes require a restart", this);
+}
+void xLightsFrame::OnMenuItemOGLRenderOrder(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO1, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO2, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO3, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO4, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO5, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO6, false);
+
+    int order = 0;
+    if (event.GetId() == ID_MENUITEM_OGL_RO1) {
+        order = 0;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO2) {
+        order = 1;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO3) {
+        order = 2;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO4) {
+        order = 3;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO5) {
+        order = 4;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO6) {
+        order = 5;
+    }
+    config->Write("OGLRenderOrder", order);
+    OpenGLMenu->Check(event.GetId(), true);
+
+    _housePreviewPanel->GetModelPreview()->SetRenderOrder(order);
+    _modelPreviewPanel->SetRenderOrder(order);
+    modelPreview->SetRenderOrder(order);
 }
 
 void xLightsFrame::SaveWorkingLayout()
@@ -4019,7 +4279,17 @@ void xLightsFrame::SaveWorkingLayout()
     // update xml with offsets and scale
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        modelPreview->GetModels()[i]->UpdateXmlWithScale();
+        if (AllModels.IsModelValid(modelPreview->GetModels()[i]) || IsNewModel(modelPreview->GetModels()[i])) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
+            modelPreview->GetModels()[i]->UpdateXmlWithScale();
+        }
+        else
+        {
+            wxASSERT(false); // why did we get here
+        }
+    }
+    for (auto it = AllObjects.begin(); it != AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        view_object->UpdateXmlWithScale();
     }
     SaveEffectsFile(true);
 }
@@ -4197,7 +4467,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
     wxString newDirBackup = mAltBackupDir + wxFileName::GetPathSeparator() + "Backup";
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
-        wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create backup directory '%s'!", newDirBackup).ToStdString());
         return;
     }
 
@@ -4216,7 +4486,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox("Unable to create directory!", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create directory '%s'!", newDir).ToStdString());
         return;
     }
 
@@ -4225,7 +4495,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 
     if (errors != "")
     {
-        wxMessageBox(errors, "Backup errors", 4 | wxCENTRE, this);
+        DisplayError(errors, this);
     }
 }
 
@@ -4258,7 +4528,7 @@ void xLightsFrame::ExportModels(wxString filename)
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("Export Error"));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
 
@@ -4267,14 +4537,14 @@ void xLightsFrame::ExportModels(wxString filename)
         layoutPanel->UnSelectAllModels();
     RecalcModels();
 
-    long minchannel = 99999999;
-    long maxchannel = -1;
+    uint32_t minchannel = 99999999;
+    int32_t maxchannel = -1;
 
     f.Write(_("Model Name,Description,Display As,String Type,String Count,Node Count,Light Count,Est Current (Amps),Channels Per Node, Channel Count,Start Channel,Start Channel No,End Channel No,Default Buffer W x H,Preview,Controller Connection,Controller Type,Controller Description,Output,IP,Baud,Universe/Id,Controller Channel,Inactive\n"));
 
-    for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
+    for (auto m : AllModels)
     {
-        Model* model = m->second;
+        Model* model = m.second;
         if (model->GetDisplayAs() == "ModelGroup")
         {
             ModelGroup* mg = static_cast<ModelGroup*>(model);
@@ -4291,14 +4561,14 @@ void xLightsFrame::ExportModels(wxString filename)
                 }
             }
             int w, h;
-            model->GetBufferSize("Default", "None", w, h);
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%ld,%ld,%d x %d,%s,,,,,,,,\n",
+            model->GetBufferSize("Default", "2D", "None", w, h);
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%lu,,%lu,%lu,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
                 model->GetDisplayAs(),
                 model->GetChanCount(),
-                (long)model->GetFirstChannel() + 1,
-                (long)model->GetLastChannel() + 1,
+                model->GetFirstChannel() + 1,
+                model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup()
             ));
@@ -4306,9 +4576,9 @@ void xLightsFrame::ExportModels(wxString filename)
         else
         {
             wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
-            int ch = model->GetFirstChannel() + 1;
+            uint32_t ch = model->GetFirstChannel() + 1;
             std::string type, description, ip, universe, inactive, baud;
-            long channeloffset;
+            int32_t channeloffset;
             int output;
             GetControllerDetailsForChannel(ch, type, description, channeloffset, ip, universe, inactive, output, baud);
 
@@ -4316,7 +4586,7 @@ void xLightsFrame::ExportModels(wxString filename)
 
             wxString stype = wxString(model->GetStringType());
 
-            long lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
+            int32_t lightcount = (long)(model->GetNodeCount() * model->GetLightsPerNode());
             if (!stype.Contains("Node"))
             {
                 if (model->GetNodeCount() == 1)
@@ -4335,25 +4605,25 @@ void xLightsFrame::ExportModels(wxString filename)
             }
 
             int w, h;
-            model->GetBufferSize("Default", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h);
 
-            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
+            f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%i,%i,%i,%s,%i,%i,%s,%i,%i,%i x %i,%s,%s,%s,\"%s\",%i,%s,%s,%s,%i,%s\n",
                 model->name,
                 model->description,
                 model->GetDisplayAs(),
                 model->GetStringType(),
-                (long)model->GetNumPhysicalStrings(),
-                (long)model->GetNodeCount(),
+                model->GetNumPhysicalStrings(),
+                model->GetNodeCount(),
                 lightcount,
                 current,
                 model->GetChanCountPerNode(),
-                (long)model->GetActChanCount(),
+                model->GetActChanCount(),
                 stch,
                 ch,
                 model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup(),
-                model->GetControllerConnection(),
+                model->GetControllerConnectionRangeString(),
                 type,
                 description,
                 output,
@@ -4366,15 +4636,15 @@ void xLightsFrame::ExportModels(wxString filename)
             {
                 minchannel = ch;
             }
-            if (ch + model->GetChanCount() - 1 > maxchannel)
+            if ((int32_t)(ch + model->GetChanCount() - 1) > maxchannel)
             {
                 maxchannel = ch + model->GetChanCount() - 1;
             }
         }
     }
 
-    int bulbs = 0;
-    int usedchannels = 0;
+    uint32_t bulbs = 0;
+    uint32_t usedchannels = 0;
     if (minchannel == 99999999)
     {
         // No channels so we dont do this
@@ -4386,9 +4656,9 @@ void xLightsFrame::ExportModels(wxString filename)
         int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
         memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
 
-        for (auto m = AllModels.begin(); m != AllModels.end(); m++)
+        for (auto m : AllModels)
         {
-            Model* model = m->second;
+            Model* model = m.second;
             if (model->GetDisplayAs() != "ModelGroup")
             {
                 wxString stch = model->GetModelXml()->GetAttribute("StartChannel", wxString::Format("%d?", model->NodeStartChannel(0) + 1)); //NOTE: value coming from model is probably not what is wanted, so show the base ch# instead
@@ -4443,11 +4713,20 @@ void xLightsFrame::ExportModels(wxString filename)
 
     f.Write("\n");
 
-    f.Write(wxString::Format("\"Model Count\",%d\n", AllModels.size()));
-    f.Write(wxString::Format("\"First Used Channel\",%ld\n", minchannel));
-    f.Write(wxString::Format("\"Last Used Channel\",%ld\n", maxchannel));
-    f.Write(wxString::Format("\"Actual Used Channel\",%d\n", usedchannels));
-    f.Write(wxString::Format("\"Bulbs\",%d\n", bulbs));
+    f.Write(wxString::Format("\"Model Count\",%i\n", (uint32_t)AllModels.size()));
+    f.Write(wxString::Format("\"First Used Channel\",%i\n", minchannel));
+    f.Write(wxString::Format("\"Last Used Channel\",%i\n", maxchannel));
+    f.Write(wxString::Format("\"Actual Used Channel\",%i\n", usedchannels));
+    f.Write(wxString::Format("\"Bulbs\",%i\n", bulbs));
+
+    f.Write("\n");
+    f.Write("\n");
+
+    f.Write(_outputManager.GetExportHeader() + "\n");
+    for (auto it : _outputManager.GetAllOutputs())
+    {
+        f.Write(it->GetExport() + "\n");
+    }
 
     f.Close();
 }
@@ -4474,12 +4753,20 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     wxString fileName = "xLights_l4cpp.log";
 #ifdef __WXMSW__
     wxGetEnv("APPDATA", &dir);
+    if (dir.EndsWith("/") || dir.EndsWith("\\"))
+    {
+        dir = dir.Left(dir.Length() - 1);
+    }
     wxString filename = dir + "/" + fileName;
 #endif
 #ifdef __WXOSX_MAC__
     wxFileName home;
     home.AssignHomeDir();
     dir = home.GetFullPath();
+    if (dir.EndsWith("/"))
+    {
+        dir = dir.Left(dir.Length() - 1);
+    }
     wxString filename = dir + "/Library/Logs/" + fileName;
 #endif
 #ifdef __LINUX__
@@ -4513,8 +4800,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     }
     else
     {
-        logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
-        wxMessageBox(_("Unable to show log file."), _("Error"));
+        DisplayError(wxString::Format("Unable to show log file '%s'.", fn).ToStdString(), this);
     }
 }
 
@@ -4600,8 +4886,7 @@ void xLightsFrame::CheckSequence(bool display)
         f.Open(filename, wxFile::write);
         if (!f.IsOpened())
         {
-            logger_base.warn("Unable to create results file for Check Sequence. Aborted.");
-            wxMessageBox(_("Unable to create results file for Check Sequence. Aborted."), _("Error"));
+            DisplayError("Unable to create results file for Check Sequence. Aborted.", this);
             return;
         }
     }
@@ -4664,6 +4949,13 @@ void xLightsFrame::CheckSequence(bool display)
         delete testSocket;
     }
 
+    LogAndWrite(f, "");
+    LogAndWrite(f, "IP Addresses on this machine:");
+    for (auto it : GetLocalIPs())
+    {
+        LogAndWrite(f, wxString::Format("    %s", it));
+    }
+
     int errcountsave = errcount;
     int warncountsave = warncount;
 
@@ -4690,12 +4982,12 @@ void xLightsFrame::CheckSequence(bool display)
 
     // Check for inactive outputs
     auto outputs = _outputManager.GetOutputs();
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (auto o : outputs)
     {
-        if (!(*it)->IsEnabled())
+        if (!o->IsEnabled())
         {
             wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:%s:'%s'.",
-                (*it)->GetOutputNumber(), (*it)->GetType(), (*it)->GetIP(), (*it)->GetUniverseString(), (*it)->GetCommPort(), (*it)->GetDescription());
+                o->GetOutputNumber(), o->GetType(), o->GetIP(), o->GetUniverseString(), o->GetCommPort(), o->GetDescription());
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -4714,15 +5006,15 @@ void xLightsFrame::CheckSequence(bool display)
 
     std::list<std::string> used;
     outputs = _outputManager.GetAllOutputs();
-    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    for (auto o : outputs)
     {
-        if ((*n)->IsIpOutput())
+        if (o->IsIpOutput())
         {
-            std::string usedval = (*n)->GetIP() + "|" + (*n)->GetUniverseString();
+            std::string usedval = o->GetIP() + "|" + o->GetUniverseString();
 
             if (std::find(used.begin(), used.end(), usedval) != used.end())
             {
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)(*n)->GetDescription().c_str(), (const char*)(*n)->GetIP().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)o->GetDescription().c_str(), (const char*)o->GetIP().c_str(), (const char *)o->GetUniverseString().c_str());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -4731,19 +5023,19 @@ void xLightsFrame::CheckSequence(bool display)
                 used.push_back(usedval);
             }
         }
-        else if ((*n)->IsSerialOutput())
+        else if (o->IsSerialOutput())
         {
-            if ((*n)->GetCommPort() != "NotConnected")
+            if (o->GetCommPort() != "NotConnected")
             {
-                if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+                if (std::find(used.begin(), used.end(), o->GetCommPort()) != used.end())
                 {
-                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)o->GetType().c_str(), (const char *)o->GetCommPort().c_str(), (const char*)o->GetDescription().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
                 else
                 {
-                    used.push_back((*n)->GetCommPort());
+                    used.push_back(o->GetCommPort());
                 }
             }
         }
@@ -4756,24 +5048,254 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // ZCPP Checks
+    std::list<Output*> zcppOutputs;
+    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    {
+        if ((*it)->GetType() == "ZCPP")
+        {
+            zcppOutputs.push_back(*it);
+        }
+    }
+
+    if (zcppOutputs.size() > 0)
+    {
+        LogAndWrite(f, "");
+        LogAndWrite(f, "ZCPP Checks");
+
+        // zcpp controllers with descriptions that clash with other outputs
+        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        {
+            if ((*it)->GetDescription() == "")
+            {
+                wxString msg = wxString::Format("    ERR: ZCPP controller on IP %s has no description. This is not valid.", (const char*)(*it)->GetIP().c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+
+            auto sit = it;
+            ++sit;
+            for (; sit != zcppOutputs.end(); ++sit)
+            {
+                if (*it == *sit)
+                {
+                    wxString msg = wxString::Format("    ERR: Multiple ZCPP outputs with the same description '%s'. This is not valid.", (const char*)(*it)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                    break;
+                }
+            }
+        }
+
+        // zcpp ip address must only be on one output ... no duplicates
+        for (auto it = zcppOutputs.begin(); it != zcppOutputs.end(); ++it)
+        {
+            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            {
+                if (*ito != *it && ((*it)->GetIP() == (*ito)->GetIP() || (*it)->GetIP() == (*ito)->GetResolvedIP()))
+                {
+                    wxString msg = wxString::Format("    ERR: ZCPP IP Address '%s' for controller '%s' used on another controller '%s'. This is not allowed.", (const char*)(*it)->GetIP().c_str(), (const char*)(*it)->GetDescription().c_str(), (const char*)(*ito)->GetDescription().c_str());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                    break;
+                }
+            }
+        }
+
+        std::map<std::string, std::map<std::string, std::list<Model*>>> modelsByPortByController;
+        for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+        {
+            if (it->second->GetControllerName() != "")
+            {
+                Output* o = _outputManager.GetOutput(it->second->GetControllerName());
+                if (o != nullptr)
+                {
+                    if (!it->second->IsControllerConnectionValid())
+                    {
+                        wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' has invalid controller connection '%s'.", (const char*)it->second->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)it->second->GetControllerConnectionString().c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        errcount++;
+                    }
+
+                    if (modelsByPortByController.find(o->GetDescription()) == modelsByPortByController.end())
+                    {
+                        std::map<std::string, std::list<Model*>> pm;
+                        modelsByPortByController[o->GetDescription()] = pm;
+                    }
+                    modelsByPortByController[o->GetDescription()][wxString::Format("%s:%d:%d", it->second->IsPixelProtocol() ? _("PIXEL") : _("SERIAL"), it->second->GetControllerPort() ,it->second->GetSmartRemote()).Lower().ToStdString()].push_back(it->second);
+                }
+            }
+        }
+
+        // Models with chains to models that dont exist or are not on same controller and port
+        // Multiple models with the same chain value on the same port on the same controller
+        // Loops in model chains
+
+        // for each controller
+        for (auto it = modelsByPortByController.begin(); it != modelsByPortByController.end(); ++it)
+        {
+            //it->first is controller
+            //it->second is a list of ports
+
+            Output* o = _outputManager.GetOutput(it->first);
+
+            // for each port
+            for (auto itp = it->second.begin(); itp != it->second.end(); ++itp)
+            {
+                // itp->first is the port name
+                // itp->second  is the model list
+
+                    // order the models
+                std::string last = "";
+
+                while (itp->second.size() > 0)
+                {
+                    bool pushed = false;
+                    for (auto itms = itp->second.begin(); itms != itp->second.end(); ++itms)
+                    {
+                        if (((*itms)->GetModelChain() == "Beginning" && last == "") ||
+                            (*itms)->GetModelChain() == last ||
+                            (*itms)->GetModelChain() == ">" + last)
+                        {
+                            pushed = true;
+                            last = (*itms)->GetName();
+                            itp->second.erase(itms);
+                            break;
+                        }
+                    }
+
+                    if (!pushed && itp->second.size() > 0)
+                    {
+                        // chain is broken ... so just put the rest in in random order
+                        while (itp->second.size() > 0)
+                        {
+                            wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.", (const char*)itp->second.front()->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)itp->second.front()->GetControllerConnectionString().c_str(), (const char*)itp->second.front()->GetModelChain().c_str());
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                            itp->second.pop_front();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Apply the vendor specific validations
+        for (auto it : zcppOutputs)
+        {
+            wxString msg = wxString::Format("        Applying controller rules for %s:%s", it->GetIP(), it->GetDescription());
+            LogAndWrite(f, msg.ToStdString());
+
+            std::list<int> outputNums;
+            std::string check;
+            UDController edc(it->GetIP(), it->GetIP(), &AllModels, &_outputManager, &outputNums, check);
+            if (check != "")
+            {
+                LogAndWrite(f, check);
+            }
+
+            check = "";
+
+            switch(((ZCPPOutput*)it)->GetVendor())
+            {
+            case ZCPP_VENDOR_FALCON:
+                // falcon
+                {
+                // FIXME ... need the right rules
+                    FalconControllerRules fcr(((ZCPPOutput*)it)->GetModel());
+                    edc.Check(&fcr, check);
+                }
+                break;
+            case ZCPP_VENDOR_FPP:
+                // fpp
+                {
+                    // FIXME ... need the right rules
+                    ControllerRules& fcr = FPP::GetCapeRules("");
+                    edc.Check(&fcr, check);
+                }
+            break;
+            case ZCPP_VENDOR_ESPIXELSTICK:
+                // fpp
+                {
+                    ESPixelStickControllerRules epscr;
+                    edc.Check(&epscr, check);
+                }
+            break;
+            default:
+                LogAndWrite(f, "Unknown controller vendor.");
+                break;
+            }
+            if (check != "")
+            {
+                LogAndWrite(f, check);
+            }
+        }
+
+        if (errcount + warncount == errcountsave + warncountsave)
+        {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+    }
+
     // multiple outputs to same universe/ID
     LogAndWrite(f, "");
     LogAndWrite(f, "Multiple outputs with same universe/id number");
 
     std::map<int, int> useduid;
     outputs = _outputManager.GetAllOutputs();
-    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    for (auto o : outputs)
     {
-        useduid[(*n)->GetUniverse()]++;
+        if (o->GetType() != "ZCPP")
+        {
+            useduid[o->GetUniverse()]++;
+        }
     }
 
-    for (auto it = useduid.begin(); it != useduid.end(); ++it)
+    for (auto u : useduid)
     {
-        if (it->second > 1)
+        if (u.second > 1)
         {
-            wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", it->second, it->first);
+            wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", u.second, u.first);
             LogAndWrite(f, msg.ToStdString());
             warncount++;
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    // Controller universes out of order
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Controller universes out of order - because some controllers care");
+
+    std::map<std::string, int> lastuniverse;
+    for (auto n: _outputManager.GetAllOutputs())
+    {
+        if (n->IsIpOutput())
+        {
+            if (lastuniverse.find(n->GetIP()) == lastuniverse.end())
+            {
+                lastuniverse[n->GetIP()] = n->GetUniverse();
+            }
+            else
+            {
+                if (lastuniverse[n->GetIP()] > n->GetUniverse())
+                {
+                    wxString msg = wxString::Format("    WARN: Controller %s %s Universe %d occurs after universe %d. Some controllers do not like out of order universes.",
+                                                    n->GetIP(), n->GetDescription(), n->GetUniverse(), lastuniverse[n->GetIP()]);
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+                else
+                {
+                    lastuniverse[n->GetIP()] = n->GetUniverse();
+                }
+            }
         }
     }
 
@@ -4789,21 +5311,21 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Invalid controller IP addresses");
 
     outputs = _outputManager.GetOutputs();
-    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    for (auto o : outputs)
     {
-        if ((*n)->IsIpOutput())
+        if (o->IsIpOutput())
         {
-            if ((*n)->GetIP() != "MULTICAST")
+            if (o->GetIP() != "MULTICAST")
             {
-                if (!IsIPValidOrHostname((*n)->GetIP()))
+                if (!IsIPValidOrHostname(o->GetIP()))
                 {
-                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
                 else
                 {
-                    wxArrayString ipElements = wxSplit((*n)->GetIP(), '.');
+                    wxArrayString ipElements = wxSplit(o->GetIP(), '.');
                     if (ipElements.size() > 3) {
                         //looks like an IP address
                         int ip1 = wxAtoi(ipElements[0]);
@@ -4814,7 +5336,7 @@ void xLightsFrame::CheckSequence(bool display)
                         if (ip1 == 10)
                         {
                             if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
                             }
@@ -4823,7 +5345,7 @@ void xLightsFrame::CheckSequence(bool display)
                         else if (ip1 == 192 && ip2 == 168)
                         {
                             if (ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
                             }
@@ -4835,25 +5357,25 @@ void xLightsFrame::CheckSequence(bool display)
                         }
                         else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 == 0)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 >= 224 && ip1 <= 239)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else
                         {
-                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
@@ -4876,16 +5398,16 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            long start = it->second->GetFirstChannel()+1;
-            long end = it->second->GetLastChannel()+1;
+            int32_t start = it->second->GetFirstChannel()+1;
+            int32_t end = it->second->GetLastChannel()+1;
 
-            long sc;
+            int32_t sc;
             Output* ostart = _outputManager.GetOutput(start, sc);
             Output* oend = _outputManager.GetOutput(end, sc);
 
             if (ostart != nullptr && oend == nullptr)
             {
-                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %ld which is not on a controller.", it->first, ostart->GetDescription(), end);
+                wxString msg = wxString::Format("    ERR: Model '%s' starts on controller '%s' but ends at channel %d which is not on a controller.", it->first, ostart->GetDescription(), end);
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -4964,6 +5486,16 @@ void xLightsFrame::CheckSequence(bool display)
                     }
                 }
             }
+            else if (start[0] == '!')
+            {
+                auto comp = wxSplit(start.substr(1), ':');
+                if (_outputManager.GetOutput(comp[0]) == nullptr)
+                {
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to non existent controller '%s'.", it->first, start, comp[0]);
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
             if (it->second->GetLastChannel() == (unsigned int)-1)
             {
                 wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' evaluates to an illegal channel number.", it->first, start);
@@ -4973,23 +5505,23 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            std::string start = it->second->ModelStartChannel;
+            std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@')
             {
                 std::list<std::string> seen;
-                seen.push_back(it->first);
+                seen.push_back(it.first);
                 size_t colon = start.find(':', 1);
                 if (colon != std::string::npos)
                 {
                     std::string reference = start.substr(1, colon - 1);
-                    if (reference != it->first)
+                    if (reference != it.first)
                     {
-                        if (!CheckStart(f, it->first, seen, reference))
+                        if (!CheckStart(f, it.first, seen, reference))
                         {
                             errcount++;
                         }
@@ -4997,7 +5529,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 else
                 {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it->first, start);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it.first, start);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5018,17 +5550,21 @@ void xLightsFrame::CheckSequence(bool display)
 
                     if (o == nullptr)
                     {
-                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined universe %d.", it->first, start, universe);
+                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined universe %d.", it.first, start, universe);
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
                 }
                 else
                 {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it->first, start);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it.first, start);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
+            }
+            else if (start[0] == '!')
+            {
+                // nothing to check
             }
             else if (start.find(':') != std::string::npos)
             {
@@ -5039,7 +5575,7 @@ void xLightsFrame::CheckSequence(bool display)
 
                 if (output < 1 || output > cnt)
                 {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it->first, start, output, cnt);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it.first, start, output, cnt);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5058,27 +5594,25 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Overlapping model channels");
 
     // Check for overlapping channels in models
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            int m1start = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-            int m1end = m1start + it->second->GetChanCount() - 1;
-            //int m1end = m1start + it->second->GetActChanCount() - 1; // I dont think this is a good idea
+            auto m1start = it->second->GetFirstChannel() + 1;
+            auto m1end = it->second->GetLastChannel() + 1;
 
-            auto it2 = it;
-            ++it2;
-            for (; it2 != AllModels.end(); ++it2)
+            for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2)
             {
                 if (it2->second->GetDisplayAs() != "ModelGroup")
                 {
-                    int m2start = it2->second->GetNumberFromChannelString(it2->second->ModelStartChannel);
-                    int m2end = m2start + it2->second->GetChanCount() - 1;
-                    //int m2end = m2start + it2->second->GetActChanCount() - 1; // I dont think this is a good idea
+                    auto m2start = it2->second->GetFirstChannel() + 1;
+                    auto m2end = it2->second->GetLastChannel() + 1;
 
                     if (m2start <= m1end && m2end >= m1start)
                     {
-                        wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).", it->first, m1start, m1end, it2->first, m2start, m2end);
+                        wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).",
+                            it->first, m1start, m1end,
+                            it2->first, m2start, m2end);
                         LogAndWrite(f, msg.ToStdString());
                         warncount++;
                     }
@@ -5099,24 +5633,29 @@ void xLightsFrame::CheckSequence(bool display)
     std::map<std::string, std::list<Model*>*> modelsByPort;
 
     // Check for non contiguous models on the same controller connection
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            if (it->second->GetControllerConnection() != "")
+            std::string cc = "";
+            if (it.second->IsControllerConnectionValid())
             {
-                long start = it->second->GetFirstChannel() + 1;
-                long sc;
+                cc = wxString::Format("%s:%d:%d", it.second->GetControllerProtocol(), it.second->GetControllerPort(), it.second->GetSmartRemote()).ToStdString();
+            }
+            if (cc != "")
+            {
+                int32_t start = it.second->GetFirstChannel() + 1;
+                int32_t sc;
                 Output* o = _outputManager.GetOutput(start, sc);
 
                 if (o != nullptr && o->IsIpOutput() && o->GetIP() != "MULTICAST")
                 {
-                    std::string key = o->GetIP() + it->second->GetControllerConnection();
+                    std::string key = o->GetIP() + cc;
                     if (modelsByPort.find(key) == modelsByPort.end())
                     {
                         modelsByPort[key] = new std::list<Model*>();
                     }
-                    modelsByPort[key]->push_back(it->second);
+                    modelsByPort[key]->push_back(it.second);
                 }
             }
         }
@@ -5138,22 +5677,36 @@ void xLightsFrame::CheckSequence(bool display)
 
             while (it3 != it->second->end())
             {
-                int m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
-                int m1end = m1start + (*it2)->GetChanCount() - 1;
-                int m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
+                int32_t m1start = (*it2)->GetNumberFromChannelString((*it2)->ModelStartChannel);
+                int32_t m1end = m1start + (*it2)->GetChanCount() - 1;
+                int32_t m2start = (*it3)->GetNumberFromChannelString((*it3)->ModelStartChannel);
 
                 if (m1end + 1 != m2start && m2start - m1end - 1 > 0)
                 {
-                    long sc;
+                    int32_t sc;
                     Output* o = _outputManager.GetOutput(m1start, sc);
-                    wxString msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
-                        (*it2)->GetName(),
-                        (*it3)->GetName(),
-                        o->GetIP(),
-                        (*it2)->GetControllerConnection(),
-                        m2start - m1end - 1);
+                    wxString msg;
+                    if (m2start - m1end - 1 <= 30)
+                    {
+                        msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a small gap of %d channels between them. Maybe these are NULL Pixels?",
+                            (*it2)->GetName(),
+                            (*it3)->GetName(),
+                            o->GetIP(),
+                            (*it2)->GetControllerConnectionString(),
+                            m2start - m1end - 1);
+                        warncount++;
+                    }
+                    else
+                    {
+                        msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
+                            (*it2)->GetName(),
+                            (*it3)->GetName(),
+                            o->GetIP(),
+                            (*it2)->GetControllerConnectionString(),
+                            m2start - m1end - 1);
+                        warncount++;
+                    }
                     LogAndWrite(f, msg.ToStdString());
-                    errcount++;
                 }
 
                 ++it2;
@@ -5197,9 +5750,26 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Models with issues");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        std::list<std::string> warnings = it->second->CheckModelSettings();
+        std::list<std::string> warnings = it.second->CheckModelSettings();
+        for (auto s = warnings.begin(); s != warnings.end(); ++s)
+        {
+            LogAndWrite(f, *s);
+            if (s->find("WARN:") != std::string::npos)
+            {
+                warncount++;
+            }
+            else if (s->find("ERR:") != std::string::npos)
+            {
+                errcount++;
+            }
+        }
+    }
+
+    for (auto it : AllObjects)
+    {
+        std::list<std::string> warnings = it.second->CheckModelSettings();
         for (auto s = warnings.begin(); s != warnings.end(); ++s)
         {
             LogAndWrite(f, *s);
@@ -5224,34 +5794,34 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model Groups containing models from different previews");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() == "ModelGroup")
+        if (it.second->GetDisplayAs() == "ModelGroup")
         {
-            std::string mgp = it->second->GetLayoutGroup();
+            std::string mgp = it.second->GetLayoutGroup();
 
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg == nullptr)
             {
                 // this should never happen
-                logger_base.error("Model %s says it is a model group but it doesnt cast as one.", (const char *)it->second->GetName().c_str());
+                logger_base.error("Model %s says it is a model group but it doesnt cast as one.", (const char *)it.second->GetName().c_str());
             }
             else
             {
                 auto models = mg->ModelNames();
 
-                for (auto it2 = models.begin(); it2 != models.end(); ++it2)
+                for (auto it2 : models)
                 {
-                    Model* m = AllModels.GetModel(*it2);
+                    Model* m = AllModels.GetModel(it2);
                     if (m == nullptr)
                     {
                         // this should never happen
-                        logger_base.error("Model Group %s contains non existent model %s.", (const char *)mg->GetName().c_str(), (const char *)(*it2).c_str());
+                        logger_base.error("Model Group %s contains non existent model %s.", (const char *)mg->GetName().c_str(), (const char *)it2.c_str());
                     }
                     else if (m->GetDisplayAs() != "ModelGroup")
                     {
                         // If model is in all previews dont report it as a problem
-                        if (m->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
+                        if (m->GetLayoutGroup() != "All Previews" && mg->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
                         {
                             wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
                             LogAndWrite(f, msg.ToStdString());
@@ -5274,11 +5844,9 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model/Model Groups without distinct names");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it)
     {
-        auto it2 = it;
-        ++it2;
-        for (; it2 != AllModels.end(); ++it2)
+        for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2)
         {
             if (it->second->GetName() == it2->second->GetName())
             {
@@ -5302,11 +5870,11 @@ void xLightsFrame::CheckSequence(bool display)
 
     std::list<std::string> emptyModelGroups;
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() == "ModelGroup")
+        if (it.second->GetDisplayAs() == "ModelGroup")
         {
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) // this should never fail
             {
                 auto models = mg->ModelNames();
@@ -5336,7 +5904,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 if (modelCount == 0)
                 {
-                    emptyModelGroups.push_back(it->first);
+                    emptyModelGroups.push_back(it.first);
                 }
             }
         }
@@ -5395,13 +5963,45 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // Check for submodels that point to nodes outside parent model name
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Submodels with nodes not in parent model");
+
+    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    {
+        if (it->second->GetDisplayAs() != "ModelGroup")
+        {
+            for (int i = 0; i < it->second->GetNumSubModels(); ++i)
+            {
+                SubModel* sm = (SubModel*)it->second->GetSubModel(i);
+                if (!sm->IsNodesAllValid())
+                {
+                    wxString msg = wxString::Format("    ERR: Submodel '%s' has invalid nodes outside the range of the parent model.",
+                        sm->GetFullName());
+                    LogAndWrite(f, msg.ToStdString());
+                    errcount++;
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    std::list<std::string> allfiles;
+
     // Check for matrix faces where the file does not exist
     LogAndWrite(f, "");
     LogAndWrite(f, "Missing matrix face images");
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
-        auto facefiles = it->second->GetFaceFiles(true);
+        auto facefiles = it->second->GetFaceFiles(std::list<std::string>(), true);
+        allfiles.splice(allfiles.end(), it->second->GetFileReferences());
 
         for (auto fit = facefiles.begin(); fit != facefiles.end(); ++fit)
         {
@@ -5436,12 +6036,12 @@ void xLightsFrame::CheckSequence(bool display)
 
     modelssorted.sort(compare_modelstartchannel);
 
-    long last = 0;
+    int32_t last = 0;
     Model* lastm = nullptr;
     for (auto m = modelssorted.begin(); m != modelssorted.end(); ++m)
     {
-        long start = (*m)->GetNumberFromChannelString((*m)->ModelStartChannel);
-        long gap = start - last - 1;
+        int32_t start = (*m)->GetNumberFromChannelString((*m)->ModelStartChannel);
+        int32_t gap = start - last - 1;
         if (gap > 511) // 511 is the maximum acceptable gap ... at that point the user has wasted an entire universe
         {
             wxString level = "WARN";
@@ -5457,11 +6057,11 @@ void xLightsFrame::CheckSequence(bool display)
             wxString msg;
             if (lastm == nullptr)
             {
-                msg = wxString::Format("    %s: First Model '%s' starts at channel %ld leaving a block of %ld of unused channels.", level, (*m)->GetName(), start, start - 1);
+                msg = wxString::Format("    %s: First Model '%s' starts at channel %d leaving a block of %d of unused channels.", level, (*m)->GetName(), start, start - 1);
             }
             else
             {
-                msg = wxString::Format("    %s: Model '%s' starts at channel %ld leaving a block of %ld of unused channels between this and the prior model '%s'.", level, (*m)->GetName(), start, gap, lastm->GetName());
+                msg = wxString::Format("    %s: Model '%s' starts at channel %d leaving a block of %d of unused channels between this and the prior model '%s'.", level, (*m)->GetName(), start, gap, lastm->GetName());
             }
             LogAndWrite(f, msg.ToStdString());
         }
@@ -5563,12 +6163,12 @@ void xLightsFrame::CheckSequence(bool display)
             wxArrayString modelnames = wxSplit(models, ',');
 
             std::list<std::string> seenmodels;
-            for (auto it = modelnames.begin(); it != modelnames.end(); ++it)
+            for (auto it : modelnames)
             {
-                Model* m = AllModels.GetModel(it->ToStdString());
+                Model* m = AllModels.GetModel(it.ToStdString());
                 if (m == nullptr)
                 {
-                    wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it->ToStdString());
+                    wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5578,12 +6178,11 @@ void xLightsFrame::CheckSequence(bool display)
                     {
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                         if (mg == nullptr) logger_base.crit("CheckSequence ModelGroup cast was null. We are about to crash.");
-                        auto cm = mg->Models();
-                        for (auto it2 = cm.begin(); it2 != cm.end(); ++it2)
+                        for (auto it2 : mg->Models())
                         {
-                            if (std::find(seenmodels.begin(), seenmodels.end(), (*it2)->GetName()) != seenmodels.end())
+                            if (std::find(seenmodels.begin(), seenmodels.end(), it2->GetName()) != seenmodels.end())
                             {
-                                wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), (*it2)->GetName());
+                                wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), it2->GetName());
                                 LogAndWrite(f, msg.ToStdString());
                                 warncount++;
                             }
@@ -5608,12 +6207,17 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, "Effect problems");
 
         // check all effects
+        bool videoCacheWarning = false;
+        std::list<std::pair<std::string, std::string>> faces;
+        std::list<std::pair<std::string, std::string>> states;
+        std::list<std::string> viewPoints;
+        bool usesShader = false;
         for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName());
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
 
                 if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
@@ -5622,7 +6226,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName());
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -5630,7 +6234,9 @@ void xLightsFrame::CheckSequence(bool display)
                             for (int l = 0; l < nl->GetEffectCount(); l++)
                             {
                                 Effect* ef = nl->GetEffect(l);
-                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true);
+                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning, faces, states, viewPoints);
+                                RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
+                                allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
                             }
                         }
                     }
@@ -5639,11 +6245,33 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName());
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints, usesShader, allfiles);
                         }
                     }
                 }
             }
+        }
+
+        if (usesShader)
+        {
+            if (mainSequencer->PanelEffectGrid->GetCreatedVersion() < 3)
+            {
+#ifdef __WXOSX__
+                std::string type = "WARN";
+#else
+                std::string type = "ERR";
+#endif
+                wxString msg = wxString::Format("    %s: Seqeuence has one or more shader effects but open GL version is lower than verson 3. These effects will not render.", (const char *)type.c_str());
+                LogAndWrite(f, msg.ToStdString());
+                errcount++;
+            }
+        }
+
+        if (videoCacheWarning)
+        {
+            wxString msg = wxString::Format("    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
         }
 
         if (errcount + warncount == errcountsave + warncountsave)
@@ -5652,12 +6280,116 @@ void xLightsFrame::CheckSequence(bool display)
         }
         errcountsave = errcount;
         warncountsave = warncount;
+
+        LogAndWrite(f, "");
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+
+        LogAndWrite(f, "");
+        LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model Faces used by this sequence:");
+        for (auto it : faces)
+        {
+            wxString msg = wxString::Format("        Model: %s, Face: %s.", it.first, it.second);
+            LogAndWrite(f, msg.ToStdString());
+        }
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model States used by this sequence:");
+        for (auto it : states)
+        {
+            wxString msg = wxString::Format("        Model: %s, State: %s.", it.first, it.second);
+            LogAndWrite(f, msg.ToStdString());
+        }
+        LogAndWrite(f, "");
+        LogAndWrite(f, "View Points used by this sequence:");
+        for (auto it : viewPoints)
+        {
+            wxString msg = wxString::Format("        Viewpoint: %s.", it);
+            LogAndWrite(f, msg.ToStdString());
+        }
+
+        LogAndWrite(f, "");
+        LogAndWrite(f, "-----------------------------------------------------------------------------------------------------------------");
+
     }
     else
     {
         LogAndWrite(f, "");
         LogAndWrite(f, "No sequence loaded so sequence checks skipped.");
     }
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Checking problems with file access times.");
+
+#define SLOWDRIVE 1000
+    std::list<std::pair<std::string, uint64_t>> slowaccess;
+    BadDriveAccess(allfiles, slowaccess, SLOWDRIVE);
+    if (slowaccess.size() > 0)
+    {
+        wxString msg = wxString::Format("    WARN: Test of access speed to files your sequence shows the following files take longer than the recommended %dms.", SLOWDRIVE / 1000);
+        LogAndWrite(f, msg.ToStdString());
+        for (auto it : slowaccess)
+        {
+            msg = wxString::Format("    %.2fms  %s.", (float)((double)it.second / 1000.0), (const char*)it.first.c_str());
+            LogAndWrite(f, msg);
+        }
+        warncount++;
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
+
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Checking problems with file paths containing repeated use of show folder name.");
+
+    std::vector<char> delimiters = { '\\', '/' };
+    wxString showdir = showDirectory;
+    wxString sd2 = showdir.AfterLast('\\');
+    wxString sd3 = showdir.AfterLast('/');
+    if (sd2.Length() > 0 && sd2.Length() < showdir.Length()) showdir = sd2;
+    if (sd3.Length() > 0 && sd3.Length() < showdir.Length()) showdir = sd3;
+
+    for (auto it : allfiles)
+    {
+        wxString ff = FixFile(showDirectory, it);
+        if (ff.StartsWith(showDirectory)) // only check files in show folder
+        {
+            if (wxFile::Exists(ff))
+            {
+                ff = ff.substr(showDirectory.Length());
+                wxArrayString folders = Split(ff, delimiters);
+
+                for (auto it2 : folders)
+                {
+                    if (it2 == showdir)
+                    {
+                        wxString msg = wxString::Format("    WARN: path to file %s contains the show folder name '%s' more than once. This will make it hard to move sequence to other computers as it wont be able to fix paths automatically.", (const char*)it.c_str(), (const char*)showdir.c_str());
+                        LogAndWrite(f, msg.ToStdString());
+                        warncount++;
+                    }
+                }
+            }
+            else
+            {
+                wxString msg = wxString::Format("    WARN: Unable to check file %s because it was not found. If this location is on another computer please run check sequence there to check this condition properly.", (const char*)it.c_str());
+                LogAndWrite(f, msg.ToStdString());
+                warncount++;
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+
+    errcountsave = errcount;
+    warncountsave = warncount;
 
     LogAndWrite(f, "");
     LogAndWrite(f, "Check sequence done.");
@@ -5674,8 +6406,7 @@ void xLightsFrame::CheckSequence(bool display)
 
             if (command == "")
             {
-                logger_base.error("Unable to view check sequence results due to no open command. %s", (const char *)filename.c_str());
-                wxMessageBox(_("Unable to show xLights Check Sequence results. See your log for the content."), _("Error"));
+                DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
             else
             {
@@ -5687,16 +6418,46 @@ void xLightsFrame::CheckSequence(bool display)
         }
         else
         {
-            logger_base.warn("Unable to view xLights Check Sequence results %s.", (const char *)filename.c_str());
-            wxMessageBox(_("Unable to show xLights Check Sequence results. See your log for the content."), _("Error"));
+            DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
         }
     }
 }
 
-void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node)
+void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
+
+    if (ef->GetEffectName() == "Video")
+    {
+        if (_enableRenderCache == "Disabled")
+        {
+            videoCacheWarning = true;
+        }
+        else if (!ef->IsLocked() && _enableRenderCache == "Locked Only")
+        {
+            videoCacheWarning = true;
+            wxString msg = wxString::Format("    WARN: Video effect unlocked but only locked video effects are being render cached. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
+
+    // check we are not doing sub-buffers on Per Model* buffer styles
+    bool isPerModel = false;
+    bool isSubBuffer = false;
+    for (auto it : sm)
+    {
+        isPerModel |= (it.first == "B_CHOICE_BufferStyle" && StartsWith(it.second, "Per Model"));
+        isSubBuffer |= (it.first == "B_CUSTOM_SubBuffer");
+    }
+
+    if (isPerModel && isSubBuffer)
+    {
+        wxString msg = wxString::Format("    ERR: Effect on a model group using a 'Per Model' render buffer is also using a subbuffer. This will not work as you might expect. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
 
     // check value curves not updated
     for (auto it = sm.begin(); it != sm.end(); ++it)
@@ -5704,7 +6465,10 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
         wxString value = it->second;
         if (value.Contains("|Type=") && !value.Contains("RV=TRUE"))
         {
-            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            int start = value.Find("|Id=") + 4;
+            wxString property = value.substr(start);
+            property = property.BeforeFirst('|');
+            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s (%s)", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()), property);
             LogAndWrite(f, msg.ToStdString());
             errcount++;
         }
@@ -5718,7 +6482,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     if (sm.Get("T_CHECKBOX_Canvas", "0") == "1")
     {
         // Warp and off have more complicated logic which is implemented in those effects
-        if ((ef->GetEffectName() != "Off" && ef->GetEffectName() != "Warp"))
+        if ((ef->GetEffectName() != "Off" && ef->GetEffectName() != "Warp" && ef->GetEffectName() != "Kaleidoscope" && ef->GetEffectName() != "Shader"))
         {
             wxString msg = wxString::Format("    WARN: Canvas mode enabled on an effect it is not normally used on. This will slow down rendering. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
             LogAndWrite(f, msg.ToStdString());
@@ -5766,7 +6530,8 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
             warncount++;
         }
 
-        std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef);
+        bool renderCache = _enableRenderCache == "Enabled" || (_enableRenderCache == "Locked Only" && ef->IsLocked());
+        std::list<std::string> warnings = re->CheckEffectSettings(sm, CurrentSeqXmlFile->GetMedia(), AllModels.GetModel(modelName), ef, renderCache);
         for (auto s = warnings.begin(); s != warnings.end(); ++s)
         {
             LogAndWrite(f, *s);
@@ -5779,10 +6544,66 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
                 errcount++;
             }
         }
+
+        if (ef->GetEffectName() == "Faces")
+        {
+            for (auto it : static_cast<FacesEffect*>(re)->GetFacesUsed(sm))
+            {
+                bool found = false;
+                for (auto it2 : faces)
+                {
+                    if (it2.first == modelName && it2.second == it)
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    faces.push_back({ modelName, it });
+                }
+            }
+        }
+        else if (ef->GetEffectName() == "State")
+        {
+            for (auto it : static_cast<StateEffect*>(re)->GetStatesUsed(sm))
+            {
+                bool found = false;
+                for (auto it2 : states)
+                {
+                    if (it2.first == modelName && it2.second == it)
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    states.push_back({ modelName, it });
+                }
+            }
+        }
+
+        for (auto it : sm)
+        {
+            if (it.first == "B_CHOICE_PerPreviewCamera")
+            {
+                bool found = false;
+                for (auto it2 : viewPoints)
+                {
+                    if (it2 == it.second)
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    viewPoints.push_back(it.second);
+                }
+            }
+        }
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles)
 {
     for (int j = 0; j < e->GetEffectLayerCount(); j++)
     {
@@ -5791,6 +6612,8 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
         for (int k = 0; k < el->GetEffectCount(); k++)
         {
             Effect* ef = el->GetEffect(k);
+            RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
+            allfiles.splice(end(allfiles), eff->GetFileReferences(ef->GetSettings()));
 
             // Check there are nodes to actually render on
             Model* m = AllModels[modelName];
@@ -5836,7 +6659,11 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                 }
             }
 
-            CheckEffect(ef, f, errcount, warncount, name, modelName);
+            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, faces, states, viewPoints);
+            if (ef->GetEffectName() == "Shader")
+            {
+                usesShader = true;
+            }
         }
 
         // This assumes effects are stored in start time order per layer
@@ -5913,6 +6740,10 @@ void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
 {
+#ifdef __WXOSX__
+    std::string loc = "https://raw.githubusercontent.com/smeighan/xLights/" + xlights_version_string + "/README.txt";
+    ::wxLaunchDefaultBrowser(loc);
+#else
     wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
     if (ft)
     {
@@ -5920,6 +6751,7 @@ void xLightsFrame::OnMenuItem_Help_ReleaseNotesSelected(wxCommandEvent& event)
         wxUnsetEnv("LD_PRELOAD");
         wxExecute(command);
     }
+#endif
 }
 
 void xLightsFrame::OnMenuItem_Help_Isue_TrackerSelected(wxCommandEvent& event)
@@ -6095,7 +6927,7 @@ void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
 {
     if (CurrentSeqXmlFile == nullptr)
     {
-        wxMessageBox("No sequence open", "Error", wxOK|wxCENTRE, this);
+        DisplayError("No sequence open", this);
         return;
     }
 
@@ -6113,7 +6945,7 @@ void xLightsFrame::ExportEffects(wxString filename)
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("Export Error"));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString(), this);
         return;
     }
 
@@ -6552,7 +7384,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     if (mSavedChangeCount != mSequenceElements.GetChangeCount())
     {
-        wxMessageBox("Your sequence has unsaved changes. These changes will not be packaged but any new referenced files will be. We suggest you consider saving and trying this again.", "Warning");
+        DisplayWarning("Your sequence has unsaved changes. These changes will not be packaged but any new referenced files will be. We suggest you consider saving and trying this again.", this);
     }
 
     wxFileName fn(CurrentSeqXmlFile->GetFullPath());
@@ -6593,21 +7425,46 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     prog.Update(10);
 
+    std::list<std::string> facesUsed;
+    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
+    {
+        Element* e = mSequenceElements.GetElement(j);
+        facesUsed.splice(end(facesUsed), e->GetFacesUsed(effectManager));
+
+        if (dynamic_cast<ModelElement*>(e) != nullptr)
+        {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+                SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+                facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
+            }
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+                StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+                facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
+            }
+        }
+    }
+    facesUsed.sort();
+    facesUsed.unique();
+
     // Add any model images
     std::list<std::string> modelfiles;
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto m : AllModels)
     {
-        modelfiles.merge((*it).second->GetFaceFiles());
-        modelfiles.merge((*it).second->GetFileReferences());
+        modelfiles.splice(end(modelfiles), m.second->GetFaceFiles(facesUsed, false));
+        modelfiles.splice(end(modelfiles), m.second->GetFileReferences());
+    }
+    for (auto o : AllObjects)
+    {
+        modelfiles.splice(end(modelfiles), o.second->GetFileReferences());
     }
     modelfiles.sort();
     modelfiles.unique();
 
     float i = 0;
-    for (auto f = modelfiles.begin(); f != modelfiles.end(); ++f)
+    for (auto f : modelfiles)
     {
         i++;
-        wxFileName fnf(*f);
+        wxFileName fnf(f);
         if (fnf.Exists())
         {
             prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()), fnf.GetFullName());
@@ -6686,17 +7543,17 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
     {
         Element* e = mSequenceElements.GetElement(j);
-        effectfiles.merge(e->GetFileReferences(effectManager));
+        effectfiles.splice(end(effectfiles), e->GetFileReferences(effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
-                effectfiles.merge(se->GetFileReferences(effectManager));
+                effectfiles.splice(end(effectfiles), se->GetFileReferences(effectManager));
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
-                effectfiles.merge(se->GetFileReferences(effectManager));
+                effectfiles.splice(end(effectfiles), se->GetFileReferences(effectManager));
             }
         }
     }
@@ -6704,10 +7561,10 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     effectfiles.unique();
 
     i = 0;
-    for (auto f = effectfiles.begin(); f != effectfiles.end(); ++f)
+    for (auto f : effectfiles)
     {
         i++;
-        wxFileName fnf(*f);
+        wxFileName fnf(f);
         if (fnf.Exists())
         {
             prog.Update(35 + (int)(59.0 * i / (float)effectfiles.size()), fnf.GetFullName());
@@ -6736,6 +7593,172 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     out.Close();
 
     prog.Update(100);
+}
+
+bool xLightsFrame::IsInShowFolder(const std::string& file) const
+{
+    wxString sf(GetShowDirectory());
+    wxString f(file);
+
+#ifdef __WXMSW__
+    // windows filenames are not case sensitive
+    sf.LowerCase();
+    f.LowerCase();
+#endif
+    sf.Replace("\\", "/");
+    f.Replace("\\", "/");
+
+    return f.StartsWith(sf);
+}
+
+#define FILES_MATCH_COMPARE 8192
+bool xLightsFrame::FilesMatch(const std::string & file1, const std::string & file2) const
+{
+    // only equal if they both exist
+    if (!wxFile::Exists(file1)) return false;
+    if (!wxFile::Exists(file2)) return false;
+
+    // and they are the same size
+    wxFileName f1(file1);
+    wxFileName f2(file2);
+    if (f1.GetSize() != f2.GetSize()) return false;
+
+    // and the first 8K matches byte for byte ... we could check it all but this seems reasonable
+    wxByte buf1[FILES_MATCH_COMPARE];
+    wxByte buf2[FILES_MATCH_COMPARE];
+    memset(buf1, 0x00, sizeof(buf1));
+    memset(buf1, 0x00, sizeof(buf2));
+
+    wxFile ff1;
+    if (ff1.Open(file1))
+    {
+        ff1.Read(buf1, sizeof(buf1));
+    }
+
+    wxFile ff2;
+    if (ff2.Open(file2))
+    {
+        ff2.Read(buf2, sizeof(buf2));
+    }
+
+    return (memcmp(buf1, buf2, sizeof(buf1)) == 0);
+}
+
+std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::string& subdirectory)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxFileName fn(file);
+
+    wxString target = GetShowDirectory();
+    if (target.EndsWith("/") || target.EndsWith("\\"))
+    {
+        target = target.SubString(0, target.Length() - 2);
+    }
+    target += subdirectory;
+    wxString dir = target;
+
+    if (!wxDir::Exists(dir))
+    {
+        wxFileName d;
+        if (!d.Mkdir(dir))
+        {
+            logger_base.error("Unable to create target folder %s.", (const char*)dir.c_str());
+        }
+    }
+
+    if (target.EndsWith("/") || target.EndsWith("\\"))
+    {
+        target = target.SubString(0, target.Length() - 2);
+    }
+
+    target += wxFileName::GetPathSeparator();
+    target += fn.GetFullName();
+
+    int i = 1;
+    while (wxFile::Exists(target) && !FilesMatch(file, target))
+    {
+        target = dir + wxFileName::GetPathSeparator() + fn.GetName() + "_" + wxString::Format("%d", i++) + "." + fn.GetExt();
+    }
+
+    if (!wxFile::Exists(target))
+    {
+        logger_base.debug("Copying file %s to %s.", (const char*)file.c_str(), (const char *)target.c_str());
+        wxCopyFile(file, target, false);
+    }
+
+    return target.ToStdString();
+}
+
+void xLightsFrame::CleanupSequenceFileLocations()
+{
+    wxString media = CurrentSeqXmlFile->GetMediaFile();
+    if (wxFile::Exists(media) && !IsInShowFolder(media))
+    {
+        CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), MoveToShowFolder(media, wxString(wxFileName::GetPathSeparator()) + "Audio"), false);
+        mSequenceElements.IncrementChangeCount(nullptr);
+    }
+
+    bool changed = false;
+    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
+    {
+        Element* e = mSequenceElements.GetElement(j);
+        changed = e->CleanupFileLocations(this, effectManager) || changed;
+
+        if (dynamic_cast<ModelElement*>(e) != nullptr)
+        {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+                SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+                changed = se->CleanupFileLocations(this, effectManager) || changed;
+            }
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+                StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+                changed = se->CleanupFileLocations(this, effectManager) || changed;
+            }
+        }
+    }
+
+    if (changed)
+    {
+        mSequenceElements.IncrementChangeCount(nullptr);
+    }
+}
+
+void xLightsFrame::CleanupRGBEffectsFileLocations()
+{
+    if (wxFile::Exists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
+    {
+        wxString bi = MoveToShowFolder(mBackgroundImage, wxString(wxFileName::GetPathSeparator()));
+        SetPreviewBackgroundImage(bi);
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
+    }
+
+    for (auto m : AllModels)
+    {
+        if (m.second->CleanupFileLocations(this))
+        {
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
+        }
+    }
+
+    for (auto m : AllObjects)
+    {
+        if (m.second->CleanupFileLocations(this))
+        {
+            GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CleanupRGBEffectsFileLocations");
+        }
+    }
+}
+
+void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Cleaning up file locations.");
+    CleanupRGBEffectsFileLocations();
+    if (CurrentSeqXmlFile != nullptr)
+    {
+        CleanupSequenceFileLocations();
+    }
+    logger_base.debug("Cleaning up file locations ... DONE.");
 }
 
 void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
@@ -6767,13 +7790,7 @@ void xLightsFrame::TimerOutput(int period)
 
 void xLightsFrame::PlayerError(const wxString& msg)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString m = msg;
-    m.Replace("\n", " ", true);
-    m.Replace("%", "%%", true);
-
-    logger_base.warn(m);
-    wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
+    DisplayError(msg);
 }
 
 #pragma region Settings Menu
@@ -6785,12 +7802,46 @@ void xLightsFrame::OnMenuItem_BackupSubfoldersSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_ForceLocalIPSelected(wxCommandEvent& event)
 {
-    IPEntryDialog dlg(this);
-    dlg.TextCtrl_IPAddress->SetValue(mLocalIP);
+    auto ips = GetLocalIPs();
+
+    if (ips.size() == 0)
+    {
+        if (mLocalIP != "")
+        {
+            mLocalIP = "";
+            MenuItem_ForceLocalIP->Check(false);
+            _outputManager.SetForceFromIP(mLocalIP.ToStdString());
+            if (_outputManager.IsOutputting())
+            {
+                _outputManager.StopOutput();
+                _outputManager.StartOutput();
+            }
+        }
+        wxMessageBox("No local ip addresses found.");
+        return;
+    }
+
+    wxArrayString choices;
+    choices.push_back("");
+    int sel = -1;
+    int i = 0;
+    for (auto it: ips)
+    {
+        if (it == mLocalIP)
+        {
+            sel = i+1;
+        }
+        i++;
+        choices.push_back(it);
+    }
+    if (sel == -1) sel = 0;
+
+    wxSingleChoiceDialog dlg(this, _("Select the ip address to send data out"), _("Select local IP address"), choices);
+    dlg.SetSelection(sel);
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        mLocalIP = dlg.TextCtrl_IPAddress->GetValue();
+        mLocalIP = dlg.GetStringSelection();
         _outputManager.SetForceFromIP(mLocalIP.ToStdString());
 
         if (_outputManager.IsOutputting())
@@ -7685,6 +8736,11 @@ bool xLightsFrame::IsPaneDocked(wxWindow* window) const
     return m_mgr->GetPane(window).IsDocked();
 }
 
+ModelPreview* xLightsFrame::GetHousePreview() const
+{
+    return _housePreviewPanel->GetModelPreview();
+}
+
 void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
 {
     GenerateLyricsDialog dlg(this, SeqData.NumChannels());
@@ -7781,7 +8837,6 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
                     if (lastEffect != nullptr && lastPhenome == it->first)
                     {
                         lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());
-                        phenomeFound = true;
                     }
                     else
                     {
@@ -7822,8 +8877,8 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
         wxArrayString filesToRender;
-        for (auto f = files.begin(); f != files.end(); f++) {
-            wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + *f);
+        for (auto f : files) {
+            wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
             if(fname.FileExists())
                 filesToRender.push_back(fname.GetFullPath());
             else
@@ -7845,7 +8900,7 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 {
     bool update_found = CheckForUpdate(true);
     if (!update_found) {
-        wxMessageBox("No update found", "Update check complete");
+        DisplayInfo("Update check complete: No update found", this);
     }
 }
 
@@ -7935,7 +8990,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
         bit.Replace("bit", "");
         downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
 #else
-        wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
+        wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)[a-z]?[\\.-].*$");
         wxString urlVersion = wxString(out_stream.GetString());
         reVersion.Replace(&urlVersion, "\\1", 1);
 #endif
@@ -7983,7 +9038,7 @@ void xLightsFrame::check32AppOn64Machine()
     if (!alreadyRun && wxIsPlatform64Bit() && sizeof(size_t) == 4)
     {
         config->Write("xLights32bitCheck", true);
-        wxMessageBox("You are running the 32 bit version of xLights on a 64 bit Computer\nPlease Update to the 64 bit version of xLights", "Update to 64bit");
+        DisplayWarning("You are running the 32 bit version of xLights on a 64 bit Computer\nPlease Update to the 64 bit version of xLights");
     }
 }
 
@@ -8043,6 +9098,8 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
     VendorModelDialog::GetCache().Save();
     VendorMusicDialog::GetCache().ClearCache();
     VendorMusicDialog::GetCache().Save();
+    ShaderDownloadDialog::GetCache().ClearCache();
+    ShaderDownloadDialog::GetCache().Save();
 }
 
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
@@ -8071,12 +9128,72 @@ void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
 
 void xLightsFrame::ShowPresetsPanel()
 {
+    if (CurrentSeqXmlFile == nullptr) return;
+
     if (EffectTreeDlg == nullptr)
     {
         EffectTreeDlg = new EffectTreeDialog(this);
         EffectTreeDlg->InitItems(mSequenceElements.GetEffectsNode());
     }
     EffectTreeDlg->Show();
+}
+
+uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS)
+{
+    wxLogNull logNo;  // suppress file access errors
+    uint64_t worst = 0;
+
+    std::list<std::string> folders;
+    std::list<std::string> checkfiles;
+    for (auto it : files)
+    {
+        wxFileName fn(it);
+        if (std::find(begin(folders), end(folders), fn.GetPath()) == end(folders))
+        {
+            folders.push_back(fn.GetPath());
+            checkfiles.push_back(it);
+        }
+    }
+
+    for (auto it : checkfiles)
+    {
+        uint8_t b[8192];
+        wxStopWatch sw;
+        wxFile f;
+        if (f.Open(it))
+        {
+            f.Read(b, sizeof(b));
+            uint64_t t = sw.TimeInMicro().GetValue();
+            if (t > worst) worst = t;
+            if (t > thresholdUS)
+            {
+                slow.push_back({ it, t });
+            }
+        }
+    }
+
+    return worst;
+}
+
+void xLightsFrame::TogglePresetsPanel()
+{
+    if (CurrentSeqXmlFile == nullptr) return;
+
+    if (EffectTreeDlg == nullptr)
+    {
+        ShowPresetsPanel();
+    }
+    else if (EffectTreeDlg->IsVisible())
+    {
+        EffectTreeDlg->Hide();
+        EffectTreeDlg->Close();
+        delete EffectTreeDlg;
+        EffectTreeDlg = nullptr;
+    }
+    else
+    {
+        EffectTreeDlg->Show();
+    }
 }
 
 void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
@@ -8106,7 +9223,7 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, backupDirectory, mAltBackupDir);
+    FolderSelection dlg(this, showDirectory, mediaDirectory, fseqDirectory, renderCacheDirectory, backupDirectory, mAltBackupDir);
 
     int res = dlg.ShowModal();
 
@@ -8117,18 +9234,18 @@ void xLightsFrame::OnButtonOtherFoldersClick(wxCommandEvent& event)
         config->Write(_("xLightsAltBackupDir"), dlg.AltBackupDirectory);
 
         //Always set values in xgb effects setting just in case
-        //if(mediaDirectory != dlg.MediaDirectory || backupDirectory != dlg.BackupDirectory)
-        {
-            SetXmlSetting("fseqDir", dlg.FseqDirectory);
-            SetXmlSetting("backupDir", dlg.BackupDirectory);
-            UnsavedRgbEffectsChanges = true;
-        }
+        SetXmlSetting("fseqDir", dlg.FseqDirectory);
+        SetXmlSetting("renderCacheDir", dlg.RenderCacheDirectory);
+        SetXmlSetting("backupDir", dlg.BackupDirectory);
+        UnsavedRgbEffectsChanges = true;
 
         mediaDirectory = dlg.MediaDirectory;
         logger_base.debug("Media directory set to : %s.", (const char *)mediaDirectory.c_str());
         fseqDirectory = dlg.FseqDirectory;
         FseqDir = fseqDirectory;
         logger_base.debug("FSEQ directory set to : %s.", (const char *)fseqDirectory.c_str());
+        renderCacheDirectory = dlg.RenderCacheDirectory;
+        logger_base.debug("Render Cache directory set to : %s.", (const char*)renderCacheDirectory.c_str());
         backupDirectory = dlg.BackupDirectory;
         logger_base.debug("Backup directory set to : %s.", (const char *)backupDirectory.c_str());
         mAltBackupDir = dlg.AltBackupDirectory;
@@ -8266,7 +9383,7 @@ void xLightsFrame::OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event)
     }
     else
     {
-        wxMessageBox("Unable to access online repositories.");
+        DisplayError("Unable to access online repositories.", this);
     }
 }
 
@@ -8496,7 +9613,7 @@ void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 {
     SetCursor(wxCURSOR_WAIT);
     SetStatusText(_("Loading dictionaries ..."));
-    dictionary.LoadDictionaries(CurrentDir);
+    dictionary.LoadDictionaries(CurrentDir, this);
     SetStatusText(_(""));
 
     LyricUserDictDialog dlg(&dictionary, showDirectory, this);
@@ -8524,14 +9641,13 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
         _enableRenderCache = "Locked Only";
     }
 
-
     _renderCache.Enable(_enableRenderCache);
     _renderCache.CleanupCache(&mSequenceElements); // purge anything the cache no longer needs
 
     if (_renderCache.IsEnabled() && CurrentSeqXmlFile != nullptr)
     {
         // this will force a reload of the cache
-        _renderCache.SetSequence(fseqDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
+        _renderCache.SetSequence(renderCacheDirectory.ToStdString(), CurrentSeqXmlFile->GetName().ToStdString());
     }
     else
     {
@@ -8558,7 +9674,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         }
     }
 
-    KeyBinding *binding = mainSequencer->keyBindings.Find(event, KBSCOPE_ALL);
+    auto binding = mainSequencer->keyBindings.Find(event, KBSCOPE::All);
     if (binding != nullptr) {
         std::string type = binding->GetType();
         if (type == "RENDER_ALL")
@@ -8616,6 +9732,13 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             wxCommandEvent playEvent(EVT_TOGGLE_PLAY);
             wxPostEvent(this, playEvent);
         }
+        else if (type == "FOCUS_SEQUENCER")
+        {
+            if (Notebook1->GetSelection() == NEWSEQUENCER)
+            {
+                SetFocus();
+            }
+        }
         else if (type == "START_OF_SONG")
         {
             wxCommandEvent playEvent(EVT_SEQUENCE_FIRST_FRAME);
@@ -8664,7 +9787,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event)
 {
-    wxMessageBox(mainSequencer->keyBindings.Dump(), "Key bindings");
+    DisplayInfo(mainSequencer->keyBindings.Dump(), this);
 }
 
 void xLightsFrame::OnChar(wxKeyEvent& event)
@@ -8683,14 +9806,12 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
             event.Skip();
         }
         return;
-        break;
     case NEWSEQUENCER:
         if (!mainSequencer->HandleSequencerKeyBinding(event))
         {
             event.Skip();
         }
         return;
-        break;
     default:
         break;
     }
@@ -8704,4 +9825,581 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
 void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
     ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
+}
+
+
+void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
+{
+    PathGenerationDialog dlg(this, CurrentDir.ToStdString());
+    dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItemFSEQV1Selected(wxCommandEvent& event)
+{
+    _fseqVersion = 1;
+}
+
+void xLightsFrame::OnMenuItemFSEQV2Selected(wxCommandEvent& event)
+{
+    _fseqVersion = 2;
+}
+
+void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxString filename = wxFileSelector("Choose reaper file describing the changes required to the audio.",
+        CurrentDir, wxEmptyString, "*.rrp",
+        "Reaper files (*.rpp)|*.rpp|xAudio files (*.xaudio)|*.xaudio|All files (*.*)|*.*",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+
+    if (filename != "")
+    {
+        logger_base.debug("Prepare audio: %s.", (const char *)filename.c_str());
+
+        struct musicEdit
+        {
+            std::string file;
+            double start;
+            double length;
+            double sourceoffset;
+            double fadein;
+            double fadeout;
+            double volume;
+            bool crossfadein;
+            bool crossfadeout;
+            musicEdit(const std::string& f, double s, double l, double so, double fi, double fo, double v, bool cfi, bool cfo) :
+                file(f), start(s), length(l), sourceoffset(so), fadein(fi), fadeout(fo), volume(v), crossfadein(cfi), crossfadeout(cfo)
+            {
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.debug("        Source file: %s Source Pos: %0.3f Length: %0.3f Target Pos: %0.3f Fade In: %0.3f Fade Out: %0.3f Volume: %0.3f",
+                    (const char *)file.c_str(), sourceoffset, length, start, fadein, fadeout, volume);
+            }
+        };
+
+        std::list<musicEdit> edits;
+        wxFileName targetFile;
+        targetFile.SetPath(CurrentDir);
+
+        if (filename.Lower().EndsWith(".rpp"))
+        {
+            wxFile reaper;
+            if (reaper.Open(filename))
+            {
+                wxString reaperContent;
+                reaper.ReadAll(&reaperContent);
+
+                wxRegEx regexTgt("RENDER_FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
+                if (regexTgt.Matches(reaperContent))
+                {
+                    targetFile.SetName(regexTgt.GetMatch(reaperContent, 1));
+                    logger_base.debug("    Target file: %s", (const char *)targetFile.GetFullPath().c_str());
+                }
+
+                wxRegEx regexPosition("POSITION ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexLength("LENGTH ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexSourceOffset("SOFFS ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeIn1("FADEIN [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeIn2("FADEIN [0-9\\.]* [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeOut1("FADEOUT [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeOut2("FADEOUT [0-9\\.]* [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexVolume("VOLPAN [0-9\\.]* [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexSourceFile(" FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
+
+                while (regexPosition.Matches(reaperContent))
+                {
+                    regexLength.Matches(reaperContent);
+                    regexSourceOffset.Matches(reaperContent);
+                    regexFadeIn1.Matches(reaperContent);
+                    regexFadeIn2.Matches(reaperContent);
+                    regexFadeOut1.Matches(reaperContent);
+                    regexFadeOut2.Matches(reaperContent);
+                    regexVolume.Matches(reaperContent);
+                    regexSourceFile.Matches(reaperContent);
+
+                    std::string sourcefile = "";
+                    double start = 0;
+                    double length = 0;
+                    double sourceoffset = 0;
+                    double fadein1 = 0;
+                    double fadein2 = 0;
+                    double fadeout1 = 0;
+                    double fadeout2 = 0;
+                    double volume = 1;
+
+                    if (regexPosition.GetMatchCount() > 1)
+                    {
+                        start = std::atof(regexPosition.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexLength.GetMatchCount() > 1)
+                    {
+                        length = std::atof(regexLength.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexSourceOffset.GetMatchCount() > 1)
+                    {
+                        sourceoffset = std::atof(regexSourceOffset.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeIn1.GetMatchCount() > 1)
+                    {
+                        fadein1 = std::atof(regexFadeIn1.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeIn2.GetMatchCount() > 1)
+                    {
+                        fadein2 = std::atof(regexFadeIn2.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeOut1.GetMatchCount() > 1)
+                    {
+                        fadeout1 = std::atof(regexFadeOut1.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeOut2.GetMatchCount() > 1)
+                    {
+                        fadeout2 = std::atof(regexFadeOut2.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexVolume.GetMatchCount() > 1)
+                    {
+                        volume = std::atof(regexVolume.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexSourceFile.GetMatchCount() > 1)
+                    {
+                        size_t s, l;
+                        regexSourceFile.GetMatch(&s, &l, 0);
+                        sourcefile = regexSourceFile.GetMatch(reaperContent, 1).c_str();
+                        reaperContent = reaperContent.Mid(s + l);
+                    }
+                    edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, std::max(fadein1, fadein2), std::max(fadeout1, fadeout2), volume, fadein1 < fadein2, fadeout1 < fadeout2));
+                }
+
+                if (edits.size() == 0)
+                {
+                    SetStatusText("No edits found in RPP file.");
+                    return;
+                }
+            }
+        }
+        else if (filename.Lower().EndsWith(".xaudio"))
+        {
+            // Sample
+            //
+            // <xaudio>
+            //    <targetfile>01 The Greatest Show Amazon Edited.mp3</targetfile>
+            //    <items>
+            //       <item>
+            //          <targettime>0.0</targettime>    : in seconds
+            //          <length>5.5</length>            : in seconds
+            //          <sourcetime>1.0</sourcetime>    : in seconds
+            //          <fadeinsecs>0.75</fadeinsecs>   : in seconds
+            //          <fadeoutsecs>0.5</fadeoutsecs>  : in seconds
+            //          <fadeoutcrossfade/>
+            //          <gain>0.787367</gain>           : 1.0 = no change 0.0 = silence > 1.0 is amplification
+            //          <file>01 - The Greatest Show amazon.mp3</file>
+            //       </item>
+            //       <item>
+            //          <targettime>5</targettime>
+            //          <length>3</length>
+            //          <sourcetime>13.8</sourcetime>
+            //          <fadeinsecs>0.5</fadeinsecs>
+            //          <fadeincrossfade/>
+            //          <fadeoutsecs>0.5</fadeoutsecs>
+            //          <gain>0.787367</gain>
+            //          <file>01 - The Greatest Show amazon.mp3</file>
+            //       </item>
+            //    </items>
+            // </xaudio>
+
+            wxXmlDocument doc(filename);
+
+            if (doc.IsOk())
+            {
+                for (wxXmlNode* r = doc.GetRoot(); r != nullptr; r = r->GetNext())
+                {
+                    for (wxXmlNode* n = r->GetChildren(); n != nullptr; n = n->GetNext())
+                    {
+                        auto name = n->GetName().Lower();
+                        if (name == "targetfile")
+                        {
+                            if (n->GetChildren() != nullptr) {
+                                targetFile.SetName(n->GetChildren()->GetContent());
+                            }
+                        }
+                        else if (name == "items")
+                        {
+                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
+                            {
+                                name = nn->GetName().Lower();
+                                if (name == "item")
+                                {
+                                    std::string sourcefile = "";
+                                    double start = 0;
+                                    double length = 0;
+                                    double sourceoffset = 0;
+                                    double fadein = 0;
+                                    bool fadeincrossfade = false;
+                                    double fadeout = 0;
+                                    bool fadeoutcrossfade = false;
+                                    double volume = 1;
+
+                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                                    {
+                                        name = nnn->GetName().Lower();
+                                        if (name == "file")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                sourcefile = nnn->GetChildren()->GetContent();
+                                            }
+                                        }
+                                        else if (name == "targettime")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                start = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "length")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                length = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "sourcetime")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                sourceoffset = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "fadeinsecs")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                fadein = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "fadeoutsecs")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                fadeout = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "fadeincrossfade")
+                                        {
+                                            fadeincrossfade = true;
+                                        }
+                                        else if (name == "fadeoutcrossfade")
+                                        {
+                                            fadeoutcrossfade = true;
+                                        }
+                                        else if (name == "gain")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                volume = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                    }
+                                    edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, fadein, fadeout, volume, fadeincrossfade, fadeoutcrossfade));
+                                }
+                            }
+                        }
+                    }
+                }
+                if (edits.size() == 0)
+                {
+                    SetStatusText("No edits found in xAudio file.");
+                    return;
+                }
+            }
+            else
+            {
+                SetStatusText("Invalid xAudio file.");
+                return;
+            }
+        }
+
+        SetStatusText("Loading audio files.");
+
+        // load the audio files
+        std::map<std::string, AudioManager*> sourceSongs;
+        double outputLength = 0;
+        for (auto it : edits)
+        {
+            outputLength = std::max(outputLength, it.start + it.length);
+
+            if (sourceSongs.find(it.file) == sourceSongs.end())
+            {
+                wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
+                    CurrentDir, wxEmptyString, wxEmptyString,
+                    "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.wmv;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
+                    wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+
+                if (music != "")
+                {
+                    sourceSongs[it.file] = new AudioManager(music);
+                }
+                else
+                {
+                    sourceSongs[it.file] = nullptr;
+                }
+            }
+        }
+
+        bool ok = true;
+
+        long outputRate = -1;
+        for (auto it : sourceSongs)
+        {
+            if (it.second != nullptr)
+            {
+                if (outputRate == -1)
+                {
+                    outputRate = it.second->GetRate();
+                }
+                else
+                {
+                    if (ok && outputRate != it.second->GetRate())
+                    {
+                        logger_base.debug("Songs do not all have the same bitrate ... unable to do the required mixing.");
+                        wxMessageBox("In order to preapre the audio all the input songs must have the same bitrate.");
+                        ok = false;
+                    }
+                }
+            }
+        }
+
+        if (outputRate == -1)
+        {
+            SetStatusText("Audio file creation failed - No input audio.");
+            ok = false;
+        }
+
+        if (ok)
+        {
+            long totalSamples = outputRate * outputLength;
+            logger_base.debug("    New file will:");
+            logger_base.debug("        have %ld samples.", totalSamples);
+            logger_base.debug("        be %0.3f seconds long.", outputLength);
+            std::vector<float> left(totalSamples);
+            std::vector<float> right(totalSamples);
+
+            for (auto it : edits)
+            {
+                auto audio = sourceSongs[it.file];
+                if (audio != nullptr)
+                {
+                    // check the data is actually loaded
+                    audio->GetLeftData(audio->GetTrackSize() - 1);
+
+                    SetStatusText("Combining audio clips.");
+
+                    logger_base.debug("Processing sample from %s.", (const char *)it.file.c_str());
+                    long startOutput = outputRate * it.start;
+                    long outputSamples = outputRate * it.length;
+                    //logger_base.debug("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
+                    wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
+                    long startSample = audio->GetRate() * it.sourceoffset;
+                    long inputSamples = audio->GetRate() * it.length;
+                    //logger_base.debug("    Input file samples %ld", audio->GetTrackSize());
+                    //logger_base.debug("    Sample Input Start %ld-%ld [%ld].", startSample, startSample + inputSamples - 1, inputSamples);
+                    wxASSERT(startSample + inputSamples - 1 < audio->GetTrackSize());
+
+                    // this code does not handle mixed sample rates
+                    wxASSERT(inputSamples == outputSamples);
+
+                    float* lsource = audio->GetLeftDataPtr(startSample);
+                    float* rsource = audio->GetRightDataPtr(startSample);
+                    long fadeinsamples = it.fadein * audio->GetRate();
+                    long fadeoutsamples = it.fadeout * audio->GetRate();
+                    long fadeoutstart = inputSamples - fadeoutsamples;
+
+                    for (long i = 0; i < inputSamples; i++)
+                    {
+                        float l = lsource[i] * it.volume;
+                        float r = rsource[i] * it.volume;
+                        if (i < fadeinsamples)
+                        {
+                            // Linear
+                            //l *= (double)i / fadeinsamples; // linear fade for now
+                            //r *= (double)i / fadeinsamples; // linear fade for now
+
+                            if (it.crossfadein)
+                            {
+                                // cross fade in
+                                // log10(x/fadeinsamples+.1)*10/11
+                                double f = log10((double)i / fadeinsamples + 0.1)*10.0 / 11.0;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
+                            else
+                            {
+                                // exponent in
+                                //(10 ^ (x/fadeinsamples - 1)-.1) * 1.1
+                                double f = pow(10.0, ((double)i / fadeinsamples - 1.0) - 0.1) * 1.1;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
+                        }
+                        if (i > fadeoutstart)
+                        {
+                            // Linear
+                            //l *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
+                            //r *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
+
+                            if (it.crossfadeout)
+                            {
+                                // cross fade out
+                                //  1 - 10 ^ (x/fadeoutsamples - .95) + .1
+                                double f = 1.0 - log10((double)(inputSamples - i) / fadeinsamples + 0.1)*10.0 / 11.0;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
+                            else
+                            {
+                                // exponent out
+                                // 1 - log 10 (x/fadeoutsamples +.1)
+                                double f = 1.0 - pow(10.0, ((double)(inputSamples - i) / fadeinsamples - 1.0) - 0.1) * 1.1;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
+                        }
+                        left[startOutput + i] += l;
+                        right[startOutput + i] += r;
+                    }
+                }
+            }
+
+            // Clip it
+            for (auto& it : left)
+            {
+                if (it > 1.0) it = 1.0;
+            }
+            for (auto& it : right)
+            {
+                if (it > 1.0) it = 1.0;
+            }
+
+            if (targetFile.Exists())
+            {
+                if (wxMessageBox(targetFile.GetFullPath() + " already exists. Do you want to overwrite it?", "Replace", wxYES_NO | wxCENTRE, this) == wxNO)
+                {
+                    wxFileDialog fd(this,
+                        "Choose filename to save the audio as.",
+                        targetFile.GetPath(),
+                        targetFile.GetName(),
+                        "MP3 Files|*.mp3",
+                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+                    if (fd.ShowModal() == wxID_OK)
+                    {
+                        targetFile.SetPath(fd.GetDirectory());
+                        targetFile.SetName(fd.GetFilename());
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
+            SetStatusText("Saving output file.");
+
+            if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate))
+            {
+                wxMessageBox("Error creating audio file. See log for details.");
+                SetStatusText("Audio file creation failed.");
+            }
+            else
+            {
+                SetStatusText("Audio file created: " + targetFile.GetFullPath());
+            }
+        }
+        else
+        {
+            SetStatusText("Audio file creation failed.");
+        }
+
+        for (auto it : sourceSongs)
+        {
+            delete it.second;
+        }
+    }
+}
+
+void xLightsFrame::OnMenuItem_UserManualSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("https://manual.xlights.org/");
+}
+
+void xLightsFrame::OnMenuItem_MHS_NormalSelected(wxCommandEvent& event)
+{
+    _modelHandleSize = 1;
+    layoutPanel->Refresh();
+}
+
+void xLightsFrame::OnMenuItem_MHS_LargeSelected(wxCommandEvent& event)
+{
+    _modelHandleSize =2;
+    layoutPanel->Refresh();
+}
+
+void xLightsFrame::OnMenuItem_MHS_ExtraLargeSelected(wxCommandEvent& event)
+{
+    _modelHandleSize = 3;
+    layoutPanel->Refresh();
+}
+
+void xLightsFrame::OnMenuItem61Selected(wxCommandEvent& event)
+{
+    mSuppressFadeHints = event.IsChecked();
+    mainSequencer->PanelEffectGrid->Refresh();
+}
+
+bool xLightsFrame::IsNewModel(Model* m) const
+{
+    return layoutPanel->IsNewModel(m);
+}
+
+void xLightsFrame::OnMenuItem_Random_SetSelected(wxCommandEvent& event)
+{
+    wxArrayString effects;
+    for (int i = 0; i < effectManager.size(); i++)
+    {
+        effects.Add(effectManager[i]->Name());
+    }
+
+    CheckboxSelectDialog dlg(this, "Select Effects for Generate Random", effects, _randomEffectsToUse);
+    OptimiseDialogPosition(&dlg);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        _randomEffectsToUse = dlg.GetSelectedItems();
+
+        const wxString randomEffects = wxJoin(_randomEffectsToUse, ',');
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("xLightsRandomEffects", randomEffects);
+        config->Flush();
+    }
+}
+
+void xLightsFrame::OnMenuItem_EmailAddressSelected(wxCommandEvent& event)
+{
+    CollectUserEmail();
+}
+
+void xLightsFrame::CollectUserEmail()
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    EmailDialog dlg(this, _userEmail);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        _userEmail = dlg.GetEmail();
+    }
+    else
+    {
+        _userEmail = "noone@nowhere.xlights.org";
+    }
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("xLightsUserEmail", _userEmail);
+    logger_base.info("User email changed to %s", (const char*)_userEmail.c_str());
 }

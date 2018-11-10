@@ -15,7 +15,7 @@ protected:
 
     #pragma region Member Variables
     std::atomic_bool _started;
-    std::string _commPort;
+    std::string _commPort = "COM1";
     std::string _stationName;
     std::string _text;
     #pragma endregion Member Variables
@@ -52,7 +52,7 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start(long stepLengthMS) override;
     #pragma endregion Playing
 

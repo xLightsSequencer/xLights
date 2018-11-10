@@ -2,6 +2,9 @@
 #include "../models/Model.h"
 #include <list>
 #include "UtilFunctions.h"
+#include <log4cpp/Category.hh>
+#include "SequenceElements.h"
+#include "xLightsMain.h"
 
 Element::Element(SequenceElements *p, const std::string &name) :
 mEffectLayers(),
@@ -28,7 +31,7 @@ void Element::CleanupAfterRender() {
     for (auto &a : mEffectLayers) {
         a->CleanupAfterRender();
     }
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
     while (!mLayersToDelete.empty()) {
         delete *mLayersToDelete.begin();
         mLayersToDelete.pop_front();
@@ -60,9 +63,31 @@ bool Element::HasEffects() const {
             return true;
         }
     }
+
     return false;
 }
 
+bool TimingElement::HasLyrics(int layer) const {
+    if (mEffectLayers.size() > layer)
+    {
+        for (auto it : mEffectLayers[layer]->GetAllEffects())
+        {
+            if (it->GetEffectName() != "") return true;
+        }
+    }
+    return false;
+}
+
+std::vector<int> Element::GetLayersWithEffectsByTime(int startMs, int endMS) const {
+	std::vector<int> returnList;
+	for (size_t x = 0; x < mEffectLayers.size(); x++) {
+		if (mEffectLayers[x]->GetAllEffectsByTime(startMs, endMS).size() > 0) {
+			returnList.push_back(x);
+		}
+	}
+
+	return returnList;
+}
 
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
@@ -102,9 +127,17 @@ EffectLayer* Element::AddEffectLayer()
     IncrementChangeCount(-1, -1);
     return new_layer;
 }
+
 EffectLayer* Element::AddEffectLayerInternal()
 {
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    if (!lock.try_lock_for(std::chrono::milliseconds(500)))
+    {
+        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        lock.lock();
+    }
+
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.push_back(new_layer);
     return new_layer;
@@ -112,7 +145,14 @@ EffectLayer* Element::AddEffectLayerInternal()
 
 EffectLayer* Element::InsertEffectLayer(int index)
 {
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    if (!lock.try_lock_for(std::chrono::milliseconds(500)))
+    {
+        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        lock.lock();
+    }
+
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.insert(mEffectLayers.begin()+index, new_layer);
     IncrementChangeCount(-1, -1);
@@ -143,7 +183,14 @@ bool Element::operator<(const Element& e) const
 
 void Element::RemoveEffectLayer(int index)
 {
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    if (!lock.try_lock_for(std::chrono::milliseconds(500)))
+    {
+        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        lock.lock();
+    }
+
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
     mLayersToDelete.push_back(l);
@@ -167,22 +214,35 @@ void SubModelElement::IncrementChangeCount(int startMs, int endMS) {
     GetModelElement()->IncrementChangeCount(startMs, endMS);
 }
 
+bool SubModelElement::HasEffects() const
+{
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        if (mEffectLayers[x]->GetEffectCount() > 0) {
+            return true;
+        }
+    }
+    return false;
+}
 
 TimingElement::TimingElement(SequenceElements *p, const std::string &name)
 : Element(p, name),
-    mFixed(0)
-{
-    
-}
+    mFixed(0), mActive(false)
+{ }
+
 TimingElement::~TimingElement() {
 }
 
+void TimingElement::Unfix()
+{
+    mFixed = 0;
+}
 
 SubModelElement::SubModelElement(ModelElement *p, const std::string &name)
 : Element(p->GetSequenceElements(), name), mParentModel(p)
 {
     AddEffectLayerInternal();
 }
+
 SubModelElement::~SubModelElement() {
     
 }
@@ -196,13 +256,13 @@ std::string SubModelElement::GetFullName() const {
     return GetModelName() + "/" + GetName();
 }
 
-
 StrandElement::StrandElement(ModelElement *p, int strand)
 : SubModelElement(p, ""),
   mStrand(strand),
   mShowNodes(false)
 {
 }
+
 StrandElement::~StrandElement() {
     for (size_t x = 0; x < mNodeLayers.size(); x++) {
         delete mNodeLayers[x];
@@ -230,6 +290,15 @@ NodeLayer *StrandElement::GetNodeLayer(int n, bool create) {
     }
     return nullptr;
 }
+
+NodeLayer* StrandElement::GetNodeLayer(int n) const
+{
+    if (n < mNodeLayers.size()) {
+        return mNodeLayers[n];
+    }
+    return nullptr;
+}
+
 void StrandElement::InitFromModel(Model &model) {
     int nc = model.GetStrandLength(mStrand);
     mName = model.GetStrandName(mStrand);
@@ -255,7 +324,30 @@ EffectLayer* StrandElement::GetEffectLayerFromExclusiveIndex(int index) {
     return nullptr;
 }
 
+NodeLayer* StrandElement::GetNodeEffectLayer(int index) const
+{
+    if ( index < GetNodeLayerCount())
+        return GetNodeLayer(index);
+    return nullptr;
+}
 
+bool StrandElement::HasEffects() const
+{
+    for (size_t x = 0; x < mEffectLayers.size(); x++) {
+        if (mEffectLayers[x]->GetEffectCount() > 0) {
+            return true;
+        }
+    }
+
+    for (size_t x = 0; x < GetNodeLayerCount(); ++x)
+    {
+        NodeLayer* nl = GetNodeLayer(x);
+
+        if (nl != nullptr && nl->HasEffects()) return true;
+    }
+
+    return false;
+}
 
 ModelElement::ModelElement(SequenceElements *l, const std::string &name, bool selected)
 :   Element(l, name),
@@ -273,7 +365,7 @@ ModelElement::ModelElement(const std::string &name)
 ModelElement::~ModelElement()
 {
     //make sure none of the render threads are rendering this model
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
     while (waitCount > 0) {
         lock.unlock();
         wxSleep(1);
@@ -303,6 +395,20 @@ void ModelElement::CleanupAfterRender() {
         a->CleanupAfterRender();
     }
     Element::CleanupAfterRender();
+}
+
+NodeLayer* ModelElement::GetNodeEffectLayer(int index) const
+{
+    int startStrand = 0;
+    for (int s = 0; s < GetStrandCount(); s++)
+    {
+        if (index < startStrand + GetStrand(s)->GetNodeLayerCount())
+        {
+            return GetStrand(s)->GetNodeEffectLayer(index - startStrand);
+        }
+        startStrand += GetStrand(s)->GetNodeLayerCount();
+    }
+    return nullptr;
 }
 
 int ModelElement::GetWaitCount() {
@@ -351,6 +457,32 @@ EffectLayer* ModelElement::GetEffectLayerFromExclusiveIndex(int index) {
     }
     return nullptr;
 }
+
+bool ModelElement::HasEffects() const
+{
+    for (size_t x = 0; x < mEffectLayers.size(); ++x) {
+        if (mEffectLayers[x]->GetEffectCount() > 0) {
+            return true;
+        }
+    }
+    
+    for (size_t x = 0; x < GetStrandCount(); ++x)
+    {
+        StrandElement* se = GetStrand(x);
+
+        if (se != nullptr && se->HasEffects()) return true;
+    }
+
+    for (size_t x = 0; x < GetSubModelCount(); ++x)
+    {
+        SubModelElement* sme = GetSubModel(x);
+
+        if (sme != nullptr && sme->HasEffects()) return true;
+    }
+
+    return false;
+}
+
 std::string  TimingElement::GetPapagayoExport(int fps) const
 {
     if (mEffectLayers.size() != 3) return "";
@@ -432,13 +564,17 @@ void ModelElement::Init(Model &model) {
         //no strands for a whole house model
         return;
     }
-    for (auto sm = model.GetSubModels().begin(); sm != model.GetSubModels().end(); ++sm) {
+    for (auto sm : model.GetSubModels()) {
         bool found = false;
-        for (auto sm2 = mSubModels.begin(); sm2 != mSubModels.end(); ++sm2) {
-            found |= ((*sm2)->GetName() == (*sm)->Name());
+        for (auto sm2 : mSubModels) {
+            if (sm2->GetName() == sm->Name())
+            {
+                found = true;
+                break;
+            }
         }
         if (!found) {
-            mSubModels.push_back(new SubModelElement(this, (*sm)->Name()));
+            mSubModels.push_back(new SubModelElement(this, sm->Name()));
         }
     }
     int ns = model.GetNumStrands();
@@ -463,6 +599,14 @@ StrandElement* ModelElement::GetStrand(int index, bool create) {
     return mStrands[index];
 }
 
+StrandElement* ModelElement::GetStrand(int strand) const
+{
+    if (strand >= mStrands.size()) {
+        return nullptr;
+    }
+    return mStrands[strand];
+}
+
 int ModelElement::GetSubModelAndStrandCount() const {
     return mSubModels.size() +  mStrands.size();
 }
@@ -481,7 +625,7 @@ void ModelElement::RemoveSubModel(const std::string &name) {
     }
 }
 
-SubModelElement *ModelElement::GetSubModel(int i) {
+SubModelElement* ModelElement::GetSubModel(int i) const {
     if (i < mSubModels.size()) {
         return mSubModels[i];
     }
@@ -492,8 +636,19 @@ SubModelElement *ModelElement::GetSubModel(int i) {
     return mStrands[i];
 }
 
-void ModelElement::AddSubModel(SubModelElement* sme)
+SubModelElement* ModelElement::GetSubModel(int i)
 {
+    if (i < mSubModels.size()) {
+        return mSubModels[i];
+    }
+    i -= mSubModels.size();
+    if (i >= mStrands.size()) {
+        return nullptr;
+    }
+    return mStrands[i];
+}
+
+void ModelElement::AddSubModel(SubModelElement* sme) {
     mSubModels.push_back(sme);
 }
 
@@ -523,18 +678,82 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
         for (int j = 0; j < GetEffectLayerCount(); j++)
         {
             EffectLayer* el = GetEffectLayer(j);
-            res.merge(el->GetFileReferences(em));
+            res.splice(end(res), el->GetFileReferences(em));
         }
     }
     return res;
 }
 
-bool Element::SelectEffectUsingDescription(std::string description)
+std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
+{
+    std::list<std::string> res;
+    if (GetType() != ELEMENT_TYPE_TIMING)
+    {
+        for (int j = 0; j < GetEffectLayerCount(); j++)
+        {
+            EffectLayer* el = GetEffectLayer(j);
+            res.splice(end(res), el->GetFacesUsed(em));
+        }
+    }
+    return res;
+}
+
+bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
+{
+    bool rc = false;
+    if (GetType() != ELEMENT_TYPE_TIMING)
+    {
+        for (int j = 0; j < GetEffectLayerCount(); j++)
+        {
+            EffectLayer* el = GetEffectLayer(j);
+            rc = el->CleanupFileLocations(frame, em) || rc;
+        }
+    }
+    return rc;
+}
+
+Effect* Element::SelectEffectUsingDescription(std::string description)
 {
     for (int j = 0; j < GetEffectLayerCount(); j++)
     {
         EffectLayer* el = GetEffectLayer(j);
-        if (el->SelectEffectUsingDescription(description))
+        Effect* e = el->SelectEffectUsingDescription(description);
+        if (e != nullptr)
+        {
+            return e;
+        }
+    }
+    return nullptr;
+}
+
+bool StrandElement::IsEffectValid(Effect* e) const
+{
+    for (int j = 0; j < GetEffectLayerCount(); j++)
+    {
+        EffectLayer* el = GetEffectLayer(j);
+        if (el->IsEffectValid(e))
+        {
+            return true;
+        }
+    }
+
+    for (int j = 0; j < GetNodeLayerCount(); j++)
+    {
+        if (GetNodeEffectLayer(j)->IsEffectValid(e))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Element::IsEffectValid(Effect* e) const
+{
+    for (int j = 0; j < GetEffectLayerCount(); j++)
+    {
+        EffectLayer* el = GetEffectLayer(j);
+        if (el->IsEffectValid(e))
         {
             return true;
         }
@@ -542,15 +761,16 @@ bool Element::SelectEffectUsingDescription(std::string description)
     return false;
 }
 
-bool Element::SelectEffectUsingLayerTime(int layer, int time)
+Effect* Element::SelectEffectUsingLayerTime(int layer, int time)
 {
     if (layer < GetEffectLayerCount())
     {
         EffectLayer* el = GetEffectLayer(layer);
-        if (el->SelectEffectUsingTime(time))
+        Effect* e = el->SelectEffectUsingTime(time);
+        if (e != nullptr)
         {
-            return true;
+            return e;
         }
     }
-    return false;
+    return nullptr;
 }

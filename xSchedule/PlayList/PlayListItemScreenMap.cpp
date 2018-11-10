@@ -3,7 +3,6 @@
 #include <wx/notebook.h>
 #include "PlayListItemScreenMapPanel.h"
 #include <log4cpp/Category.hh>
-#include "../FSEQFile.h"
 #include "../MatrixMapper.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
@@ -15,12 +14,12 @@ PlayListItemScreenMap::PlayListItemScreenMap(wxXmlNode* node) : PlayListItem(nod
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     _durationMS = 50;
     _matrix = "";
-    _x = 0;
-    _y = 0;
-	_width = 0;
-	_height = 0;
-    _rescale = false;
-    _quality = "High";
+    _x = 100;
+    _y = 100;
+	_width = 100;
+	_height = 100;
+    _rescale = true;
+    _quality = "Bilinear";
 
     PlayListItemScreenMap::Load(node);
 }
@@ -35,26 +34,27 @@ void PlayListItemScreenMap::Load(wxXmlNode* node)
     _blendMode = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", "1"));
     _durationMS = wxAtol(node->GetAttribute("Duration", "50"));
     _matrix = node->GetAttribute("Matrix", "").ToStdString();
-    _x = wxAtoi(node->GetAttribute("X", "0"));
-    _y = wxAtoi(node->GetAttribute("Y", "0"));
-    _width = wxAtoi(node->GetAttribute("Width", "0"));
-    _height = wxAtoi(node->GetAttribute("Height", "0"));
+    _x = wxAtoi(node->GetAttribute("X", "100"));
+    _y = wxAtoi(node->GetAttribute("Y", "100"));
+    _width = wxAtoi(node->GetAttribute("Width", "100"));
+    _height = wxAtoi(node->GetAttribute("Height", "100"));
     _rescale = node->GetAttribute("Rescale", "False") == "True";
-    _quality = node->GetAttribute("Quality", "High").ToStdString();
+    _quality = node->GetAttribute("Quality", "Bilinear").ToStdString();
 }
 
 PlayListItemScreenMap::PlayListItemScreenMap() : PlayListItem()
 {
+    _type = "PLIScreenMap";
     _matrixMapper = nullptr;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     _durationMS = 50;
     _matrix = "";
-    _x = 0;
-    _y = 0;
-	_width = 0;
-	_height = 0;
-    _rescale = false;
-    _quality = "High";
+    _x = 100;
+    _y = 100;
+	_width = 100;
+	_height = 100;
+    _rescale = true;
+    _quality = "Bilinear";
 }
 
 PlayListItem* PlayListItemScreenMap::Copy() const
@@ -76,7 +76,7 @@ PlayListItem* PlayListItemScreenMap::Copy() const
 
 wxXmlNode* PlayListItemScreenMap::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIScreenMap");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_blendMode));
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_durationMS));
@@ -89,6 +89,10 @@ wxXmlNode* PlayListItemScreenMap::Save()
     if (_rescale)
     {
         node->AddAttribute("Rescale", "True");
+    }
+    else
+    {
+        node->AddAttribute("Rescale", "False");
     }
 
     PlayListItem::Save(node);
@@ -148,7 +152,7 @@ void PlayListItemScreenMap::Stop()
 {
 }
 
-void PlayListItemScreenMap::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemScreenMap::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -186,7 +190,8 @@ void PlayListItemScreenMap::Frame(wxByte* buffer, size_t size, size_t ms, size_t
         wxImage image;
         if (_rescale)
         {
-            wxImageResizeQuality quality = VirtualMatrix::EncodeScalingQuality(_quality);
+            int swsQuality = -1;
+            wxImageResizeQuality quality = VirtualMatrix::EncodeScalingQuality(_quality, swsQuality);
             image = sourceBitmap.ConvertToImage().Rescale(_matrixMapper->GetWidth(), _matrixMapper->GetHeight(), quality);
         }
         else
@@ -202,7 +207,7 @@ void PlayListItemScreenMap::Frame(wxByte* buffer, size_t size, size_t ms, size_t
 
                 if (bl < size)
                 {
-                    wxByte* p = buffer + bl;
+                    uint8_t* p = buffer + bl;
 
                     SetPixel(p, image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), _blendMode);
                 }
@@ -215,9 +220,9 @@ void PlayListItemScreenMap::Frame(wxByte* buffer, size_t size, size_t ms, size_t
     }
 }
 
-void PlayListItemScreenMap::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode)
+void PlayListItemScreenMap::SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode)
 {
-    wxByte rgb[3];
+    uint8_t rgb[3];
     rgb[0] = r;
     rgb[1] = g;
     rgb[2] = b;

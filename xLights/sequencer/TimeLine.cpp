@@ -393,6 +393,16 @@ void TimeLine::RestorePosition()
 
 void TimeLine::LatchSelectedPositions()
 {
+    if (mSelectedPlayMarkerEndMS != -1)
+    {
+        // if we have selected very few horizontal pixels then assume we were trying to click rather than select
+        if (std::abs(mSelectedPlayMarkerStart - mSelectedPlayMarkerEnd) < 5)
+        {
+            mSelectedPlayMarkerEndMS = -1;
+            mSelectedPlayMarkerEnd = -1;
+        }
+    }
+
     if( mSelectedPlayMarkerEndMS != -1 && mSelectedPlayMarkerStartMS > mSelectedPlayMarkerEndMS )
     {
         std::swap(mSelectedPlayMarkerStart, mSelectedPlayMarkerEnd);
@@ -531,7 +541,7 @@ void TimeLine::SetZoomLevel(int level)
     mZoomLevel = level;
     if( (mZoomMarkerMS != -1) && ((mEndTimeMS - mStartTimeMS) > 0) )
     {
-        float marker_ratio = (double)(mZoomMarkerMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS);
+        float marker_ratio = std::abs((double)(mZoomMarkerMS - mStartTimeMS) / (double)(mEndTimeMS - mStartTimeMS));
         int total_ms = GetTotalViewableTimeMS();
         mStartTimeMS = mZoomMarkerMS - marker_ratio * total_ms;
         if( mStartTimeMS < 0 )

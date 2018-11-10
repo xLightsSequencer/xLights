@@ -16,10 +16,18 @@ xlFont::~xlFont()
 {
 }
 
+int xlFont::GetCharWidth(int ascii)
+{
+    if (ascii < 0 || ascii >= XL_FONT_WIDTHS)
+    {
+        return 0;
+    }
+
+    return widths[ascii];
+}
+
 void xlFont::GatherInfo()
 {
-    int x_pos, y_pos;
-    int red, green, blue;
     int index = 0;
     for( int i = 0; i < 128; i++ )
     {
@@ -28,15 +36,15 @@ void xlFont::GatherInfo()
     wxImage image = bitmap.ConvertToImage();
     for( int y = 0; y < FONT_BITMAP_ROWS; y++)
     {
-        y_pos = (y * (char_height + 1)) + 1;
+        int y_pos = (y * (char_height + 1)) + 1;
         for( int x = 0; x < FONT_BITMAP_COLUMNS; x++)
         {
-            x_pos = (x * (char_width + 1)) + 1;
+            int x_pos = (x * (char_width + 1)) + 1;
             for( int z = 0; z < char_width; z++ )
             {
-                red = image.GetRed(x_pos+z, y_pos);
-                green = image.GetGreen(x_pos+z, y_pos);
-                blue = image.GetBlue(x_pos+z, y_pos);
+                int red = image.GetRed(x_pos+z, y_pos);
+                int green = image.GetGreen(x_pos+z, y_pos);
+                int blue = image.GetBlue(x_pos+z, y_pos);
                 if( red == 0 && green == 255 && blue == 255 )
                 {
                     widths[index] = z;
@@ -137,9 +145,8 @@ int FontManager::get_length(xlFont* font, wxString& text)
 {
     if( text == "" ) return 0;
     int length = 0;
-    int ascii;
     for( int i = 0; i < text.length(); i++ ) {
-        ascii = (int)text[i];
+        char ascii = text[i];
         length += font->GetCharWidth(ascii);
     }
     return length;

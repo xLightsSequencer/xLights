@@ -133,6 +133,8 @@ LorOptimisedDialog::LorOptimisedDialog(wxWindow* parent, LOROptimisedOutput** se
 	Connect(ID_BUTTON_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LorOptimisedDialog::OnButton_OkClick);
 	//*)
 
+    Connect(ID_LISTVIEW_CONTROLLERS, wxEVT_COMMAND_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&LorOptimisedDialog::OnListView_ControllersItemActivated);
+
     auto ports = SerialOutput::GetPossibleSerialPorts();
     for (auto it = ports.begin(); it != ports.end(); ++it)
     {
@@ -242,11 +244,11 @@ void LorOptimisedDialog::EditSelected()
     int id = ListView_Controllers->GetItemData(ListView_Controllers->GetFirstSelected());
     LorController* e = nullptr;
     int old_unit_id = 1;
-    for (auto it = _lorControllers->GetControllers()->begin(); it != _lorControllers->GetControllers()->end(); ++it)
+    for (auto& it : *_lorControllers->GetControllers())
     {
-        if ((*it)->GetUnitId() == id)
+        if (it->GetUnitId() == id)
         {
-            e = *it;
+            e = it;
             old_unit_id = e->GetUnitId();
             break;
         }
@@ -261,6 +263,12 @@ void LorOptimisedDialog::EditSelected()
             int unit_id = e->GetUnitId();
             _unit_id_in_use[old_unit_id] = false;
             _unit_id_in_use[unit_id] = true;
+
+            if (_lorControllers->GetTotalChannels() > LOROptimisedOutput::GetMaxLORChannels())
+            {
+                wxMessageBox(wxString::Format("Our LOR support is limited to %d channels. %d allocated.",
+                    LOROptimisedOutput::GetMaxLORChannels(), _lorControllers->GetTotalChannels()));
+            }
         }
     }
 
@@ -286,6 +294,12 @@ void LorOptimisedDialog::OnButton_AddClick(wxCommandEvent& event)
         _lorControllers->GetControllers()->push_back(dlg.GetController());
         int unit_id = dlg.GetController()->GetUnitId();
         _unit_id_in_use[unit_id] = true;
+
+        if (_lorControllers->GetTotalChannels() > LOROptimisedOutput::GetMaxLORChannels())
+        {
+            wxMessageBox(wxString::Format("Our LOR support is limited to %d channels. %d allocated.",
+                LOROptimisedOutput::GetMaxLORChannels(), _lorControllers->GetTotalChannels()));
+        }
     }
 
     LoadList();
@@ -300,6 +314,11 @@ void LorOptimisedDialog::OnTextCtrl_DescriptionText(wxCommandEvent& event)
 void LorOptimisedDialog::OnListView_ControllersItemSelect(wxListEvent& event)
 {
     ValidateWindow();
+}
+
+void LorOptimisedDialog::OnListView_ControllersItemActivated(wxListEvent& event)
+{
+    EditSelected();
 }
 
 void LorOptimisedDialog::ValidateWindow()
@@ -331,7 +350,8 @@ void LorOptimisedDialog::ValidateWindow()
         ListView_Controllers->SetColumnWidth(4, 100);
 
     if (ChoicePort->GetStringSelection().IsEmpty() ||
-        (ChoiceBaudRate->IsEnabled() && ChoiceBaudRate->GetStringSelection() == ""))
+        (ChoiceBaudRate->IsEnabled() && ChoiceBaudRate->GetStringSelection() == "") ||
+        (_lorControllers->GetTotalChannels() > LOROptimisedOutput::GetMaxLORChannels()))
     {
         Button_Ok->Enable(false);
     }

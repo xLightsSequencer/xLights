@@ -22,7 +22,7 @@ class xlGridCanvasEmpty : public xlGridCanvas
         virtual bool UsesVertexAccumulator() {return true;}
         virtual bool UsesAddVertex() {return false;}
     protected:
-        virtual void InitializeGLCanvas();
+        virtual void InitializeGLContext();
 
     private:
 

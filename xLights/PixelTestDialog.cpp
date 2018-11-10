@@ -6,6 +6,7 @@
 #include <wx/settings.h>
 #include <wx/dataview.h>
 #include <wx/confbase.h>
+#include <wx/numdlg.h>
 
 //(*InternalHeaders(PixelTestDialog)
 #include <wx/intl.h>
@@ -462,7 +463,7 @@ public:
                 long sc = _subModel->NodeStartChannel(i);
                 for (int j = 0; j < _subModel->GetChanCountPerNode(); j++)
                 {
-                    _nonContiguousChannels.push_back(sc + _absoluteStartChannel + 1 + j);
+                    _nonContiguousChannels.push_back(sc + 1 + j);
                 }
             }
             _absoluteStartChannel = -1;
@@ -557,7 +558,7 @@ public:
                     long sc = model->NodeStartChannel(i);
                     for (int j = 0; j < model->GetChanCountPerNode(); j++)
                     {
-                        _nonContiguousChannels.push_back(sc + _absoluteStartChannel + 1 + j);
+                        _nonContiguousChannels.push_back(sc + j + 1);
                     }
                 }
                 _absoluteStartChannel = -1;
@@ -802,6 +803,10 @@ public:
 const long PixelTestDialog::ID_TREELISTCTRL_Outputs = wxNewId();
 const long PixelTestDialog::ID_TREELISTCTRL_ModelGroups = wxNewId();
 const long PixelTestDialog::ID_TREELISTCTRL_Models = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_SELECTALL = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_DESELECTALL = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
+const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
 
 //(*IdInit(PixelTestDialog)
 const long PixelTestDialog::ID_BUTTON_Load = wxNewId();
@@ -1158,14 +1163,17 @@ PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager,
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemSelected);
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_EXPANDING, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemExpanding);
-	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
+    Connect(ID_TREELISTCTRL_Outputs, wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)& PixelTestDialog::OnContextMenu);
+    Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemSelected);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_EXPANDING, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemExpanding);
-	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
+    Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)& PixelTestDialog::OnContextMenu);
+    Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_SELECTION_CHANGED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemSelected);
 	Connect(ID_TREELISTCTRL_Models, wxEVT_COMMAND_TREELIST_ITEM_EXPANDING, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemExpanding);
+    Connect(ID_TREELISTCTRL_Models, wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)& PixelTestDialog::OnContextMenu);
 #ifdef __WXOSX__
 	Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
 	Connect(ID_TREELISTCTRL_ModelGroups, wxEVT_COMMAND_TREELIST_ITEM_ACTIVATED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlItemActivated);
@@ -1190,12 +1198,12 @@ PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager,
 
     if (_outputManager->IsOutputOpenInAnotherProcess())
     {
-        wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
     }
 
     if (!_outputManager->StartOutput())
     {
-        wxMessageBox("At least one output could not be started. See log file for details.", "Warning");
+        DisplayWarning("At least one output could not be started. See log file for details.", this);
     }
     Timer1.Start(50, wxTIMER_CONTINUOUS);
 }
@@ -1224,7 +1232,7 @@ PixelTestDialog::~PixelTestDialog()
 // Functions for navigating the tree
 // Cascading Functions
 
-void PixelTestDialog::CascadeSelected(wxTreeListCtrl* tree, wxTreeListItem& item, wxCheckBoxState state)
+void PixelTestDialog::CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem& item, wxCheckBoxState state)
 {
     tree->CheckItemRecursively(item, state);
 }
@@ -1362,13 +1370,13 @@ bool PixelTestDialog::AreChannelsAvailable(ModelGroup* modelGroup)
 
 bool PixelTestDialog::AreChannelsAvailable(Model* model)
 {
-    long sc = model->GetFirstChannel() + 1;
-    long ec = model->GetLastChannel() + 1;
-    long current = sc;
+    int32_t sc = model->GetFirstChannel() + 1;
+    int32_t ec = model->GetLastChannel() + 1;
+    int32_t current = sc;
 
     while (current <= ec)
     {
-        long offset;
+        int32_t offset;
         Output* o = _outputManager->GetLevel1Output(current, offset);
 
         if (o == nullptr || o->GetType() == "NULL") return false;
@@ -1646,6 +1654,75 @@ void PixelTestDialog::OnTreeListCtrlItemActivated(wxTreeListEvent& event)
     SetTreeTooltip(tree, item);
 }
 
+void PixelTestDialog::OnContextMenu(wxTreeListEvent& event)
+{
+    _rcItem = event.GetItem();
+    _rcTree = (wxTreeListCtrl*)event.GetEventObject();
+    wxMenu mnuContext;
+    mnuContext.Append(ID_MNU_TEST_SELECTALL, "Select All");
+    mnuContext.Append(ID_MNU_TEST_DESELECTALL, "Deselect All");
+    mnuContext.Append(ID_MNU_TEST_SELECTN, "Select Many");
+    mnuContext.Append(ID_MNU_TEST_DESELECTN, "Deselect Many");
+
+    mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& PixelTestDialog::OnListPopup, nullptr, this);
+    PopupMenu(&mnuContext);
+}
+
+void PixelTestDialog::OnListPopup(wxCommandEvent& event)
+{
+    //static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    wxTreeListCtrl* tree = _rcTree;
+    wxTreeListItem selected = _rcItem;
+    long id = event.GetId();
+    if (id == ID_MNU_TEST_SELECTALL)
+    {
+        tree->CheckItem(tree->GetRootItem(), wxCHK_CHECKED);
+        CascadeSelected(tree, tree->GetRootItem(), wxCHK_CHECKED);
+    }
+    else if (id == ID_MNU_TEST_DESELECTALL)
+    {
+        tree->CheckItem(tree->GetRootItem(), wxCHK_UNCHECKED);
+        CascadeSelected(tree, tree->GetRootItem(), wxCHK_UNCHECKED);
+    }
+    else if (id == ID_MNU_TEST_SELECTN)
+    {
+        if (selected.IsOk())
+        {
+            wxNumberEntryDialog dlg(this, "Number to select", "", "", 2, 1, 1000);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                int count = dlg.GetValue();
+
+                while (count > 0 && selected.IsOk())
+                {
+                    tree->CheckItem(selected, wxCHK_CHECKED);
+                    selected = tree->GetNextSibling(selected);
+                    count--;
+                }
+            }
+        }
+    }
+    else if (id == ID_MNU_TEST_DESELECTN)
+    {
+        if (selected.IsOk())
+        {
+            wxNumberEntryDialog dlg(this, "Number to deselect", "", "", 2, 1, 1000);
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                int count = dlg.GetValue();
+
+                while (count > 0 && selected.IsOk())
+                {
+                    tree->CheckItem(selected, wxCHK_UNCHECKED);
+                    selected = tree->GetNextSibling(selected);
+                    count--;
+                }
+            }
+        }
+    }
+}
+
 void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
 {
 	wxTreeListItem item = event.GetItem();
@@ -1702,14 +1779,35 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
 		for (int i = 0; i < selections.size(); i++) {
 			// dont double process the item that was passed into the event
 			if (selections[i] != item) {
-				if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
+                tc = (TestItemBase*)tree->GetItemData(selections[i]);
+                if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
 					// check the items
 					tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
-					CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.AddRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
 				} else if (tree->GetCheckedState(selections[i]) == wxCHK_CHECKED) {
 					// uncheck the items
 					tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
-					CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.RemoveRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
 				}
 			}
 		}
@@ -1749,7 +1847,7 @@ void PixelTestDialog::OnButton_LoadClick(wxCommandEvent& event)
 
 	if (presets.size() == 0)
 	{
-		wxMessageBox(_("No test configurations found"), _("Error"));
+		DisplayError("No test configurations found", this);
 		return;
 	}
 
@@ -1795,12 +1893,12 @@ void PixelTestDialog::OnButton_SaveClick(wxCommandEvent& event)
 
     if (name.IsEmpty())
     {
-        wxMessageBox(_("Name cannot be empty"), _("Error"));
+        DisplayError("Name cannot be empty", this);
         return;
     }
     else if (name.Len() > 240)
     {
-        wxMessageBox(_("Name is too long"), _("Error"));
+        DisplayError("Name is too long", this);
         return;
     }
     else if (_outputManager->GetTestPreset(name.ToStdString()) != nullptr)
@@ -2091,6 +2189,8 @@ void PixelTestDialog::OnTimer(long curtime)
 	if (_checkChannelList)
 	{
         SetSuspend();
+
+        NextSequenceStart = -1;
 
 		// get list of checked channels
         _outputManager->AllOff();
@@ -2476,19 +2576,19 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 	{
         if (_outputManager->IsOutputOpenInAnotherProcess())
         {
-            wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+            DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
         }
 
         if (!_outputManager->StartOutput())
         {
-            wxMessageBox("At least one output could not be started. See log file for details.", "Warning");
+            DisplayWarning("At least one output could not be started. See log file for details.", this);
         }
         Timer1.Start(50, wxTIMER_CONTINUOUS);
     }
 	else
 	{
         Timer1.Stop();
-        wxTimerEvent ev;
+        wxTimerEvent ev(Timer1);
         OnTimer1Trigger(ev);
         _outputManager->StopOutput();
 	}

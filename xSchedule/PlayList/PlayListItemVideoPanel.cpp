@@ -32,7 +32,7 @@ END_EVENT_TABLE()
 
 class VideoFilePickerCtrl : public wxFilePickerCtrl
 {
-#define VIDEOFILES "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v|All Files|*.*"
+#define VIDEOFILES "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv|All Files|*.*"
 
 public:
     VideoFilePickerCtrl(wxWindow *parent,

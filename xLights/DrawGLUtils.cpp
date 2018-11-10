@@ -14,6 +14,8 @@
  #endif
 #endif
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <wx/bitmap.h>
 #include "DrawGLUtils.h"
 #include "osxMacUtils.h"
@@ -30,13 +32,22 @@ const double PI  =3.141592653589793238463;
 static DrawGLUtils::xlGLCacheInfo *currentCache;
 
 
-#define DO_LOG_GL_MSG(a, ...) logger_opengl.debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+#define DO_LOG_GL_MSG(a, ...) static_logger_opengl->debug(a, ##__VA_ARGS__); printf(a, ##__VA_ARGS__); printf("\n")
+
+static bool isDebugEnabled = false;
+static bool isTraceDebugEnabled = false;
+static log4cpp::Category *static_logger_opengl = nullptr;
+static log4cpp::Category *static_logger_opengl_trace = nullptr;
+void DrawGLUtils::SetupDebugLogging() {
+    if (!static_logger_opengl) {
+        static_logger_opengl = &log4cpp::Category::getInstance(std::string("log_opengl"));
+        static_logger_opengl_trace = &log4cpp::Category::getInstance(std::string("log_opengl_trace"));
+        isTraceDebugEnabled = static_logger_opengl_trace->isDebugEnabled();
+        isDebugEnabled = static_logger_opengl->isDebugEnabled() | isTraceDebugEnabled;
+    }
+}
 
 void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
-    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
-    static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
-    static bool isTraceDebugEnabled = logger_opengl_trace.isDebugEnabled();
-    static bool isDebugEnabled = logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
     if (isDebugEnabled) {
         int er = glGetError();
         if (er || isTraceDebugEnabled) {
@@ -49,9 +60,9 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
             }
             if (isTraceDebugEnabled) {
                 if (msg) {
-                    logger_opengl_trace.debug("%s/%d - %s:   %X", f2, line, msg, er);
+                    static_logger_opengl_trace->debug("%s/%d - %s:   %X", f2, line, msg, er);
                 } else {
-                    logger_opengl_trace.debug("%s/%d:   %X", f2, line, er);
+                    static_logger_opengl_trace->debug("%s/%d:   %X", f2, line, er);
                 }
             }
             if (er) {
@@ -95,6 +106,260 @@ void DrawGLUtils::xlGLCacheInfo::SetCurrent() {
     }
 }
 
+void DrawGLUtils::xl3DMesh::setMatrix(glm::mat4& mat) {
+    matrix = mat;
+}
+void DrawGLUtils::xl3DMesh::addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t clr[3][4], GLint imageId) {
+    for (int v = 0; v < 3; v++) {
+        vertices.push_back(vert[v][0]);
+        vertices.push_back(vert[v][1]);
+        vertices.push_back(vert[v][2]);
+        texCoords.push_back(uv[v][0]);
+        texCoords.push_back(uv[v][1]);
+        normals.push_back(norms[v][0]);
+        normals.push_back(norms[v][1]);
+        normals.push_back(norms[v][2]);
+        colors.push_back(clr[v][0]);
+        colors.push_back(clr[v][1]);
+        colors.push_back(clr[v][2]);
+        colors.push_back(clr[v][3]);
+        images.push_back(imageId);
+    }
+
+    wireframe.push_back(vert[0][0]);
+    wireframe.push_back(vert[0][1]);
+    wireframe.push_back(vert[0][2]);
+    wireframe.push_back(vert[1][0]);
+    wireframe.push_back(vert[1][1]);
+    wireframe.push_back(vert[1][2]);
+    wireframe.push_back(vert[1][0]);
+    wireframe.push_back(vert[1][1]);
+    wireframe.push_back(vert[1][2]);
+    wireframe.push_back(vert[2][0]);
+    wireframe.push_back(vert[2][1]);
+    wireframe.push_back(vert[2][2]);
+    wireframe.push_back(vert[2][0]);
+    wireframe.push_back(vert[2][1]);
+    wireframe.push_back(vert[2][2]);
+    wireframe.push_back(vert[0][0]);
+    wireframe.push_back(vert[0][1]);
+    wireframe.push_back(vert[0][2]);
+}
+void DrawGLUtils::xl3DMesh::addLine(float vert[2][3]) {
+    for (int v = 0; v < 2; v++) {
+        lines.push_back(vert[v][0]);
+        lines.push_back(vert[v][1]);
+        lines.push_back(vert[v][2]);
+    }
+}
+inline bool hasTransparent(int idx, const std::vector<GLubyte> &colors) {
+    static const GLubyte SOLID = 255;
+    return colors[idx*4 + 3] != SOLID;
+}
+void DrawGLUtils::xl3DMesh::calcProgram() {
+    solidProgramTypes.clear();
+    transparentProgramTypes.clear();
+    if (!images.empty()) {
+        PType curType;
+        curType.image = images[0];
+        curType.startIdx = 0;
+        curType.count = 1;
+        curType.transparent = hasTransparent(0, colors);
+        for (int x = 1; x < images.size(); x++) {
+            if (images[x] != curType.image
+                || hasTransparent(x, colors) != curType.transparent) {
+                //changing something
+                if (curType.transparent) {
+                    transparentProgramTypes.push_back(curType);
+                } else {
+                    solidProgramTypes.push_back(curType);
+                }
+                curType.image = images[x];
+                curType.startIdx = x;
+                curType.count = 1;
+                curType.transparent = hasTransparent(x, colors);
+            } else {
+                curType.count++;
+            }
+        }
+        if (curType.transparent) {
+            transparentProgramTypes.push_back(curType);
+        } else {
+            solidProgramTypes.push_back(curType);
+        }
+    }
+}
+class GL1Mesh : public DrawGLUtils::xl3DMesh {
+    
+public:
+    GL1Mesh() : DrawGLUtils::xl3DMesh(), lastBrightness(-1), wfList(0), solidList(0), transparentList(0) {
+    }
+    virtual ~GL1Mesh() {
+        if (wfList) {
+            glDeleteLists(wfList, 1);
+        }
+        if (lList) {
+            glDeleteLists(lList, 1);
+        }
+        if (solidList) {
+            glDeleteLists(solidList, 1);
+        }
+        if (transparentList) {
+            glDeleteLists(transparentList, 1);
+        }
+    }
+
+    void Draw(bool wf, float brightness, bool transparent) {
+        if (solidProgramTypes.empty() && transparentProgramTypes.empty()) {
+            calcProgram();
+            wfList = glGenLists(1);
+            lList = glGenLists(1);
+            solidList = glGenLists(1);
+            transparentList = glGenLists(1);
+
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &wireframe[0]));
+            glNewList(wfList, GL_COMPILE);
+            LOG_GL_ERRORV(glColor4f(0.0, 1.0, 0.0, 1.0));
+            glBegin(GL_LINES);
+            for (int x = 0; x < wireframe.size(); x += 3) {
+                glVertex3f(wireframe[x], wireframe[x + 1], wireframe[x + 2]);
+            }
+            glEnd();
+            glEndList();
+            
+            glNewList(lList, GL_COMPILE);
+            LOG_GL_ERRORV(glColor4f(0.0, 0.0, 0.0, 1.0));
+            glEnable(GL_LINE_SMOOTH);
+            glBegin(GL_LINES);
+            for (int x = 0; x < lines.size(); x += 3) {
+                glVertex3f(lines[x], lines[x + 1], lines[x + 2]);
+            }
+            glEnd();
+            glDisable(GL_LINE_SMOOTH);
+            glEndList();
+        }
+        if (lastBrightness != brightness) {
+            if (solidList) {
+                glDeleteLists(solidList, 1);
+            }
+            solidList = glGenLists(1);
+            if (transparentList) {
+                glDeleteLists(transparentList, 1);
+            }
+            transparentList = glGenLists(1);
+
+            dimColors.resize(colors.size());
+            for (int x = 0; x < colors.size(); x += 4) {
+                for (int y = 0; y < 3; y++) {
+                    float t = colors[x + y] * brightness;
+                    t /= 100.0f;
+                    t /= 255.0f;
+                    dimColors[x + y] = t;
+                }
+                float t = colors[x + 3];
+                t /= 255.0f;
+                dimColors[x + 3] = t;
+            }
+            lastBrightness = brightness;
+            
+            float bri = brightness;
+            bri /= 100.0f;
+            LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+            LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &vertices[0]));
+            LOG_GL_ERRORV(glColorPointer(4, GL_FLOAT, 0, &dimColors[0]));
+            LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, &texCoords[0]));
+            LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+            glNewList(solidList, GL_COMPILE);
+            for (auto & pt : solidProgramTypes) {
+                if (pt.image == -1) {
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                } else {
+                    LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                    LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glColor4f(bri, bri, bri, 1.0f));
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                }
+                LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                if (pt.image != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                }
+            }
+            glEndList();
+            glNewList(transparentList, GL_COMPILE);
+            for (auto & pt : transparentProgramTypes) {
+                if (pt.image == -1) {
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                } else {
+                    LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                    LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glColor4f(bri, bri, bri, 1.0f));
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                }
+                LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                if (pt.image != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                }
+            }
+            glEndList();
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &lines[0]));
+
+            LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+            LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, 0));
+            LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0));
+            LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, 0));
+        }
+        glm::mat4 curMatrix;
+        glGetFloatv(GL_MODELVIEW_MATRIX, glm::value_ptr(curMatrix));
+        glm::mat4 mat = curMatrix * matrix;
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(mat)));
+        float bri = brightness;
+        bri /= 100.0f;
+
+        if (wf) {
+            if (!transparent) {
+                glCallList(wfList);
+            }
+        } else {
+            if (transparent) {
+                glCallList(transparentList);
+            } else {
+                glCallList(solidList);
+                if (!lines.empty()) {
+                    glCallList(lList);
+                }
+            }
+        }
+        LOG_GL_ERRORV(glColor4f(1, 1, 1, 1));
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(curMatrix)));
+    }
+    private:
+    std::vector<GLfloat> dimColors;
+    int lastBrightness;
+    GLint wfList;
+    GLint lList;
+    GLint solidList;
+    GLint transparentList;
+
+};
+
 class OpenGL11Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
     OpenGL11Cache() {
@@ -119,52 +384,74 @@ public:
         Draw(data, type, enableCapability);
         data.Reset();
     }
-    
+
     void Draw(DrawGLUtils::xlAccumulator &va) override {
         if (va.count == 0) {
-            return;
+            bool hasMesh = false;
+            for (auto &a : va.types) {
+                hasMesh |= a.mesh != nullptr;
+            }
+            if (!hasMesh) {
+                return;
+            }
         }
+
         bool textsBound = false;
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-        
+
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
-        
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+
         for (auto it = va.types.begin(); it != va.types.end(); ++it) {
-            if (it->textureId != -1) {
-                LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-                if (!textsBound) {
-                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
-                    textsBound = true;
-                }
-                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
-                LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
-                float trans = it->textureAlpha;
-                trans /= 255.0f;
-                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, trans));
-            }
-            if (it->type == GL_POINTS) {
-                LOG_GL_ERRORV(glPointSize(it->extra));
-            } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
-                DrawGLUtils::SetLineWidth(it->extra);
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glEnable(it->enableCapability));
-            }
-            LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
-            if (it->textureId != -1) {
+            if (it->mesh != nullptr) {
+                GL1Mesh *mesh = (GL1Mesh*)it->mesh;
+                mesh->Draw(it->extra == 1, it->textureBrightness, it->meshTransparents);
+                
+                LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
                 LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-                LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-                LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glDisable(it->enableCapability));
+                
+                LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+                LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+                textsBound = false;
+            } else {
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                    if (!textsBound) {
+                        LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
+                        textsBound = true;
+                    }
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                    LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                    float trans = it->textureAlpha;
+                    trans /= 255.0f;
+                    float bri = it->textureBrightness;
+                    LOG_GL_ERRORV(glColor4f(bri/100.0f, bri/100.0f, bri/100.0f, trans));
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                }
+                if (it->type == GL_POINTS) {
+                    LOG_GL_ERRORV(glPointSize(it->extra));
+                } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
+                    DrawGLUtils::SetLineWidth(it->extra);
+                }
+                if (it->enableCapability != 0) {
+                    LOG_GL_ERRORV(glEnable(it->enableCapability));
+                }
+                LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
+                }
+                if (it->enableCapability != 0) {
+                    LOG_GL_ERRORV(glDisable(it->enableCapability));
+                }
             }
         }
-        
+
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
     }
@@ -178,13 +465,14 @@ public:
         }
         LOG_GL_ERRORV(glColor4ub(color.Red(), color.Green(), color.Blue(), color.Alpha()));
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
         LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         if (enableCapability != 0) {
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
+
     void Draw(DrawGLUtils::xlVertexColorAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;
@@ -196,7 +484,7 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
 
         LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, &va.vertices[0]));
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
         LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
@@ -205,7 +493,7 @@ public:
             LOG_GL_ERRORV(glDisable(enableCapability));
         }
     }
-    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability)  override {
+    void Draw(DrawGLUtils::xlVertexTextureAccumulator &va, int type, int enableCapability) override {
         if (va.count == 0) {
             return;
         }
@@ -220,10 +508,9 @@ public:
         LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
         LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
-        LOG_GL_ERRORV(glVertexPointer(2, GL_FLOAT, 0, va.vertices));
-        
-        if (va.forceColor) {
+        LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, va.vertices));
 
+        if (va.forceColor) {
             int tem, crgb, srgb, orgb, ca, sa, oa;
             glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &tem);
             glGetTexEnviv(GL_TEXTURE_ENV, GL_COMBINE_RGB, &crgb);
@@ -232,7 +519,7 @@ public:
             glGetTexEnviv(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, &ca);
             glGetTexEnviv(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, &sa);
             glGetTexEnviv(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, &oa);
-            
+
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
             glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
             glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
@@ -240,7 +527,7 @@ public:
             glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
             glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
-            
+
             glAlphaFunc(GL_GREATER, 0.5f);
             LOG_GL_ERRORV(glColor4f(((float)va.color.red) / 255.0f,
                                     ((float)va.color.green) / 255.0f,
@@ -248,8 +535,8 @@ public:
                                     ((float)va.color.alpha) / 255.0f));
 
             LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
-            
-            
+
+
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, tem);
             glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, crgb);
             glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, srgb);
@@ -259,7 +546,7 @@ public:
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, oa);
             glAlphaFunc(GL_ALWAYS, 0.0f);
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
-            
+
         } else if (va.alpha != 255) {
             float intensity = va.alpha;
             intensity /= 255;
@@ -275,8 +562,6 @@ public:
             LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
             LOG_GL_ERRORV(glDrawArrays(type, 0, va.count));
         }
-        
-        
 
         LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -286,7 +571,10 @@ public:
         LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     }
 
-
+    virtual DrawGLUtils::xl3DMesh *createMesh() override {
+        return new GL1Mesh();
+    }
+    
     virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
@@ -294,6 +582,20 @@ public:
         LOG_GL_ERRORV(glOrtho(topleft_x, bottomright_x, bottomright_y, topleft_y, -1, 1));
         LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
         LOG_GL_ERRORV(glLoadIdentity());
+    }
+
+    virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
+        LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
+        LOG_GL_ERRORV(glLoadIdentity());
+        glm::mat4 m = glm::perspective(glm::radians(45.0f), (float) (bottomright_x-topleft_x) / (float)(topleft_y-bottomright_y), 1.0f, 10000.0f);
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(m)));
+
+        LOG_GL_ERRORV(glMatrixMode(GL_MODELVIEW));
+        LOG_GL_ERRORV(glLoadIdentity());
+    }
+
+    virtual void SetCamera(glm::mat4& view_matrix) override {
+        LOG_GL_ERRORV(glMultMatrixf(glm::value_ptr(view_matrix)));
     }
 
     void PushMatrix() override {
@@ -365,15 +667,35 @@ void DrawGLUtils::SetLineWidth(float i) {
 void DrawGLUtils::SetViewport(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
     int x, y, x2, y2;
     x = topleft_x;
-    y = topleft_y;
+    y = std::min(bottomright_y, topleft_y);
     x2 = bottomright_x;
-    y2 = bottomright_y;
+    y2 = std::max(bottomright_y,topleft_y);
 
     xlSetRetinaCanvasViewport(win, x,y,x2,y2);
-    LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
+    int w = std::max(x, x2) - std::min(x, x2);
+    int h = std::max(y, y2) - std::min(y, y2);
+    LOG_GL_ERRORV(glViewport(x,y,w,h));
     currentCache->Ortho(topleft_x, topleft_y, bottomright_x, bottomright_y);
 }
 
+void DrawGLUtils::SetViewport3D(xlGLCanvas &win, int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) {
+    int x, y, x2, y2;
+    x = topleft_x;
+    y = bottomright_y;
+    x2 = bottomright_x;
+    y2 = topleft_y;
+
+    xlSetRetinaCanvasViewport(win, x,y,x2,y2);
+    LOG_GL_ERRORV(glViewport(x,y,x2-x,y2-y));
+	LOG_GL_ERRORV(glScissor(0, 0, x2 - x, y2 - y));
+    currentCache->Perspective(topleft_x, topleft_y, bottomright_x, bottomright_y);
+	LOG_GL_ERRORV(glClearColor(0,0,0,0));   // background color
+	LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+}
+
+void DrawGLUtils::SetCamera(glm::mat4& view_matrix) {
+	currentCache->SetCamera(view_matrix);
+}
 void DrawGLUtils::PushMatrix() {
     currentCache->PushMatrix();
 }
@@ -398,6 +720,10 @@ void DrawGLUtils::Draw(xlAccumulator &va) {
     currentCache->Draw(va);
 }
 
+void DrawGLUtils::Draw(xl3Accumulator &va) {
+    currentCache->Draw(va);
+}
+
 void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) {
     currentCache->Draw(va, color, type, enableCapability);
 }
@@ -408,6 +734,14 @@ void DrawGLUtils::Draw(xlVertexColorAccumulator &va, int type, int enableCapabil
 
 void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapability) {
     currentCache->Draw(va, type, enableCapability);
+}
+
+void DrawGLUtils::Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) {
+	currentCache->Draw(va, color, type, enableCapability);
+}
+
+DrawGLUtils::xl3DMesh *DrawGLUtils::createMesh() {
+    return currentCache->createMesh();
 }
 
 void DrawGLUtils::PreAlloc(int verts) {
@@ -603,6 +937,11 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     currentCache->flush(GL_TRIANGLES);
 }
 
+void DrawGLUtils::xlAccumulator::AddMesh(xl3DMesh *m, bool wireframe, float brightness, bool transparents) {
+    if (m) {
+        types.push_back(BufferRangeType(m, wireframe, brightness, transparents));
+    }
+}
 
 void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float extra) {
     if (!types.empty()
@@ -622,14 +961,39 @@ void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float ex
 
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexColorAccumulator& va) {
     PreAlloc(va.count);
-    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+    if (va.coordsPerVertex == coordsPerVertex) {
+        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
+    } else {
+        for (int x = 0; x < va.count; x++) {
+            int cur = (count + x) * coordsPerVertex;
+            int curva = x * va.coordsPerVertex;
+            vertices[cur++] = va.vertices[curva++];
+            vertices[cur++] = va.vertices[curva++];
+            if (coordsPerVertex == 3) {
+                vertices[cur] = 0.0f;
+            }
+        }
+    }
     memcpy(&colors[count*4], va.colors, va.count*4);
     count += va.count;
 }
 
+
 void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va, const xlColor &c) {
     PreAlloc(va.count);
-    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
+    if (va.coordsPerVertex == coordsPerVertex) {
+        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
+    } else  {
+        for (int x = 0; x < va.count; x++) {
+            int cur = (count + x) * coordsPerVertex;
+            int curva = x * va.coordsPerVertex;
+            vertices[cur++] = va.vertices[curva++];
+            vertices[cur++] = va.vertices[curva++];
+            if (coordsPerVertex == 3) {
+                vertices[cur] = 0.0f;
+            }
+        }
+    }
     int i = count * 4;
     for (int x = 0; x < va.count; x++) {
         colors[i++] = c.Red();
@@ -640,15 +1004,28 @@ void DrawGLUtils::xlAccumulator::Load(const DrawGLUtils::xlVertexAccumulator& va
     count += va.count;
 }
 
+
 void DrawGLUtils::xlAccumulator::Load(const xlVertexTextureAccumulator &va, int type, int enableCapability) {
     PreAllocTexture(va.count);
-    memcpy(&vertices[count*2], va.vertices, sizeof(float)*va.count*2);
-    memcpy(&tvertices[count*2], va.tvertices, sizeof(float)*va.count*2);
+    if (va.coordsPerVertex == coordsPerVertex) {
+        memcpy(&vertices[count*coordsPerVertex], va.vertices, sizeof(float)*va.count*coordsPerVertex);
+    } else {
+        for (int x = 0; x < va.count; x++) {
+            int cur = (count + x) * coordsPerVertex;
+            int curva = x * va.coordsPerVertex;
+            vertices[cur++] = va.vertices[curva++];
+            vertices[cur++] = va.vertices[curva++];
+            if (coordsPerVertex == 3) {
+                vertices[cur] = 0.0f;
+            }
+        }
+    }
+    memcpy(&tvertices[count*coordsPerVertex], va.tvertices, sizeof(float)*va.count*2);
     count += va.count;
     if (va.forceColor) {
         FinishTextures(type, va.id, va.color, enableCapability);
     } else {
-        FinishTextures(type, va.id, va.alpha, enableCapability);
+        FinishTextures(type, va.id, va.alpha, va.brightness, enableCapability);
     }
 }
 
@@ -662,18 +1039,24 @@ void DrawGLUtils::xlAccumulator::DoRealloc(int newMax) {
 void DrawGLUtils::xlAccumulator::PreAllocTexture(int i) {
     PreAlloc(i);
     if (tvertices == nullptr) {
-        tvertices = (float*)malloc(sizeof(float)*max*2);
+        tvertices = (float*)malloc(sizeof(float)*_max * 2);
     }
 }
 
-void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float tx, float ty) {
+void DrawGLUtils::xlAccumulator::AddTextureVertex(float x, float y, float z, float tx, float ty) {
     PreAllocTexture(1);
-    
-    int i = count*2;
+
+    int i = count * coordsPerVertex;
     vertices[i] = x;
-    tvertices[i] = tx;
     i++;
     vertices[i] = y;
+    if (coordsPerVertex == 3) {
+        i++;
+        vertices[i] = z;
+    }
+    i = count * 2;
+    tvertices[i] = tx;
+    i++;
     tvertices[i] = ty;
     count++;
 }
@@ -682,8 +1065,8 @@ void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, cons
     start = count;
 }
 
-void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability) {
-    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha));
+void DrawGLUtils::xlAccumulator::FinishTextures(int type, GLuint textureId, uint8_t alpha, float brightness, int enableCapability) {
+    types.push_back(BufferRangeType(start, count - start, type, enableCapability, textureId, alpha, brightness));
     start = count;
 }
 
@@ -707,6 +1090,29 @@ void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y
         AddVertex(x1, y + 4 < yf ? y + 4 : yf, color);
         AddVertex(x2, y, color);
         AddVertex(x2, y + 4 < yf ? y + 4 : yf, color);
+    }
+}
+
+void DrawGLUtils::xlVertexColorAccumulator::AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor &color) {
+    // Line 1
+    float xs = x1<x2?x1:x2;
+    float xf = x1>x2?x1:x2;
+    for(float x = xs; x <= xf; x += 8)
+    {
+        AddVertex(x, y1, z1, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y1, z1, color);
+        AddVertex(x, y2, z2, color);
+        AddVertex(x + 4 < xf ? x + 4 : xf, y2, z2, color);
+    }
+    // Line 2
+    int ys = y1<y2?y1:y2;
+    int yf = y1>y2?y1:y2;
+    for(int y=ys;y<=yf;y+=8)
+    {
+        AddVertex(x1, y, z1, color);
+        AddVertex(x1, y + 4 < yf ? y + 4 : yf, z1, color);
+        AddVertex(x2, y, z2, color);
+        AddVertex(x2, y + 4 < yf ? y + 4 : yf, z2, color);
     }
 }
 
@@ -752,6 +1158,10 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y,
     AddTrianglesCircle(x, y, radius, color, color);
 }
 
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &color) {
+    AddTrianglesCircle(x, y, z, radius, color, color);
+}
+
 void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float radius, const xlColor &center, const xlColor &edge) {
     int num_segments = radius;
     if (num_segments < 16) {
@@ -761,10 +1171,10 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
     float theta = 2 * 3.1415926 / float(num_segments);
     float tangetial_factor = tanf(theta);//calculate the tangential factor
     float radial_factor = cosf(theta);//calculate the radial factor
-    
+
     float x = radius;//we start at angle = 0
     float y = 0;
-    
+
     for(int ii = 0; ii < num_segments; ii++) {
         AddVertex(x + cx, y + cy, edge);
         //calculate the tangential vector
@@ -772,7 +1182,7 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
         //to get the tangential vector we flip those coordinates and negate one of them
         float tx = -y;
         float ty = x;
-        
+
         //add the tangential vector
         x += tx * tangetial_factor;
         y += ty * tangetial_factor;
@@ -782,6 +1192,136 @@ void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float c
         AddVertex(cx, cy, center);
     }
 }
+
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float cx, float cy, float cz, float radius, const xlColor &center, const xlColor &edge) {
+    int num_segments = radius;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 4);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    float radial_factor = cosf(theta);//calculate the radial factor
+
+    float x = radius;//we start at angle = 0
+    float y = 0;
+
+    for(int ii = 0; ii < num_segments; ii++) {
+        AddVertex(x + cx, y + cy, cz, edge);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        float tx = -y;
+        float ty = x;
+
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        AddVertex(x + cx, y + cy, cz, edge);
+        AddVertex(cx, cy, cz, center);
+    }
+}
+
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesCircle(float ocx, float ocy, float ocz, float radius,
+                                                               const xlColor &center, const xlColor &edge,
+                                                               std::function<void(float &x, float &y, float &z)> &&translateFunction, bool replace) {
+    int num_segments = radius;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 4);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    float radial_factor = cosf(theta);//calculate the radial factor
+
+    float cx = ocx;
+    float cy = ocy;
+    float cz = ocz;
+    translateFunction(cx, cy, cz);
+
+    //radius is supposed to be in "pixels" to match the size of the smooth points and such, however
+    //the transformation may apply scales and such.  Thus, we'll try and figure out a
+    //new radius by transforming some stuff and calculating a vector
+    float tx = ocx + 1;
+    float ty = ocy + 1;
+    float tz = ocz + 1;
+    translateFunction(tx, ty, tz);
+    float vlen = std::sqrt((cx-tx)*(cx-tx) + (cy-ty)*(cy-ty) + (cz-tz)*(cz-tz));
+    
+    radius = radius/vlen;
+    
+    float x = radius;//we start at angle = 0
+    float y = 0;
+    
+    for(int ii = 0; ii < num_segments; ii++) {
+        tx = x + ocx;
+        ty = y + ocy;
+        tz = ocz;
+        translateFunction(tx, ty, tz);
+        AddVertex(tx, ty, tz, edge, replace);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        tx = -y;
+        ty = x;
+        
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        tx = x + ocx;
+        ty = y + ocy;
+        tz = ocz;
+        translateFunction(tx, ty, tz);
+        AddVertex(tx, ty, tz, edge, replace);
+        AddVertex(cx, cy, cz, center, replace);
+    }
+}
+
+void DrawGLUtils::xlVertexColorAccumulator::AddTrianglesRotatedCircle(float cx, float cy, float cz, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge)
+{
+    int num_segments = radius;
+    if (num_segments < 16) {
+        num_segments = 16;
+    }
+    PreAlloc(num_segments * 4);
+    float theta = 2 * 3.1415926 / float(num_segments);
+    float tangetial_factor = tanf(theta);//calculate the tangential factor
+    float radial_factor = cosf(theta);//calculate the radial factor
+
+    float x = radius;//we start at angle = 0
+    float y = 0;
+
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(-rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 translateToOrigin = glm::translate(glm::mat4(1.0f), glm::vec3(-cx, -cy, -cz));
+    glm::mat4 translateBack = glm::translate(glm::mat4(1.0f), glm::vec3(cx, cy, cz));
+
+    for (int ii = 0; ii < num_segments; ii++) {
+        glm::vec4 position = glm::vec4(x + cx, y + cy, cz, 1.0f);
+        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        AddVertex(position.x, position.y, position.z, edge);
+        //calculate the tangential vector
+        //remember, the radial vector is (x, y)
+        //to get the tangential vector we flip those coordinates and negate one of them
+        float tx = -y;
+        float ty = x;
+
+        //add the tangential vector
+        x += tx * tangetial_factor;
+        y += ty * tangetial_factor;
+        x *= radial_factor;
+        y *= radial_factor;
+        position = glm::vec4(x + cx, y + cy, cz, 1.0f);
+        position = translateBack * rotationY * rotationX * translateToOrigin * position;
+        AddVertex(position.x, position.y, position.z, edge);
+        AddVertex(cx, cy, cz, center);
+    }
+}
+
 
 void DrawGLUtils::DrawDisplayList(float xOffset, float yOffset,
                                   float width, float height,
@@ -874,9 +1414,9 @@ public:
                    float mh, float mw, float md,
                    std::vector<float> w)
         : data(d), maxH(mh), maxW(mw), maxD(md), widths(w) {
-        
+
     }
-    
+
     const char * const *data;
     float maxH;
     float maxW;
@@ -902,7 +1442,7 @@ public:
     ~FontTexture() {};
 
     bool Valid() { return currentCache->HasTextureId(fontIdx);}
-    
+
     bool Create(int size) {
         switch (size) {
             CASEFONT(10);
@@ -949,15 +1489,15 @@ public:
                 }
             }
         }
-        
+
         bool scaledW, scaledH, mAlpha;
         int width, height;
-        GLuint id = loadImage(&cimg, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha);
+        GLuint id = loadImage(&cimg, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha, false);
         currentCache->SetTextureId(fontIdx, id);
     }
     void ForceCreate(int size) {
         wxString faceName = "Gil Sans";
-        
+
         bool useAA = USEAA;
         if (size <= 12)  {
             useAA = false;
@@ -985,10 +1525,10 @@ public:
             maxD = std::max(maxD, (float)desc);
         }
         delete ctx;
-        
+
         maxW += 1.0; // allow room to possibly have to handle some kerning
-        
-        
+
+
         int imgh = (maxH + 5) * 6;
         int imgw = (maxW + 5) * 16;
         float power_of_two_that_gives_correct_width=std::log((float)imgw)/std::log(2.0);
@@ -996,7 +1536,7 @@ public:
         imgw=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_width)) );
         imgh=(int)std::pow( 2.0, (int)(std::ceil(power_of_two_that_gives_correct_height)) );
 
-        
+
         wxImage cimg(imgw, imgh);
         cimg.InitAlpha();
 
@@ -1018,8 +1558,8 @@ public:
         }
         delete ctx;
          */
-        
-        
+
+
         ctx = wxGraphicsContext::Create(cimg);
         ctx->SetPen( *wxWHITE_PEN );
         ctx->SetInterpolationQuality(wxInterpolationQuality::wxINTERPOLATION_BEST);
@@ -1032,7 +1572,7 @@ public:
             ctx->SetAntialiasMode(wxANTIALIAS_NONE);
             ctx->SetFont(ctx->CreateFont(size, faceName, wxFONTFLAG_NOT_ANTIALIASED, *wxWHITE));
         }
-        
+
         int count = 0;
         int line = 0;
         widths.clear();
@@ -1040,7 +1580,7 @@ public:
         for (char c = ' '; c <= '~'; c++) {
             wxString s = c;
             ctx->DrawText(s, 2 + (count * (maxW + 5)), 2 + line * (maxH + 5));
-            
+
             double width, height, desc, el;
             ctx->GetTextExtent(s, &width, &height, &desc, &el);
             widths[c - ' '] = width;
@@ -1052,7 +1592,7 @@ public:
         }
         delete ctx;
 
-        
+
         for (int l = 0; l < NUMLINES; l++) {
             for (int c = 0; c < NUMCHARS; c++) {
                 bool kerned = false;
@@ -1088,8 +1628,8 @@ public:
                  */
             }
         }
-        
-        
+
+
          //used to output data that can be used to static generation above
         /*
         wxString fn = wxString::Format("/tmp/font_%d.png", size);
@@ -1123,8 +1663,8 @@ public:
         }
         printf("});\n");
         */
-        
-        
+
+
         InitializeImage(cimg);
     }
 
@@ -1152,12 +1692,12 @@ public:
 
             float tx = 1 + (pos * (maxW + 5));
             float tx2 = tx + widths[ch - ' '];
-            
+
             float x2 = x + float(widths[ch - ' ']) / factor;
-            
+
             float ty2 = textureHeight - 3 - (line * (maxH + 5));
             float ty = ty2 - maxH;
-            
+
             float y = yBase;
             float y2 = yBase - float(maxH) / factor;
             /*
@@ -1165,29 +1705,29 @@ public:
                 printf("%c   %f %f    %f %f     %f %f\n", ch, x, x2, tx, tx2,  (x2-x), (tx2-tx));
             }
              */
-            
+
             tx /= textureWidth;
             tx2 /= textureWidth;
-            
+
             ty2 /= textureHeight;
             ty /= textureHeight;
-            
+
             //samples need to be from the MIDDLE of the pixel
             ty -= 0.5 / textureHeight;
             ty2 += 0.75 / textureHeight;
-            
+
             tx += 0.5 / textureWidth;
             tx2 += 1.0 / textureWidth;
-            
+
             y += 0.25/factor;
             y2 -= 0.75/factor;
             x -= 0.25/factor;
             x2 += 0.25/factor;
-            
+
             /*
             if (ch == '1') {
                 DrawGLUtils::DrawFillRectangle(xlWHITE, 255,x,y, image.textureWidth / factor, image.textureHeight / factor);
-                
+
                 ty = 0.0;
                 ty2 = 1.0 - ty;
                 tx = 0.0;
@@ -1198,7 +1738,7 @@ public:
             }
             */
             //printf("%c   %f %f    %f %f\n", ch, tx, tx2, ty, ty2);
-            
+
             va.AddVertex(x, y, tx, ty);
             va.AddVertex(x, y2, tx, ty2);
             va.AddVertex(x2, y2, tx2, ty2);
@@ -1229,7 +1769,7 @@ public:
         }
         return w / factor;
     }
-    
+
     float maxD, maxW, maxH;
     std::vector<float> widths;
     int fontIdx;
@@ -1296,3 +1836,144 @@ void DrawGLUtils::Draw(DrawGLUtils::xlVertexTextAccumulator &va, int size, float
     Draw(vat, GL_TRIANGLES, GL_BLEND);
 }
 
+void DrawGLUtils::DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va)
+{
+    // FIXME:  draw a square until I get a good sphere routine
+    DrawCube(x, y, z, radius*2, color, va);
+}
+
+void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va)
+{
+    double halfwidth = width / 2.0;
+
+    // front
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+
+    // back
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    // left side
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+
+    // right side
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    // top side
+    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
+
+    // bottom side
+    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+
+    va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
+    va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
+
+    va.Finish(GL_TRIANGLES);
+}
+
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va)
+{
+    glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c3(max_pt.x, min_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c4(min_pt.x, min_pt.y, min_pt.z, 1.0f);
+    glm::vec4 c5(min_pt.x, max_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c6(max_pt.x, max_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c7(max_pt.x, min_pt.y, max_pt.z, 1.0f);
+    glm::vec4 c8(min_pt.x, min_pt.y, max_pt.z, 1.0f);
+
+    c1 = bound_matrix * c1;
+    c2 = bound_matrix * c2;
+    c3 = bound_matrix * c3;
+    c4 = bound_matrix * c4;
+    c5 = bound_matrix * c5;
+    c6 = bound_matrix * c6;
+    c7 = bound_matrix * c7;
+    c8 = bound_matrix * c8;
+
+    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+    va.AddVertex(c1.x, c1.y, c1.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c1.x, c1.y, c1.z, c);
+
+    va.AddVertex(c5.x, c5.y, c5.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
+
+    va.AddVertex(c1.x, c1.y, c1.z, c);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
+    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+}
+
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
+{
+    glm::vec4 c1(min_pt.x, max_pt.y, 1.0f, 1.0f);
+    glm::vec4 c2(max_pt.x, max_pt.y, 1.0f, 1.0f);
+    glm::vec4 c3(max_pt.x, min_pt.y, 1.0f, 1.0f);
+    glm::vec4 c4(min_pt.x, min_pt.y, 1.0f, 1.0f);
+
+    c1 = bound_matrix * c1;
+    c2 = bound_matrix * c2;
+    c3 = bound_matrix * c3;
+    c4 = bound_matrix * c4;
+
+    LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
+    va.AddVertex(c1.x, c1.y, c);
+    va.AddVertex(c2.x, c2.y, c);
+    va.AddVertex(c2.x, c2.y, c);
+    va.AddVertex(c3.x, c3.y, c);
+    va.AddVertex(c3.x, c3.y, c);
+    va.AddVertex(c4.x, c4.y, c);
+    va.AddVertex(c4.x, c4.y, c);
+    va.AddVertex(c1.x, c1.y, c);
+
+    va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
+}

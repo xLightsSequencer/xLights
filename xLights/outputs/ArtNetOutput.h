@@ -20,8 +20,8 @@
 class ArtNetOutput : public IPOutput
 {
     #pragma region Member Variables
-    wxByte _data[ARTNET_PACKET_LEN];
-    wxByte _sequenceNum;
+    uint8_t _data[ARTNET_PACKET_LEN];
+    uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
 
@@ -46,6 +46,7 @@ public:
     static int GetArtNetUniverse(int u);
     static int GetArtNetCombinedUniverse(int net, int subnet, int u);
     static void SendSync();
+    static std::list<Output*> Discover(OutputManager* outputManager); // Discovers controllers supporting this protocol
     #pragma endregion  Static Functions
 
     #pragma region Getters and Setters
@@ -55,30 +56,33 @@ public:
     void SetArtNetUniverse(int net, int subnet, int universe) { _universe = GetArtNetCombinedUniverse(net, subnet, universe); }
     virtual std::string GetType() const override { return OUTPUT_ARTNET; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(long ch) const override;
+    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return 512; }
     virtual std::string GetUniverseString() const override;
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= 512; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= 512; }
+    virtual std::string GetExport() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop
     virtual bool Open() override;
-    virtual void Close() override {};
+    virtual void Close() override;
+    void OpenDatagram();
     #pragma endregion Start and Stop
 
     #pragma region Frame Handling
+    virtual void StartFrame(long msec) override;
     virtual void EndFrame(int suppressFrames) override;
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
 
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
+    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager *modelManager) override;
 #endif
     #pragma endregion UI
 };

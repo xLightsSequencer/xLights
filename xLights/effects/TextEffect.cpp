@@ -15,6 +15,7 @@
 #include "../models/Model.h"
 #include "../UtilFunctions.h"
 #include "../FontManager.h"
+#include "../xLightsMain.h"
 
 #include "../../include/text-16.xpm"
 #include "../../include/text-24.xpm"
@@ -22,6 +23,8 @@
 #include "../../include/text-48.xpm"
 #include "../../include/text-64.xpm"
 #include <log4cpp/Category.hh>
+
+#define MAXTEXTLINES 20
 
 TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64), font_mgr(FontManager::instance())
 {
@@ -33,13 +36,25 @@ TextEffect::~TextEffect()
     //dtor
 }
 
-std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
-    if (settings.Get("E_TEXTCTRL_Text", "") == "")
+    wxString textFilename = settings.Get("E_FILEPICKERCTRL_Text_File", "");
+    wxString text = settings.Get("E_TEXTCTRL_Text", "");
+    wxString lyricTrack = settings.Get("E_CHOICE_Text_LyricTrack", "");
+
+    if (text == "" && textFilename == "" && lyricTrack == "")
     {
         res.push_back(wxString::Format("    ERR: Text effect has no actual text. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+    else if (textFilename != "" && !wxFile::Exists(textFilename))
+    {
+        res.push_back(wxString::Format("    ERR: Text effect cant find file '%s'. Model '%s', Start %s", textFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+    else if (textFilename != "" && !IsFileInShowDir(xLightsFrame::CurrentDir, textFilename.ToStdString()))
+    {
+        res.push_back(wxString::Format("    WARN: Text effect file '%s' not under show directory. Model '%s', Start %s", textFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     if (model->GetDisplayAs() == "ModelGroup")
@@ -50,10 +65,36 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
+std::list<std::string> TextEffect::GetFileReferences(const SettingsMap &SettingsMap) const
+{
+    std::list<std::string> res;    
+    wxString textFilename = SettingsMap["E_FILEPICKERCTRL_Text_File"];
+    if (textFilename != "")
+    {
+        res.push_back(textFilename);
+    }
+    return res;
+}
+
+bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKERCTRL_Text_File"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKERCTRL_Text_File"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()));
+            rc = true;
+        }
+    }
+
+    return rc;
+}
+
 wxPanel *TextEffect::CreatePanel(wxWindow *parent) {
     return new TextPanel(parent);
 }
-
 
 static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     wxCheckBox *c = (wxCheckBox*)w->FindWindowById(id);
@@ -64,156 +105,165 @@ static inline void SetCheckboxValue(wxWindow *w, int id, bool b) {
     c->ProcessWindowEvent(evt);
 }
 
-bool TextEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version);
-}
 void TextEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
     SettingsMap &settings = effect->GetSettings();
-    // this is to prevent recursive adjustments since we are adding
-    // layers and may be called by for loops based on number of layers
-    if ( settings.Get("Converted", "xxx") == "1" ) {
-        settings.erase("Converted");
-        return;
+    if (IsVersionOlder("2016.46", version) || RenderableEffect::needToAdjustSettings(version))
+    {
+        // this is to prevent recursive adjustments since we are adding
+        // layers and may be called by for loops based on number of layers
+        if (settings.Get("Converted", "xxx") == "1") {
+            settings.erase("Converted");
+            return;
+        }
+
+        if (RenderableEffect::needToAdjustSettings(version)) {
+            RenderableEffect::adjustSettings(version, effect, removeDefaults);
+        }
+
+        if (IsVersionOlder("2016.46", version)) {
+            settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter1"];
+            settings["E_CHECKBOX_Text_PixelOffsets"] = settings["E_CHECKBOX_Text_PixelOffsets1"];
+            settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count1"];
+            settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir1"];
+            settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect1"];
+            settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font1"];
+            settings["E_SLIDER_Text_XEnd"] = settings["E_SLIDER_Text_XEnd1"];
+            settings["E_SLIDER_Text_XStart"] = settings["E_SLIDER_Text_XStart1"];
+            settings["E_SLIDER_Text_YEnd"] = settings["E_SLIDER_Text_YEnd1"];
+            settings["E_SLIDER_Text_YStart"] = settings["E_SLIDER_Text_YStart1"];
+            settings["E_TEXTCTRL_Text"] = settings["E_TEXTCTRL_Text_Line1"];
+            settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed1"];
+
+            EffectLayer* el = effect->GetParentEffectLayer();
+            Element* elem = el->GetParentElement();
+
+            std::string line2 = settings["E_TEXTCTRL_Text_Line2"];
+            std::string line3 = settings["E_TEXTCTRL_Text_Line3"];
+            std::string line4 = settings["E_TEXTCTRL_Text_Line4"];
+
+            if (line2 != "") {
+                std::string palette = effect->GetPaletteAsString();
+                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
+                SettingsMap &new_settings = new_eff->GetSettings();
+                new_settings["Converted"] = "1";
+                new_settings["E_TEXTCTRL_Text"] = line2;
+                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
+                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter2"];
+                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count2"];
+                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir2"];
+                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect2"];
+                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font2"];
+                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
+                int pos = (wxAtoi(settings["E_SLIDER_Text_Position2"]) * 2) - 100;
+                wxString strpos = wxString::Format("%d", pos);
+                new_settings["E_SLIDER_Text_XStart"] = "0";
+                new_settings["E_SLIDER_Text_XEnd"] = "0";
+                new_settings["E_SLIDER_Text_YStart"] = strpos;
+                new_settings["E_SLIDER_Text_YEnd"] = strpos;
+                SelectTextColor(palette, 2);
+                new_eff->SetPalette(palette);
+            }
+            if (line3 != "") {
+                std::string palette = effect->GetPaletteAsString();
+                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
+                SettingsMap &new_settings = new_eff->GetSettings();
+                new_settings["Converted"] = "1";
+                new_settings["E_TEXTCTRL_Text"] = line3;
+                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
+                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter3"];
+                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count3"];
+                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir3"];
+                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect3"];
+                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font3"];
+                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
+                int pos = (wxAtoi(settings["E_SLIDER_Text_Position3"]) * 2) - 100;
+                wxString strpos = wxString::Format("%d", pos);
+                new_settings["E_SLIDER_Text_XStart"] = "0";
+                new_settings["E_SLIDER_Text_XEnd"] = "0";
+                new_settings["E_SLIDER_Text_YStart"] = strpos;
+                new_settings["E_SLIDER_Text_YEnd"] = strpos;
+                SelectTextColor(palette, 3);
+                new_eff->SetPalette(palette);
+            }
+            if (line4 != "") {
+                std::string palette = effect->GetPaletteAsString();
+                EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
+                Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
+                SettingsMap &new_settings = new_eff->GetSettings();
+                new_settings["Converted"] = "1";
+                new_settings["E_TEXTCTRL_Text"] = line4;
+                new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
+                new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter4"];
+                new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count4"];
+                new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir4"];
+                new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect4"];
+                new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font4"];
+                new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
+                int pos = (wxAtoi(settings["E_SLIDER_Text_Position4"]) * 2) - 100;
+                wxString strpos = wxString::Format("%d", pos);
+                new_settings["E_SLIDER_Text_XStart"] = "0";
+                new_settings["E_SLIDER_Text_XEnd"] = "0";
+                new_settings["E_SLIDER_Text_YStart"] = strpos;
+                new_settings["E_SLIDER_Text_YEnd"] = strpos;
+                SelectTextColor(palette, 4);
+                new_eff->SetPalette(palette);
+            }
+            std::string palette = effect->GetPaletteAsString();
+            SelectTextColor(palette, 1);
+            effect->SetPalette(palette);
+
+            settings.erase("E_CHECKBOX_TextToCenter1");
+            settings.erase("E_CHECKBOX_TextToCenter2");
+            settings.erase("E_CHECKBOX_TextToCenter3");
+            settings.erase("E_CHECKBOX_TextToCenter4");
+            settings.erase("E_CHECKBOX_Text_PixelOffsets1");
+            settings.erase("E_CHOICE_Text_Count1");
+            settings.erase("E_CHOICE_Text_Count2");
+            settings.erase("E_CHOICE_Text_Count3");
+            settings.erase("E_CHOICE_Text_Count4");
+            settings.erase("E_CHOICE_Text_Dir1");
+            settings.erase("E_CHOICE_Text_Dir2");
+            settings.erase("E_CHOICE_Text_Dir3");
+            settings.erase("E_CHOICE_Text_Dir4");
+            settings.erase("E_CHOICE_Text_Effect1");
+            settings.erase("E_CHOICE_Text_Effect2");
+            settings.erase("E_CHOICE_Text_Effect3");
+            settings.erase("E_CHOICE_Text_Effect4");
+            settings.erase("E_FONTPICKER_Text_Font1");
+            settings.erase("E_FONTPICKER_Text_Font2");
+            settings.erase("E_FONTPICKER_Text_Font3");
+            settings.erase("E_FONTPICKER_Text_Font4");
+            settings.erase("E_SLIDER_Text_Position2");
+            settings.erase("E_SLIDER_Text_Position3");
+            settings.erase("E_SLIDER_Text_Position4");
+            settings.erase("E_SLIDER_Text_XEnd1");
+            settings.erase("E_SLIDER_Text_XStart1");
+            settings.erase("E_SLIDER_Text_YEnd1");
+            settings.erase("E_SLIDER_Text_YStart1");
+            settings.erase("E_TEXTCTRL_Text_Line1");
+            settings.erase("E_TEXTCTRL_Text_Line2");
+            settings.erase("E_TEXTCTRL_Text_Line3");
+            settings.erase("E_TEXTCTRL_Text_Line4");
+            settings.erase("E_TEXTCTRL_Text_Speed1");
+            settings.erase("E_TEXTCTRL_Text_Speed2");
+            settings.erase("E_TEXTCTRL_Text_Speed3");
+            settings.erase("E_TEXTCTRL_Text_Speed4");
+        }
     }
 
-    if (RenderableEffect::needToAdjustSettings(version)) {
-        RenderableEffect::adjustSettings(version, effect, removeDefaults);
-    }
-
-    if( IsVersionOlder("2016.46", version) ) {
-        settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter1"];
-        settings["E_CHECKBOX_Text_PixelOffsets"] = settings["E_CHECKBOX_Text_PixelOffsets1"];
-        settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count1"];
-        settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir1"];
-        settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect1"];
-        settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font1"];
-        settings["E_SLIDER_Text_XEnd"] = settings["E_SLIDER_Text_XEnd1"];
-        settings["E_SLIDER_Text_XStart"] = settings["E_SLIDER_Text_XStart1"];
-        settings["E_SLIDER_Text_YEnd"] = settings["E_SLIDER_Text_YEnd1"];
-        settings["E_SLIDER_Text_YStart"] = settings["E_SLIDER_Text_YStart1"];
-        settings["E_TEXTCTRL_Text"] = settings["E_TEXTCTRL_Text_Line1"];
-        settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed1"];
-
-        EffectLayer* el = effect->GetParentEffectLayer();
-        Element* elem = el->GetParentElement();
-
-        std::string line2 = settings["E_TEXTCTRL_Text_Line2"];
-        std::string line3 = settings["E_TEXTCTRL_Text_Line3"];
-        std::string line4 = settings["E_TEXTCTRL_Text_Line4"];
-
-        if( line2 != "" ) {
-            std::string palette = effect->GetPaletteAsString();
-            EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
-            Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-            SettingsMap &new_settings = new_eff->GetSettings();
-            new_settings["Converted"] = "1";
-            new_settings["E_TEXTCTRL_Text"] = line2;
-            new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-            new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter2"];
-            new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count2"];
-            new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir2"];
-            new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect2"];
-            new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font2"];
-            new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed2"];
-            int pos = (wxAtoi(settings["E_SLIDER_Text_Position2"]) * 2) - 100;
-            wxString strpos = wxString::Format("%d", pos);
-            new_settings["E_SLIDER_Text_XStart"] = "0";
-            new_settings["E_SLIDER_Text_XEnd"] = "0";
-            new_settings["E_SLIDER_Text_YStart"] = strpos;
-            new_settings["E_SLIDER_Text_YEnd"] = strpos;
-            SelectTextColor(palette, 2);
-            new_eff->SetPalette(palette);
+    wxString file = settings["E_FILEPICKERCTRL_Text_File"];
+    if (file != "")
+    {
+        if (!wxFile::Exists(file))
+        {
+            settings["E_FILEPICKERCTRL_Text_File"] = FixFile("", file);
         }
-        if( line3 != "" ) {
-            std::string palette = effect->GetPaletteAsString();
-            EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
-            Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-            SettingsMap &new_settings = new_eff->GetSettings();
-            new_settings["Converted"] = "1";
-            new_settings["E_TEXTCTRL_Text"] = line3;
-            new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-            new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter3"];
-            new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count3"];
-            new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir3"];
-            new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect3"];
-            new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font3"];
-            new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed3"];
-            int pos = (wxAtoi(settings["E_SLIDER_Text_Position3"]) * 2) - 100;
-            wxString strpos = wxString::Format("%d", pos);
-            new_settings["E_SLIDER_Text_XStart"] = "0";
-            new_settings["E_SLIDER_Text_XEnd"] = "0";
-            new_settings["E_SLIDER_Text_YStart"] = strpos;
-            new_settings["E_SLIDER_Text_YEnd"] = strpos;
-            SelectTextColor(palette, 3);
-            new_eff->SetPalette(palette);
-        }
-        if( line4 != "" ) {
-            std::string palette = effect->GetPaletteAsString();
-            EffectLayer* layer = EffectsGrid::FindOpenLayer(elem, effect->GetStartTimeMS(), effect->GetEndTimeMS());
-            Effect* new_eff = layer->AddEffect(0, "Text", "", palette, effect->GetStartTimeMS(), effect->GetEndTimeMS(), false, false);
-            SettingsMap &new_settings = new_eff->GetSettings();
-            new_settings["Converted"] = "1";
-            new_settings["E_TEXTCTRL_Text"] = line4;
-            new_settings["E_CHECKBOX_Text_PixelOffsets"] = "0";
-            new_settings["E_CHECKBOX_TextToCenter"] = settings["E_CHECKBOX_TextToCenter4"];
-            new_settings["E_CHOICE_Text_Count"] = settings["E_CHOICE_Text_Count4"];
-            new_settings["E_CHOICE_Text_Dir"] = settings["E_CHOICE_Text_Dir4"];
-            new_settings["E_CHOICE_Text_Effect"] = settings["E_CHOICE_Text_Effect4"];
-            new_settings["E_FONTPICKER_Text_Font"] = settings["E_FONTPICKER_Text_Font4"];
-            new_settings["E_TEXTCTRL_Text_Speed"] = settings["E_TEXTCTRL_Text_Speed4"];
-            int pos = (wxAtoi(settings["E_SLIDER_Text_Position4"]) * 2) - 100;
-            wxString strpos = wxString::Format("%d", pos);
-            new_settings["E_SLIDER_Text_XStart"] = "0";
-            new_settings["E_SLIDER_Text_XEnd"] = "0";
-            new_settings["E_SLIDER_Text_YStart"] = strpos;
-            new_settings["E_SLIDER_Text_YEnd"] = strpos;
-            SelectTextColor(palette, 4);
-            new_eff->SetPalette(palette);
-        }
-        std::string palette = effect->GetPaletteAsString();
-        SelectTextColor(palette, 1);
-        effect->SetPalette(palette);
-
-        settings.erase("E_CHECKBOX_TextToCenter1");
-        settings.erase("E_CHECKBOX_TextToCenter2");
-        settings.erase("E_CHECKBOX_TextToCenter3");
-        settings.erase("E_CHECKBOX_TextToCenter4");
-        settings.erase("E_CHECKBOX_Text_PixelOffsets1");
-        settings.erase("E_CHOICE_Text_Count1");
-        settings.erase("E_CHOICE_Text_Count2");
-        settings.erase("E_CHOICE_Text_Count3");
-        settings.erase("E_CHOICE_Text_Count4");
-        settings.erase("E_CHOICE_Text_Dir1");
-        settings.erase("E_CHOICE_Text_Dir2");
-        settings.erase("E_CHOICE_Text_Dir3");
-        settings.erase("E_CHOICE_Text_Dir4");
-        settings.erase("E_CHOICE_Text_Effect1");
-        settings.erase("E_CHOICE_Text_Effect2");
-        settings.erase("E_CHOICE_Text_Effect3");
-        settings.erase("E_CHOICE_Text_Effect4");
-        settings.erase("E_FONTPICKER_Text_Font1");
-        settings.erase("E_FONTPICKER_Text_Font2");
-        settings.erase("E_FONTPICKER_Text_Font3");
-        settings.erase("E_FONTPICKER_Text_Font4");
-        settings.erase("E_SLIDER_Text_Position2");
-        settings.erase("E_SLIDER_Text_Position3");
-        settings.erase("E_SLIDER_Text_Position4");
-        settings.erase("E_SLIDER_Text_XEnd1");
-        settings.erase("E_SLIDER_Text_XStart1");
-        settings.erase("E_SLIDER_Text_YEnd1");
-        settings.erase("E_SLIDER_Text_YStart1");
-        settings.erase("E_TEXTCTRL_Text_Line1");
-        settings.erase("E_TEXTCTRL_Text_Line2");
-        settings.erase("E_TEXTCTRL_Text_Line3");
-        settings.erase("E_TEXTCTRL_Text_Line4");
-        settings.erase("E_TEXTCTRL_Text_Speed1");
-        settings.erase("E_TEXTCTRL_Text_Speed2");
-        settings.erase("E_TEXTCTRL_Text_Speed3");
-        settings.erase("E_TEXTCTRL_Text_Speed4");
     }
 }
 
-void TextEffect::SelectTextColor(std::string& palette, int index)
+void TextEffect::SelectTextColor(std::string& palette, int index) const
 {
     wxString new_palette = "";
     wxArrayString palette_array = wxSplit(palette, ',');
@@ -240,7 +290,9 @@ void TextEffect::SetDefaultParameters() {
     }
 
     SetTextValue(tp->TextCtrl_Text, "");
+    tp->FilePickerCtrl1->SetFileName(wxFileName(""));
     SetChoiceValue(tp->Choice_Text_Dir, "none");
+    tp->Choice_LyricTrack->SetSelection(-1);
     SetSliderValue(tp->Slider_Text_Speed, 10);
     SetChoiceValue(tp->Choice_Text_Effect, "normal");
     SetChoiceValue(tp->Choice_Text_Count, "none");
@@ -250,6 +302,58 @@ void TextEffect::SetDefaultParameters() {
     SetSliderValue(tp->Slider_Text_YStart, 0);
     SetSliderValue(tp->Slider_Text_XEnd, 0);
     SetSliderValue(tp->Slider_Text_YEnd, 0);
+}
+
+void TextEffect::SetPanelStatus(Model* cls)
+{
+    TextPanel* tp = static_cast<TextPanel*>(panel);
+    if (tp == nullptr)
+    {
+        return;
+    }
+
+    tp->Choice_LyricTrack->Clear();
+    if (mSequenceElements == nullptr)
+    {
+        tp->ValidateWindow();
+        return;
+    }
+
+    // Load the names of the timing tracks
+    tp->Choice_LyricTrack->Append("");
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+    {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            TimingElement* te = dynamic_cast<TimingElement*>(e);
+            auto n = e->GetName();
+            if (e->GetEffectLayerCount() > 1)
+            {
+                if (te->HasLyrics(0)) {
+                    tp->Choice_LyricTrack->Append(n + " - Phrases");
+                }
+                if (te->HasLyrics(1)) {
+                    tp->Choice_LyricTrack->Append(n + " - Words");
+                }
+            }
+            else
+            {
+                if (te->HasLyrics(0)) {
+                    tp->Choice_LyricTrack->Append(n + " - Phrases");
+                }
+            }
+        }
+    }
+
+    // Select the first one
+    if (tp->Choice_LyricTrack->GetCount() > 0)
+    {
+        tp->Choice_LyricTrack->Select(0);
+    }
+
+    // Validate the window (includes enabling and disabling controls)
+    tp->ValidateWindow();
 }
 
 //formatting notes:
@@ -311,6 +415,7 @@ enum TextDirection {
     TEXTDIR_WAVEY_LRUPDOWN,
     TEXTDIR_VECTOR
 };
+
 static TextDirection TextEffectDirectionsIndex(const wxString &st) {
     if (st == "left") return TEXTDIR_LEFT;
     if (st == "right") return TEXTDIR_RIGHT;
@@ -335,6 +440,7 @@ static int TextCountDownIndex(const wxString &st) {
     if (st == "minutes seconds") return 7;
     return 0;
 }
+
 static int TextEffectsIndex(const wxString &st) {
     if (st == "vert text up") return 1;
     if (st == "vert text down") return 2;
@@ -356,19 +462,82 @@ void TextEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     }
 
     wxString text = SettingsMap["TEXTCTRL_Text"];
+    wxString filename = SettingsMap["FILEPICKERCTRL_Text_File"];
+    wxString lyricTrack = SettingsMap["CHOICE_Text_LyricTrack"];
+
+    if (text == "")
+    {
+        if (wxFile::Exists(filename))
+        {
+            wxTextFile f(filename);
+            f.Open();
+            int i = 0;
+            text = f.GetFirstLine() + "\n";
+            while (!f.Eof() && i < MAXTEXTLINES)
+            {
+                text += f.GetNextLine() + "\n";
+                i++;
+            }
+            if (text != "")
+            {
+                while (text.Last() == '\n')
+                {
+                    text = text.BeforeLast('\n');
+                }
+            }
+            f.Close();
+        }
+        else
+        {
+            if (lyricTrack != "")
+            {
+                Element* t = nullptr;
+                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                {
+                    auto lt = lyricTrack.BeforeLast('-');
+                    lt = lt.Left(lt.size() - 1);
+                    Element* e = mSequenceElements->GetElement(i);
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lt)
+                    {
+                        t = e;
+                        break;
+                    }
+                }
+
+                if (t != nullptr)
+                {
+                    long time = buffer.curPeriod * buffer.frameTimeInMs;
+                    EffectLayer* el = nullptr;
+                    if (lyricTrack.EndsWith(" - Phrases"))
+                    {
+                        el = t->GetEffectLayer(0);
+                    }
+                    else
+                    {
+                        el = t->GetEffectLayer(1);
+                    }
+                    for (int j = 0; j < el->GetEffectCount(); j++)
+                    {
+                        Effect* e = el->GetEffect(j);
+                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time)
+                        {
+                            text = e->GetEffectName();
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
     if (text != "") {
 
-        bool pixelOffsets = false;
-        int startx = 0;
-        int starty = 0;
-        int endx = 0;
-        int endy = 0;
-
-        starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
-        startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
-        endy = wxAtoi(SettingsMap.Get("SLIDER_Text_YEnd", "0"));
-        endx = wxAtoi(SettingsMap.Get("SLIDER_Text_XEnd", "0"));
-        pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0"));
+        int starty = wxAtoi(SettingsMap.Get("SLIDER_Text_YStart", "0"));
+        int startx = wxAtoi(SettingsMap.Get("SLIDER_Text_XStart", "0"));
+        int endy = wxAtoi(SettingsMap.Get("SLIDER_Text_YEnd", "0"));
+        int endx = wxAtoi(SettingsMap.Get("SLIDER_Text_XEnd", "0"));
+        bool pixelOffsets = wxAtoi(SettingsMap.Get("CHECKBOX_Text_PixelOffsets", "0"));
 
         wxImage * i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
@@ -502,15 +671,14 @@ struct CachedTextInfoHasher {
         for (auto a : t.color) {
             h1 ^= a.GetRGB() << 3;
         }
-        h1 ^= (t.rect.x << 8) + (t.rect.y << 16);
+        h1 ^= (std::abs(t.rect.x) << 8) + (std::abs(t.rect.y) << 16);
         return h1;
     }
 };
 
-
 class TextRenderCache : public EffectRenderCache {
 public:
-    TextRenderCache() {};
+    TextRenderCache() : timer_countdown(0), synced_textsize(wxSize(0,0)) {};
     virtual ~TextRenderCache() {
         for (auto it = textCache.begin(); it != textCache.end(); ++it) {
             delete it->second;
@@ -710,13 +878,13 @@ void DrawLabel(TextDrawingContext *dc,
 
 static wxString StripLeft(wxString str, wxString pattern)
 {
-    while (str.StartsWith(pattern, &str));
+    while (str.StartsWith(pattern, &str)) {};
     return str;
 }
 
 static wxString StripRight(wxString str, wxString pattern)
 {
-    while (str.EndsWith(pattern, &str));
+    while (str.EndsWith(pattern, &str)) {};
     return str;
 }
 
@@ -737,7 +905,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     int dir,
                                     bool center, int Effect, int Countdown, int tspeed,
                                     int startx, int starty, int endx, int endy,
-                                    bool isPixelBased)
+                                    bool isPixelBased) const
 {
     int i;
     wxString Line = Line_orig;
@@ -770,6 +938,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                 msg = msg + tempmsg.GetChar(i) + "\n";
             }
             break;
+        default: break;
     }
     
     TextRenderCache *cache = GetCache(buffer, id);
@@ -815,6 +984,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             yoffset=textsize.GetWidth();
             textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
             break;
+        default: break;
     }
     //msg.Printf(wxS("w=%d, h=%d"),textsize.GetWidth(),textsize.GetHeight());
 
@@ -974,7 +1144,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     return buffer.GetTextDrawingContext()->FlushAndGetImage();
 }
 
-void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig)
+void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig) const
 {
     long tempLong,longsecs;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
@@ -1072,13 +1242,13 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 wxTimeSpan format chars are described at:
                 http://docs.wxwidgets.org/trunk/classwx_time_span.html
                 The following format specifiers are allowed after %:
-                ïH - Number of Hours
-                ïM - Number of Minutes
-                ïS - Number of Seconds
-                ïl - Number of Milliseconds
-                ïD - Number of Days
-                ïE - Number of Weeks
-                ï% - The percent character
+                Ã¯H - Number of Hours
+                Ã¯M - Number of Minutes
+                Ã¯S - Number of Seconds
+                Ã¯l - Number of Milliseconds
+                Ã¯D - Number of Days
+                Ã¯E - Number of Weeks
+                Ã¯% - The percent character
 
                 //Format Characters are described at: http://www.cplusplus.com/reference/ctime/strftime/
                 TIME FORMAT CHARACTERS:
@@ -1189,7 +1359,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
 {
     xlColor c;
     int num_colors = buffer.palette.Size();
-    buffer.palette.GetColor(0,c);
+    buffer.palette.GetColor(0, c);
 
     int starty = wxAtoi(settings.Get("SLIDER_Text_YStart", "0"));
     int startx = wxAtoi(settings.Get("SLIDER_Text_XStart", "0"));
@@ -1201,7 +1371,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int OffsetTop = -starty * buffer.BufferHt / 100;
     if (pixelOffsets) {
         OffsetLeft = startx;
-        OffsetTop =  -starty;
+        OffsetTop = -starty;
     }
 
     font_mgr.init();  // make sure font class is initialized
@@ -1213,10 +1383,78 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int char_height = font->GetHeight();
 
     wxString text = settings["TEXTCTRL_Text"];
+    wxString filename = settings["FILEPICKERCTRL_Text_File"];
+    wxString lyricTrack = settings["CHOICE_Text_LyricTrack"];
+
+    if (text == "")
+    {
+        if (wxFile::Exists(filename))
+        {
+            wxTextFile f(filename);
+            f.Open();
+            int i = 0;
+            text = f.GetFirstLine() + "\n";
+            while (!f.Eof() && i < MAXTEXTLINES)
+            {
+                text += f.GetNextLine() + "\n";
+                i++;
+            }
+            if (text != "")
+            {
+                while (text.Last() == '\n')
+                {
+                    text = text.BeforeLast('\n');
+                }
+            }
+            f.Close();
+        }
+        else
+        {
+            if (lyricTrack != "")
+            {
+                Element* t = nullptr;
+                for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+                {
+                    auto lt = lyricTrack.BeforeLast('-');
+                    lt = lt.Left(lt.size() - 1);
+                    Element* e = mSequenceElements->GetElement(i);
+                    if (e->GetEffectLayerCount() > 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == lt)
+                    {
+                        t = e;
+                        break;
+                    }
+                }
+
+                if (t != nullptr)
+                {
+                    long time = buffer.curPeriod * buffer.frameTimeInMs;
+                    EffectLayer* el = nullptr;
+                    if (lyricTrack.EndsWith(" - Phrases"))
+                    {
+                        el = t->GetEffectLayer(0);
+                    }
+                    else
+                    {
+                        el = t->GetEffectLayer(1);
+                    }
+                    for (int j = 0; j < el->GetEffectCount(); j++)
+                    {
+                        Effect* e = el->GetEffect(j);
+                        if (e->GetStartTimeMS() <= time && e->GetEndTimeMS() > time)
+                        {
+                            text = e->GetEffectName();
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
 
     wxString msg = text;
     int Countdown = TextCountDownIndex(settings["CHOICE_Text_Count"]);
-    if( Countdown > 0 ) {
+    if (Countdown > 0) {
         int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
         int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
         wxString Line = text;
@@ -1230,14 +1468,15 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     bool vertical = false;
     bool rotate_90 = false;
     bool up = false;
-    if( text_effect == 1 || text_effect == 2) {
+    if (text_effect == 1 || text_effect == 2) {
         vertical = true;
-        if( text_effect == 1 ) {
+        if (text_effect == 1) {
             up = true;
         }
-    } else if( text_effect == 4 || text_effect == 6) {
+    }
+    else if (text_effect == 4 || text_effect == 6) {
         rotate_90 = true;
-        if( text_effect == 4 ) {
+        if (text_effect == 4) {
             up = true;
         }
     }
@@ -1245,140 +1484,153 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
-    if( rotate_90 ) {
-       OffsetLeft += buffer.BufferWi/2 - font->GetCapsHeight()/2;
-       if( up ) {
-           OffsetTop += buffer.BufferHt/2 + text_length/2;
-       } else {
-           OffsetTop += buffer.BufferHt/2 - text_length/2;
-       }
-    } else if( vertical ) {
-       OffsetLeft += buffer.BufferWi/2 - char_width/2;
-       if( up ) {
-           OffsetTop += buffer.BufferHt/2 + (char_height*text.length())/2;
-       } else {
-           OffsetTop += buffer.BufferHt/2 - (char_height*text.length())/2;
-       }
-    } else {
-        OffsetLeft += buffer.BufferWi/2 - text_length/2;
-        OffsetTop += buffer.BufferHt/2 - font->GetCapsHeight()/2;
+    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop);
+    if (rotate_90) {
+        OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
+        if (up) {
+            OffsetTop += buffer.BufferHt / 2 + text_length / 2;
+        }
+        else {
+            OffsetTop += buffer.BufferHt / 2 - text_length / 2;
+        }
+    }
+    else if (vertical) {
+        OffsetLeft += buffer.BufferWi / 2 - char_width / 2;
+        if (up) {
+            OffsetTop += buffer.BufferHt / 2 + (char_height*text.length()) / 2;
+        }
+        else {
+            OffsetTop += buffer.BufferHt / 2 - (char_height*text.length()) / 2;
+        }
+    }
+    else {
+        OffsetLeft += buffer.BufferWi / 2 - text_length / 2;
+        OffsetTop += buffer.BufferHt / 2 - font->GetCapsHeight() / 2;
     }
 
-    AddMotions( OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop );
 
     if (text != "") {
         int space_offset = 0;
-        for( int i = 0; i < text.length(); i++ ) {
-            buffer.palette.GetColor((i-space_offset)%num_colors,c);
-            if( text[i] == ' ' ) {
+        for (int i = 0; i < text.length(); i++) {
+            buffer.palette.GetColor((i - space_offset) % num_colors, c);
+            if (text[i] == ' ') {
                 space_offset++;
             }
-            int ascii = (int)text[i];
-            int x_start_corner = (ascii%8) * (char_width+1) + 1;
-            int y_start_corner = (ascii/8) * (char_height+1) + 1;
+            char ascii = text[i];
+            int x_start_corner = (ascii % 8) * (char_width + 1) + 1;
+            int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
 
             int actual_width = font->GetCharWidth(ascii);
-            if( rotate_90 && up ) {
+            wxASSERT(actual_width > 0);
+            if (rotate_90 && up) {
                 OffsetTop -= actual_width;
             }
-            for( int w = 0; w < actual_width; w++ )
+            for (int w = 0; w < actual_width; w++)
             {
-               int x_pos = x_start_corner + w;
-               for( int y_pos = y_start_corner; y_pos < y_start_corner+char_height; y_pos++)
-               {
-                   int red = image.GetRed(x_pos, y_pos);
-                   int green = image.GetGreen(x_pos, y_pos);
-                   int blue = image.GetBlue(x_pos, y_pos);
-                   if( red == 255 && green == 255 && blue == 255 ) {
-                      if( rotate_90 ) {
-                        if( up ) {
-                            buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
-                        } else {
-                            buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                int x_pos = x_start_corner + w;
+                for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++)
+                {
+                    if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight())
+                    {
+                        int red = image.GetRed(x_pos, y_pos);
+                        int green = image.GetGreen(x_pos, y_pos);
+                        int blue = image.GetBlue(x_pos, y_pos);
+                        if (red == 255 && green == 255 && blue == 255) {
+                            if (rotate_90) {
+                                if (up) {
+                                    buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                                }
+                                else {
+                                    buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                                }
+                            }
+                            else {
+                                buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
+                            }
                         }
-                      } else {
-                        buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
-                      }
-                   }
-               }
+                    }
+                }
             }
-            if( vertical ) {
-               if( up ) {
+            if (vertical) {
+                if (up) {
                     OffsetTop -= char_height + 1;
-               } else {
+                }
+                else {
                     OffsetTop += char_height + 1;
-               }
-            } else if( rotate_90 && !up ) {
+                }
+            }
+            else if (rotate_90 && !up) {
                 OffsetTop += actual_width;
-            } else if( !rotate_90 ) {
+            }
+            else if (!rotate_90) {
                 OffsetLeft += actual_width;
             }
         }
     }
 }
 
-void TextEffect::AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
-                             int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop )
+void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
+    int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop) const
 {
     int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
-    int totwidth=buffer.BufferWi+txtwidth;
-    int totheight=buffer.BufferHt+txtheight;
+    int totwidth = buffer.BufferWi + txtwidth;
+    int totheight = buffer.BufferHt + txtheight;
 
-    int xlimit=totwidth*8 + 1;
-    int ylimit=totheight*8 + 1;
+    int xlimit = totwidth * 8 + 1;
+    int ylimit = totheight * 8 + 1;
 
     TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-    int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);  // not implemented yet - hoping to switch to value curves anyways
+    //int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);  // not implemented yet - hoping to switch to value curves anyways
 
     switch (dir) {
-        case TEXTDIR_VECTOR:
-            {
-            double position = buffer.GetEffectTimeIntervalPosition(1.0);
-            double ex = endx * buffer.BufferWi / 100;
-            double ey = -endy * buffer.BufferHt / 100;
-            if (pixelOffsets) {
-                ex = endx;
-                ey = -endy;
-            }
-            OffsetLeft += (ex - OffsetLeft) * position;
-            OffsetTop += (ey - OffsetTop) * position;
-            }
-            break;
-        case TEXTDIR_LEFT:
-            OffsetLeft = buffer.BufferWi - state % xlimit/8 + PreOffsetLeft;
-            break; // left
-        case TEXTDIR_RIGHT:
-            OffsetLeft = state % xlimit/8 - txtwidth + PreOffsetLeft;
-            break; // right
-        case TEXTDIR_UP:
-            OffsetTop = buffer.BufferHt - state % ylimit/8 - PreOffsetTop;
-            break; // up
-        case TEXTDIR_DOWN:
-            OffsetTop = state % ylimit/8 - txtheight - PreOffsetTop;
-            break; // down
-        case TEXTDIR_UPLEFT:
-            OffsetLeft = buffer.BufferWi - state % xlimit/8 + PreOffsetLeft;
-            OffsetTop = buffer.BufferHt - state % ylimit/8 - PreOffsetTop;
-            break; // up-left
-        case TEXTDIR_DOWNLEFT:
-            OffsetLeft = buffer.BufferWi - state % xlimit/8 + PreOffsetLeft;
-            OffsetTop = state % ylimit/8 - txtheight - PreOffsetTop;
-            break; // down-left
-        case TEXTDIR_UPRIGHT:
-            OffsetLeft = state % xlimit/8 - txtwidth + PreOffsetLeft;
-            OffsetTop = buffer.BufferHt - state % ylimit/8 - PreOffsetTop;
-            break; // up-right
-        case TEXTDIR_DOWNRIGHT:
-            OffsetLeft = state % xlimit/8 - txtwidth + PreOffsetLeft;
-            OffsetTop = state % ylimit/8 - txtheight - PreOffsetTop;
-            break; // down-right
-        case TEXTDIR_WAVEY_LRUPDOWN:
-            OffsetLeft = xlimit/16 - state % xlimit/8;
-            OffsetTop = zigzag(state/4, totheight)/2 - totheight/4;
-            break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
-        default:
-            break;
+    case TEXTDIR_VECTOR:
+    {
+        double position = buffer.GetEffectTimeIntervalPosition(1.0);
+        double ex = endx * buffer.BufferWi / 100;
+        double ey = -endy * buffer.BufferHt / 100;
+        if (pixelOffsets) {
+            ex = endx;
+            ey = -endy;
+        }
+        OffsetLeft += (ex - OffsetLeft) * position;
+        OffsetTop += (ey - OffsetTop) * position;
+    }
+    break;
+    case TEXTDIR_LEFT:
+        OffsetLeft = buffer.BufferWi - state % (xlimit + buffer.BufferWi) / 8 + PreOffsetLeft + txtwidth / 2;
+        break; // left
+    case TEXTDIR_RIGHT:
+        OffsetLeft = state % xlimit / 8 - txtwidth + PreOffsetLeft;
+        break; // right
+    case TEXTDIR_UP:
+        OffsetTop = buffer.BufferHt - state % ylimit / 8 - PreOffsetTop;
+        break; // up
+    case TEXTDIR_DOWN:
+        OffsetTop = state % ylimit / 8 - txtheight - PreOffsetTop;
+        break; // down
+    case TEXTDIR_UPLEFT:
+        OffsetLeft = buffer.BufferWi - state % xlimit / 8 + PreOffsetLeft;
+        OffsetTop = buffer.BufferHt - state % ylimit / 8 - PreOffsetTop;
+        break; // up-left
+    case TEXTDIR_DOWNLEFT:
+        OffsetLeft = buffer.BufferWi - state % xlimit / 8 + PreOffsetLeft;
+        OffsetTop = state % ylimit / 8 - txtheight - PreOffsetTop;
+        break; // down-left
+    case TEXTDIR_UPRIGHT:
+        OffsetLeft = state % xlimit / 8 - txtwidth + PreOffsetLeft;
+        OffsetTop = buffer.BufferHt - state % ylimit / 8 - PreOffsetTop;
+        break; // up-right
+    case TEXTDIR_DOWNRIGHT:
+        OffsetLeft = state % xlimit / 8 - txtwidth + PreOffsetLeft;
+        OffsetTop = state % ylimit / 8 - txtheight - PreOffsetTop;
+        break; // down-right
+    case TEXTDIR_WAVEY_LRUPDOWN:
+        OffsetLeft = xlimit / 16 - state % xlimit / 8;
+        OffsetTop = zigzag(state / 4, totheight) / 2 - totheight / 4;
+        break; // left-to-right, wavey up-down 1/2 height (too bouncy if full height is used), slow down up/down motion (too fast unless scaled)
+    default:
+        break;
     }
 }

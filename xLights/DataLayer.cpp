@@ -1,4 +1,5 @@
 #include "DataLayer.h"
+#include "UtilFunctions.h"
 #include <algorithm>
 
 DataLayer::DataLayer(wxString name, wxString source, wxString data_source)
@@ -9,6 +10,12 @@ DataLayer::DataLayer(wxString name, wxString source, wxString data_source)
   num_frames(0),
   channel_offset(0)
 {
+    if (!source.StartsWith("<")) {
+        mSource = FixFile("", source);
+    }
+    if (!data_source.StartsWith("<")) {
+        mDataSource = FixFile("", data_source);
+    }
 }
 
 DataLayerSet::DataLayerSet()

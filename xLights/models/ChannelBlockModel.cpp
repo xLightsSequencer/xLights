@@ -4,6 +4,7 @@
 
 #include "ChannelBlockModel.h"
 #include "ModelScreenLocation.h"
+#include "../OutputModelManager.h"
 
 std::vector<std::string> ChannelBlockModel::LINE_BUFFER_STYLES;
 
@@ -56,10 +57,16 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
     if ("ChannelBlockCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
-        AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        //AdjustChannelProperties(grid, event.GetPropertyValue().GetLong());
+        //AdjustStringProperties(grid, event.GetPropertyValue().GetLong());
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ChannelBlockModel::OnPropertyGridChange::ChannelBlockCount");
+        return 0;
     }
     else if (event.GetPropertyName().StartsWith("ChannelProperties."))
     {
@@ -68,8 +75,10 @@ int ChannelBlockModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPro
         xlColor xc = c;
         ModelXml->DeleteAttribute(event.GetPropertyName());
         ModelXml->AddAttribute(event.GetPropertyName(), xc);
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "ChannelBlockModel::OnPropertyGridChange::ChannelProperties");
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -107,12 +116,12 @@ void ChannelBlockModel::AdjustChannelProperties(wxPropertyGridInterface *grid, i
     }
 }
 
-void ChannelBlockModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void ChannelBlockModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
     BufferHi = 1;
     BufferWi = GetNodeCount();
 }
 
-void ChannelBlockModel::InitRenderBufferNodes(const std::string &type,  const std::string &transform,
+void ChannelBlockModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                         std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     BufferHi = 1;
     BufferWi = GetNodeCount();
@@ -172,7 +181,7 @@ void ChannelBlockModel::InitModel() {
         for (auto coord = node->get()->Coords.begin(); coord != node->get()->Coords.end(); ++coord) {
             coord->screenY = 0;
             if (num > 1) {
-                coord->screenX = coord->bufX + (float)count / (float)num + offset;
+                coord->screenX = (float)coord->bufX + (float)count / (float)num + offset;
                 count++;
             }
             else {

@@ -17,7 +17,7 @@ END_EVENT_TABLE()
 #define CORNER_2B_SELECTED      4
 
 xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : xlGLCanvas(parent, id, pos, size, style, name, true),
+    : xlGLCanvas(parent, id, pos, size, style, name),
       mDisplayType(TYPE_PALETTE),
       mDisplayMode(MODE_SATURATION),
       mDragging(false),
@@ -201,9 +201,8 @@ void xlColorCanvas::ProcessPaletteClick( int row, int column )
     }
 }
 
-void xlColorCanvas::InitializeGLCanvas()
+void xlColorCanvas::InitializeGLContext()
 {
-    if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -211,25 +210,21 @@ void xlColorCanvas::InitializeGLCanvas()
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    mIsInitialized = true;
 }
 
 void xlColorCanvas::render( wxPaintEvent& event )
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
     if(!IsShownOnScreen()) return;
+    if(!mIsInitialized) { InitializeGLCanvas(); }
 
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
     
-    if( mDisplayType == TYPE_SLIDER )
-    {
+    if( mDisplayType == TYPE_SLIDER ) {
         DrawSlider();
-    }
-    else
-    {
+    } else {
         DrawPalette();
     }
 

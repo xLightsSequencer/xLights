@@ -30,11 +30,11 @@ class PinwheelEffect : public RenderableEffect
         virtual ~PinwheelEffect();
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) override { return true; }
+        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) const override { return true; }
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
     protected:
         enum Pinwheel3DType {

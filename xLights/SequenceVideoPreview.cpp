@@ -13,7 +13,7 @@ END_EVENT_TABLE()
 
 
 SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ViewPreview", true), _texId(0), _texWidth(0), _texHeight(0)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ViewPreview"), _texId(0), _texWidth(0), _texHeight(0)
 {
 
 }
@@ -24,20 +24,18 @@ SequenceVideoPreview::~SequenceVideoPreview()
    deleteTexture();
 }
 
-void SequenceVideoPreview::InitializeGLCanvas()
+void SequenceVideoPreview::InitializeGLContext()
 {
-   if ( !IsShownOnScreen() ) return;
-
    wxColour bg = GetBackgroundColour();
    SetCurrentGLContext();
    LOG_GL_ERRORV( glClearColor( bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 0.f ) );
-   mIsInitialized = true;
 }
 
 void SequenceVideoPreview::paint( wxPaintEvent& evt )
 {
+   if(!IsShownOnScreen()) return;
    if ( !mIsInitialized ) { InitializeGLCanvas(); }
-   if ( !IsShownOnScreen() ) return;
+
    wxPaintDC( this );
    SetCurrentGLContext();
 

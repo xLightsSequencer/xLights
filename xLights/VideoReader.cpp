@@ -127,7 +127,7 @@ VideoReader::VideoReader(const std::string& filename, int maxwidth, int maxheigh
 	{
         if (_videoStream->avg_frame_rate.den != 0)
         {
-            _lengthMS = (double)_formatContext->duration * (double)_videoStream->avg_frame_rate.num / (double)_videoStream->avg_frame_rate.den;
+            _lengthMS = (double)_formatContext->duration / 1000.0;
             _frames = (long)(_lengthMS  * (double)_videoStream->avg_frame_rate.num / (double)(_videoStream->avg_frame_rate.den) / 1000.0);
         }
         else
@@ -228,6 +228,7 @@ bool VideoReader::IsVideoFile(const std::string& filename)
         ext == "asf" ||
         ext == "flv" ||
         ext == "mpg" ||
+        ext == "wmv" ||
         ext == "mpeg" ||
         ext == "m4v"
         )
@@ -236,6 +237,69 @@ bool VideoReader::IsVideoFile(const std::string& filename)
     }
 
     return false;
+}
+
+long VideoReader::GetVideoLength(const std::string& filename)
+{
+    av_register_all();
+
+    AVFormatContext* formatContext = nullptr;
+    int res = avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr);
+    if (res != 0)
+    {
+        return 0;
+    }
+
+    if (avformat_find_stream_info(formatContext, nullptr) < 0)
+    {
+        avformat_close_input(&formatContext);
+        return 0;
+    }
+
+    // Find the video stream
+    AVCodec* cdc;
+    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &cdc, 0);
+    if (streamIndex < 0)
+    {
+        avformat_close_input(&formatContext);
+        return 0;
+    }
+
+    AVStream* videoStream = formatContext->streams[streamIndex];
+    videoStream->discard = AVDISCARD_NONE;
+
+    // get the video length in MS
+    // Use the number of frames as the best possible way to calculate length
+    long frames = (long)videoStream->nb_frames;
+    long lengthMS = 0;
+
+    if (frames > 0)
+    {
+        if (videoStream->avg_frame_rate.num != 0)
+        {
+            lengthMS = ((double)frames * (double)videoStream->avg_frame_rate.den * 1000.0) / (double)videoStream->avg_frame_rate.num;
+        }
+    }
+
+    // If it does not look right try to base if off the duration
+    if (lengthMS <= 0)
+    {
+        if (videoStream->avg_frame_rate.den != 0)
+        {
+            lengthMS = (double)formatContext->duration * (double)videoStream->avg_frame_rate.num / (double)videoStream->avg_frame_rate.den;
+        }
+    }
+
+    // If it still doesnt look right
+    if (lengthMS <= 0)
+    {
+        // This seems to work for .asf, .mkv, .flv
+        lengthMS = (double)formatContext->duration / 1000.0;
+    }
+
+    avformat_close_input(&formatContext);
+
+    return lengthMS;
 }
 
 VideoReader::~VideoReader()
@@ -357,7 +421,7 @@ AVFrame* VideoReader::GetNextFrame(int timestampMS, int gracetime)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #endif
     
-    if (!_valid)
+    if (!_valid || _frames == 0)
     {
         return nullptr;
     }

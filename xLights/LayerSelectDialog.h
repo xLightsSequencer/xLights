@@ -11,11 +11,12 @@
 class LayerSelectDialog: public wxDialog
 {
     int _start;
+	std::vector<int> _layerWithEffect;
     void ValidateWindow();
 
 	public:
 
-		LayerSelectDialog(wxWindow* parent, int startLayer, int endLayer, std::string layersSelected, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		LayerSelectDialog(wxWindow* parent, int startLayer, int endLayer, std::string layersSelected, std::vector<int> layerWithEffect, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~LayerSelectDialog();
         void SelectLayer(wxString layer);
         std::string GetSelectedLayers() const;
@@ -35,6 +36,10 @@ class LayerSelectDialog: public wxDialog
 		static const long ID_BUTTON2;
 		//*)
 
+		static const long ID_MCU_SELECTALL;
+		static const long ID_MCU_SELECTNONE;
+		static const long ID_MCU_SELECTPOPULATED;
+
 	private:
 
 		//(*Handlers(LayerSelectDialog)
@@ -42,6 +47,12 @@ class LayerSelectDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnCheckListBox_LayersToggled(wxCommandEvent& event);
 		//*)
+
+		void OnListRClick(wxContextMenuEvent& event);
+		void OnPopup(wxCommandEvent &event);
+
+		void DeselectAllLayers();
+		void SelectLayersWithEffects();
 
 		DECLARE_EVENT_TABLE()
 };

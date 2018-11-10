@@ -1,6 +1,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
+
 #include "WindowFrameModel.h"
 #include "ModelScreenLocation.h"
 
@@ -18,11 +19,12 @@ WindowFrameModel::~WindowFrameModel()
 void WindowFrameModel::InitModel() {
     rotation = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1;
     InitFrame();
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
-int WindowFrameModel::NodesPerString()
+int WindowFrameModel::NodesPerString() const
 {
-    return GetChanCount() / GetChanCountPerNode();
+    return GetChanCount() / std::max(GetChanCountPerNode(),1);
 }
 
 // initialize buffer coordinates
@@ -234,30 +236,48 @@ int WindowFrameModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProp
     if ("WFTopCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFTopCount");
+        return 0;
     } else if ("WFLeftRightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFLeftRightCount");
+        return 0;
     } else if ("WFBottomCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "WindowFrameModel::OnPropertyGridChange::WFBottomCount");
+        return 0;
     } else if ("WFStartLocation" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StartSide");
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2) ? "L" : "R");
         ModelXml->AddAttribute("StartSide", (event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1) ? "T" : "B");
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFStartLocation");
+        return 0;
     } else if ("WFDirection" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Rotation");
         ModelXml->AddAttribute("Rotation", event.GetValue().GetLong() == 0 ? "Clockwise" : "Counter Clockwise");
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "WindowFrameModel::OnPropertyGridChange::WFDirection");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "WindowFrameModel::OnPropertyGridChange::WFDirection");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "WindowFrameModel::OnPropertyGridChange::WFDirection");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "WindowFrameModel::OnPropertyGridChange::WFDirection");
+        return 0;
     }
 
     return Model::OnPropertyGridChange(grid, event);

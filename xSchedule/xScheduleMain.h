@@ -43,6 +43,7 @@ class BrightnessControl;
 //*)
 
 #include "../xLights/xLightsTimer.h"
+#include "PluginManager.h"
 #include <list>
 
 class wxDebugReportCompress;
@@ -57,11 +58,15 @@ class Pinger;
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SYNC, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOACTION, wxCommandEvent);
+wxDECLARE_EVENT(EVT_STOP, wxCommandEvent);
+wxDECLARE_EVENT(EVT_QUIT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
@@ -74,7 +79,11 @@ class xScheduleFrame : public wxFrame
     Pinger* _pinger;
     wxBitmap _nowebicon;
     wxBitmap _webicon;
+    wxBitmap _slowicon;
     bool _webIconDisplayed;
+    bool _slowDisplayed;
+    wxLongLong _lastSlow;
+    PluginManager _pluginManager;
 
     void AddIPs();
     void LoadShowDir();
@@ -83,7 +92,7 @@ class xScheduleFrame : public wxFrame
     void DeleteSelectedItem();
     void ValidateWindow();
     void CreateButtons();
-    void UpdateStatus();
+    void UpdateStatus(bool force = false);
     void UpdateSchedule();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
@@ -92,10 +101,13 @@ class xScheduleFrame : public wxFrame
     bool HandleSpecialKeys(wxKeyEvent& event);
     void AddPlayList(bool  forceadvanced = false);
     void EditSelectedItem(bool  forceadvanced = false);
-    void UpdateUI();
+    void UpdateUI(bool force = false);
     void DoPaste();
     void DoCopy();
     void AddSchedule();
+    void RemoteWarning();
+    void ModeToUI();
+    void UIToMode();
 
     wxBitmap _otlon;
     wxBitmap _otloff;
@@ -129,6 +141,11 @@ public:
         void CreateDebugReport(wxDebugReportCompress *report);
         void CreateButton(const std::string& label, const wxColor& c);
         void SetTempMessage(const std::string& msg);
+        PluginManager& GetPluginManager() { return _pluginManager; }
+        std::string GetWebPluginRequest(const std::string& request);
+        wxString ProcessPluginRequest(const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference);
+        void ManipulateBuffer(uint8_t* buffer, size_t bufferSize);
+        std::string GetOurURL() const;
 
     private:
 
@@ -139,6 +156,7 @@ public:
         void OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event);
         void OnTreeCtrl_PlayListsSchedulesKeyDown(wxTreeEvent& event);
         void OnMenuItem_SaveSelected(wxCommandEvent& event);
+        bool SelectShowFolder();
         void OnMenuItem_ShowFolderSelected(wxCommandEvent& event);
         void OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event);
         void On_timerTrigger(wxTimerEvent& event);
@@ -176,7 +194,6 @@ public:
         void OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event);
         void OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event);
         void OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event);
-        void OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCMasterSelected(wxCommandEvent& event);
         void OnMenuItem_OSCRemoteSelected(wxCommandEvent& event);
         void OnListView_PingItemActivated(wxListEvent& event);
@@ -188,18 +205,31 @@ public:
         void OnMenuItem_MIDITimeCodeMasterSelected(wxCommandEvent& event);
         void OnMenuItem_MIDITimeCodeSlaveSelected(wxCommandEvent& event);
         void OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommandEvent& event);
+        void OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event);
+        void OnMenuItem_TestSelected(wxCommandEvent& event);
+        void OnMenuItem_ConfigureTestSelected(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPUnicastMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_RemoteLatencySelected(wxCommandEvent& event);
+        void OnButton_CloneClick(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPMulticastMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPUnicastCSVMasterSelected(wxCommandEvent& event);
+        void OnMenuItem_ModeFPPCSVRemoteSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
         bool IsSchedule(wxTreeItemId id) const;
         void OnTreeCtrlMenu(wxCommandEvent &event);
+        void OnPingPopup(wxCommandEvent &event);
         void OnButton_UserClick(wxCommandEvent& event);
         void RateNotification(wxCommandEvent& event);
         void StatusMsgNotification(wxCommandEvent& event);
         void RunAction(wxCommandEvent& event);
+        void ChangeShowFolder(wxCommandEvent& event);
         void ScheduleChange(wxCommandEvent& event);
         void DoCheckSchedule(wxCommandEvent& event);
+        void Sync(wxCommandEvent& event);
         void DoAction(wxCommandEvent& event);
+        void DoStop(wxCommandEvent& event);
         void DoXyzzy(wxCommandEvent& event);
         void DoXyzzyEvent(wxCommandEvent& event);
         void CorrectTimer(int rate);
@@ -220,6 +250,7 @@ public:
         static const long ID_TREECTRL1;
         static const long ID_BUTTON1;
         static const long ID_BUTTON2;
+        static const long ID_BUTTON5;
         static const long ID_BUTTON3;
         static const long ID_BUTTON4;
         static const long ID_PANEL6;
@@ -233,12 +264,15 @@ public:
         static const long ID_PANEL1;
         static const long ID_STATICTEXT1;
         static const long ID_STATICTEXT3;
+        static const long ID_STATICTEXT6;
         static const long ID_STATICTEXT4;
         static const long ID_STATICTEXT5;
         static const long ID_STATICTEXT2;
+        static const long ID_STATICBITMAP2;
         static const long ID_STATICBITMAP1;
         static const long ID_PANEL4;
         static const long ID_MNU_SHOWFOLDER;
+        static const long ID_MNU_USEXLIGHTSFOLDER;
         static const long ID_MNU_SAVE;
         static const long idMenuQuit;
         static const long ID_MNU_MNUADDPLAYLIST;
@@ -253,26 +287,34 @@ public:
         static const long ID_MNU_WEBINTERFACE;
         static const long ID_MNU_IMPORT;
         static const long ID_MNU_CRASH;
-        static const long ID_MNU_MODENORMAL;
-        static const long ID_MNU_FPPMASTER;
-        static const long ID_MNU_OSCMASTER;
-        static const long ID_MNU_OSCFPPMASTER;
+        static const long ID_MNU_TEST;
+        static const long ID_MNU_FPP_BROADCASTMASTER;
+        static const long ID_MNU_FPP_MULTICAST;
+        static const long ID_MNU_FPP_UNICASTMASTER;
+        static const long ID_MNU_FPP_UNICASTCSVMASTER;
         static const long IDM_MNU_ARTNETMASTER;
+        static const long ID_MNU_OSCMASTER;
         static const long MNU_MIDITIMECODE_MASTER;
+        static const long ID_MNU_MASTER;
+        static const long ID_MNU_MODENORMAL;
         static const long ID_MNU_FPPREMOTE;
-        static const long ID_MNU_OSCREMOTE;
+        static const long ID_MNU_FPPCSVREMOTE;
         static const long ID_MNU_ARTNETTIMECODESLAVE;
+        static const long ID_MNU_OSCREMOTE;
         static const long MNU_MIDITIMECODEREMOTE;
-        static const long ID_MNU_FPPUNICASTREMOTE;
+        static const long ID_MNU_REMOTECONFIGURE;
+        static const long ID_MNU_REMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
         static const long ID_MNU_OSCOPTION;
         static const long MNU_CONFIGUREMIDITIMECODE;
+        static const long ID_MNU_CONFIGURE_TEST;
         static const long idMenuAbout;
         static const long ID_STATUSBAR1;
         static const long ID_TIMER1;
         static const long ID_TIMER2;
         //*)
 
+        static const long ID_MNU_EDIT_ADDITIONAL_IPS;
         static const long ID_MNU_ADDPLAYLIST;
         static const long ID_MNU_ADDADVPLAYLIST;
         static const long ID_MNU_DUPLICATEPLAYLIST;
@@ -295,6 +337,7 @@ public:
         wxBitmapButton* BitmapButton_VolumeDown;
         wxBitmapButton* BitmapButton_VolumeUp;
         wxButton* Button_Add;
+        wxButton* Button_Clone;
         wxButton* Button_Delete;
         wxButton* Button_Edit;
         wxButton* Button_Schedule;
@@ -302,35 +345,45 @@ public:
         wxFileDialog* FileDialog1;
         wxFlexGridSizer* FlexGridSizer1;
         wxFlexGridSizer* FlexGridSizer4;
+        wxFlexGridSizer* FlexGridSizer6;
         wxListView* ListView_Ping;
         wxListView* ListView_Running;
-        wxMenu* Menu3;
         wxMenu* Menu4;
         wxMenu* Menu5;
+        wxMenu* Menu6;
+        wxMenu* MenuItem3;
+        wxMenu* Menu_Plugins;
+        wxMenu* ToolsMenu;
         wxMenuItem* MenuItem5MenuItem_ConfigureMIDITimecode;
-        wxMenuItem* MenuItem_ARTNetTimeCodeMaster;
-        wxMenuItem* MenuItem_ARTNetTimeCodeSlave;
         wxMenuItem* MenuItem_AddPlayList;
         wxMenuItem* MenuItem_BackgroundPlaylist;
         wxMenuItem* MenuItem_CheckSchedule;
         wxMenuItem* MenuItem_ConfigureOSC;
+        wxMenuItem* MenuItem_ConfigureTest;
         wxMenuItem* MenuItem_Crash;
         wxMenuItem* MenuItem_EditEvents;
         wxMenuItem* MenuItem_EditFPPRemotes;
-        wxMenuItem* MenuItem_FPPMaster;
-        wxMenuItem* MenuItem_FPPOSCMaster;
-        wxMenuItem* MenuItem_FPPRemote;
-        wxMenuItem* MenuItem_FPPUnicastRemote;
         wxMenuItem* MenuItem_ImportxLights;
-        wxMenuItem* MenuItem_MIDITimeCodeMaster;
-        wxMenuItem* MenuItem_MIDITimeCodeSlave;
         wxMenuItem* MenuItem_Matrices;
-        wxMenuItem* MenuItem_OSCMaster;
-        wxMenuItem* MenuItem_OSCRemote;
+        wxMenuItem* MenuItem_ModeArtNetMaster;
+        wxMenuItem* MenuItem_ModeArtNetSlave;
+        wxMenuItem* MenuItem_ModeFPPBroadcastMaster;
+        wxMenuItem* MenuItem_ModeFPPCSVRemote;
+        wxMenuItem* MenuItem_ModeFPPMulticastMaster;
+        wxMenuItem* MenuItem_ModeFPPRemote;
+        wxMenuItem* MenuItem_ModeFPPUnicastCSVMaster;
+        wxMenuItem* MenuItem_ModeFPPUnicastMaster;
+        wxMenuItem* MenuItem_ModeMIDIMaster;
+        wxMenuItem* MenuItem_ModeMIDISlave;
+        wxMenuItem* MenuItem_ModeOSCMaster;
+        wxMenuItem* MenuItem_ModeOSCRemote;
+        wxMenuItem* MenuItem_ModeRemoteDisabled;
+        wxMenuItem* MenuItem_ModeTest;
         wxMenuItem* MenuItem_Options;
+        wxMenuItem* MenuItem_RemoteLatency;
         wxMenuItem* MenuItem_Save;
         wxMenuItem* MenuItem_ShowFolder;
-        wxMenuItem* MenuItem_Standalone;
+        wxMenuItem* MenuItem_UsexLightsFolder;
         wxMenuItem* MenuItem_ViewLog;
         wxMenuItem* MenuItem_VirtualMatrices;
         wxMenuItem* MenuItem_WebInterface;
@@ -344,10 +397,12 @@ public:
         wxPanel* Panel7;
         wxSplitterWindow* SplitterWindow1;
         wxSplitterWindow* SplitterWindow2;
+        wxStaticBitmap* StaticBitmap_Slow;
         wxStaticBitmap* StaticBitmap_WebIcon;
         wxStaticText* StaticText2;
         wxStaticText* StaticText_IP;
         wxStaticText* StaticText_PacketsPerSec;
+        wxStaticText* StaticText_RemoteWarning;
         wxStaticText* StaticText_ShowDir;
         wxStaticText* StaticText_Time;
         wxStatusBar* StatusBar1;
@@ -357,6 +412,8 @@ public:
         //*)
 
         DECLARE_EVENT_TABLE()
+
+        void OnPluginMenu(wxCommandEvent& event);
 };
 
 #endif // XSCHEDULEMAIN_H

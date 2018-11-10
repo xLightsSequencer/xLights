@@ -6,7 +6,7 @@ BEGIN_EVENT_TABLE(xlGridCanvas, xlGLCanvas)
 END_EVENT_TABLE()
 
 xlGridCanvas::xlGridCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : xlGLCanvas(parent, id, pos, size, style, name, true),
+    : xlGLCanvas(parent, id, pos, size, style, name),
       mEffect(nullptr),
       mModel(nullptr),
       mGridlineColor(new xlColor(0,153,153)),
@@ -66,14 +66,14 @@ int xlGridCanvas::SetColumnCenter(int position)
     return calcPercentFromCell(col, mColumns);
 }
 
-int xlGridCanvas::calcCellFromPercent(int value, int base)
+int xlGridCanvas::calcCellFromPercent(int value, int base) const
 {
     if( value == 100 ) return (base - 1);
     double band = 100.0 / (double)base;
     return (int)((double)value / band);
 }
 
-int xlGridCanvas::calcPercentFromCell(int value, int base)
+int xlGridCanvas::calcPercentFromCell(int value, int base) const
 {
     if( value == 0 ) return 0;
     if( value == base-1 ) return 100;

@@ -124,6 +124,8 @@ SerialPortWithRate::SerialPortWithRate(wxWindow* parent, SerialOutput** serial, 
     Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SerialPortWithRate::OnButton_CancelClick);
     //*)
 
+    ChoiceProtocol->Append(_("Syncrolight Serial"));
+
     MainSizer=FlexGridSizer1;
 
     auto ports = SerialOutput::GetPossibleSerialPorts();

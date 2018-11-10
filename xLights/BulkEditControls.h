@@ -6,6 +6,7 @@
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/checkbox.h>
+#include <wx/fontpicker.h>
 #include "ValueCurveButton.h"
 #include "xlLockButton.h"
 #include <wx/filepicker.h>
@@ -27,17 +28,43 @@ protected:
     long ID_SLIDER_BULKEDIT;
     BESLIDERTYPE _type;
     bool _supportsBulkEdit;
+    int _default;
 
     public:
 
     BulkEditSlider(wxWindow *parent, wxWindowID id, int value, int minValue, int maxValue, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxSL_HORIZONTAL, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxSliderNameStr);
     virtual ~BulkEditSlider() {}
     void OnRightDown(wxMouseEvent& event);
+    void OnDClick(wxMouseEvent& event);
     void OnSliderPopup(wxCommandEvent &event);
     void OnSlider_SliderUpdated(wxScrollEvent& event);
     void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
     void BulkEdit();
+};
+
+class BulkEditFontPicker : public wxFontPickerCtrl
+{
+protected:
+    long ID_FONTPICKER_BULKEDIT;
+    bool _supportsBulkEdit;
+
+public:
+
+    BulkEditFontPicker(wxWindow* parent,
+        wxWindowID id,
+        const wxFont& initial = wxNullFont,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxFNTP_DEFAULT_STYLE,
+        const wxValidator& validator = wxDefaultValidator,
+        const wxString& name = wxFontPickerCtrlNameStr);
+        virtual ~BulkEditFontPicker() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnFontPickerPopup(wxCommandEvent& event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+    std::string GetValue() const;
 };
 
 class BulkEditSliderF1 : public BulkEditSlider
@@ -124,7 +151,6 @@ class BulkEditSpinCtrl : public wxSpinCtrl
 {
 protected:
     long ID_SPINCTRL_BULKEDIT;
-    BESLIDERTYPE _type;
     bool _supportsBulkEdit;
 
 public:
@@ -183,7 +209,6 @@ class BulkEditCheckBox : public wxCheckBox
 protected:
     long ID_CHECKBOX_BULKEDIT_CHECKED;
     long ID_CHECKBOX_BULKEDIT_UNCHECKED;
-    BESLIDERTYPE _type;
     bool _supportsBulkEdit;
 
 public:
@@ -196,6 +221,21 @@ public:
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
+class BulkEditButton : public wxButton
+{
+protected:
+    long ID_BUTTON_BULKEDIT;
+    bool _supportsBulkEdit;
+
+public:
+
+    BulkEditButton(wxWindow *parent, wxWindowID id, const wxString &label, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = 0, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxCheckBoxNameStr);
+    virtual ~BulkEditButton() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnButtonPopup(wxCommandEvent &event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+};
 
 
 // Helper functions

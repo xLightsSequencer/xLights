@@ -3,6 +3,7 @@
 #include <wx/propgrid/advprops.h>
 
 #include "IciclesModel.h"
+#include "../OutputModelManager.h"
 
 IciclesModel::IciclesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -15,10 +16,9 @@ IciclesModel::~IciclesModel()
 {
 }
 
-
-
 void IciclesModel::InitModel() {
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "3,4,5,4");
+    _alternateNodes = (ModelXml->GetAttribute("AlternateNodes", "false") == "true");
     wxArrayString pat = wxSplit(dropPattern, ',');
     int numStrings = parm1;
     int lightsPerString = parm2;
@@ -42,6 +42,7 @@ void IciclesModel::InitModel() {
         int lights = lightsPerString;
         int y = 0;
         int curDrop = 0;
+        int nodesInDrop = dropSizes[curDrop];
         width++;
         while (lights) {
             if (curCoord >= Nodes[curNode]->Coords.size()) {
@@ -55,13 +56,28 @@ void IciclesModel::InitModel() {
                 if (curDrop >= dropSizes.size()) {
                     curDrop = 0;
                 }
+                nodesInDrop = dropSizes[curDrop];
             }
             Nodes[curNode]->ActChan = stringStartChan[0] + curNode*GetNodeChannelCount(StringType);
             Nodes[curNode]->StringNum=x;
             Nodes[curNode]->Coords[curCoord].bufX = width;
-            Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+            if (_alternateNodes) {
+                if (y + 1 <= (nodesInDrop + 1) / 2)
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - (2 * y);
+                    Nodes[curNode]->Coords[curCoord].screenY = (2 * y);
+                }
+                else
+                {
+                    Nodes[curNode]->Coords[curCoord].bufY = maxH - 1 - ((nodesInDrop - (y + 1)) * 2 + 1);
+                    Nodes[curNode]->Coords[curCoord].screenY = ((nodesInDrop - (y + 1)) * 2 + 1);
+                }
+            }
+            else {
+                Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
+                Nodes[curNode]->Coords[curCoord].screenY = y;
+            }
             Nodes[curNode]->Coords[curCoord].screenX = width;
-            Nodes[curNode]->Coords[curCoord].screenY = y;
             lights--;
             y++;
             curCoord++;
@@ -105,6 +121,9 @@ void IciclesModel::AddTypeProperties(wxPropertyGridInterface *grid) {
         p->SetEditor("SpinCtrl");
     }
 
+    p = grid->Append(new wxBoolProperty("Alternate Nodes", "AlternateNodes", _alternateNodes));
+    p->SetEditor("CheckBox");
+
     grid->Append(new wxStringProperty("Drop Pattern", "IciclesDrops", GetModelXml()->GetAttribute("DropPattern", "3,4,5,4")));
 
     grid->Append(new wxEnumProperty("Starting Location", "IciclesStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
@@ -114,23 +133,49 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     if ("IciclesStrings" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        return 0;
     } else if ("IciclesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "IciclesModel::OnPropertyGridChange::IciclesStrings");
+        return 0;
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
         ModelXml->AddAttribute("DropPattern", event.GetPropertyValue().GetString());
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesDrops");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesDrops");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesDrops");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesDrops");
+        return 0;
     } else if ("IciclesStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 ? "L" : "R");
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::IciclesStart");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::IciclesStart");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::IciclesStart");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::IciclesStart");
+        return 0;
+    } else if ("AlternateNodes" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("AlternateNodes");
+        ModelXml->AddAttribute("AlternateNodes", event.GetPropertyValue().GetBool() ? "true" : "false");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "IciclesModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "IciclesModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "IciclesModel::OnPropertyGridChange::AlternateNodes");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "IciclesModel::OnPropertyGridChange::AlternateNodes");
+        return 0;
     }
     return Model::OnPropertyGridChange(grid, event);
 }

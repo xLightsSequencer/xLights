@@ -7,8 +7,8 @@
 class PingThread : public wxThread
 {
     APinger* _pinger;
-    volatile bool _stop;
-    volatile bool _running;
+    std::atomic<bool> _stop;
+    std::atomic<bool> _running;
 
 public:
 
@@ -36,6 +36,9 @@ public:
         _stop = true;
     }
     
+    // if ping fails try this many times before setting the result
+#define PINGRETRIES 3
+
     virtual void* Entry() override
     {
         _running = true;
@@ -45,7 +48,23 @@ public:
 
         while (!_stop)
         {
-            _pinger->Ping();
+
+            auto res = PINGSTATE::PING_UNKNOWN;
+
+            // if it previously failed ... only try once
+            int loops = PINGRETRIES;
+            if (_pinger->GetFailCount() > 0) loops = 1;
+            
+            for (int i = 0; !_stop && i < loops; i++)
+            {
+                res = _pinger->Ping();
+                if (res != ::PING_ALLFAILED)
+                {
+                    break;
+                }
+            }
+            _pinger->SetPingResult(res);
+
             int count = 0;
 
             while (!_stop && count < _pinger->GetPingInterval() * 100)
@@ -67,6 +86,7 @@ APinger::APinger(ListenerManager* lm, Output* output)
     _why = "Output";
     _ip = output->GetIP();
     _lastResult = PINGSTATE::PING_UNKNOWN;
+    _failCount = 0;
     _pingThread = new PingThread(this);
     _pingThread->Create();
     _pingThread->Run();
@@ -79,6 +99,7 @@ APinger::APinger(ListenerManager* lm, const std::string ip, const std::string wh
     _ip = ip;
     _why = why;
     _lastResult = PINGSTATE::PING_UNKNOWN;
+    _failCount = 0;
     _pingThread = new PingThread(this);
     _pingThread->Create();
     _pingThread->Run();
@@ -88,13 +109,12 @@ APinger::~APinger()
 {
 }
 
-PINGSTATE APinger::GetPingResult()
+PINGSTATE APinger::GetPingResult() const
 {
-    std::unique_lock<std::mutex> mutLock(_lock);
     return _lastResult;
 }
 
-bool APinger::GetPingResult(PINGSTATE state)
+bool APinger::GetPingResult(PINGSTATE state) const
 {
     switch (state)
     {
@@ -131,22 +151,23 @@ std::string APinger::GetPingResultName(PINGSTATE state)
     return "Unknown";
 }
 
-void APinger::Ping()
+PINGSTATE APinger::Ping()
 {
     if (_output != nullptr)
     {
-        SetPingResult(_output->Ping());
+        return _output->Ping();
     }
-    else
-    {
-        SetPingResult(IPOutput::Ping(_ip));
-    }
+ 
+    return IPOutput::Ping(_ip, "");
 }
 
 void APinger::SetPingResult(PINGSTATE result)
 {
-    std::unique_lock<std::mutex> mutLock(_lock);
     _lastResult = result;
+
+    if (result == PINGSTATE::PING_ALLFAILED) _failCount++;
+    if (result == PINGSTATE::PING_OK || result == PINGSTATE::PING_OPEN || result == PINGSTATE::PING_OPENED || result == PINGSTATE::PING_WEBOK) _failCount = 0;
+
     _listenerManager->ProcessPacket("Ping", GetPingResult(result), _ip);
 }
 
@@ -156,8 +177,7 @@ std::string APinger::GetName() const
     {
         return _output->GetPingDescription();
     }
-
-    return _why + " " + _ip;
+    return _ip + " " + _why;
 }
 
 void APinger::Stop()
@@ -247,16 +267,18 @@ void Pinger::AddIP(const std::string ip, const std::string why)
 
 void Pinger::RemoveNonOutputIPs()
 {
-    for (auto it = _pingers.begin(); it != _pingers.end(); ++it)
+    std::list<APinger*> newPingers;
+    for (auto it : _pingers)
     {
-        if (!(*it)->IsOutput())
+        if (!it->IsOutput())
         {
-            auto t = it;
-            --t;
-            (*it)->Stop();
-            delete *it;
-            _pingers.remove(*it);
-            it = t;
+            it->Stop();
+            delete it;
+        }
+        else
+        {
+            newPingers.push_back(it);
         }
     }
+    _pingers = newPingers;
 }

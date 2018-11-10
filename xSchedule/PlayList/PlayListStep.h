@@ -29,6 +29,7 @@ protected:
     wxUint32 _id;
     wxUint32 _suspend;
     int _loops;
+    bool _everyStep;
 #pragma endregion Member Variables
 
     std::string FormatTime(size_t timems, bool ms = false) const;
@@ -52,6 +53,7 @@ public:
     std::list<PlayListItem*> GetItems();
     bool IsDirty();
     void ClearDirty();
+    void SetDirty() { _changeCount++; }
     std::string GetStatus(bool ms = false);
     bool GetExcludeFromRandom() const { return _excludeFromRandom; }
     void SetExcludeFromRandom(bool efr) { if (_excludeFromRandom != efr) { _excludeFromRandom = efr; _changeCount++; } }
@@ -65,17 +67,20 @@ public:
     void DoLoop() { _loops--; }
     bool IsMoreLoops() const { return _loops > 0; }
     void SetLoops(int loops) { _loops = loops; }
+    void SetEveryStep(bool everyStep) { if (_everyStep != everyStep) { _everyStep = everyStep; _changeCount++; } }
+    bool GetEveryStep(void) const { return _everyStep; }
     bool IsPaused() const { return _pause != 0; }
     void Stop();
     void Suspend(bool suspend);
     void Restart();
     void Pause(bool pause);
+    virtual void Advance(int seconds);
     std::string GetActiveSyncItemFSEQ();
     std::string GetActiveSyncItemMedia();
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
     void RemoveItem(PlayListItem* item);
-    bool Frame(wxByte* buffer, size_t size, bool outputframe);
+    bool Frame(uint8_t* buffer, size_t size, bool outputframe);
     size_t GetPosition();
     PlayListItem* GetItem(const std::string item);
     PlayListItem* GetItem(const wxUint32 id);
@@ -83,7 +88,7 @@ public:
     size_t GetFrameMS();
     void AdjustTime(wxTimeSpan by);
     bool IsRunningFSEQ(const std::string& fseqFile);
-    void SetSyncPosition(size_t ms, bool force = false);
+    void SetSyncPosition(size_t ms, size_t acceptableJitter, bool force = false);
     PlayListItem* FindRunProcessNamed(const std::string& item);
     AudioManager* GetAudioManager();
     #pragma endregion Getters and Setters

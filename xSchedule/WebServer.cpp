@@ -1,5 +1,5 @@
 #include <wx/wx.h>
-#include <wx/dir.h> // Linus needs this
+#include <wx/dir.h> // Linux needs this
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <wx/uri.h>
@@ -72,7 +72,7 @@ void AddToValid(HttpConnection& connection)
         }
     }
 
-    std::string security = connection.Address().IPAddress().ToStdString() + "|" + wxDateTime::Now().FormatISOCombined().ToStdString();
+    wxString security = connection.Address().IPAddress() + "|" + wxDateTime::Now().FormatISOCombined();
 
     logger_base.debug("Security: Adding record %s.", (const char *)security.c_str());
     __Loggedin.push_back(security);
@@ -85,7 +85,7 @@ bool CheckLoggedIn(HttpConnection& connection)
     if (__password == "") return true; // no password ... always logged in
 
     // remove old logins
-    std::list<std::string> toremove;
+    std::list<wxString> toremove;
     for (auto it = __Loggedin.begin(); it != __Loggedin.end(); ++it)
     {
         wxArrayString li = wxSplit(*it, '|');
@@ -117,23 +117,23 @@ bool CheckLoggedIn(HttpConnection& connection)
     return false;
 }
 
-std::map<std::string, std::string> ParseURI(std::string uri)
+std::map<wxString, wxString> ParseURI(wxString uri)
 {
-    std::map<std::string, std::string> res;
+    std::map<wxString, wxString> res;
 
     wxString s(uri);
-    wxArrayString q = wxSplit(s, '?');
+    wxString q = s.AfterFirst('?');
 
-    if (q.Count() > 1)
+    if (q != "")
     {
-        wxArrayString p = wxSplit(q[1], '&');
+        wxArrayString p = wxSplit(q, '&');
 
         for (auto it = p.begin(); it != p.end(); ++it)
         {
             wxArrayString x = wxSplit(*it, '=');
             if (x.Count() >= 2)
             {
-                std::string key = x[0].ToStdString();
+                wxString key = x[0];
 
                 res[key] = "";
                 for (auto it2 = x.begin(); it2 != x.end(); ++it2)
@@ -148,7 +148,7 @@ std::map<std::string, std::string> ParseURI(std::string uri)
                         {
                             res[key] += "=";
                         }
-                        res[key] += it2->ToStdString();
+                        res[key] += *it2;
                     }
                 }
             }
@@ -158,7 +158,7 @@ std::map<std::string, std::string> ParseURI(std::string uri)
     return res;
 }
 
-std::string ProcessCommand(HttpConnection &connection, const std::string& command, const std::string& parameters, const std::string& data, const std::string& reference)
+wxString ProcessCommand(HttpConnection &connection, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -168,16 +168,16 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
         return "{\"result\":\"not logged in\",\"command\":\""+
          command + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
-                connection.Address().IPAddress().ToStdString() + "\"}";
+                connection.Address().IPAddress() + "\"}";
     }
 
 #ifdef DETAILED_LOGGING
     logger_base.info("xScheduleCommand received command = '%s' parameters = '%s'.", (const char *)command.c_str(), (const char *)parameters.c_str());
 #endif
 
-    std::string result = "";
+    wxString result;
     size_t rate = 0;
-    std::string msg = "";
+    wxString msg = "";
     if (xScheduleFrame::GetScheduleManager()->Action(command, parameters, data, nullptr, nullptr, rate, msg))
     {
         wxCommandEvent event(EVT_FRAMEMS);
@@ -204,7 +204,26 @@ std::string ProcessCommand(HttpConnection &connection, const std::string& comman
     return result;
 }
 
-std::string ProcessQuery(HttpConnection &connection, const std::string& query, const std::string& parameters, const std::string& reference)
+wxString ProcessPluginRequest(HttpConnection& connection, const wxString& plugin, const wxString& command, const wxString& parameters, const wxString& data, const wxString& reference)
+{
+    wxStopWatch sw;
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!CheckLoggedIn(connection))
+    {
+        return "{\"result\":\"not logged in\",\"command\":\"" +
+            command + "\",\"ip\":\"" +
+            connection.Address().IPAddress() + "\"}";
+    }
+
+#ifdef DETAILED_LOGGING
+    logger_base.info("xSchedule received plugin request command = '%s' parameters = '%s'.", (const char*)command.c_str(), (const char*)parameters.c_str());
+#endif
+
+    return ((xScheduleFrame*)wxTheApp->GetTopWindow())->ProcessPluginRequest(plugin, command, parameters, data, reference);
+}
+
+wxString ProcessQuery(HttpConnection &connection, const wxString& query, const wxString& parameters, const wxString& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -214,7 +233,7 @@ std::string ProcessQuery(HttpConnection &connection, const std::string& query, c
         return "{\"result\":\"not logged in\",\"query\":\""+
             query + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
-            connection.Address().IPAddress().ToStdString() + "\"}";
+            connection.Address().IPAddress() + "\"}";
     }
 
     // log everything but playing status
@@ -223,9 +242,9 @@ std::string ProcessQuery(HttpConnection &connection, const std::string& query, c
 #endif
         logger_base.info("xScheduleQuery received query = '%s' parameters = '%s'.", (const char *)query.c_str(), (const char *)parameters.c_str());
 
-    std::string result = "";
-    std::string msg;
-    if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, result, msg, connection.Address().IPAddress().ToStdString(), reference))
+    wxString result = "";
+    wxString msg;
+    if (xScheduleFrame::GetScheduleManager()->Query(query, parameters, result, msg, connection.Address().IPAddress(), reference))
     {
 #ifndef DETAILED_LOGGING
         if (query != "GetPlayingStatus")
@@ -244,13 +263,13 @@ std::string ProcessQuery(HttpConnection &connection, const std::string& query, c
     return result;
 }
 
-std::string ProcessXyzzy(HttpConnection &connection, const std::string& command, const std::string& parameters, const std::string& reference)
+wxString ProcessXyzzy(HttpConnection &connection, const wxString& command, const wxString& parameters, const wxString& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    std::string result = "";
-    std::string msg;
+    wxString result;
+    wxString msg;
     if (xScheduleFrame::GetScheduleManager()->DoXyzzy(command, parameters, msg, reference))
     {
         result = msg;
@@ -270,18 +289,18 @@ std::string ProcessXyzzy(HttpConnection &connection, const std::string& command,
     return result;
 }
 
-std::string ProcessLogin(HttpConnection &connection, const std::string& credential, const std::string& reference)
+wxString ProcessLogin(HttpConnection &connection, const wxString& credential, const wxString& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     
-    std::string result = "";
+    wxString result;
     if (__password != "")
     {
-        std::string cred = connection.Address().IPAddress().ToStdString() + __password;
+        wxString cred = connection.Address().IPAddress() + __password;
 
         // calculate md5 hash
-        std::string hash = md5(cred);
+        wxString hash = md5(cred);
 
         if (hash == credential)
         {
@@ -302,7 +321,7 @@ std::string ProcessLogin(HttpConnection &connection, const std::string& credenti
 
             RemoveFromValid(connection);
 
-            result = "{\"result\":\"failed\",\"command\":\"login\",\"message\":\"Login failed.\",\"reference\":\""+reference+"\",\"ip\":\"" + connection.Address().IPAddress().ToStdString() + "\"}";
+            result = "{\"result\":\"failed\",\"command\":\"login\",\"message\":\"Login failed.\",\"reference\":\""+reference+"\",\"ip\":\"" + connection.Address().IPAddress() + "\"}";
             logger_base.debug("Security: Login failed. data = '%s'. Time = %ld.", (const char *)result.c_str(), sw.Time());
         }
     }
@@ -314,7 +333,7 @@ std::string ProcessLogin(HttpConnection &connection, const std::string& credenti
     return result;
 }
 
-std::string ProcessStash(HttpConnection &connection, const std::string& command, const std::string& key, std::string& data, const std::string& reference)
+wxString ProcessStash(HttpConnection &connection, const wxString& command, const wxString& key, wxString& data, const wxString& reference)
 {
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -324,12 +343,12 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
         return "{\"result\":\"not logged in\",\"stash\":\""+
             command + "\",\"reference\":\"" +
             reference + "\",\"ip\":\"" +
-            connection.Address().IPAddress().ToStdString() + "\"}";
+            connection.Address().IPAddress() + "\"}";
     }
 
     logger_base.info("xScheduleStash received command = '%s' key = '%s'.", (const char *)command.c_str(), (const char *)key.c_str());
 
-    std::string result = "";
+    wxString result;
     if (wxString(command).Lower() == "store")
     {
         logger_base.info("    data = '%s'.", (const char *)data.c_str());
@@ -344,7 +363,7 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
         else
         {
             // now store it in a file
-            std::string msg = "";
+            wxString msg = "";
             if (xScheduleFrame::GetScheduleManager()->StoreData(key, data, msg))
             {
 #ifdef DETAILED_LOGGING
@@ -364,7 +383,7 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
     }
     else if (wxString(command).Lower() == "retrieve")
     {
-        std::string msg = "";
+        wxString msg = "";
         if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg))
         {
             logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
@@ -381,7 +400,7 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
     }
     else if (wxString(command).Lower() == "retrievejson")
     {
-        std::string msg = "";
+        wxString msg = "";
         if (xScheduleFrame::GetScheduleManager()->RetrieveData(key, data, msg))
         {
             logger_base.info("    data = '%s'. Time = %ld.", (const char *)data.c_str(), sw.Time());
@@ -407,74 +426,106 @@ std::string ProcessStash(HttpConnection &connection, const std::string& command,
     return result;
 }
 
+wxString GetPluginRequest(const wxString& request)
+{
+    if (request == "") return "";
+
+    auto plugin = request.AfterFirst('/').BeforeFirst('?');
+
+    if (plugin == "") return "";
+
+    return ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(plugin.ToStdString());
+}
+
 bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    bool res = false;
+    std::string plugin;
+
+    logger_base.debug("Web request %s.", (const char *)request.URI().c_str());
+
     xScheduleFrame::GetScheduleManager()->WebRequestReceived();
 
-    std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
+    wxString wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
     if (request.URI().Lower().StartsWith("/xschedulecommand"))
     {
         wxURI url(request.URI());
 
-        std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
-        std::string command = parms["Command"];
-        std::string parameters = parms["Parameters"];
-        std::string reference = parms["Reference"];
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString command = parms["Command"];
+        wxString parameters = parms["Parameters"];
+        wxString reference = parms["Reference"];
 
-        std::string result = ProcessCommand(connection, command, parameters, request.Data().ToStdString(), reference);
+        wxString result = ProcessCommand(connection, command, parameters, request.Data(), reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
+    }
+    else if (request.URI().Lower().StartsWith("/xyzzy2"))
+    {
+        wxURI url(request.URI().Lower());
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString command = parms["c"];
+        wxString parameters = parms["p"];
+        wxString reference = parms["r"];
+
+        wxString result = ProcessXyzzy(connection, command + "2", parameters, reference);
+
+        HttpResponse response(connection, request, HttpStatus::OK);
+        response.MakeFromText(result, "application/json");
+        connection.SendResponse(response);
+
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xyzzy"))
     {
         wxURI url(request.URI().Lower());
-        std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
-        std::string command = parms["c"];
-        std::string parameters = parms["p"];
-        std::string reference = parms["r"];
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString command = parms["c"];
+        wxString parameters = parms["p"];
+        wxString reference = parms["r"];
 
-        std::string result = ProcessXyzzy(connection, command, parameters, reference);
+        wxString result = ProcessXyzzy(connection, command, parameters, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulelogin"))
     {
         wxURI url(request.URI());
 
-        std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
-        std::string credential = parms["Credential"];
-        std::string reference = parms["Reference"];
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString credential = parms["Credential"];
+        wxString reference = parms["Reference"];
 
-        std::string result = ProcessLogin(connection, credential, reference);
+        wxString result = ProcessLogin(connection, credential, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulestash"))
     {
         wxURI url(request.URI());
 
-        std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
-        std::string command = parms["Command"];
-        std::string key = parms["Key"];
-        std::string reference = parms["Reference"];
-        std::string data = request.Data().ToStdString();
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString command = parms["Command"];
+        wxString key = parms["Key"];
+        wxString reference = parms["Reference"];
+        wxString data = request.Data();
 
-        std::string result = ProcessStash(connection, command, key, data, reference);
+        wxString result = ProcessStash(connection, command, key, data, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         if (result == "")
@@ -487,99 +538,130 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         }
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulequery"))
     {
         wxURI url(request.URI());
 
-        std::map<std::string, std::string> parms = ParseURI(url.BuildUnescapedURI().ToStdString());
-        std::string query = parms["Query"];
-        std::string parameters = parms["Parameters"];
-        std::string reference = parms["Reference"];
+        std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+        wxString query = parms["Query"];
+        wxString parameters = parms["Parameters"];
+        wxString reference = parms["Reference"];
 
-        std::string result = ProcessQuery(connection, query, parameters, reference);
+        wxString result = ProcessQuery(connection, query, parameters, reference);
 
         HttpResponse response(connection, request, HttpStatus::OK);
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
-    }
-    else if (!__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
-    {
-        if (wwwroot == "") return false;
-
-
-        // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
-        //int port = connection.Server()->Context().Port;
-        //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
-        wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
-
-        logger_base.info("Redirecting to '%s'.", (const char *)url.c_str());
-
-        HttpResponse response(connection, request, HttpStatus::PermanentRedirect);
-        response.AddHeader("Location", url);
-        //response.AddHeader("Connection", "Close");
-        response.MakeFromText("Redirected to " + url + "\n", "text/plain");
-
-        connection.SendResponse(response);
-
-        return true; // disable default processing
+        res = true;
     }
     else
     {
-        if (wwwroot == "") return false;
-
-        wxString uri = wxURI(request.URI()).BuildUnescapedURI();
-
-        if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
+        plugin = GetPluginRequest(request.URI().Lower());
+        if (plugin != "")
         {
-#ifdef __WXMSW__
-            wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
-#elif __LINUX__
-            wxString d = wxStandardPaths::Get().GetDataDir();
-            if (!wxDir::Exists(d)) {
-                d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
-            }
-#else
-            wxString d = wxStandardPaths::Get().GetResourcesDir();
-#endif
+            wxURI url(request.URI());
+            std::map<wxString, wxString> parms = ParseURI(url.BuildUnescapedURI());
+            wxString command = parms["Command"];
+            wxString parameters = parms["Parameters"];
+            wxString reference = parms["Reference"];
+            wxString data = request.Data();
 
-            wxString file = d + uri;
-
-            logger_base.info("File request received = '%s' : '%s'.", (const char *)file.c_str(), (const char *)uri.c_str());
-
-            if (!wxFile::Exists(file))
-            {
-                logger_base.error("    404: file not found.");
-            }
+            wxString result = ProcessPluginRequest(connection, plugin, command, parameters, data, reference);
 
             HttpResponse response(connection, request, HttpStatus::OK);
+            response.MakeFromText(result, "application/json");
+            connection.SendResponse(response);
+        }
+        else if (wwwroot != "" && !__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
+        {
+            // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
+            //int port = connection.Server()->Context().Port;
+            //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
+            wxString url = "http://" + request.Host() + "/" + wwwroot + "/index.html";
 
-            //response.AddHeader("Cache-Control", "max-age=14400");
+            logger_base.info("Redirecting to '%s'.", (const char*)url.c_str());
 
-            response.MakeFromFile(file);
+            HttpResponse response(connection, request, HttpStatus::PermanentRedirect);
+            response.AddHeader("Location", url);
+            //response.AddHeader("Connection", "Close");
+            response.MakeFromText("Redirected to " + url + "\n", "text/plain");
 
             connection.SendResponse(response);
 
-            return true; // disable default processing
+            res = true; // disable default processing
+        }
+        else if (wwwroot != "")
+        {
+            wxString uri = wxURI(request.URI()).BuildUnescapedURI();
+
+            if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
+            {
+#ifdef __WXMSW__
+                wxString d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+#elif __LINUX__
+                wxString d = wxStandardPaths::Get().GetDataDir();
+                if (!wxDir::Exists(d)) {
+                    d = wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+                }
+#else
+                wxString d = wxStandardPaths::Get().GetResourcesDir();
+#endif
+
+                wxString file = d;
+                if (uri.Contains("?"))
+                {
+                    file += uri.BeforeFirst('?');
+                }
+                else
+                {
+                    file += uri;
+                }
+
+                logger_base.info("File request received = '%s' : '%s'.", (const char*)file.c_str(), (const char*)uri.c_str());
+
+                if (!wxFile::Exists(file))
+                {
+                    logger_base.error("    404: file not found.");
+                }
+
+                HttpResponse response(connection, request, HttpStatus::OK);
+
+                //response.AddHeader("Cache-Control", "max-age=14400");
+
+                response.MakeFromFile(file);
+
+                connection.SendResponse(response);
+
+                res = true; // disable default processing
+            }
         }
     }
 
-    return false; // lets the library's default processing
+    if (res)
+    {
+        logger_base.debug("Web request handled");
+    }
+    else
+    {
+        logger_base.debug("Web request NOT handled");
+    }
+
+    return res; // lets the library's default processing
 }
 
-void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
+void MyMessageHandler(HttpConnection& connection, WebSocketMessage& message)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     xScheduleFrame::GetScheduleManager()->WebRequestReceived();
 
     if (message.Type() == WebSocketMessage::Text)
     {
-        wxString text((char *)message.Content().GetData(), message.Content().GetDataLen());
+        wxString text((char*)message.Content().GetData(), message.Content().GetDataLen());
         logger_base.info("Received " + text);
 
         // construct the JSON root object
@@ -593,7 +675,7 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         int numErrors = reader.Parse(text, &root);
         if (numErrors > 0) {
             logger_base.error("The JSON document is not well-formed: " + text);
-            const wxArrayString& errors = reader.GetErrors();
+            const wxArrayString & errors = reader.GetErrors();
             for (auto it = errors.begin(); it != errors.end(); ++it)
             {
                 logger_base.error("    " + std::string(it->c_str()));
@@ -604,46 +686,54 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         }
 
         wxJSONValue defaultValue = wxString("");
+        std::string plugin;
 
         // extract the type of request
         wxString type = root.Get("Type", defaultValue).AsString().Lower();
 
-        std::string result = "";
+        wxString result;
         if (type == "command")
         {
             wxString c = root.Get("Command", defaultValue).AsString();
             wxString p = root.Get("Parameters", defaultValue).AsString();
             wxString d = root.Get("Data", defaultValue).AsString();
             wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessCommand(connection, c.ToStdString(), p.ToStdString(), d.ToStdString(), r.ToStdString());
+            result = ProcessCommand(connection, c, p, d, r);
         }
         else if (type == "query")
         {
             wxString q = root.Get("Query", defaultValue).AsString();
             wxString p = root.Get("Parameters", defaultValue).AsString();
             wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessQuery(connection, q.ToStdString(), p.ToStdString(), r.ToStdString());
+            result = ProcessQuery(connection, q, p, r);
+        }
+        else if (type == "xyzzy2")
+        {
+            wxString c = root.Get("c", defaultValue).AsString();
+            wxString p = root.Get("p", defaultValue).AsString();
+            wxString r = root.Get("r", defaultValue).AsString();
+            result = ProcessXyzzy(connection, c + "2", p, r);
         }
         else if (type == "xyzzy")
         {
             wxString c = root.Get("c", defaultValue).AsString();
             wxString p = root.Get("p", defaultValue).AsString();
             wxString r = root.Get("r", defaultValue).AsString();
-            result = ProcessXyzzy(connection, c.ToStdString(), p.ToStdString(), r.ToStdString());
+            result = ProcessXyzzy(connection, c, p, r);
         }
         else if (type == "login")
         {
             wxString c = root.Get("Credential", defaultValue).AsString();
             wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessLogin(connection, c.ToStdString(), r.ToStdString());
+            result = ProcessLogin(connection, c, r);
         }
         else if (type == "stash")
         {
             wxString c = root.Get("Command", defaultValue).AsString();
             wxString k = root.Get("Key", defaultValue).AsString();
-            std::string d = root.Get("Data", defaultValue).AsString().ToStdString();
+            wxString d = root.Get("Data", defaultValue).AsString();
             wxString r = root.Get("Reference", defaultValue).AsString();
-            result = ProcessStash(connection, c.ToStdString(), k.ToStdString(), d, r.ToStdString());
+            result = ProcessStash(connection, c, k, d, r);
             if (result == "")
             {
                 result = d;
@@ -651,10 +741,22 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
         }
         else
         {
-            wxString r = root.Get("Reference", defaultValue).AsString();
-            WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\""+r+"\",\"message\":\"Unknown request type.\"}");
-            connection.SendMessage(wsm);
-            return;
+            plugin = ((xScheduleFrame*)wxTheApp->GetTopWindow())->GetWebPluginRequest(type);
+            if (plugin != "")
+            {
+                wxString c = root.Get("Command", defaultValue).AsString();
+                wxString p = root.Get("Parameters", defaultValue).AsString();
+                wxString d = root.Get("Data", defaultValue).AsString();
+                wxString r = root.Get("Reference", defaultValue).AsString();
+                result = ProcessPluginRequest(connection, plugin, c, p, d, r);
+            }
+            else
+            {
+                wxString r = root.Get("Reference", defaultValue).AsString();
+                WebSocketMessage wsm("{\"result\":\"failed\",\"reference\":\"" + r + "\",\"message\":\"Unknown request type or plugin not running.\"}");
+                connection.SendMessage(wsm);
+                return;
+            }
         }
 
         WebSocketMessage wsm(result);
@@ -668,8 +770,15 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
     }
 }
 
-void WebServer::SendMessageToAllWebSockets(const std::string& message)
+void WebServer::SendMessageToAllWebSockets(const wxString& message)
 {
+    static bool reentry = false;
+    if (reentry)
+    {
+        return;
+    }
+    reentry = true;
+
     for (auto it = _connections.begin(); it != _connections.end(); ++it)
     {
         if ((*it).second->IsWebSocket())
@@ -685,9 +794,23 @@ void WebServer::SendMessageToAllWebSockets(const std::string& message)
             }
         }
     }
+
+    reentry = false;
 }
 
-WebServer::WebServer(int port, bool apionly, const std::string& password, int mins)
+bool WebServer::IsSomeoneListening() const
+{
+    for (auto it : _connections)
+    {
+        if (it.second->IsWebSocket())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+WebServer::WebServer(int port, bool apionly, const wxString& password, int mins)
 {
     __apiOnly = apionly; // put this in a global.
     __password = password;
@@ -724,7 +847,7 @@ void WebServer::SetPasswordTimeout(int mins)
     __loginTimeout = mins;
 }
 
-void WebServer::SetPassword(const std::string& password)
+void WebServer::SetPassword(const wxString& password)
 {
     __password = password;
 }

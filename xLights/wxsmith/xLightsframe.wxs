@@ -212,6 +212,14 @@
 						</object>
 						<label>Effects</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM9" variable="AuiToolBarItemEffectsAsst" member="no">
+							<bitmap stock_id="xlART_EFFECTASSISTANT" stock_client="wxART_TOOLBAR" />
+							<shorthelp>Effects Assistant</shorthelp>
+							<handler function="ShowHideEffectAssistWindow" entry="EVT_TOOL" />
+						</object>
+						<label>Effects Assistant</label>
+					</object>
 				</object>
 				<name>Windows Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
@@ -745,6 +753,15 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON4" variable="Button_AddZCPP" member="yes">
+																<label>Add ZCPP</label>
+																<handler function="OnButton_AddZCPPClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
 															<object class="wxButton" name="ID_BUTTON_NETWORK_CHANGE" variable="ButtonNetworkChange" member="yes">
 																<label>Change</label>
 																<handler function="OnButtonNetworkChangeClick" entry="EVT_BUTTON" />
@@ -769,6 +786,15 @@
 															</object>
 															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 															<border>3</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxButton" name="ID_BUTTON5" variable="Button_Discover" member="yes">
+																<label>Discover</label>
+																<handler function="OnButton_DiscoverClick" entry="EVT_BUTTON" />
+															</object>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>5</border>
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
@@ -1074,9 +1100,22 @@
 					<help>Generate lyric phenomes from data</help>
 					<handler function="OnMenuItem_GenerateLyricsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_GENERATE2DPATH" variable="MenuItem_Generate2DPath" member="yes">
+					<label>Generate 2D Path</label>
+					<handler function="OnMenuItem_Generate2DPathSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_PREPAREAUDIO" variable="MenuItem_PrepareAudio" member="yes">
+					<label>Prepare Audio</label>
+					<handler function="OnMenuItem_PrepareAudioSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CHECKSEQ" variable="MenuItemCheckSequence" member="yes">
 					<label>C&amp;heck Sequence</label>
 					<handler function="OnMenuItemCheckSequenceSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_CLEANUPFILE" variable="MenuItem_CleanupFileLocations" member="yes">
+					<label>Cleanup File Locations</label>
+					<help>Moves all files into or under the show folder.</help>
+					<handler function="OnMenuItem_CleanupFileLocationsSelected" entry="EVT_MENU" />
 				</object>
 				<object class="wxMenuItem" name="ID_MENU_VIEW_LOG" variable="MenuItem_ViewLog" member="yes">
 					<label>&amp;View Log</label>
@@ -1454,6 +1493,24 @@
 						<radio>1</radio>
 					</object>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM23" variable="MenuItem60" member="yes">
+					<label>Model Handle Size</label>
+					<object class="wxMenuItem" name="ID_MENUITEM24" variable="MenuItem_MHS_Normal" member="yes">
+						<label>Normal</label>
+						<handler function="OnMenuItem_MHS_NormalSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM25" variable="MenuItem_MHS_Large" member="yes">
+						<label>Large</label>
+						<handler function="OnMenuItem_MHS_LargeSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM26" variable="MenuItem_MHS_ExtraLarge" member="yes">
+						<label>Extra Large</label>
+						<handler function="OnMenuItem_MHS_ExtraLargeSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+				</object>
 				<object class="wxMenu" name="ID_MENUITEM_Grid_Icon_Backgrounds" variable="MenuItem_Grid_Icon_Backgrounds" member="no">
 					<label>Grid Icon Backgrounds</label>
 					<object class="wxMenuItem" name="ID_MENUITEM_GRID_ICON_BACKGROUND_ON" variable="MenuItemGridIconBackgroundOn" member="yes">
@@ -1557,24 +1614,50 @@
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM19" variable="OpenGLMenu" member="yes">
 					<label>OpenGL</label>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="yes">
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="no">
 						<label>Auto Detect</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_3" variable="MenuItem41" member="yes">
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_3" variable="MenuItem41" member="no">
 						<label>3.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_2" variable="MenuItem42" member="yes">
-						<label>2.x</label>
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="no">
+						<label>1.x/2.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="yes">
-						<label>1.x</label>
-						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
+					<object class="separator" />
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO1" variable="MenuItem42" member="no">
+						<label>Render Order 1</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO2" variable="MenuItem55" member="no">
+						<label>Render Order 2</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO3" variable="MenuItem56" member="no">
+						<label>Render Order 3</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO4" variable="MenuItem57" member="no">
+						<label>Render Order 4</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO5" variable="MenuItem58" member="no">
+						<label>Render Order 5</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO6" variable="MenuItem59" member="no">
+						<label>Render Order 6</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 				</object>
@@ -1586,6 +1669,11 @@
 				<object class="wxMenuItem" name="ID_MNU_AUTOSHOWHOUSEPREVIEW" variable="MenuItem_AutoShowHousePreview" member="yes">
 					<label>Auto Show House Preview</label>
 					<handler function="OnMenuItem_AutoShowHousePreviewSelected" entry="EVT_MENU" />
+					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_SUPPRESS_TRANSITION_HINTS" variable="MenuItem_SuppressFadeHints" member="yes">
+					<label>Suppress Transition Hints</label>
+					<handler function="OnMenuItem61Selected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM20" variable="AutoSaveMenu" member="yes">
@@ -1678,9 +1766,34 @@
 					<handler function="OnMenuItem_SnapToTimingMarksSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM1" variable="MenuItem54" member="yes">
+					<label>FSEQ Version</label>
+					<object class="wxMenuItem" name="ID_MENUITEM21" variable="MenuItemFSEQV1" member="yes">
+						<label>V1</label>
+						<handler function="OnMenuItemFSEQV1Selected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM22" variable="MenuItemFSEQV2" member="yes">
+						<label>V2</label>
+						<handler function="OnMenuItemFSEQV2Selected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM_RANDON" variable="MenuItem_Random_Set" member="yes">
+					<label>Set Allowed Random Effects</label>
+					<handler function="OnMenuItem_Random_SetSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_EMAIL" variable="MenuItem_EmailAddress" member="yes">
+					<label>eMail Address</label>
+					<handler function="OnMenuItem_EmailAddressSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>
+				<object class="wxMenuItem" name="ID_MNU_MANUAL" variable="MenuItem_UserManual" member="yes">
+					<label>User Manual</label>
+					<handler function="OnMenuItem_UserManualSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_ZOOM" variable="MenuItem_Zoom" member="yes">
 					<label>Zoom</label>
 					<handler function="OnMenuItem_ZoomSelected" entry="EVT_MENU" />

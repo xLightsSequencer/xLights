@@ -12,17 +12,16 @@
 #include <wx/string.h>
 //*)
 
-#include <map>
-
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "EffectsPanel.h"
 #include "RenderCommandEvent.h"
-#include "../include/padlock16x16-green.xpm" //-DJ
-#include "../include/padlock16x16-red.xpm" //-DJ
-#include "../include/padlock16x16-blue.xpm" //-DJ
-
+#include "UtilFunctions.h"
 #include "effects/EffectPanelUtils.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
+#include "sequencer/MainSequencer.h"
+
 #include <log4cpp/Category.hh>
 
 //(*IdInit(EffectsPanel)
@@ -53,10 +52,12 @@ EffectsPanel::EffectsPanel(wxWindow *parent, EffectManager *manager) : effectMan
     Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&EffectsPanel::EffectSelected);
     //*)
 
+    Connect(EffectChoicebook->GetChoiceCtrl()->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&EffectsPanel::OnRightDownChoice, nullptr, this);
+
     SetName("Effect");
 
-    for (auto it = effectManager->begin(); it != effectManager->end(); ++it) {
-        RenderableEffect *p = *it;
+    for (auto it : *effectManager) {
+        RenderableEffect *p = it;
         wxScrolledWindow* sw = new wxScrolledWindow(EffectChoicebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_PANEL" + p->Name()));
         wxPanel *panel = p->GetPanel(sw);
         wxFlexGridSizer *fgs = new wxFlexGridSizer(1, 1, 0, 0);
@@ -81,12 +82,32 @@ EffectsPanel::~EffectsPanel()
     //*)
 }
 
+void EffectsPanel::OnRightDownChoice(wxMouseEvent& event)
+{
+    if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) {
+        return;
+    }
+
+    // i should only display the menu if at least one effect is selected
+    int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
+    if (alleffects < 1)
+    {
+        return;
+    }
+
+    wxMenu mnu;
+    mnu.Append(wxID_ANY, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&EffectsPanel::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
 void EffectsPanel::SetDefaultEffectValues(Model *cls, AudioManager* audio, const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
         eff->SetDefaultParameters();
 	}
 }
+
 void EffectsPanel::SetSequenceElements(SequenceElements *els) {
     int x = 0;
     RenderableEffect *p = effectManager->GetEffect(x);
@@ -97,6 +118,13 @@ void EffectsPanel::SetSequenceElements(SequenceElements *els) {
     }
 }
 
+void EffectsPanel::SetEffectType(int effectId)
+{
+    _suppressChangeEvent = true;
+    EffectChoicebook->SetSelection(effectId);
+    _suppressChangeEvent = false;
+}
+
 void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
@@ -104,7 +132,7 @@ void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
 	}
 }
 
-int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
+int EffectsPanel::GetRandomSliderValue(wxSlider* slider) const
 {
     if (isRandom(slider)) {
         return rand() % (slider->GetMax()-slider->GetMin()) + slider->GetMin();
@@ -112,9 +140,9 @@ int EffectsPanel::GetRandomSliderValue(wxSlider* slider)
     return slider->GetValue();
 }
 
-wxWindow* EffectsPanel::GetWindowPanel(wxWindow* w) {
+wxWindow* EffectsPanel::GetWindowPanel(wxWindow* w) const {
     wxWindowList &ChildList = w->GetChildren();
-    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    for (wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it)
     {
         wxWindow *ChildWin = *it;
         wxString ChildName = ChildWin->GetName();
@@ -129,9 +157,9 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
     wxWindowList &ChildList = w->GetChildren();
     wxString s;
 
-    for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
+    for ( auto it : ChildList)
     {
-        wxWindow *ChildWin = *it;
+        wxWindow *ChildWin = it;
         wxString ChildName = ChildWin->GetName();
         wxString AttrName = prefix + ChildName.Mid(3) + "=";
 
@@ -197,17 +225,11 @@ wxString EffectsPanel::GetRandomEffectStringFromWindow(wxWindow *w, const wxStri
 }
 
 // assumes effidx does not refer to Text effect
-//modifed for partially random, allow random colors also -DJ
-//void djdebug(const char* fmt, ...); //_DJ
+// modifed for partially random, allow random colors also -DJ
 wxString EffectsPanel::GetRandomEffectString(int effidx)
 {
     wxString s,ChildName,AttrName;
     wxString prefix=",E_";
-
-//    djdebug("GetRandomEffectString: %s rnd? %d", (const char*)Slider_Speed->GetName().c_str(), isRandom(Slider_Speed));
-
-    // get speed
-   //~ s = prefix + wxString::Format("SLIDER_Speed=%d", GetRandomSliderValue(Slider_Speed));
 
     // get effect controls
     wxWindow *window = EffectChoicebook->GetPage(effidx);
@@ -217,12 +239,10 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
     return s;
 }
 
-
-
 //selectable clear canvas before render: -DJ
 //this allows multiple effects to be overlayed for composite models
 //also provides useful "bread crumbs" for some effects such as Spirograph
-bool EffectsPanel::WantOverlayBkg(void)
+bool EffectsPanel::WantOverlayBkg(void) const
 {
     //~return CheckBox_OverlayBkg->GetValue();
     return false;
@@ -236,15 +256,48 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     wxString ef = EffectChoicebook->GetPageText(EffectChoicebook->GetSelection());
     SetDefaultEffectValues(nullptr, nullptr, ef);
 
-    SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true, true);
-    // We do not have an actual effect in grid to send
-    // Set Index of page.
-    eventEffectChanged.SetInt(EffectChoicebook->GetSelection());
-    wxPostEvent(GetParent(), eventEffectChanged);
+    if (!_suppressChangeEvent)
+    {
+        SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true, true);
+        // We do not have an actual effect in grid to send
+        // Set Index of page.
+        eventEffectChanged.SetInt(EffectChoicebook->GetSelection());
+        wxPostEvent(GetParent(), eventEffectChanged);
+    }
 
     w->FitInside();
     w->SetScrollRate(5, 5);
     w->Refresh();
+}
+
+void EffectsPanel::OnChoicePopup(wxCommandEvent& event)
+{
+    std::string label = "Effect";
+
+    wxArrayString choices;
+    for (size_t i = 0; i < EffectChoicebook->GetChoiceCtrl()->GetCount(); i++)
+    {
+        choices.push_back(EffectChoicebook->GetChoiceCtrl()->GetString(i));
+    }
+
+    wxSingleChoiceDialog dlg(GetParent(), "", label, choices);
+    dlg.SetSelection(EffectChoicebook->GetChoiceCtrl()->GetSelection());
+    OptimiseDialogPosition(&dlg);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        SetEffectType(dlg.GetSelection());
+
+        SetDefaultEffectValues(nullptr, nullptr, dlg.GetStringSelection());
+
+        xLightsApp::GetFrame()->GetMainSequencer()->ConvertSelectedEffectsTo(dlg.GetStringSelection());
+
+        auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (effect != nullptr)
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->RaiseSelectedEffectChanged(effect, true, true);
+        }
+    }
 }
 
 //add lock/unlock/random state flags -DJ
@@ -255,8 +308,9 @@ void EffectsPanel::setlock(wxButton* button) //, EditState& islocked)
 {
     EffectPanelUtils::SetLock(button);
 }
+
 //#define isRandom(ctl)  (buttonState[std::string(ctl->GetName())] == Random)
-bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug)
+bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug) const
 {
     if (!EffectPanelUtils::IsLockable(ctl)) {
         return false;
@@ -266,7 +320,8 @@ bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug)
     }
     return false;
 }
-bool EffectsPanel::isRandom_(void)
+
+bool EffectsPanel::isRandom_(void) const
 {
     return isRandom(EffectChoicebook);
 }

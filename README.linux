@@ -15,12 +15,34 @@ application of a small patch from the end of this file to fix the sizing of
 bitmap buttons.
 SDL2 needs to be 2.0.5 or later.
 A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included for
-i686 and x86_64 - for other platforms it would need to be recompiled from
+i686, x86_64 and aarm64 - for other platforms it would need to be recompiled from
 https://github.com/google/liquidfun
+
+== Building for linux via docker container ==
+
+If you wish to build for linux from other platforms or without having to touch your local install you can use Docker to test building
+To setup the nessecary docker image you can checkout the build file from git and build directly via:
+
+    docker build -t xlights-build https://github.com/cjd/xlights-build-docker.git
+
+This will leave you with a suitable base image
+Once this is setup you can build xLights via:
+
+    docker run --name buildvm xlights-build /bin/bash Recipe
+
+If you want to build the appimage you can use:
+
+    docker run --name buildvm xlights-build /bin/bash Recipe.appimage
+
+If you want to create a fresh build then the container can be removed with:
+
+    docker rm buildvm
+
+== Building locally from source ==
 
 These instructions have been tested on the following distributions:
 
-  - Ubuntu 17.10
+  - Ubuntu 18.10
   - Fedora 24
 
 Instructions for other Linux distributions will vary. 
@@ -40,16 +62,18 @@ Instructions for other Linux distributions will vary.
      libsdl2-dev
      liblog4cpp5-dev
      libportmidi-dev
+     libzstd-dev
+     libcurl4-openssl-dev
      cbp2make (optional but recommended if compiling from git)
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev liblog4cpp5-dev libportmidi-dev cbp2make
+     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev liblog4cpp5-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev cbp2make
 
      Example commands to install packages on Fedora 24
 
      sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-     sudo dnf install gcc-c++ gtk2-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL-devel log4cpp-devel portmidi-devel
+     sudo dnf install gcc-c++ gtk2-devel gstreamer1-devel gstreamer1-plugins-base-devel freeglut-devel gstreamer1-plugins-bad-free-devel ffmpeg-devel SDL-devel log4cpp-devel portmidi-devel zstd-devel
 
 
   b) Get the xLights source code by opening a terminal window and
@@ -110,7 +134,8 @@ using Code::Blocks, proceed to step 'd'.:
 
      You will need to run 'make' from the command line once to build and
      patch wxwidgets.  Then ensure that the wx-config command is in your
-     PATH so that codeblocks can find it.
+     PATH so that codeblocks can find it. The simplest way to do this is
+     to go into the wxWidgets-3.1.2 directory and run 'sudo make install'
 
      Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the xLights.cbp file.
@@ -134,3 +159,30 @@ cbp2make -in xLights.cbp -cfg ../cbp2make.cfg -out xLights.cbp.mak --with-deps -
 
 This will be run automatically at compile time if cbp2make is installed.
 
+==============================================================================
+
+Troubleshooting:
+
+With so few Linux users and a general lack of experience in the platform I think it is worthwhile
+documenting some troubleshooting steps that can help determine issues.
+
+Hangs & Pauses
+--------------
+
+To capture a log of systems calls
+
+    strace -f -tt <executable> > strace.txt 2>&1
+    
+    you may also consider adding -y or -yy to capture socket and file descriptor information if 
+    supported on your system
+    
+    These logs files are large and difficult to analyse but provide our best chance of debugging 
+    these types of problems without an interactive debugger.
+
+wxWidgets Bugginess (and possible xLights bugginess)
+
+    There are some situations where limiting xLights to a single CPU can significantly minimise 
+    issues at the expense of parallelism. So if you are getting random issues you may want to try
+    
+    taskset -c 0 <executable>
+    

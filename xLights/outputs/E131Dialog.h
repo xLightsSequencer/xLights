@@ -2,14 +2,15 @@
 #define E131DIALOG_H
 
 //(*Headers(E131Dialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
+#include <wx/radiobut.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/spinctrl.h>
-#include <wx/radiobut.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 class E131Output;
@@ -20,6 +21,8 @@ class E131Dialog: public wxDialog
     E131Output* _e131;
     OutputManager* _outputManager;
     void ValidateWindow();
+    bool IsUniqueDescription(const std::string& newDescription, E131Output* output, OutputManager* outputManager);
+	bool IsUniqueIP(const std::string& newIP, E131Output* output, OutputManager* outputManager);
 
 public:
 
@@ -27,51 +30,45 @@ public:
     virtual ~E131Dialog();
 
     //(*Declarations(E131Dialog)
-    wxStaticText* StaticText9;
-    wxRadioButton* RadioButtonUnicast;
-    wxTextCtrl* TextCtrlIpAddr;
-    wxButton* Button_Ok;
-    wxTextCtrl* TextCtrl_Description;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticText6;
-    wxStaticText* StaticText8;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText3;
-    wxCheckBox* CheckBox_SuppressDuplicates;
-    wxRadioButton* RadioButtonMulticast;
-    wxStaticText* StaticText5;
-    wxStaticText* StaticText7;
-    wxSpinCtrl* SpinCtrl_NumUniv;
     wxButton* Button_Cancel;
-    wxSpinCtrl* SpinCtrl_StartUniv;
+    wxButton* Button_Ok;
+    wxButton* VisualizeButton;
+    wxCheckBox* CheckBox_Auto_Channels;
+    wxCheckBox* CheckBox_SuppressDuplicates;
     wxCheckBox* MultiE131CheckBox;
-    wxStaticText* StaticText4;
+    wxChoice* ControllerChoice;
+    wxRadioButton* RadioButtonMulticast;
+    wxRadioButton* RadioButtonUnicast;
     wxSpinCtrl* SpinCtrl_LastChannel;
+    wxSpinCtrl* SpinCtrl_NumUniv;
+    wxSpinCtrl* SpinCtrl_Priority;
+    wxSpinCtrl* SpinCtrl_StartUniv;
+    wxStaticText* DescriptionStaticText;
+    wxTextCtrl* FPPProxyIP;
+    wxTextCtrl* TextCtrlIpAddr;
+    wxTextCtrl* TextCtrl_Description;
     //*)
 
 protected:
 
     //(*Identifiers(E131Dialog)
     static const long ID_STATICTEXT4;
-    static const long ID_STATICTEXT5;
     static const long ID_RADIOBUTTON1;
     static const long ID_RADIOBUTTON2;
-    static const long ID_STATICTEXT1;
     static const long ID_TEXTCTRL_IP_ADDR;
-    static const long ID_STATICTEXT2;
     static const long ID_SPINCTRL1;
-    static const long ID_STATICTEXT3;
     static const long ID_SPINCTRL2;
-    static const long ID_STATICTEXT7;
     static const long ID_CHECKBOX1;
-    static const long ID_STATICTEXT6;
     static const long ID_SPINCTRL_LAST_CHANNEL;
-    static const long ID_STATICTEXT8;
     static const long ID_TEXTCTRL_DESCRIPTION;
-    static const long ID_STATICTEXT9;
     static const long ID_CHECKBOX2;
+    static const long ID_SPINCTRL_PRIORITY;
+    static const long ID_CHOICE1;
+    static const long ID_CHECKBOX_AUTO_CHANNELS;
+    static const long ID_TEXTCTRL1;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
+    static const long ID_BUTTON3;
     //*)
 
 private:
@@ -85,9 +82,12 @@ private:
     void OnMultiE131CheckBoxClick(wxCommandEvent& event);
     void OnButton_OkClick(wxCommandEvent& event);
     void OnButton_CancelClick(wxCommandEvent& event);
+    void OnVisualizeButtonClick(wxCommandEvent& event);
+    void OnControllerChoiceSelect(wxCommandEvent& event);
+    void OnCheckBox_Auto_ChannelsClick(wxCommandEvent& event);
     //*)
 
+    void SaveFields();
     DECLARE_EVENT_TABLE()
 };
-
 #endif

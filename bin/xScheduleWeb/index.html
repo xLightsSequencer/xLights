@@ -85,7 +85,7 @@
 <div id="pageContent"></div>
 
     <footer class="footer-box" id="footer">
-      <p><a id="version" onclick='openXyzzy()'></a></p>
+      <p><a onclick='openXyzzy()'>xSchedule</a><a id="version" onclick='openXyzzy2()'></a></p>
     </footer>
     <!-- xyzzy name-->
     <div class="modal fade" id="xyzzy" tabindex="-1" role="dialog" aria-labelledby="xyzzy">
@@ -95,6 +95,17 @@
             <button type="button" class="close" onclick="xyzzyCommand('close')" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
           <div id="xyzzyContainer" class="modal-body text-center">
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="modal fade" id="xyzzy2" tabindex="-1" role="dialog" aria-labelledby="xyzzy">
+      <div class="modal-dialog" role="document">
+        <div id="xyzzy2SelectionDisable"class="modal-content disableSelection">
+          <div class="modal-header">
+            <button type="button" class="close" onclick="xyzzy2Command('close')" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <div id="xyzzy2Container" class="modal-body text-center">
         </div>
       </div>
       </div>
@@ -113,6 +124,7 @@
     <script src="js/toggleButtons.js"></script>
     <script src="js/webSocket.js"></script>
     <script src="js/xyzzy.js"></script>
+    <script src="js/xyzzy2.js"></script>
     <script src="js/sidebar.js"></script>
 
 

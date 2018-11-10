@@ -38,11 +38,14 @@ class RenderableEffect
         virtual const wxBitmap &GetEffectIcon(int size, bool exact = false) const;
         virtual int GetId() const { return id; }
         virtual int GetColorSupportedCount() const { return -1; } // -1 is no limit
-        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) { return false; }
-        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) { return false; }
-        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) { return std::list<std::string>(); }
+        virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const { return false; }
+        virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) const { return false; }
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const { return std::list<std::string>(); }
+        virtual std::list<std::string> GetFacesUsed(const SettingsMap &SettingsMap) const { return std::list<std::string>(); }
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) { return false; }
         virtual bool AppropriateOnNodes() const { return true; }
         virtual bool CanRenderPartialTimeInterval() const { return false; }
+        virtual bool PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings) { return false; }
 
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 
@@ -53,10 +56,10 @@ class RenderableEffect
 
         //Methods for rendering the effect
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) { return true; }
-        virtual bool SupportsRenderCache() const { return false; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) = 0;
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect *effect) { }
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) { std::list<std::string> res; return res; };
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) { std::list<std::string> res; return res; };
 
         virtual bool CanBeRandom() {return true;}
 

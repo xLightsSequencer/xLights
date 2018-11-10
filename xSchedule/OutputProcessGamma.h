@@ -11,12 +11,12 @@ class OutputProcessGamma : public OutputProcess
     float _gammaG;
     float _gammaB;
 
-    wxByte _gammaData[256];
-    wxByte _gammaDataR[256];
-    wxByte _gammaDataG[256];
-    wxByte _gammaDataB[256];
+    uint8_t _gammaData[256];
+    uint8_t _gammaDataR[256];
+    uint8_t _gammaDataG[256];
+    uint8_t _gammaDataB[256];
 
-    void BuildGammaData(wxByte data[], float gamma);
+    void BuildGammaData(uint8_t data[], float gamma);
     void BuildGammaData();
 
 public:
@@ -27,7 +27,7 @@ public:
     OutputProcessGamma(OutputManager* outputManager, std::string _startChannel, size_t p1, float gamma, float gammaR, float gammaG, float gammaB, const std::string& description);
     virtual ~OutputProcessGamma() {}
     virtual wxXmlNode* Save() override;
-    virtual void Frame(wxByte* buffer, size_t size) override;
+    virtual void Frame(uint8_t* buffer, size_t size) override;
     virtual size_t GetP1() const override { return _nodes; }
     virtual size_t GetP2() const override { return 0; }
     virtual std::string GetType() const override { return "Gamma"; }

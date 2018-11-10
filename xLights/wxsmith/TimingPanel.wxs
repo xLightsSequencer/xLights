@@ -112,8 +112,14 @@
 												<border>2</border>
 												<option>1</option>
 											</object>
-											<object class="spacer">
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_ABOUT_LAYERS" variable="Button_About_Layers" member="yes">
+													<label>?</label>
+													<size>25,23</size>
+													<tooltip>About Layer Blending Types</tooltip>
+													<handler function="OnButton_AboutClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 												<border>5</border>
 												<option>1</option>
 											</object>
@@ -176,6 +182,9 @@
 																			<item>Blend</item>
 																			<item>Slide Checks</item>
 																			<item>Slide Bars</item>
+																			<item>Fold</item>
+																			<item>Dissolve</item>
+																			<item>Circular Swirl</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -209,7 +218,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
-																<cols>3</cols>
+																<cols>4</cols>
 																<growablecols>1</growablecols>
 																<object class="sizeritem">
 																	<object class="wxStaticText" name="ID_STATICTEXT_In_Transition_Adjust" variable="InAdjustmentText" member="yes">
@@ -225,6 +234,15 @@
 																		<minsize>25,-1d</minsize>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
+																	<option>1</option>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxBitmapButton" name="ID_VALUECURVE_In_Transition_Adjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_In_Transition_Adjust" member="yes">
+																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																		<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+																	</object>
+																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																	<border>5</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">
@@ -283,6 +301,9 @@
 																			<item>Blend</item>
 																			<item>Slide Checks</item>
 																			<item>Slide Bars</item>
+																			<item>Fold</item>
+																			<item>Dissolve</item>
+																			<item>Circular Swirl</item>
 																		</content>
 																		<selection>0</selection>
 																		<handler function="OnTransitionTypeSelect" entry="EVT_CHOICE" />
@@ -316,7 +337,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-																<cols>3</cols>
+																<cols>4</cols>
 																<growablecols>1</growablecols>
 																<object class="sizeritem">
 																	<object class="wxStaticText" name="ID_STATICTEXT_Out_Transition_Adjust" variable="OutAdjustmentText" member="yes">
@@ -332,6 +353,15 @@
 																		<minsize>25,-1d</minsize>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
+																	<option>1</option>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxBitmapButton" name="ID_VALUECURVE_Out_Transition_Adjust" subclass="BulkEditValueCurveButton" variable="BitmapButton_Out_Transition_Adjust" member="yes">
+																		<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+																		<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+																	</object>
+																	<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																	<border>5</border>
 																	<option>1</option>
 																</object>
 																<object class="sizeritem">

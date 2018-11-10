@@ -26,6 +26,7 @@ class WaveEffect : public RenderableEffect
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool AppropriateOnNodes() const override { return false; }
+        virtual bool CanBeRandom() override { return false; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

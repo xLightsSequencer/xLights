@@ -382,7 +382,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
     Connect(ID_E131SOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xCaptureFrame::OnE131SocketEvent);
     Connect(ID_ARTNETSOCKET, wxEVT_SOCKET, (wxObjectEventFunction)&xCaptureFrame::OnArtNETSocketEvent);
 
-    SetTitle("xLights Capture " + xlights_version_string + " " + GetBitness());
+    SetTitle("xLights Capture " + GetDisplayVersionString());
 
     wxIconBundle icons;
     icons.AddIcon(wxIcon(xlights_16_xpm));
@@ -408,7 +408,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
 
     StaticText_IP->SetLabel(_localIP);
 
-    UITimer.Start(1000);
+    UITimer.Start(1000, wxTIMER_CONTINUOUS);
 
     if (CheckBox_ArtNET->GetValue()) CreateArtNETListener();
     if (CheckBox_E131->GetValue()) CreateE131Listener();
@@ -586,7 +586,7 @@ void xCaptureFrame::OnQuit(wxCommandEvent& event)
 
 void xCaptureFrame::OnAbout(wxCommandEvent& event)
 {
-    auto about = wxString::Format(wxT("xCapture v%s %s, the xLights packet capturer."), xlights_version_string, GetBitness());
+    auto about = wxString::Format(wxT("xCapture v%s, the xLights packet capturer."), GetDisplayVersionString());
     wxMessageBox(about, _("Welcome to..."));
 }
 

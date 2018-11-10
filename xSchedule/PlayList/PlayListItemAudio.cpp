@@ -33,7 +33,7 @@ void PlayListItemAudio::Load(wxXmlNode* node)
     }
 }
 
-void PlayListItemAudio::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemAudio::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {
@@ -64,7 +64,7 @@ void PlayListItemAudio::LoadFiles()
 
     _durationMS = 0;
 
-    if (IsInSlaveMode())
+    if (IsInSlaveMode() && IsSuppressAudioOnSlaves())
     {
         
     }
@@ -103,6 +103,7 @@ void PlayListItemAudio::LoadFiles()
 
 PlayListItemAudio::PlayListItemAudio() : PlayListItem()
 {
+    _type = "PLIAudio";
     _fastStartAudio = false;
     _controlsTimingCache = false;
     _audioFile = "";
@@ -140,7 +141,7 @@ PlayListItem* PlayListItemAudio::Copy() const
 
 wxXmlNode* PlayListItemAudio::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIAudio");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("AudioFile", _audioFile);
     if (_fastStartAudio)
@@ -201,6 +202,24 @@ void PlayListItemAudio::FastSetDuration()
         _durationMS = AudioManager::GetAudioFileLength(_audioFile);
         _controlsTimingCache = true;
     }
+}
+
+bool PlayListItemAudio::Advance(int seconds)
+{
+    int adjustFrames = seconds * 1000 / (int)GetFrameMS();
+    _currentFrame += adjustFrames;
+    if (_currentFrame < 0) _currentFrame = 0;
+    if (_currentFrame > _stepLengthMS / GetFrameMS()) _currentFrame = _stepLengthMS / GetFrameMS();
+
+    if (ControlsTiming() && _audioManager != nullptr)
+    {
+        long newPos = _audioManager->Tell() + seconds * 1000;
+        if (newPos < 0) newPos = 0;
+        if (newPos > _audioManager->LengthMS()) newPos = _audioManager->LengthMS() - 5;
+        _audioManager->Seek(newPos);
+    }
+
+    return true;
 }
 
 size_t PlayListItemAudio::GetPositionMS() const

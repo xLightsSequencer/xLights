@@ -37,19 +37,19 @@ wxXmlNode* OutputProcessThreeToFour::Save()
     return res;
 }
 
-void OutputProcessThreeToFour::Frame(wxByte* buffer, size_t size)
+void OutputProcessThreeToFour::Frame(uint8_t* buffer, size_t size)
 {
     if (!_enabled) return;
 
     size_t sc = GetStartChannelAsNumber();
     size_t nodes = std::min(_nodes, (size - (sc - 1)) / 4); // divide by 4 as that is what we are expanding it to
 
-	wxByte* target = buffer + sc - 1 + (nodes - 1) * 4;
-	wxByte* source = buffer + sc - 1 + (nodes - 1) * 3;
+	uint8_t* target = buffer + sc - 1 + (nodes - 1) * 4;
+	uint8_t* source = buffer + sc - 1 + (nodes - 1) * 3;
 	
     for (int i = 0; i < nodes; i++)
     {
-		wxByte white = 0;
+		uint8_t white = 0;
 		if (*source == *(source + 1) && *source == *(source + 2))
 		{
 			white = *source;

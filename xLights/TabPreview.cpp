@@ -12,21 +12,6 @@ std::string xLightsFrame::GetSelectedLayoutPanelPreview() const
     return layoutPanel->GetCurrentPreview();
 }
 
-void xLightsFrame::UpdatePreview()
-{
-    layoutPanel->UpdatePreview();
-}
-
-void xLightsFrame::RefreshLayout()
-{
-    layoutPanel->RefreshLayout();
-}
-
-void xLightsFrame::RenderLayout()
-{
-    layoutPanel->RenderLayout();
-}
-
 void xLightsFrame::ShowPreviewTime(long ElapsedMSec)
 {
 }
@@ -56,7 +41,34 @@ void xLightsFrame::SetPreviewBackgroundImage(const wxString &filename)
     }
     modelPreview->SetbackgroundImage(mBackgroundImage);
     _housePreviewPanel->GetModelPreview()->SetbackgroundImage(mBackgroundImage);
-    UpdatePreview();
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetPreviewBackgroundImage");
+}
+
+void xLightsFrame::SetDisplay2DBoundingBox(bool bb)
+{
+    if (bb != GetDisplay2DBoundingBox())
+    {
+        SetXmlSetting("Display2DBoundingBox", bb ? "1" : "0");
+        UnsavedRgbEffectsChanges = true;
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DBoundingBox");
+    }
+}
+
+bool xLightsFrame::GetDisplay2DBoundingBox() const
+{
+    return (GetXmlSetting("Display2DBoundingBox", "0") == "1");
+}
+
+void xLightsFrame::SetDisplay2DCenter0(bool bb) {
+    if (bb != GetDisplay2DCenter0())
+    {
+        SetXmlSetting("Display2DCenter0", bb ? "1" : "0");
+        UnsavedRgbEffectsChanges = true;
+        GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetDisplay2DCenter0");
+    }
+}
+bool xLightsFrame::GetDisplay2DCenter0() const {
+    return (GetXmlSetting("Display2DCenter0", "0") == "1");
 }
 
 const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
@@ -64,16 +76,21 @@ const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
     return mBackgroundImage;
 }
 
-void xLightsFrame::SetPreviewBackgroundBrightness(int i)
+void xLightsFrame::SetPreviewBackgroundBrightness(int i, int a)
 {
     if (mBackgroundBrightness != i) {
         mBackgroundBrightness = i;
         SetXmlSetting("backgroundBrightness",wxString::Format("%d",mBackgroundBrightness));
         UnsavedRgbEffectsChanges=true;
     }
-    modelPreview->SetBackgroundBrightness(mBackgroundBrightness);
-    _housePreviewPanel->GetModelPreview()->SetBackgroundBrightness(mBackgroundBrightness);
-    UpdatePreview();
+    if (mBackgroundAlpha != a) {
+        mBackgroundAlpha = a;
+        SetXmlSetting("backgroundAlpha",wxString::Format("%d",mBackgroundAlpha));
+        UnsavedRgbEffectsChanges=true;
+    }
+    modelPreview->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
+    _housePreviewPanel->GetModelPreview()->SetBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
+    GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SetPreviewBackgroundBrightness");
 }
 
 bool xLightsFrame::GetDefaultPreviewBackgroundScaled()
@@ -94,4 +111,8 @@ void xLightsFrame::SetPreviewBackgroundScaled(bool scaled) {
 int xLightsFrame::GetDefaultPreviewBackgroundBrightness()
 {
     return mBackgroundBrightness;
+}
+int xLightsFrame::GetDefaultPreviewBackgroundAlpha()
+{
+    return mBackgroundAlpha;
 }

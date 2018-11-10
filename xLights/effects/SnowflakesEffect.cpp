@@ -182,7 +182,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
     buffer.palette.GetColor(1, color2);
 
     if (buffer.needToInit ||
-        Count != LastSnowflakeCount ||
+        (Count != LastSnowflakeCount && falling == "Driving") ||
         SnowflakeType != LastSnowflakeType ||
         falling != LastFalling) {
 
@@ -218,7 +218,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
             }
 
             // draw flake, SnowflakeType=0 is random type
-            switch (SnowflakeType == 0 ? rand() % 5 : SnowflakeType - 1)
+            switch (SnowflakeType == 0 ? rand() % 9 : SnowflakeType - 1)
             {
             case 0:
                 // single node
@@ -318,6 +318,79 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
                 }
                 break;
             case 5:
+                if (x > buffer.BufferWi - 2) x -= 1;
+                if (y > buffer.BufferHt - 2) y -= 1;
+                if (falling != "Driving") {
+                    buffer.SetTempPixel(x, y, color1, 5);
+                }
+                else {
+                    buffer.SetTempPixel(x, y, c1);
+                    buffer.SetTempPixel(x + 1, y, c1);
+                    buffer.SetTempPixel(x + 1, y + 1, c1);
+                    buffer.SetTempPixel(x, y + 1, c1);
+                }
+                break;
+            case 6:
+                if (x < 1) x += 1;
+                if (y < 1) y += 1;
+                if (x > buffer.BufferWi - 2) x -= 1;
+                if (y > buffer.BufferHt - 2) y -= 1;
+                if (falling != "Driving") {
+                    buffer.SetTempPixel(x, y, color1, 6);
+                }
+                else {
+                    buffer.SetTempPixel(x, y, c1);
+                    buffer.SetTempPixel(x + 1, y, c1);
+                    buffer.SetTempPixel(x, y + 1, c1);
+                    buffer.SetTempPixel(x - 1, y, c1);
+                    buffer.SetTempPixel(x, y - 1, c1);
+                }
+                break;
+            case 7:
+                if (x < 2) x += 2;
+                if (y < 2) y += 2;
+                if (x > buffer.BufferWi - 3) x -= 2;
+                if (y > buffer.BufferHt - 3) y -= 2;
+                if (falling != "Driving") {
+                    buffer.SetTempPixel(x, y, color1, 7);
+                }
+                else {
+                    buffer.SetTempPixel(x, y+2, c1);
+                    
+                    buffer.SetTempPixel(x-1, y + 1, c1);
+                    buffer.SetTempPixel(x, y + 1, c1);
+                    buffer.SetTempPixel(x+1, y + 1, c1);
+
+                    buffer.SetTempPixel(x - 2, y, c1);
+                    buffer.SetTempPixel(x - 1, y, c1);
+                    buffer.SetTempPixel(x, y, c1);
+                    buffer.SetTempPixel(x + 1, y, c1);
+                    buffer.SetTempPixel(x +2, y, c1);
+
+                    buffer.SetTempPixel(x - 1, y - 1, c1);
+                    buffer.SetTempPixel(x, y - 1, c1);
+                    buffer.SetTempPixel(x + 1, y - 1, c1);
+
+                    buffer.SetTempPixel(x, y - 2, c1);
+                }
+                break;
+            case 8:
+                if (x < 1) x += 1;
+                if (y < 1) y += 1;
+                if (x > buffer.BufferWi - 2) x -= 1;
+                if (y > buffer.BufferHt - 2) y -= 1;
+                if (falling != "Driving") {
+                    buffer.SetTempPixel(x, y, color1, 8);
+                }
+                else {
+                    buffer.SetTempPixel(x, y, c1);
+                    buffer.SetTempPixel(x + 1, y+1, c1);
+                    buffer.SetTempPixel(x-1, y + 1, c1);
+                    buffer.SetTempPixel(x - 1, y-1, c1);
+                    buffer.SetTempPixel(x+1, y - 1, c1);
+                }
+                break;
+            case 9:
                 // 45 nodes (not enabled)
                 break;
             default:
@@ -359,7 +432,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
                         if (moves > 0 || (falling == "Falling" && y == 0))
                         {
                             int x0;
-                            switch (rand() % 5)
+                            switch (rand() % 9)
                             {
                             case 0:
                                 if (moves & 1) {
@@ -474,7 +547,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
             int x = rand() % buffer.BufferWi;
             if (buffer.GetTempPixel(x, buffer.BufferHt - 1) == xlBLACK) {
                 effectState++;
-                buffer.SetTempPixel(x, buffer.BufferHt - 1, color1, SnowflakeType == 0 ? rand() % 5 : SnowflakeType - 1);
+                buffer.SetTempPixel(x, buffer.BufferHt - 1, color1, SnowflakeType == 0 ? rand() % 9 : SnowflakeType - 1);
 
                 int nextmoves = possible_downward_moves(buffer, x, buffer.BufferHt - 1);
                 if (nextmoves == 0) {
@@ -570,7 +643,45 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
                         set_pixel_if_not_color(buffer, x - 2, y + 1, color2, color1, wrapx, false);
                         break;
                     case 5:
-                        // 45 nodes (not enabled)
+                        buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x + 1, y, color1);
+                        buffer.SetPixel(x + 1, y + 1, color1);
+                        buffer.SetPixel(x, y + 1, color1);
+                        break;
+                    case 6:
+                        buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x + 1, y, color1);
+                        buffer.SetPixel(x, y + 1, color1);
+                        buffer.SetPixel(x - 1, y, color1);
+                        buffer.SetPixel(x, y - 1, color1);
+                        break;
+                    case 7:
+                        buffer.SetPixel(x, y + 2, color1);
+
+                        buffer.SetPixel(x - 1, y + 1, color1);
+                        buffer.SetPixel(x, y + 1, color1);
+                        buffer.SetPixel(x + 1, y + 1, color1);
+
+                        buffer.SetPixel(x - 2, y, color1);
+                        buffer.SetPixel(x - 1, y, color1);
+                        buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x + 1, y, color1);
+                        buffer.SetPixel(x + 2, y, color1);
+
+                        buffer.SetPixel(x - 1, y - 1, color1);
+                        buffer.SetPixel(x, y - 1, color1);
+                        buffer.SetPixel(x + 1, y - 1, color1);
+
+                        buffer.SetPixel(x, y - 2, color1);
+                        break;
+                    case 8:
+                        buffer.SetPixel(x, y, color1);
+                        buffer.SetPixel(x + 1, y + 1, color1);
+                        buffer.SetPixel(x - 1, y + 1, color1);
+                        buffer.SetPixel(x - 1, y - 1, color1);
+                        buffer.SetPixel(x + 1, y - 1, color1);
+                        break;
+                    case 9:
                         break;
                     default:
                         break;

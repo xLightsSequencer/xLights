@@ -14,10 +14,11 @@ class VideoEffect : public RenderableEffect
 					std::string filename, double starttime, int cropLeft, int cropRight, int cropTop, int cropBottom, bool keepaspectratio, std::string durationTreatment, bool synchroniseAudio, bool transparentBlack ,int transparentBlackLevel, double speed);
         virtual bool CanBeRandom() override {return false;}
         virtual void SetDefaultParameters() override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
-        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         virtual bool AppropriateOnNodes() const override { return false; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
         static bool IsVideoFile(std::string filename);
 
         // Currently not possible but I think changes could be made to make it support partial

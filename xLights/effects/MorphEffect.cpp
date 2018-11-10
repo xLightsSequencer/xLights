@@ -23,6 +23,31 @@ MorphEffect::~MorphEffect()
     //dtor
 }
 
+bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings)
+{
+    if (id == "E_MORPH_BUTTON_SWAP")
+    {
+        auto tempValue = settings.Get("E_SLIDER_Morph_Start_X1", "0");
+        settings["E_SLIDER_Morph_Start_X1"] = settings.Get("E_SLIDER_Morph_End_X1", "0");
+        settings["E_SLIDER_Morph_End_X1"] = tempValue;
+
+        tempValue = settings.Get("E_SLIDER_Morph_Start_X2", "0");
+        settings["E_SLIDER_Morph_Start_X2"] = settings.Get("E_SLIDER_Morph_End_X2", "0");
+        settings["E_SLIDER_Morph_End_X2"] = tempValue;
+
+        tempValue = settings.Get("E_SLIDER_Morph_Start_Y1", "0");
+        settings["E_SLIDER_Morph_Start_Y1"] = settings.Get("E_SLIDER_Morph_End_Y1", "0");
+        settings["E_SLIDER_Morph_End_Y1"] = tempValue;
+
+        tempValue = settings.Get("E_SLIDER_Morph_Start_Y2", "0");
+        settings["E_SLIDER_Morph_Start_Y2"] = settings.Get("E_SLIDER_Morph_End_Y2", "0");
+        settings["E_SLIDER_Morph_End_Y2"] = tempValue;
+        return true;
+    }
+
+    return false;
+}
+
 wxPanel *MorphEffect::CreatePanel(wxWindow *parent) {
     return new MorphPanel(parent);
 }
@@ -34,7 +59,7 @@ AssistPanel *MorphEffect::GetAssistPanel(wxWindow *parent, xLightsFrame* xl_fram
     return assist_panel;
 }
 
-std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> MorphEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 

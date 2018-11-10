@@ -69,7 +69,7 @@ std::string Command::GetParametersTip() const
     return tip;
 }
 
-bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg, bool queuedMode) const
+bool Command::IsValid(wxString parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
 
@@ -85,7 +85,7 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
         return false;
     }
 
-    if (!_worksInSlaveMode && (scheduleManager->GetMode() == SYNCMODE::FPPSLAVE || scheduleManager->GetMode() == SYNCMODE::FPPUNICASTSLAVE))
+    if (!_worksInSlaveMode && scheduleManager->IsSlave())
     {
         msg = "Command not valid when running in FPP Remote mode.";
         return false;
@@ -220,11 +220,11 @@ bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* s
 Command* CommandManager::GetCommand(std::string name) const
 {
     auto n = wxString(name).Lower();
-    for (auto it = _commands.begin(); it != _commands.end(); ++it)
+    for (auto it : _commands)
     {
-        if ((*it)->_commandLower == n)
+        if (it->_commandLower == n)
         {
-            return *it;
+            return it;
         }
     }
 
@@ -335,5 +335,15 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Deactivate specified schedule", 1, sch, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Set playlist as background", 1, pl, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Clear background playlist", 0, {}, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Close xSchedule", 0, {}, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Add n Seconds To Current Step Position", 1, i, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Start test mode", 1, s, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Stop test mode", 0, {}, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Change show folder", 1, s, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Set mode", 1, s, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Fire plugin event", 1, s, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Set step position", 1, i, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Set step position ms", 1, i, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Adjust frame interval by ms", 1, i, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Set frame interval to ms", 1, i, false, false, true, false, false, true, true, false));
 }
-

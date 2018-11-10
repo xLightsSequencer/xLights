@@ -23,6 +23,7 @@ void PlayListItemJukebox::Load(wxXmlNode* node)
 
 PlayListItemJukebox::PlayListItemJukebox() : PlayListItem()
 {
+    _type = "PLIJukebox";
     _started = false;
     _jukeboxButton = 1;
     _port = "A";
@@ -42,7 +43,7 @@ PlayListItem* PlayListItemJukebox::Copy() const
 
 wxXmlNode* PlayListItemJukebox::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIJukebox");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Button", wxString::Format("%d", _jukeboxButton));
     node->AddAttribute("Port", _port);
@@ -69,7 +70,7 @@ std::string PlayListItemJukebox::GetNameNoTime() const
     return "Play xLights Jukebox Button";
 }
 
-void PlayListItemJukebox::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemJukebox::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

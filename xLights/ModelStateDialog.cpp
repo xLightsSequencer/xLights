@@ -5,6 +5,10 @@
 #include "DimmingCurve.h"
 #include "SevenSegmentDialog.h"
 #include "NodeSelectGrid.h"
+#include "models/Model.h"
+#include "xLightsApp.h"
+#include "UtilFunctions.h"
+#include "xLightsMain.h"
 
 //(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
@@ -25,6 +29,7 @@
 const long ModelStateDialog::ID_STATICTEXT2 = wxNewId();
 const long ModelStateDialog::ID_CHOICE3 = wxNewId();
 const long ModelStateDialog::ID_BUTTON3 = wxNewId();
+const long ModelStateDialog::ID_BUTTON_IMPORT = wxNewId();
 const long ModelStateDialog::ID_BUTTON4 = wxNewId();
 const long ModelStateDialog::ID_CHECKBOX1 = wxNewId();
 const long ModelStateDialog::ID_BUTTON1 = wxNewId();
@@ -38,11 +43,16 @@ const long ModelStateDialog::ID_CHOICEBOOK1 = wxNewId();
 const long ModelStateDialog::ID_PANEL_PREVIEW = wxNewId();
 //*)
 
+const long ModelStateDialog::STATE_DIALOG_IMPORT_SUB = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_IMPORT_MODEL = wxNewId();
+const long ModelStateDialog::STATE_DIALOG_IMPORT_FILE = wxNewId();
+
 BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
 	//(*EventTable(ModelStateDialog)
 	//*)
 END_EVENT_TABLE()
 
+wxColourData ModelStateDialog::_colorData;
 
 enum {
     SINGLE_NODE_STATE = 0,
@@ -68,27 +78,27 @@ enum {
 ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ModelStateDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxPanel* CoroPanel;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxPanel* NodeRangePanel;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* PreviewSizer;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
 	wxButton* AddButton;
-	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* PreviewSizer;
+	wxPanel* CoroPanel;
+	wxPanel* NodeRangePanel;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, wxID_ANY, _("State Definition"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, _("State Definition"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
 	FlexGridSizer1->AddGrowableRow(0);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer4->AddGrowableCol(0);
 	FlexGridSizer4->AddGrowableRow(1);
-	FlexGridSizer7 = new wxFlexGridSizer(0, 4, 0, 0);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
 	FlexGridSizer7->AddGrowableCol(1);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -96,7 +106,10 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	NameChoice->SetMinSize(wxDLG_UNIT(this,wxSize(100,-1)));
 	FlexGridSizer7->Add(NameChoice, 1, wxALL|wxEXPAND, 5);
 	AddButton = new wxButton(this, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer7->Add(AddButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Import = new wxButton(this, ID_BUTTON_IMPORT, _("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
+	Button_Import->SetMinSize(wxSize(20,-1));
+	FlexGridSizer7->Add(Button_Import, 0, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	DeleteButton = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
 	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
@@ -110,7 +123,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	CustomColorSingleNode = new wxCheckBox(CoroPanel, ID_CHECKBOX1, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CustomColorSingleNode->SetValue(false);
 	FlexGridSizer3->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_7Segment = new wxButton(CoroPanel, ID_BUTTON1, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer3->Add(Button_7Segment, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
@@ -139,7 +152,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CustomColorNodeRanges->SetValue(false);
 	FlexGridSizer6->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_7Seg = new wxButton(NodeRangePanel, ID_BUTTON2, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
 	FlexGridSizer6->Add(Button_7Seg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
@@ -182,6 +195,7 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
 	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ModelStateDialog::OnMatrixNameChoiceSelect);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixAddClicked);
+	Connect(ID_BUTTON_IMPORT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_ImportClick);
 	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixDeleteClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
@@ -192,7 +206,9 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftClick);
+	Connect(ID_GRID3,wxEVT_GRID_CELL_RIGHT_CLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellRightClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftDClick);
+	Connect(ID_GRID3,wxEVT_GRID_LABEL_LEFT_DCLICK,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridLabelLeftDClick);
 	Connect(ID_GRID3,wxEVT_GRID_CELL_CHANGE,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
 	Connect(ID_GRID3,wxEVT_GRID_SELECT_CELL,(wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellSelect);
 	Connect(ID_CHOICEBOOK1,wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&ModelStateDialog::OnStateTypeChoicePageChanged);
@@ -518,24 +534,24 @@ void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
 void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
     if (event.GetCol() == CHANNEL_COL) {
-        std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
-        wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), CHANNEL_COL);
-
-        NodeSelectGrid dialog(model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+        const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
+        NodeSelectGrid dialog(title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
 
         if (dialog.ShowModal() == wxID_OK)
         {
             NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            GetValue(NodeRangeGrid, event, stateData[name]);
             dialog.Close();
         }
     }
     else if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
-        wxColourData data;
-        data.SetColour(c);
-        wxColourDialog dlg(this, &data);
+        _colorData.SetColour(c);
+        wxColourDialog dlg(this, &_colorData);
         if (dlg.ShowModal() == wxID_OK) {
+            _colorData = dlg.GetColourData();
             NodeRangeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
             NodeRangeGrid->Refresh();
             GetValue(NodeRangeGrid, event, stateData[name]);
@@ -549,10 +565,10 @@ void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
     if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = SingleNodeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
-        wxColourData data;
-        data.SetColour(c);
-        wxColourDialog dlg(this, &data);
+        _colorData.SetColour(c);
+        wxColourDialog dlg(this, &_colorData);
         if (dlg.ShowModal() == wxID_OK) {
+            _colorData = dlg.GetColourData();
             SingleNodeGrid->SetCellBackgroundColour(event.GetRow(), COLOUR_COL, dlg.GetColourData().GetColour());
             SingleNodeGrid->Refresh();
             GetValue(SingleNodeGrid, event, stateData[name]);
@@ -587,6 +603,55 @@ void ModelStateDialog::OnNodeRangeGridCellSelect(wxGridEvent& event)
     UpdatePreview(NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL).ToStdString(), NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL));
     event.ResumePropagation(1);
     event.Skip(); // continue the event
+}
+
+void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
+{
+    wxMenu mnu;
+
+    mnu.Append(STATE_DIALOG_IMPORT_SUB, "Import SubModel");
+
+    mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [gridevent = event, this](wxCommandEvent & rightClkEvent) mutable {
+        OnGridPopup(rightClkEvent.GetId(), gridevent);
+    });
+    PopupMenu(&mnu);
+
+    event.Skip();
+}
+
+void ModelStateDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
+{
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
+    NodeSelectGrid dialog(title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), this);
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+        GetValue(NodeRangeGrid, event, stateData[name]);
+        dialog.Close();
+    }
+}
+
+void ModelStateDialog::OnButton_ImportClick(wxCommandEvent& event)
+{
+    wxMenu mnu;
+    mnu.Append(STATE_DIALOG_IMPORT_MODEL, "Import From Model");
+    mnu.Append(STATE_DIALOG_IMPORT_FILE, "Import From File");
+
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelStateDialog::OnAddBtnPopup, nullptr, this);
+    PopupMenu(&mnu);
+    if (event.GetId() == STATE_DIALOG_IMPORT_MODEL)
+    {
+        ImportStatesFromModel();
+    }
+    else if (event.GetId() == STATE_DIALOG_IMPORT_FILE)
+    {
+        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        if (filename.IsEmpty()) return;
+
+        ImportStates(filename);
+    }
 }
 
 void ModelStateDialog::AddLabel(wxString label)
@@ -697,4 +762,205 @@ void ModelStateDialog::ValidateWindow()
         CustomColorSingleNode->Enable();
         CustomColorNodeRanges->Enable();
     }
+}
+
+void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEvent)
+{
+    if (rightEventID == STATE_DIALOG_IMPORT_SUB)
+    {
+        ImportSubmodel(gridEvent);
+    }
+}
+
+void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
+{
+    wxArrayString choices;
+    for (Model* sm : model->GetSubModels())
+    {
+        choices.Add(sm->Name());
+    }
+
+    const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+    wxSingleChoiceDialog dlg(GetParent(), "", "Select SubModel", choices);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        Model* sm = model->GetSubModel(dlg.GetStringSelection());
+        const auto nodes = getSubmodelNodes(sm);
+        NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, nodes);
+        NodeRangeGrid->Refresh();
+        GetValue(NodeRangeGrid, event, stateData[name]);
+        dlg.Close();
+    }
+}
+
+wxString ModelStateDialog::getSubmodelNodes(Model* sm)
+{
+    wxXmlNode* root = sm->GetModelXml();
+    wxString row = "";
+
+    if (root->GetName() == "subModel")
+    {
+        bool isRanges = root->GetAttribute("type", "") == "ranges";
+        if (isRanges)
+        {
+            wxArrayString rows;
+            int line = 0;
+            while (root->HasAttribute(wxString::Format("line%d", line)))
+            {
+                auto l = root->GetAttribute(wxString::Format("line%d", line), "");
+                rows.Add(l);
+                line++;
+            }
+            row = wxJoin(rows, ',');
+        }
+    }
+
+    return row;
+}
+
+void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event)
+{
+    if (event.GetId() == STATE_DIALOG_IMPORT_MODEL)
+    {
+        ImportStatesFromModel();
+    }
+    else if (event.GetId() == STATE_DIALOG_IMPORT_FILE)
+    {
+        const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xmodel files (*.xmodel)|*.xmodel", wxFD_OPEN);
+        if (filename.IsEmpty()) return;
+
+        ImportStates(filename);
+    }
+}
+
+void ModelStateDialog::ImportStatesFromModel()
+{
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+
+    const wxArrayString choices = getModelList(&xlights->AllModels);
+
+    wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        Model* m = xlights->GetModel(dlg.GetStringSelection());
+        if (m->stateInfo.size() == 0)
+        {
+            wxMessageBox(dlg.GetStringSelection() + " contains no states, skipping");
+            return;
+        }
+
+        AddStates(m->stateInfo);
+
+        NameChoice->Enable();
+        StateTypeChoice->Enable();
+        DeleteButton->Enable();
+
+        NameChoice->SetSelection(NameChoice->GetCount() - 1);
+        NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
+        SelectStateModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
+        ValidateWindow();
+    }
+}
+
+void ModelStateDialog::ImportStates(const wxString & filename)
+{
+    wxXmlDocument doc(filename);
+
+    if (doc.IsOk())
+    {
+        std::map<std::string, std::map<std::string, std::string> > newStateInfo = stateData;
+        wxXmlNode* root = doc.GetRoot();
+        bool stateFound = false;
+        if (root->GetName() == "custommodel")
+        {
+            for (wxXmlNode* n = root->GetChildren(); n != nullptr; n = n->GetNext())
+            {
+                if (n->GetName() == "stateInfo")
+                {
+                    std::map<std::string, std::map<std::string, std::string> > stateInfo;
+                    Model::ParseStateInfo(n, stateInfo);
+                    if (stateInfo.size() == 0)
+                    {
+                        continue;
+                    }
+                    stateFound = true;
+                    AddStates(stateInfo);
+                }
+            }
+        }
+        if (stateFound)
+        {
+            NameChoice->Enable();
+            StateTypeChoice->Enable();
+            DeleteButton->Enable();
+
+            NameChoice->SetSelection(NameChoice->GetCount() - 1);
+            NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
+            SelectStateModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
+            ValidateWindow();
+        }
+        else
+        {
+            DisplayError(filename + " contains no states.");
+        }
+    }
+    else
+    {
+        DisplayError(filename + " Failure loading xModel file.");
+    }
+}
+
+void ModelStateDialog::AddStates(std::map<std::string, std::map<std::string, std::string> > states)
+{
+    bool overRide = false;
+    bool showDialog = true;
+
+    for (const auto& state : states)
+    {
+        auto fname = state.first;
+
+        if (NameChoice->FindString(fname) != wxNOT_FOUND)
+        {
+            if (showDialog)
+            {
+                wxMessageDialog confirm(this, _("State(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override States"), wxYES_NO);
+                int returnCode = confirm.ShowModal();
+                if (returnCode == wxID_YES)
+                    overRide = true;
+                showDialog = false;
+            }
+            if (!overRide)
+            {
+                const auto basefname = fname;
+                int suffix = 1;
+                while (NameChoice->FindString(fname) != wxNOT_FOUND)
+                {
+                    fname = wxString::Format("%s-%d", basefname, suffix);
+                    suffix++;
+                }
+                NameChoice->Append(fname);
+            }
+        }
+        else
+        {
+            NameChoice->Append(fname);
+        }
+
+        stateData[fname] = state.second;
+    }
+}
+
+wxArrayString ModelStateDialog::getModelList(ModelManager * modelManager)
+{
+    wxArrayString choices;
+    for (auto it = modelManager->begin(); it != modelManager->end(); ++it)
+    {
+        Model* m = it->second;
+        if (m->Name() == model->Name())//Skip Current Model
+            continue;
+        choices.Add(m->Name());
+    }
+    return choices;
 }

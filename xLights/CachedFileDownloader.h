@@ -6,6 +6,7 @@
 #include <wx/uri.h>
 #include <wx/filename.h>
 
+class wxProgressDialog;
 class wxXmlNode;
 
 typedef enum
@@ -24,17 +25,17 @@ class FileCacheItem
 
 public:
     FileCacheItem(wxXmlNode* n);
-    FileCacheItem(wxURI url, CACHEFOR cacheFor);
+    FileCacheItem(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     void Save(wxFile& f);
     virtual ~FileCacheItem() {}
-    void Download();
+    void Download(const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     bool Exists() const { return wxFile::Exists(_fileName); }
     void Touch() const { if (Exists()) wxFileName(_fileName).Touch(); }
     void Delete() const;
     std::string GetFileName() const { if (Exists()) return _fileName; else return ""; }
     bool operator==(const wxURI& url) const;
-    static bool DownloadURL(wxURI url, wxFileName filename);
-    std::string DownloadURLToTemp(wxURI url);
+    static bool DownloadURL(wxURI url, wxFileName filename, wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
+    std::string DownloadURLToTemp(wxURI url, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     void PurgeIfAged() const;
     bool ShouldSave() { PurgeIfAged();  return Exists() && (_cacheFor == CACHETIME_DAY || _cacheFor == CACHETIME_LONG); }
 };
@@ -61,7 +62,7 @@ public:
     void ClearCache();
     void Save() { SaveCache(); }
     // retrieve a file from cache … if not present filename will be “”
-    std::string GetFile(wxURI url, CACHEFOR cacheFor);
+    std::string GetFile(wxURI url, CACHEFOR cacheFor, const wxString& forceType = "", wxProgressDialog* prog = nullptr, int low = 0, int high = 100);
     int size();
     
     

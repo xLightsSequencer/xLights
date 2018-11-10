@@ -25,6 +25,7 @@
 #include "CustomTimingDialog.h"
 #include "VendorMusicDialog.h"
 #include "xLightsMain.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
@@ -390,6 +391,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, xLightsXmlFile* file_to_h
 	Connect(ID_BUTTON_CANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CancelClick);
 	Connect(ID_BUTTON_Close,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
 	//*)
+
+    Button_Close->SetDefault();
 
 	if (wizard_active)
 	{
@@ -842,9 +845,16 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (xml_file->HasAudioMedia())
 	{
         plugins = xml_file->GetMedia()->GetVamp()->GetAvailablePlugins(xml_file->GetMedia());
-		for (std::list<std::string>::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
-		{
-            dialog.Choice_New_Fixed_Timing->Append(*it);
+        if (plugins.size() == 0)
+        {
+            dialog.Choice_New_Fixed_Timing->Append("Download Queen Mary Vamp plugins for audio analysis");
+        }
+        else
+        {
+            for (auto it : plugins)
+            {
+                dialog.Choice_New_Fixed_Timing->Append(it);
+            }
         }
     }
 
@@ -853,45 +863,52 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
     if (dialog.ShowModal() == wxID_OK)
     {
         std::string selected_timing = dialog.GetTiming().ToStdString();
-        if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
-		{
-            wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMedia());
-            if (name != "") {
-                AddTimingCell(name);
-            }
-        }
-        else if( !xml_file->TimingAlreadyExists(selected_timing, xLightsParent) )
+        if (selected_timing == "Download Queen Mary Vamp plugins for audio analysis")
         {
-            if (selected_timing == "Metronome")
+            DownloadVamp();
+        }
+        else
+        {
+            if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end())
             {
-                int base_timing = xml_file->GetFrameMS();
-                wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
-                if (dlg.ShowModal() == wxID_OK)
+                wxString name = vamp.ProcessPlugin(xml_file, xLightsParent, selected_timing, xml_file->GetMedia());
+                if (name != "") {
+                    AddTimingCell(name);
+                }
+            }
+            else if (!xml_file->TimingAlreadyExists(selected_timing, xLightsParent))
+            {
+                if (selected_timing == "Metronome")
                 {
-                    int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
+                    int base_timing = xml_file->GetFrameMS();
+                    wxNumberEntryDialog dlg(this, "Enter metronome timing", "Milliseconds", "Metronome timing", base_timing, base_timing, 60000);
+                    if (dlg.ShowModal() == wxID_OK)
+                    {
+                        int ms = (dlg.GetValue() + base_timing / 2) / base_timing * base_timing;
 
-                    if (ms != dlg.GetValue())
-                    {
-                        wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
-                        wxMessageBox(msg);
+                        if (ms != dlg.GetValue())
+                        {
+                            wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
+                            wxMessageBox(msg);
+                        }
+                        wxString ttn = wxString::Format("%dms Metronome", ms);
+                        if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
+                        {
+                            xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
+                            AddTimingCell(ttn);
+                        }
                     }
-                    wxString ttn = wxString::Format("%dms Metronome", ms);
-                    if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), xLightsParent))
-                    {
-                        xml_file->AddFixedTimingSection(ttn.ToStdString(), xLightsParent);
-                        AddTimingCell(ttn);
-                    }
+                }
+                else
+                {
+                    xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
+                    AddTimingCell(selected_timing);
                 }
             }
             else
             {
-                xml_file->AddFixedTimingSection(selected_timing, xLightsParent);
-                AddTimingCell(selected_timing);
+                DisplayError(string_format("Fixed Timing section %s already exists!", selected_timing), this);
             }
-        }
-        else
-        {
-            wxMessageBox(string_format("Fixed Timing section %s already exists!", selected_timing), "Error", wxICON_ERROR | wxOK);
         }
     }
     dialog.Destroy();
@@ -913,7 +930,7 @@ void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
     std::string new_name = Grid_Timing->GetCellValue(selection, 0).ToStdString();
     if( xml_file->TimingAlreadyExists(new_name, xLightsParent) )
     {
-        wxMessageBox(string_format("Timing section %s already exists!", new_name), "Error", wxICON_ERROR | wxOK);
+        DisplayError(string_format("Timing section %s already exists!", new_name), this);
         new_name += "_1";
         Grid_Timing->SetCellValue(selection, 0, new_name);
     }
@@ -1334,7 +1351,8 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
     TextCtrl_Xml_Song->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::SONG));
     TextCtrl_Xml_Album->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ALBUM));
     TextCtrl_Xml_Artist->SetValue(xml_file->GetHeaderInfo(xLightsXmlFile::ARTIST));
-    int length_ms = xml_file->GetMedia()->LengthMS();
+    int length_ms = 0;
+    if (xml_file->GetMedia() != nullptr) length_ms = xml_file->GetMedia()->LengthMS(); // shouldnt happen but maybe if media load failed
     double length = length_ms / 1000.0f;
     xml_file->SetSequenceDuration(length);
     TextCtrl_Xml_Seq_Duration->ChangeValue(string_format("%.3f", length));
@@ -1351,11 +1369,19 @@ void SeqSettingsDialog::MediaLoad(wxFileName name_and_path)
 
 void SeqSettingsDialog::MediaChooser()
 {
-	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
+	wxFileDialog OpenDialog(this, "Choose Audio file", wxEmptyString, wxEmptyString, "FPP 2.x+ Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.m4a|FPP 1.x Audio files|*.mp3;*.ogg;*.m4p;*.mp4|xLights Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv", wxFD_OPEN | wxFD_FILE_MUST_EXIST, wxDefaultPosition);
     if (wxDir::Exists(media_directory))
     {
         OpenDialog.SetDirectory(media_directory);
     }
+	if (!xml_file->GetMediaFile().empty())
+	{
+		OpenDialog.SetFilename(wxFileName(xml_file->GetMediaFile()).GetFullName());
+	}
+	if (!TextCtrl_Xml_Media_File->GetValue().empty())
+	{
+		OpenDialog.SetPath(TextCtrl_Xml_Media_File->GetValue());
+	}
     if (OpenDialog.ShowModal() == wxID_OK)
     {
         wxString fDir = OpenDialog.GetDirectory();
@@ -1543,6 +1569,7 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
 
         TextCtrl_SeqTiming->SetValue(dialog.GetTiming());
         xml_file->SetSequenceTiming(dialog.GetTiming());
+        xLightsParent->SetSequenceTiming(wxAtoi(dialog.GetTiming()));
         xLightsParent->SaveSequence();
         wxString name = xml_file->GetFullPath();
         xLightsParent->CloseSequence();
@@ -1566,6 +1593,6 @@ void SeqSettingsDialog::OnButton_DownloadClick(wxCommandEvent& event)
     }
     else
     {
-        wxMessageBox("Nothing available for this song.");
+        DisplayError("Nothing available for this song.", this);
     }
 }

@@ -17,7 +17,7 @@ public:
    void Clear();
 
 protected:
-   void InitializeGLCanvas() override;
+   void InitializeGLContext() override;
 
    void reinitTexture( int width, int height );
 

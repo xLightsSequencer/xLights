@@ -5,19 +5,25 @@
 #include "EventSerialPanel.h"
 #include "EventLorPanel.h"
 #include "EventARTNetPanel.h"
+#include "EventARTNetTriggerPanel.h"
 #include "EventPingPanel.h"
 #include "EventOSCPanel.h"
 #include "EventFPPPanel.h"
 #include "EventMIDIPanel.h"
+#include "EventMQTTPanel.h"
+#include "EventStatePanel.h"
 #include "xScheduleMain.h"
 #include "ScheduleManager.h"
 #include "CommandManager.h"
 #include "events/EventARTNet.h"
+#include "events/EventARTNetTrigger.h"
 #include "events/EventE131.h"
 #include "events/EventData.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventMIDI.h"
+#include "events/EventMQTT.h"
+#include "events/EventState.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
 #include "events/EventPing.h"
@@ -147,9 +153,12 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         Choicebook_EventType->AddPage(new EventOSCPanel(Choicebook_EventType), "OSC", false);
         Choicebook_EventType->AddPage(new EventFPPPanel(Choicebook_EventType), "FPP", false);
         Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", false);
+        Choicebook_EventType->AddPage(new EventARTNetTriggerPanel(Choicebook_EventType), "ARTNet Trigger", false);
         Choicebook_EventType->AddPage(new EventPingPanel(Choicebook_EventType, outputManager), "Ping", false);
         Choicebook_EventType->AddPage(new EventLorPanel(Choicebook_EventType), "LOR", false);
         Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", false);
+        Choicebook_EventType->AddPage(new EventMQTTPanel(Choicebook_EventType), "MQTT", false);
+        Choicebook_EventType->AddPage(new EventStatePanel(Choicebook_EventType), "State", false);
     }
     else
     {
@@ -178,6 +187,10 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         {
             Choicebook_EventType->AddPage(new EventARTNetPanel(Choicebook_EventType), "ARTNet", true);
         }
+        else if (type == "ARTNetTrigger")
+        {
+            Choicebook_EventType->AddPage(new EventARTNetTriggerPanel(Choicebook_EventType), "ARTNet Trigger", true);
+        }
         else if (type == "Ping")
         {
             Choicebook_EventType->AddPage(new EventPingPanel(Choicebook_EventType, outputManager), "Ping", true);
@@ -189,6 +202,14 @@ EventDialog::EventDialog(wxWindow* parent, OutputManager* outputManager, EventBa
         else if (type == "MIDI")
         {
             Choicebook_EventType->AddPage(new EventMIDIPanel(Choicebook_EventType), "MIDI", true);
+        }
+        else if (type == "MQTT")
+        {
+            Choicebook_EventType->AddPage(new EventMQTTPanel(Choicebook_EventType), "MQTT", true);
+        }
+        else if (type == "State")
+        {
+            Choicebook_EventType->AddPage(new EventStatePanel(Choicebook_EventType), "State", true);
         }
         ((EventPanel*)Choicebook_EventType->GetPage(0))->Load(_eventBase);
         Choice_Command->SetStringSelection(_eventBase->GetCommand());
@@ -239,6 +260,10 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         {
             _eventBase = new EventARTNet();
         }
+        else if (type == "ARTNet Trigger")
+        {
+            _eventBase = new EventARTNetTrigger();
+        }
         else if (type == "LOR")
         {
             _eventBase = new EventLor();
@@ -246,6 +271,14 @@ void EventDialog::OnButton_OkClick(wxCommandEvent& event)
         else if (type == "MIDI")
         {
             _eventBase = new EventMIDI();
+        }
+        else if (type == "MQTT")
+        {
+            _eventBase = new EventMQTT();
+        }
+        else if (type == "State")
+        {
+            _eventBase = new EventState();
         }
         else if (type == "Ping")
         {
@@ -309,6 +342,12 @@ void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
         TextCtrl_P2->SetToolTip(EventARTNet::GetParmToolTip());
         TextCtrl_P3->SetToolTip(EventARTNet::GetParmToolTip());
     }
+    else if (type == "ARTNet Trigger")
+    {
+        TextCtrl_P1->SetToolTip(EventARTNet::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventARTNet::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventARTNet::GetParmToolTip());
+    }
     else if (type == "LOR")
     {
         TextCtrl_P1->SetToolTip(EventLor::GetParmToolTip());
@@ -320,6 +359,18 @@ void EventDialog::OnChoicebook_EventTypePageChanged(wxChoicebookEvent& event)
         TextCtrl_P1->SetToolTip(EventPing::GetParmToolTip());
         TextCtrl_P2->SetToolTip(EventPing::GetParmToolTip());
         TextCtrl_P3->SetToolTip(EventPing::GetParmToolTip());
+    }
+    else if (type == "MIDI")
+    {
+        TextCtrl_P1->SetToolTip(EventMIDI::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventMIDI::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventMIDI::GetParmToolTip());
+    }
+    else if (type == "MQTT")
+    {
+        TextCtrl_P1->SetToolTip(EventMQTT::GetParmToolTip());
+        TextCtrl_P2->SetToolTip(EventMQTT::GetParmToolTip());
+        TextCtrl_P3->SetToolTip(EventMQTT::GetParmToolTip());
     }
 }
 

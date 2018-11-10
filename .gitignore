@@ -2,9 +2,11 @@ bin/xCapture
 bin/xFade
 bin/xLights
 bin/xSchedule
+bin/xSMSDaemon
 bin/*.dll
 bin/*.exe
 bin/*.map
+bin/*.so
 bin64/xLights
 bin64/xSchedule
 bin64/*.dll
@@ -37,3 +39,4 @@ xLights/xLights.VC.db
 lib/linux/libliquidfun.a
 *.opensdf
 *.cbp.mak.orig
+._*

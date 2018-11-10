@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="ShaderDownloadDialog">
+		<size>800,600</size>
+		<minsize>800,400</minsize>
+		<id_arg>0</id_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+					<orientation>vertical</orientation>
+					<minsize>10,10</minsize>
+					<object class="wxPanel" name="ID_PANEL3" variable="Panel3" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxTreeCtrl" name="ID_TREECTRL1" variable="TreeCtrl_Navigator" member="yes">
+									<image_list>&lt;none&gt;</image_list>
+									<tree_items>
+										<item>TreeCtrl_Navigator</item>
+										<item>&lt;none&gt;</item>
+									</tree_items>
+									<items_text>
+										<item2>TreeCtrl_Navigator</item2>
+										<item2>&lt;none&gt;</item2>
+									</items_text>
+									<size>200,-1</size>
+									<style>wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL</style>
+									<handler function="OnTreeCtrl_NavigatorItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
+									<handler function="OnTreeCtrl_NavigatorSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+									<label>Shader sites</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxListView" name="ID_LISTVIEW1" variable="ListView_Sites" member="yes">
+									<style>wxLC_REPORT|wxLC_ALIGN_LEFT|wxLC_NO_HEADER|wxLC_NO_SORT_HEADER|wxVSCROLL</style>
+									<handler function="OnListView_SitesItemActivated" entry="EVT_LIST_ITEM_ACTIVATED" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+							<cols>1</cols>
+							<growablecols>0</growablecols>
+							<growablerows>0</growablerows>
+							<object class="sizeritem">
+								<object class="wxStaticBitmap" name="ID_STATICBITMAP1" variable="StaticBitmap_VendorImage" member="yes">
+									<size>300,300</size>
+									<minsize>256,128</minsize>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Details" member="yes">
+									<style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LEFT</style>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+									<cols>2</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText2" member="yes">
+											<label>Website:</label>
+										</object>
+										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxHyperlinkCtrl" name="ID_HYPERLINKCTRL4" variable="HyperlinkCtrl_Website" member="yes">
+											<label>http://xlights.org</label>
+											<style>wxHL_CONTEXTMENU|wxHL_ALIGN_LEFT|wxNO_BORDER</style>
+											<handler function="OnHyperlinkCtrl_WebsiteClick" entry="EVT_HYPERLINK" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON4" variable="Button_Download" member="yes">
+									<label>Download</label>
+									<handler function="OnButton_DownloadClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

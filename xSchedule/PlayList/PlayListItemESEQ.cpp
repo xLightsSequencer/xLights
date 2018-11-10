@@ -16,11 +16,13 @@ void PlayListItemESEQ::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _ESEQFileName = node->GetAttribute("ESEQFile", "");
+    _ESEQFileName = FixFile("", _ESEQFileName);
     _applyMethod = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", ""));
 }
 
 PlayListItemESEQ::PlayListItemESEQ() : PlayListItem()
 {
+    _type = "PLIESEQ";
     _ESEQFile = nullptr;
     _ESEQFileName = "";
     _applyMethod = APPLYMETHOD::METHOD_OVERWRITE;
@@ -48,7 +50,7 @@ PlayListItem* PlayListItemESEQ::Copy() const
 
 wxXmlNode* PlayListItemESEQ::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIESEQ");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ESEQFile", _ESEQFileName);
     _ESEQFileName = FixFile("", _ESEQFileName);
@@ -91,7 +93,7 @@ void PlayListItemESEQ::SetESEQFileName(const std::string& ESEQFileName)
     }
 }
 
-void PlayListItemESEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemESEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {

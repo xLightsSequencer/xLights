@@ -16,6 +16,7 @@
 #include "support/FastComboEditor.h"
 #include "support/GridCellChoiceRenderer.h"
 #include "support/EzGrid.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(VsaImportDialog)
 const long VsaImportDialog::ID_STATICTEXT39 = wxNewId();
@@ -251,7 +252,7 @@ void VsaImportDialog::LoadMapping(wxCommandEvent& event)
                 {
                     ChannelMapGrid->SetCellValue(row, 1, model);
                 } else {
-                    wxMessageBox("Model: " + model + "not found!", "", wxICON_WARNING, this);
+                    DisplayWarning("Model: " + model + "not found!", this);
                     ChannelMapGrid->SetCellValue(row, 1, "");
                 }
                 UpdateChannels(row, channel);
@@ -260,7 +261,7 @@ void VsaImportDialog::LoadMapping(wxCommandEvent& event)
                 selectedChannels[row] = ChannelMapGrid->GetCellValue(row, 2).ToStdString();
                 selectedLayers[row] = wxAtoi(ChannelMapGrid->GetCellValue(row, 3));
             } else {
-                wxMessageBox("Track: " + track + "not found!", "", wxICON_WARNING, this);
+                DisplayWarning("Track: " + track + "not found!", this);
             }
 
             line = text.ReadLine();

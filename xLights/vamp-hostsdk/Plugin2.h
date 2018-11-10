@@ -437,6 +437,11 @@ public:
      */
     virtual std::string getType() const { return "Feature Extraction Plugin"; }
 
+    /**
+     * Retrieve the input sample rate set on construction.
+     */
+    float getInputSampleRate() const { return m_inputSampleRate; }
+    
 protected:
     Plugin(float inputSampleRate) :
 	m_inputSampleRate(inputSampleRate) { }

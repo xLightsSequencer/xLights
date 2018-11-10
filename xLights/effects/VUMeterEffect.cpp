@@ -46,7 +46,19 @@ namespace RenderType
 		TIMING_EVENT_BARS,
         LEVEL_COLOR,
         TIMING_EVENT_PULSE_COLOR,
-        SPECTROGRAM_PEAK
+        SPECTROGRAM_PEAK,
+        SPECTROGRAM_CIRCLELINE,
+        SPECTROGRAM_LINE,
+        FRAME_WAVEFORM,
+        TIMING_EVENT_SWEEP2,
+        TIMING_EVENT_TIMED_SWEEP,
+        TIMING_EVENT_TIMED_SWEEP2,
+        TIMING_EVENT_ALTERNATE_TIMED_SWEEP,
+        TIMING_EVENT_ALTERNATE_TIMED_SWEEP2,
+        LEVEL_JUMP,
+        LEVEL_JUMP100,
+        NOTE_LEVEL_JUMP,
+        NOTE_LEVEL_JUMP100
     };
 }
 
@@ -84,7 +96,7 @@ VUMeterEffect::~VUMeterEffect()
 {
 }
 
-std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -100,6 +112,8 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
             type == "Level Bar" ||
             type == "Note Level Bar" ||
             type == "Level Pulse" ||
+            type == "Level Jump" ||
+            type == "Level Jump 100" ||
             type == "Level Pulse Color" ||
         type == "Level Shape" ||
         type == "Color On" ||
@@ -128,13 +142,28 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     return res;
 }
 
+bool VUMeterEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2019.16", version);
+}
+
+void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    SettingsMap &settings = effect->GetSettings();
+    if (settings.Contains("E_CHECKBOX_Fireworks_LogarithmicX"))
+    {
+        settings["E_CHECKBOX_VUMeter_LogarithmicX"] = settings.Get("E_CHECKBOX_Fireworks_LogarithmicX", "0");
+        settings.erase("E_CHECKBOX_Fireworks_LogarithmicX");
+    }
+}
+
 wxPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
 	return new VUMeterPanel(parent);
 }
 
 void VUMeterEffect::SetPanelStatus(Model* cls)
 {
-    VUMeterPanel *vp = (VUMeterPanel*)panel;
+    VUMeterPanel *vp = static_cast<VUMeterPanel*>(panel);
     if (vp == nullptr)
     {
         return;
@@ -143,6 +172,7 @@ void VUMeterEffect::SetPanelStatus(Model* cls)
     vp->Choice_VUMeter_TimingTrack->Clear();
     if (mSequenceElements == nullptr)
     {
+        vp->ValidateWindow();
         return;
     }
 
@@ -168,7 +198,7 @@ void VUMeterEffect::SetPanelStatus(Model* cls)
 
 void VUMeterEffect::SetDefaultParameters() 
 {
-    VUMeterPanel *vp = (VUMeterPanel*)panel;
+    VUMeterPanel *vp = static_cast<VUMeterPanel*>(panel);
     if (vp == nullptr) {
         return;
     }
@@ -178,11 +208,15 @@ void VUMeterEffect::SetDefaultParameters()
     SetSliderValue(vp->Slider_VUMeter_Sensitivity, 70);
     SetChoiceValue(vp->Choice_VUMeter_Shape, "Circle");
     SetCheckBoxValue(vp->CheckBox_VUMeter_SlowDownFalls, true);
+    SetCheckBoxValue(vp->CheckBox_LogarithmicXAxis, false);
     SetSliderValue(vp->Slider_VUMeter_StartNote, 36);
     SetSliderValue(vp->Slider_VUMeter_EndNote, 84);
     SetSliderValue(vp->Slider_VUMeter_XOffset, 0);
     SetSliderValue(vp->Slider_VUMeter_YOffset, 0);
+    SetSliderValue(vp->Slider_VUMeter_Gain, 0);
     vp->BitmapButton_VUMeter_YOffsetVC->SetActive(false);
+    vp->BitmapButton_VUMeter_Gain->SetActive(false);
+    vp->ValidateWindow();
 }
 
 void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
@@ -204,12 +238,14 @@ void VUMeterEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
         SettingsMap.GetInt("SLIDER_VUMeter_Sensitivity", 70),
         SettingsMap.Get("CHOICE_VUMeter_Shape", "Circle"),
-        SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", TRUE),
+        SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", true),
         SettingsMap.GetInt("SLIDER_VUMeter_StartNote", 0),
         SettingsMap.GetInt("SLIDER_VUMeter_EndNote", 127),
         SettingsMap.GetInt("SLIDER_VUMeter_XOffset", 0),
-        GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset, VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
-    );
+        GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset, VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+        GetValueCurveInt("VUMeter_Gain", 0, SettingsMap, oset, VUMETER_GAIN_MIN, VUMETER_GAIN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+        SettingsMap.GetBool("CHECKBOX_VUMeter_LogarithmicX", false)
+        );
 }
 
 class VUMeterRenderCache : public EffectRenderCache 
@@ -221,6 +257,7 @@ public:
         _lastsize = 0;
         _colourindex = 0;
         _lasttimingmark = 0;
+        _nCount = 0;
 	};
     virtual ~VUMeterRenderCache() {};
 	std::list<int> _timingmarks; // collection of recent timing marks ... used for sweep
@@ -228,8 +265,10 @@ public:
 	std::list<float> _lastvalues;
 	std::list<float> _lastpeaks;
     std::list<int> _pausepeakfall;
+    std::list<std::vector<wxPoint>> _lineHistory;
 	float _lastsize;
     int _colourindex;
+    int _nCount;
 };
 
 int VUMeterEffect::DecodeType(const std::string& type)
@@ -254,7 +293,27 @@ int VUMeterEffect::DecodeType(const std::string& type)
 	{
 		return RenderType::TIMING_EVENT_SWEEP;
 	}
-	else if (type == "On")
+    else if (type == "Timing Event Sweep 2")
+    {
+        return RenderType::TIMING_EVENT_SWEEP2;
+    }
+    else if (type == "Timing Event Timed Sweep")
+    {
+        return RenderType::TIMING_EVENT_TIMED_SWEEP;
+    }
+    else if (type == "Timing Event Timed Sweep 2")
+    {
+        return RenderType::TIMING_EVENT_TIMED_SWEEP2;
+    }
+    else if (type == "Timing Event Alternate Timed Sweep")
+    {
+        return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP;
+    }
+    else if (type == "Timing Event Alternate Timed Sweep 2")
+    {
+        return RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2;
+    }
+    else if (type == "On")
 	{
 		return RenderType::ON;
 	}
@@ -274,7 +333,15 @@ int VUMeterEffect::DecodeType(const std::string& type)
 	{
 		return RenderType::LEVEL_PULSE;
 	}
-	else if (type == "Level Shape")
+    else if (type == "Level Jump")
+    {
+        return RenderType::LEVEL_JUMP;
+    }
+    else if (type == "Level Jump 100")
+    {
+        return RenderType::LEVEL_JUMP100;
+    }
+    else if (type == "Level Shape")
 	{
 		return RenderType::LEVEL_SHAPE;
 	}
@@ -293,6 +360,14 @@ int VUMeterEffect::DecodeType(const std::string& type)
     else if (type == "Note Level Pulse")
     {
         return RenderType::NOTE_LEVEL_PULSE;
+    }
+    else if (type == "Note Level Jump")
+    {
+        return RenderType::NOTE_LEVEL_JUMP;
+    }
+    else if (type == "Note Level Jump 100")
+    {
+        return RenderType::NOTE_LEVEL_JUMP100;
     }
     else if (type == "Timing Event Jump")
     {
@@ -337,6 +412,18 @@ int VUMeterEffect::DecodeType(const std::string& type)
     else if (type == "Spectrogram Peak")
     {
         return RenderType::SPECTROGRAM_PEAK;
+    }
+    else if (type == "Spectrogram Line")
+    {
+        return RenderType::SPECTROGRAM_LINE;
+    }
+    else if (type == "Spectrogram Circle Line")
+    {
+        return RenderType::SPECTROGRAM_CIRCLELINE;
+    }
+    else if (type == "Frame Waveform")
+    {
+        return RenderType::FRAME_WAVEFORM;
     }
 
 	// default type is volume bars
@@ -421,7 +508,7 @@ int VUMeterEffect::DecodeShape(const std::string& shape)
 	return ShapeType::CIRCLE;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset)
+void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, int gain, bool logarithmicX)
 {
     // startnote must be less than or equal to endnote
     if (startnote > endnote)
@@ -434,7 +521,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
     int nType = DecodeType(type);
 
 	// Grab our cache
-	VUMeterRenderCache *cache = (VUMeterRenderCache*)buffer.infoCache[id];
+	VUMeterRenderCache *cache = static_cast<VUMeterRenderCache*>(buffer.infoCache[id]);
 	if (cache == nullptr) {
 		cache = new VUMeterRenderCache();
 		buffer.infoCache[id] = cache;
@@ -444,13 +531,17 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	std::list<float>& _lastvalues = cache->_lastvalues;
 	std::list<float>& _lastpeaks = cache->_lastpeaks;
 	std::list<int>& _pausepeakfall = cache->_pausepeakfall;
+    int& _nCount = cache->_nCount;
 	float& _lastsize = cache->_lastsize;
     int & _colourindex = cache->_colourindex;
+    std::list<std::vector<wxPoint>>& _lineHistory = cache->_lineHistory;
 
 	// Check for config changes which require us to reset
 	if (buffer.needToInit)
 	{
         buffer.needToInit = false;
+        _lineHistory.clear();
+        _nCount = 0;
         _colourindex = -1;
 		_timingmarks.clear();
 		_lasttimingmark = -1;
@@ -483,68 +574,96 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		switch (nType)
 		{
 		case RenderType::SPECTROGRAM:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, false, 0);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, false, 0, false, logarithmicX, false, 1, sensitivity, _lineHistory);
 			break;
 		case RenderType::SPECTROGRAM_PEAK:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, true, sensitivity);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, false, logarithmicX, false, 1, sensitivity, _lineHistory);
+			break;
+		case RenderType::SPECTROGRAM_LINE:
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, false, 1, sensitivity, _lineHistory);
+			break;
+		case RenderType::SPECTROGRAM_CIRCLELINE:
+            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, true, gain, sensitivity, _lineHistory);
 			break;
 		case RenderType::VOLUME_BARS:
-			RenderVolumeBarsFrame(buffer, usebars);
+			RenderVolumeBarsFrame(buffer, usebars, gain);
 			break;
 		case RenderType::WAVEFORM:
-			RenderWaveformFrame(buffer, usebars, yoffset);
+			RenderWaveformFrame(buffer, usebars, yoffset, gain, false);
 			break;
-		case RenderType::TIMING_EVENT_SPIKE:
+		case RenderType::FRAME_WAVEFORM:
+			RenderWaveformFrame(buffer, usebars, yoffset, gain, true);
+			break;
+        case RenderType::TIMING_EVENT_TIMED_SWEEP:
+        case RenderType::TIMING_EVENT_TIMED_SWEEP2:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
+            RenderTimingEventTimedSweepFrame(buffer, usebars, nType, timingtrack, _nCount);
+            break;
+        case RenderType::TIMING_EVENT_SPIKE:
 		case RenderType::TIMING_EVENT_SWEEP:
-			RenderTimingEventFrame(buffer, usebars, nType, timingtrack, _timingmarks);
+        case RenderType::TIMING_EVENT_SWEEP2:
+            RenderTimingEventFrame(buffer, usebars, nType, timingtrack, _timingmarks);
 			break;
 		case RenderType::ON:
-			RenderOnFrame(buffer);
+			RenderOnFrame(buffer, gain);
 			break;
 		case RenderType::PULSE:
 			RenderPulseFrame(buffer, usebars, timingtrack, _lasttimingmark);
 			break;
 		case RenderType::INTENSITY_WAVE:
-			RenderIntensityWaveFrame(buffer, usebars);
+			RenderIntensityWaveFrame(buffer, usebars, gain);
 			break;
 		case RenderType::LEVEL_PULSE:
-			RenderLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark);
+			RenderLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, gain);
 			break;
-		case RenderType::LEVEL_SHAPE:
-			RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset, usebars);
+        case RenderType::LEVEL_JUMP:
+            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, false, _lastsize);
+            break;
+        case RenderType::LEVEL_JUMP100:
+            RenderLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, gain, true, _lastsize);
+            break;
+        case RenderType::LEVEL_SHAPE:
+			RenderLevelShapeFrame(buffer, shape, _lastsize, sensitivity, slowdownfalls, xoffset, yoffset, usebars, gain);
 			break;
         case RenderType::COLOR_ON:
-            RenderOnColourFrame(buffer);
+            RenderOnColourFrame(buffer, gain);
             break;
         case RenderType::TIMING_EVENT_COLOR:
             RenderTimingEventColourFrame(buffer, _colourindex, timingtrack);
             break;
         case RenderType::NOTE_ON:
-            RenderNoteOnFrame(buffer, startnote, endnote);
+            RenderNoteOnFrame(buffer, startnote, endnote, gain);
             break;
         case RenderType::NOTE_LEVEL_PULSE:
-            RenderNoteLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote);
+            RenderNoteLevelPulseFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain);
+            break;
+        case RenderType::NOTE_LEVEL_JUMP:
+            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, false, _lastsize);
+            break;
+        case RenderType::NOTE_LEVEL_JUMP100:
+            RenderNoteLevelJumpFrame(buffer, usebars, sensitivity, _lasttimingmark, startnote, endnote, gain, true, _lastsize);
             break;
         case RenderType::TIMING_EVENT_JUMP:
-            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, true);
+            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, true, gain);
             break;
         case RenderType::TIMING_EVENT_PULSE:
             RenderTimingEventPulseFrame(buffer, usebars, timingtrack, _lastsize);
             break;
         case RenderType::TIMING_EVENT_JUMP_100:
-            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false);
+            RenderTimingEventJumpFrame(buffer, usebars, timingtrack, _lastsize, false, 0);
             break;
         case RenderType::TIMING_EVENT_BAR:
             RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, false);
             break;
         case RenderType::LEVEL_BAR:
-            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex);
+            RenderLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, gain);
             break;
         case RenderType::NOTE_LEVEL_BAR:
-            RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote);
+            RenderNoteLevelBarFrame(buffer, usebars, sensitivity, _lastsize, _colourindex, startnote, endnote, gain);
             break;
         case RenderType::LEVEL_PULSE_COLOR:
-            RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex);
+            RenderLevelPulseColourFrame(buffer, usebars, sensitivity, _lasttimingmark, _colourindex, gain);
             break;
         case RenderType::TIMING_EVENT_BARS:
             RenderTimingEventBarFrame(buffer, usebars, timingtrack, _lastsize, _colourindex, true);
@@ -553,7 +672,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             RenderTimingEventPulseColourFrame(buffer, usebars, timingtrack, _lastsize, _colourindex);
             break;
         case RenderType::LEVEL_COLOR:
-            RenderLevelColourFrame(buffer, _colourindex, sensitivity, _lasttimingmark);
+            RenderLevelColourFrame(buffer, _colourindex, sensitivity, _lasttimingmark, gain);
             break;
         default:
             wxASSERT(false);
@@ -567,12 +686,18 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, bool peak, int peakhold)
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const
 {
     if (buffer.GetMedia() == nullptr) return;
-
+    
     int truexoffset = xoffset * buffer.BufferWi / 100;
+    int trueyoffset = yoffset * buffer.BufferHt / 100;
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+    while (lineHistory.size() > sensitivity / 10)
+    {
+        lineHistory.pop_front();
+    }
 
 	if (pdata != nullptr && pdata->size() != 0)
 	{
@@ -663,11 +788,11 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 			usebars = datapoints;
 		}
 
-		int per = datapoints / usebars;
-        int cols = 1;
+		float per = (float)datapoints / (float)usebars;
+        float cols = 1;
         if (xoffset == 0)
         {
-            cols = buffer.BufferWi / usebars;
+            cols = (float)buffer.BufferWi / (float)usebars;
         }
         if (cols < 1)
         {
@@ -675,7 +800,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
         }
 		std::list<float>::iterator it = lastvalues.begin();
 		std::list<float>::iterator itpeak = lastpeaks.begin();
-
+        int midiNote = 0;
         // skip to our start note
         for (int i = 0; i < startNote; i++)
         {
@@ -684,6 +809,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             {
                 ++itpeak;
             }
+            ++midiNote;
         }
 
 		int x = truexoffset;
@@ -695,18 +821,53 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             peakColour = buffer.GetPalette().GetColor(buffer.GetColorCount() - 1);
         }
 
-		for (int j = 0; j < usebars; j++)
-		{
-			float f = 0;
-			float p = 0;
-			for (int k = 0; k < per; k++)
-			{
-				// use the max within the frequency range
-				if (*it > f)
-				{
-					f = *it;
-				}
+        xlColor color = buffer.palette.GetColor(0);
+        int alpha = 255;
+        if (lineHistory.size() > 0)
+        {
+            buffer.SetAllowAlphaChannel(true);
+            for (auto l : lineHistory)
+            {
+                if (l.size() > 1)
+                {
+                    alpha -= 255 / (sensitivity / 10);
+                    color.SetAlpha(alpha);
+                    auto p1 = l.begin();
+                    auto p2 = std::next(p1);
+                    while (p2 != l.end())
+                    {
+                        buffer.DrawLine(p1->x, p1->y, p2->x, p2->y, color, true);
+                        ++p2;
+                        ++p1;
+                    }
+                }
+            }
+        }
+
+        color = buffer.palette.GetColor(0);
+        int lastColHeight = -1;
+        int lastColX = -1;
+        float firstVector = -1;
+        float lastVector = -1;
+        std::vector<wxPoint> linePoints;
+        for (int j = 0; j < usebars; j++)
+        {
+            float f = 0;
+            float p = 0;
+            int thisper = per;
+            if (logarithmicX)
+            {
+                thisper = LogarithmicScale::GetLogSum(j + 1) - LogarithmicScale::GetLogSum(j);
+            }
+            for (int k = 0; k < thisper; k++)
+            {
+                // use the max within the frequency range
+                if (*it > f)
+                {
+                    f = *it;
+                }
                 ++it;
+                ++midiNote;
                 if (peak)
                 {
                     if (*itpeak > p)
@@ -718,50 +879,113 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                 // dont let it go off the end
                 if (it == lastvalues.end())
                 {
+                    --midiNote;
                     --it;
                     if (peak)
                     {
                         --itpeak;
                     }
                 }
-			}
-			for (int k = 0; k < cols; k++)
-			{
-				for (int y = 0; y < buffer.BufferHt; y++)
-				{
-					int colheight = buffer.BufferHt * f;
-					if (y < colheight)
-					{
-						xlColor color1;
-						// an alternate colouring
-						buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, peak ? 1 : 0);
-						buffer.SetPixel(x, y, color1);
-					}
-
-                    if (peak)
+            }
+            f = ApplyGain(f, gain);
+            int colheight = buffer.BufferHt * f;
+            if (line)
+            {
+                if (circle)
+                {
+                    float vector = std::min(buffer.BufferWi, buffer.BufferHt) * f;
+                    if (j == 0) firstVector = vector;
+                    float angleper = 360.0 / usebars;
+                    float angle = angleper / 2.0 + j * angleper;
+                    if (j == 0)
                     {
-                        int peakheight = buffer.BufferHt * p;
-                        if (y >= peakheight)
-                        {
-                            buffer.SetPixel(x, y, peakColour);
-                            break;
-                        }
+                        int x1 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
+                        int y1 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
+                        linePoints.push_back(wxPoint(x1, y1));
                     }
                     else
                     {
-                        if (y >= colheight)
+                        int x1 = buffer.BufferWi /2 + truexoffset + lastVector * sin(toRadians(angle - angleper));
+                        int y1 = buffer.BufferHt / 2 + trueyoffset + lastVector * cos(toRadians(angle - angleper));
+                        int x2 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
+                        int y2 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
+                        buffer.DrawLine(x1, y1, x2, y2, color);
+                        linePoints.push_back(wxPoint(x2, y2));
+
+                        if (j == usebars - 1)
                         {
-                            break;
+                            x1 = buffer.BufferWi / 2 + truexoffset + firstVector * sin(toRadians(angle + angleper));
+                            y1 = buffer.BufferHt / 2 + trueyoffset + firstVector * cos(toRadians(angle + angleper));
+                            buffer.DrawLine(x2, y2, x1, y1, color);
+                            linePoints.push_back(wxPoint(x1, y1));
                         }
                     }
+                    lastVector = vector;
                 }
-				x++;
-			}
+                else
+                {
+                    int mid = cols * j + cols / 2.0;
+                    linePoints.push_back(wxPoint(mid, colheight));
+
+                    // draw lines to mid point of each column
+                    if (lastColHeight >= 0)
+                    {
+                        buffer.DrawLine(lastColX, lastColHeight, mid, colheight, color);
+                    }
+                    else if (j == usebars - 1)
+                    {
+                        // just draw a horizontal line
+                        buffer.DrawLine(0, colheight, cols - 1, colheight, color);
+                    }
+
+                    lastColHeight = colheight;
+                    lastColX = mid;
+                }
+            }
+            else
+            {
+                float limit = (j+1) * cols;
+                while (x < limit)
+                {
+                    for (int y = 0; y < buffer.BufferHt; y++)
+                    {
+                        if (y < colheight)
+                        {
+                            xlColor color1;
+                            // an alternate colouring
+                            buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, peak ? 1 : 0);
+                            buffer.SetPixel(x, y, color1);
+                        }
+
+                        if (peak)
+                        {
+                            int peakheight = buffer.BufferHt * p;
+                            if (y >= peakheight)
+                            {
+                                buffer.SetPixel(x, y, peakColour);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (y >= colheight)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    x++;
+                }
+            }
 		}
+        if (linePoints.size() > 0)
+        {
+            lineHistory.push_back(linePoints);
+        }
 	}
 }
 
-void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars)
+void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -776,7 +1000,7 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars)
 			std::list<float>* pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
 			if (pf != nullptr)
 			{
-				f = *pf->begin();
+				f = ApplyGain(*pf->begin(), gain);
 			}
 			for (int j = 0; j < cols; j++)
 			{
@@ -798,57 +1022,104 @@ void VUMeterEffect::RenderVolumeBarsFrame(RenderBuffer &buffer, int usebars)
 	}
 }
 
-void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int yoffset)
+void VUMeterEffect::RenderWaveformFrame(RenderBuffer &buffer, int usebars, int yoffset, int gain, bool frameDetail)
 {
     if (buffer.GetMedia() == nullptr) return;
 
     int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
-	int start = buffer.curPeriod - usebars;
-	int cols = buffer.BufferWi / usebars;
-	int x = 0;
-	for (int i = 0; i < usebars; i++)
-	{
-		if (start + i >= 0)
-		{
-			float fh = 0.0;
-			std::list<float>* pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
-			if (pf != nullptr)
-			{
-				fh = *pf->begin();
-			}
-			float fl = 0.0;
-			pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_LOW, "");
-			if (pf != nullptr)
-			{
-				fl = *pf->begin();
-			}
-			int s = (1.0 - fl) * buffer.BufferHt / 2;
-			int e = (1.0 + fh) * buffer.BufferHt / 2;
-			if (e < s)
-			{
-				e = s;
-			}
-			if (e > buffer.BufferHt)
-			{
-				e = buffer.BufferHt;
-			}
-			for (int j = 0; j < cols; j++)
-			{
-				for (int y = s; y < e; y++)
-				{
-					xlColor color1;
-					//buffer.GetMultiColorBlend((double)y / (double)e, false, color1);
-					buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
-					buffer.SetPixel(x, y + trueyoffset, color1);
-				}
-				x++;
-			}
-		}
-		else
-		{
-			x += cols;
-		}
-	}
+    float cols = (float)buffer.BufferWi / usebars;
+
+    if (frameDetail)
+    {
+        int lasty = (float)trueyoffset + (float)buffer.BufferHt / 2.0;
+        int lastx = 0;
+        float barms = (float)buffer.frameTimeInMs / usebars;
+        float rate = buffer.GetMedia()->GetRate();
+        float startMS = buffer.curPeriod * buffer.frameTimeInMs;
+        xlColor color = buffer.palette.GetColor(0);
+        bool up = true;
+        for (int i = 0; i < usebars; i++)
+        {
+            float min = 0;
+            float max = 0;
+            int startSample = rate * (startMS + (float)i * barms) / 1000.0;
+            int endSample = rate * (startMS + (float)(i+1) * barms) / 1000.0;
+            buffer.GetMedia()->GetLeftDataMinMax(startSample, endSample, min, max, AUDIOSAMPLETYPE::RAW);
+
+            int y;
+            int x = (float)i * cols + cols / 2;
+            if (up)
+            {
+                max = ApplyGain(max, gain);
+                y = (float)trueyoffset + (float)buffer.BufferHt / 2.0 + max * ((float)buffer.BufferHt / 2.0);
+            }
+            else
+            {
+                min = ApplyGain(min, gain);
+                y = (float)trueyoffset + (float)buffer.BufferHt / 2.0 + min * ((float)buffer.BufferHt / 2.0);
+            }
+
+            buffer.DrawLine(lastx, lasty, x, y, color);
+
+            lasty = y;
+            lastx = x;
+
+            if (i == usebars - 1)
+            {
+                buffer.DrawLine(lastx, lasty, buffer.BufferWi - 1, (float)trueyoffset + (float)buffer.BufferHt / 2.0, color);
+            }
+
+            up = !up;
+        }
+    }
+    else
+    {
+        int start = buffer.curPeriod - usebars;
+        int x = 0;
+        for (int i = 0; i < usebars; i++)
+        {
+            if (start + i >= 0)
+            {
+                float fh = 0.0;
+                std::list<float>* pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
+                if (pf != nullptr)
+                {
+                    fh = ApplyGain(*pf->begin(), gain);
+                }
+                float fl = 0.0;
+                pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_LOW, "");
+                if (pf != nullptr)
+                {
+                    fl = ApplyGain(*pf->begin(), gain);
+                }
+                int s = (1.0 - fl) * buffer.BufferHt / 2;
+                int e = (1.0 + fh) * buffer.BufferHt / 2;
+                if (e < s)
+                {
+                    e = s;
+                }
+                if (e > buffer.BufferHt)
+                {
+                    e = buffer.BufferHt;
+                }
+                for (int j = 0; j < cols; j++)
+                {
+                    for (int y = s; y < e; y++)
+                    {
+                        xlColor color1;
+                        //buffer.GetMultiColorBlend((double)y / (double)e, false, color1);
+                        buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
+                        buffer.SetPixel(x, y + trueyoffset, color1);
+                    }
+                    x++;
+                }
+            }
+            else
+            {
+                x += cols;
+            }
+        }
+    }
 }
 
 void VUMeterEffect::RenderTimingEventFrame(RenderBuffer &buffer, int usebars, int nType, std::string timingtrack, std::list<int> &timingmarks)
@@ -892,17 +1163,22 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer &buffer, int usebars, in
 						timingmarks.push_back(start + i);
 						for (int j = 0; j < cols; j++)
 						{
-							for (int y = 0; y < buffer.BufferHt; y++)
+                            xlColor color1;
+                            buffer.GetMultiColorBlend((double)j / cols, false, color1);
+                            for (int y = 0; y < buffer.BufferHt; y++)
 							{
-								xlColor color1;
-								if (nType == 4)
+								if (nType == RenderType::TIMING_EVENT_SWEEP)
 								{
 									buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1);
 								}
+                                else if (nType == RenderType::TIMING_EVENT_SWEEP2)
+                                {
+                                    // use x axis colour
+                                }
 								else
 								{
-									buffer.GetMultiColorBlend(0, false, color1);
-								}
+                                    buffer.GetMultiColorBlend(0, false, color1);
+                                }
 								buffer.SetPixel(x, y, color1);
 							}
 							x++;
@@ -966,7 +1242,87 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer &buffer, int usebars, in
 	}
 }
 
-void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer)
+void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount)
+{
+    if (timingtrack != "")
+    {
+        Element* t = nullptr;
+        for (int i = 0; i < mSequenceElements->GetElementCount(); i++)
+        {
+            Element* e = mSequenceElements->GetElement(i);
+            if (e->GetEffectLayerCount() == 1 && e->GetType() == ELEMENT_TYPE_TIMING && e->GetName() == timingtrack)
+            {
+                t = e;
+                break;
+            }
+        }
+
+        if (t != nullptr)
+        {
+            // we have a timing track
+
+            // find the timing mark
+            int currentMS = buffer.curPeriod * buffer.frameTimeInMs;
+            Effect* timing = nullptr;
+            EffectLayer* el = t->GetEffectLayer(0);
+            for (int j = 0; j < el->GetEffectCount(); j++)
+            {
+                if (el->GetEffect(j)->GetStartTimeMS() <=  currentMS &&
+                    el->GetEffect(j)->GetEndTimeMS() > currentMS)
+                {
+                    timing = el->GetEffect(j);
+                    break;
+                }
+            }
+
+            if (timing != nullptr)
+            {
+                if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS())
+                {
+                    nCount++;
+                }
+
+                // we have a timing mark
+                double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
+                double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
+                double distanceToTravel = buffer.BufferWi;
+                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
+                {
+                    distanceToTravel += 2 * usebars;
+                }
+                else
+                {
+                    distanceToTravel -= usebars;
+                }
+                double perFrameDistance = distanceToTravel / lengthOfTimingFrames;
+                double posInTiming = (buffer.curPeriod * buffer.frameTimeInMs - timing->GetStartTimeMS()) / buffer.frameTimeInMs;
+                int startX = perFrameDistance * posInTiming;
+                if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
+                {
+                    startX -= usebars;
+                }
+                for (int x = 0; x < usebars; x++)
+                {
+                    xlColor color1;
+                    buffer.GetMultiColorBlend((double)x / usebars, false, color1);
+                    for (int y = 0; y < buffer.BufferHt; y++)
+                    {
+                        if ((nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2) && nCount % 2 == 0)
+                        {
+                            buffer.SetPixel(buffer.BufferWi - (x + startX) - 1, y, color1);
+                        }
+                        else
+                        {
+                            buffer.SetPixel(x + startX, y, color1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
    
@@ -974,7 +1330,7 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer)
 	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
 	if (pf != nullptr)
 	{
-		f = *pf->begin();
+		f = ApplyGain(*pf->begin(), gain);
 	}
 	xlColor color1;
 	buffer.palette.GetColor(0, color1);
@@ -989,7 +1345,7 @@ void VUMeterEffect::RenderOnFrame(RenderBuffer& buffer)
 	}
 }
 
-void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer)
+void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -997,7 +1353,7 @@ void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer)
     std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
     if (pf != nullptr)
     {
-        f = *pf->begin();
+        f = ApplyGain(*pf->begin(), gain);
     }
 
     xlColor color1;
@@ -1075,7 +1431,7 @@ void VUMeterEffect::RenderPulseFrame(RenderBuffer &buffer, int fadeframes, std::
 	}
 }
 
-void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars)
+void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -1090,7 +1446,7 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars)
 			std::list<float>* pf = buffer.GetMedia()->GetFrameData(start + i, FRAMEDATA_HIGH, "");
 			if (pf != nullptr)
 			{
-				f = *pf->begin();
+				f = ApplyGain(*pf->begin(), gain);
 			}
 			xlColor color1;
 			if (buffer.palette.Size() < 2)
@@ -1118,7 +1474,7 @@ void VUMeterEffect::RenderIntensityWaveFrame(RenderBuffer &buffer, int usebars)
 	}
 }
 
-void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark)
+void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
     
@@ -1126,7 +1482,7 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
 	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
 	if (pf != nullptr)
 	{
-		f = *pf->begin();
+		f = ApplyGain(*pf->begin(), gain);
 	}
 
 	if (f > (float)sensitivity / 100.0)
@@ -1159,7 +1515,7 @@ void VUMeterEffect::RenderLevelPulseFrame(RenderBuffer &buffer, int fadeframes, 
 	}
 }
 
-void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex)
+void VUMeterEffect::RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -1167,7 +1523,55 @@ void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadefr
     std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
     if (pf != nullptr)
     {
-        f = *pf->begin();
+        f = ApplyGain(*pf->begin(), gain);
+    }
+
+    if (f > (float)sensitivity / 100.0)
+    {
+        lasttimingmark = buffer.curPeriod;
+
+        if (fullJump)
+        {
+            lastVal = 1.0;
+        }
+        else
+        {
+            lastVal = f;
+        }
+    }
+
+    if (fadeframes > 0 && buffer.curPeriod - lasttimingmark < fadeframes)
+    {
+        float ff = lastVal - (lastVal * (((float)buffer.curPeriod - (float)lasttimingmark)) / (float)fadeframes);
+        if (ff < 0)
+        {
+            ff = 0;
+        }
+
+        if (ff > 0.0)
+        {
+            for (int y = 0; y < ff * (float)buffer.BufferHt; y++)
+            {
+                xlColor color1;
+                buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color1);
+                for (int x = 0; x < buffer.BufferWi; x++)
+                {
+                    buffer.SetPixel(x, y, color1);
+                }
+            }
+        }
+    }
+}
+
+void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadeframes, int sensitivity, int& lasttimingmark, int& colourindex, int gain)
+{
+    if (buffer.GetMedia() == nullptr) return;
+
+    float f = 0.0;
+    std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
+    if (pf != nullptr)
+    {
+        f = ApplyGain(*pf->begin(), gain);
     }
 
     if (f > (float)sensitivity / 100.0)
@@ -1209,7 +1613,7 @@ void VUMeterEffect::RenderLevelPulseColourFrame(RenderBuffer &buffer, int fadefr
     }
 }
 
-void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourindex, int sensitivity, int& lasttimingmark)
+void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourindex, int sensitivity, int& lasttimingmark, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -1217,7 +1621,7 @@ void VUMeterEffect::RenderLevelColourFrame(RenderBuffer &buffer, int& colourinde
     std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
     if (pf != nullptr)
     {
-        f = *pf->begin();
+        f = ApplyGain(*pf->begin(), gain);
     }
 
     if (f > (float)sensitivity / 100.0)
@@ -1609,7 +2013,14 @@ void VUMeterEffect::DrawPresent(RenderBuffer &buffer, int xc, int yc, double rad
 	}
 }
 
-void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness)
+float VUMeterEffect::ApplyGain(float value, int gain) const
+{
+    float v = (100.0 + gain) * value / 100.0;
+    if (v > 1.0) v = 1.0;
+    return v;
+}
+
+void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const
 {
 	double originalRadius = radius;
 	double interpolation = 0.75;
@@ -1642,7 +2053,7 @@ void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double r
 	}
 }
 
-void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars)
+void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -1660,7 +2071,7 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
 	if (pf != nullptr)
 	{
-		f = *pf->begin();
+		f = ApplyGain(*pf->begin(), gain);
 	}
 
 	int centerx = (buffer.BufferWi / 2.0) + truexoffset;
@@ -1912,7 +2323,7 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	}
 }
 
-void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastsize, bool useAudioLevel)
+void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallframes, std::string timingtrack, float& lastsize, bool useAudioLevel, int gain)
 {
     if (useAudioLevel && buffer.GetMedia() == nullptr) return;
 
@@ -1952,7 +2363,7 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer &buffer, int fallfra
                     std::list<float>* pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_HIGH, "");
                     if (pf != nullptr)
                     {
-                        f = *pf->begin();
+                        f = ApplyGain(*pf->begin(), gain);
                     }
                     lastsize = f;
                 }
@@ -2152,7 +2563,7 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer &buffer, int& colo
     }
 }
 
-void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote)
+void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int endNote, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -2162,14 +2573,16 @@ void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int e
     {
         int i = 0;
         float level = 0.0;
-        for (auto it = pdata->begin(); it != pdata->end(); ++it)
+        for (auto it : *pdata)
         {
             if (i > startNote && i <= endNote)
             {
-                level = std::max(*it, level);
+                level = std::max(it, level);
             }
             i++;
         }
+
+        level = ApplyGain(level, gain);
 
         xlColor color1;
         buffer.palette.GetColor(0, color1);
@@ -2185,7 +2598,7 @@ void VUMeterEffect::RenderNoteOnFrame(RenderBuffer& buffer, int startNote, int e
     }
 }
 
-void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote)
+void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -2195,14 +2608,16 @@ void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadefram
     {
         int i = 0;
         float level = 0.0;
-        for (auto it = pdata->begin(); it != pdata->end(); ++it)
+        for (auto it : *pdata)
         {
             if (i > startNote && i <= endNote)
             {
-                level = std::max(*it, level);
+                level = std::max(it, level);
             }
             i++;
         }
+
+        level = ApplyGain(level, gain);
 
         if (level > (float)sensitivity / 100.0)
         {
@@ -2235,7 +2650,65 @@ void VUMeterEffect::RenderNoteLevelPulseFrame(RenderBuffer& buffer, int fadefram
     }
 }
 
-void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex)
+void VUMeterEffect::RenderNoteLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int startNote, int endNote, int gain, bool fullJump, float& lastsize)
+{
+    if (buffer.GetMedia() == nullptr) return;
+
+    std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+    if (pdata != nullptr && pdata->size() != 0)
+    {
+        int i = 0;
+        float level = 0.0;
+        for (auto it : *pdata)
+        {
+            if (i > startNote && i <= endNote)
+            {
+                level = std::max(it, level);
+            }
+            i++;
+        }
+
+        level = ApplyGain(level, gain);
+
+        if (level > (float)sensitivity / 100.0)
+        {
+            lasttimingmark = buffer.curPeriod;
+            if (fullJump)
+            {
+                lastsize = 1;
+            }
+            else
+            {
+                lastsize = level;
+            }
+        }
+
+        if (fadeframes > 0 && buffer.curPeriod - lasttimingmark < fadeframes)
+        {
+            float ff = lastsize - ((lastsize * ((float)buffer.curPeriod - (float)lasttimingmark)) / (float)fadeframes);
+            if (ff < 0)
+            {
+                ff = 0;
+            }
+
+            if (ff > 0.0)
+            {
+                for (int y = 0; y < ff * (float)buffer.BufferHt; y++)
+                {
+                    xlColor color1;
+                    buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color1);
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                    {
+                        buffer.SetPixel(x, y, color1);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -2243,7 +2716,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
 
     if (pdata != nullptr && pdata->size() != 0)
     {
-        float level = pdata->front();
+        float level = ApplyGain(pdata->front(), gain);
 
         xlColor color1;
         if (level > (float)sensitivity / 100.0)
@@ -2368,7 +2841,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer &buffer, int bars, st
     }
 }
 
-void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote)
+void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote, int gain)
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -2378,14 +2851,16 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer &buffer, int bars, int 
     {
         int i = 0;
         float level = 0.0;
-        for (auto it = pdata->begin(); it != pdata->end(); ++it)
+        for (auto it : *pdata)
         {
             if (i > startNote && i <= endNote)
             {
-                level = std::max(*it, level);
+                level = std::max(it, level);
             }
             i++;
         }
+
+        level = ApplyGain(level, gain);
 
         xlColor color1;
         if (level > (float)sensitivity / 100.0)

@@ -113,6 +113,7 @@ class ViewsModelsPanel: public wxPanel
         void OnViewSelect(wxCommandEvent& event);
         void OnListCtrlItemCheck(wxCommandEvent& event);
         void UpdateModelsForSelectedView();
+        void RemoveModelFromLists(const std::string& modelName);
 
 		//(*Declarations(ViewsModelsPanel)
 		wxButton* ButtonClone;

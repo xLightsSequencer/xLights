@@ -93,7 +93,7 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 	Connect(wxEVT_SIZE,(wxObjectEventFunction)&HousePreviewPanel::OnResize);
 	//*)
 
-    _modelPreview = new ModelPreview(this, _xLights, models ,groups, allowSelected, style, allowPreviewChange);
+    _modelPreview = new ModelPreview(this, _xLights, allowSelected, style, allowPreviewChange);
     ModelPreviewSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
 
     ValidateWindow(GetSize());
@@ -155,6 +155,16 @@ void HousePreviewPanel::OnFastForward10ButtonClick(wxCommandEvent& event)
 {
     wxCommandEvent playEvent(EVT_SEQUENCE_FFORWARD10);
     wxPostEvent(_xLights, playEvent);
+}
+
+void HousePreviewPanel::Set3d(bool is3d)
+{
+    _modelPreview->Set3D(is3d);
+}
+
+bool HousePreviewPanel::Is3d() const
+{
+    return _modelPreview->Is3D();
 }
 
 void HousePreviewPanel::OnEndButtonClick(wxCommandEvent& event)

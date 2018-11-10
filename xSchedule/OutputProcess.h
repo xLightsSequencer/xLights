@@ -45,7 +45,7 @@ class OutputProcess
         }
         void Enable(bool enable) { _enabled = enable; _changeCount++; }
 
-        virtual void Frame(wxByte* buffer, size_t size) = 0;
+        virtual void Frame(uint8_t* buffer, size_t size) = 0;
 };
 
 #endif

@@ -25,11 +25,11 @@ LorControllers::~LorControllers()
 
 void LorControllers::Save(wxXmlNode* node)
 {
-    for (auto it = _controllers.begin(); it != _controllers.end(); ++it)
+    for (auto& it : _controllers)
     {
         wxXmlNode* cntrl_node = new wxXmlNode(wxXML_ELEMENT_NODE, "controller");
         node->AddChild(cntrl_node);
-        (*it)->Save(cntrl_node);
+        it->Save(cntrl_node);
     }
 }
 
@@ -37,11 +37,21 @@ bool LorControllers::IsDirty() const
 {
     bool res = _lastSavedChangeCount != _changeCount;
 
-    for (auto it = _controllers.begin(); it != _controllers.end(); ++it)
+    for (auto it : _controllers)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
     }
 
+    return res;
+}
+
+int LorControllers::GetTotalChannels() const
+{
+    int res = 0;
+    for (auto it : _controllers)
+    {
+        res += it->GetTotalNumChannels();
+    }
     return res;
 }
 
@@ -49,9 +59,8 @@ void LorControllers::ClearDirty()
 {
     _lastSavedChangeCount = _changeCount;
 
-    for (auto it = _controllers.begin(); it != _controllers.end(); ++it)
+    for (auto& it : _controllers)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
     }
 }
-

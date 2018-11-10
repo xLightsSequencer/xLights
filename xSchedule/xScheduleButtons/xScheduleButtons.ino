@@ -5,7 +5,6 @@
 
 byte mac[6] = {0x00, 0x01, 0x02, 0x03, 0x05, IP_BYTE_4}; // the arduinos MAC address
 IPAddress ip(IP_BYTE_1,IP_BYTE_2,IP_BYTE_3,IP_BYTE_4); // the arduinos IP address
-EthernetClient client; // the ethernet connection
 short pressed[100]; // an array keeping state of the buttons between loops
 short buttons; // number of buttons
 
@@ -14,6 +13,7 @@ void setup()
   // Prepare to send debug messages
   #ifdef DEBUG
     Serial.begin(SERIALRATE);
+    Serial.println("Starting");
   #endif
 
   // work out the number of buttons
@@ -68,9 +68,13 @@ void WebRequest(short button)
     Serial.print(WEBPORT); 
   #endif
   
+  EthernetClient client; // the ethernet connection
+  client.setTimeout(200);
   if (client.connect(SERVER_IP, WEBPORT)) 
   {
+    char inChar;
     char bs[20];
+    memset(bs, 0x00, sizeof(bs));
     sprintf(bs, "%d", button);
 
     #ifdef DEBUG
@@ -85,18 +89,46 @@ void WebRequest(short button)
     client.println( " HTTP/1.1");
     client.print( "Host: " );
     client.println(SERVER_IP);
-    client.println( "Connection: close" );
-    client.println();
-    client.println();
-    client.stop();
+    client.println( "Connection: close\r\n" );
+
+    #ifdef DEBUG
+      Serial.println("Sent"); 
+    #endif
     
-    client.flush(); // I dont care about the response
+    int connectLoop = 0;
+    while (client.connected() && connectLoop < 1000)
+    {
+       while (client.available())
+       {
+          inChar = client.read();
+          #ifdef DEBUGRESPONSE
+             Serial.write(inChar);
+          #endif
+          client.stop();
+       }
+
+       if (client.connected())
+       {
+           connectLoop++;
+           // this is a delay for the connectLoop timing
+           delay(1);
+       }
+    }
+    
+    #ifdef DEBUGRESPONSE
+       Serial.println();
+    #endif
+    #ifdef DEBUG
+      Serial.println("Response read"); 
+    #endif
+    
+    client.stop();
   }
   else 
   {
     // you didn't get a connection to the server:
     #ifdef DEBUG
-      Serial.println("--> connection failed/n");
+       Serial.println("--> connection failed/n");
     #endif
   }
 }

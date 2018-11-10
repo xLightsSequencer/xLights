@@ -211,7 +211,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	FlexGridSizer62->Add(Slider_PinwheelXC, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer62->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
-	BitmapButton_PinwheelXCVC = new ValueCurveButton(this, ID_VALUECURVE_PinwheelXC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PinwheelXC"));
+	BitmapButton_PinwheelXCVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_PinwheelXC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PinwheelXC"));
 	FlexGridSizer5->Add(BitmapButton_PinwheelXCVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl68 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_PinwheelXC, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PinwheelXC"));
 	TextCtrl68->SetMaxLength(4);
@@ -224,7 +224,7 @@ PinwheelPanel::PinwheelPanel(wxWindow* parent)
 	StaticText81 = new wxStaticText(this, ID_STATICTEXT_PinwheelYC, _("Y-axis center"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PinwheelYC"));
 	FlexGridSizer64->Add(StaticText81, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-	BitmapButton_PinwheelYCVC = new ValueCurveButton(this, ID_VALUECURVE_PinwheelYC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PinwheelYC"));
+	BitmapButton_PinwheelYCVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_PinwheelYC, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_PinwheelYC"));
 	FlexGridSizer6->Add(BitmapButton_PinwheelYCVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl69 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_PinwheelYC, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), wxTE_CENTRE, wxDefaultValidator, _T("IDD_TEXTCTRL_PinwheelYC"));
 	TextCtrl69->SetMaxLength(4);

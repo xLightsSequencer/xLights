@@ -8,6 +8,7 @@
 #include <wx/bmpbuttn.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/filepicker.h>
 #include <wx/fontpicker.h>
 #include <wx/gbsizer.h>
 #include <wx/image.h>
@@ -24,6 +25,10 @@
 //(*IdInit(TextPanel)
 const long TextPanel::ID_STATICTEXT_Text = wxNewId();
 const long TextPanel::ID_TEXTCTRL_Text = wxNewId();
+const long TextPanel::ID_STATICTEXT1 = wxNewId();
+const long TextPanel::ID_FILEPICKERCTRL_Text_File = wxNewId();
+const long TextPanel::ID_STATICTEXT2 = wxNewId();
+const long TextPanel::ID_CHOICE_Text_LyricTrack = wxNewId();
 const long TextPanel::ID_FONTPICKER_Text_Font = wxNewId();
 const long TextPanel::ID_BITMAPBUTTON_FONTPICKER_Text_Font = wxNewId();
 const long TextPanel::ID_STATICTEXT_Text_Font = wxNewId();
@@ -72,6 +77,7 @@ TextPanel::TextPanel(wxWindow* parent)
 {
 	//(*Initialize(TextPanel)
 	BulkEditCheckBox* CheckBox_TextToCenter;
+	BulkEditFontPicker* FontPickerCtrl;
 	BulkEditTextCtrl* TextCtrl72;
 	BulkEditTextCtrl* TextCtrl91;
 	BulkEditTextCtrl* TextCtrl92;
@@ -87,7 +93,6 @@ TextPanel::TextPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer48;
 	wxFlexGridSizer* FlexGridSizer66;
 	wxFlexGridSizer* FlexGridSizer69;
-	wxFontPickerCtrl* FontPickerCtrl;
 	wxGridBagSizer* GridBagSizer6;
 	wxGridBagSizer* GridBagSizer7;
 	wxNotebook* Notebook6;
@@ -108,9 +113,19 @@ TextPanel::TextPanel(wxWindow* parent)
 	TextCtrl_Text->SetMaxLength(256);
 	FlexGridSizer119->Add(TextCtrl_Text, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer119->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText2 = new wxStaticText(Panel_Text1, ID_STATICTEXT1, _("From File"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer119->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FilePickerCtrl1 = new wxFilePickerCtrl(Panel_Text1, ID_FILEPICKERCTRL_Text_File, wxEmptyString, _("Select a text file"), _T("*.txt"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL_Text_File"));
+	FlexGridSizer119->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer119->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText3 = new wxStaticText(Panel_Text1, ID_STATICTEXT2, _("From Lyrics"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer119->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	Choice_LyricTrack = new wxChoice(Panel_Text1, ID_CHOICE_Text_LyricTrack, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_Text_LyricTrack"));
+	FlexGridSizer119->Add(Choice_LyricTrack, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer119->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText162 = new wxStaticText(Panel_Text1, wxID_ANY, _("Font"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
 	FlexGridSizer119->Add(StaticText162, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	FontPickerCtrl = new wxFontPickerCtrl(Panel_Text1, ID_FONTPICKER_Text_Font, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font"));
+	FontPickerCtrl = new BulkEditFontPicker(Panel_Text1, ID_FONTPICKER_Text_Font, wxNullFont, wxDefaultPosition, wxDefaultSize, wxFNTP_FONTDESC_AS_LABEL, wxDefaultValidator, _T("ID_FONTPICKER_Text_Font"));
 	FlexGridSizer119->Add(FontPickerCtrl, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_TextFont = new xlLockButton(Panel_Text1, ID_BITMAPBUTTON_FONTPICKER_Text_Font, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_FONTPICKER_Text_Font"));
 	BitmapButton_TextFont->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
@@ -263,6 +278,9 @@ TextPanel::TextPanel(wxWindow* parent)
 	FlexGridSizer46->Fit(this);
 	FlexGridSizer46->SetSizeHints(this);
 
+	Connect(ID_TEXTCTRL_Text,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&TextPanel::OnTextCtrl_TextText);
+	Connect(ID_FILEPICKERCTRL_Text_File,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&TextPanel::OnFilePickerCtrl1FileChanged);
+	Connect(ID_CHOICE_Text_LyricTrack,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&TextPanel::OnChoice_LyricTrackSelect);
 	Connect(ID_BITMAPBUTTON_FONTPICKER_Text_Font,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_Text_Dir,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&TextPanel::OnLockButtonClick);
@@ -281,6 +299,7 @@ TextPanel::TextPanel(wxWindow* parent)
     {
         Choice_Text_Font->Append( xl_font_names[i] );
     }
+    ValidateWindow();
 }
 
 TextPanel::~TextPanel()
@@ -290,3 +309,46 @@ TextPanel::~TextPanel()
 }
 
 PANEL_EVENT_HANDLERS(TextPanel)
+
+void TextPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
+{
+    ValidateWindow();
+}
+
+void TextPanel::ValidateWindow()
+{
+    TextCtrl_Text->Enable();
+    if (TextCtrl_Text->GetValue() != "")
+    {
+        FilePickerCtrl1->Disable();
+        Choice_LyricTrack->Disable();
+    }
+    else
+    {
+        FilePickerCtrl1->Enable();
+        if (wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath()))
+        {
+            Choice_LyricTrack->Disable();
+        }
+        else
+        {
+            if (Choice_LyricTrack->GetCount() <= 1)
+            {
+                Choice_LyricTrack->Disable();
+            }
+            else
+            {
+                Choice_LyricTrack->Enable();
+            }
+        }
+    }
+}
+void TextPanel::OnTextCtrl_TextText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void TextPanel::OnChoice_LyricTrackSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
+}

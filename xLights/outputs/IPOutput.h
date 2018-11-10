@@ -6,15 +6,17 @@
 class IPOutput : public Output
 {
 protected:
-    static std::string __localIP;
 
     virtual void Save(wxXmlNode* node) override;
 
 public:
 
+    static std::string __localIP;
+
     #pragma region Constructors and Destructors
     IPOutput(wxXmlNode* node);
     IPOutput();
+    IPOutput(IPOutput* output) : Output(output) {};
     virtual ~IPOutput() override {};
     #pragma endregion Constructors and Destructors
 
@@ -31,6 +33,8 @@ public:
     virtual bool IsIpOutput() const override { return true; }
     virtual bool IsSerialOutput() const override { return false; }
     virtual std::string GetPingDescription() const override;
+    virtual void SetIP(const std::string& ip) override;
+    virtual std::string GetSortName() const override { return GetIP(); }
     #pragma endregion Getters and Setters
 
     #pragma region Operators
@@ -39,7 +43,7 @@ public:
     
     virtual wxXmlNode* Save() override;
     PINGSTATE Ping() const override;
-    static PINGSTATE Ping(const std::string ip);
+    static PINGSTATE Ping(const std::string& ip, const std::string& proxy);
     bool CanPing() const override { return (GetIP() != "MULTICAST"); }
 
     #pragma region Start and Stop

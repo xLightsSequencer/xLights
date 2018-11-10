@@ -17,8 +17,10 @@
 #include "GalaxyEffect.h"
 #include "GarlandsEffect.h"
 #include "GlediatorEffect.h"
+#include "KaleidoscopeEffect.h"
 #include "LifeEffect.h"
 #include "LightningEffect.h"
+#include "LinesEffect.h"
 #include "LiquidEffect.h"
 #include "MarqueeEffect.h"
 #include "MeteorsEffect.h"
@@ -31,6 +33,7 @@
 #include "RenderableEffect.h"
 #include "RippleEffect.h"
 #include "ServoEffect.h"
+#include "ShaderEffect.h"
 #include "ShapeEffect.h"
 #include "ShimmerEffect.h"
 #include "ShockwaveEffect.h"
@@ -69,8 +72,10 @@ EffectManager::EffectManager()
     add(new GalaxyEffect(eff_GALAXY));
     add(new GarlandsEffect(eff_GARLANDS));
     add(new GlediatorEffect(eff_GLEDIATOR));
+    add(new KaleidoscopeEffect(eff_KALEIDOSCOPE));
     add(new LifeEffect(eff_LIFE));
     add(new LightningEffect(eff_LIGHTNING));
+    add(new LinesEffect(eff_LINES));
     add(new LiquidEffect(eff_LIQUID));
     add(new MarqueeEffect(eff_MARQUEE));
     add(new MeteorsEffect(eff_METEORS));
@@ -82,6 +87,7 @@ EffectManager::EffectManager()
     add(new PlasmaEffect(eff_PLASMA));
     add(new RippleEffect(eff_RIPPLE));
     add(new ServoEffect (eff_SERVO));
+    add(new ShaderEffect(eff_SHADER));
     add(new ShapeEffect (eff_SHAPE));
     add(new ShimmerEffect(eff_SHIMMER));
     add(new ShockwaveEffect(eff_SHOCKWAVE));

@@ -1178,7 +1178,7 @@ wxJSONReader::ReadString( wxInputStream& is, wxJSONValue& val )
                     continue;
                     // break;
                 default :
-                    AddError( _T( "Unknow escaped character \'\\%c\'"), ch );
+                    AddError( _T( "Unknown escaped character \'\\%c\'"), ch );
             }
         }
         else {

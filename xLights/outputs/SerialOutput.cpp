@@ -1,17 +1,23 @@
-#include "SerialOutput.h"
-
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include <wx/msgdlg.h>
+
+#include "SerialOutput.h"
+#ifndef EXCLUDENETWORKUI
 #include "SerialPortWithRate.h"
+#endif
 #include "LOROutput.h"
 #include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
 #include "RenardOutput.h"
 #include "DMXOutput.h"
+#include "SyncrolightSerialOutput.h"
 #include "PixelNetOutput.h"
 #include "OpenDMXOutput.h"
 #include "OpenPixelNetOutput.h"
-#include <wx/msgdlg.h>
+#include "OutputManager.h"
+#include "../UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
 SerialOutput::SerialOutput(wxXmlNode* node) : Output(node)
@@ -107,15 +113,15 @@ bool SerialOutput::TxEmpty() const
     return true;
 }
 
-std::string SerialOutput::GetChannelMapping(long ch) const
+std::string SerialOutput::GetChannelMapping(int32_t ch) const
 {
-    std::string res = "Channel " + std::string(wxString::Format(wxT("%ld"), ch)) + " maps to ...\n";
+    std::string res = "Channel " + std::string(wxString::Format(wxT("%d"), ch)) + " maps to ...\n";
 
-    long channeloffset = ch - GetStartChannel() + 1;
+    int32_t channeloffset = ch - GetStartChannel() + 1;
 
     res += "Type: " + GetType() + "\n";
     res += "ComPort: " + _commPort + "\n";
-    res += "Channel: " + std::string(wxString::Format(wxT("%ld"), channeloffset)) + "\n";
+    res += "Channel: " + std::string(wxString::Format(wxT("%d"), channeloffset)) + "\n";
 
     if (!_enabled) res += " INACTIVE";
 
@@ -128,8 +134,8 @@ std::string SerialOutput::GetLongDescription() const
 
     if (!_enabled) res += "INACTIVE ";
     res += GetType() + " " + _commPort;
-    res += " [1-" + std::string(wxString::Format(wxT("%ld"), (long)_channels)) + "] ";
-    res += "(" + std::string(wxString::Format(wxT("%ld"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetEndChannel())) + ") ";
+    res += " [1-" + std::string(wxString::Format(wxT("%d"), _channels)) + "] ";
+    res += "(" + std::string(wxString::Format(wxT("%d"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetEndChannel())) + ") ";
     res += _description;
 
     return res;
@@ -177,11 +183,11 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts()
     wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
     if (!errors.IsEmpty())
     {
-        wxMessageBox(errors.Last(), _("Error"));
+        DisplayError(errors.Last());
     }
     else if (output.IsEmpty())
     {
-        wxMessageBox(_("no devices found"), _("Error"));
+        DisplayError(_("no devices found"));
     }
     else
     {
@@ -230,6 +236,17 @@ std::list<std::string> SerialOutput::GetPossibleBaudRates()
     return res;
 }
 
+std::string SerialOutput::GetExport() const
+{
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,,,%i,%s,%i,%s,%i,%s,%s,,,,,,,,,,,",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetId(), GetCommPort(), GetBaudRate(), _description, _channels,
+        enabled, suppress).ToStdString();
+}
+
 std::list<std::string> SerialOutput::GetAvailableSerialPorts()
 {
     std::list<std::string> res;
@@ -275,11 +292,11 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
     wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
     if (!errors.IsEmpty())
     {
-        wxMessageBox(errors.Last(), _("Error"));
+        DisplayError(errors.Last());
     }
     else if (output.IsEmpty())
     {
-        wxMessageBox(_("no devices found"), _("Error"));
+        DisplayError(_("no devices found"));
     }
     else
     {
@@ -325,6 +342,9 @@ bool SerialOutput::Open()
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0)
         {
+            delete _serial;
+            _serial = nullptr;
+
             logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
             _ok = false;
 
@@ -336,18 +356,21 @@ bool SerialOutput::Open()
                 p += *it;
             }
 
-            wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
-                _("Things to check:\n") +
-                _("1. Are all required cables plugged in?\n") +
-                _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
-                _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
-                _("Unable to open serial port %s. Error code = %d"),
-                (const char *)GetType().c_str(),
-                (const char *)GetCommPort().c_str(),
-                (const char *)p.c_str(),
-                (const char *)_commPort.c_str(),
-                errcode);
-            wxMessageBox(msg, _("Communication Error"), wxOK);
+            if (OutputManager::IsInteractive())
+            {
+                wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
+                    _("Things to check:\n") +
+                    _("1. Are all required cables plugged in?\n") +
+                    _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
+                    _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
+                    _("Unable to open serial port %s. Error code = %d"),
+                    (const char *)GetType().c_str(),
+                    (const char *)GetCommPort().c_str(),
+                    (const char *)p.c_str(),
+                    (const char *)_commPort.c_str(),
+                    errcode);
+                DisplayError(msg);
+            }
         }
         else
         {
@@ -378,6 +401,24 @@ void SerialOutput::Close()
         logger_base.debug("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
     }
 }
+
+void SerialOutput::StartFrame(long msec)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!_enabled) return;
+
+    if (!_ok && OutputManager::IsRetryOpen())
+    {
+        _ok = SerialOutput::Open();
+        if (_ok)
+        {
+            logger_base.debug("SerialOutput: Open retry successful. %s.", (const char *)_commPort.c_str());
+        }
+    }
+
+    _timer_msec = msec;
+}
 #pragma endregion Start and Stop
 
 #pragma region Operator
@@ -398,6 +439,10 @@ SerialOutput* SerialOutput::Mutate(const std::string& newtype)
     else if (newtype == OUTPUT_PIXELNET)
     {
         return new PixelNetOutput(this);
+    }
+    else if (newtype == OUTPUT_SYNCROLIGHTSERIAL)
+    {
+        return new SyncrolightSerialOutput(this);
     }
     else if (newtype == OUTPUT_LOR)
     {
@@ -454,7 +499,7 @@ PINGSTATE SerialOutput::Ping() const
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
 // This is a bit funky as we will need to create a serial output then mutate it into the correct output type
-Output* SerialOutput::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* SerialOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
     SerialOutput* result = this;
 
@@ -471,4 +516,3 @@ Output* SerialOutput::Configure(wxWindow* parent, OutputManager* outputManager)
 }
 #endif
 #pragma endregion UI
-

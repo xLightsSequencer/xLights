@@ -8,8 +8,11 @@
 #include <wx/html/htmlwin.h>
 #include <wx/html/htmprint.h>
 
+#include "UtilFunctions.h"
+
 //(*IdInit(ChannelLayoutDialog)
 const long ChannelLayoutDialog::ID_BUTTON1 = wxNewId();
+const long ChannelLayoutDialog::ID_BUTTON_OPEN_IN_BROWSER = wxNewId();
 const long ChannelLayoutDialog::ID_HTMLWINDOW1 = wxNewId();
 //*)
 
@@ -39,6 +42,8 @@ ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wx
     BoxSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Print = new wxButton(this, ID_BUTTON1, _("Print"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     BoxSizer1->Add(Button_Print, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonOpenInBrower = new wxButton(this, ID_BUTTON_OPEN_IN_BROWSER, _("Open in Browser"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_OPEN_IN_BROWSER"));
+    BoxSizer1->Add(ButtonOpenInBrower, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     HtmlWindow1 = new wxHtmlWindow(this, ID_HTMLWINDOW1, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO, _T("ID_HTMLWINDOW1"));
     HtmlWindow1->SetMinSize(wxSize(500,400));
@@ -48,6 +53,7 @@ ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wx
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ChannelLayoutDialog::OnButton_PrintClick);
+    Connect(ID_BUTTON_OPEN_IN_BROWSER,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ChannelLayoutDialog::OnButtonOpenInBrowerClick);
     //*)
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
 }
@@ -59,9 +65,10 @@ ChannelLayoutDialog::~ChannelLayoutDialog()
     delete HtmlEasyPrint;
 }
 
-
 void ChannelLayoutDialog::OnButton_PrintClick(wxCommandEvent& event)
 {
+    HtmlEasyPrint->SetStandardFonts(7, "Arial");
+    HtmlEasyPrint->PageSetup();
     HtmlEasyPrint->PreviewText(HtmlSource);
 }
 
@@ -69,4 +76,9 @@ void ChannelLayoutDialog::SetHtmlSource(wxString& html)
 {
     HtmlSource=html;
     HtmlWindow1->SetPage(html);
+}
+
+void ChannelLayoutDialog::OnButtonOpenInBrowerClick(wxCommandEvent& event)
+{
+	ViewTempFile(HtmlSource, "ModelHTML", "html");
 }

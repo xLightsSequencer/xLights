@@ -8,7 +8,7 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 
-#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg|All Files|*.*"
+#define AUDIOFILES "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg;*.wmv|All Files|*.*"
 
 class PlayListItemAudio : public PlayListItem
 {
@@ -56,12 +56,13 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start(long stepLengthMS) override;
     virtual void Stop() override;
     virtual void Restart() override;
     virtual void Pause(bool pause) override;
     virtual void Suspend(bool suspend) override;
+    virtual bool Advance(int seconds) override;
     #pragma endregion Playing
 
 #pragma region UI

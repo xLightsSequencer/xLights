@@ -81,6 +81,7 @@ class SubModelsDialog : public wxDialog
     Model *model;
     ModelPreview *modelPreview;
     SubBufferPanel *subBufferPanel;
+    bool _isMatrix = false;
 
 public:
     std::vector<SubModelInfo*> _subModels;
@@ -104,6 +105,7 @@ public:
     wxButton* Button_ReverseRow;
     wxButton* Button_ReverseRows;
     wxButton* Button_Sub_Import;
+    wxButton* Button_importCustom;
     wxButton* DeleteButton;
     wxButton* DeleteRowButton;
     wxCheckBox* LayoutCheckbox;
@@ -133,6 +135,7 @@ protected:
     static const long ID_BUTTON5;
     static const long ID_BUTTON_COPY_MODEL;
     static const long ID_BUTTON_SUB_IMPORT;
+    static const long ID_BUTTON9;
     static const long ID_PANEL4;
     static const long ID_STATICTEXT_NAME;
     static const long ID_TEXTCTRL_NAME;
@@ -150,8 +153,8 @@ protected:
     static const long ID_PANEL3;
     static const long ID_NOTEBOOK1;
     static const long ID_PANEL5;
-    static const long ID_SPLITTERWINDOW1;
     static const long ID_PANEL1;
+    static const long ID_SPLITTERWINDOW1;
     //*)
 
     wxString GetSelectedName() const;
@@ -165,6 +168,8 @@ protected:
     void MoveSelectedModelsTo(int indexTo);
     void RemoveSubModelFromList(wxString name);
     wxString GenerateSubModelName(wxString basename);
+    void ImportCustomModel(std::string filename);
+    void FixNodes(wxXmlNode* n, const std::string& attribute, std::map<int, int>& nodeMap);
 
     void PopulateList();
     void ValidateWindow();
@@ -213,6 +218,7 @@ private:
     void OnButton_Draw_ModelClick(wxCommandEvent& event);
     void OnNodesGridLabelLeftDClick(wxGridEvent& event);
     void OnNodesGridCellLeftDClick(wxGridEvent& event);
+    void OnButton_importCustomClick(wxCommandEvent& event);
     //*)
 
     wxWindow* _parent;

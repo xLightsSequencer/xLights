@@ -10,6 +10,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "LinkJukeboxButtonDialog.h"
+#include "UtilFunctions.h"
 
 ButtonControl::ButtonControl(int i)
 {
@@ -83,13 +84,19 @@ void ButtonControl::SelectEffect(MainSequencer* sequencer)
 {
     if (sequencer != nullptr)
     {
+        Effect* e = nullptr;
         if (_type == LOOKUPTYPE::LTDESCRIPTION)
         {
-            sequencer->SelectEffectUsingDescription(_description);
+            e = sequencer->SelectEffectUsingDescription(_description);
         }
         else if (_type == LOOKUPTYPE::LTMLT)
         {
-            sequencer->SelectEffectUsingElementLayerTime(_element, _layer - 1, _time);
+            e = sequencer->SelectEffectUsingElementLayerTime(_element, _layer - 1, _time);
+        }
+
+        if (e != nullptr)
+        {
+            sequencer->PanelEffectGrid->RaiseSelectedEffectChanged(e, false, true);
         }
     }
 }
@@ -121,7 +128,7 @@ JukeboxPanel::JukeboxPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,con
             0, wxDefaultValidator, _T("ID_BITMAPBUTTON_JB") + wxString::Format("%d", i + 1));
         button->SetMinSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
         button->SetMaxSize(wxSize(BUTTONWIDTH, BUTTONHEIGHT));
-        GridSizer1->Add(button, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, i);
+        GridSizer1->Add(button, 1, wxALL | wxEXPAND);
         Connect(button->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&JukeboxPanel::OnButtonClick);
         Connect(button->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&JukeboxPanel::OnButtonRClick);
     }
@@ -231,7 +238,7 @@ void JukeboxPanel::OnResize(wxSizeEvent& event)
 
     GridSizer1->SetCols(i);
     GridSizer1->SetDimension(0, 0, wsz.GetWidth(), wsz.GetHeight());
-    GridSizer1->RecalcSizes();
+    GridSizer1->Layout();
 }
 
 void JukeboxPanel::OnButtonClick(wxCommandEvent& event)
@@ -251,6 +258,7 @@ void JukeboxPanel::OnButtonRClick(wxContextMenuEvent& event)
     }
 
     LinkJukeboxButtonDialog dlg(this, button, control, xLightsApp::GetFrame()->GetMainSequencer());
+    OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK)
     {

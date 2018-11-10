@@ -1,6 +1,7 @@
 #include "LOROptimisedOutput.h"
+#ifndef EXCLUDENETWORKUI
 #include "LorOptimisedDialog.h"
-
+#endif
 #include <wx/xml/xml.h>
 #include <log4cpp/Category.hh>
 
@@ -29,7 +30,7 @@ LOROptimisedOutput::~LOROptimisedOutput()
 
 void LOROptimisedOutput::SetupHistory()
 {
-    for( size_t i=0; i < MAX_BANKS; ++i ) {
+    for (size_t i = 0; i < MAX_BANKS; ++i) {
         banks_changed[i] = true;
     }
 }
@@ -60,7 +61,7 @@ void LOROptimisedOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void LOROptimisedOutput::SetOneChannel(long channel, unsigned char data)
+void LOROptimisedOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
@@ -68,14 +69,28 @@ void LOROptimisedOutput::SetOneChannel(long channel, unsigned char data)
         // Don't try to only send changes since this is used for test mode
         // and not all channels are written every frame
         SetupHistory();
+        wxASSERT(sizeof(_curData) <= sizeof(_lastSent));
         memset(_curData, 0x00, sizeof(_curData));
         memset(_lastSent, 0xFF, sizeof(_curData));
         _changed = true;
     }
+
+    wxASSERT(channel < sizeof(_curData));
     _curData[channel] = data;
 }
 
-void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], long size)
+std::string LOROptimisedOutput::GetExport() const
+{
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,,,%i,%s,%i,%s,%i,%s,%s,,,,,,,,,,,",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetId(), GetCommPort(), GetBaudRate(), _description, _channels,
+        enabled, suppress).ToStdString();
+}
+
+void LOROptimisedOutput::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
@@ -89,18 +104,18 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
     int cur_channel = channel;
     int total_bytes_sent = 0;
 
-    for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
+    for (auto it : *_controllers.GetControllers())
     {
-		int channel_count = (*it)->GetNumChannels();
-        int unit_id = (*it)->GetUnitId();
+		int channel_count = it->GetNumChannels();
+        int unit_id = it->GetUnitId();
 
         int controller_channels_to_process = channel_count;
         int channels_per_pass = controller_channels_to_process;
-		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
+		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, it);
 
         while( controller_channels_to_process > 0 ) {
             size_t idx = 0;  // running index for placing next byte
-            wxByte d[8192];
+            uint8_t d[8192];
             std::vector< std::vector<LORDataPair> > lorBankData;
             lorBankData.resize((channels_per_pass/16)+1);
 
@@ -116,10 +131,13 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             while (channels_to_process > 0) {
                 bool processed = false;
 
+                wxASSERT(cur_channel < sizeof(cur_channel));
                 if ((data[cur_channel] > 0) && (data[cur_channel] < 0xFF)) {
+                    wxASSERT(shift_offset < sizeof(color_mode));
                     color_mode[shift_offset] = true;
                 }
 
+                wxASSERT(shift_offset < sizeof(lorBankData));
                 for (int i = 0; i < lorBankData[shift_offset].size(); ++i) {
                     if( lorBankData[shift_offset][i].value == data[cur_channel] ) {
                         lorBankData[shift_offset][i].bits |= (1 << chan_offset);
@@ -152,6 +170,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
 
             // now build the commands to send out the serial port
             for (int bank = lorBankData.size() - 1; bank >= 0; --bank) {
+                wxASSERT(bank < sizeof(banks_changed));
                 if (banks_changed[bank]) {
                     int num_bank_records = lorBankData[bank].size();
 
@@ -172,8 +191,8 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
                                 // send a value byte command for 0 if in color mode
                                 // otherwise its either all off or all on and will be covered
                                 // by other commands.
-                                wxByte lsb = lorBankData[bank][i].bits & 0xFF;
-                                wxByte msb = lorBankData[bank][i].bits >> 8;
+                                uint8_t lsb = lorBankData[bank][i].bits & 0xFF;
+                                uint8_t msb = lorBankData[bank][i].bits >> 8;
                                 d[idx++] = 0;
                                 d[idx++] = unit_id;
                                 d[idx++] = 0x53;
@@ -199,8 +218,8 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
                     // send all the channels with 0xFF first
                     for (int i = 0; i < num_bank_records; ++i) {
                         if (lorBankData[bank][i].value == 0xFF) {
-                            wxByte lsb = lorBankData[bank][i].bits & 0xFF;
-                            wxByte msb = lorBankData[bank][i].bits >> 8;
+                            uint8_t lsb = lorBankData[bank][i].bits & 0xFF;
+                            uint8_t msb = lorBankData[bank][i].bits >> 8;
                             bool value_byte = lorBankData[bank][i].value != 0xFF;
                             GenerateCommand(d, idx, unit_id, bank, value_byte, _data[lorBankData[bank][i].value], lsb, msb);
                         }
@@ -209,8 +228,8 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
                     // now send all commands that are values between 0 and FF
                     for (int i = 0; i < num_bank_records; ++i) {
                         if ((lorBankData[bank][i].value != 0) && (lorBankData[bank][i].value != 0xFF)) {
-                            wxByte lsb = lorBankData[bank][i].bits & 0xFF;
-                            wxByte msb = lorBankData[bank][i].bits >> 8;
+                            uint8_t lsb = lorBankData[bank][i].bits & 0xFF;
+                            uint8_t msb = lorBankData[bank][i].bits >> 8;
                             bool value_byte = lorBankData[bank][i].value != 0xFF;
                             GenerateCommand(d, idx, unit_id, bank, value_byte, _data[lorBankData[bank][i].value], lsb, msb);
                         }
@@ -236,10 +255,10 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             unit_id++;
         }
     }
-    logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
+    //logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
 }
 
-void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb)
+void LOROptimisedOutput::GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb)
 {
     d[idx++] = 0;        // Leading zero
     d[idx++] = unit_id;  // Unit ID
@@ -290,18 +309,18 @@ void LOROptimisedOutput::AllOff()
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("    LOROptimisedOutput: AllOff starting");
 
-    for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
+    for (auto it : *_controllers.GetControllers())
     {
-        int unit_id = (*it)->GetUnitId();
+        int unit_id = it->GetUnitId();
 
-        int channel_count = (*it)->GetNumChannels();
+        int channel_count = it->GetNumChannels();
         int controller_channels_to_process = channel_count;
         int channels_per_pass = controller_channels_to_process;
-		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
+		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, it);
 
         while( controller_channels_to_process > 0 ) {
             size_t idx = 0;
-            wxByte d[1024];
+            uint8_t d[1024];
             int channels_to_process = channels_per_pass;
             while (channels_to_process > 0) {
                 d[idx++] = 0;
@@ -345,7 +364,7 @@ std::string LOROptimisedOutput::GetSetupHelp() const
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
 // This is a bit funky as we will need to create a serial output then mutate it into the correct output type
-Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
     LOROptimisedOutput* result = this;
 
@@ -365,42 +384,42 @@ Output* LOROptimisedOutput::Configure(wxWindow* parent, OutputManager* outputMan
 #endif
 #pragma endregion UI
 
-void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl )
+void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass, int& controller_channels_to_process, LorController* cntrl)
 {
-	LorController::AddressMode addr_mode = cntrl->GetAddressMode();
-	controller_channels_to_process = channel_count;
-	channels_per_pass = controller_channels_to_process;
-	std::string type = cntrl->GetType();
+    LorController::AddressMode addr_mode = cntrl->GetAddressMode();
+    controller_channels_to_process = channel_count;
+    channels_per_pass = controller_channels_to_process;
+    std::string type = cntrl->GetType();
     int unit_id = cntrl->GetUnitId();
-	if ((type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
-		std::size_t found = type.find("Pixie");
-		if (found != std::string::npos) {
-			int outputs_per_card = wxAtoi(type.substr(found + 5, type.length() - found - 5));
-			channels_per_pass = channel_count;
-			channel_count = outputs_per_card * channels_per_pass;
-			controller_channels_to_process = channel_count;
-            for(int i = 0; i < outputs_per_card; i++) {
-                unit_id_in_use[unit_id+i] = true;
+    if ((type == "Pixie4") || (type == "Pixie8") || (type == "Pixie16")) {
+        std::size_t found = type.find("Pixie");
+        if (found != std::string::npos) {
+            int outputs_per_card = wxAtoi(type.substr(found + 5, type.length() - found - 5));
+            channels_per_pass = channel_count;
+            channel_count = outputs_per_card * channels_per_pass;
+            controller_channels_to_process = channel_count;
+            for (int i = 0; i < outputs_per_card; i++) {
+                unit_id_in_use[unit_id + i] = true;
             }
-		}
-	}
-	else {
-		if (addr_mode == LorController::LOR_ADDR_MODE_LEGACY) {
-			channels_per_pass = 16;
-			int num_ids = channel_count / channels_per_pass;
-			if( (num_ids * channels_per_pass) < channel_count ) {
+        }
+    }
+    else {
+        if (addr_mode == LorController::LOR_ADDR_MODE_LEGACY) {
+            channels_per_pass = 16;
+            int num_ids = channel_count / channels_per_pass;
+            if ((num_ids * channels_per_pass) < channel_count) {
                 num_ids++;
-			}
-            for(int i = 0; i < num_ids; i++) {
-                unit_id_in_use[unit_id+i] = true;
             }
-		}
-		else if (addr_mode == LorController::LOR_ADDR_MODE_SPLIT) {
-			channels_per_pass = channel_count / 2;
-			unit_id_in_use[unit_id] = true;
-			unit_id_in_use[unit_id+1] = true;
-		}
-	}
+            for (int i = 0; i < num_ids; i++) {
+                unit_id_in_use[unit_id + i] = true;
+            }
+        }
+        else if (addr_mode == LorController::LOR_ADDR_MODE_SPLIT) {
+            channels_per_pass = channel_count / 2;
+            unit_id_in_use[unit_id] = true;
+            unit_id_in_use[unit_id + 1] = true;
+        }
+    }
 }
 
 void LOROptimisedOutput::CalcTotalChannels()
@@ -413,12 +432,12 @@ void LOROptimisedOutput::CalcTotalChannels()
         unit_id_in_use[i] = false;
     }
     unit_id_in_use[0] = true;  // we don't use id 0
-    for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
+    for (auto it : *_controllers.GetControllers())
     {
-        channel_count = (*it)->GetNumChannels();
-        int unit_id = (*it)->GetUnitId();
+        channel_count = it->GetNumChannels();
+        int unit_id = it->GetUnitId();
         unit_id_in_use[unit_id] = true;
-		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
+		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, it);
 		total_channels += channel_count;
     }
     _channels = total_channels;

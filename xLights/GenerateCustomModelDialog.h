@@ -312,6 +312,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxSlider* Slider_BI_MinSeparation;
 		wxSlider* Slider_BI_Sensitivity;
 		wxSlider* Slider_Intensity;
+		wxSpinCtrl* SpinCtrl_MissingBulbLimit;
 		wxSpinCtrl* SpinCtrl_NC_Count;
 		wxSpinCtrl* SpinCtrl_StartChannel;
 		wxStaticText* StaticText10;
@@ -321,6 +322,7 @@ class GenerateCustomModelDialog: public wxDialog
 		wxStaticText* StaticText15;
 		wxStaticText* StaticText16;
 		wxStaticText* StaticText17;
+		wxStaticText* StaticText18;
 		wxStaticText* StaticText9;
 		wxStaticText* StaticText_BI;
 		wxStaticText* StaticText_BI_Slider;
@@ -389,6 +391,8 @@ class GenerateCustomModelDialog: public wxDialog
 		static const long ID_TEXTCTRL_BI_MinScale;
 		static const long ID_CHECKBOX_BI_IsSteady;
 		static const long ID_CHECKBOX_BI_ManualUpdate;
+		static const long ID_STATICTEXT12;
+		static const long ID_SPINCTRL1;
 		static const long ID_GAUGE1;
 		static const long ID_BUTTON_BI_Update;
 		static const long ID_BUTTON_CB_RestoreDefault;

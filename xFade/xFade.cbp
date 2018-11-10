@@ -28,6 +28,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
 					<Add directory="../xFade" />
 					<Add directory="../include" />
@@ -77,6 +78,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
 					<Add directory="../xFade" />
 					<Add directory="../include" />
@@ -100,6 +102,7 @@
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="../lib/windows/libportmidi.a" />
 					<Add library="libwinmm.a" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -195,6 +198,7 @@
 					<Add directory="../xFade" />
 					<Add directory="../include" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -213,6 +217,7 @@
 					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add library="../lib/windows64/libportmidi.a" />
 					<Add library="libwinmm.a" />
+					<Add library="psapi" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>

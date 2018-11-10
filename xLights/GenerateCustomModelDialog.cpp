@@ -18,6 +18,7 @@
 #include "xLightsVersion.h"
 #include "xLightsXmlFile.h"
 #include "outputs/OutputManager.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -42,7 +43,6 @@
 #define FLAGOFF 500
 #define NODEON 500
 #define NODEOFF 200
-#define BLANKFRAMESBEFOREABORT 30
 #define DELAYMSUNTILSAMPLE 0
 
 #pragma region Flicker Free Static Bitmap
@@ -135,6 +135,8 @@ const long GenerateCustomModelDialog::ID_SLIDER_BI_MinScale = wxNewId();
 const long GenerateCustomModelDialog::ID_TEXTCTRL_BI_MinScale = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX_BI_IsSteady = wxNewId();
 const long GenerateCustomModelDialog::ID_CHECKBOX_BI_ManualUpdate = wxNewId();
+const long GenerateCustomModelDialog::ID_STATICTEXT12 = wxNewId();
+const long GenerateCustomModelDialog::ID_SPINCTRL1 = wxNewId();
 const long GenerateCustomModelDialog::ID_GAUGE1 = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_BI_Update = wxNewId();
 const long GenerateCustomModelDialog::ID_BUTTON_CB_RestoreDefault = wxNewId();
@@ -175,6 +177,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, OutputMan
     _busy = false;
 
 	//(*Initialize(GenerateCustomModelDialog)
+	wxBoxSizer* BoxSizer1;
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
 	wxFlexGridSizer* FlexGridSizer12;
@@ -194,6 +197,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, OutputMan
 	wxFlexGridSizer* FlexGridSizer27;
 	wxFlexGridSizer* FlexGridSizer28;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer30;
 	wxFlexGridSizer* FlexGridSizer31;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
@@ -365,7 +369,7 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, OutputMan
 	Panel_BulbIdentify = new wxPanel(AuiNotebook_ProcessSettings, ID_PANEL_BulbIdentify, wxPoint(176,18), wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_BulbIdentify"));
 	FlexGridSizer15 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer15->AddGrowableCol(0);
-	FlexGridSizer15->AddGrowableRow(6);
+	FlexGridSizer15->AddGrowableRow(5);
 	StaticText_BI = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT5, _("The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.\n\nClick next when you are happy that all bulbs have been detected."), wxDefaultPosition, wxSize(652,75), 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer15->Add(StaticText_BI, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer16 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -401,12 +405,22 @@ GenerateCustomModelDialog::GenerateCustomModelDialog(wxWindow* parent, OutputMan
 	TextCtrl_BI_MinScale = new wxTextCtrl(Panel_BulbIdentify, ID_TEXTCTRL_BI_MinScale, _("1"), wxDefaultPosition, wxSize(40,24), wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_BI_MinScale"));
 	FlexGridSizer16->Add(TextCtrl_BI_MinScale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer15->Add(FlexGridSizer16, 1, wxALL|wxEXPAND, 2);
+	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	CheckBox_BI_IsSteady = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX_BI_IsSteady, _("Video is steady"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_IsSteady"));
 	CheckBox_BI_IsSteady->SetValue(true);
-	FlexGridSizer15->Add(CheckBox_BI_IsSteady, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1->Add(CheckBox_BI_IsSteady, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_BI_ManualUpdate = new wxCheckBox(Panel_BulbIdentify, ID_CHECKBOX_BI_ManualUpdate, _("Manual Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_BI_ManualUpdate"));
 	CheckBox_BI_ManualUpdate->SetValue(true);
-	FlexGridSizer15->Add(CheckBox_BI_ManualUpdate, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	BoxSizer1->Add(CheckBox_BI_ManualUpdate, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer30 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer30->AddGrowableCol(1);
+	StaticText18 = new wxStaticText(Panel_BulbIdentify, ID_STATICTEXT12, _("Blank Frames Limit"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer30->Add(StaticText18, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SpinCtrl_MissingBulbLimit = new wxSpinCtrl(Panel_BulbIdentify, ID_SPINCTRL1, _T("30"), wxDefaultPosition, wxDefaultSize, 0, 0, 300, 30, _T("ID_SPINCTRL1"));
+	SpinCtrl_MissingBulbLimit->SetValue(_T("30"));
+	FlexGridSizer30->Add(SpinCtrl_MissingBulbLimit, 1, wxALL|wxEXPAND, 5);
+	BoxSizer1->Add(FlexGridSizer30, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer15->Add(BoxSizer1, 1, wxALL|wxEXPAND, 2);
 	Gauge_Progress = new wxGauge(Panel_BulbIdentify, ID_GAUGE1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_GAUGE1"));
 	FlexGridSizer15->Add(Gauge_Progress, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer27 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -650,7 +664,7 @@ inline void SetPixel(int x, int y, int w3, unsigned char* data, unsigned char c)
 
 wxImage GenerateCustomModelDialog::CreateImageFromFrame(AVFrame* frame)
 {
-    if (frame != NULL)
+    if (frame != nullptr)
     {
         wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
         img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
@@ -781,7 +795,7 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
 
 void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 {
-    wxMessageBox("Please prepare to video the model ... press ok when ready to start.", "", 5L, this);
+    DisplayInfo("Please prepare to video the model ... press ok when ready to start.", this);
 
     static log4cpp::Category &logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
     logger_pcm.info("Running lights to be videoed.");
@@ -814,7 +828,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 
     if (_outputManager->IsOutputOpenInAnotherProcess())
     {
-        wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
     }
 
     _outputManager->StartOutput();
@@ -859,7 +873,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 
     logger_pcm.info("   Done.");
 
-    wxMessageBox("Please stop the video.", "", 5L, this);
+    DisplayInfo("Please stop the video.", this);
     ValidateWindow();
 }
 
@@ -1089,7 +1103,6 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::DoStartFrameIdentify()
 {
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     if (_vr != nullptr)
     {
         delete _vr;
@@ -1100,8 +1113,7 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
 
     if (_vr == nullptr)
     {
-        logger_gcm.info("Error starting video reader.");
-        wxMessageBox("Unable to process video.");
+        DisplayError("Unable to process video.", this);
         ValidateWindow();
         return;
     }
@@ -1214,8 +1226,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     _overallmaxbrightness = 0.0;
     std::map<int, int> levelmaxlen;
     std::map<int, int> levelmaxstart;
-    float level = 0.1f;
-    for (size_t i = 0; i < 9; i++)
+    float level = 0.05f;
+    for (size_t i = 0; i < 19; i++)
     {
         int maxrunlength = 0;
         int currunlength = 0;
@@ -1265,19 +1277,19 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
             maxrunlength = currunlength;
             maxrunstart = currunstart;
         }
-        levelmaxlen[(int)(level*10.0)] = maxrunlength;
-        levelmaxstart[(int)(level*10.0)] = maxrunstart;
+        levelmaxlen[(int)(level*20.0)] = maxrunlength;
+        levelmaxstart[(int)(level*20.0)] = maxrunstart;
         logger_gcm.info("   For level %f maxrunstarts at %dms and goes for %dms with max brightness %f.", level, maxrunstart * FRAMEMS, maxrunlength * FRAMEMS, maxrunbrightness);
-        level += 0.1f;
+        level += 0.05f;
     }
 
     // look for thresholds that are close to LEADON long
     std::map<int, bool> suitable;
-    for (int l = 1; l < 10; l++)
+    for (int l = 1; l < 20; l++)
     {
         if (levelmaxlen[l] > LEADON / FRAMEMS - 1 && levelmaxlen[l] < LEADON / FRAMEMS + 1)
         {
-            logger_gcm.info("   Level %f looks suitable from a length perspective.", (float)l/10.0);
+            logger_gcm.info("   Level %f looks suitable from a length perspective.", (float)l/20.0);
             if (LooksLikeStartFrame(levelmaxstart[l] * FRAMEMS))
             {
                 logger_gcm.info("       And looking forward the second flash also seems to be there.");
@@ -1308,7 +1320,7 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     int last = -2;
     int curfirst = -1;
     int curlast = -2;
-    for (int l = 1; l < 10; l++)
+    for (int l = 1; l < 20; l++)
     {
         if (suitable[l])
         {
@@ -1347,8 +1359,8 @@ int GenerateCustomModelDialog::FindStartFrame(VideoReader* vr)
     }
     else
     {
-        bestlevel = ((((float)last + (float)first + 1.0) * 10.0) / 2.0) / 10;
-        logger_gcm.info("    Level chosen: halfway between %f and %f ... %f.", (float)first/10.0, (float)last/10.0, (float)bestlevel / 10.0);
+        bestlevel = ((((float)last + (float)first + 1.0) * 20.0) / 2.0) / 20;
+        logger_gcm.info("    Level chosen: halfway between %f and %f ... %f.", (float)first/20.0, (float)last/20.0, (float)bestlevel / 20.0);
     }
 
     // pick a point 0.1 secs into the high period as our start frame
@@ -1655,7 +1667,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
             wxImage frame;
 
             int sincefound = 0;
-            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < BLANKFRAMESBEFOREABORT && !wxGetKeyState(WXK_ESCAPE))
+            while (currentTime < _vr->GetLengthMS() && !_warned && sincefound < SpinCtrl_MissingBulbLimit->GetValue() && !wxGetKeyState(WXK_ESCAPE))
             {
                 Gauge_Progress->SetValue((currentTime * 100) / _vr->GetLengthMS());
                 logger_gcm.info("   Looking for frame at %d for node %d.", currentTime, n);
@@ -1666,7 +1678,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
                 while ((!bwFrame.IsOk() || CountWhite(bwFrame) < 50 || toobright) &&
                        currentTime < _vr->GetLengthMS() &&
-                       sincefound < BLANKFRAMESBEFOREABORT)
+                       sincefound < SpinCtrl_MissingBulbLimit->GetValue())
                 {
                     toobright = false;
                     sincefound++;
@@ -1710,7 +1722,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                     }
                 }
 
-                if (sincefound < BLANKFRAMESBEFOREABORT)
+                if (sincefound < SpinCtrl_MissingBulbLimit->GetValue())
                 {
                     int delta = currentTime - (zerotime + (n - 1)*(NODEON + NODEOFF));
 
@@ -1744,10 +1756,9 @@ void GenerateCustomModelDialog::DoBulbIdentify()
                 }
             }
 
-            if (sincefound >= BLANKFRAMESBEFOREABORT)
+            if (sincefound >= SpinCtrl_MissingBulbLimit->GetValue())
             {
-                logger_gcm.info("   Too many frames with no lights spotted. Aborting scan.");
-                wxMessageBox("Too many frames with no lights spotted. Aborting scan.");
+                DisplayError("Too many frames with no lights spotted. Aborting scan.", this);
             }
 
             _biFrame = CreateDetectMask(_startFrame, true, _clip);
@@ -2058,9 +2069,7 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
         if (!_warned)
         {
             _warned = true;
-            static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-            logger_gcm.info("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
-            wxMessageBox("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
+            DisplayError("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.", this);
         }
     }
 }
@@ -2562,8 +2571,7 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     logger_gcm.info("Saving to xmodel file %s.", (const char *)filename.c_str());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        logger_gcm.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
     wxString name = wxFileName(filename).GetName();

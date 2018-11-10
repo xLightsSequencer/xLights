@@ -41,10 +41,11 @@
 
 #include <cmath>
 #include <cstdlib>
+
 #ifdef _MSC_VER
- // required so M_PI will be defined by MSC
- #define _USE_MATH_DEFINES
- #include <math.h>
+// required so M_PI will be defined by MSC
+#define _USE_MATH_DEFINES
+#include <math.h>
 #endif
 
 _VAMP_SDK_HOSTSPACE_BEGIN(Window.h)
@@ -81,8 +82,8 @@ public:
     void cut(T *src, T *dst) const {
 	for (size_t i = 0; i < m_size; ++i) dst[i] = src[i] * m_cache[i];
     }
-    template <typename T0>
-    void cut(T0 *src, T *dst) const {
+    template <typename T0, typename T1>
+    void cut(T0 *src, T1 *dst) const {
 	for (size_t i = 0; i < m_size; ++i) dst[i] = src[i] * m_cache[i];
     }
 

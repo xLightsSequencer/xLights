@@ -10,6 +10,8 @@
 #include "../RenderCache.h"
 #include "../models/Model.h"
 #include "../xLightsMain.h"
+#include "../xLightsApp.h"
+#include "../effects/RenderableEffect.h"
 
 #include <unordered_map>
 
@@ -164,6 +166,8 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     : mParentLayer(parent), mID(id), mEffectIndex(-1), mName(nullptr),
       mStartTime(startTimeMS), mEndTime(endTimeMS), mSelected(Selected), mTagged(false), mProtected(Protected), mCache(nullptr)
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     mColorMask = xlColor::NilColor();
     mEffectIndex = (parent->GetParentElement() == nullptr) ? -1 : parent->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(name);
     mSettings.Parse(settings);
@@ -189,16 +193,15 @@ Effect::Effect(EffectLayer* parent,int id, const std::string & name, const std::
     }
 
     // check for any other odd looking blank settings
-    for (auto it = mSettings.begin(); it != mSettings.end(); ++it)
+    for (auto it : mSettings)
     {
-        if (it->second == "")
+        if (it.second == "")
         {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.warn("Effect '%s' on model '%s' at time '%s' has setting '%s' with a blank value.",
                 (const char *)name.c_str(),
                 (const char *)(parent->GetParentElement() == nullptr ? "" : parent->GetParentElement()->GetName().c_str()),
                 FORMATTIME(startTimeMS),
-                (const char *)it->first.c_str()
+                (const char *)it.first.c_str()
                 );
         }
     }
@@ -233,6 +236,19 @@ Effect::~Effect()
 
 #pragma endregion
 
+void Effect::SetTimeToDelete()
+{
+    // we can delete the effect 1 minute later ... this tries to guarantee all dangling pointers are gone at the expense of some memory use
+    // I suspect this is a key reason for some of the crashes
+    _timeToDelete = wxGetUTCTimeMillis() + 60000;
+}
+
+bool Effect::IsTimeToDelete() const
+{
+    wxASSERT(_timeToDelete != 0);
+    return wxGetUTCTimeMillis() > _timeToDelete;
+}
+
 void Effect::SetEffectIndex(int effectIndex)
 {
     if (mEffectIndex != effectIndex)
@@ -243,17 +259,34 @@ void Effect::SetEffectIndex(int effectIndex)
     }
 }
 
-const std::string &Effect::GetEffectName() const
+const std::string& Effect::GetEffectName() const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (mName != nullptr)
     {
         return *mName;
     }
+
+    if (GetParentEffectLayer() == nullptr)
+    {
+        logger_base.crit("Call to Effect::GetEffectName() called but parent effect layer was null ... this will crash.");
+        wxASSERT(false);
+    }
+    
     return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
 }
 
 const std::string& Effect::GetEffectName(int index) const
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (GetParentEffectLayer() == nullptr)
+    {
+        // This really should never happen ... we should be digging into why it does
+        logger_base.crit("Call to Effect::GetEffectName(int) called but parent effect layer was null ... this will crash.");
+        wxASSERT(false);
+    }
+
     if (index < 0)
     {
         return GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectName(mEffectIndex);
@@ -323,9 +356,43 @@ void Effect::SetEndTimeMS(int endTimeMS)
     }
 }
 
-bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
+bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS) const
 {
     return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
+}
+
+void Effect::ConvertTo(int effectIndex)
+{
+    if (effectIndex != mEffectIndex)
+    {
+        SetEffectIndex(effectIndex);
+        SettingsMap newSettings;
+        // remove any E_ settings as the effect type has changed
+        for (auto it : mSettings)
+        {
+            if (!StartsWith(it.first, "E_"))
+            {
+                newSettings[it.first] = it.second;
+            }
+        }
+        mSettings = newSettings;
+
+        std::string palette;
+        std::string effectText = xLightsApp::GetFrame()->GetEffectTextFromWindows(palette);
+
+        auto es = wxSplit(effectText, ',');
+        for (auto it: es)
+        {
+            if (StartsWith(it, "E_"))
+            {
+                auto sv = wxSplit(it, '=');
+                if (sv.size()==2)
+                {
+                    mSettings[sv[0]] = sv[1];
+                }
+            }
+        }
+    }
 }
 
 bool Effect::IsLocked() const
@@ -370,23 +437,38 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
     SettingsMap x;
     if (keepxsettings)
     {
-        for (auto it = mSettings.begin(); it != mSettings.end(); ++it)
+        for (auto it : mSettings)
         {
-            if (it->first.size() > 2 && it->first[0] == 'X' && it->first[1] == '_')
+            if (it.first.size() > 2 && it.first[0] == 'X' && it.first[1] == '_')
             {
-                x[it->first] = it->second;
+                x[it.first] = it.second;
             }
         }
     }
     mSettings.Parse(settings);
     if (keepxsettings)
     {
-        for (auto it = x.begin(); it != x.end(); ++it)
+        for (auto it : x)
         {
-            mSettings[it->first] = it->second;
+            mSettings[it.first] = it.second;
         }
     }
     IncrementChangeCount();
+}
+
+void Effect::PressButton(RenderableEffect* re, const std::string& id)
+{
+    bool changed = false;
+    if (StartsWith(id, "E_"))
+    {
+        changed = re->PressButton(id, mPaletteMap, mSettings);
+    }
+    else
+    {
+        // all other button press changes need to be handled here
+    }
+
+    if (changed) IncrementChangeCount();
 }
 
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)
@@ -416,25 +498,20 @@ void Effect::ApplySetting(const std::string& id, const std::string& value, Value
 
             wxString wid = id;
 
-            if (wid.Contains("FILEPICKER"))
-            {
+            if (wid.Contains("FILEPICKER")) {
                 wxString realid = wid.substr(0, wid.Length() - 3);
-                if (wid.EndsWith("_FN"))
-                {
+                if (wid.EndsWith("_FN")) {
                     mSettings[realid] = value;
-                }
-                else
-                {
-                    if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "")
-                    {
-                        wxFileName fn(mSettings[realid]);
+                } else {
+                    if (mSettings.Contains(realid) && mSettings.Get(realid, "") != "") {
+                        wxString origName = mSettings[realid];
+                        wxFileName fn(origName, origName[1] == ':' ? wxPATH_WIN : wxPATH_UNIX);
                         fn.SetPath(value);
-                        mSettings[realid] = fn.GetFullPath();
+                        wxString newName = fn.GetFullPath();
+                        mSettings[realid] = newName;
                     }
                 }
-            }
-            else
-            {
+            } else {
                 mSettings[id] = value;
             }
         }

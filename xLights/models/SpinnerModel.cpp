@@ -51,12 +51,100 @@ int EncodeStarts(const wxString& start)
     return -1;
 }
 
+void SpinnerModel::DecodeStartLocation(int sl)
+{
+    switch(sl)
+    {
+    case 0:
+        alternate = false;
+        isBotToTop = false;
+        IsLtoR = true;
+        break;
+    case 1:
+        alternate = false;
+        isBotToTop = false;
+        IsLtoR = false;
+        break;
+    case 2:
+        alternate = false;
+        isBotToTop = true;
+        IsLtoR = true;
+        break;
+    case 3:
+        alternate = false;
+        isBotToTop = true;
+        IsLtoR = false;
+        break;
+    case 4:
+        isBotToTop = false;
+        alternate = true;
+        IsLtoR = true;
+        zigzag = false;
+        break;
+    case 5:
+        isBotToTop = false;
+        alternate = true;
+        IsLtoR = false;
+        zigzag = false;
+        break;
+    default:
+        wxASSERT(false);
+        break;
+    }
+}
+
+int SpinnerModel::EncodeStartLocation()
+{
+    if (alternate)
+    {
+        if (IsLtoR)
+        {
+            // Alternate CCW
+            return 4;
+        }
+        else
+        {
+            // Alternate CW
+            return 5;
+        }
+    }
+    else
+    {
+        if (isBotToTop)
+        {
+            if (IsLtoR)
+            {
+                return 2; // Outsde CCW
+            }
+            else
+            {
+                return 3; // Outside CW
+            }
+        }
+        else
+        {
+            if (IsLtoR)
+            {
+                return 0; // Center CCW
+            }
+            else
+            {
+                return 1; // Center CW
+            }
+        }
+    }
+    wxASSERT(false);
+    return 0;
+}
+
 void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     if (TOP_BOT_LEFT_RIGHT.GetCount() == 0) {
         TOP_BOT_LEFT_RIGHT.Add("Center Counter Clockwise");
         TOP_BOT_LEFT_RIGHT.Add("Center Clockwise");
         TOP_BOT_LEFT_RIGHT.Add("End Counter Clockwise");
         TOP_BOT_LEFT_RIGHT.Add("End Clockwise");
+        TOP_BOT_LEFT_RIGHT.Add("Center Alternate Counter Clockwise");
+        TOP_BOT_LEFT_RIGHT.Add("Center Alternate Clockwise");
     }
     
     wxPGProperty *p = grid->Append(new wxUIntProperty("# Strings", "SpinnerStringCount", parm1));
@@ -76,7 +164,7 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxUIntProperty("Hollow %", "Hollow", hollow));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 50);
+    p->SetAttribute("Max", 80);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxUIntProperty("Arc", "Arc", arc));
@@ -84,57 +172,95 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Max", 360);
     p->SetEditor("SpinCtrl");
 
-    grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
+    grid->Append(new wxEnumProperty("Starting Location", "MatrixStart", TOP_BOT_LEFT_RIGHT, EncodeStartLocation()));
 
     p = grid->Append(new wxBoolProperty("Zig-Zag Start", "ZigZag", zigzag));
     p->SetEditor("CheckBox");
+    p->Enable(alternate == false);
+}
+
+void SpinnerModel::UpdateTypeProperties(wxPropertyGridInterface* grid) {
+    grid->GetPropertyByName("ZigZag")->Enable(alternate == false);
 }
 
 int SpinnerModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("SpinnerStringCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        AdjustStringProperties(grid, parm1);
-        return 3 | 0x0008;
+        //AdjustStringProperties(grid, parm1);
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SpinnerModel::OnPropertyGridChange::SpinnerStringCount");
+        return 0;
     } else if ("SpinnerArmNodeCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SpinnerModel::OnPropertyGridChange::SpinnerArmNodeCount");
+        return 0;
     } else if ("FoldCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::FoldCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::FoldCount");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::FoldCount");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::FoldCount");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SpinnerModel::OnPropertyGridChange::FoldCount");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "SpinnerModel::OnPropertyGridChange::FoldCount");
+        return 0;
     } else if ("Hollow" == event.GetPropertyName()) {
          ModelXml->DeleteAttribute("Hollow");
          ModelXml->AddAttribute("Hollow", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-         SetFromXml(ModelXml, zeroBased);
-         return 3 | 0x0008;
+         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::Hollow");
+         AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::Hollow");
+         AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::Hollow");
+         AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::Hollow");
+         return 0;
     } else if ("Arc" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Arc");
         ModelXml->AddAttribute("Arc", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::Arc");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::Arc");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::Arc");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::Arc");
+        return 0;
     } else if ("ZigZag" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("ZigZag");
         ModelXml->AddAttribute("ZigZag", event.GetPropertyValue().GetBool() ? "true" : "false");
-        SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::ZigZag");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::ZigZag");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::ZigZag");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::ZigZag");
+        return 0;
     } else if ("MatrixStart" == event.GetPropertyName()) {
+        DecodeStartLocation(event.GetValue().GetLong());
         ModelXml->DeleteAttribute("Dir");
-        ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
+        ModelXml->AddAttribute("Dir", IsLtoR ? "L" : "R");
         ModelXml->DeleteAttribute("StartSide");
-        ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        ModelXml->AddAttribute("StartSide", isBotToTop ? "B" : "T");
+        ModelXml->DeleteAttribute("Alternate");
+        ModelXml->AddAttribute("Alternate", alternate ? "true" : "false");
+        ModelXml->DeleteAttribute("ZigZag");
+        ModelXml->AddAttribute("ZigZag",zigzag ? "true" : "false");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SpinnerModel::OnPropertyGridChange::MatrixStart");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "SpinnerModel::OnPropertyGridChange::MatrixStart");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "SpinnerModel::OnPropertyGridChange::MatrixStart");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "SpinnerModel::OnPropertyGridChange::MatrixStart");
+        return 0;
     }
     
     return Model::OnPropertyGridChange(grid, event);
 }
 
-void SpinnerModel::GetBufferSize(const std::string &type, const std::string &transform,
+void SpinnerModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
     int &BufferWi, int &BufferHi) const
 {
     if (type == "Single Line") {
@@ -143,7 +269,7 @@ void SpinnerModel::GetBufferSize(const std::string &type, const std::string &tra
         AdjustForTransform(transform, BufferWi, BufferHi);
     }
     else {
-        Model::GetBufferSize(type, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
     }
 }
 
@@ -163,7 +289,7 @@ void SpinnerModel::InitModel() {
     hollow = wxAtoi(ModelXml->GetAttribute("Hollow", "20"));
     arc = wxAtoi(ModelXml->GetAttribute("Arc", "360"));
     zigzag = (ModelXml->GetAttribute("ZigZag", "false") == "true");
-
+    alternate = (ModelXml->GetAttribute("Alternate", "false") == "true");
     SetNodeCount(stringcount, pixelsperstring, rgbOrder);
     screenLocation.SetRenderSize(2 * nodesperarm + 3 + (hollow * 2.0 * nodesperarm) / 100.0, 2 * nodesperarm + 3 + (hollow * 2.0 * nodesperarm) / 100.0);
 
@@ -190,19 +316,34 @@ void SpinnerModel::InitModel() {
                 size_t idx = x * nodesperarm + y;
                 Nodes[idx]->ActChan = stringStartChan[stringnum] + segmentnum * nodesperarm * chanPerNode + y * chanPerNode;
                 Nodes[idx]->Coords[0].bufX = IsLtoR ? x : armcount - x - 1;
-                if (!zigzag)
+                if (alternate)
                 {
-                    Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
+                    if (y + 1 <= (nodesperarm+1) / 2)
+                    {
+                        Nodes[idx]->Coords[0].bufY = 2 * y;
+                    }
+                    else
+                    {
+                        Nodes[idx]->Coords[0].bufY = (nodesperarm - (y+1)) * 2 + 1;
+                    }
+                    Nodes[idx]->Coords[0].bufY = nodesperarm - Nodes[idx]->Coords[0].bufY - 1;
                 }
                 else
                 {
-                    if (x % 2 == 0)
+                    if (!zigzag)
                     {
                         Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
                     }
                     else
                     {
-                        Nodes[idx]->Coords[0].bufY = isBotToTop ? nodesperarm - y - 1 : y;
+                        if (x % 2 == 0)
+                        {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop ? y : nodesperarm - y - 1;
+                        }
+                        else
+                        {
+                            Nodes[idx]->Coords[0].bufY = isBotToTop ? nodesperarm - y - 1 : y;
+                        }
                     }
                 }
             }
@@ -210,11 +351,11 @@ void SpinnerModel::InitModel() {
     }
 
     SetSpinnerCoord();
-
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
     DisplayAs = "Spinner";
 }
 
-void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::string &transform,
+void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
     std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;
@@ -250,7 +391,7 @@ void SpinnerModel::InitRenderBufferNodes(const std::string &type, const std::str
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     }
     else {
-        Model::InitRenderBufferNodes(type, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
 
@@ -284,25 +425,25 @@ void SpinnerModel::SetSpinnerCoord() {
             int end = start + nodesperarm;
             for (size_t c = start; c < end; c++) {
                 int c2 = c - start;
-                    int c1 = 0;
+                int c1 = 0;
+                if (!fromcentre) {
+                    c1 = nodesperarm - c2 - 1;
+                }
+                else {
+                    c1 = c2;
+                }
+
+                if (zigzag && a % 2 > 0) {
                     if (!fromcentre) {
-                        c1 = nodesperarm - c2 - 1;
-                    }
-                    else {
                         c1 = c2;
                     }
-
-                    if (zigzag && a % 2 > 0) {
-                        if (!fromcentre) {
-                            c1 = c2;
-                        }
-                        else {
-                            c1 = nodesperarm - c2 - 1;
-                        }
+                    else {
+                        c1 = nodesperarm - c2 - 1;
                     }
+                }
 
-                    Nodes[a1]->Coords[c].screenX = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * cos(angle);
-                    Nodes[a1]->Coords[c].screenY = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * sin(angle);
+                Nodes[a1]->Coords[c].screenX = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * cos(angle);
+                Nodes[a1]->Coords[c].screenY = (0.5f + (float)c1 + ((float)hollow * 2.0 * (float)nodesperarm) / 100.0) * sin(angle);
             }
         }
         else
@@ -310,24 +451,38 @@ void SpinnerModel::SetSpinnerCoord() {
             for (size_t n = 0; n < nodesperarm; n++)
             {
                 int n1 = 0;
-                if (!fromcentre)
+                if (alternate)
                 {
-                    n1 = nodesperarm - n - 1;
-                }
-                else
-                {
-                    n1 = n;
-                }
-
-                if (zigzag && a % 2 > 0)
-                {
-                    if (!fromcentre)
+                    if (n + 1 <= (nodesperarm + 1) / 2)
                     {
-                        n1 = n;
+                        n1 = 2 * n;
                     }
                     else
                     {
+                        n1 = (nodesperarm - (n + 1)) * 2 + 1;
+                    }
+                }
+                else
+                {
+                    if (!fromcentre)
+                    {
                         n1 = nodesperarm - n - 1;
+                    }
+                    else
+                    {
+                        n1 = n;
+                    }
+
+                    if (zigzag && a % 2 > 0)
+                    {
+                        if (!fromcentre)
+                        {
+                            n1 = n;
+                        }
+                        else
+                        {
+                            n1 = nodesperarm - n - 1;
+                        }
                     }
                 }
 
@@ -373,6 +528,6 @@ int SpinnerModel::CalcCannelsPerString() {
     return GetNodeChannelCount(StringType) * parm2 * parm3;
 }
 
-int SpinnerModel::NodesPerString() {
+int SpinnerModel::NodesPerString() const {
     return SingleNode ? 1 : parm2 * parm3;
 }

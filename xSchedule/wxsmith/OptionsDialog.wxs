@@ -43,6 +43,40 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX6" variable="CheckBox_MultithreadedTransmission" member="yes">
+							<label>Multithreaded transmission</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX7" variable="CheckBox_RetryOpen" member="yes">
+							<label>Continually try to open outputs</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX8" variable="CheckBox_RemoteAllOff" member="yes">
+							<label>When in remote mode turn off lights when master stops</label>
+							<checked>1</checked>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX9" variable="CheckBox_SuppressAudioOnRemotes" member="yes">
+							<label>Suppress audio on remotes</label>
+							<checked>1</checked>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -287,6 +321,20 @@
 							</content>
 							<selection>0</selection>
 						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
+							<label>Force Local IP:</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxChoice" name="ID_CHOICE5" variable="Choice1" member="yes" />
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<option>1</option>

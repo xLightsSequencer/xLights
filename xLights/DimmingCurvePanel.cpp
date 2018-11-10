@@ -13,7 +13,7 @@ DimmingCurvePanel::DimmingCurvePanel(wxWindow* parent,
                                      long style,
                                      const wxString& name,
                                      int glFlags[])
-    : xlGLCanvas(parent, id, pos, size, style, "DimmingCurve-" + name, true), curve(nullptr), channel(0)
+    : xlGLCanvas(parent, id, pos, size, style, "DimmingCurve-" + name), curve(nullptr), channel(0)
 {
 }
 
@@ -34,8 +34,7 @@ void DimmingCurvePanel::SetDimmingCurve(DimmingCurve *c, int ch) {
     Update();
 }
 
-void DimmingCurvePanel::InitializeGLCanvas() {
-    if(!IsShownOnScreen()) return;
+void DimmingCurvePanel::InitializeGLContext() {
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -47,8 +46,9 @@ void DimmingCurvePanel::InitializeGLCanvas() {
     mIsInitialized = true;
 }
 void DimmingCurvePanel::render(wxPaintEvent& event) {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
     if(!IsShownOnScreen()) return;
+    if(!mIsInitialized) { InitializeGLCanvas(); }
+
     wxPaintDC(this);
     SetCurrentGLContext();
 

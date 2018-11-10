@@ -336,6 +336,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 
     bool _dirty;
     wxFileName _filename;
+    wxString _mappingFile = "mapping";
     bool _allowTimingOffset;
     bool _allowTimingTrack;
     bool _allowColorChoice;
@@ -345,7 +346,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 
 	public:
    
-		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id=wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
@@ -358,6 +359,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_MapCCRStrand;
 		wxCheckListBox* TimingTrackListBox;
+		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* OldSizer;
 		wxFlexGridSizer* Sizer1;
 		wxFlexGridSizer* Sizer2;

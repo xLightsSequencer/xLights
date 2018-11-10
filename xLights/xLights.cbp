@@ -16,11 +16,12 @@
 				<Compiler>
 					<Add option="-march=i586" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -29,6 +30,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -41,6 +43,8 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -51,6 +55,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
@@ -66,6 +71,7 @@
 					<Add library="../lib/windows/libliquidfund.a" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
+					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -79,12 +85,11 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option="-Wno-attributes" />
 					<Add option="-D__GNUWIN32__" />
@@ -93,6 +98,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="$(#wx)/include" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
 					<Add directory="../xLights" />
@@ -105,6 +111,8 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -115,6 +123,7 @@
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add library="../lib/windows/libwxmsw31u.a" />
@@ -131,6 +140,9 @@
 					<Add library="../lib/windows/libliquidfun.a" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
+					<Add library="../lib/windows/libzstd_static.lib" />
+					<Add library="../lib/windows/LIBCURL.LIB" />
+					<Add library="Psapi" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -145,9 +157,9 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
 					<Add option="-g" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=c++1z" />
+					<Add option="-std=gnu++17" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -167,9 +179,11 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -177,6 +191,8 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
+					<Add option="-lz" />
+					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
@@ -189,8 +205,8 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=gnu++14" />
 					<Add option="-Wall" />
+					<Add option="-std=gnu++17" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
@@ -210,9 +226,11 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -220,6 +238,8 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
+					<Add option="-lz" />
+					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
@@ -233,10 +253,11 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option="-Wno-attributes" />
 					<Add option="-D__GNUWIN32__" />
@@ -244,6 +265,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-D__WIN64__" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
@@ -257,6 +279,9 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
+					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -268,6 +293,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
+					<Add option="-lz" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/libDbgHelp.a" />
@@ -282,6 +308,9 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
+					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="../lib/windows64/LIBCURL.LIB" />
+					<Add library="Psapi" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
@@ -293,12 +322,12 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -306,6 +335,7 @@
 					<Add option="-DWXUSINGDLL" />
 					<Add option="-D__WXDEBUG__" />
 					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-D__WIN64__" />
 					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
 					<Add directory="include" />
 					<Add directory="sequencer" />
@@ -319,6 +349,9 @@
 					<Add directory="../include" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
+					<Add directory="$(#wx)/include" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -329,6 +362,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
+					<Add option="-lz" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
 					<Add library="../lib/windows64/libdbghelp.a" />
@@ -343,6 +377,9 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
+					<Add library="../lib/windows64/libzstd_static.lib" />
+					<Add library="../lib/windows64/LIBCURL.LIB" />
+					<Add library="Psapi" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -361,6 +398,9 @@
 		<Unit filename="../xSchedule/wxJSON/jsonval.h" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../xSchedule/wxJSON/jsonwriter.h" />
+		<Unit filename="../xSchedule/xSMSDaemon/Curl.h" />
+		<Unit filename="AlignmentDialog.cpp" />
+		<Unit filename="AlignmentDialog.h" />
 		<Unit filename="AudioManager.cpp" />
 		<Unit filename="AudioManager.h" />
 		<Unit filename="BatchRenderDialog.cpp" />
@@ -372,14 +412,21 @@
 		<Unit filename="BufferSizeDialog.h" />
 		<Unit filename="BulkEditControls.cpp" />
 		<Unit filename="BulkEditControls.h" />
+		<Unit filename="BulkEditFontPickerDialog.cpp" />
+		<Unit filename="BulkEditFontPickerDialog.h" />
 		<Unit filename="BulkEditSliderDialog.cpp" />
 		<Unit filename="BulkEditSliderDialog.h" />
 		<Unit filename="CachedFileDownloader.cpp" />
 		<Unit filename="CachedFileDownloader.h" />
 		<Unit filename="ChannelLayoutDialog.cpp" />
 		<Unit filename="ChannelLayoutDialog.h" />
+		<Unit filename="CharMapDialog.cpp" />
+		<Unit filename="CharMapDialog.h" />
+		<Unit filename="CheckboxSelectDialog.cpp" />
+		<Unit filename="CheckboxSelectDialog.h" />
 		<Unit filename="Color.cpp" />
 		<Unit filename="ColorCurve.cpp" />
+		<Unit filename="ColorCurve.h" />
 		<Unit filename="ColorCurveDialog.cpp" />
 		<Unit filename="ColorCurveDialog.h" />
 		<Unit filename="ColorManager.cpp" />
@@ -390,6 +437,8 @@
 		<Unit filename="ColorPanel.h" />
 		<Unit filename="ControllerConnectionDialog.cpp" />
 		<Unit filename="ControllerConnectionDialog.h" />
+		<Unit filename="ControllerVisualiseDialog.cpp" />
+		<Unit filename="ControllerVisualiseDialog.h" />
 		<Unit filename="ConvertDialog.cpp" />
 		<Unit filename="ConvertDialog.h" />
 		<Unit filename="ConvertLogDialog.cpp" />
@@ -409,7 +458,6 @@
 		<Unit filename="DissolveTransitionPattern.cpp" />
 		<Unit filename="DrawGLUtils.cpp" />
 		<Unit filename="DrawGLUtils.h" />
-		<Unit filename="DrawGLUtils21.cpp" />
 		<Unit filename="DrawGLUtils31.cpp" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
@@ -424,8 +472,12 @@
 		<Unit filename="Effects.h" />
 		<Unit filename="EffectsPanel.cpp" />
 		<Unit filename="EffectsPanel.h" />
+		<Unit filename="EmailDialog.cpp" />
+		<Unit filename="EmailDialog.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="FSEQFile.cpp" />
+		<Unit filename="FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
@@ -447,6 +499,8 @@
 		<Unit filename="Image_Loader.cpp" />
 		<Unit filename="Image_Loader.h" />
 		<Unit filename="Images_png.h" />
+		<Unit filename="ImportPreviewsModelsDialog.cpp" />
+		<Unit filename="ImportPreviewsModelsDialog.h" />
 		<Unit filename="JobPool.cpp" />
 		<Unit filename="JobPool.h" />
 		<Unit filename="JukeboxPanel.cpp" />
@@ -455,6 +509,8 @@
 		<Unit filename="KeyBindings.h" />
 		<Unit filename="LMSImportChannelMapDialog.cpp" />
 		<Unit filename="LMSImportChannelMapDialog.h" />
+		<Unit filename="LOREdit.cpp" />
+		<Unit filename="LOREdit.h" />
 		<Unit filename="LayerSelectDialog.cpp" />
 		<Unit filename="LayerSelectDialog.h" />
 		<Unit filename="LayoutGroup.cpp" />
@@ -477,6 +533,8 @@
 		<Unit filename="MSWStackWalk.h" />
 		<Unit filename="MatrixFaceDownloadDialog.cpp" />
 		<Unit filename="MatrixFaceDownloadDialog.h" />
+		<Unit filename="ModelChainDialog.cpp" />
+		<Unit filename="ModelChainDialog.h" />
 		<Unit filename="ModelDimmingCurveDialog.cpp" />
 		<Unit filename="ModelDimmingCurveDialog.h" />
 		<Unit filename="ModelFaceDialog.cpp" />
@@ -500,13 +558,19 @@
 		<Unit filename="NodesGridCellEditor.h" />
 		<Unit filename="NoteImportDialog.cpp" />
 		<Unit filename="NoteImportDialog.h" />
+		<Unit filename="NoteRangeDialog.cpp" />
+		<Unit filename="NoteRangeDialog.h" />
 		<Unit filename="OpenGLShaders.cpp" />
 		<Unit filename="OptionChooser.cpp" />
 		<Unit filename="OptionChooser.h" />
+		<Unit filename="OutputModelManager.cpp" />
+		<Unit filename="OutputModelManager.h" />
 		<Unit filename="PaletteMgmtDialog.cpp" />
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="Parallel.cpp" />
 		<Unit filename="Parallel.h" />
+		<Unit filename="PathGenerationDialog.cpp" />
+		<Unit filename="PathGenerationDialog.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />
@@ -520,6 +584,8 @@
 		<Unit filename="PreviewModels.h" />
 		<Unit filename="PreviewPane.cpp" />
 		<Unit filename="PreviewPane.h" />
+		<Unit filename="RemapDMXChannelsDialog.cpp" />
+		<Unit filename="RemapDMXChannelsDialog.h" />
 		<Unit filename="RenameTextDialog.cpp" />
 		<Unit filename="RenameTextDialog.h" />
 		<Unit filename="Render.cpp" />
@@ -558,6 +624,8 @@
 		<Unit filename="SequenceViewManager.h" />
 		<Unit filename="SevenSegmentDialog.cpp" />
 		<Unit filename="SevenSegmentDialog.h" />
+		<Unit filename="ShaderDownloadDialog.cpp" />
+		<Unit filename="ShaderDownloadDialog.h" />
 		<Unit filename="SplashDialog.cpp" />
 		<Unit filename="SplashDialog.h" />
 		<Unit filename="StartChannelDialog.cpp" />
@@ -604,6 +672,12 @@
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
+		<Unit filename="ViewObjectPanel.cpp" />
+		<Unit filename="ViewObjectPanel.h" />
+		<Unit filename="ViewpointDialog.cpp" />
+		<Unit filename="ViewpointDialog.h" />
+		<Unit filename="ViewpointMgr.cpp" />
+		<Unit filename="ViewpointMgr.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="Vixen3.cpp" />
@@ -614,10 +688,14 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
+		<Unit filename="controllers/ControllerRegistry.cpp" />
+		<Unit filename="controllers/ControllerRegistry.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
 		<Unit filename="controllers/ESPixelStick.h" />
+		<Unit filename="controllers/EasyLights.cpp" />
+		<Unit filename="controllers/EasyLights.h" />
 		<Unit filename="controllers/FPP.cpp" />
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
@@ -630,8 +708,6 @@
 		<Unit filename="controllers/Pixlite16.h" />
 		<Unit filename="controllers/SanDevices.cpp" />
 		<Unit filename="controllers/SanDevices.h" />
-		<Unit filename="controllers/SimpleFTP.cpp" />
-		<Unit filename="controllers/SimpleFTP.h" />
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="djdebug.cpp" />
@@ -702,6 +778,10 @@
 		<Unit filename="effects/GlediatorEffect.h" />
 		<Unit filename="effects/GlediatorPanel.cpp" />
 		<Unit filename="effects/GlediatorPanel.h" />
+		<Unit filename="effects/KaleidoscopeEffect.cpp" />
+		<Unit filename="effects/KaleidoscopeEffect.h" />
+		<Unit filename="effects/KaleidoscopePanel.cpp" />
+		<Unit filename="effects/KaleidoscopePanel.h" />
 		<Unit filename="effects/LifeEffect.cpp" />
 		<Unit filename="effects/LifeEffect.h" />
 		<Unit filename="effects/LifePanel.cpp" />
@@ -710,6 +790,10 @@
 		<Unit filename="effects/LightningEffect.h" />
 		<Unit filename="effects/LightningPanel.cpp" />
 		<Unit filename="effects/LightningPanel.h" />
+		<Unit filename="effects/LinesEffect.cpp" />
+		<Unit filename="effects/LinesEffect.h" />
+		<Unit filename="effects/LinesPanel.cpp" />
+		<Unit filename="effects/LinesPanel.h" />
 		<Unit filename="effects/LiquidEffect.cpp" />
 		<Unit filename="effects/LiquidEffect.h" />
 		<Unit filename="effects/LiquidPanel.cpp" />
@@ -764,6 +848,10 @@
 		<Unit filename="effects/ServoEffect.h" />
 		<Unit filename="effects/ServoPanel.cpp" />
 		<Unit filename="effects/ServoPanel.h" />
+		<Unit filename="effects/ShaderEffect.cpp" />
+		<Unit filename="effects/ShaderEffect.h" />
+		<Unit filename="effects/ShaderPanel.cpp" />
+		<Unit filename="effects/ShaderPanel.h" />
 		<Unit filename="effects/ShapeEffect.cpp" />
 		<Unit filename="effects/ShapeEffect.h" />
 		<Unit filename="effects/ShapePanel.cpp" />
@@ -856,22 +944,31 @@
 		</Unit>
 		<Unit filename="models/ArchesModel.cpp" />
 		<Unit filename="models/ArchesModel.h" />
+		<Unit filename="models/BaseObject.cpp" />
+		<Unit filename="models/BaseObject.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
 		<Unit filename="models/CandyCaneModel.h" />
 		<Unit filename="models/ChannelBlockModel.cpp" />
 		<Unit filename="models/ChannelBlockModel.h" />
 		<Unit filename="models/CircleModel.cpp" />
 		<Unit filename="models/CircleModel.h" />
+		<Unit filename="models/CubeModel.cpp" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DmxModel.cpp" />
 		<Unit filename="models/DmxModel.h" />
+		<Unit filename="models/GridlinesObject.cpp" />
+		<Unit filename="models/GridlinesObject.h" />
 		<Unit filename="models/IciclesModel.cpp" />
 		<Unit filename="models/IciclesModel.h" />
 		<Unit filename="models/ImageModel.cpp" />
 		<Unit filename="models/ImageModel.h" />
+		<Unit filename="models/ImageObject.cpp" />
+		<Unit filename="models/ImageObject.h" />
 		<Unit filename="models/MatrixModel.cpp" />
 		<Unit filename="models/MatrixModel.h" />
+		<Unit filename="models/MeshObject.cpp" />
+		<Unit filename="models/MeshObject.h" />
 		<Unit filename="models/Model.cpp" />
 		<Unit filename="models/Model.h" />
 		<Unit filename="models/ModelGroup.cpp" />
@@ -882,6 +979,8 @@
 		<Unit filename="models/ModelScreenLocation.h" />
 		<Unit filename="models/Node.cpp" />
 		<Unit filename="models/Node.h" />
+		<Unit filename="models/ObjectManager.cpp" />
+		<Unit filename="models/ObjectManager.h" />
 		<Unit filename="models/PolyLineModel.cpp" />
 		<Unit filename="models/PolyLineModel.h" />
 		<Unit filename="models/Shapes.cpp" />
@@ -898,6 +997,10 @@
 		<Unit filename="models/SubModel.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
+		<Unit filename="models/ViewObject.cpp" />
+		<Unit filename="models/ViewObject.h" />
+		<Unit filename="models/ViewObjectManager.cpp" />
+		<Unit filename="models/ViewObjectManager.h" />
 		<Unit filename="models/WholeHouseModel.cpp" />
 		<Unit filename="models/WholeHouseModel.h" />
 		<Unit filename="models/WindowFrameModel.cpp" />
@@ -910,7 +1013,6 @@
 		<Unit filename="outputs/ArtNetDialog.h" />
 		<Unit filename="outputs/ArtNetOutput.cpp" />
 		<Unit filename="outputs/ArtNetOutput.h" />
-		<Unit filename="outputs/Controller.cpp" />
 		<Unit filename="outputs/Controller.h" />
 		<Unit filename="outputs/DDPDialog.cpp" />
 		<Unit filename="outputs/DDPDialog.h" />
@@ -957,8 +1059,19 @@
 		<Unit filename="outputs/SerialOutput.h" />
 		<Unit filename="outputs/SerialPortWithRate.cpp" />
 		<Unit filename="outputs/SerialPortWithRate.h" />
+		<Unit filename="outputs/SyncrolightDialog.cpp" />
+		<Unit filename="outputs/SyncrolightDialog.h" />
+		<Unit filename="outputs/SyncrolightEthernetOutput.cpp" />
+		<Unit filename="outputs/SyncrolightEthernetOutput.h" />
+		<Unit filename="outputs/SyncrolightSerialOutput.cpp" />
+		<Unit filename="outputs/SyncrolightSerialOutput.h" />
 		<Unit filename="outputs/TestPreset.cpp" />
 		<Unit filename="outputs/TestPreset.h" />
+		<Unit filename="outputs/ZCPP.h" />
+		<Unit filename="outputs/ZCPPDialog.cpp" />
+		<Unit filename="outputs/ZCPPDialog.h" />
+		<Unit filename="outputs/ZCPPOutput.cpp" />
+		<Unit filename="outputs/ZCPPOutput.h" />
 		<Unit filename="outputs/serial.cpp" />
 		<Unit filename="outputs/serial.h" />
 		<Unit filename="resource.rc">
@@ -1000,6 +1113,8 @@
 		<Unit filename="support/FastComboEditor.h" />
 		<Unit filename="support/GridCellChoiceRenderer.cpp" />
 		<Unit filename="support/GridCellChoiceRenderer.h" />
+		<Unit filename="support/VectorMath.cpp" />
+		<Unit filename="support/VectorMath.h" />
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
 		<Unit filename="vamp-hostsdk/Files.cpp" />
@@ -1037,22 +1152,29 @@
 		<Unit filename="vamp-hostsdk/vamp.h" />
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
+		<Unit filename="wxModelGridCellRenderer.cpp" />
+		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
+		<Unit filename="wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />
 		<Unit filename="wxsmith/BarsPanel.wxs" />
 		<Unit filename="wxsmith/BatchRenderDialog.wxs" />
 		<Unit filename="wxsmith/BufferPanel.wxs" />
 		<Unit filename="wxsmith/BufferSizeDialog.wxs" />
+		<Unit filename="wxsmith/BulkEditFontPickerDialog.wxs" />
 		<Unit filename="wxsmith/BulkEditSliderDialog.wxs" />
 		<Unit filename="wxsmith/ButterflyPanel.wxs" />
 		<Unit filename="wxsmith/CandlePanel.wxs" />
+		<Unit filename="wxsmith/CharMapDialog.wxs" />
+		<Unit filename="wxsmith/CheckboxSelectDialog.wxs" />
 		<Unit filename="wxsmith/CirclesPanel.wxs" />
 		<Unit filename="wxsmith/ColorCurveDialog.wxs" />
 		<Unit filename="wxsmith/ColorManagerDialog.wxs" />
 		<Unit filename="wxsmith/ColorPanel.wxs" />
 		<Unit filename="wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="wxsmith/ControllerConnectionDialog.wxs" />
+		<Unit filename="wxsmith/ControllerVisualiseDialog.wxs" />
 		<Unit filename="wxsmith/ConvertDialog.wxs" />
 		<Unit filename="wxsmith/ConvertLogDialog.wxs" />
 		<Unit filename="wxsmith/CurrentPreviewModels.wxs" />
@@ -1066,6 +1188,7 @@
 		<Unit filename="wxsmith/EffectTimingDialog.wxs" />
 		<Unit filename="wxsmith/EffectTreeDialog.wxs" />
 		<Unit filename="wxsmith/EffectsPanel.wxs" />
+		<Unit filename="wxsmith/EmailDialog.wxs" />
 		<Unit filename="wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="wxsmith/FPPConnectDialog.wxs" />
 		<Unit filename="wxsmith/FacesPanel.wxs" />
@@ -1081,12 +1204,15 @@
 		<Unit filename="wxsmith/GlediatorPanel.wxs" />
 		<Unit filename="wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="wxsmith/IPEntryDialog.wxs" />
+		<Unit filename="wxsmith/ImportPreviewsModelsDialog.wxs" />
 		<Unit filename="wxsmith/JukeboxPanel.wxs" />
+		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
+		<Unit filename="wxsmith/LinesPanel.wxs" />
 		<Unit filename="wxsmith/LinkJukeboxButtonDialog.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
 		<Unit filename="wxsmith/LorControllerDialog.wxs" />
@@ -1098,9 +1224,11 @@
 		<Unit filename="wxsmith/MarqueePanel.wxs" />
 		<Unit filename="wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="wxsmith/MeteorsPanel.wxs" />
+		<Unit filename="wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="wxsmith/ModelGroupPanel.wxs" />
+		<Unit filename="wxsmith/ModelPreview3DDialog.wxs" />
 		<Unit filename="wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="wxsmith/MorphPanel.wxs" />
 		<Unit filename="wxsmith/MultiControllerUploadDialog.wxs" />
@@ -1108,10 +1236,12 @@
 		<Unit filename="wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="wxsmith/NodeSelectGrid.wxs" />
 		<Unit filename="wxsmith/NoteImportDialog.wxs" />
+		<Unit filename="wxsmith/NoteRangeDialog.wxs" />
 		<Unit filename="wxsmith/OffPanel.wxs" />
 		<Unit filename="wxsmith/OnPanel.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
+		<Unit filename="wxsmith/PathGenerationDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="wxsmith/PianoPanel.wxs" />
 		<Unit filename="wxsmith/PicturesAssistPanel.wxs" />
@@ -1121,6 +1251,7 @@
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/PreviewPane.wxs" />
+		<Unit filename="wxsmith/RemapDMXChannelsDialog.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
@@ -1134,6 +1265,8 @@
 		<Unit filename="wxsmith/SequenceVideoPanel.wxs" />
 		<Unit filename="wxsmith/ServoPanel.wxs" />
 		<Unit filename="wxsmith/SevenSegmentDialog.wxs" />
+		<Unit filename="wxsmith/ShaderDownloadDialog.wxs" />
+		<Unit filename="wxsmith/ShaderPanel.wxs" />
 		<Unit filename="wxsmith/ShapePanel.wxs" />
 		<Unit filename="wxsmith/ShimmerPanel.wxs" />
 		<Unit filename="wxsmith/ShockwavePanel.wxs" />
@@ -1149,6 +1282,7 @@
 		<Unit filename="wxsmith/SubModelGenerateDialog.wxs" />
 		<Unit filename="wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="wxsmith/SuperStarImportDialog.wxs" />
+		<Unit filename="wxsmith/SyncrolightDialog.wxs" />
 		<Unit filename="wxsmith/TendrilPanel.wxs" />
 		<Unit filename="wxsmith/TextPanel.wxs" />
 		<Unit filename="wxsmith/TimingPanel.wxs" />
@@ -1162,6 +1296,8 @@
 		<Unit filename="wxsmith/VendorModelDialog.wxs" />
 		<Unit filename="wxsmith/VendorMusicDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
+		<Unit filename="wxsmith/ViewObjectPanel.wxs" />
+		<Unit filename="wxsmith/ViewpointDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
 		<Unit filename="wxsmith/VsaImportDialog.wxs" />
@@ -1206,6 +1342,7 @@
 					<wxFrame wxs="wxsmith/xLightsframe.wxs" src="xLightsMain.cpp" hdr="xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/SerialPortWithRate.wxs" src="outputs/SerialPortWithRate.cpp" hdr="outputs/SerialPortWithRate.h" fwddecl="0" i18n="1" name="SerialPortWithRate" language="CPP" />
 					<wxDialog wxs="wxsmith/E131Dialog.wxs" src="outputs/E131Dialog.cpp" hdr="outputs/E131Dialog.h" fwddecl="0" i18n="1" name="E131Dialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ZCPPDialog.wxs" src="outputs/ZCPPDialog.cpp" hdr="outputs/ZCPPDialog.h" fwddecl="0" i18n="1" name="ZCPPDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/EffectListDialog.wxs" src="EffectListDialog.cpp" hdr="EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ChannelLayoutDialog.wxs" src="ChannelLayoutDialog.cpp" hdr="ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PaletteMgmtDialog.wxs" src="PaletteMgmtDialog.cpp" hdr="PaletteMgmtDialog.h" fwddecl="0" i18n="1" name="PaletteMgmtDialog" language="CPP" />
@@ -1240,6 +1377,7 @@
 					<wxDialog wxs="wxsmith/ModelStateDialog.wxs" src="ModelStateDialog.cpp" hdr="ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SaveChangesDialog.wxs" src="SaveChangesDialog.cpp" hdr="SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ResizeImageDialog.wxs" src="ResizeImageDialog.cpp" hdr="ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelChainDialog.wxs" src="ModelChainDialog.cpp" hdr="ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ModelDimmingCurveDialog.wxs" src="ModelDimmingCurveDialog.cpp" hdr="ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/NullOutputDialog.wxs" src="outputs/NullOutputDialog.cpp" hdr="outputs/NullOutputDialog.h" fwddecl="0" i18n="1" name="NullOutputDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/OnPanel.wxs" src="effects/OnPanel.cpp" hdr="effects/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
@@ -1259,8 +1397,10 @@
 					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="effects/GalaxyPanel.cpp" hdr="effects/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GarlandsPanel.wxs" src="effects/GarlandsPanel.cpp" hdr="effects/GarlandsPanel.h" fwddecl="1" i18n="1" name="GarlandsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GlediatorPanel.wxs" src="effects/GlediatorPanel.cpp" hdr="effects/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/KaleidoscopePanel.wxs" src="effects/KaleidoscopePanel.cpp" hdr="effects/KaleidoscopePanel.h" fwddecl="1" i18n="1" name="KaleidoscopePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LifePanel.wxs" src="effects/LifePanel.cpp" hdr="effects/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LightningPanel.wxs" src="effects/LightningPanel.cpp" hdr="effects/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LinesPanel.wxs" src="effects/LinesPanel.cpp" hdr="effects/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MarqueePanel.wxs" src="effects/MarqueePanel.cpp" hdr="effects/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MeteorsPanel.wxs" src="effects/MeteorsPanel.cpp" hdr="effects/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MorphPanel.wxs" src="effects/MorphPanel.cpp" hdr="effects/MorphPanel.h" fwddecl="1" i18n="1" name="MorphPanel" language="CPP" />
@@ -1309,7 +1449,7 @@
 					<wxDialog wxs="wxsmith/WiringDialog.wxs" src="WiringDialog.cpp" hdr="WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ArtNetDialog.wxs" src="outputs/ArtNetDialog.cpp" hdr="outputs/ArtNetDialog.h" fwddecl="0" i18n="1" name="ArtNetDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/DDPDialog.wxs" src="outputs/DDPDialog.cpp" hdr="outputs/DDPDialog.h" fwddecl="0" i18n="1" name="DDPDialog" language="CPP" />
-					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="FPPConnectDialog.cpp" hdr="FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/FPPConnectDialog.wxs" src="controllers/FPPConnectDialog.cpp" hdr="controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ControllerConnectionDialog.wxs" src="ControllerConnectionDialog.cpp" hdr="ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BufferSizeDialog.wxs" src="BufferSizeDialog.cpp" hdr="BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/ServoPanel.wxs" src="effects/ServoPanel.cpp" hdr="effects/ServoPanel.h" fwddecl="1" i18n="1" name="ServoPanel" language="CPP" />
@@ -1326,6 +1466,7 @@
 					<wxDialog wxs="wxsmith/UpdaterDialog.wxs" src="UpdaterDialog.cpp" hdr="UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/BulkEditSliderDialog.wxs" src="BulkEditSliderDialog.cpp" hdr="BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorModelDialog.wxs" src="VendorModelDialog.cpp" hdr="VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ShaderDownloadDialog.wxs" src="ShaderDownloadDialog.cpp" hdr="ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/VendorMusicDialog.wxs" src="VendorMusicDialog.cpp" hdr="VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/MatrixFaceDownloadDialog.wxs" src="MatrixFaceDownloadDialog.cpp" hdr="MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/SelectTimingsDialog.wxs" src="SelectTimingsDialog.cpp" hdr="SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
@@ -1339,8 +1480,23 @@
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="RemapDMXChannelsDialog.cpp" hdr="RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ControllerVisualiseDialog.wxs" src="ControllerVisualiseDialog.cpp" hdr="ControllerVisualiseDialog.h" fwddecl="0" i18n="1" name="ControllerVisualiseDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/AlignmentDialog.wxs" src="AlignmentDialog.cpp" hdr="AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CharMapDialog.wxs" src="CharMapDialog.cpp" hdr="CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ImportPreviewsModelsDialog.wxs" src="ImportPreviewsModelsDialog.cpp" hdr="ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ShaderPanel.wxs" src="effects/ShaderPanel.cpp" hdr="effects/ShaderPanel.h" fwddecl="0" i18n="1" name="ShaderPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/NoteRangeDialog.wxs" src="NoteRangeDialog.cpp" hdr="NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/BulkEditFontPickerDialog.wxs" src="BulkEditFontPickerDialog.cpp" hdr="BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/SyncrolightDialog.wxs" src="outputs/SyncrolightDialog.cpp" hdr="outputs/SyncrolightDialog.h" fwddecl="0" i18n="1" name="SyncrolightDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/CheckboxSelectDialog.wxs" src="CheckboxSelectDialog.cpp" hdr="CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/EmailDialog.wxs" src="EmailDialog.cpp" hdr="EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ModelPreview3DDialog.wxs" src="ModelPreview3DDialog.cpp" hdr="ModelPreview3DDialog.h" fwddecl="0" i18n="1" name="ModelPreview3DDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

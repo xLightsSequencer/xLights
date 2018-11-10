@@ -50,14 +50,27 @@ ValueCurvePanel::ValueCurvePanel(wxWindow* parent, Element* timingElement, int s
     _timingElement = timingElement;
 }
 
+#define X_VC_MARGIN 5.0
+
 void ValueCurvePanel::Convert(float &x, float &y, wxMouseEvent& event) {
     wxSize size = GetSize();
-    float startX = 0.0; // size.GetWidth() / 10.0;
+    float startX = X_VC_MARGIN; // size.GetWidth() / 10.0;
     float startY = 0.0; // size.GetHeight() / 10.0;
-    float bw = size.GetWidth(); //  *0.8;
+    float bw = size.GetWidth() - 2 * X_VC_MARGIN; //  *0.8;
     float bh = size.GetHeight(); //  *0.8;
 
-    x = (event.GetX() - startX) / bw;
+    if (event.GetX() < X_VC_MARGIN)
+    {
+        x = 0;
+    }
+    else if (event.GetX() > X_VC_MARGIN + bw)
+    {
+        x = 1.0;
+    }
+    else
+    {
+        x = (event.GetX() - startX) / bw;
+    }
     y = 1.0 - (event.GetY() - startY) / bh;
 }
 
@@ -80,6 +93,7 @@ const long ValueCurveDialog::ID_SLIDER_Parameter4 = wxNewId();
 const long ValueCurveDialog::IDD_TEXTCTRL_Parameter4 = wxNewId();
 const long ValueCurveDialog::ID_CHECKBOX_WrapValues = wxNewId();
 const long ValueCurveDialog::ID_BUTTON5 = wxNewId();
+const long ValueCurveDialog::ID_BUTTON6 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT8 = wxNewId();
 const long ValueCurveDialog::ID_SLIDER1 = wxNewId();
 const long ValueCurveDialog::ID_TEXTCTRL1 = wxNewId();
@@ -108,6 +122,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
 
     Create(parent, id, _("Value Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
     SetClientSize(wxDefaultSize);
@@ -154,6 +169,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Choice1->Append(_("Square"));
     Choice1->Append(_("Random"));
     Choice1->Append(_("Music"));
+    Choice1->Append(_("Inverted Music"));
     Choice1->Append(_("Music Trigger Fade"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
@@ -192,8 +208,12 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     FlexGridSizer2->Add(CheckBox_WrapValues, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Reverse = new wxButton(this, ID_BUTTON5, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer2->Add(Button_Reverse, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer9->Add(Button_Reverse, 1, wxALL|wxEXPAND, 2);
+    Button_Flip = new wxButton(this, ID_BUTTON6, _("Flip"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+    FlexGridSizer9->Add(Button_Flip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(FlexGridSizer9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT8, _("Time offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -236,6 +256,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Connect(IDD_TEXTCTRL_Parameter4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
     Connect(ID_CHECKBOX_WrapValues,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_ReverseClick);
+    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_FlipClick);
     Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_TimeOffsetCmdSliderUpdated);
     Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_TimeOffsetText);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonLoadClick);
@@ -246,6 +267,9 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)nullptr, this);
+
+    Button_Ok->SetDefault();
+    SetEscapeId(ID_BUTTON2);
 
     int start = -1;
     int end = -1;
@@ -313,6 +337,12 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
 
     Layout();
     Fit();
+
+    wxSize sz = GetSize();
+
+    if (sz.x < 500) sz.x = 800;
+    if (sz.y < 400) sz.y = 600;
+    SetSize(sz);
 
     ValidateWindow();
 }
@@ -464,10 +494,11 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter100(2, 100);
         SetParameter100(3, 0);
     }
-    else if (type == "Music")
+    else if (type == "Music" || type == "Inverted Music")
     {
         SetParameter100(1, 0);
         SetParameter100(2, 100);
+        SetParameter100(3, 50);
     }
     else if (type == "Music Trigger Fade")
     {
@@ -661,11 +692,15 @@ void ValueCurvePanel::mouseLeftUp(wxMouseEvent& event)
 
 void ValueCurvePanel::Delete()
 {
-    if (_grabbedPoint >= 0)
+    if (_grabbedPoint > 0.0 && _grabbedPoint < 1.0)
     {
         _vc->DeletePoint(_grabbedPoint);
         _grabbedPoint = -1;
         Refresh();
+    }
+    else
+    {
+        wxBell();
     }
 }
 
@@ -700,7 +735,7 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 
         if (_vc->NearCustomPoint(x, y))
         {
-            SetCursor(wxCURSOR_SIZENWSE);
+            SetCursor(wxCURSOR_HAND);
         }
         else
         {
@@ -768,33 +803,7 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event)
 
 void ValueCurveDialog::UpdateLinkedSlider(wxCommandEvent& event)
 {
-    wxTextCtrl * txt = (wxTextCtrl*)event.GetEventObject();
-    wxString name = txt->GetName();
-    if (name.Contains("IDD_")) {
-        name.Replace("IDD_TEXTCTRL_", "ID_SLIDER_");
-    }
-    else {
-        name.Replace("ID_TEXTCTRL_", "IDD_SLIDER_");
-    }
-    wxSlider *slider = (wxSlider*)txt->GetParent()->FindWindowByName(name);
-    if (slider == nullptr) {
-        return;
-    }
-    int value = wxAtoi(txt->GetValue());
-
-    if (value < slider->GetMin()) {
-        value = slider->GetMin();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(val_str);
-    }
-    else if (value > slider->GetMax()) {
-        value = slider->GetMax();
-        wxString val_str;
-        val_str << value;
-        txt->ChangeValue(val_str);
-    }
-    slider->SetValue(value);
+    SetSlidersFromTextCtrls();
 }
 
 void ValueCurveDialog::UpdateLinkedTextCtrl(wxScrollEvent& event)
@@ -809,9 +818,7 @@ void ValueCurveDialog::SetTextCtrlFromSlider(int parm, wxTextCtrl* txt, int valu
     ValueCurve::GetRangeParm(parm, type, low, high);
 
     float v = value;
-
     int d = _vc->GetDivisor();
-
     if (low == MINVOID)
     {
         v /= d;
@@ -836,6 +843,22 @@ void ValueCurveDialog::SetTextCtrlFromSlider(int parm, wxTextCtrl* txt, int valu
     }
 }
 
+void ValueCurveDialog::SetSliderFromTextCtrl(int parm, wxSlider* slider, float value)
+{
+    std::string type = Choice1->GetStringSelection().ToStdString();
+    float low, high;
+    ValueCurve::GetRangeParm(parm, type, low, high);
+
+    float v = value;
+    int d = _vc->GetDivisor();
+    if (low == MINVOID)
+    {
+        v *= d;
+    }
+
+    slider->SetValue(v);
+}
+
 void ValueCurveDialog::SetTextCtrlsFromSliders()
 {
     SetTextCtrlFromSlider(1, TextCtrl_Parameter1, Slider_Parameter1->GetValue());
@@ -843,6 +866,16 @@ void ValueCurveDialog::SetTextCtrlsFromSliders()
     SetTextCtrlFromSlider(3, TextCtrl_Parameter3, Slider_Parameter3->GetValue());
     SetTextCtrlFromSlider(4, TextCtrl_Parameter4, Slider_Parameter4->GetValue());
     TextCtrl_TimeOffset->SetValue(wxString::Format("%d", Slider_TimeOffset->GetValue()));
+}
+
+void ValueCurveDialog::SetSlidersFromTextCtrls()
+{
+    SetSliderFromTextCtrl(1, Slider_Parameter1, wxAtof(TextCtrl_Parameter1->GetValue()));
+    SetSliderFromTextCtrl(2, Slider_Parameter2, wxAtof(TextCtrl_Parameter2->GetValue()));
+    SetSliderFromTextCtrl(3, Slider_Parameter3, wxAtof(TextCtrl_Parameter3->GetValue()));
+    SetSliderFromTextCtrl(4, Slider_Parameter4, wxAtof(TextCtrl_Parameter4->GetValue()));
+
+    Slider_TimeOffset->SetValue(wxAtoi(TextCtrl_TimeOffset->GetValue()));
 }
 
 void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
@@ -860,7 +893,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event)
 void ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrl(event);
-    int i = Slider_Parameter1->GetValue();
+    float i = Slider_Parameter1->GetValue();
     _vc->SetParameter1(i);
     _vcp->Refresh();
 }
@@ -871,7 +904,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
     float i = wxAtof(TextCtrl_Parameter2->GetValue());
     float low, high;
     ValueCurve::GetRangeParm2(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low == MINVOID && _slideridd)
+    if (low == MINVOID)
         i *= _vc->GetDivisor();
     _vc->SetParameter2(i);
     _vcp->Refresh();
@@ -880,7 +913,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event)
 void ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrl(event);
-    int i = Slider_Parameter2->GetValue();
+    float i = Slider_Parameter2->GetValue();
     _vc->SetParameter2(i);
     _vcp->Refresh();
 }
@@ -891,7 +924,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
     float i = wxAtof(TextCtrl_Parameter3->GetValue());
     float low, high;
     ValueCurve::GetRangeParm3(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low == MINVOID && _slideridd)
+    if (low == MINVOID)
         i *= _vc->GetDivisor();
     _vc->SetParameter3(i);
     _vcp->Refresh();
@@ -900,7 +933,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event)
 void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrl(event);
-    int i = Slider_Parameter3->GetValue();
+    float i = Slider_Parameter3->GetValue();
     _vc->SetParameter3(i);
     _vcp->Refresh();
 }
@@ -911,7 +944,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event)
     float i = wxAtof(TextCtrl_Parameter4->GetValue());
     float low, high;
     ValueCurve::GetRangeParm4(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low == MINVOID && _slideridd)
+    if (low == MINVOID)
         i *= _vc->GetDivisor();
     _vc->SetParameter4(i);
     _vcp->Refresh();
@@ -920,7 +953,7 @@ void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event)
 void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event)
 {
     UpdateLinkedTextCtrl(event);
-    int i = Slider_Parameter4->GetValue();
+    float i = Slider_Parameter4->GetValue();
     _vc->SetParameter4(i);
     _vcp->Refresh();
 }
@@ -932,7 +965,7 @@ void ValueCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS)
     wxSize s = GetSize();
     long interval = _end - _start;
     float pos = (float)(timeMS - _start) / (float)interval;
-    int x = pos * s.GetWidth();
+    int x = pos * s.GetWidth() + X_VC_MARGIN;
 
     pdc.SetPen(*wxBLUE);
     pdc.DrawLine(x, 0, x, s.GetHeight());
@@ -965,7 +998,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
     pdc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
     pdc.SetBrush(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)));
     wxSize size = GetSize();
-    float w = size.GetWidth();
+    float w = size.GetWidth() - 2 * X_VC_MARGIN;
     float h = size.GetHeight();
     pdc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 
@@ -995,20 +1028,20 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
                     double yat1 = (1.0 - lastx) * (p->y - last->y) + last->y;
                     if (last->IsWrapped() == p->IsWrapped())
                     {
-                        pdc.DrawLine(lastx * w, h - last->y * h, 1.0 * w, h - yat1 * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - last->y * h, 1.0 * w + X_VC_MARGIN, h - yat1 * h);
                     }
                     else
                     {
-                        pdc.DrawLine(lastx * w, h - p->y * h, 1.0 * w, h - p->y * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - p->y * h, 1.0 * w + X_VC_MARGIN, h - p->y * h);
                     }
 
                     if (last->IsWrapped() == p->IsWrapped())
                     {
-                        pdc.DrawLine(0.0 * w, h - yat1 * h, x * w, h - p->y * h);
+                        pdc.DrawLine(0.0 * w + X_VC_MARGIN, h - yat1 * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                     else
                     {
-                        pdc.DrawLine(0.0 * w, h - p->y * h, x * w, h - p->y * h);
+                        pdc.DrawLine(0.0 * w + X_VC_MARGIN, h - p->y * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                 }
                 else
@@ -1018,11 +1051,11 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
 
                     if (last->IsWrapped() == p->IsWrapped())
                     {
-                        pdc.DrawLine(lastx * w, h - last->y * h, x * w, h - p->y * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - last->y * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                     else
                     {
-                        pdc.DrawLine(lastx * w, h - p->y * h, x * w, h - p->y * h);
+                        pdc.DrawLine(lastx * w + X_VC_MARGIN, h - p->y * h, x * w + X_VC_MARGIN, h - p->y * h);
                     }
                 }
                 last = p;
@@ -1035,13 +1068,13 @@ void ValueCurvePanel::Paint(wxPaintEvent& event)
             double x = it->x;
             x += (double)_timeOffset / 100.0;
             if (x > 1.0) x -= 1.0;
-            pdc.DrawRectangle((x * w) - 2, h - (it->y * h) - 2, 5, 5);
+            pdc.DrawRectangle((x * w) - 2 + X_VC_MARGIN, h - (it->y * h) - 2, 5, 5);
         }
 
         if (_grabbedPoint != -1 && _type == "Custom" && _timeOffset == 0)
         {
             pdc.SetPen(wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID));
-            pdc.DrawRectangle((_grabbedPoint * w) - 2, h - (_vc->GetValueAt(_grabbedPoint, 0, 1) * h) - 2, 5, 5);
+            pdc.DrawRectangle((_grabbedPoint * w) - 2 + X_VC_MARGIN, h - (_vc->GetValueAt(_grabbedPoint, 0, 1) * h) - 2, 5, 5);
         }
     }
 }
@@ -1105,7 +1138,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down" || type == "Music")
+    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1116,7 +1149,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random")
+    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random" || type == "Music" || type == "Inverted Music")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1158,13 +1191,12 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Music")
+    else if (type == "Music" || type == "Inverted Music")
     {
         StaticText_P1->SetLabel("Low");
         StaticText_P2->SetLabel("High");
-        StaticText_P3->SetLabel("N/A");
+        StaticText_P3->SetLabel("Gain");
         StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
     else if (type == "Music Trigger Fade")
@@ -1301,6 +1333,9 @@ void ValueCurveDialog::ValidateWindow()
         type == "Logarithmic Down" ||
         type == "Exponential Up" ||
         type == "Random" ||
+        type == "Music" ||
+        type == "Inverted Music" ||
+        type == "Music Trigger Fade" ||
         type == "Exponential Down")
     {
         Button_Reverse->Enable(false);
@@ -1308,6 +1343,22 @@ void ValueCurveDialog::ValidateWindow()
     else
     {
         Button_Reverse->Enable();
+    }
+    if (type == "Logarithmic Up" ||
+        type == "Logarithmic Down" ||
+        type == "Sine" ||
+        type == "Abs Sine" ||
+        type == "Music" ||
+        type == "Inverted Music" ||
+        type == "Music Trigger Fade" ||
+        type == "Decaying Sine"
+        )
+    {
+        Button_Flip->Enable(false);
+    }
+    else
+    {
+        Button_Flip->Enable();
     }
 }
 
@@ -1363,7 +1414,7 @@ void ValueCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
     int div = _vc->GetDivisor();
     _vc->SetLimits(0, 100);
     _vc->SetDivisor(1);
-    LoadXVC(_vc, filename);
+    _vc->LoadXVC(filename.ToStdString());
     _vc->SetLimits(min, max);
     _vc->SetDivisor(div);
     SetSliderMinMax();
@@ -1390,30 +1441,7 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "ValueCurve", wxEmptyString, "Value Curves (*.xvc)|*.xvc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
 
-    wxFile f(filename);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
-
-    if (!f.Create(filename, true) || !f.IsOpened())
-    {
-        logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
-        return;
-    }
-
-    _vc->SetActive(true);
-
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
-    ValueCurve vc(_vc->Serialise());
-    vc.SetId("ID_VALUECURVE_XVC");
-    vc.SetLimits(0, 100);
-    vc.UnFixChangedScale(_vc->GetMin(), _vc->GetMax());
-    f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(" >\n");
-    f.Write("</valuecurve>");
-    f.Close();
+    _vc->SaveXVC(filename.ToStdString());
 
     _vcp->ClearUndo();
 
@@ -1446,11 +1474,12 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
         if (!found)
         {
             ValueCurve vc("");
-            LoadXVC(&vc, fn.GetFullPath());
+            vc.LoadXVC(fn);
             long id = wxNewId();
             wxBitmapButton* bmb = new wxBitmapButton(this, id, vc.GetImage(30, 30, GetContentScaleFactor()), wxDefaultPosition,
                                                      wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
             bmb->SetLabel(fn.GetFullPath());
+            bmb->SetToolTip(fn.GetFullPath());
             PresetSizer->Add(bmb);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonPresetClick);
         }
@@ -1477,7 +1506,7 @@ void ValueCurveDialog::PopulatePresets()
 
     ProcessPresetDir(dir, false);
 
-    wxString d = xLightsFrame::CurrentDir + "/valuecurves";
+    wxString d = ValueCurve::GetValueCurveFolder(xLightsFrame::CurrentDir.ToStdString());
 
     if (wxDir::Exists(d))
     {
@@ -1511,50 +1540,6 @@ void ValueCurveDialog::PopulatePresets()
     //Fit();
 }
 
-void ValueCurveDialog::LoadXVC(ValueCurve* vc, const wxString& filename)
-{
-    wxXmlDocument doc(filename);
-
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
-
-        if (root->GetName() == "valuecurve")
-        {
-            wxString data = root->GetAttribute("data");
-            wxString v = root->GetAttribute("SourceVersion");
-
-            // Add any valuecurve version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            vc->Deserialise(data.ToStdString(), true);
-
-            if (vc->GetId() == "ID_VALUECURVE_XVC")
-            {
-                // this should already have the 0-100 scale
-            }
-            else
-            {
-                // need to fudge it
-                float min = vc->GetMin();
-                float max = vc->GetMax();
-                vc->SetLimits(0, 100);
-                vc->FixChangedScale(min, max, 1);
-            }
-
-            vc->SetActive(true);
-        }
-        else
-        {
-            wxMessageBox("Failure loading value curve file " + filename + ".");
-        }
-    }
-    else
-    {
-        wxMessageBox("Failure loading value curve file " + filename + ".");
-    }
-}
-
 void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
 {
     if (_vcp->IsDirty())
@@ -1573,7 +1558,7 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     int div = _vc->GetDivisor();
     _vc->SetLimits(0, 100);
     _vc->SetDivisor(1);
-    LoadXVC(_vc, filename);
+    _vc->LoadXVC(filename.ToStdString());
     _vc->SetLimits(min, max);
     _vc->SetDivisor(div);
     SetSliderMinMax();
@@ -1634,4 +1619,21 @@ void ValueCurveDialog::OnTextCtrl_TimeOffsetText(wxCommandEvent& event)
     _vc->SetTimeOffset(i);
     _vcp->SetTimeOffset(Slider_TimeOffset->GetValue());
     _vcp->Refresh();
+}
+
+void ValueCurveDialog::OnButton_FlipClick(wxCommandEvent& event)
+{
+    _vc->Flip();
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    Slider_TimeOffset->SetValue(_vc->GetTimeOffset());
+    SetParameter(1, _vc->GetParameter1());
+    SetParameter(2, _vc->GetParameter2());
+    SetParameter(3, _vc->GetParameter3());
+    SetParameter(4, _vc->GetParameter4());
+    SetTextCtrlsFromSliders();
+    _vcp->Refresh();
+    _vcp->SetType(_vc->GetType());
+    _vcp->SetTimeOffset(_vc->GetTimeOffset());
+    _vcp->ClearUndo();
+    ValidateWindow();
 }

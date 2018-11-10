@@ -40,6 +40,8 @@ class PlayListItemTextPanel: public wxPanel
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
+		wxStaticText* StaticText14;
+		wxStaticText* StaticText15;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -50,9 +52,11 @@ class PlayListItemTextPanel: public wxPanel
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
 		wxStaticText* StaticText_Text;
+		wxTextCtrl* TextCtrl_Delay;
 		wxTextCtrl* TextCtrl_Duration;
 		wxTextCtrl* TextCtrl_Format;
 		wxTextCtrl* TextCtrl_Name;
+		wxTextCtrl* TextCtrl_Parameter1;
 		wxTextCtrl* TextCtrl_Text;
 		//*)
 
@@ -88,6 +92,10 @@ class PlayListItemTextPanel: public wxPanel
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT9;
 		static const long ID_TEXTCTRL3;
+		static const long ID_STATICTEXT15;
+		static const long ID_TEXTCTRL5;
+		static const long ID_STATICTEXT16;
+		static const long ID_TEXTCTRL6;
 		//*)
 
 	private:

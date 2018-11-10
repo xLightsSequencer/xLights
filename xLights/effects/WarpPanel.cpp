@@ -4,7 +4,6 @@
 
 //(*InternalHeaders(WarpPanel)
 #include <wx/intl.h>
-#include <wx/settings.h>
 #include <wx/string.h>
 //*)
 
@@ -78,7 +77,6 @@ WarpPanel::WarpPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxS
 	FlexGridSizer3->AddGrowableCol(0);
 	TextCtrl1 = new wxTextCtrl(this, ID_TEXTCTRL1, _("The warp effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work."), wxDefaultPosition, wxDLG_UNIT(this,wxSize(99,32)), wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER, wxDefaultValidator, _T("ID_TEXTCTRL1"));
 	TextCtrl1->Disable();
-	TextCtrl1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_MENU));
 	FlexGridSizer3->Add(TextCtrl1, 1, wxEXPAND, 2);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 2);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);

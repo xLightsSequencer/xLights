@@ -12,6 +12,7 @@
 #include <wx/stdpaths.h>
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 //(*IdInit(LyricUserDictDialog)
 const long LyricUserDictDialog::ID_TEXTCTRL_NEW_LYRIC = wxNewId();
@@ -154,7 +155,7 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
     if ((m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found)
         || DoesGridContain(TextCtrlNewLyric->GetValue().Upper()))
     {
-        wxMessageBox("Word '" + TextCtrlNewLyric->GetValue() +"' Already Exists In Phoneme Dictionary");
+        DisplayError("Word '" + TextCtrlNewLyric->GetValue() +"' Already Exists In Phoneme Dictionary", this);
         return;
     }
 
@@ -201,7 +202,7 @@ void LyricUserDictDialog::OnButtonLyricOKClick(wxCommandEvent& event)
         if (GridUserLyricDict->GetCellValue(i, 1).IsEmpty() || !IsValidPhoneme(GridUserLyricDict->GetCellValue(i, 1).Upper()))
         {
             const auto msg = "Invalid Phonemes for: " + GridUserLyricDict->GetCellValue(i, 0);
-            wxMessageBox(msg,"Invalid Phonemes");
+            DisplayError(msg, this);
             return;
         }
     }
@@ -325,18 +326,25 @@ bool LyricUserDictDialog::IsValidPhoneme(const wxString & text) const
 
 void LyricUserDictDialog::OnTextCtrlOldLyricText(wxCommandEvent& event)
 {
-    if ((m_dictionary->ContainsPhoneme(TextCtrlOldLyric->GetValue().Upper())))
+    const auto& words = wxSplit(TextCtrlOldLyric->GetValue().Upper(), ' ');
+    wxArrayString phenoms;
+    //loop through for multiple words
+    for (const auto& word : words)
     {
-        wxArrayString  phenoms = m_dictionary->GetPhoneme(TextCtrlOldLyric->GetValue().Upper());
-        if (phenoms.size() > 2)
+        if ((m_dictionary->ContainsPhoneme(word)))
         {
-            phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
-            TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
+            wxArrayString word_phenoms = m_dictionary->GetPhoneme(word);
+            if (word_phenoms.size() > 2)
+            {
+                word_phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
+                phenoms.insert(phenoms.end(),word_phenoms.begin(),word_phenoms.end());
+            }
         }
-        else
-        {
-            TextCtrlPhonems->Clear();
-        }
+    }
+
+    if (!phenoms.IsEmpty())
+    {
+         TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
     }
     else
     {

@@ -21,6 +21,7 @@ public:
     void SetHtmlSource(wxString& html);
 
     //(*Declarations(ChannelLayoutDialog)
+    wxButton* ButtonOpenInBrower;
     wxHtmlWindow* HtmlWindow1;
     //*)
 
@@ -28,6 +29,7 @@ protected:
 
     //(*Identifiers(ChannelLayoutDialog)
     static const long ID_BUTTON1;
+    static const long ID_BUTTON_OPEN_IN_BROWSER;
     static const long ID_HTMLWINDOW1;
     //*)
 
@@ -35,6 +37,7 @@ private:
 
     //(*Handlers(ChannelLayoutDialog)
     void OnButton_PrintClick(wxCommandEvent& event);
+    void OnButtonOpenInBrowerClick(wxCommandEvent& event);
     //*)
 
     wxString HtmlSource;

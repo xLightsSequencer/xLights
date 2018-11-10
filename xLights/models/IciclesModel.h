@@ -20,6 +20,7 @@ protected:
 
 private:
     void SetIciclesCoord();
+    bool _alternateNodes = false;
 };
 
 #endif // ICICLESMODEL_H

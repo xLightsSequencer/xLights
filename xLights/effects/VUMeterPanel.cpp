@@ -36,6 +36,10 @@ const long VUMeterPanel::ID_STATICTEXT_VUMeter_Sensitivity = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_Sensitivity = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_Sensitivity = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity = wxNewId();
+const long VUMeterPanel::ID_STATICTEXT1 = wxNewId();
+const long VUMeterPanel::ID_SLIDER_VUMeter_Gain = wxNewId();
+const long VUMeterPanel::ID_VALUECURVE_VUMeter_Gain = wxNewId();
+const long VUMeterPanel::ID_TEXTCTRL_VUMeter_Gain = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_Shape = wxNewId();
 const long VUMeterPanel::ID_CHOICE_VUMeter_Shape = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT8 = wxNewId();
@@ -52,6 +56,7 @@ const long VUMeterPanel::ID_STATICTEXT_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote = wxNewId();
+const long VUMeterPanel::ID_CHECKBOX_VUMeter_LogarithmicX = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_XOffset = wxNewId();
@@ -77,6 +82,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer42;
 	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer42 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -98,31 +104,6 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Type, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Type"));
 	FlexGridSizer31->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_VUMeter_Type = new BulkEditChoice(this, ID_CHOICE_VUMeter_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Type"));
-	Choice_VUMeter_Type->Append(_("Spectrogram"));
-	Choice_VUMeter_Type->Append(_("Spectrogram Peak"));
-	Choice_VUMeter_Type->Append(_("Volume Bars"));
-	Choice_VUMeter_Type->SetSelection( Choice_VUMeter_Type->Append(_("Waveform")) );
-	Choice_VUMeter_Type->Append(_("On"));
-	Choice_VUMeter_Type->Append(_("Color On"));
-	Choice_VUMeter_Type->Append(_("Intensity Wave"));
-	Choice_VUMeter_Type->Append(_("Pulse"));
-	Choice_VUMeter_Type->Append(_("Level Bar"));
-	Choice_VUMeter_Type->Append(_("Level Color"));
-	Choice_VUMeter_Type->Append(_("Level Pulse"));
-	Choice_VUMeter_Type->Append(_("Level Pulse Color"));
-	Choice_VUMeter_Type->Append(_("Level Shape"));
-	Choice_VUMeter_Type->Append(_("Timing Event Bar"));
-	Choice_VUMeter_Type->Append(_("Timing Event Bars"));
-	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
-	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
-	Choice_VUMeter_Type->Append(_("Timing Event Color"));
-	Choice_VUMeter_Type->Append(_("Timing Event Jump"));
-	Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
-	Choice_VUMeter_Type->Append(_("Timing Event Pulse"));
-	Choice_VUMeter_Type->Append(_("Timing Event Pulse Color"));
-	Choice_VUMeter_Type->Append(_("Note On"));
-	Choice_VUMeter_Type->Append(_("Note Level Pulse"));
-	Choice_VUMeter_Type->Append(_("Note Level Bar"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -151,8 +132,20 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	BitmapButton_VUMeter_Sensitivity = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity"));
 	BitmapButton_VUMeter_Sensitivity->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_Sensitivity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText15 = new wxStaticText(this, ID_STATICTEXT1, _("Gain"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer31->Add(StaticText15, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer5->AddGrowableCol(0);
+	Slider_VUMeter_Gain = new BulkEditSlider(this, ID_SLIDER_VUMeter_Gain, 0, -100, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_VUMeter_Gain"));
+	FlexGridSizer5->Add(Slider_VUMeter_Gain, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_VUMeter_Gain = new BulkEditValueCurveButton(this, ID_VALUECURVE_VUMeter_Gain, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_VUMeter_Gain"));
+	FlexGridSizer5->Add(BitmapButton_VUMeter_Gain, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer31->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
+	TextCtrl_VUMeter_Gain = new BulkEditTextCtrl(this, ID_TEXTCTRL_VUMeter_Gain, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Gain"));
+	FlexGridSizer31->Add(TextCtrl_VUMeter_Gain, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Shape, _("Shape"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Shape"));
-	FlexGridSizer31->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer31->Add(StaticText7, 1, wxALL, 2);
 	Choice_VUMeter_Shape = new BulkEditChoice(this, ID_CHOICE_VUMeter_Shape, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Shape"));
 	Choice_VUMeter_Shape->SetSelection( Choice_VUMeter_Shape->Append(_("Circle")) );
 	Choice_VUMeter_Shape->Append(_("Filled Circle"));
@@ -206,6 +199,12 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	BitmapButton_VUMeter_EndNote = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote"));
 	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_LogarithmicXAxis = new BulkEditCheckBox(this, ID_CHECKBOX_VUMeter_LogarithmicX, _("Logarithmic X axis"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_VUMeter_LogarithmicX"));
+	CheckBox_LogarithmicXAxis->SetValue(false);
+	FlexGridSizer31->Add(CheckBox_LogarithmicXAxis, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText13 = new wxStaticText(this, ID_STATICTEXT_VUMeter_XOffset, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_XOffset"));
 	FlexGridSizer31->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -242,6 +241,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Type,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_VUMeter_Gain,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnVCButtonClick);
 	Connect(ID_CHOICE_VUMeter_Shape,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&VUMeterPanel::OnChoice_VUMeter_TypeSelect);
 	Connect(ID_BITMAPBUTTON_CHOICE_VUMeter_Shape,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&VUMeterPanel::OnLockButtonClick);
@@ -258,9 +258,50 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     
     SetName("ID_PANEL_VUMeter");
 
+    Choice_VUMeter_Type->Append(_("Spectrogram"));
+    Choice_VUMeter_Type->Append(_("Spectrogram Peak"));
+    Choice_VUMeter_Type->Append(_("Spectrogram Line"));
+    Choice_VUMeter_Type->Append(_("Spectrogram Circle Line"));
+    Choice_VUMeter_Type->Append(_("Volume Bars"));
+    Choice_VUMeter_Type->Append(_("Waveform"));
+    Choice_VUMeter_Type->Append(_("Frame Waveform"));
+    Choice_VUMeter_Type->Append(_("On"));
+    Choice_VUMeter_Type->Append(_("Color On"));
+    Choice_VUMeter_Type->Append(_("Intensity Wave"));
+    Choice_VUMeter_Type->Append(_("Pulse"));
+    Choice_VUMeter_Type->Append(_("Level Bar"));
+    Choice_VUMeter_Type->Append(_("Level Color"));
+    Choice_VUMeter_Type->Append(_("Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Level Jump"));
+    Choice_VUMeter_Type->Append(_("Level Jump 100"));
+    Choice_VUMeter_Type->Append(_("Level Pulse Color"));
+    Choice_VUMeter_Type->Append(_("Level Shape"));
+    Choice_VUMeter_Type->Append(_("Timing Event Bar"));
+    Choice_VUMeter_Type->Append(_("Timing Event Bars"));
+    Choice_VUMeter_Type->Append(_("Timing Event Spike"));
+    Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Sweep 2"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Timed Sweep 2"));
+    Choice_VUMeter_Type->Append(_("Timing Event Alternate Timed Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Alternate Timed Sweep 2"));
+    Choice_VUMeter_Type->Append(_("Timing Event Color"));
+    Choice_VUMeter_Type->Append(_("Timing Event Jump"));
+    Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
+    Choice_VUMeter_Type->Append(_("Timing Event Pulse"));
+    Choice_VUMeter_Type->Append(_("Timing Event Pulse Color"));
+    Choice_VUMeter_Type->Append(_("Note On"));
+    Choice_VUMeter_Type->Append(_("Note Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Note Level Jump"));
+    Choice_VUMeter_Type->Append(_("Note Level Jump 100"));
+    Choice_VUMeter_Type->Append(_("Note Level Bar"));
+
+    Choice_VUMeter_Type->SetStringSelection(_("Waveform"));
+
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VUMeterPanel::OnVCChanged, 0, this);
 
     BitmapButton_VUMeter_YOffsetVC->GetValue()->SetLimits(VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX);
+    BitmapButton_VUMeter_Gain->GetValue()->SetLimits(VUMETER_GAIN_MIN, VUMETER_GAIN_MAX);
 
 	ValidateWindow();
 }
@@ -275,16 +316,67 @@ PANEL_EVENT_HANDLERS(VUMeterPanel)
 
 void VUMeterPanel::ValidateWindow()
 {
-    if (Choice_VUMeter_Type->GetStringSelection() == "Timing Event Spike" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Sweep" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Pulse" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Pulse" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Bar" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Bars" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump 100" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Pulse Color" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Timing Event Jump")
+    auto type = Choice_VUMeter_Type->GetStringSelection();
+
+    if (type == "Spectrogram" || 
+        type == "Spectrogram Peak" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Spectrogram Line")
+    {
+        CheckBox_LogarithmicXAxis->Enable();
+    }
+    else
+    {
+        CheckBox_LogarithmicXAxis->Disable();
+    }
+
+    if (type == "Volume Bars" ||
+        type == "Waveform" ||
+        type == "Frame Waveform" ||
+        type == "On" ||
+        type == "Color On" ||
+        type == "Intensity Wave" ||
+        type == "Level Bar" ||
+        type == "Level Color" ||
+        type == "Level Pulse" || 
+        type == "Level Jump" ||
+        type == "Level Jump 100" ||
+        type == "Level Pulse Color" ||
+        type == "Timing Event Jump" ||
+        type == "Note On" ||
+        type == "Note Level Bar" ||
+        type == "Note Level Pulse" ||
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Level Shape")
+    {
+        Slider_VUMeter_Gain->Enable();
+        TextCtrl_VUMeter_Gain->Enable();
+        BitmapButton_VUMeter_Gain->Enable();
+    }
+    else
+    {
+        Slider_VUMeter_Gain->Disable();
+        TextCtrl_VUMeter_Gain->Disable();
+        BitmapButton_VUMeter_Gain->Disable();
+    }
+
+    if (type == "Timing Event Spike" ||
+        type == "Timing Event Sweep" ||
+        type == "Timing Event Sweep 2" ||
+        type == "Timing Event Timed Sweep" ||
+        type == "Timing Event Timed Sweep 2" ||
+        type == "Timing Event Alternate Timed Sweep" ||
+        type == "Timing Event Alternate Timed Sweep 2" ||
+        type == "Pulse" ||
+        type == "Timing Event Color" ||
+        type == "Timing Event Pulse" ||
+        type == "Timing Event Bar" ||
+        type == "Timing Event Bars" ||
+        type == "Timing Event Jump 100" ||
+        type == "Timing Event Pulse Color" ||
+        type == "Timing Event Jump")
     {
         Choice_VUMeter_TimingTrack->Enable();
     }
@@ -293,14 +385,20 @@ void VUMeterPanel::ValidateWindow()
         Choice_VUMeter_TimingTrack->Disable();
     }
 
-    if (Choice_VUMeter_Type->GetStringSelection() == "Level Pulse" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Level Pulse Color" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Level Bar" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Level Color" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
+    if (type == "Level Pulse" ||
+        type == "Level Jump" ||
+        type == "Level Jump 100" ||
+        type == "Level Pulse Color" ||
+        type == "Level Shape" ||
+        type == "Level Bar" ||
+        type == "Level Color" ||
+        type == "Note Level Bar" ||
+        type == "Spectrogram Peak" ||
+        type == "Spectrogram Line" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
+        type == "Note Level Pulse")
     {
         Slider_VUMeter_Sensitivity->Enable();
         TextCtrl_VUMeter_Sensitivity->Enable();
@@ -311,9 +409,11 @@ void VUMeterPanel::ValidateWindow()
         TextCtrl_VUMeter_Sensitivity->Disable();
     }
 
-    if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak")
+    if (type == "Level Shape" ||
+        type == "Spectrogram" ||
+        type == "Spectrogram Line" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Spectrogram Peak")
     {
         CheckBox_VUMeter_SlowDownFalls->Enable();
     }
@@ -322,11 +422,13 @@ void VUMeterPanel::ValidateWindow()
         CheckBox_VUMeter_SlowDownFalls->Disable();
     }
 
-    if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
+    if (type == "Level Shape")
     {
         Choice_VUMeter_Shape->Enable();
-        if (Choice_VUMeter_Shape->GetStringSelection() == "Star" || Choice_VUMeter_Shape->GetStringSelection() == "Filled Star" || 
-			Choice_VUMeter_Shape->GetStringSelection() == "Snowflake")
+        auto shape = Choice_VUMeter_Shape->GetStringSelection();
+        if (shape == "Star" || 
+            shape == "Filled Star" || 
+			shape == "Snowflake")
         {
             // we use bars to set number of points
             Slider_VUMeter_Bars->Enable();
@@ -342,11 +444,11 @@ void VUMeterPanel::ValidateWindow()
     {
         Choice_VUMeter_Shape->Disable();
 
-        if (Choice_VUMeter_Type->GetStringSelection() == "On" ||
-            Choice_VUMeter_Type->GetStringSelection() == "Color On" ||
-            Choice_VUMeter_Type->GetStringSelection() == "Timing Event Color" ||
-            Choice_VUMeter_Type->GetStringSelection() == "Level Color" ||
-            Choice_VUMeter_Type->GetStringSelection() == "Note On")
+        if (type == "On" ||
+            type == "Color On" ||
+            type == "Timing Event Color" ||
+            type == "Level Color" ||
+            type == "Note On")
         {
             Slider_VUMeter_Bars->Disable();
             TextCtrl_VUMeter_Bars->Disable();
@@ -358,11 +460,15 @@ void VUMeterPanel::ValidateWindow()
         }
     }
 
-    if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Note On" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Note Level Bar" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Note Level Pulse")
+    if (type == "Spectrogram" ||
+        type == "Spectrogram Line" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Spectrogram Peak" ||
+        type == "Note On" ||
+        type == "Note Level Bar" ||
+        type == "Note Level Jump" ||
+        type == "Note Level Jump 100" ||
+        type == "Note Level Pulse")
     {
         Slider_VUMeter_EndNote->Enable();
         Slider_VUMeter_StartNote->Enable();
@@ -377,9 +483,11 @@ void VUMeterPanel::ValidateWindow()
         TextCtrl_VUMeter_StartNote->Disable();
     }
 
-    if (Choice_VUMeter_Type->GetStringSelection() == "Spectrogram" || 
-        Choice_VUMeter_Type->GetStringSelection() == "Spectrogram Peak" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Level Shape")
+    if (type == "Spectrogram" || 
+        type == "Spectrogram Line" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Spectrogram Peak" ||
+        type == "Level Shape")
     {
         Slider_VUMeter_XOffset->Enable();
         TextCtrl_VUMeter_XOffset->Enable();
@@ -390,8 +498,10 @@ void VUMeterPanel::ValidateWindow()
         TextCtrl_VUMeter_XOffset->Disable();
     }
 
-    if (Choice_VUMeter_Type->GetStringSelection() == "Level Shape" ||
-        Choice_VUMeter_Type->GetStringSelection() == "Waveform")
+    if (type == "Level Shape" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Frame Waveform" ||
+        type == "Waveform")
     {
         Slider_VUMeter_YOffset->Enable();
         TextCtrl_VUMeter_YOffset->Enable();
@@ -399,9 +509,9 @@ void VUMeterPanel::ValidateWindow()
     }
     else
     {
+        BitmapButton_VUMeter_YOffsetVC->Disable();
         Slider_VUMeter_YOffset->Disable();
         TextCtrl_VUMeter_YOffset->Disable();
-        BitmapButton_VUMeter_YOffsetVC->Disable();
     }
 
     Slider_VUMeter_StartNote->SetToolTip(wxString(DecodeMidi(Slider_VUMeter_StartNote->GetValue()).c_str()));

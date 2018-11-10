@@ -113,6 +113,7 @@ int SequenceElements::GetSequenceEnd() const
 
 EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (s == nullptr) {
         return nullptr;
     }
@@ -123,7 +124,6 @@ EffectLayer* SequenceElements::GetEffectLayer(Row_Information_Struct *s) const
     else if (s->nodeIndex == -1) {
         SubModelElement *se = dynamic_cast<SubModelElement*>(e);
         if (se == nullptr) {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.error("Expected a SubModelElment be found %d", e->GetType());
             return nullptr;
         }
@@ -219,6 +219,7 @@ static Element* CreateElement(SequenceElements *se, const std::string &name, con
 Element* SequenceElements::AddElement(const std::string &name, const std::string &type,
     bool visible, bool collapsed, bool active, bool selected)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!ElementExists(name)) {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe);
 
@@ -227,6 +228,7 @@ Element* SequenceElements::AddElement(const std::string &name, const std::string
         IncrementChangeCount(el);
         return el;
     }
+    logger_base.error("SequenceElements::AddElement %s failed.", (const char *)name.c_str());
     return nullptr;
 }
 
@@ -234,6 +236,7 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
     const std::string &type,
     bool visible, bool collapsed, bool active, bool selected)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!ElementExists(name) && index <= mAllViews[MASTER_VIEW].size())
     {
         Element *el = CreateElement(this, name, type, visible, collapsed, active, selected, xframe);
@@ -242,16 +245,21 @@ Element* SequenceElements::AddElement(int index, const std::string &name,
         IncrementChangeCount(el);
         return el;
     }
+    logger_base.error("SequenceElements::AddElement #2 %s failed.", (const char *)name.c_str());
     return nullptr;
 }
 
 size_t SequenceElements::GetElementCount(int view) const
 {
+    if (view >= mAllViews.size()) return 0;
+
     return mAllViews[view].size();
 }
 
 bool SequenceElements::ElementExists(const std::string &elementName, int view)
 {
+    if (view >= mAllViews.size()) return false;
+
     for (size_t i = 0; i < mAllViews[view].size(); i++)
     {
         if (mAllViews[view][i]->GetName() == elementName)
@@ -437,7 +445,7 @@ void SequenceElements::DeleteElement(const std::string &name)
     _viewsManager->DeleteModel(name);
 
     // delete element pointer from all views
-    for (size_t i = 0; i < mAllViews.size(); i++)
+    for (size_t i = 1; i < mAllViews.size(); i++)
     {
         for (size_t j = 0; j < mAllViews[i].size(); j++)
         {
@@ -456,6 +464,7 @@ void SequenceElements::DeleteElement(const std::string &name)
         if (name == mAllViews[MASTER_VIEW][j]->GetName())
         {
             Element *e = mAllViews[MASTER_VIEW][j];
+            mAllViews[MASTER_VIEW].erase(mAllViews[MASTER_VIEW].begin() + j);
             delete e;
             mMasterViewChangeCount++;
             break;
@@ -774,14 +783,13 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 {
                     active = element->GetAttribute("active") == '1' ? true : false;
                 }
-                else
+                if(element->HasAttribute("collapsed"))
                 {
                     collapsed = element->GetAttribute("collapsed") == '1' ? true : false;
                 }
                 if (ElementExists(name))
                 {
-                    logger_base.warn("Duplicate " + type + ": '" + name + "'. Second instance ignored.");
-                    wxMessageBox("Duplicate " + type + ": '" + name + "'. Second instance ignored.", _("ERROR"));
+                    DisplayError("Duplicate " + type + ": '" + name + "'. Second instance ignored.");
                 }
                 else
                 {
@@ -1182,6 +1190,14 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
                      int &rowIndex, xLightsFrame *xframe,
                      std::vector <Element*> &elements,
                      bool submodel) {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (elem == nullptr)
+    {
+        logger_base.error("addModelElement attempted to add null element.");
+        return;
+    }
+
     if(!elem->GetCollapsed())
     {
         for(int j =0; j<elem->GetEffectLayerCount();j++)
@@ -1211,6 +1227,7 @@ void addModelElement(ModelElement *elem, std::vector<Row_Information_Struct> &mR
     }
     Model *cls = xframe->GetModel(elem->GetModelName());
     if (cls == nullptr) {
+        logger_base.error("addModelElement model not found %s.", (const char *)elem->GetModelName().c_str());
         return;
     }
     elem->Init(*cls);
@@ -1385,8 +1402,10 @@ void SequenceElements::PopulateVisibleRowInformation()
     }
 }
 
-void SequenceElements::SetFirstVisibleModelRow(int row)
+int SequenceElements::SetFirstVisibleModelRow(int row)
 {
+    int old = mFirstVisibleModelRow;
+
     // They all fit on screen. So set to first model element.
     if(mRowInformation.size() <= mMaxRowsDisplayed)
     {
@@ -1408,6 +1427,8 @@ void SequenceElements::SetFirstVisibleModelRow(int row)
         }
     }
     PopulateVisibleRowInformation();
+
+    return mFirstVisibleModelRow - old;
 }
 
 int SequenceElements::GetNumberOfTimingRows() const
@@ -1439,6 +1460,18 @@ TimingElement* SequenceElements::GetTimingElement(int n)
                 return (TimingElement*)mAllViews[MASTER_VIEW][i];
             }
             count++;
+        }
+    }
+    return nullptr;
+}
+
+TimingElement* SequenceElements::GetTimingElement(const std::string& name)
+{
+    for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++)
+    {
+        if (mAllViews[MASTER_VIEW][i]->GetType() == ELEMENT_TYPE_TIMING && mAllViews[MASTER_VIEW][i]->GetName() == name)
+        {
+            return (TimingElement*)mAllViews[MASTER_VIEW][i];
         }
     }
     return nullptr;
@@ -1533,25 +1566,35 @@ void SequenceElements::SelectAllEffectsNoTiming()
 {
     for (size_t i = 0; i < mRowInformation.size(); i++)
     {
-        if (mRowInformation[i].element->GetType() == ELEMENT_TYPE_TIMING)
+        if (mRowInformation[i].element->GetType() == ELEMENT_TYPE_TIMING) {
             continue;
+        }
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
-        effectLayer->SelectAllEffects();
+        if (effectLayer != nullptr)
+        {
+            effectLayer->SelectAllEffects();
+        }
     }
 }
 
 void SequenceElements::SelectAllEffectsInRow(int row)
 {
     EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[row]);
-    effectLayer->SelectAllEffects();
+    if (effectLayer != nullptr)
+    {
+        effectLayer->SelectAllEffects();
+    }
 }
 
 void SequenceElements::UnSelectAllEffects()
 {
-    for(size_t i=0;i<mRowInformation.size();i++)
+    for (size_t i = 0; i < mRowInformation.size(); i++)
     {
         EffectLayer* effectLayer = GetEffectLayer(&mRowInformation[i]);
-        effectLayer->UnSelectAllEffects();
+        if (effectLayer != nullptr)
+        {
+            effectLayer->UnSelectAllEffects();
+        }
     }
 }
 
@@ -1576,7 +1619,7 @@ void SequenceElements::UnSelectAllElements()
 }
 
 // Functions to manage selected ranges
-int SequenceElements::GetSelectedRangeCount()
+size_t SequenceElements::GetSelectedRangeCount()
 {
     return mSelectedRanges.size();
 }
@@ -1624,19 +1667,56 @@ int SequenceElements::GetFirstVisibleModelRow()
     return mFirstVisibleModelRow;
 }
 
-void SequenceElements::SelectEffectUsingDescription(std::string description)
+bool SequenceElements::IsValidEffect(Effect* ef) const
 {
     for (size_t i = 0; i < GetElementCount(); i++)
     {
         Element* e = GetElement(i);
         if (e->GetType() != ELEMENT_TYPE_TIMING)
         {
-            if (e->SelectEffectUsingDescription(description))
+            if (e->IsEffectValid(ef))
             {
-                return;
+                return true;
+            }
+            if (e->GetType() == ELEMENT_TYPE_MODEL) {
+                ModelElement* mel = dynamic_cast<ModelElement*>(e);
+                if (mel != nullptr)
+                {
+                    for (int x = 0; x < mel->GetSubModelAndStrandCount(); ++x)
+                    {
+                        SubModelElement* sme = mel->GetSubModel(x);
+                        if (sme != nullptr)
+                        {
+                            if (sme->IsEffectValid(ef))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+
+    return false;
+}
+
+Effect* SequenceElements::SelectEffectUsingDescription(std::string description)
+{
+    for (size_t i = 0; i < GetElementCount(); i++)
+    {
+        Element* e = GetElement(i);
+        if (e->GetType() != ELEMENT_TYPE_TIMING)
+        {
+            Effect* ef = e->SelectEffectUsingDescription(description);
+            if (ef != nullptr)
+            {
+                return ef;
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 std::list<std::string> SequenceElements::GetAllEffectDescriptions()
@@ -1740,7 +1820,7 @@ std::list<Effect*> SequenceElements::GetElementLayerEffects(std::string elementN
     return res;
 }
 
-void SequenceElements::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
+Effect* SequenceElements::SelectEffectUsingElementLayerTime(std::string element, int layer, int time)
 {
     for (size_t i = 0; i < GetElementCount(); i++)
     {
@@ -1749,11 +1829,11 @@ void SequenceElements::SelectEffectUsingElementLayerTime(std::string element, in
         {
             if (e->GetFullName() == element)
             {
-                e->SelectEffectUsingLayerTime(layer, time);
-                return;
+                return e->SelectEffectUsingLayerTime(layer, time);
             }
         }
     }
+    return nullptr;
 }
 
 void SequenceElements::SetVisibilityForAllModels(bool visibility, int view)
@@ -1876,7 +1956,7 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 
         if (num_phrases == 0)
         {
-            wxMessageBox("No phrases found.");
+            DisplayError("No phrases found.");
             return;
         }
 
@@ -1889,8 +1969,8 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
         }
         EffectLayer* phrase_layer = element->AddEffectLayer();
 
-        int start_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
-        int end_time = wxAtoi(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
+        int start_time = wxAtof(dlgLyrics->TextCtrl_Lyric_StartTime->GetValue()) * 1000;
+        int end_time = wxAtof(dlgLyrics->TextCtrl_Lyric_EndTime->GetValue()) * 1000;
         int total_time = end_time - start_time;
         
         if(total_time <= 0 || total_time > mSequenceEndMS)//is start/end time valid?
@@ -1932,9 +2012,21 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
 {
     if( phrase != "" )
     {
-        xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
-        wxArrayString words = wxSplit(phrase, ' ');
+        // I dont need dictionaries here
+        //xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
+        wxArrayString rawwords = wxStringTokenize(phrase, " \t:;,.-_!?{}[]()<>+=|");
+        wxArrayString words;
+
+        // remove any empty words
+        for (auto w: rawwords)
+        {
+            if (w != "")
+            {
+                words.emplace_back(w);
+            }
+        }
         int num_words = words.Count();
+        if (num_words == 0) return;
         double interval_ms = (end_time-start_time) / num_words;
         int word_start_time = start_time;
         for( int i = 0; i < num_words; i++ )
@@ -1950,45 +2042,65 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
     }
 }
 
+bool removechar(std::string& word, char remove)
+{
+    auto pos = word.find(remove);
+    if (pos != std::string::npos)
+    {
+        word.erase(pos, 1);
+        return true;
+    }
+    return false;
+}
+
 void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word)
 {
-    xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
+    xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
     wxArrayString phonemes;
     xframe->dictionary.BreakdownWord(word, phonemes);
-    if( phonemes.Count() > 0 )
+    if (phonemes.Count() > 0)
     {
-        int phoneme_start_time = start_time;
-        double phoneme_interval_ms = (end_time-start_time) / phonemes.Count();
-        int grow_next = 0;
-        Effect* last_effect = nullptr;
-        for (size_t i = 0; i < phonemes.Count(); i++ )
+        int countShort = 0;
+        for (auto it: phonemes)
         {
-            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time+grow_next+(phoneme_interval_ms*(i + 1)), GetFrequency());
-            if( i == phonemes.Count() - 1 || phoneme_end_time > end_time)
+            if (it == "etc" || it == "MBP") countShort++;
+        }
+
+        double default_interval_ms = (end_time - start_time) / phonemes.Count(); // the interval if we just split everything evenly
+        double short_interval = 50; // our preferred interval for MBP/etc
+        if (default_interval_ms < 50)
+        {
+            short_interval = GetMinPeriod();
+        }
+        // our adjusted interval for non MBP/etc once split evenly
+        double adjusted_interval = (end_time - start_time - countShort * short_interval) / (phonemes.Count() - countShort);
+
+        int phoneme_start_time = start_time;
+        int shorts = 0;
+        int longs = 0;
+        for (auto phoneme : phonemes)
+        {
+            if (phoneme == "etc" || phoneme == "MBP")
+            {
+                shorts++;
+            }
+            else
+            {
+                longs++;
+            }
+            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time + longs * adjusted_interval + shorts * short_interval, GetFrequency());
+            if (phoneme_end_time > end_time)
             {
                 phoneme_end_time = end_time;
             }
-            grow_next = 0;
-            if( phonemes[i].ToStdString() == "etc" || phonemes[i].ToStdString() == "MBP")
+            // This can fire if the interval is too short to fit in all the phonemes
+            wxASSERT(phoneme_start_time < phoneme_end_time);
+
+            // only create phonemes with duration
+            if (phoneme_end_time > phoneme_start_time)
             {
-                int duration = phoneme_end_time - phoneme_start_time;
-                int psize = GetMinPeriod();
-                if( duration >= 50 )
-                {
-                    psize = 50;
-                }
-                if( i == 0 || last_effect->GetEffectName() == "etc" || last_effect->GetEffectName() == "MBP" )
-                {
-                    grow_next = duration - psize;
-                    phoneme_end_time = phoneme_start_time + psize;
-                }
-                else
-                {
-                    phoneme_start_time = phoneme_end_time - psize;
-                    last_effect->SetEndTimeMS(phoneme_start_time);
-                }
+                phoneme_layer->AddEffect(0, phoneme.ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
             }
-            last_effect = phoneme_layer->AddEffect(0,phonemes[i].ToStdString(),"","",phoneme_start_time,phoneme_end_time,EFFECT_NOT_SELECTED,false);
             phoneme_start_time = phoneme_end_time;
         }
     }

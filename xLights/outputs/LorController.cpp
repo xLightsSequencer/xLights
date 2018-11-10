@@ -36,6 +36,15 @@ void LorController::Save(wxXmlNode* node)
     node->AddAttribute("CntlrDesc", wxString::Format("%s", _description));
 }
 
+int LorController::GetTotalNumChannels() const
+{
+    if ((_type == "Pixie4") || (_type == "Pixie8") || (_type == "Pixie16")) {
+        return GetNumChannels() * wxAtoi(_type.substr(5));
+    }
+
+    return GetNumChannels();
+}
+
 std::string LorController::GetModeString() const
 {
     std::string result = "";

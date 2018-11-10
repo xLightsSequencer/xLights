@@ -4,6 +4,7 @@
 #include <log4cpp/Category.hh>
 
 #include "E131Output.h"
+#include "ZCPPOutput.h"
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "NullOutput.h"
@@ -11,12 +12,16 @@
 #include "LOROptimisedOutput.h"
 #include "DLightOutput.h"
 #include "DMXOutput.h"
+#include "SyncrolightSerialOutput.h"
+#include "SyncrolightEthernetOutput.h"
 #include "PixelNetOutput.h"
 #include "RenardOutput.h"
 #include "OpenPixelNetOutput.h"
 #include "OpenDMXOutput.h"
 #include "../UtilFunctions.h"
 #include "OutputManager.h"
+
+#include "DDPOutput.h"
 
 #pragma region Constructors and Destructors
 Output::Output(Output* output)
@@ -32,48 +37,56 @@ Output::Output(Output* output)
     _universe = 0;
     _lastOutputTime = 0;
     _skippedFrames = 9999;
+    _autoSize = false;
 
     _suppressDuplicateFrames = output->IsSuppressDuplicateFrames();
     _dirty = output->IsDirty();
     _enabled = output->IsEnabled();
     _description = output->GetDescription();
     _channels = output->GetChannels();
-    _controller = output->GetController();
+    _controller = output->GetControllerId();
+    _autoSize = output->GetAutoSize();
+    _fppProxy = output->GetFPPProxyIP();
+    _startChannel = output->GetStartChannel();
+    _fppProxyOutput = nullptr;
 }
 
 Output::Output(wxXmlNode* node)
 {
     _suspend = false;
     _changed = false;
+    _autoSize = false;
     _timer_msec = 0;
     _outputNumber = -1;
     _nullNumber = -1;
     _startChannel = -1;
     _ip = "";
+    _resolvedIp = "";
     _universe = 0;
     _baudRate = 0;
     _commPort = "";
-    _controller = nullptr;
+    _controller = "";
     _dirty = false;
     _ok = true;
     _lastOutputTime = 0 ;
     _skippedFrames = 9999;
+    _fppProxyOutput = nullptr;
 
+    _autoSize = node->GetAttribute("AutoSize", "FALSE") == "TRUE";
     _enabled = (node->GetAttribute("Enabled", "Yes") == "Yes");
     _suppressDuplicateFrames = (node->GetAttribute("SuppressDuplicates", "No") == "Yes");
     _description = UnXmlSafe(node->GetAttribute("Description"));
-    _channels = wxAtoi(node->GetAttribute("MaxChannels"));
-    std::string controller = UnXmlSafe(node->GetAttribute("Controller").ToStdString());
-    if (controller != "")
-    {
-        _controller = Controller::GetController(controller);
-    }
+    _channels = wxAtoi(node->GetAttribute("MaxChannels", "0"));
+    _controller = UnXmlSafe(node->GetAttribute("Controller"));
+    _fppProxy = UnXmlSafe(node->GetAttribute("FPPProxy"));
 }
 
 Output::Output()
 {
+    _autoSize = false;
     _suspend = false;
     _changed = false;
+    _autoSize = false;
     _timer_msec = 0;
     _outputNumber = -1;
     _nullNumber = -1;
@@ -81,17 +94,25 @@ Output::Output()
     _universe = 0;
     _baudRate = 0;
     _commPort = "";
-    _controller = nullptr;
+    _controller = "";
     _enabled = true;
     _description = "";
     _dirty = true;
     _channels = 0;
     _ip = "";
+    _resolvedIp = "";
     _ok = true;
     _suppressDuplicateFrames = false;
     _lastOutputTime = 0;
     _skippedFrames = 9999;
+    _fppProxyOutput = nullptr;
 }
+Output::~Output() {
+    if (_fppProxyOutput) {
+        delete _fppProxyOutput;
+    }
+}
+
 #pragma endregion Constructors and Destructors
 
 void Output::Save(wxXmlNode* node)
@@ -100,6 +121,11 @@ void Output::Save(wxXmlNode* node)
     if (!_enabled)
     {
         node->AddAttribute("Enabled", "No");
+    }
+
+    if (_autoSize)
+    {
+        node->AddAttribute("AutoSize", "TRUE");
     }
 
     if (_suppressDuplicateFrames)
@@ -112,12 +138,17 @@ void Output::Save(wxXmlNode* node)
         node->AddAttribute("Description", XmlSafe(_description));
     }
 
-    if (_controller != nullptr)
+    if (_controller != "")
     {
-        node->AddAttribute("Controller", XmlSafe(_controller->GetId()));
+        node->AddAttribute("Controller", XmlSafe(_controller));
     }
 
-    node->AddAttribute("MaxChannels", wxString::Format("%ld", _channels));
+    node->AddAttribute("MaxChannels", wxString::Format("%d", _channels));
+    
+    node->DeleteAttribute("FPPProxy");
+    if (IsUsingFPPProxy()) {
+        node->AddAttribute("FPPProxy", _fppProxy);
+    }
 
     _dirty = false;
 }
@@ -131,7 +162,7 @@ wxXmlNode* Output::Save()
 }
 
 #pragma region Static Functions
-Output* Output::Create(wxXmlNode* node)
+Output* Output::Create(wxXmlNode* node, std::string showDir)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::string type = node->GetAttribute("NetworkType", "").ToStdString();
@@ -139,6 +170,10 @@ Output* Output::Create(wxXmlNode* node)
     if (type == OUTPUT_E131)
     {
         return new E131Output(node);
+    }
+    else if (type == OUTPUT_ZCPP)
+    {
+        return new ZCPPOutput(node, showDir);
     }
     else if (type == OUTPUT_NULL)
     {
@@ -155,6 +190,14 @@ Output* Output::Create(wxXmlNode* node)
     else if (type == OUTPUT_DMX)
     {
         return new DMXOutput(node);
+    }
+    else if (type == OUTPUT_SYNCROLIGHTSERIAL)
+    {
+        return new SyncrolightSerialOutput(node);
+    }
+    else if (type == OUTPUT_SYNCROLIGHTETHERNET)
+    {
+        return new SyncrolightEthernetOutput(node);
     }
     else if (type == OUTPUT_PIXELNET)
     {
@@ -186,35 +229,29 @@ Output* Output::Create(wxXmlNode* node)
     }
 
     logger_base.warn("Unknown network type %s ignored.", (const char *)type.c_str());
+    wxASSERT(false);
     return nullptr;
 }
 #pragma endregion Static Functions
 
 #pragma region Getters and Setters
-void Output::SetController(const std::string& id)
-{
-    if (id == "")
-    {
-        _controller = nullptr;
-    }
-    else
-    {
-        _controller = Controller::GetController(id);
-    }
 
-    _dirty = true;
-}
-
-void Output::SetTransientData(int on, long startChannel, int nullnumber)
+void Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
 {
+    wxASSERT(startChannel != -1);
     _outputNumber = on;
     _startChannel = startChannel;
     if (nullnumber > 0) _nullNumber = nullnumber;
+    
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
+    }
 }
 
 void Output::SetIP(const std::string& ip)
 {
     _ip = IPOutput::CleanupIP(ip);
+    _resolvedIp = _ip;
     _dirty = true;
 }
 
@@ -234,7 +271,7 @@ bool Output::operator==(const Output& output) const
 
     if (IsIpOutput())
     {
-        return _universe == output.GetUniverse() && _ip == output.GetIP();
+        return _universe == output.GetUniverse() && (_ip == output.GetIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
     }
     else
     {
@@ -250,22 +287,40 @@ bool Output::Open()
     _skippedFrames = 9999;
     _lastOutputTime = 0;
 
+    if (_fppProxy != "") {
+        _fppProxyOutput = new DDPOutput();
+        _fppProxyOutput->_ip = _fppProxy;
+        _fppProxyOutput->_startChannel = _startChannel;
+        _fppProxyOutput->_channels = GetEndChannel() - _startChannel + 1;
+        _fppProxyOutput->Open();
+    }
     return true;
 }
+void Output::Close() {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->Close();
+        delete _fppProxyOutput;
+        _fppProxyOutput = nullptr;
+    }
+}
+
 #pragma endregion Start and Stop
 
 #pragma region Data Setting
 // channel here is 0 based
-void Output::SetManyChannels(long channel, unsigned char data[], long size)
+void Output::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetManyChannels(channel, data, size);
+        return;
+    }
 #ifdef _MSC_VER
-    long chs = min(size, _channels - channel);
+    size_t chs = min(size, (size_t)(_channels - channel));
 #else
-    long chs = std::min(size, GetMaxChannels() - channel);
+    size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
 #endif
 
-    for (long i = 0; i < chs; i++)
-    {
+    for (size_t i = 0; i < chs; i++) {
         SetOneChannel(channel + i, data[i]);
     }
 }

@@ -209,7 +209,7 @@ void handleCrash(void *data) {
         }
     }
 
-    wxString trace = wxString::Format("xSchedule version %s %s\n\n", xlights_version_string, GetBitness());
+    wxString trace = wxString::Format("xSchedule version %s\n\n", GetDisplayVersionString());
 
 #ifndef __WXMSW__
     void* callstack[128];
@@ -309,6 +309,9 @@ bool xScheduleApp::OnInit()
 {
     _checker = nullptr;
 
+    // seed the random number generator
+    srand(wxGetLocalTimeMillis().GetLo());
+
     wxLog::SetLogLevel(wxLOG_FatalError);
 
 #ifdef _MSC_VER
@@ -326,9 +329,16 @@ bool xScheduleApp::OnInit()
     SetUnhandledExceptionFilter(windows_exception_handler);
 #endif
 
+    //curl_global_init(CURL_GLOBAL_SSL);
+
     InitialiseLogging(false);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("******* OnInit: xSchedule started.");
+
+#ifdef __WXMSW__
+    logger_base.debug("xSchedule module handle 0x%llx", ::GetModuleHandle(nullptr));
+    logger_base.debug("xSchedule wxTheApp 0x%llx", wxTheApp);
+#endif
 
     DumpConfig();
 
@@ -342,6 +352,7 @@ bool xScheduleApp::OnInit()
     };
 
     bool parmfound = false;
+    bool wipeSettings = false;
     wxString showDir;
     wxString playlist;
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
@@ -355,14 +366,15 @@ bool xScheduleApp::OnInit()
             parmfound = true;
             logger_base.info("-w: Wiping settings");
             WipeSettings();
+            wipeSettings = true;
         }
         if (parser.Found("s", &showDir)) {
             parmfound = true;
-            logger_base.info("-s: Show directory set to %s.", (const char *)showDir.c_str());
+            logger_base.info("-s: Show directory set to %s.", (const char*)showDir.c_str());
         }
         if (parser.Found("p", &playlist)) {
             parmfound = true;
-            logger_base.info("-p: Playlist to play %s.", (const char *)playlist.c_str());
+            logger_base.info("-p: Playlist to play %s.", (const char*)playlist.c_str());
         }
         if (!parmfound && parser.GetParamCount() > 0)
         {
@@ -400,11 +412,12 @@ bool xScheduleApp::OnInit()
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
-    if ( wxsOK )
+    if (wxsOK)
     {
-    	xScheduleFrame* Frame = new xScheduleFrame(0);
-    	Frame->Show();
-    	SetTopWindow(Frame);
+        xScheduleFrame* Frame = new xScheduleFrame(0, showDir, playlist);
+        Frame->Show();
+        SetTopWindow(Frame);
+        if (wipeSettings) Frame->GetPluginManager().WipeSettings();
     }
     //*)
     return wxsOK;

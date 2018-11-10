@@ -79,6 +79,8 @@ static bool canUseFramebufferObjects()
 
 #include <log4cpp/Category.hh>
 
+extern void AddTraceMessage(const std::string &msg);
+
 namespace
 {
    bool shaderLinkSuceeded( GLuint programID )
@@ -114,6 +116,12 @@ namespace
             std::vector<char> errorMessage( infoLogLength + 1 );
             char*             messagePtr = &errorMessage[0];
             glGetShaderInfoLog( shaderID, infoLogLength, NULL, messagePtr );
+             
+             messagePtr[infoLogLength] = 0;
+             std::string m = "Shader fail message: ";
+             m += messagePtr;
+             AddTraceMessage(m);
+
             static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance( std::string( "log_opengl" ) );
             logger_opengl.error( "shader-compile failure: '%s'", messagePtr );
          }
@@ -134,31 +142,54 @@ bool OpenGLShaders::HasFramebufferObjects()
 
 unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::string& fragmentSource )
 {
-   GLuint vertexShader = glCreateShader( GL_VERTEX_SHADER );
-   const GLchar* vertexShaders[] = { vertexSource.c_str() };
-   glShaderSource( vertexShader, 1, vertexShaders, NULL );
-   glCompileShader( vertexShader );
-   if ( !shaderCompileSuceeded( vertexShader ) )
-      return 0;
+    AddTraceMessage("In vshader compile");
+    LOG_GL_ERRORV(GLuint vertexShader = glCreateShader( GL_VERTEX_SHADER ));
+    AddTraceMessage("Setting vshader source");
+    const GLchar* vertexShaders[] = { vertexSource.c_str() };
+    LOG_GL_ERRORV(glShaderSource( vertexShader, 1, vertexShaders, NULL ));
+    AddTraceMessage("VCompiling");
+    LOG_GL_ERRORV(glCompileShader( vertexShader ));
+    AddTraceMessage("VCompile Step complete");
+    if (!shaderCompileSuceeded(vertexShader))
+    {
+        AddTraceMessage("VShader failed to compile");
+        LOG_GL_ERRORV(glDeleteShader(vertexShader));
+        return 0;
+    }
+    AddTraceMessage("Compile successful");
 
-   GLuint fragmentShader = glCreateShader( GL_FRAGMENT_SHADER );
-   const GLchar* fragmentShaders[] = { fragmentSource.c_str() };
-   glShaderSource( fragmentShader, 1, fragmentShaders, NULL );
-   glCompileShader( fragmentShader );
-   if ( !shaderCompileSuceeded( fragmentShader ) )
-      return 0;
+    LOG_GL_ERRORV(GLuint fragmentShader = glCreateShader( GL_FRAGMENT_SHADER ));
+    const GLchar* fragmentShaders[] = { fragmentSource.c_str() };
+    AddTraceMessage("Setting fshader source");
+    LOG_GL_ERRORV(glShaderSource( fragmentShader, 1, fragmentShaders, nullptr ));
+    AddTraceMessage("FCompiling");
+    LOG_GL_ERRORV(glCompileShader( fragmentShader ));
+    AddTraceMessage("FCompile Step complete");
+    if (!shaderCompileSuceeded(fragmentShader))
+    {
+        AddTraceMessage("FShader failed to compile");
+        LOG_GL_ERRORV(glDeleteShader(vertexShader));
+        LOG_GL_ERRORV(glDeleteShader(fragmentShader));
+       
+        static log4cpp::Category& logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+        logger_opengl.error("%s", (const char*)fragmentSource.c_str());
+        return 0;
+    }
+    AddTraceMessage("Compile successful");
 
-   GLuint program = glCreateProgram();
-   glAttachShader( program, vertexShader );
-   glAttachShader( program, fragmentShader );
-   glLinkProgram( program );
-   bool linkSuccess = shaderLinkSuceeded( program );
+    LOG_GL_ERRORV(GLuint program = glCreateProgram());
+    LOG_GL_ERRORV(glAttachShader( program, vertexShader ));
+    LOG_GL_ERRORV(glAttachShader( program, fragmentShader ));
+    LOG_GL_ERRORV(glLinkProgram( program ));
+    AddTraceMessage("Linking");
+    bool linkSuccess = shaderLinkSuceeded( program );
+    AddTraceMessage(linkSuccess ? "Linked" : "Linking failed");
 
-   glDetachShader( program, vertexShader );
-   glDetachShader( program, fragmentShader );
+    LOG_GL_ERRORV(glDetachShader( program, vertexShader ));
+    LOG_GL_ERRORV(glDetachShader( program, fragmentShader ));
 
-   glDeleteShader( vertexShader );
-   glDeleteShader( fragmentShader );
+    LOG_GL_ERRORV(glDeleteShader( vertexShader ));
+    LOG_GL_ERRORV(glDeleteShader( fragmentShader ));
 
-   return linkSuccess ? program : 0;
+    return linkSuccess ? program : 0;
 }

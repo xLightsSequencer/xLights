@@ -6,6 +6,7 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "sequencer/MainSequencer.h"
+#include "UtilFunctions.h"
 
 wxDEFINE_EVENT(SUBBUFFER_RANGE_CHANGED, wxCommandEvent);
 
@@ -363,6 +364,7 @@ void SubBufferPanel::MenuItemSelected(wxCommandEvent &event) {
         {
             BufferSizeDialog bsd(this, _usevc);
             bsd.SetSizes(y2, x1, y1, x2, y2vc, x1vc, y1vc, x2vc);
+            OptimiseDialogPosition(&bsd);
 
             if (bsd.ShowModal() == wxID_OK)
             {
@@ -466,24 +468,87 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
         return;
     }
 
+    float dummy;
     switch (draggingHandle) {
         case 0:
+        if (event.ControlDown() || event.CmdDown())
+        {
+            if (event.ShiftDown())
+            {
+                // y only
+                Convert(dummy, y1, event);
+            }
+            else
+            {
+                // x only
+                Convert(x1, dummy, event);
+            }
+        }
+        else
+        {
             Convert(x1, y1, event);
+        }
             break;
         case 1:
-            Convert(x1, y2, event);
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // y only
+                    Convert(dummy, y2, event);
+                }
+                else
+                {
+                    // x only
+                    Convert(x1, dummy, event);
+                }
+            }
+            else
+            {
+                Convert(x1, y2, event);
+            }
             break;
         case 2:
-            Convert(x2, y2, event);
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // y only
+                    Convert(dummy, y2, event);
+                }
+                else
+                {
+                    // x only
+                    Convert(x2, dummy, event);
+                }
+            }
+            else
+            {
+                Convert(x2, y2, event);
+            }
             break;
         case 3:
-            Convert(x2, y1, event);
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // y only
+                    Convert(dummy, y1, event);
+                }
+                else
+                {
+                    // x only
+                    Convert(x2, dummy, event);
+                }
+            }
+            else
+            {
+                Convert(x2, y1, event);
+            }
             break;
         case 4:
             {
                 wxSize size = GetSize();
-                float startX = size.GetWidth() / 10.0;
-                float startY = size.GetHeight() / 10.0;
                 float bw = size.GetWidth() * 0.8;
                 float bh = size.GetHeight() * 0.8;
                 int x = (event.GetX() - _startMovePos.x) * 100 / bw;
@@ -547,9 +612,9 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
 
 void SubBufferPanel::Paint( wxPaintEvent& event ) {
     wxPaintDC dc(this);
-    if (!IsShownOnScreen()) {
-        return;
-    }
+#ifdef __LINUX__
+    if(!IsShownOnScreen()) return;
+#endif
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);

@@ -10,9 +10,8 @@ class wxDatagramSocket;
 class ListenerFPP : public ListenerBase
 {
     wxDatagramSocket* _socket;
-    int _frameMS;
 
-    bool IsValidHeader(wxByte* buffer);
+    bool IsValidHeader(uint8_t* buffer);
 
 	public:
         ListenerFPP(ListenerManager* _listenerManager);

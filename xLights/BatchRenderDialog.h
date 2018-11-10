@@ -3,11 +3,11 @@
 
 //(*Headers(BatchRenderDialog)
 #include <wx/dialog.h>
-class wxStaticText;
-class wxFlexGridSizer;
 class wxButton;
 class wxCheckListBox;
 class wxChoice;
+class wxFlexGridSizer;
+class wxStaticText;
 //*)
 
 class wxMouseEvent;
@@ -21,10 +21,11 @@ class BatchRenderDialog: public wxDialog
 		virtual ~BatchRenderDialog();
 
 		//(*Declarations(BatchRenderDialog)
-		wxButton* Button_Ok;
-		wxChoice* FilterChoice;
 		wxButton* Button_Cancel;
+		wxButton* Button_Ok;
 		wxCheckListBox* SequenceList;
+		wxChoice* FilterChoice;
+		wxChoice* FolderChoice;
 		//*)
 
         bool Prepare(const wxString &dir);
@@ -32,15 +33,26 @@ class BatchRenderDialog: public wxDialog
         void OnPopupCommand(wxCommandEvent &event);
     
         wxArrayString GetFileList();
-	protected:
+        void GetSeqList(const wxString& folder);
+        void GetFolderList(const wxString& folder);
+        bool isFileInFolder(const wxString &file) const;
+
+
+protected:
         wxArrayString allFiles;
 
 		//(*Identifiers(BatchRenderDialog)
 		static const long ID_CHOICE_FILTER;
+		static const long ID_CHOICE_FOLDER;
 		static const long ID_CHECKLISTBOX_SEQUENCES;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
+		
+        static const long ID_MNU_SELECTALL;
+        static const long ID_MNU_SELECTNONE;
+        static const long ID_MNU_SELECTHIGH;
+        static const long ID_MNU_DESELECTHIGH;
 
 	public:
 
@@ -49,6 +61,7 @@ class BatchRenderDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnSequenceListToggled(wxCommandEvent& event);
+		void OnFolderChoiceSelect(wxCommandEvent& event);
 		//*)
 
         void ValidateWindow();

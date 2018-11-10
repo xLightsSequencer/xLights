@@ -134,7 +134,7 @@ GlediatorEffect::~GlediatorEffect()
     //dtor
 }
 
-std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -232,11 +232,27 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
     }
 }
 
-std::list<std::string> GlediatorEffect::GetFileReferences(const SettingsMap &SettingsMap)
+std::list<std::string> GlediatorEffect::GetFileReferences(const SettingsMap &SettingsMap) const 
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"]);
     return res;
+}
+
+bool GlediatorEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKERCTRL_Glediator_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Glediator");
+            rc = true;
+        }
+    }
+
+    return rc;
 }
 
 class GlediatorRenderCache : public EffectRenderCache {

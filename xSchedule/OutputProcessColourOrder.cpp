@@ -37,7 +37,7 @@ wxXmlNode* OutputProcessColourOrder::Save()
     return res;
 }
 
-void OutputProcessColourOrder::Frame(wxByte* buffer, size_t size)
+void OutputProcessColourOrder::Frame(uint8_t* buffer, size_t size)
 {
     if (!_enabled) return;
     if (_colourOrder == 123) return;
@@ -48,10 +48,10 @@ void OutputProcessColourOrder::Frame(wxByte* buffer, size_t size)
 
     for (int i = 0; i < nodes; i++)
     {
-        wxByte* p = buffer + (sc - 1) + (i * 3);
-		wxByte r = *p;
-		wxByte g = *(p+1);
-		wxByte b = *(p+2);
+        uint8_t* p = buffer + (sc - 1) + (i * 3);
+		uint8_t r = *p;
+		uint8_t g = *(p+1);
+		uint8_t b = *(p+2);
 
 		switch(_colourOrder)
 		{

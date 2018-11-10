@@ -150,6 +150,6 @@ void ServoEffect::SetPanelStatus(Model *cls) {
             }
         }
     }
-    p->FlexGridSizer_Main->RecalcSizes();
+    p->FlexGridSizer_Main->Layout();
     p->Refresh();
 }

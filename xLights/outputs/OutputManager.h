@@ -1,13 +1,16 @@
 #ifndef OUTPUTMANAGER_H
 #define OUTPUTMANAGER_H
 
+#include <wx/thread.h>
+
 #include <list>
 #include <string>
-#include <wx/thread.h>
+#include <map>
 
 class Output;
 class Controller;
 class TestPreset;
+class wxWindow;
 
 #define NETWORKSFILE "xlights_networks.xml";
 
@@ -21,14 +24,18 @@ class OutputManager
     bool _syncEnabled;
     bool _dirty;
     int _suppressFrames;
+    bool _parallelTransmission;
     bool _outputting; // true if we are currently sending out data
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
 
+    static bool __isSync; // copied here so it can be accessed statically
     static int _lastSecond;
     static int _currentSecond;
     static int _lastSecondCount;
     static int _currentSecondCount;
+    static bool _isRetryOpen;
+    static bool _isInteractive;
 
     bool SetGlobalOutputtingFlag(bool state, bool force = false);
 
@@ -43,6 +50,11 @@ public:
     static std::string GetNetworksFileName() { return NETWORKSFILE; }
     int GetPacketsPerSecond() const;
     static void RegisterSentPacket();
+    static bool IsRetryOpen() { return _isRetryOpen; }
+    static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
+    static bool IsInteractive() { return _isInteractive; }
+    static void SetInteractive(bool interactive) { _isInteractive = interactive; }
+    static std::string GetExportHeader();
     #pragma endregion Static Functions
 
     #pragma region Save and Load
@@ -57,32 +69,41 @@ public:
     void DeleteAllOutputs();
     void MoveOutput(Output* output, int toOutputNumber);
     bool AreAllIPOutputs(std::list<int> outputNumbers);
-    std::list<Output*> GetAllOutputs(const std::string& ip, const std::list<int>& selected = std::list<int>()) const;
+    std::list<Output*> GetAllOutputs(const std::string& ip, const std::list<int>& selected = std::list<int>()) const {
+        return GetAllOutputs(ip, "", selected);
+    }
+    std::list<Output*> GetAllOutputs(const std::string& ip, const std::string &hostName, const std::list<int>& selected = std::list<int>(), bool expandCollections = true) const;
     std::list<Output*> GetAllOutputs(const std::list<int>& outputNumbers) const;
     std::list<Output*> GetAllOutputs() const;
     std::list<Output*> GetOutputs() const { return _outputs; } // returns a list like that on setup tab
     void Replace(Output* replacethis, Output* withthis);
     Output* GetOutput(int outputNumber) const;
-    Output* GetOutput(long absoluteChannel, long& startChannel) const; // returns the output ... even if it is in a collection
-    Output* GetLevel1Output(long absoluteChannel, long& startChannel) const; // returns the output ... but always level 1
+    Output* GetOutput(const std::string& description) const;
+    Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... even if it is in a collection
+    Output* GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... but always level 1
     Output* GetOutput(int universe, const std::string& ip) const;
     std::list<int> GetIPUniverses(const std::string& ip = "") const;
     int GetOutputCount() const { return _outputs.size(); }
-    bool Discover(); // discover controllers and add them to the list if they are not already there
+    bool Discover(wxWindow* parent, std::map<std::string, std::string>& renames); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
+    std::list<std::string> GetControllerNames() const;
+    std::list<std::string> GetAutoLayoutControllerNames() const;
+    void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
+    bool GetParallelTransmission() const { return _parallelTransmission; }
+    bool IsOutputUsingIP(const std::string& ip) const;
     #pragma endregion Output Management
 
     void SomethingChanged() const;
     bool IsDirty() const;
 
     #pragma region Channel Mapping
-    long GetTotalChannels() const;
+    int32_t GetTotalChannels() const;
     
     //both outputNumber and startChannel are 0 based
-    long GetAbsoluteChannel(int outputNumber, int startChannel) const;
-    long GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const;
-    long DecodeStartChannel(const std::string& startChannelString);
+    int32_t GetAbsoluteChannel(int outputNumber, int32_t startChannel) const;
+    int32_t GetAbsoluteChannel(const std::string& ip, int universe, int32_t startChannel) const;
+    int32_t DecodeStartChannel(const std::string& startChannelString);
     #pragma endregion Channel Mapping
 
     #pragma region Start and Stop
@@ -99,18 +120,20 @@ public:
 
     #pragma region Packet Sync
     bool IsSyncEnabled() const { return _syncEnabled; }
-    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; _dirty = true; }
+    static bool IsSyncEnabled_() { return __isSync; }
+    void SetSyncEnabled(bool syncEnabled) { _syncEnabled = syncEnabled; OutputManager::__isSync = syncEnabled; _dirty = true; }
     int GetSyncUniverse() const { return _syncUniverse; }
     void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; _dirty = true;}
     void SetForceFromIP(const std::string& forceFromIP);
     bool UseE131() const;
     bool UseArtnet() const;
     bool UseDDP() const;
+    bool UseZCPP() const;
     #pragma endregion Packet Sync
 
     #pragma region Data Setting
-    void SetOneChannel(long channel, unsigned char data);
-    void SetManyChannels(long channel, unsigned char* data, long size);
+    void SetOneChannel(int32_t channel, unsigned char data);
+    void SetManyChannels(int32_t channel, unsigned char* data, size_t size);
     void AllOff(bool send = true);
     #pragma endregion Data Setting
 
@@ -125,7 +148,7 @@ public:
     std::list<std::string> GetIps() const;
     size_t TxNonEmptyCount();
     bool TxEmpty();
-    std::string GetChannelName(long channel);
+    std::string GetChannelName(int32_t channel);
     void SendHeartbeat();
 
     bool IsOutputOpenInAnotherProcess();

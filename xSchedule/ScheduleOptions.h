@@ -5,6 +5,7 @@
 #include <vector>
 #include "MatrixMapper.h"
 #include "VirtualMatrix.h"
+#include "SyncManager.h"
 
 class CommandManager;
 class wxXmlNode;
@@ -13,13 +14,13 @@ class OutputManager;
 class EventBase;
 class Command;
 
-typedef enum
+enum class OSCTIME
 {
     TIME_SECONDS,
     TIME_MILLISECONDS
-} OSCTIME;
+};
 
-typedef enum
+enum class OSCFRAME
 {
     FRAME_DEFAULT,
     FRAME_24,
@@ -28,7 +29,29 @@ typedef enum
     FRAME_30,
     FRAME_60,
     FRAME_PROGRESS
-} OSCFRAME;
+};
+
+class ExtraIP
+{
+    std::string _ip;
+    std::string _description;
+    int _changeCount;
+    int _lastSavedChangeCount;
+
+    public:
+    ExtraIP(const std::string& ip, const std::string& description);
+    ExtraIP(wxXmlNode* node);
+    void Load(wxXmlNode* node);
+    virtual ~ExtraIP() {}
+    wxXmlNode* Save() const;
+    const std::string& GetDescription() const { return _description; }
+    const std::string& GetIP() const { return _ip; }
+    bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
+    void SetDescription(const std::string description) { _description = description; _changeCount++; }
+    void SetIP(const std::string ip) { _ip = ip; _changeCount++; }
+    void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    bool operator==(const std::string&ip) const { return _ip == ip; }
+};
 
 class OSCOptions
 {
@@ -80,6 +103,55 @@ public:
     void SetBroadcast() { SetIPAddress("255.255.255.255"); }
 };
 
+typedef enum
+{
+    TEST_ALTERNATE,
+    TEST_LEVEL1,
+    TEST_A_B_C,
+    TEST_A_B_C_ALL,
+    TEST_A_B_C_ALL_NONE,
+    TEST_A,
+    TEST_B,
+    TEST_C
+} TESTMODE;
+
+class TestOptions
+{
+    TESTMODE _mode;
+    uint8_t _level1;
+    uint8_t _level2;
+    int _interval;
+    int _changeCount;
+    int _lastSavedChangeCount;
+    long _start;
+    long _end;
+
+    static std::string DecodeMode(TESTMODE mode);
+    TESTMODE EncodeMode(std::string mode) const;
+    void Load(wxXmlNode* node);
+
+public:
+    TestOptions();
+    TestOptions(wxXmlNode* node);
+    virtual ~TestOptions() {}
+    void SetMode(std::string mode) { if (EncodeMode(mode) != _mode) { _mode = EncodeMode(mode); _changeCount++; } }
+    void SetLevel1(uint8_t level1) { if (level1 != _level1) { _level1 = level1; _changeCount++; } }
+    void SetLevel2(uint8_t level2) { if (level2 != _level2) { _level2 = level2; _changeCount++; } }
+    void SetInterval(int interval) { if (interval != _interval) { _interval = interval; _changeCount++; } }
+    void SetBounds(long start, long end) { _start = start; _end = end; }
+    void ClearBounds() { _start = -1; _end = -1; }
+    std::string GetMode() const { return DecodeMode(_mode); }
+    TESTMODE GetModeCode() const { return _mode; }
+    uint8_t GetLevel1() const { return _level1; }
+    uint8_t GetLevel2() const { return _level2; }
+    void GetBounds(long& start, long& end) const { start = _start; end = _end; }
+    bool HasBounds() const { return _start != -1 && _end != -1; }
+    int GetInterval() const { return _interval; }
+    bool IsDirty() const { return _changeCount != _lastSavedChangeCount; }
+    void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    wxXmlNode* Save();
+};
+
 class ScheduleOptions
 {
     bool _advancedMode;
@@ -90,6 +162,8 @@ class ScheduleOptions
     bool _sendBackgroundWhenNotRunning;
     bool _webAPIOnly;
     int _port;
+    int _remoteLatency = 0;
+    int _remoteAcceptableJitter = 20;
     std::string _wwwRoot;
     std::string _password;
     std::string _crashBehaviour;
@@ -100,11 +174,18 @@ class ScheduleOptions
     std::list<std::string> _fppRemotes;
     std::string _audioDevice;
     OSCOptions* _oscOptions;
+    TestOptions* _testOptions;
     std::list<EventBase*> _events;
-    int _artNetTimeCodeFormat;
+    TIMECODEFORMAT _artNetTimeCodeFormat;
     std::string _city;
     std::string _MIDITimecodeDevice;
-    int _MIDITimecodeFormat;
+    TIMECODEFORMAT _MIDITimecodeFormat;
+    size_t _MIDITimecodeOffset;
+    std::list<ExtraIP*> _extraIPs;
+    bool _parallelTransmission;
+    bool _remoteAllOff;
+    bool _retryOutputOpen;
+    bool _suppressAudioOnRemotes;
 
     public:
 
@@ -118,21 +199,32 @@ class ScheduleOptions
         UserButton* GetButton(wxUint32 id) const;
         bool IsSync() const { return _sync; }
         bool IsAdvancedMode() const { return _advancedMode; }
+        std::list<ExtraIP*>* GetExtraIPs() { return &_extraIPs; }
         std::list<MatrixMapper*>* GetMatrices() { return &_matrices; }
         std::list<VirtualMatrix*>* GetVirtualMatrices() { return &_virtualMatrices; }
         std::list<EventBase*>* GetEvents() { return &_events; }
         std::string GetMIDITimecodeDevice() const { return _MIDITimecodeDevice; }
         void SetMIDITimecodeDevice(std::string midi) { if (midi != _MIDITimecodeDevice) { _MIDITimecodeDevice = midi; _changeCount++; } }
-        int GetMIDITimecodeFormat() const { return _MIDITimecodeFormat; }
-        void SetMIDITimecodeFormat(int format) { if (format != _MIDITimecodeFormat) { _MIDITimecodeFormat = format; _changeCount++; } }
+        TIMECODEFORMAT GetMIDITimecodeFormat() const { return _MIDITimecodeFormat; }
+        size_t GetMIDITimecodeOffset() const { return _MIDITimecodeOffset; }
+        void SetMIDITimecodeFormat(TIMECODEFORMAT format) { if (format != _MIDITimecodeFormat) { _MIDITimecodeFormat = format; _changeCount++; } }
+        void SetMIDITimecodeOffset(size_t offset) { if (offset != _MIDITimecodeOffset) { _MIDITimecodeOffset = offset; _changeCount++; } }
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }
+        void SetParallelTransmission(bool parallel) { if (_parallelTransmission != parallel) { _parallelTransmission = parallel; _changeCount++; } }
+        void SetRemoteAllOff(bool remoteAllOff) { if (_remoteAllOff != remoteAllOff) { _remoteAllOff = remoteAllOff; _changeCount++; } }
+        void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
+        void SetSuppressAudioOnRemotes(bool suppressAudio) { if (_suppressAudioOnRemotes != suppressAudio) { _suppressAudioOnRemotes = suppressAudio; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
+        bool IsParallelTransmission() const { return _parallelTransmission; }
+        bool IsRemoteAllOff() const { return _remoteAllOff; }
+        bool IsRetryOpen() const { return _retryOutputOpen; }
+        bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
-        void SetArtNetTimeCodeFormat(int artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
-        int GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
+        void SetArtNetTimeCodeFormat(TIMECODEFORMAT artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }
+        TIMECODEFORMAT GetARTNetTimeCodeFormat() const { return _artNetTimeCodeFormat; }
         std::string GetCrashBehaviour() const { return _crashBehaviour; }
         void SetCrashBehaviour(std::string crashBehaviour) { if (crashBehaviour != _crashBehaviour) { _crashBehaviour = crashBehaviour; _changeCount++; } }
         std::vector<UserButton*> GetButtons() const;
@@ -150,14 +242,19 @@ class ScheduleOptions
         void SetAudioDevice(const std::string& audioDevice);
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color, CommandManager* commandManager);
         bool GetAPIOnly() const { return _webAPIOnly; }
+        int GetRemoteLatency() const { return _remoteLatency; }
+        int GetRemoteAcceptableJitter() const { return _remoteAcceptableJitter; }
         std::string GetPassword() const { return _password; }
         std::string GetCity() const { return _city; }
         int GetPasswordTimeout() const { return _passwordTimeout; }
         void SetAPIOnly(bool apiOnly) { if (_webAPIOnly != apiOnly) { _webAPIOnly = apiOnly; _changeCount++; } }
+        void SetRemoteLatency(int remoteLatency) { if (remoteLatency != _remoteLatency) { _remoteLatency = remoteLatency; _changeCount++; } }
+        void SetRemoteAcceptableJitter(int remoteAcceptableJitter) { if (remoteAcceptableJitter != _remoteAcceptableJitter) { _remoteAcceptableJitter = remoteAcceptableJitter; _changeCount++; } }
         void SetPasswordTimeout(int passwordTimeout) { if (_passwordTimeout != passwordTimeout) { _passwordTimeout = passwordTimeout; _changeCount++; } }
         void SetPassword(const std::string& password) { if (_password != password) { _password = password; _changeCount++; } }
         void SetCity(const std::string& city) { if (_city != city) { _city = city; _changeCount++; } }
         OSCOptions* GetOSCOptions() const { return _oscOptions; }
+        TestOptions* GetTestOptions() const { return _testOptions; }
 };
 
 #endif

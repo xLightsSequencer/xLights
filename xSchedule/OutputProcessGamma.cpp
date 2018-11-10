@@ -64,7 +64,7 @@ void OutputProcessGamma::BuildGammaData()
     BuildGammaData(_gammaDataB, _gammaB);
 }
 
-void OutputProcessGamma::BuildGammaData(wxByte data[], float gamma)
+void OutputProcessGamma::BuildGammaData(uint8_t data[], float gamma)
 {
     for (int x = 0; x < 256; x++) {
         float i = x;
@@ -79,7 +79,7 @@ void OutputProcessGamma::BuildGammaData(wxByte data[], float gamma)
     }
 }
 
-void OutputProcessGamma::Frame(wxByte* buffer, size_t size)
+void OutputProcessGamma::Frame(uint8_t* buffer, size_t size)
 {
     if (!_enabled) return;
     if (_gamma == 1.0) return;
@@ -91,7 +91,7 @@ void OutputProcessGamma::Frame(wxByte* buffer, size_t size)
 
     for (int i = 0; i < nodes; i++)
     {
-        wxByte* p = buffer + (sc - 1) + (i * 3);
+        uint8_t* p = buffer + (sc - 1) + (i * 3);
 
         if (_gamma != 0.0)
         {

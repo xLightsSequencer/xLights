@@ -5,9 +5,9 @@
 #include <wx/filename.h>
 
 #include "../../ResizeImageDialog.h"
+#include "UtilFunctions.h"
 
-//static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
-static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*";
+static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*";
 
 BEGIN_EVENT_TABLE(xlGridCanvasPictures, xlGridCanvas)
 EVT_PAINT(xlGridCanvasPictures::render)
@@ -322,7 +322,7 @@ void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
 {
     if( image_dir == wxEmptyString )
     {
-        wxMessageBox("Error creating new image file.  Image Directory is not defined.");
+        DisplayError("Error creating new image file.  Image Directory is not defined.");
         return;
     }
     wxFileName new_file;
@@ -337,7 +337,7 @@ void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
 
     if (!image.IsOk())
     {
-        wxMessageBox("Error creating image file!");
+        DisplayError("Error creating image file!");
         return;
     }
     mModified = true;
@@ -589,9 +589,8 @@ void xlGridCanvasPictures::mouseUp()
     mLeftDown = false;
 }
 
-void xlGridCanvasPictures::InitializeGLCanvas()
+void xlGridCanvasPictures::InitializeGLContext()
 {
-    if(!IsShownOnScreen()) return;
     SetCurrentGLContext();
 
     LOG_GL_ERRORV(glClearColor(0.0f, 0.0f, 0.0f, 0.0f)); // Black Background
@@ -599,13 +598,12 @@ void xlGridCanvasPictures::InitializeGLCanvas()
     LOG_GL_ERRORV(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
     LOG_GL_ERRORV(glClear(GL_COLOR_BUFFER_BIT));
     prepare2DViewport(0,0,mWindowWidth, mWindowHeight);
-    mIsInitialized = true;
 }
 
 void xlGridCanvasPictures::render( wxPaintEvent& event )
 {
-    if(!mIsInitialized) { InitializeGLCanvas(); }
     if(!IsShownOnScreen()) return;
+    if(!mIsInitialized) { InitializeGLCanvas(); }
 
     SetCurrentGLContext();
 

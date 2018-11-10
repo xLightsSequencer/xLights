@@ -1,8 +1,8 @@
 #include "SubModelGenerateDialog.h"
 
 //(*InternalHeaders(SubModelGenerateDialog)
-#include <wx/intl.h>
 #include <wx/button.h>
+#include <wx/intl.h>
 #include <wx/string.h>
 //*)
 

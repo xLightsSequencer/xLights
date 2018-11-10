@@ -13,7 +13,7 @@ class RenardOutput : public SerialOutput
 {
     #pragma region Member Variables
     int _datalen;
-    std::vector<wxByte> _data;
+    std::vector<uint8_t> _data;
     #pragma endregion Member Variables
 
 public:
@@ -28,7 +28,7 @@ public:
     #pragma region Getters and Setters
     virtual std::string GetType() const override { return OUTPUT_RENARD; }
     virtual int GetMaxChannels() const override { return RENARD_MAX_CHANNELS; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= RENARD_MAX_CHANNELS; }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= RENARD_MAX_CHANNELS; }
     virtual std::string GetSetupHelp() const override;
     #pragma endregion Getters and Setters
 
@@ -41,7 +41,7 @@ public:
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
 };

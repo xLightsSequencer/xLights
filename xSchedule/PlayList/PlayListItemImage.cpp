@@ -7,6 +7,7 @@
 #include "../../xLights/effects/GIFImage.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../../xLights/UtilFunctions.h"
 
 PlayListItemImage::PlayListItemImage(wxXmlNode* node) : PlayListItem(node)
 {
@@ -43,6 +44,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _ImageFile = node->GetAttribute("ImageFile", "");
+    _ImageFile = FixFile("", _ImageFile);
     _origin = wxPoint(wxAtoi(node->GetAttribute("X", "0")), wxAtoi(node->GetAttribute("Y", "0")));
     _size = wxSize(wxAtoi(node->GetAttribute("W", "100")), wxAtoi(node->GetAttribute("H", "100")));
     _duration = wxAtoi(node->GetAttribute("Duration", "0"));
@@ -52,6 +54,7 @@ void PlayListItemImage::Load(wxXmlNode* node)
 
 PlayListItemImage::PlayListItemImage() : PlayListItem()
 {
+    _type = "PLIImage";
     _gifImage = nullptr;
     _topMost = true;
     _suppressVirtualMatrix = false;
@@ -81,7 +84,7 @@ PlayListItem* PlayListItemImage::Copy() const
 
 wxXmlNode* PlayListItemImage::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIImage");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ImageFile", _ImageFile);
     node->AddAttribute("X", wxString::Format(wxT("%i"), _origin.x));
@@ -128,7 +131,7 @@ std::string PlayListItemImage::GetNameNoTime() const
     }
 }
 
-void PlayListItemImage::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemImage::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms > _delay)
     {
@@ -176,7 +179,7 @@ void PlayListItemImage::Start(long stepLengthMS)
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_HIGH, -1, wxID_ANY, _origin, _size);
     }
     else
     {

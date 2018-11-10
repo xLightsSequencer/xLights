@@ -287,9 +287,61 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 			
 		Clear background playlist
 			Stops any existing background playlist.
-			
-http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
+		Close xSchedule
+			Shuts down xSchedule
+			
+		Add n Seconds To Current Step Position			
+			Advances (forwarded or backward) the position within the current step by n seconds
+
+		Start test mode <testmode>|<model>|<interval>|<foreground>|<background>
+			Puts xSchedule in test mode. Parameters are all optional
+			If model is blank all channels are tested. If model is specified only that model is tested
+			
+		Stop test mode	
+			Stops test mode and restores xSchedule to its previous mode
+
+		Change show folder <show folder>
+			Change the show folder to the named show folder (if it exists). 
+			If blank is passed the current show folder is reloaded
+
+		Set mode <mode|mode|mode>
+			Sets the test/master/remote modes of xSchedule. You can have one remote mode and many master modes. If more than one remote
+			mode is specified the last one listed wins. Modes can be:
+				Standalone
+				Test
+				Master_FPPUnicast
+				Master_FPPUnicastCSV
+				Master_FPPBroadcast
+				Master_FPPMulticast
+				Master_Artnet
+				Master_MIDI
+				Master_OSC
+				Remote_FPPCSV
+				Remote_FPP
+				Remote_Artnet
+				Remote_MIDI
+				Remote_OSC
+						
+		Fire plugin event <plugin>|<plugin parameteres>
+			Fires an event to the named plugin with the specified data
+			If the plugin name is * then the event is sent to all plugins.
+			The plugin parameters are interpreted by the plugin
+						
+        Set step position <pos>
+            Set the position in a song where pos is a number between 0 and 255
+
+        Set step position ms <pos>
+            Set the position in a song where pos is the miliisecond position
+
+		Adjust frame interval by ms <ms>
+			Adjusts the frame interval up or down by the specified ms. This overrides any animation frame rate. Minimum is 15ms. Maximum is 10,000ms. If it adjusts to zero then the override is disabled.
+		
+		Set frame interval to ms <ms>
+			Set the frame interval to the specified ms. This overrides any animation frame rate. Minimum is 15ms. Maximum is 10,000ms. If it is set to zero then the override is disabled and the sequence frame rate is used.
+
+
+http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 	This API allows the webpage to store and retrieve data between sessions. The key used should be unique to the webpage. There is no security or protection beyond the password protection to this data. There are 2 commands supported:
 	
@@ -299,6 +351,9 @@ http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 		retrieve <key>
 			Retrieves the data from the key value. If the key does not exist a failure result is returned.
 
+	By default there is a key created which contains a JSON description of all available models
+			http://<host:port>/xScheduleStash?Command=retrieve&Key=GetModels
+			
 http://<host:port>/<wwwroot>/<file>
 
 	This type of request is a simple web request which will download the specified file from the web folder the user has specified in options. images, html, css, javascript files can all be stored here.

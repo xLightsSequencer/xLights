@@ -214,6 +214,7 @@ void ColorCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
             wxBitmapButton* bmb = new wxBitmapButton(this, id, cc.GetImage(30, 30, false), wxDefaultPosition,
                                                      wxSize(30, 30), wxBU_AUTODRAW|wxNO_BORDER);
             bmb->SetLabel(fn.GetFullPath());
+            bmb->SetToolTip(fn.GetFullPath());
             PresetSizer->Add(bmb);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorCurveDialog::OnButtonPresetClick);
         }
@@ -788,12 +789,12 @@ void ColorCurveDialog::LoadXCC(ColorCurve* cc, const wxString& filename)
         }
         else
         {
-            wxMessageBox("Failure loading color curve file " + filename + ".");
+            DisplayError("Failure loading color curve file " + filename + ".");
         }
     }
     else
     {
-        wxMessageBox("Failure loading color curve file " + filename + ".");
+        DisplayError("Failure loading color curve file " + filename + ".");
     }
 }
 
@@ -844,8 +845,7 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
 

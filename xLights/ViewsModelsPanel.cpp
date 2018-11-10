@@ -347,7 +347,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
         {
             Element* elem = _sequenceElements->GetElement(i);
-            if (elem->GetType() == ELEMENT_TYPE_TIMING)
+            if (elem != nullptr && elem->GetType() == ELEMENT_TYPE_TIMING)
             {
                 TimingElement *te = dynamic_cast<TimingElement*>(elem);
                 if (current_view == MASTER_VIEW || _sequenceElements->TimingIsPartOfView(te, current_view))
@@ -368,9 +368,9 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             {
                 _sequenceElements->AddMissingModelsToSequence(view->GetModelsString());
                 auto models = view->GetModels();
-                for (auto it = models.begin(); it != models.end(); ++it)
+                for (auto& it : models)
                 {
-                    Element* elem = _sequenceElements->GetElement(*it);
+                    Element* elem = _sequenceElements->GetElement(it);
                     AddModelToList(elem);
                 }
 
@@ -378,7 +378,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
                 for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
                 {
                     Element* elem = _sequenceElements->GetElement(i);
-                    if (elem->GetType() == ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end())
+                    if (elem != nullptr && elem->GetType() == ELEMENT_TYPE_MODEL && std::find(models.begin(), models.end(), elem->GetName()) == models.end())
                     {
                         AddModelToNotList(elem);
                     }
@@ -390,7 +390,7 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             for (int i = 0; i < _sequenceElements->GetElementCount(); i++)
             {
                 Element* elem = _sequenceElements->GetElement(i);
-                if (elem->GetType() == ELEMENT_TYPE_MODEL)
+                if (elem != nullptr && elem->GetType() == ELEMENT_TYPE_MODEL)
                 {
                     AddModelToList(elem);
                 }
@@ -444,9 +444,9 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         {
             wxArrayString models = wxSplit(selectModels, ',');
 
-            for (auto it = models.begin(); it != models.end(); ++it)
+            for (auto& it : models)
             {
-                SelectItem(ListCtrlModels, it->ToStdString(), 2, true);
+                SelectItem(ListCtrlModels, it.ToStdString(), 2, true);
             }
         }
     }
@@ -2187,6 +2187,7 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
 
     wxArrayString movedModels;
     int selcnt = 0;
+    int lastsel = -1;
 
     for (int i = ListCtrlModels->GetItemCount()-1; i >= 0; --i)
     {
@@ -2215,6 +2216,10 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
             logger_base.debug("Moving from %d '%s' to %d '%s'", from, (const char *)_sequenceElements->GetElement(from, currentView)->GetName().c_str(),
                 to, (const char *)(_sequenceElements->GetElement(to, currentView) == nullptr) ? "N/A" : _sequenceElements->GetElement(to, currentView)->GetName().c_str());
 #endif
+            if (lastsel < 0)
+            {
+                lastsel = to;
+            }
 
             _sequenceElements->MoveSequenceElement(from, to, currentView);
             SelectItem(ListCtrlModels, i, false);
@@ -2229,6 +2234,7 @@ void ViewsModelsPanel::OnButton_MoveDownClick(wxCommandEvent& event)
         MarkViewsChanged();
         UpdateModelsForSelectedView();
         PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        ListCtrlModels->EnsureVisible(lastsel);
         _xlFrame->DoForceSequencerRefresh();
     }
 }
@@ -2326,6 +2332,7 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 
     wxArrayString movedModels;
     int selcnt = 0;
+    int firstsel = -1;
 
     for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i)
     {
@@ -2347,6 +2354,10 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
 
             if (to < 0) return;
 
+            if (firstsel < 0)
+            {
+                firstsel = to;
+            }
 #ifdef TRACEMOVES
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.debug("Timing count in models list: %d", GetTimingCount());
@@ -2366,7 +2377,28 @@ void ViewsModelsPanel::OnButton_MoveUpClick(wxCommandEvent& event)
         MarkViewsChanged();
         UpdateModelsForSelectedView();
         PopulateModels(wxJoin(movedModels, ',').ToStdString());
+        ListCtrlModels->EnsureVisible(firstsel);
         _xlFrame->DoForceSequencerRefresh();
+    }
+}
+
+void ViewsModelsPanel::RemoveModelFromLists(const std::string& modelName)
+{
+    for (size_t i = 0; i < ListCtrlModels->GetItemCount(); ++i)
+    {
+        if (ListCtrlModels->GetItemText(i, 1) == modelName)
+        {
+            ListCtrlModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
+            break;
+        }
+    }
+    for (size_t i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
+    {
+        if (ListCtrlNonModels->GetItemText(i, 1) == modelName)
+        {
+            ListCtrlNonModels->SetItemPtrData(i, (wxUIntPtr)nullptr);
+            break;
+        }
     }
 }
 
@@ -2396,6 +2428,7 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
                         // model shouldnt be in master
                         //_sequenceElements->DeleteElementFromView(name, MASTER_VIEW);
                         _sequenceElements->DeleteElement(name);
+                        RemoveModelFromLists(name);
                         --i;
                     }
                     else
@@ -2408,7 +2441,7 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 
         if (hadEffects)
         {
-            wxMessageBox("One or more models had effects on them so they were not removed.");
+            DisplayWarning("One or more models had effects on them so they were not removed.");
         }
 
         // While all models might already be there they are likely not in the right order

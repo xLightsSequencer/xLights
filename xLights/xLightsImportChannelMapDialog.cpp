@@ -67,6 +67,7 @@ public:
 
 class ColorRenderer : public wxDataViewCustomRenderer
 {
+    static wxColourData _colorData;
     wxColor _color;
 
 public:
@@ -77,12 +78,12 @@ public:
 
     virtual bool ActivateCell(const wxRect &cell, wxDataViewModel *model, const wxDataViewItem &item, unsigned int col, const wxMouseEvent *mouseEvent) override
     {
-        wxColourData data;
-        data.SetColour(_color);
-        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &data);
+        _colorData.SetColour(_color);
+        wxColourDialog dlg(GetOwner()->GetOwner()->GetParent(), &_colorData);
 
         if (dlg.ShowModal() == wxID_OK)
         {
+            _colorData = dlg.GetColourData();
             _color = dlg.GetColourData().GetColour();
             model->SetValue(wxVariant(_color.GetAsString()), item, col);
         }
@@ -123,6 +124,9 @@ public:
         return false;
     }
 };
+
+wxColourData ColorRenderer::_colorData;
+
 
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
@@ -456,9 +460,11 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	TimeAdjustSpinCtrl->SetValue(_T("0"));
 	Sizer_TimeAdjust->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer1->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_MapCCRStrand = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Map CCR/Strand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_MapCCRStrand->SetValue(false);
-	Sizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
 	TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
 	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
@@ -574,19 +580,15 @@ int CountChar(wxString& line, char c)
 }
 
 bool xLightsImportChannelMapDialog::InitImport() {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (channelNames.size() == 0)
     {
-        wxMessageBox("No models to import from. Source sequence had no data.");
-        logger_base.warn("Import Dialog: No models to import from. Source sequence had no data.");
+        DisplayError("No models to import from. Source sequence had no data.");
         return false;
     }
 
     if (!_allowCCRStrand)
     {
-        Sizer1->Hide(CheckBox_MapCCRStrand);
+        Sizer1->Hide(FlexGridSizer1, true);
     }
 
     if (!_allowTimingOffset)
@@ -657,8 +659,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     if (_dataModel->GetChildCount() == 0)
     {
-        wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
-        logger_base.warn("Import Dialog: No models to import to. Add some models to the rows of the effects grid.");
+        DisplayError("No models to import to. Add some models to the rows of the effects grid.");
         return false;
     }
     else
@@ -989,6 +990,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
     wxFileDialog dlg(this, "Load mapping", wxEmptyString, wxEmptyString, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK) {
+        _mappingFile = dlg.GetPath();
         _dataModel->ClearMapping();
 
         for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it)
@@ -1140,7 +1142,7 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::SaveMapping(wxCommandEvent& event)
 {
-    wxFileDialog dlg(this, "Save mapping", wxEmptyString, "mapping", "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog dlg(this, "Save mapping", wxEmptyString, _mappingFile, "Mapping Files (*.xmap)|*.xmap|All Files (*.)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dlg.ShowModal() == wxID_OK) {
         wxFileOutputStream output(dlg.GetPath());
         wxTextOutputStream text(output);
@@ -1693,7 +1695,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
 
     int items = ListCtrl_Available->GetItemCount();
     ListCtrl_Available->Freeze();
-    for (unsigned int i = 0; i < items; ++i)
+    for (int i = 0; i < items; ++i)
     {
         if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString()))
         {
@@ -1750,7 +1752,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
         {
             if (model->_mapping == "")
             {
-                for (unsigned int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
+                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
                 {
                     wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
                     if (availName.Contains("/"))

@@ -58,22 +58,22 @@ void ESEQFile::Close()
 
 int ESEQFile::ReadInt16(wxFile* fh)
 {
-    wxByte lsb;
+    uint8_t lsb;
     fh->Read(&lsb, sizeof(lsb));
-    wxByte msb;
+    uint8_t msb;
     fh->Read(&msb, sizeof(msb));
     return (((int)msb) << 8) + lsb;
 }
 
 int ESEQFile::ReadInt32(wxFile* fh)
 {
-    wxByte lsb;
+    uint8_t lsb;
     fh->Read(&lsb, sizeof(lsb));
-    wxByte lsb1;
+    uint8_t lsb1;
     fh->Read(&lsb1, sizeof(lsb1));
-    wxByte lsb2;
+    uint8_t lsb2;
     fh->Read(&lsb2, sizeof(lsb2));
-    wxByte msb;
+    uint8_t msb;
     fh->Read(&msb, sizeof(msb));
     return (((int)msb) << 24) + (((int)lsb2) << 16) + (((int)lsb1) << 8) + lsb;
 }
@@ -114,7 +114,7 @@ void ESEQFile::Load(const std::string& filename)
             _offset = ReadInt32(_fh);
             _modelSize = ReadInt32(_fh); // model size
             //_frames = ReadInt32(_fh);
-            _frameBuffer = (wxByte*)malloc(_channelsPerFrame);
+            _frameBuffer = (uint8_t*)malloc(_channelsPerFrame);
 
             wxFileName fn(_filename);
             _frames = (size_t)(fn.GetSize().ToULong() - _frame0Offset) / _channelsPerFrame;
@@ -134,7 +134,7 @@ void ESEQFile::Load(const std::string& filename)
     }
 }
 
-void ESEQFile::ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod)
+void ESEQFile::ReadData(uint8_t* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod)
 {
     if (frame >= _frames) return; // cant read past end of file
 

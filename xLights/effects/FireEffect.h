@@ -4,7 +4,8 @@
 #include "RenderableEffect.h"
 
 #define FIRE_GROWTHCYCLES_MIN 0
-#define FIRE_GROWTHCYCLES_MAX 20
+#define FIRE_GROWTHCYCLES_MAX 200
+#define FIRE_GROWTHCYCLES_DIVISOR 10
 
 #define FIRE_HEIGHT_MIN 1
 #define FIRE_HEIGHT_MAX 100
@@ -19,9 +20,11 @@ class FireEffect : public RenderableEffect
         virtual ~FireEffect();
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 protected:
-        virtual wxPanel *CreatePanel(wxWindow *parent) override;
+    virtual bool needToAdjustSettings(const std::string &version) override;
+    virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
+    virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
 };
 

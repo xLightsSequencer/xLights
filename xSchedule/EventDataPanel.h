@@ -4,12 +4,12 @@
 #include "EventPanel.h"
 
 //(*Headers(EventDataPanel)
+#include <wx/choice.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/spinctrl.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class EventDataPanel: public EventPanel
@@ -24,12 +24,12 @@ class EventDataPanel: public EventPanel
 
 		//(*Declarations(EventDataPanel)
 		wxChoice* Choice_Test;
-		wxStaticText* StaticText2;
-		wxTextCtrl* TextCtrl_Channel;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
 		wxSpinCtrl* SpinCtrl_Value;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		wxStaticText* StaticText4;
+		wxTextCtrl* TextCtrl_Channel;
 		//*)
 
 	protected:

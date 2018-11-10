@@ -32,7 +32,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON_UpdateEffect" variable="ButtonUpdateEffect" member="yes">
-											<label>Update (F5)</label>
+											<label>Update</label>
 											<handler function="OnButtonUpdateEffectClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

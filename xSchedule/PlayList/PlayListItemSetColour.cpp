@@ -28,6 +28,7 @@ void PlayListItemSetColour::Load(wxXmlNode* node)
 
 PlayListItemSetColour::PlayListItemSetColour(OutputManager* outputManager) : PlayListItem()
 {
+    _type = "PLISetColour";
     _outputManager = outputManager;
     _sc = 0;
     _nodes = 0;
@@ -64,7 +65,7 @@ size_t PlayListItemSetColour::GetStartChannelAsNumber()
 
 wxXmlNode* PlayListItemSetColour::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLISetColour");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Duration", wxString::Format(wxT("%i"), (long)_duration));
     node->AddAttribute("Value", _value.GetAsString());
@@ -87,7 +88,7 @@ void PlayListItemSetColour::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemSetColourPanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
-void PlayListItemSetColour::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemSetColour::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {
@@ -105,11 +106,11 @@ void PlayListItemSetColour::Frame(wxByte* buffer, size_t size, size_t ms, size_t
 
             if (toset > 0)
             {
-                wxByte data[3];
+                uint8_t data[3];
                 data[0] = _value.Red();
                 data[1] = _value.Green();
                 data[2] = _value.Blue();
-                wxByte* values = (wxByte*)malloc(toset * 3);
+                uint8_t* values = (uint8_t*)malloc(toset * 3);
                 if (values != nullptr)
                 {
                     for (int i = 0; i < toset; i++)

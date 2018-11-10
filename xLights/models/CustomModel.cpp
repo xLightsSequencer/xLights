@@ -13,14 +13,12 @@
 
 #include <log4cpp/Category.hh>
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
+    _depth = 1;
+    _strings = 1;
+    screenLocation.SetSupportsZScaling(true);
+    screenLocation.SetStartOnXAxis(true);
     SetFromXml(node, zeroBased);
 }
 
@@ -37,10 +35,12 @@ public:
     }
     virtual bool DoShowDialog(wxPropertyGrid* propGrid,
                               wxPGProperty* WXUNUSED(property) ) override {
+        m_model->SaveDisplayDimensions();
         CustomModelDialog dlg(propGrid);
         dlg.Setup(m_model);
         if (dlg.ShowModal() == wxID_OK) {
             dlg.Save(m_model);
+            m_model->RestoreDisplayDimensions();
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -73,33 +73,188 @@ protected:
     CustomModel *m_model;
 };
 
-
 void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     wxPGProperty *p = grid->Append(new CustomModelProperty(this, "Model Data", "CustomData", CLICK_TO_EDIT));
     grid->LimitPropertyEditing(p);
+    p = grid->Append(new wxUIntProperty("Strings", "CustomModelStrings", _strings));
+    p->SetAttribute("Min", 1);
+    p->SetAttribute("Max", 30);
+    p->SetEditor("SpinCtrl");
+
+    if (_strings == 1)
+    {
+        // cant set start node
+    }
+    else
+    {
+        wxString nm = StartNodeAttrName(0);
+        bool hasIndiv = ModelXml->HasAttribute(nm);
+
+        p = grid->Append(new wxBoolProperty("Indiv Start Nodes", "ModelIndividualStartNodes", hasIndiv));
+        p->SetAttribute("UseCheckbox", true);
+
+        wxPGProperty *psn = grid->AppendIn(p, new wxUIntProperty(nm, nm, wxAtoi(ModelXml->GetAttribute(nm, "1"))));
+        psn->SetAttribute("Min", 1);
+        psn->SetAttribute("Max", (int)GetNodeCount());
+        psn->SetEditor("SpinCtrl");
+
+        if (hasIndiv) {
+            int c = _strings;
+            for (int x = 0; x < c; x++) {
+                nm = StartNodeAttrName(x);
+                std::string val = ModelXml->GetAttribute(nm, "").ToStdString();
+                if (val == "") {
+                    val = ComputeStringStartNode(x);
+                    ModelXml->DeleteAttribute(nm);
+                    ModelXml->AddAttribute(nm, val);
+                }
+                int v = wxAtoi(val);
+                if (v < 1) v = 1;
+                if (v > NodesPerString()) v = NodesPerString();
+                if (x == 0) {
+                    psn->SetValue(v);
+                }
+                else {
+                    grid->AppendIn(p, new wxUIntProperty(nm, nm, v));
+                }
+            }
+        }
+        else
+        {
+            psn->Enable(false);
+        }
+    }
+
     p = grid->Append(new wxImageFileProperty("Background Image",
                                              "CustomBkgImage",
                                              custom_background));
-    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
+    p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg|All files (*.*)|*.*");
 }
+
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CustomData" == event.GetPropertyName()) {
         if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != custom_background)
         {
             grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(custom_background));
         }
-        return 3 | 0x0008;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomData");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomData");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomData");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::CustomData");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "CustomModel::OnPropertyGridChange::CustomData");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::CustomData");
+        AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CustomModel::OnPropertyGridChange::CustomData");
+        return 0;
     }
     else if ("CustomBkgImage" == event.GetPropertyName()) {
         custom_background = event.GetValue().GetString();
         ModelXml->DeleteAttribute("CustomBkgImage");
         ModelXml->AddAttribute("CustomBkgImage", custom_background);
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomBkgImage");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgImage");
+        return 0;
+    }
+    else if ("CustomModelStrings" == event.GetPropertyName())
+    {
+        _strings = event.GetValue().GetInteger();
+        ModelXml->DeleteAttribute("CustomStrings");
+        ModelXml->AddAttribute("CustomStrings", wxString::Format("%d", _strings));
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::CustomModelStrings");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::CustomModelStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomModelStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::CustomModelStrings");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::CustomModelStrings");
+        return 0;
+    }
+    else if (event.GetPropertyName() == "ModelIndividualStartNodes") {
+        bool hasIndiv = event.GetValue().GetBool();
+        for (int x = 0; x < _strings; x++) {
+            wxString nm = StartNodeAttrName(x);
+            ModelXml->DeleteAttribute(nm);
+        }
+        if (hasIndiv)
+        {
+            for (int x = 0; x < _strings; x++) {
+                wxString nm = StartNodeAttrName(x);
+                ModelXml->AddAttribute(nm, ComputeStringStartNode(x));
+            }
+        }
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes");
+        return 0;
+    }
+    else if (event.GetPropertyName().StartsWith("ModelIndividualStartNodes.String")) {
+
+        wxString s = event.GetPropertyName().substr(strlen("ModelIndividualStartNodes.String"));
+        int string = wxAtoi(s);
+
+        wxString nm = StartNodeAttrName(string - 1);
+
+        int value = event.GetValue().GetInteger();
+        if (value < 1) value = 1;
+        if (value > NodesPerString()) value = NodesPerString();
+
+        ModelXml->DeleteAttribute(nm);
+        ModelXml->AddAttribute(nm, wxString::Format("%d", value));
+
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "CustomModel::OnPropertyGridChange::ModelIndividualStartNodes2");
+        return 0;
     }
     return Model::OnPropertyGridChange(grid, event);
 }
 
+std::tuple<int,int,int> FindNode(int node, const std::vector<std::vector<std::vector<int>>>& locations)
+{
+    for (int l = 0; l < locations.size(); l++)
+    {
+        for (int r = 0; r < locations[l].size(); r++)
+        {
+            for (int c = 0; c < locations[l][r].size(); c++)
+            {
+                if (locations[l][r][c] == node+1)
+                {
+                    return { l, r, c };
+                }
+            }
+        }
+    }
+    wxASSERT(false);
+    return { -1,-1,-1 };
+}
+
+std::vector<std::vector<std::vector<int>>> ParseCustomModel(const wxString& data, int width)
+{
+    std::vector<std::vector<std::vector<int>>> res;
+
+    wxArrayString layers = wxSplit(data, '|');
+    for (auto l : layers)
+    {
+        std::vector<std::vector<int>> ll;
+        wxArrayString rows = wxSplit(l, ';');
+        for (auto r : rows)
+        {
+            std::vector<int> rr;
+            wxArrayString columns = wxSplit(r, ',');
+            for (auto c : columns)
+            {
+                if (c == "") rr.push_back(-1);
+                else rr.push_back(wxAtoi(c));
+            }
+            while (rr.size() < width) rr.push_back(-1);
+            ll.push_back(rr);
+        }
+        res.push_back(ll);
+    }
+    return res;
+}
 
 int CustomModel::GetStrandLength(int strand) const {
     return Nodes.size();
@@ -109,12 +264,30 @@ int CustomModel::MapToNodeIndex(int strand, int node) const {
     return node;
 }
 
+void CustomModel::UpdateModel(int width, int height, int depth, const std::string& modelData)
+{
+    ModelXml->DeleteAttribute("parm1");
+    ModelXml->AddAttribute("parm1", wxString::Format("%ld", width));
+    ModelXml->DeleteAttribute("parm2");
+    ModelXml->AddAttribute("parm2", wxString::Format("%ld", height));
+    ModelXml->DeleteAttribute("Depth");
+    ModelXml->AddAttribute("Depth", wxString::Format("%d", depth));
+    ModelXml->DeleteAttribute("CustomModel");
+    ModelXml->AddAttribute("CustomModel", modelData);
+    SetFromXml(ModelXml, zeroBased);
+}
 
 void CustomModel::InitModel() {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
     InitCustomMatrix(customModel);
-    CopyBufCoord2ScreenCoord();
+    //CopyBufCoord2ScreenCoord();
     custom_background = ModelXml->GetAttribute("CustomBkgImage").ToStdString();
+    _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1"));
+    _depth = wxAtoi(ModelXml->GetAttribute("Depth", "1"));
+    if (_depth < 1) _depth = 1;
+
+    screenLocation.SetRenderSize(parm1, parm2, _depth);
+    screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
 }
 
 void CustomModel::SetCustomWidth(long w) {
@@ -128,9 +301,17 @@ void CustomModel::SetCustomHeight(long h) {
     SetFromXml(ModelXml, zeroBased);
 }
 
+void CustomModel::SetCustomDepth(long d)
+{
+    ModelXml->DeleteAttribute("Depth");
+    ModelXml->AddAttribute("Depth", wxString::Format("%ld", d));
+    SetFromXml(ModelXml, zeroBased);
+}
+
 std::string CustomModel::GetCustomData() const {
     return ModelXml->GetAttribute("CustomModel").ToStdString();
 }
+
 void CustomModel::SetCustomData(const std::string &data) {
     ModelXml->DeleteAttribute("CustomModel");
     ModelXml->AddAttribute("CustomModel", data);
@@ -158,8 +339,37 @@ void CustomModel::SetCustomLightness(long lightness)
     SetFromXml(ModelXml, zeroBased);
 }
 
+bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    if (wxFile::Exists(custom_background))
+    {
+        if (!frame->IsInShowFolder(custom_background))
+        {
+            custom_background = frame->MoveToShowFolder(custom_background, wxString(wxFileName::GetPathSeparator()) + "Images");
+            ModelXml->DeleteAttribute("CustomBkgImage");
+            ModelXml->AddAttribute("CustomBkgImage", custom_background);
+            SetFromXml(ModelXml, zeroBased);
+            rc =  true;
+        }
+    }
+
+    return Model::CleanupFileLocations(frame) || rc;
+}
+
+std::list<std::string> CustomModel::GetFileReferences()
+{
+    std::list<std::string> res;
+    if (wxFile::Exists(custom_background))
+    {
+        res.push_back(custom_background);
+    }
+    return res;
+}
+
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {
     std::string customModel = ModelXml->GetAttribute("CustomModel").ToStdString();
+    _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1").ToStdString());
     int maxval=GetCustomMaxChannel(customModel);
     // fix NumberOfStrings
     if (SingleNode) {
@@ -167,12 +377,29 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
     } else {
         ChannelsPerString=maxval*GetNodeChannelCount(StringType);
     }
-    Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+
+    if (_strings == 1)
+    {
+        Model::SetStringStartChannels(zeroBased, NumberOfStrings, StartChannel, ChannelsPerString);
+    }
+    else
+    {
+        stringStartChan.clear();
+        stringStartChan.resize(_strings);
+
+        for (int i = 0; i<_strings; i++) {
+            wxString nm = StartChanAttrName(i);
+            int node = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+            if (node < 0) node = 0; // prevent invalid start nodes
+            if (node > maxval) node = maxval;
+            stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
+        }
+    }
 }
 
-int CustomModel::NodesPerString()
+int CustomModel::NodesPerString() const
 {
-    return GetChanCount() / GetChanCountPerNode();
+    return GetChanCount() / std::max(GetChanCountPerNode(),1);
 }
 
 inline void split(std::string frag, char splitBy, std::vector<std::string>& tokens)
@@ -190,25 +417,272 @@ inline void split(std::string frag, char splitBy, std::vector<std::string>& toke
     }
 }
 
+static std::vector<std::string> CUSTOM_BUFFERSTYLES =
+{
+    "Default",
+    "Per Preview",
+    "Single Line",
+    "As Pixel",
+    "Stacked X Horizontally",
+    "Stacked Y Horizontally",
+    "Stacked Z Horizontally",
+    "Stacked X Vertically",
+    "Stacked Y Vertically",
+    "Stacked Z Vertically",
+    "Overlaid X",
+    "Overlaid Y",
+    "Overlaid Z",
+    "Unique X and Y X",
+    "Unique X and Y Y",
+    "Unique X and Y Z",
+};
+
+const std::vector<std::string> &CustomModel::GetBufferStyles() const {
+    return CUSTOM_BUFFERSTYLES;
+}
+
+void CustomModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+{
+    int width = parm1;
+    int height = parm2;
+    int depth = _depth;
+
+    if (SingleNode || SingleChannel)
+    {
+        BufferWi = 1;
+        BufferHi = 1;
+    }
+    else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
+             type == "Horizontal Per Strand" || type == "Vertical Per Strand")
+    {
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+    }
+    else if (type == "Stacked X Horizontally")
+    {
+        BufferHi = height;
+        BufferWi = width * depth;
+    }
+    else if (type == "Stacked Y Horizontally")
+    {
+        BufferHi = depth;
+        BufferWi = width * height;
+    }
+    else if (type == "Default" || type == "Stacked Z Horizontally")
+    {
+        BufferHi = height;
+        BufferWi = width * depth;
+    }
+    else if (type == "Stacked X Vertically")
+    {
+        BufferHi = height * width;
+        BufferWi = depth;
+    }
+    else if (type == "Stacked Y Vertically")
+    {
+        BufferHi = height * depth;
+        BufferWi = width;
+    }
+    else if (type == "Stacked Z Vertically")
+    {
+        BufferWi = width;
+        BufferHi = depth * height;
+    }
+    else if (type == "Overlaid X")
+    {
+        BufferWi = depth;
+        BufferHi = height;
+    }
+    else if (type == "Overlaid Y")
+    {
+        BufferWi = width;
+        BufferHi = depth;
+    }
+    else if (type == "Overlaid Z")
+    {
+        BufferWi = width;
+        BufferHi = height;
+    }
+    else if (type == "Unique X and Y X")
+    {
+        BufferWi = height * width;
+        BufferHi = depth * width;
+    }
+    else if (type == "Unique X and Y Y")
+    {
+        BufferWi = width * height;
+        BufferHi = depth * height;
+    }
+    else if (type == "Unique X and Y Z")
+    {
+        BufferWi = width * depth;
+        BufferHi = height * depth;
+    }
+    else
+    {
+        wxASSERT(false);
+    }
+
+    AdjustForTransform(transform, BufferWi, BufferHi);
+}
+
+void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const
+{
+    int width = parm1;
+    int height = parm2;
+    int depth = _depth;
+
+    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
+
+    if (SingleChannel || SingleNode)
+    {
+        return;
+    }
+
+    if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel" ||
+        type == "Horizontal Per Strand" || type == "Vertical Per Strand")
+    {
+        return;
+    }
+
+    GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+
+    auto locations = ParseCustomModel(ModelXml->GetAttribute("CustomModel"), parm1);
+
+    if (type == "Stacked X Horizontally")
+    {
+        for (auto n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1 + std::get<2>(loc) * depth;
+            Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
+        }
+    }
+    else if (type == "Stacked Y Horizontally")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<1>(loc) * width;
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc);
+        }
+    }
+    else if (type == "Default" || type == "Stacked Z Horizontally")
+    {
+        // dont need to do anything
+    }
+    else if (type == "Stacked X Vertically")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1;
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + height * std::get<2>(loc);
+        }
+    }
+    else if (type == "Stacked Y Vertically")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc) + depth * std::get<1>(loc);
+        }
+    }
+    else if (type == "Stacked Z Vertically")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + depth * std::get<0>(loc);
+        }
+    }
+    else if (type == "Overlaid X")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1;
+            Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
+        }
+    }
+    else if (type == "Overlaid Y")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc);
+        }
+    }
+    else if (type == "Overlaid Z")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
+        }
+    }
+    else if (type == "Unique X and Y X")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1 + std::get<2>(loc) * depth;
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + std::get<2>(loc) * height;
+        }
+    }
+    else if (type == "Unique X and Y Y")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<1>(loc) * width;
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc) + std::get<1>(loc) * depth;
+        }
+    }
+    else if (type == "Unique X and Y Z")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<0>(loc) * width;
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + (height - std::get<1>(loc) - 1) * height;
+        }
+    }
+    else
+    {
+        wxASSERT(false);
+    }
+}
+
 int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
 {
     int maxval = 0;
 
+    std::vector<std::string> layers;
     std::vector<std::string> rows;
     std::vector<std::string> cols;
+    layers.reserve(100);
     rows.reserve(100);
     cols.reserve(100);
-    split(customModel, ';', rows);
-    
-    for (auto row: rows) {
-        cols.clear();
-        split(row, ',', cols);
-        for (auto col : cols) {
-            if (col != "") {
-                try {
-                    maxval=std::max(std::stoi(col),maxval);
-                } catch (...) {
-                    // not a number, treat as 0
+
+    split(customModel, '|', layers);
+
+    for (auto layer : layers) {
+        split(layer, ';', rows);
+        for (auto row : rows) {
+            cols.clear();
+            split(row, ',', cols);
+            for (auto col : cols) {
+                if (col != "") {
+                    try {
+                        maxval = std::max(std::stoi(col), maxval);
+                    }
+                    catch (...) {
+                        // not a number, treat as 0
+                    }
                 }
             }
         }
@@ -217,68 +691,98 @@ int CustomModel::GetCustomMaxChannel(const std::string& customModel) const
 }
 
 void CustomModel::InitCustomMatrix(const std::string& customModel) {
-    int width=1;
+    float width = 1.0;
+    float height = 1.0;
     std::vector<int> nodemap;
 
+    int32_t firstStartChan = 999999999;
+    for (auto it: stringStartChan)
+    {
+        firstStartChan = std::min(it, firstStartChan);
+    }
+
     int cpn = -1;
+    std::vector<std::string> layers;
     std::vector<std::string> rows;
     std::vector<std::string> cols;
+    layers.reserve(20);
     rows.reserve(100);
     cols.reserve(100);
-    split(customModel, ';', rows);
-    int height=rows.size();
 
-    int row = 0;
-    for (auto rv : rows) {
-        cols.clear();
-        split(rv, ',', cols);
-        if (cols.size() > width) width=cols.size();
-        int col = 0;
-        for (auto value : cols) {
-            while (value.length() > 0 && value[0] == ' ') {
-                value = value.substr(1);
-            }
-            long idx = -1;
-            if (value != "") {
-                try {
-                    idx = std::stoi(value);
-                } catch (...) {
-                    // not a number, treat as 0
-                }
-            }
-            if (idx > 0) {
-                // increase nodemap size if necessary
-                if (idx > nodemap.size()) {
-                    nodemap.resize(idx, -1);
-                }
-                idx--;  // adjust to 0-based
+    split(customModel, '|', layers);
+    float depth = layers.size();
+    int layer = 0;
 
-                // is node already defined in map?
-                if (nodemap[idx] < 0) {
-                    // unmapped - so add a node
-                    nodemap[idx]=Nodes.size();
-                    SetNodeCount(1,0,rgbOrder);  // this creates a node of the correct class
-                    Nodes.back()->StringNum=idx;
-                    if (cpn == -1) {
-                        cpn = GetChanCountPerNode();
+    for (auto lv : layers) {
+        rows.clear();
+        split(lv, ';', rows);
+        height = rows.size();
+
+        int row = 0;
+        for (auto rv : rows) {
+            cols.clear();
+            split(rv, ',', cols);
+            if (cols.size() > width) width = cols.size();
+            int col = 0;
+            for (auto value : cols) {
+                while (value.length() > 0 && value[0] == ' ') {
+                    value = value.substr(1);
+                }
+                long idx = -1;
+                if (value != "") {
+                    try {
+                        idx = std::stoi(value);
                     }
-                    Nodes.back()->ActChan=stringStartChan[0] + idx * cpn;
-                    if (idx < nodeNames.size() && nodeNames[idx] != "") {
-                        Nodes.back()->SetName(nodeNames[idx]);
-                    } else {
-                        Nodes.back()->SetName("Node "  + std::to_string(idx + 1));
+                    catch (...) {
+                        // not a number, treat as 0
                     }
-
-                    Nodes.back()->AddBufCoord(col,height - row - 1);
-                } else {
-                    // mapped - so add a coord to existing node
-                    Nodes[nodemap[idx]]->AddBufCoord(col,height - row - 1);
                 }
+                if (idx > 0) {
+                    // increase nodemap size if necessary
+                    if (idx > nodemap.size()) {
+                        nodemap.resize(idx, -1);
+                    }
+                    idx--;  // adjust to 0-based
+
+                    // is node already defined in map?
+                    if (nodemap[idx] < 0) {
+                        // unmapped - so add a node
+                        nodemap[idx] = Nodes.size();
+                        SetNodeCount(1, 0, rgbOrder);  // this creates a node of the correct class
+                        Nodes.back()->StringNum = idx;
+                        if (cpn == -1) {
+                            cpn = GetChanCountPerNode();
+                        }
+                        Nodes.back()->ActChan = firstStartChan + idx * cpn;
+                        if (idx < nodeNames.size() && nodeNames[idx] != "") {
+                            Nodes.back()->SetName(nodeNames[idx]);
+                        }
+                        else {
+                            Nodes.back()->SetName("Node " + std::to_string(idx + 1));
+                        }
+
+                        Nodes.back()->AddBufCoord(layer * width + col, height - row - 1);
+                        auto& c = Nodes[nodemap[idx]]->Coords.back();
+                        c.screenX = (float)col - width / 2.0f;
+                        c.screenY = height - (float)row - 1.0f - height / 2.0f;
+                        c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
+                    }
+                    else {
+                        // mapped - so add a coord to existing node
+                        Nodes[nodemap[idx]]->AddBufCoord(layer * width + col, height - row - 1);
+                        auto& c = Nodes[nodemap[idx]]->Coords.back();
+                        c.screenX = (float)col - width / 2.0f;
+                        c.screenY = height - (float)row - 1.0f - height / 2.0f;
+                        c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
+                    }
+                }
+                col++;
             }
-            col++;
+            row++;
         }
-        row++;
+        layer++;
     }
+
     for (int x = 0; x < Nodes.size(); x++) {
         for (int y = x+1; y < Nodes.size(); y++) {
             if (Nodes[y]->StringNum < Nodes[x]->StringNum) {
@@ -292,9 +796,46 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
         }
     }
 
-    SetBufferSize(height,width);
+    SetBufferSize(height,width*depth);
+    if (screenLocation.RenderDp < 10.0f) {
+        screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
+    }
 }
-std::string CustomModel::GetNodeName(size_t x, bool def) const {
+
+std::string CustomModel::ComputeStringStartNode(int x) const
+{
+    if (x == 0) return "1";
+
+    int strings = GetNumPhysicalStrings();
+    int nodes = GetNodeCount();
+    float nodesPerString = (float)nodes / (float)strings;
+
+    return wxString::Format("%d", (int)(x * nodesPerString + 1)).ToStdString();
+}
+
+int CustomModel::GetCustomNodeStringNumber(int node) const
+{
+    if (_strings == 1)
+    {
+        return 1;
+    }
+
+    int stringStart = -1;
+    int string = -1;
+    for (int i = 0; i < _strings; i++)
+    {
+        wxString nm = StartNodeAttrName(i);
+        int startNode = wxAtoi(ModelXml->GetAttribute(nm, "1"));
+        if (node >= startNode && startNode >= stringStart)
+        {
+            string = i;
+            stringStart = startNode;
+        }
+    }
+    return string + 1;
+}
+
+std::string CustomModel::GetNodeName(int x, bool def) const {
     if (x < Nodes.size()) {
         return Nodes[x]->GetName();
     }
@@ -339,11 +880,30 @@ std::list<std::string> CustomModel::CheckModelSettings()
             chs[nn + 1]++;
         }
 
+        long lastStart = -1;
         for (int ii = 1; ii <= maxn; ii++)
         {
             if (chs[ii] == 0)
             {
-                res.push_back(wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char *)GetName().c_str(), ii).ToStdString());
+                if (lastStart == -1)
+                {
+                    lastStart = ii;
+                }
+            }
+            else
+            {
+                if (lastStart != -1)
+                {
+                    if (lastStart == ii - 1)
+                    {
+                        res.push_back(wxString::Format("    WARN: Custom model '%s' missing node %d.", (const char*)GetName().c_str(), lastStart).ToStdString());
+                    }
+                    else
+                    {
+                        res.push_back(wxString::Format("    WARN: Custom model '%s' missing nodes %d-%d.", (const char*)GetName().c_str(), lastStart, ii - 1).ToStdString());
+                    }
+                    lastStart = -1;
+                }
             }
         }
 
@@ -378,58 +938,125 @@ std::list<std::string> CustomModel::CheckModelSettings()
     return res;
 }
 
-std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
-    size_t NodeCount=GetNodeCount();
-    std::vector<int> chmap;
-    chmap.resize(BufferHt * BufferWi,0);
-    std::string direction="n/a";
+int CustomModel::NodesPerString(int string) const
+{
+    if (_strings == 1)
+    {
+        return NodesPerString();
+    }
 
-    long sc;
+    int32_t lowestStartChannel = 2000000000;
+    for (int i = 0; i < _strings; i++)
+    {
+        if (stringStartChan[i] < lowestStartChannel) lowestStartChannel = stringStartChan[i];
+    }
+
+    int32_t ss = stringStartChan[string];
+    int32_t len = GetChanCount() - (ss - lowestStartChannel);
+    for (int i = 0; i < _strings; i++)
+    {
+        if (i != string)
+        {
+            if (stringStartChan[i] > ss && len > stringStartChan[i] - ss)
+            {
+                len = stringStartChan[i] - ss;
+            }
+        }
+    }
+    return len / GetNodeChannelCount(StringType);
+}
+
+std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
+    size_t NodeCount = GetNodeCount();
+    std::vector<int> chmap;
+    chmap.resize(BufferHt * BufferWi, 0);
+    std::string direction = "n/a";
+
+    int32_t sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
 
     std::string html = "<html><body><table border=0>";
-    html+="<tr><td>Name:</td><td>"+name+"</td></tr>";
-    html+="<tr><td>Display As:</td><td>"+DisplayAs+"</td></tr>";
-    html+="<tr><td>String Type:</td><td>"+StringType+"</td></tr>";
-    html+="<tr><td>Start Corner:</td><td>"+direction+"</td></tr>";
-    html+=wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>",(int)NodeCount);
-    html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
+    html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
+    html += "<tr><td>Display As:</td><td>" + DisplayAs + "</td></tr>";
+    html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
+    html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
+    html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", (int)NodeCount);
+    html += wxString::Format("<tr><td>Width:</td><td>%d</td></tr>", BufferWi);
+    html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", BufferHt);
     if (o != nullptr)
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", (o->GetIP() != "" ? o->GetIP() : o->GetCommPort()), o->GetDescription());
-    if (controller_connection != "" && wxString(controller_connection).Contains(":"))
+    if ("" != GetControllerProtocol())
     {
-        wxArrayString cc = wxSplit(controller_connection, ':');
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", cc[0]);
-        html += wxString::Format("<tr><td>Controller Connection:</td><td>%s</td></tr>", cc[1]);
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol());
+        if (_strings == 1)
+        {
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetControllerPort());
+        }
+        else
+        {
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d-%d</td></tr>", GetControllerPort(), GetControllerPort() + _strings - 1);
+        }
     }
-    html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
+    html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 
     std::string data = GetCustomData();
     if (data == "") {
-            html+="<tr><td>No custom data</td></tr>";
+        html += "<tr><td>No custom data</td></tr>";
     }
 
-    wxArrayString rows=wxSplit(data, ';');
-    for(size_t row=0; row < rows.size(); row++)
+    std::vector<std::vector<std::vector<wxString>>> _data;
+
+    int cols = parm1;
+    wxArrayString layers = wxSplit(data, '|');
+    for (auto l : layers)
     {
-        html+="<tr>";
-        wxArrayString cols = wxSplit(rows[row],',');
-        for(size_t col=0; col < cols.size(); col++)
+        std::vector<std::vector<wxString>> ll;
+        wxArrayString rows = wxSplit(l, ';');
+        for (auto r : rows)
         {
-            wxString value=cols[col];
-            if (!value.IsEmpty() && value != "0")
+            std::vector<wxString> rr;
+            wxArrayString columns = wxSplit(r, ',');
+            for (auto c : columns)
             {
-                wxString bgcolor = "#ADD8E6"; //"#90EE90"
-                html+=wxString::Format("<td bgcolor='"+bgcolor+"'>n%s</td>",value);
+                rr.push_back(c);
             }
-            else
+            while (rr.size() < cols) rr.push_back("");
+            ll.push_back(rr);
+        }
+        _data.push_back(ll);
+    }
+
+    for (int r = 0; r < parm2; r++)
+    {
+        html += "<tr>";
+        for (int l = 0; l < _depth; l++)
+        {
+            for (int c = 0; c < parm1; c++)
             {
-                html+="<td>&nbsp&nbsp&nbsp</td>";
+                wxString value = _data[l][r][c];
+                if (!value.IsEmpty() && value != "0")
+                {
+                    wxString bgcolor = "#ADD8E6"; //"#90EE90"
+                    if (_strings == 1)
+                    {
+                        html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%s</td>", value);
+                    }
+                    else
+                    {
+                        int string = GetCustomNodeStringNumber(wxAtoi(value));
+                        html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ss%d</td>", value, string);
+                    }
+                }
+                else
+                {
+                    html += "<td>&nbsp&nbsp&nbsp</td>";
+                }
             }
         }
-        html+="</tr>";
+        html += "</tr>";
     }
-    html+="</table></body></html>";
+
+    html += "</table></body></html>";
     return html;
 }
 
@@ -452,6 +1079,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString cm = root->GetAttribute("CustomModel");
             wxString p1 = root->GetAttribute("parm1");
             wxString p2 = root->GetAttribute("parm2");
+            wxString d = root->GetAttribute("Depth", "1");
             wxString st = root->GetAttribute("StringType");
             wxString ps = root->GetAttribute("PixelSize");
             wxString t = root->GetAttribute("Transparency");
@@ -470,6 +1098,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             SetProperty("CustomModel", cm);
             SetProperty("parm1", p1);
             SetProperty("parm2", p2);
+            SetProperty("Depth", d);
             SetProperty("StringType", st);
             SetProperty("PixelSize", ps);
             SetProperty("Transparency", t);
@@ -499,16 +1128,20 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                 }
             }
 
-            xlights->MarkEffectsFileDirty(true);
+            GetModelScreenLocation().SetMWidth(max_x - min_x);
+            GetModelScreenLocation().SetMHeight(max_y - min_y);
+
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportXlightsModel");
         }
         else
         {
-            wxMessageBox("Failure loading custom model file.");
+            DisplayError("Failure loading custom model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading custom model file.");
+        DisplayError("Failure loading custom model file.");
     }
 }
 
@@ -658,7 +1291,8 @@ void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, fl
         wxString newname = xlights->AllModels.GenerateModelName(fn.GetName().ToStdString());
         SetProperty("name", newname, true);
 
-        xlights->MarkEffectsFileDirty(true);
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "CustomModel::ImportLORModel");
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "CustomModel::ImportLORModel");
 
         if (chs.size() == 0)
         {
@@ -704,8 +1338,7 @@ void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, fl
         float divisor = 0.1f;
         if (HasDuplicates(1.0, chs))
         {
-            logger_base.warn("This model is not going to import correctly as some pixels overlap.");
-            wxMessageBox("WARNING: This model is not going to import correctly as one or more pixels overlap.");
+            DisplayWarning("This model is not going to import correctly as one or more pixels overlap.");
 
             RemoveDuplicatePixels(chs);
         }
@@ -775,7 +1408,7 @@ void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, fl
     }
     else
     {
-        wxMessageBox("Failure loading LOR model file.");
+        DisplayError("Failure loading LOR model file.");
     }
 }
 
@@ -787,10 +1420,11 @@ void CustomModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
+    wxString d = ModelXml->GetAttribute("Depth");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
     wxString t = ModelXml->GetAttribute("Transparency");
@@ -803,6 +1437,7 @@ void CustomModel::ExportXlightsModel()
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
     f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("Depth=\"%s\" ", d));
     f.Write(wxString::Format("StringType=\"%s\" ", st));
     f.Write(wxString::Format("Transparency=\"%s\" ", t));
     f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
@@ -832,4 +1467,31 @@ void CustomModel::ExportXlightsModel()
     }
     f.Write("</custommodel>");
     f.Close();
+}
+
+// This is required because users dont need to have their start nodes for each string in ascending
+// order ... this helps us name the strings correctly
+int CustomModel::MapPhysicalStringToLogicalString(int string) const
+{
+    if (_strings == 1) return string;
+
+    // FIXME
+    // This is not very efficient ... n^2 algorithm ... but given most people will have a small 
+    // number of strings and it is super simple and only used on controller upload i am hoping 
+    // to get away with it
+
+    std::vector<int> stringOrder;
+    for (int curr = 0; curr < _strings; curr++)
+    {
+        int count = 0;
+        for (int s = 0; s < _strings; s++)
+        {
+            if (stringStartChan[s] < stringStartChan[curr] && s != curr)
+            {
+                count++;
+            }
+        }
+        stringOrder.push_back(count);
+    }
+    return stringOrder[string];
 }

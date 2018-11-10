@@ -76,6 +76,7 @@ public:
     bool DragOver(int x, int y);
     void OnDrop(int x, int y);
     void OnDropFiles(int x, int y, const wxArrayString& files);
+    bool IsDroppingBetweenTimingMarks() const;
     void ForceRefresh();
     void SetTimingClickPlayMode(bool mode) {mTimingPlayOnDClick = mode;}
     void SetEffectIconBackground(bool mode) {mGridIconBackgrounds = mode;}
@@ -96,12 +97,17 @@ public:
     void CopyModelEffects(int row_number, bool allLayers);
     void PasteModelEffects(int row_number, bool allLayers);
     Effect* GetSelectedEffect() const;
-    int GetSelectedEffectCount(const std::string effectName) const;
+    int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;
-    void ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
+    void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
+    void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
+    void RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs);
+    void ConvertSelectedEffectsTo(const std::string& effectName);
 
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();
+    void MakeRowVisible(int row);
+    void MakeColVisible(int col);
     std::string TruncateEffectSettings(SettingsMap settings, std::string name, int originalStartMS, int originalEndMS, int startMS, int endMS);
     bool DoACDraw(bool keyboard = false, ACTYPE typeOverride = ACTYPE::NILTYPEOVERRIDE, ACSTYLE styleOverride = ACSTYLE::NILSTYLEOVERRIDE, ACTOOL toolOverride = ACTOOL::NILTOOLOVERRIDE, ACMODE modeOverride = ACMODE::NILMODEOVERRIDE);
 
@@ -115,7 +121,7 @@ public:
     int GetEndRow() { return mRangeStartRow < mRangeEndRow ? mRangeEndRow : mRangeStartRow; }
     int GetMSFromColumn(int col) const;
     Element* GetActiveTimingElement() const;
-    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true) const;
+    void RaiseSelectedEffectChanged(Effect* effect, bool isNew, bool updateUI = true, bool async = false) const;
     void LockEffects(bool lock);
 
     void SetRenderDataSources(xLightsFrame *xl, const SequenceData *data) {
@@ -130,13 +136,16 @@ public:
     void sendRenderEvent(const std::string &model, int start, int end, bool clear = true);
     void sendRenderDirtyEvent();
     void UnselectEffect(bool force = false);
+    void ScrollBy(int by);
 protected:
-    virtual void InitializeGLCanvas();
+    void InitializeGLCanvas() override;
+    void InitializeGLContext() override;
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
-    int GetClippedPositionFromTimeMS(int ms);
+    int GetClippedPositionFromTimeMS(int ms) const;
 
+    void DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, DrawGLUtils::xlAccumulator& backgrounds) const;
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);
     void magnify(wxMouseEvent& event);
@@ -177,6 +186,8 @@ private:
     void CheckForPartialCell(int x_pos);
     void RaiseEffectDropped(int x, int y) const;
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect) const;
+    
+    std::set<EffectLayer *> GetLayersWithSelectedEffects() const;
     bool MultipleEffectsSelected() const;
     std::list<Effect*> GetSelectedEffects() const;
     bool PapagayoEffectsSelected() const;
@@ -225,6 +236,7 @@ private:
     Effect* mSelectedEffect;
 
     DrawGLUtils::xlVertexAccumulator lines;
+    DrawGLUtils::xlVertexAccumulator selectedLinesFixed;
     DrawGLUtils::xlVertexAccumulator selectedLinesLocked;
     DrawGLUtils::xlVertexAccumulator timingEffLines;
     DrawGLUtils::xlVertexColorAccumulator timingLines;
@@ -268,6 +280,7 @@ private:
     int mRangeCursorRow;
     int mRangeCursorCol;
 
+    static const long ID_GRID_MNU_CUT;
     static const long ID_GRID_MNU_COPY;
     static const long ID_GRID_MNU_PASTE;
     static const long ID_GRID_MNU_DELETE;
@@ -279,6 +292,7 @@ private:
     static const long ID_GRID_MNU_UNDO;
     static const long ID_GRID_MNU_PRESETS;
     static const long ID_GRID_MNU_BREAKDOWN_PHRASE;
+    static const long ID_GRID_MNU_HALVETIMINGS;
     static const long ID_GRID_MNU_BREAKDOWN_WORD;
     static const long ID_GRID_MNU_BREAKDOWN_WORDS;
     static const long ID_GRID_MNU_ALIGN_START_TIMES;

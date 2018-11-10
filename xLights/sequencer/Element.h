@@ -21,6 +21,7 @@ class NetInfoClass;
 class Element;
 class ModelElement;
 class Model;
+class xLightsFrame;
 
 class ChangeListener {
 public:
@@ -28,7 +29,6 @@ public:
 };
 
 class SequenceElements;
-
 
 class Element {
 public:
@@ -48,15 +48,20 @@ public:
     bool GetVisible() const {return mVisible;}
     void SetVisible(bool visible) {mVisible = visible;}
 
-    bool HasEffects() const;
-    
+    virtual bool HasEffects() const;
+ 
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
     int GetLayerNumberFromIndex(int index);
+    virtual NodeLayer* GetNodeEffectLayer(int index) const = 0;
     size_t GetEffectLayerCount() const;
     std::list<std::string> GetFileReferences(EffectManager& em) const;
-    bool SelectEffectUsingDescription(std::string description);
-    bool SelectEffectUsingLayerTime(int layer, int time);
+    std::list<std::string> GetFacesUsed(EffectManager& em) const;
+    bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
+    Effect* SelectEffectUsingDescription(std::string description);
+    virtual bool IsEffectValid(Effect* e) const;
+    Effect* SelectEffectUsingLayerTime(int layer, int time);
+	virtual std::vector<int> GetLayersWithEffectsByTime(int startMs, int endMS) const;
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);
@@ -67,14 +72,12 @@ public:
     bool GetCollapsed() const { return mCollapsed; }
     void SetCollapsed(bool collapsed) { mCollapsed = collapsed; }
     
-
     int GetIndex() const {return mIndex;}
     void SetIndex(int index) { mIndex = index;}
     int &Index() { return mIndex;}
     int Index() const { return mIndex;}
     
-    
-    std::recursive_mutex &GetChangeLock() { return changeLock; }
+    std::recursive_timed_mutex &GetChangeLock() { return changeLock; }
     virtual void IncrementChangeCount(int startMs, int endMS);
     int getChangeCount() const { return changeCount; }
     
@@ -123,9 +126,8 @@ protected:
     volatile int dirtyStart = -1;
     volatile int dirtyEnd = -1;
 
-    std::recursive_mutex changeLock;
+    std::recursive_timed_mutex changeLock;
 };
-
 
 class TimingElement : public Element
 {
@@ -137,6 +139,8 @@ public:
 
     int GetFixedTiming() const { return mFixed; }
     void SetFixedTiming(int fixed) { mFixed = fixed; }
+    bool IsFixedTiming() const { return mFixed != 0; }
+    void Unfix();
 
     const std::string &GetViews() const { return mViews; }
     void SetViews(const std::string &views) { mViews = views; }
@@ -146,7 +150,9 @@ public:
 
     std::string GetExport() const;
     std::string GetPapagayoExport(int ms) const;
-    
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
+    bool HasLyrics(int layer) const;
+
 private:
     int mFixed;
     bool mActive;
@@ -166,11 +172,13 @@ public:
     
     virtual std::string GetFullName() const override;
     virtual void IncrementChangeCount(int startMs, int endMS) override;
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override { return nullptr; }
+
+    virtual bool HasEffects() const override;
 
 protected:
     ModelElement *mParentModel;
 };
-
 
 class StrandElement : public SubModelElement {
 public:
@@ -181,12 +189,16 @@ public:
     
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
     virtual ElementType GetType() const override { return ELEMENT_TYPE_STRAND; }
+    virtual NodeLayer* GetNodeEffectLayer(int index) const override;
+    virtual bool IsEffectValid(Effect* e) const override;
 
     int GetStrand() const { return mStrand; }
     
+    virtual bool HasEffects() const override;
     bool ShowNodes() const { return mShowNodes;}
     void ShowNodes(bool b) { mShowNodes = b;}
-    NodeLayer *GetNodeLayer(int n, bool create = false);
+    NodeLayer *GetNodeLayer(int n, bool create);
+    NodeLayer *GetNodeLayer(int n) const;
     int GetNodeLayerCount() const {
         return mNodeLayers.size();
     }
@@ -224,23 +236,27 @@ class ModelElement : public Element
 
         virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index) override;
 
+        virtual bool HasEffects() const override;
         int GetSubModelAndStrandCount() const;
         int GetSubModelCount() const;
+        SubModelElement *GetSubModel(int i) const;
         SubModelElement *GetSubModel(int i);
         SubModelElement *GetSubModel(const std::string &name, bool create = false);
         void RemoveSubModel(const std::string &name);
         void RemoveAllSubModels();
         void AddSubModel(SubModelElement* sme);
-    
+
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
-    
-        std::recursive_mutex &GetRenderLock() { return changeLock; }
+        virtual NodeLayer* GetNodeEffectLayer(int index) const override;
+
+        std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
         int GetWaitCount();
         void IncWaitCount();
         void DecWaitCount();
 
         StrandElement *GetStrand(int strand, bool create = false);
+        StrandElement *GetStrand(int strand) const;
         int GetStrandCount() const { return mStrands.size(); }
     
         virtual void CleanupAfterRender() override;
@@ -255,3 +271,4 @@ class ModelElement : public Element
 };
 
 #endif // ELEMENT_H
+

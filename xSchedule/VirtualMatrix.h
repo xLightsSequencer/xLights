@@ -27,6 +27,7 @@ class VirtualMatrix
     std::string _startChannel;
     wxImage _image;
     wxImageResizeQuality _quality;
+    int _swsQuality;
     PlayerWindow* _window;
     bool _suppress;
 
@@ -34,15 +35,16 @@ public:
 
 		static VMROTATION EncodeRotation(const std::string rotation);
 		static std::string DecodeRotation(VMROTATION rotation);
-        static wxImageResizeQuality EncodeScalingQuality(const std::string quality);
-        static std::string DecodeScalingQuality(wxImageResizeQuality quality);
+        static wxImageResizeQuality EncodeScalingQuality(const std::string quality, int& swsQuality);
+        static std::string DecodeScalingQuality(wxImageResizeQuality quality, int swsQuality);
 
         VirtualMatrix(OutputManager* outputManager, wxXmlNode* n);
-        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
+        VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, int swsQuality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
         VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
         VirtualMatrix(OutputManager* outputManager);
         virtual ~VirtualMatrix() {}
-        void Frame(wxByte*buffer, size_t size);
+        void Frame(uint8_t*buffer, size_t size);
+        void AllOff();
         void Start();
         void Stop();
         void Suppress(bool suppress);
@@ -60,7 +62,7 @@ public:
         bool GetUseMatrixSize() const { return _useMatrixSize; }
         int GetMatrixMultiplier() const { return _matrixMultiplier; }
         std::string GetRotation() const { return DecodeRotation(_rotation); }
-        std::string GetScalingQuality() const { return DecodeScalingQuality(_quality); }
+        std::string GetScalingQuality() const { return DecodeScalingQuality(_quality, _swsQuality); }
         bool IsDirty() const { return _lastSavedChangeCount != _changeCount; }
         void ClearDirty() { _lastSavedChangeCount = _changeCount; }
         wxXmlNode* Save();
@@ -69,7 +71,7 @@ public:
         void SetTopMost(const bool topMost) { if (topMost != _topMost) { _topMost = topMost; _changeCount++; } }
         void SetUseMatrixSize(const bool useMatrixSize) { if (useMatrixSize != _useMatrixSize) { _useMatrixSize = useMatrixSize; _changeCount++; } }
         void SetMatrixMultiplier(const int matrixMultiplier) { if (matrixMultiplier != _matrixMultiplier) { _matrixMultiplier = matrixMultiplier; _changeCount++; } }
-        void SetScalingQuality(const wxImageResizeQuality quality) { if (quality != _quality) { _quality = quality; _changeCount++; } }
+        void SetScalingQuality(const wxImageResizeQuality quality, int swsQuality) { if (quality != _quality || swsQuality != _swsQuality) { _quality = quality; _swsQuality = swsQuality; _changeCount++; } }
         void SetRotation(const VMROTATION rotation) { if (rotation != _rotation) { _rotation = rotation; _changeCount++; } }
         void SetLocation(const wxPoint location) { if (location != _location) { _location = location; _changeCount++; } }
         void SetSize(const wxSize size) { if (size != _size) { _size = size; _changeCount++; } }

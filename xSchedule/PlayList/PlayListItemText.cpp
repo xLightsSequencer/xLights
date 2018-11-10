@@ -3,17 +3,19 @@
 #include <wx/notebook.h>
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
+#include <wx/regex.h>
 #include "PlayListItemTextPanel.h"
 #include <log4cpp/Category.hh>
 #include <wx/font.h>
-#include "../FSEQFile.h"
 #include "../MatrixMapper.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
+#include "../xSMSDaemon/Curl.h"
 
 PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
 {
+    _parameter1 = "";
     _matrixMapper = nullptr;
     _font = nullptr;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
@@ -27,10 +29,9 @@ PlayListItemText::PlayListItemText(wxXmlNode* node) : PlayListItem(node)
     _renderWhenBlank = true;
     _orientation = "Normal";
     _speed = 10;
-    _type = "Normal";
+    _texttype = "Normal";
     _x = 0;
     _y = 0;
-    _maxSize = wxSize(0,0);
 
     PlayListItemText::Load(node);
 }
@@ -60,11 +61,12 @@ void PlayListItemText::Load(wxXmlNode* node)
     wxASSERT(_font->IsOk());
     _format = node->GetAttribute("Format", "").ToStdString();
     _text = node->GetAttribute("Text", "").ToStdString();
+    _parameter1 = node->GetAttribute("Parameter1", "").ToStdString();
     _matrix = node->GetAttribute("Matrix", "").ToStdString();
     _movement = node->GetAttribute("Movement", "None").ToStdString();
     _renderWhenBlank = (node->GetAttribute("RenderWhenBlank", "True") == "True");
     _orientation = node->GetAttribute("Orientation", "Normal").ToStdString();
-    _type = node->GetAttribute("Type", "Normal").ToStdString();
+    _texttype = node->GetAttribute("Type", "Normal").ToStdString();
     _speed = wxAtoi(node->GetAttribute("Speed", "10"));
     _x = wxAtoi(node->GetAttribute("X", "0"));
     _y = wxAtoi(node->GetAttribute("Y", "0"));
@@ -96,6 +98,7 @@ void PlayListItemText::SetFont(wxFont* font)
 
 PlayListItemText::PlayListItemText() : PlayListItem()
 {
+    _type = "PLIText";
     _font = nullptr;
     _matrixMapper = nullptr;
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
@@ -109,10 +112,10 @@ PlayListItemText::PlayListItemText() : PlayListItem()
     _renderWhenBlank = true;
     _orientation = "Normal";
     _speed = 10;
-    _type = "Normal";
+    _texttype = "Normal";
     _x = 0;
     _y = 0;
-    _maxSize = wxSize(0, 0);
+    _parameter1 = "";
 }
 
 PlayListItem* PlayListItemText::Copy() const
@@ -124,11 +127,12 @@ PlayListItem* PlayListItemText::Copy() const
     res->_orientation = _orientation;
     res->_speed = _speed;
     res->_durationMS = _durationMS;
-    res->_type = _type;
+    res->_texttype = _texttype;
     res->_x = _x;
     res->_y = _y;
     res->_blendMode = _blendMode;
     res->_colour = _colour;
+    res->_parameter1 = _parameter1;
     res->_font = new wxFont(_font->GetPointSize(), _font->GetFamily(), _font->GetStyle(), _font->GetWeight(),
         _font->GetUnderlined(), _font->GetFaceName(), _font->GetEncoding());
     res->_format = _format;
@@ -140,7 +144,7 @@ PlayListItem* PlayListItemText::Copy() const
 
 wxXmlNode* PlayListItemText::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLIText");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("ApplyMethod", wxString::Format(wxT("%i"), (int)_blendMode));
     node->AddAttribute("Colour", _colour.GetAsString());
@@ -155,7 +159,8 @@ wxXmlNode* PlayListItemText::Save()
         node->AddAttribute("RenderWhenBlank", "False");
     }
     node->AddAttribute("Orientation", _orientation);
-    node->AddAttribute("Type", _type);
+    node->AddAttribute("Parameter1", _parameter1);
+    node->AddAttribute("Type", _texttype);
     node->AddAttribute("Speed", wxString::Format(wxT("%i"), _speed));
     node->AddAttribute("X", wxString::Format(wxT("%i"), _x));
     node->AddAttribute("Y", wxString::Format(wxT("%i"), _y));
@@ -191,7 +196,7 @@ std::string PlayListItemText::GetNameNoTime() const
     }
     else
     {
-        return _type;
+        return _texttype;
     }
 }
 
@@ -205,7 +210,8 @@ void PlayListItemText::Start(long stepLengthMS)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     PlayListItem::Start(stepLengthMS);
 
-    _maxSize = wxSize(0, 0);
+    _lastTwitterTime = 0;
+    _lastTwitter = "";
     auto m = xScheduleFrame::GetScheduleManager()->GetOptions()->GetMatrices();
     for (auto it = m->begin(); it != m->end(); ++it)
     {
@@ -228,14 +234,16 @@ void PlayListItemText::Stop()
 
 std::string PlayListItemText::GetTooltip(const std::string& type)
 {
-    std::string tt = "Available variables:\n";
+    std::string tt = GetTagHint();
     
-    tt += "    %TEXT% - text field\n\n";
+    tt += "\n\n    %TEXT% - text field\n\n";
 
     tt += "    Current Date/Time\n";
     tt += "        %DAY%, %MONTH%, %YEAR4%, %YEAR2%\n";
     tt += "        %HOUR24%, %HOUR12%, %MIN%, %SEC%, %MS%, %AMPM%\n\n";
-    
+    tt += "    Twitter followers - Parameter 1 = Twitter handle (without @\n";
+    tt += "        %TWITTER_FOLLOWERS%\n\n";
+
     if (type == "Countdown")
     {
         tt += "    Time until countdowndate\n";
@@ -265,8 +273,10 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
     return tt;
 }
 
-std::string PlayListItemText::GetText(size_t ms)
+wxString PlayListItemText::GetText(size_t ms)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    
     wxString working = wxString(_format);
 
     wxTimeSpan plicountdown = wxTimeSpan::Milliseconds(_durationMS - ms);
@@ -275,11 +285,11 @@ std::string PlayListItemText::GetText(size_t ms)
     wxTimeSpan countdown;
     int cds = 0;
 
-    if (_type == "Normal")
+    if (_texttype == "Normal")
     {
         // nothing to do
     }
-    else if (_type == "Countdown")
+    else if (_texttype == "Countdown")
     {
         wxDateTime targetDate;
         targetDate.ParseDateTime(_text);
@@ -308,13 +318,13 @@ std::string PlayListItemText::GetText(size_t ms)
             countdown = wxTimeSpan(0);
         }
     }
-    else if (_type == "Countdown Seconds")
+    else if (_texttype == "Countdown Seconds")
     {
         int to = wxAtoi(_text);
 
         cds = to - ms / 1000;
     }
-    else if (_type == "File Read")
+    else if (_texttype == "File Read")
     {
         wxFileInputStream input(_text);
         wxTextInputStream text(input);
@@ -327,7 +337,41 @@ std::string PlayListItemText::GetText(size_t ms)
         working.Replace("%FILE_DATA%", fileData);
     }
 
+    working = ReplaceTags(working);
     working.Replace("%TEXT%", _text);
+
+    if (working.Contains("%TWITTER_FOLLOWERS%"))
+    {
+        wxString followers = "ERROR";
+
+        if (_parameter1 != "")
+        {
+            // we only update twitter first time ... otherwise we may pause playback
+            if (_lastTwitter == "") // || wxGetUTCTime() - _lastTwitterTime > 60)
+            {
+                auto resp = Curl::HTTPSGet("https://cdn.syndication.twimg.com/widgets/followbutton/info.json?screen_names=" + _parameter1, "", "", 2);
+                static wxRegEx f("\"followers_count\":([0-9]*)", wxRE_ADVANCED);
+                if (f.Matches(resp))
+                {
+                    followers = f.GetMatch(resp, 1);
+                }
+                else
+                {
+                    logger_base.warn("Getting twitter followers failed: %s", (const char*)resp.c_str());
+                }
+                _lastTwitter = followers;
+                _lastTwitterTime = wxGetUTCTime();
+            }
+            else {
+                followers = _lastTwitter;
+            }
+        }
+        else
+        {
+            logger_base.warn("No twitter account specified.");
+        }
+        working.Replace("%TWITTER_FOLLOWERS%", followers);
+    }
 
     // countdown to date
     working.Replace("%CDD_DAYS%", wxString::Format(wxT("%i"), countdown.GetDays()));
@@ -370,11 +414,19 @@ std::string PlayListItemText::GetText(size_t ms)
     working.Replace("%MS%", wxString::Format(wxT("%03i"), now.GetMillisecond()));
     working.Replace("%AMPM%", now.GetHour() > 12 ? "PM" : "AM");
 
-    return working.ToStdString();
+    working.Replace("\\\\", "!xyzzy!");
+    working.Replace("\\t", "\t");
+    working.Replace("\\n", "\n");
+    working.Replace("!xyzzy!", "\\");
+
+    return working;
 }
 
 wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
 {
+    // x = 0 is LHS
+    // y = 0 is TOP
+
     wxPoint res(_x + _matrixMapper->GetWidth() / 2 - size.x / 2, _matrixMapper->GetHeight() + (-1 * _y) - 1 - _matrixMapper->GetHeight() / 2 - size.y/2);
 
     if (_movement == "None")
@@ -383,44 +435,57 @@ wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
     }
     else if (_movement == "Right to Left")
     {
-        res.x -= ms * _speed / 1000;
+        int maxx = std::max(_matrixMapper->GetWidth(), size.x);
+        res.x = -1 * (ms * _speed / 1000) + 2;
 
-        while (res.x < -1 * size.x)
+        if (maxx > 0)
         {
-            // off the left of the screen
-            res.x += _matrixMapper->GetWidth() + size.x;
+            res.x = res.x % maxx;
         }
     }
     else if (_movement == "Left to Right")
     {
-        res.x += ms * _speed / 1000;
+        res.x = -size.x - 2 + _matrixMapper->GetWidth() + ms * _speed / 1000;
 
-        while (res.x > _matrixMapper->GetWidth())
+        if (size.x > 0)
         {
-            res.x -= _matrixMapper->GetWidth() + size.x;
+            while (res.x > _matrixMapper->GetWidth())
+            {
+                res.x -= size.x;
+            }
         }
     }
     else if (_movement == "Bottom to Top")
     {
-        res.y -= size.y;
+        int toty = _matrixMapper->GetHeight() + size.y;
+        res.y = size.y;
         res.y -= ms * _speed / 1000;
-        res.y = res.y % (_matrixMapper->GetHeight() + 2 * size.y) + size.y;
-        if (res.y < -1 * size.y)
+        if (toty > 0)
         {
-            res.y += _matrixMapper->GetHeight() + 2 * size.y;
+            while (res.y < -toty + size.y)
+            {
+                res.y += toty;
+            }
         }
     }
     else if (_movement == "Top to Bottom")
     {
-        res.y += size.y;
+        int toty = _matrixMapper->GetHeight() + 2 * size.y;
+        res.y = -toty + size.y;
         res.y += ms * _speed / 1000;
-        res.y = res.y % (_matrixMapper->GetHeight() + 2 * size.y) - size.y;
+        if (toty > 0)
+        {
+            while (res.y > size.y)
+            {
+                res.y -= toty;
+            }
+        }
     }
 
     return res;
 }
 
-void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemText::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -431,7 +496,18 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
         size_t effms = ms - _delay;
 
         // work out our Text
-        std::string text = GetText(effms);
+        wxString text = GetText(effms);
+
+        // if newly set then wemake effms act as if it was zero now
+        if (_newlySet) {
+            _newlySet = false;
+            _msAdj = effms;
+            effms = 0;
+        }
+        else
+        {
+            effms -= _msAdj;
+        }
 
         if (text == "" && !_renderWhenBlank)
         {
@@ -446,19 +522,17 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             dc.SetTextForeground(_colour);
             dc.SetFont(*_font);
             wxSize sz = dc.GetTextExtent(text);
-            if (sz.x > _maxSize.x) _maxSize.x = sz.x;
-            if (sz.y > _maxSize.y) _maxSize.y = sz.y;
 
             if (_orientation == "Normal")
             {
                 // work out where to draw it
-                wxPoint loc = GetLocation(effms, _maxSize);
+                wxPoint loc = GetLocation(effms, sz);
                 dc.DrawText(text, loc);
             }
             else if (_orientation == "Vertical Up" || _orientation == "Vertical Down")
             {
                 // work out where to draw it
-                wxSize sz1(_maxSize.GetHeight(), dc.GetCharHeight() * text.size());
+                wxSize sz1(sz.GetHeight(), dc.GetCharHeight() * text.size());
                 wxPoint loc = GetLocation(effms, sz1);
                 int y = loc.y;
                 for (auto c = text.begin(); c != text.end(); ++c)
@@ -478,13 +552,13 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             }
             else if (_orientation == "Rotate Up 90")
             {
-                wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
+                wxSize sz1(sz.GetHeight(), sz.GetWidth());
                 wxPoint loc = GetLocation(effms, sz1);
                 dc.DrawRotatedText(text, loc, 90);
             }
             else if (_orientation == "Rotate Down 90")
             {
-                wxSize sz1(_maxSize.GetHeight(), _maxSize.GetWidth());
+                wxSize sz1(sz.GetHeight(), sz.GetWidth());
                 wxPoint loc = GetLocation(effms, sz1);
                 dc.DrawRotatedText(text, loc, -90);
             }
@@ -500,7 +574,7 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 
                     if (bl < size)
                     {
-                        wxByte* p = buffer + bl;
+                        uint8_t* p = buffer + bl;
 
                         SetPixel(p, image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), _blendMode);
                     }
@@ -514,9 +588,9 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     }
 }
 
-void PlayListItemText::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode)
+void PlayListItemText::SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode)
 {
-    wxByte rgb[3];
+    uint8_t rgb[3];
     rgb[0] = r;
     rgb[1] = g;
     rgb[2] = b;

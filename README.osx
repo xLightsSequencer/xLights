@@ -11,7 +11,7 @@ xLights on Mac OS/X.
 
 xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights on OS X is 3.1.1.
+of wxWidgets for xLights on OS X is 3.1.2.
 
 Unfortunately, xLights cannot be compiled wxWidgets3 that is part 
 of MacPorts due to that build not including the wxMediaControl widgets that 
@@ -21,31 +21,25 @@ is required for xLights.  You must build wxWidgets from source.
 On OS/X, compilation is done using Xcode. Code::Blocks is not used.
 Xcode can be downloaded from the Apple developer web site. Make
 sure you install the version of Xcode that matches your version of
-OS/X. For example, I use OS/X 10.8, so I installed Xcode 9.4.
+OS/X. For example, I use OS/X 10.14, so I installed Xcode 10.0.
 Instructions are here:
 
   http://wiki.wxwidgets.org/Installing_Xcode
 
 
-The latest wxWidgets release (3.1.1) will "mostly work", but does contain several
-bugs that are fixed in the latest master code.   Specifically, support for OSX Mojave
-and a bunch of drag/drop fixes for the outline views (used for the Import Effects
-dialog) are included in master, but not in the last release.   Thus, I highly
-recommend using the wxWidgets code from github instead of the release tar.
+The latest wxWidgets release (3.1.2) will not work anymore as we need some API's that have
+been added since then.  We also have several other fixes in place for background rendering, etc...
 
 To get the latest code that we've tested, do:
 
-git clone --recurse-submodules https://github.com/wxWidgets/wxWidgets
-cd wxWidgets
-git reset --hard 85c2877a6c660c3b59c7a5400bab224374e3324a
-
+git clone  --recurse-submodules -b xlights_fixes https://github.com/dkulp/wxWidgets
 
 Then, from inside a Terminal window:
 
   cd <wxMac base dir>
   cd build
-  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -g"
-  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14"
+  export CXXFLAGS="-stdlib=libc++ -std=c++1z -g"
+  export OBJCXXFLAGS="-stdlib=libc++ -std=c++1z"
   export CPPFLAGS="-stdlib=libc++ -g"
   export LDFLAGS="-stdlib=libc++"
   export CXX=clang++ 
@@ -56,17 +50,17 @@ Then, from inside a Terminal window:
   ../configure  --prefix=/opt/local --libdir=/opt/local/libdbg \
                 --enable-debug --disable-compat30 --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa  --with-opengl --disable-dependency-tracking \
-                --with-macosx-version-min=10.10 --with-libjpeg=builtin \
+                --with-macosx-version-min=10.10 --with-libjpeg=builtin  --without-libtiff --enable-mimetype \
                 --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
-  make
+  make -j 8
   make install
 
 
 If you are planning on being able to build Release builds, you will ALSO need to do:
 
-  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14"
-  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14"
+  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=c++1z"
+  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=c++1z"
   export CPPFLAGS="-stdlib=libc++ -flto=thin"
   export LDFLAGS="-stdlib=libc++ -flto=thin"
   export CXX=clang++ 
@@ -76,10 +70,10 @@ If you are planning on being able to build Release builds, you will ALSO need to
   export CFLAGS=""
   ../configure  --disable-debug --enable-optimise --prefix=/opt/local --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
-                --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin \
+                --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin  --without-libtiff --enable-mimetype \
                 --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --disable-shared
-  make 
+  make -j 8
   make install
 
 
@@ -111,8 +105,29 @@ portmidi:
 git clone https://github.com/AndrewBelt/portmidi
 Remove i386 from CMakeLists.txt
 
+libzstd:
+git clone https://github.com/facebook/zstd
+export MACOSX_DEPLOYMENT_TARGET=10.10
+make
 
-SDL2:  currently using 2.0.7
+log4cpp:
+Download latest src release (current 1.1.3)
+export MACOSX_DEPLOYMENT_TARGET=10.10
+export CXXFLAGS="-stdlib=libc++ -flto=thin -std=c++11 -mmacosx-version-min=10.10"
+export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=c++11"
+export CPPFLAGS="-stdlib=libc++ -flto=thin"
+export LDFLAGS="-stdlib=libc++ -flto=thin"
+export CXX=clang++
+export CXXCPP="clang++ -E"
+export CC=clang
+export CPP="clang -E"
+export CFLAGS=""
+./configure --prefix=/opt/local
+make
+cp ./src/.libs/liblog4cpp.5.dylib to the libs/osx dir
+
+
+SDL2:  currently using 2.0.10
 
 
 wxWidgets git hash history:
@@ -128,3 +143,8 @@ Feb 26, 2018 - switch to 3.1.1 release tar.bz2
 June 17, 2018 - add notes about wxWidgets for OSX Mojave
 July 16, 2018 - 85c2877a6c660c3b59c7a5400bab224374e3324a Fixes the native wxDataViewCtrl drag/drop
 Aug  1, 2018 - c83f3b39424fd0d6690a64ba05277c77c077b861 Fixes sRGB <-> RGB color space issues
+Oct 30, 2018 - move to dkulp/wxWidgets xlights_fixes branch to grab atomic ref counting, Mojave fixes, color fixes, etc...
+Jan 6, 2019 - 81de073d3b06d61ed8959d417692e27d49ec17eb  Move to c++17, fixes for multitouch on OpenGL
+Jun 30, 2019 - 51bce4ec0b2f1d6e38e1d5ae75e0ad1cec9bae13 Contains fixes for opengl window resizing
+July 21, 2019 - 9ede90257fa5813bbb6c32f949b8d69619e14c03 add --enable-mimetype
+July 27, 2019 - d50b91554ada145c8031db4540008b0f641bed28 fixes for some openGL issues, wxGrid crashes

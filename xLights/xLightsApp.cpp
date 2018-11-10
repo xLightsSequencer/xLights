@@ -23,6 +23,7 @@
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "Parallel.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -214,7 +215,7 @@ void DumpConfig()
 //IMPLEMENT_APP(xLightsApp)
 int main(int argc, char **argv)
 {
-    srand(time(NULL));
+    srand(time(nullptr));
     InitialiseLogging(true);
     // Dan/Chris ... if you get an exception here the most likely reason is the line
     // appender.A1.fileName= in the xlights.xxx.properties file
@@ -245,6 +246,16 @@ wxIMPLEMENT_APP_NO_MAIN(xLightsApp);
 #include <wx/debugrpt.h>
 
 xLightsFrame *topFrame = nullptr;
+
+
+thread_local std::list<std::string> traceMessages;
+
+void AddTraceMessage(const std::string &msg) {
+    traceMessages.push_back(msg);
+    if (traceMessages.size() > 20) {
+        traceMessages.pop_front();
+    }
+}
 
 void handleCrash(void *data) {
     static volatile bool inCrashHandler = false;
@@ -303,7 +314,7 @@ void handleCrash(void *data) {
             report->AddFile(fnb.GetFullPath(), fnb.GetName());
         }
     }
-    wxString trace = wxString::Format("xLights version %s %s\n\n", xlights_version_string, GetBitness());
+    wxString trace = wxString::Format("xLights version %s\n\n", GetDisplayVersionString());
 
 #ifndef __WXMSW__
     void* callstack[128];
@@ -334,6 +345,8 @@ void handleCrash(void *data) {
     //These will be added on the main thread
     //trace += topFrame->GetThreadStatusReport();
     //trace += ParallelJobPool::POOL.GetThreadStatus();
+
+    trace += "\n<email>"+ topFrame->_userEmail +"</email>\n";
 
     report->AddText("backtrace.txt", trace, "Backtrace");
 
@@ -366,15 +379,16 @@ void handleCrash(void *data) {
     {
         report->AddFile(wxFileName(wxGetCwd(), "xLights_l4cpp.log").GetFullPath(), "xLights_l4cpp.log");
     }
-
+    
+    std::list<std::string> trc = traceMessages;
     if (!wxThread::IsMain() && topFrame != nullptr) 
     {
-        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report);
+        topFrame->CallAfter(&xLightsFrame::CreateDebugReport, report, trc);
         wxSleep(600000);
     } 
     else if (topFrame != nullptr)
     {
-        topFrame->CreateDebugReport(report);
+        topFrame->CreateDebugReport(report, trc);
     }
     else
     {
@@ -382,12 +396,15 @@ void handleCrash(void *data) {
         logger_base.crit("Unable to tell user about debug report. Crash report saved to %s.", (const char *)report->GetCompressedFileName().c_str());
     }
 }
-
 wxString xLightsFrame::GetThreadStatusReport() {
     return jobPool.GetThreadStatus();
 }
 
-void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
+void xLightsFrame::AddTraceMessage(const std::string &trc) {
+    ::AddTraceMessage(trc);
+}
+
+void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report, std::list<std::string> trc) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     static bool inHere = false;
@@ -403,6 +420,20 @@ void xLightsFrame::CreateDebugReport(wxDebugReportCompress *report) {
     status += topFrame->GetThreadStatusReport();
     status += "\nParallel Job Pool:\n";
     status += ParallelJobPool::POOL.GetThreadStatus();
+    if (!trc.empty()) {
+        status += "\nCrashed thread traces:\n";
+        for (auto &a : trc) {
+            status += a;
+            status += "\n";
+        }
+    }
+    status += "\nMain thread traces:\n";
+    for (auto &a : traceMessages) {
+        status += a;
+        status += "\n";
+    }
+
+    
 
     wxFileName fileName(report->GetDirectory(), "backtrace.txt");
     wxFile file(fileName.GetFullPath(),  wxFile::write_append);
@@ -481,6 +512,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
+        { wxCMD_LINE_SWITCH, "a", "xsmsdaemon", "run xsmsdaemon" },
         { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
         { wxCMD_LINE_SWITCH, "f", "xfade", "run xfade" },
 #endif
@@ -490,6 +522,7 @@ bool xLightsApp::OnInit()
 
 // Add option to run xutils via xlights on linux (for AppImage usage)
 #ifdef __LINUX__
+       int run_xsmsdaemon = FALSE;
        int run_xschedule = FALSE;
        int run_xcapture = FALSE;
        int run_xfade= FALSE;
@@ -498,11 +531,14 @@ bool xLightsApp::OnInit()
        wxString cmdlineC(appPath+wxT("/xCapture"));
        wxString cmdlineS(appPath+wxT("/xSchedule"));
        wxString cmdlineF(appPath+wxT("/xFade"));
+       wxString cmdlineM(appPath+wxT("/xSMSDaemon"));
         for (int i=1; i< argc;i++) {
             if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
             } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
                 run_xcapture = TRUE;
+            } else if (strncmp(argv[i].c_str(), "-a", 2) == 0) {
+                run_xsmsdaemon = TRUE;
             } else if (strncmp(argv[i].c_str(), "-f", 2) == 0) {
                 run_xfade = TRUE;
             } else {
@@ -522,6 +558,9 @@ bool xLightsApp::OnInit()
             exit(0);
         } else if (run_xfade) {
             wxExecute(cmdlineF, wxEXEC_BLOCK,NULL,NULL);
+            exit(0);
+        } else if (run_xsmsdaemon) {
+            wxExecute(cmdlineM, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
 #endif
@@ -581,17 +620,22 @@ bool xLightsApp::OnInit()
             }
             if (showDir.IsNull()) {
                 showDir=wxPathOnly(sequenceFile);
+                while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml"))
+                {
+                    auto old = showDir;
+                    showDir = wxPathOnly(showDir);
+                    if (showDir == old) showDir = "";
+                }
             }
             sequenceFiles.push_back(sequenceFile);
         }
         if (!parser.Found("r") && !parser.Found("o") && !info.empty())
         {
-            wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
+            DisplayInfo(info); //give positive feedback*/
         }
         break;
     default:
-        logger_base.info("Unrecognised command line parameter found.");
-        wxMessageBox(_("Unrecognized command line parameters"),_("Command Line Error"));
+        DisplayError(_("Unrecognized command line parameters"));
         return false;
     }
 

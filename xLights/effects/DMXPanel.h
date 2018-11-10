@@ -4,6 +4,7 @@
 //(*Headers(DMXPanel)
 #include <wx/panel.h>
 class wxBitmapButton;
+class wxButton;
 class wxFlexGridSizer;
 class wxNotebook;
 class wxNotebookEvent;
@@ -102,6 +103,7 @@ class DMXPanel: public wxPanel
 		BulkEditValueCurveButton* ValueCurve_DMX7;
 		BulkEditValueCurveButton* ValueCurve_DMX8;
 		BulkEditValueCurveButton* ValueCurve_DMX9;
+		wxButton* ButtonRemap;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* FlexGridSizer2;
 		wxFlexGridSizer* FlexGridSizer_Main;
@@ -322,6 +324,7 @@ class DMXPanel: public wxPanel
 		static const long IDD_TEXTCTRL_DMX40;
 		static const long ID_PANEL3;
 		static const long ID_NOTEBOOK1;
+		static const long ID_BUTTON1;
 		//*)
 
 	public:
@@ -330,8 +333,11 @@ class DMXPanel: public wxPanel
 		void OnLockButtonClick(wxCommandEvent& event);
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnVCChanged(wxCommandEvent& event);
-		void OnNotebook7PageChanged(wxNotebookEvent& event);
+		void OnButtonRemapClick(wxCommandEvent& event);
 		//*)
+
+        void OnButtonRemapRClick(wxCommandEvent& event);
+        void OnChoicePopup(wxCommandEvent& event);
 
     DECLARE_EVENT_TABLE()
 };

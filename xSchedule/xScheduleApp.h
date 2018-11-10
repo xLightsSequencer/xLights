@@ -22,6 +22,7 @@
 #include <wx/app.h>
 
 class wxSingleInstanceChecker;
+class xScheduleFrame;
 
 class xScheduleApp : public wxApp
 {
@@ -32,6 +33,7 @@ class xScheduleApp : public wxApp
         virtual void OnFatalException() override;
         void WipeSettings();
         virtual int OnExit() override;
+        xScheduleFrame* GetFrame() { return (xScheduleFrame*)GetTopWindow(); }
 };
 
 DECLARE_APP(xScheduleApp)

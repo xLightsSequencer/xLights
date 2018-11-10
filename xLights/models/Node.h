@@ -28,19 +28,19 @@ protected:
     uint8_t c[3];
     // color channel offsets, rgb would be 0,1,2
     uint8_t offsets[3];
-    unsigned short chanCnt;
+    uint16_t chanCnt;
 
 public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct
     {
-        unsigned short bufX, bufY;
-        float screenX, screenY;
+        int bufX, bufY, bufZ;
+        float screenX, screenY, screenZ;
     };
 
-    unsigned int ActChan = 0;   // 0 is the first channel
-    unsigned short sparkle;
-    unsigned short StringNum; // node is part of this string (0 is the first string)
+    uint32_t ActChan = 0;   // 0 is the first channel
+    uint16_t sparkle;
+    uint16_t StringNum; // node is part of this string (0 is the first string)
     std::vector<CoordStruct> Coords;
     std::string *name = nullptr;
     const Model *model = nullptr;
@@ -99,6 +99,8 @@ public:
         CoordStruct c;
         c.bufX=x;
         c.bufY=y;
+        c.bufZ=0;
+        c.screenZ = 0;
         Coords.push_back(c);
     }
 
@@ -125,7 +127,7 @@ public:
     }
     virtual const std::string &GetNodeType() const;
 
-    unsigned int GetChanCount() const {
+    uint32_t GetChanCount() const {
         return chanCnt;
     }
     bool IsVisible() const {

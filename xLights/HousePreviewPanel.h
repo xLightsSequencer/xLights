@@ -35,6 +35,8 @@ class HousePreviewPanel: public wxPanel
         void SetToolbar(bool toolbar) { _showToolbar = toolbar; }
         void SetDurationFrames(int frames);
         void SetPositionFrames(int frames);
+        void Set3d(bool is3d);
+        bool Is3d() const;
 
 		//(*Declarations(HousePreviewPanel)
 		wxBitmapButton* FastForward10Button;

@@ -10,11 +10,13 @@
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
+#include "UtilFunctions.h"
 
 TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
 {
     treeType = 0;
     degrees = 360;
+    screenLocation.SetSupportsZScaling(true);
     SetFromXml(node, zeroBased);
 }
 
@@ -25,7 +27,7 @@ TreeModel::~TreeModel()
 void TreeModel::InitModel() {
     wxStringTokenizer tkz(DisplayAs, " ");
     wxString token = tkz.GetNextToken();
-    
+
     int firstStrand = 0;
     if (zeroBased && ModelXml->GetAttribute("exportFirstStrand") != "") {
         firstStrand = wxAtoi(ModelXml->GetAttribute("exportFirstStrand")) - 1;
@@ -47,14 +49,12 @@ void TreeModel::InitModel() {
     rotation = wxAtof(ModelXml->GetAttribute("TreeRotation", "3"));
     spiralRotations = wxAtof(ModelXml->GetAttribute("TreeSpiralRotations", "0.0"));
     botTopRatio = wxAtof(ModelXml->GetAttribute("TreeBottomTopRatio", "6.0"));
-    perspective = wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
+    perspective =  wxAtof(ModelXml->GetAttribute("TreePerspective", "0.2"));
+    screenLocation.SetPerspective2D(perspective);
     SetTreeCoord(degrees);
     DisplayAs = "Tree";
 }
 
-static inline double toRadians(float degrees) {
-    return 2.0*M_PI*double(degrees)/360.0;
-}
 // initialize screen coordinates for tree
 void TreeModel::SetTreeCoord(long degrees) {
     double bufferX, bufferY;
@@ -62,23 +62,28 @@ void TreeModel::SetTreeCoord(long degrees) {
     if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
     double RenderHt, RenderWi;
     if (degrees > 0) {
-        double angle;
         RenderHt=BufferHt * 3;
         RenderWi=((double)RenderHt)/1.8;
-        
+
         double radians=toRadians(degrees);
         double radius=RenderWi/2.0;
-        double topradius=radius/botTopRatio;
-        
+        double topradius=radius;
+        if( botTopRatio != 0.0f ) {
+            topradius = radius/std::abs(botTopRatio);
+        }
+        if(botTopRatio < 0.0f) {
+            std::swap(topradius, radius);
+        }
+
         double StartAngle=-radians/2.0;
         double AngleIncr=radians/double(BufferWi);
         if (degrees < 350 && BufferWi > 1) {
             AngleIncr=radians/double(BufferWi - 1);
         }
-        
+
         //shift a tiny bit to make the strands in back not line up exactly with the strands in front
         StartAngle += toRadians(rotation);
-        
+
         std::vector<float> yPos(BufferHt);
         std::vector<float> xInc(BufferHt);
         for (int x = 0; x < BufferHt; x ++) {
@@ -123,23 +128,27 @@ void TreeModel::SetTreeCoord(long degrees) {
                 curLightInSeg++;
             }
         }
-        
-        
-        double topYoffset = std::abs(perspective * topradius * cos(M_PI));
+
+
+        double topYoffset = 0.0; // std::abs(perspective * topradius * cos(M_PI));
         double ytop = RenderHt - topYoffset;
-        double ybot = std::abs(perspective * radius * cos(M_PI));
-        
+        double ybot = 0.0; // std::abs(perspective * radius * cos(M_PI));
+
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {
             size_t CoordCount=GetCoordCount(n);
             for(size_t c=0; c < CoordCount; c++) {
                 bufferX=Nodes[n]->Coords[c].bufX;
                 bufferY=Nodes[n]->Coords[c].bufY;
-                angle=StartAngle + double(bufferX) * AngleIncr + xInc[bufferY];
+                double angle = StartAngle + double(bufferX) * AngleIncr + xInc[bufferY];
                 double xb=radius * sin(angle);
                 double xt=topradius * sin(angle);
-                double yb = ybot - perspective * radius * cos(angle);
-                double yt = ytop - perspective * topradius * cos(angle);
+                double zb=radius * cos(angle);
+                double zt=topradius * cos(angle);
+                double yb = ybot;
+                double yt = ytop;
+                //double yb = ybot - perspective * radius * cos(angle);
+                //double yt = ytop - perspective * topradius * cos(angle);
                 double posOnString = 0.5;
                 if (BufferHt > 1) {
                     posOnString = yPos[bufferY]/(double)(BufferHt-1.0);
@@ -147,6 +156,7 @@ void TreeModel::SetTreeCoord(long degrees) {
 
                 Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                 Nodes[n]->Coords[c].screenY = yb + (yt - yb) * posOnString - ((double)RenderHt)/2.0;
+                Nodes[n]->Coords[c].screenZ = zb + (zt - zb) * posOnString;
             }
         }
     } else {
@@ -154,7 +164,7 @@ void TreeModel::SetTreeCoord(long degrees) {
         double botWid = BufferWi * treeScale;
         RenderHt=BufferHt * 2.0;
         RenderWi=(botWid + 2);
-        
+
         double offset = 0.5;
         size_t NodeCount=GetNodeCount();
         for(size_t n=0; n<NodeCount; n++) {
@@ -163,20 +173,20 @@ void TreeModel::SetTreeCoord(long degrees) {
                 for(size_t c=0; c < CoordCount; c++) {
                     bufferX=Nodes[n]->Coords[c].bufX;
                     bufferY=Nodes[n]->Coords[c].bufY;
-                    
+
                     double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
                     double h = std::sqrt(RenderHt * RenderHt + (xt - xb)*(xt - xb));
-                    
+
                     double posOnString = 0.5;
                     if (BufferHt > 1) {
                         posOnString = (bufferY/(double)(BufferHt-1.0));
                     }
-                    
+
                     double newh = RenderHt * posOnString;
                     Nodes[n]->Coords[c].screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords[c].screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
+
                     posOnString = 0;
                     if (BufferHt > 1) {
                         posOnString = ((bufferY - 0.33)/(double)(BufferHt-1.0));
@@ -186,7 +196,7 @@ void TreeModel::SetTreeCoord(long degrees) {
                     Nodes[n]->Coords.push_back(Nodes[n]->Coords[c]);
                     Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
-                    
+
                     posOnString = 1;
                     if (BufferHt > 1) {
                         posOnString = ((bufferY + 0.33)/(double)(BufferHt-1.0));
@@ -196,12 +206,12 @@ void TreeModel::SetTreeCoord(long degrees) {
                     Nodes[n]->Coords.back().screenX = xb + (xt - xb) * posOnString;
                     Nodes[n]->Coords.back().screenY = RenderHt * newh / h - ((double)RenderHt)/2.0;
                 }
-                
+
             } else {
                 for(size_t c=0; c < CoordCount; c++) {
                     bufferX=Nodes[n]->Coords[c].bufX;
                     bufferY=Nodes[n]->Coords[c].bufY;
-                    
+
                     double xt = (bufferX + offset - BufferWi/2.0) * 0.9;
                     double xb = (bufferX + offset - BufferWi/2.0) * treeScale;
                     double posOnString = 0.5;
@@ -214,8 +224,9 @@ void TreeModel::SetTreeCoord(long degrees) {
             }
         }
     }
-    screenLocation.SetRenderSize(RenderWi, RenderHt);
+    screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
 }
+
 int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "TreeStyle") {
         ModelXml->DeleteAttribute("DisplayAs");
@@ -233,8 +244,10 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
             case 2:
                 ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
                 break;
+            default:
+                wxASSERT(false);
+                break;
         }
-        SetFromXml(ModelXml, zeroBased);
         if (p != nullptr) {
             p->Enable(treeType == 0);
         }
@@ -242,35 +255,55 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         if (p != nullptr) {
             p->Enable(treeType == 0);
         }
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeStyle");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeStyle");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeStyle");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeStyle");
+        return 0;
     } else if (event.GetPropertyName() == "TreeDegrees") {
         ModelXml->DeleteAttribute("DisplayAs");
         ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeDegrees");
+        return 0;
     } else if (event.GetPropertyName() == "TreeRotation") {
         ModelXml->DeleteAttribute("TreeRotation");
         ModelXml->AddAttribute("TreeRotation", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeRotation");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeRotation");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeRotation");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeRotation");
+        return 0;
     } else if (event.GetPropertyName() == "TreeSpiralRotations") {
         ModelXml->DeleteAttribute("TreeSpiralRotations");
         ModelXml->AddAttribute("TreeSpiralRotations", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeSpiralRotations");
+        return 0;
     } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
         ModelXml->DeleteAttribute("TreeBottomTopRatio");
         ModelXml->AddAttribute("TreeBottomTopRatio", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreeBottomTopRatio");
+        return 0;
     } else if (event.GetPropertyName() == "TreePerspective") {
         ModelXml->DeleteAttribute("TreePerspective");
         ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", (float)(event.GetPropertyValue().GetDouble()/10.0)));
-        SetFromXml(ModelXml, zeroBased);
-        return 3;
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::OnPropertyGridChange::TreePerspective");
+        AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::OnPropertyGridChange::TreePerspective");
+        AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "TreeModel::OnPropertyGridChange::TreePerspective");
+        AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "TreeModel::OnPropertyGridChange::TreePerspective");
+        return 0;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
+
 static wxPGChoices TREE_STYLES;
 
 void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
@@ -280,13 +313,13 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
         TREE_STYLES.Add("Ribbon");
     }
     grid->Append(new wxEnumProperty("Type", "TreeStyle", TREE_STYLES, treeType));
-    
+
     wxPGProperty *p = grid->Append(new wxUIntProperty("Degrees", "TreeDegrees", treeType == 0 ? degrees : 180));
     p->SetAttribute("Min", "1");
     p->SetAttribute("Max", "360");
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
-    
+
     p = grid->Append(new wxFloatProperty("Rotation", "TreeRotation", treeType == 0 ? rotation : 3));
     p->SetAttribute("Min", "-360");
     p->SetAttribute("Max", "360");
@@ -294,16 +327,16 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
-    
+
     p = grid->Append(new wxFloatProperty("Spiral Wraps", "TreeSpiralRotations", treeType == 0 ? spiralRotations : 0.0));
-    p->SetAttribute("Min", "-20");
-    p->SetAttribute("Max", "20");
+    p->SetAttribute("Min", "-200");
+    p->SetAttribute("Max", "200");
     p->SetAttribute("Precision", 2);
     p->SetEditor("SpinCtrl");
     p->Enable(treeType == 0);
-    
+
     p = grid->Append(new wxFloatProperty("Bottom/Top Ratio", "TreeBottomTopRatio", treeType == 0 ? botTopRatio : 6.0));
-    p->SetAttribute("Min", "1");
+    p->SetAttribute("Min", "-50");
     p->SetAttribute("Max", "50");
     p->SetAttribute("Step", 0.5);
     p->SetAttribute("Precision", 2);
@@ -318,12 +351,6 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->Enable(treeType == 0);
 }
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 void TreeModel::ExportXlightsModel()
 {
     wxString name = ModelXml->GetAttribute("name");
@@ -332,7 +359,7 @@ void TreeModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -469,15 +496,16 @@ void TreeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
                 }
             }
 
-            xlights->MarkEffectsFileDirty(true);
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "TreeModel::ImportXlightsModel");
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "TreeModel::ImportXlightsModel");
         }
         else
         {
-            wxMessageBox("Failure loading Tree model file.");
+            DisplayError("Failure loading Tree model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading Tree model file.");
+        DisplayError("Failure loading Tree model file.");
     }
 }

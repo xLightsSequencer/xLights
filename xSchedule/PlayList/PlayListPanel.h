@@ -2,11 +2,11 @@
 #define PLAYLISTPANEL_H
 
 //(*Headers(PlayListPanel)
+#include <wx/checkbox.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
 //*)
 
 class PlayList;
@@ -21,9 +21,10 @@ class PlayListPanel: public wxPanel
 		virtual ~PlayListPanel();
 
 		//(*Declarations(PlayListPanel)
+		wxCheckBox* CheckBox_AlwaysShuffle;
+		wxCheckBox* CheckBox_FirstOnce;
 		wxCheckBox* CheckBox_LastStepOnce;
 		wxStaticText* StaticText1;
-		wxCheckBox* CheckBox_FirstOnce;
 		wxTextCtrl* TextCtrl_PlayListName;
 		//*)
 
@@ -34,6 +35,7 @@ class PlayListPanel: public wxPanel
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
 		static const long ID_CHECKBOX2;
+		static const long ID_CHECKBOX3;
 		//*)
 
 	private:

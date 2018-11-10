@@ -379,7 +379,7 @@ int Options::define(const string& aDefinition) {
        otype[0] != OPTION_BOOLEAN_TYPE &&
        otype[0] != OPTION_CHAR_TYPE ) {
       cerr << "Error: unknown option type \'" << otype[0]
-           << "\' in defintion: " << aDefinition << endl;
+           << "\' in definition: " << aDefinition << endl;
       exit(1);
    }
 

@@ -23,7 +23,7 @@ class wxTextCtrl;
 #define VIDEO_SPEED_MAX 1000
 #define VIDEO_SPEED_DIVISOR 100
 
-#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v"
+#define VIDEOWILDCARD "Video Files|*.avi;*.mp4;*.mkv;*.mov;*.asf;*.flv;*.mpg;*.mpeg;*.m4v;*.wmv"
 
 wxDECLARE_EVENT(EVT_VIDEODETAILS, wxCommandEvent);
 

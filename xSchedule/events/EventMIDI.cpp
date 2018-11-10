@@ -55,17 +55,25 @@ void EventMIDI::DoSetChannel(std::string channel)
     }
 }
 
-void EventMIDI::DoSetData1(std::string data1)
+bool EventMIDI::IsDataMatch(uint8_t value, const std::string& testData, int data, uint8_t lastValue)
 {
-    _data1 = data1;
-    if (_data1 == "ANY")
-    {
-        _data1Byte = -1;
-    }
-    else
-    {
-        _data1Byte = wxHexToDec(data1.substr(2));
-    }
+    if (testData == "Any") return true;
+
+    if (testData == "Equals") return data == value;
+
+    if (testData == "Not Equals") return data != value;
+
+    if (testData == "Greater Than") return value > data;
+
+    if (testData == "Less Than") return value < data;
+
+    if (testData == "Less Than or Equals") return value <= data;
+
+    if (testData == "Greater Than or Equals") return value >= data;
+
+    if (testData == "On Change") return value != lastValue;
+
+    return false;
 }
 
 EventMIDI::EventMIDI() : EventBase()
@@ -74,9 +82,11 @@ EventMIDI::EventMIDI() : EventBase()
     _status = "0x9n - Note On";
     _statusByte = 0x90;
     _channel = "ANY";
-    _data1 = "ANY";
+    _testData1 = "Any";
+    _testData2 = "Any";
+    _data1 = 0;
+    _data2 = 0;
     _channelByte = -1;
-    _data1Byte = -1;
 }
 
 EventMIDI::EventMIDI(wxXmlNode* node) : EventBase(node)
@@ -84,7 +94,50 @@ EventMIDI::EventMIDI(wxXmlNode* node) : EventBase(node)
     _device = node->GetAttribute("Device", "");
     DoSetStatus(node->GetAttribute("Status", "0x9n - Note On").ToStdString());
     DoSetChannel(node->GetAttribute("Channel", "ANY").ToStdString());
-    DoSetData1(node->GetAttribute("Data1", "ANY").ToStdString());
+
+    auto oldd1 = node->GetAttribute("Data1", "XYZZY");
+    auto oldd2 = node->GetAttribute("Data2", "XYZZY");
+    if (oldd1 != "XYZZY")
+    {
+        if (oldd1 == "ANY")
+        {
+            _testData1 = "Any";
+            _data1 = 0;
+        }
+        else if (oldd1 == "Not 0x00")
+        {
+            _testData1 = "Not Equals";
+            _data1 = 0;
+        }
+        else
+        {
+            _testData1 = "Equals";
+            _data1 = wxHexToDec(oldd1.substr(2));
+        }
+
+        if (oldd2 == "ANY")
+        {
+            _testData2 = "Any";
+            _data2 = 0;
+        }
+        else if (oldd2 == "Not 0x00")
+        {
+            _testData2 = "Not Equals";
+            _data2 = 0;
+        }
+        else
+        {
+            _testData2 = "Equals";
+            _data2 = wxHexToDec(oldd2.substr(2));
+        }
+    }
+    else
+    {
+        _testData1 = node->GetAttribute("TestData1", "Any");
+        _testData2 = node->GetAttribute("TestData2", "Any");
+        _data1 = wxAtoi(node->GetAttribute("NewData1", "0"));
+        _data2 = wxAtoi(node->GetAttribute("NewData2", "0"));
+    }
 }
 
 wxXmlNode* EventMIDI::Save()
@@ -93,12 +146,15 @@ wxXmlNode* EventMIDI::Save()
     en->AddAttribute("Device", _device);
     en->AddAttribute("Status", _status);
     en->AddAttribute("Channel", _channel);
-    en->AddAttribute("Data1", _data1);
+    en->AddAttribute("NewData1", wxString::Format("%d", _data1));
+    en->AddAttribute("NewData2", wxString::Format("%d", _data2));
+    en->AddAttribute("TestData1", _testData1);
+    en->AddAttribute("TestData2", _testData2);
     EventBase::Save(en);
     return en;
 }
 
-void EventMIDI::Process(wxByte status, wxByte channel, wxByte data1, wxByte data2, ScheduleManager* scheduleManager)
+void EventMIDI::Process(uint8_t status, uint8_t channel, uint8_t data1, uint8_t data2, ScheduleManager* scheduleManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -106,10 +162,12 @@ void EventMIDI::Process(wxByte status, wxByte channel, wxByte data1, wxByte data
     {
         if (IsAnyChannel() || channel == GetChannelByte())
         {
-            if (IsAnyData1() || data1 == GetData1Byte())
+            if (IsDataMatch(data1, _testData1, _data1, _lastData1) && IsDataMatch(data2, _testData2, _data2, _lastData2))
             {
+                _lastData1 = data1;
+                _lastData2 = data2;
                 int st = status;
-                logger_base.debug("Event fired %s:%s -> %02x", (const char *)GetType().c_str(), (const char *)GetName().c_str(), st);
+                logger_base.debug("Event fired %s:%s -> %02x", (const char*)GetType().c_str(), (const char*)GetName().c_str(), st);
                 ProcessMIDICommand(data1, data2, scheduleManager);
                 logger_base.debug("    Event processed.");
             }
@@ -117,7 +175,7 @@ void EventMIDI::Process(wxByte status, wxByte channel, wxByte data1, wxByte data
     }
 }
 
-void EventMIDI::ProcessMIDICommand(wxByte data1, wxByte data2, ScheduleManager* scheduleManager)
+void EventMIDI::ProcessMIDICommand(uint8_t data1, uint8_t data2, ScheduleManager* scheduleManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString p1 = _parm1;
@@ -157,14 +215,17 @@ void EventMIDI::ProcessMIDICommand(wxByte data1, wxByte data2, ScheduleManager* 
     logger_base.debug("Event fired %s:%s -> %s:%s", (const char *)GetType().c_str(), (const char *)GetName().c_str(),
         (const char *)_command.c_str(), (const char *)parameters.c_str());
 
-    size_t rate;
-    std::string msg;
+    size_t rate = 0;
+    wxString msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
 }
 
 std::list<std::string> EventMIDI::GetDevices()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Input MIDI Devices:");
+
     std::list<std::string> res;
 
     wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
@@ -174,7 +235,9 @@ std::list<std::string> EventMIDI::GetDevices()
         wxMidiInDevice* midiDev = new wxMidiInDevice(i);
         if (midiDev->IsInputPort()) 
         {
-            res.push_back(wxString::Format("Input %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
+            auto devname = wxString::Format("Input %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString();
+            res.push_back(devname);
+            logger_base.debug("    %s", (const char*)devname.c_str());
         }
         delete midiDev;
     }
@@ -184,6 +247,9 @@ std::list<std::string> EventMIDI::GetDevices()
 
 std::list<std::string> EventMIDI::GetOutputDevices()
 {
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Output MIDI Devices:");
+
     std::list<std::string> res;
 
     wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
@@ -193,7 +259,9 @@ std::list<std::string> EventMIDI::GetOutputDevices()
         wxMidiInDevice* midiDev = new wxMidiInDevice(i);
         if (midiDev->IsOutputPort())
         {
-            res.push_back(wxString::Format("Output %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
+            auto devname = wxString::Format("Output %s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString();
+            res.push_back(devname);
+            logger_base.debug("    %s", (const char*)devname.c_str());
         }
         delete midiDev;
     }

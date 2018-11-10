@@ -96,6 +96,10 @@ private:
     class LayerInfo {
     public:
         LayerInfo(xLightsFrame *frame) : buffer(frame) {
+            ModelBufferHt = 0;
+            ModelBufferWi = 0;
+            inMaskFactor = 0;
+            outMaskFactor = 0;
 			blur = 0;
             rotation = 0.0f;
             rotations = 0;
@@ -131,6 +135,7 @@ private:
         }
         RenderBuffer buffer;
         std::string bufferType;
+        std::string camera;
         std::string bufferTransform;
         std::string subBuffer;
         std::string blurValueCurve;
@@ -168,6 +173,8 @@ private:
         ValueCurve PivotPointYValueCurve;
         ValueCurve XPivotValueCurve;
         ValueCurve YPivotValueCurve;
+        ValueCurve InTransitionAdjustValueCurve;
+        ValueCurve OutTransitionAdjustValueCurve;
         int sparkle_count;
         bool use_music_sparkle_count;
         float music_sparkle_count_factor;
@@ -210,12 +217,12 @@ private:
         std::vector<std::unique_ptr<RenderBuffer>> modelBuffers;
 
         std::vector<uint8_t> mask;
-        void calculateMask(bool isFirstFrame);
+        void renderTransitions(bool isFirstFrame, const RenderBuffer* prevRB);
         void calculateMask(const std::string &type, bool mode, bool isFirstFrame);
         bool isMasked(int x, int y);
-        
+
         void clear();
-        
+
     private:
         void createSquareExplodeMask(bool end);
         void createCircleExplodeMask(bool end);
@@ -236,7 +243,7 @@ private:
 
     //both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
     void mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer);
-    void reset(int layers, int timing);
+    void reset(int layers, int timing, bool isNode = false);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);
     void RotateX(LayerInfo* layer, float offset);
@@ -246,6 +253,7 @@ private:
 
     std::string modelName;
     std::string lastBufferType;
+    std::string lastCamera;
     std::string lastBufferTransform;
     const Model *model;
     Model *zbModel;
@@ -276,25 +284,25 @@ public:
     RenderBuffer &BufferForLayer(int i, int idx);
     int BufferCountForLayer(int i);
     void MergeBuffersForLayer(int i);
-    
-    
+
+    int GetLayerCount() const;
     void InitBuffer(const Model &pbc, int layers, int timing, bool zeroBased=false);
     void InitStrandBuffer(const Model &pbc, int strand, int timing, int layers);
     void InitNodeBuffer(const Model &pbc, int strand, int node, int timing);
     void InitPerModelBuffers(const ModelGroup& model, int layer, int timing);
 
     void Clear(int which);
-    
+
     void SetLayerSettings(int layer, const SettingsMap &settings);
     bool IsPersistent(int layer);
-    
+
     void SetMixType(int layer, const std::string& MixName);
     void SetPalette(int layer, xlColorVector& newcolors, xlColorCurveVector& newcc);
     void SetLayer(int newlayer, int period, bool ResetState);
     void SetTimes(int layer, int startTime, int endTime);
 
     void CalcOutput(int EffectPeriod, const std::vector<bool> &validLayers, int saveLayer = 0);
-    void SetColors(int layer, const unsigned char *fdata);    
+    void SetColors(int layer, const unsigned char *fdata);
     void GetColors(unsigned char *fdata, const std::vector<bool> &restrictRange);
 };
 typedef std::unique_ptr<PixelBufferClass> PixelBufferClassPtr;

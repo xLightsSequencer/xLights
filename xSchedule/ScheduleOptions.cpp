@@ -1,36 +1,50 @@
 #include "ScheduleOptions.h"
+
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <wx/dir.h> // Linux needs this
+
+#include "../xLights/AudioManager.h"
 #include "UserButton.h"
 #include "CommandManager.h"
-#include "../xLights/AudioManager.h"
-#include <log4cpp/Category.hh>
 #include "events/EventBase.h"
 #include "events/EventARTNet.h"
+#include "events/EventARTNetTrigger.h"
 #include "events/EventSerial.h"
 #include "events/EventLor.h"
 #include "events/EventPing.h"
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventMIDI.h"
+#include "events/EventMQTT.h"
+#include "events/EventState.h"
 #include "events/EventE131.h"
 #include "events/EventData.h"
+
+#include <log4cpp/Category.hh>
 
 ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, CommandManager* commandManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _oscOptions = nullptr;
+    _testOptions = nullptr;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _MIDITimecodeDevice = node->GetAttribute("MIDITimecodeDevice", "").ToStdString();
-    _MIDITimecodeFormat = wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0"));
+    _MIDITimecodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0")));
+    _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
+    _remoteLatency = wxAtoi(node->GetAttribute("RemoteLatency", "0"));
+    _remoteAcceptableJitter = wxAtoi(node->GetAttribute("RemoteAcceptableJitter", "20"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
+    _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
+    _remoteAllOff = node->GetAttribute("RemoteSustain", "FALSE") == "FALSE";
+    _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
+    _suppressAudioOnRemotes = node->GetAttribute("SuppressAudioOnRemotes", "TRUE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -40,11 +54,12 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
     _crashBehaviour = node->GetAttribute("CrashBehaviour", "Prompt user");
-    _artNetTimeCodeFormat = wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1"));
+    _artNetTimeCodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1")));
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
-    _city = node->GetAttribute("City");
+    _city = node->GetAttribute("City", "Sydney");
+    if (_city == "") _city = "Sydney"; // we always want to have a city and this is the best place to be :)
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
@@ -59,6 +74,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
         else if (n->GetName() == "VMatrix")
         {
             _virtualMatrices.push_back(new VirtualMatrix(outputManager, n));
+        }
+        else if (n->GetName() == "ExtraIP")
+        {
+            _extraIPs.push_back(new ExtraIP(n));
         }
         else if (n->GetName() == "Events")
         {
@@ -84,6 +103,14 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 {
                     _events.push_back(new EventMIDI(n2));
                 }
+                else if (n2->GetName() == "EventMQTT")
+                {
+                    _events.push_back(new EventMQTT(n2));
+                }
+                else if (n2->GetName() == "EventState")
+                {
+                    _events.push_back(new EventState(n2));
+                }
                 else if (n2->GetName() == "EventSerial")
                 {
                     _events.push_back(new EventSerial(n2));
@@ -100,6 +127,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 {
                     _events.push_back(new EventARTNet(n2));
                 }
+                else if (n2->GetName() == "EventARTNetTrigger")
+                {
+                    _events.push_back(new EventARTNetTrigger(n2));
+                }
                 else
                 {
                     logger_base.warn("Unrecognised event type %s.", (const char *)n2->GetName().c_str());
@@ -114,9 +145,14 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
         {
             _oscOptions = new OSCOptions(n);
         }
+        else if (n->GetName() == "Test")
+        {
+            _testOptions = new TestOptions(n);
+        }
     }
 
     if (_oscOptions == nullptr) _oscOptions = new OSCOptions();
+    if (_testOptions == nullptr) _testOptions = new TestOptions();
 }
 
 void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
@@ -141,8 +177,9 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
 
 ScheduleOptions::ScheduleOptions()
 {
-    _artNetTimeCodeFormat = 1;
+    _artNetTimeCodeFormat = TIMECODEFORMAT::F25;
     _oscOptions = new OSCOptions();
+    _testOptions = new TestOptions();
     _password = "";
     _city = "Sydney";
     _passwordTimeout = 30;
@@ -153,26 +190,40 @@ ScheduleOptions::ScheduleOptions()
 #else
     _port = 8080;
 #endif
+    _remoteLatency = 0;
+    _remoteAcceptableJitter = 20;
     _webAPIOnly = false;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
     _sync = false;
     _sendOffWhenNotRunning = false;
+    _parallelTransmission = false;
+    _remoteAllOff = true;
+    _retryOutputOpen = false;
+    _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
     _crashBehaviour = "Prompt user";
     _MIDITimecodeDevice = "";
-    _MIDITimecodeFormat = 0;
+    _MIDITimecodeFormat = TIMECODEFORMAT::F24;
+    _MIDITimecodeOffset = 0;
 }
 
 ScheduleOptions::~ScheduleOptions()
 {
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _extraIPs)
     {
-        delete *it;
+        delete it;
+    }
+    _extraIPs.clear();
+
+    for (auto it : _buttons)
+    {
+        delete it;
     }
     _buttons.clear();
     if (_oscOptions != nullptr) delete _oscOptions;
+    if (_testOptions != nullptr) delete _testOptions;
 }
 
 wxXmlNode* ScheduleOptions::Save()
@@ -184,8 +235,11 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("CrashBehaviour", _crashBehaviour);
     res->AddAttribute("MIDITimecodeDevice", _MIDITimecodeDevice);
     res->AddAttribute("MIDITimecodeFormat", wxString::Format("%d", _MIDITimecodeFormat));
+    res->AddAttribute("MIDITimecodeOffset", wxString::Format("%ld", (long)_MIDITimecodeOffset));
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
+    res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
+    res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");
@@ -211,40 +265,70 @@ wxXmlNode* ScheduleOptions::Save()
         res->AddAttribute("SendBackgroundWhenNotRunning", "TRUE");
     }
 
+    if (IsParallelTransmission())
+    {
+        res->AddAttribute("ParallelTransmission", "TRUE");
+    }
+
+    if (!IsRemoteAllOff())
+    {
+        res->AddAttribute("RemoteSustain", "TRUE");
+    }
+
+    if (IsRetryOpen())
+    {
+        res->AddAttribute("RetryOutputOpen", "TRUE");
+    }
+
+    if (IsSuppressAudioOnRemotes())
+    {
+        res->AddAttribute("SuppressAudioOnRemotes", "TRUE");
+    }
+    else
+    {
+        res->AddAttribute("SuppressAudioOnRemotes", "FALSE");
+    }
+
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
     res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
     res->AddAttribute("ARTNetTimeCodeFormat", wxString::Format("%d", _artNetTimeCodeFormat));
 
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _buttons)
     {
-        res->AddChild((*it)->Save());
+        res->AddChild(it->Save());
     }
 
-    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    for (auto it : _matrices)
     {
-        res->AddChild((*it)->Save());
+        res->AddChild(it->Save());
     }
 
-    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    for (auto it : _virtualMatrices)
     {
-        res->AddChild((*it)->Save());
+        res->AddChild(it->Save());
+    }
+
+    for (auto it : _extraIPs)
+    {
+        res->AddChild(it->Save());
     }
 
     wxXmlNode* en = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Events");
     res->AddChild(en);
-    for (auto it = _events.begin(); it != _events.end(); ++it)
+    for (auto it : _events)
     {
-        en->AddChild((*it)->Save());
+        en->AddChild(it->Save());
     }
 
-    for (auto it = _fppRemotes.begin(); it != _fppRemotes.end(); ++it)
+    for (auto it : _fppRemotes)
     {
         wxXmlNode* n = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "FPPRemote");
-        n->AddAttribute("IP", wxString(*it));
+        n->AddAttribute("IP", wxString(it));
         res->AddChild(n);
     }
 
     if (_oscOptions != nullptr) res->AddChild(_oscOptions->Save());
+    if (_testOptions != nullptr) res->AddChild(_testOptions->Save());
 
     return res;
 }
@@ -300,27 +384,33 @@ bool ScheduleOptions::IsDirty() const
 {
     bool res = _lastSavedChangeCount != _changeCount;
 
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _buttons)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
     }
 
-    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    for (auto it : _matrices)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
     }
 
-    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    for (auto it : _virtualMatrices)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
     }
 
-    for (auto it = _events.begin(); it != _events.end(); ++it)
+    for (auto it : _events)
     {
-        res = res || (*it)->IsDirty();
+        res = res || it->IsDirty();
+    }
+
+    for (auto it : _extraIPs)
+    {
+        res = res || it->IsDirty();
     }
 
     if (_oscOptions != nullptr) res = res || _oscOptions->IsDirty();
+    if (_testOptions != nullptr) res = res || _testOptions->IsDirty();
 
     return res;
 }
@@ -329,27 +419,33 @@ void ScheduleOptions::ClearDirty()
 {
     _lastSavedChangeCount = _changeCount;
 
-    for (auto it = _buttons.begin(); it != _buttons.end(); ++it)
+    for (auto it : _buttons)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
     }
 
-    for (auto it = _matrices.begin(); it != _matrices.end(); ++it)
+    for (auto it : _matrices)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
     }
 
-    for (auto it = _virtualMatrices.begin(); it != _virtualMatrices.end(); ++it)
+    for (auto it : _virtualMatrices)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
     }
 
-    for (auto it = _events.begin(); it != _events.end(); ++it)
+    for (auto it : _events)
     {
-        (*it)->ClearDirty();
+        it->ClearDirty();
+    }
+
+    for (auto it : _extraIPs)
+    {
+        it->ClearDirty();
     }
 
     if (_oscOptions != nullptr) _oscOptions->ClearDirty();
+    if (_testOptions != nullptr) _testOptions->ClearDirty();
 }
 
 UserButton* ScheduleOptions::GetButton(const std::string& label) const
@@ -409,6 +505,18 @@ wxXmlNode* OSCOptions::Save()
     return res;
 }
 
+wxXmlNode* TestOptions::Save()
+{
+    wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Test");
+
+    res->AddAttribute("Mode", DecodeMode(_mode));
+    res->AddAttribute("Level1", wxString::Format("%d", _level1));
+    res->AddAttribute("Level2", wxString::Format("%d", _level2));
+    res->AddAttribute("Interval", wxString::Format("%d", _interval));
+    // _start and _end deliberately not saved
+    return res;
+}
+
 OSCFRAME OSCOptions::EncodeFrame(std::string frame) const
 {
     if (frame == "Default (int)") return OSCFRAME::FRAME_DEFAULT;
@@ -421,6 +529,21 @@ OSCFRAME OSCOptions::EncodeFrame(std::string frame) const
 
     wxASSERT(false);
     return OSCFRAME::FRAME_DEFAULT;
+}
+
+TESTMODE TestOptions::EncodeMode(std::string mode) const
+{
+    if (mode == "Alternate") return TESTMODE::TEST_ALTERNATE;
+    if (mode == "Foreground") return TESTMODE::TEST_LEVEL1;
+    if (mode == "A-B-C") return TESTMODE::TEST_A_B_C;
+    if (mode == "A-B-C-All") return TESTMODE::TEST_A_B_C_ALL;
+    if (mode == "A-B-C-All-None") return TESTMODE::TEST_A_B_C_ALL_NONE;
+    if (mode == "A") return TESTMODE::TEST_A;
+    if (mode == "B") return TESTMODE::TEST_B;
+    if (mode == "C") return TESTMODE::TEST_C;
+
+    wxASSERT(false);
+    return TESTMODE::TEST_ALTERNATE;
 }
 
 std::string OSCOptions::DecodeFrame(OSCFRAME frame)
@@ -444,6 +567,31 @@ std::string OSCOptions::DecodeFrame(OSCFRAME frame)
     }
     wxASSERT(false);
     return "Default (int)";
+}
+
+std::string TestOptions::DecodeMode(TESTMODE mode)
+{
+    switch (mode)
+    {
+    case TESTMODE::TEST_ALTERNATE:
+        return "Alternate";
+    case TESTMODE::TEST_A_B_C:
+        return "A-B-C";
+    case TESTMODE::TEST_A:
+        return "A";
+    case TESTMODE::TEST_B:
+        return "B";
+    case TESTMODE::TEST_C:
+        return "C";
+    case TESTMODE::TEST_A_B_C_ALL:
+        return "A-B-C-All";
+    case TESTMODE::TEST_A_B_C_ALL_NONE:
+        return "A-B-C-All-None";
+    case TESTMODE::TEST_LEVEL1:
+        return "Foreground";
+    }
+    wxASSERT(false);
+    return "Alternate";
 }
 
 OSCTIME OSCOptions::EncodeTime(std::string time) const
@@ -481,8 +629,29 @@ void OSCOptions::Load(wxXmlNode* node)
     _lastSavedChangeCount = 0;
 }
 
+void TestOptions::Load(wxXmlNode* node)
+{
+    _mode = EncodeMode(node->GetAttribute("Mode", "Alternate").ToStdString());
+    _level1 = wxAtoi(node->GetAttribute("Level1", "255"));
+    _level2 = wxAtoi(node->GetAttribute("Level2", "0"));
+    _interval = wxAtoi(node->GetAttribute("Interval", "500"));
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+}
+
 OSCOptions::OSCOptions(wxXmlNode* node)
 {
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+    Load(node);
+}
+
+TestOptions::TestOptions(wxXmlNode* node)
+{
+    _start = -1;
+    _end = -1;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
     Load(node);
 }
 
@@ -498,4 +667,49 @@ OSCOptions::OSCOptions()
     _time_not_frames = true;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
+}
+
+TestOptions::TestOptions()
+{
+    _mode = EncodeMode("Alternate");
+    _interval = 500;
+    _level1 = 255;
+    _level2 = 0;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+    _start = -1;
+    _end = -1;
+}
+
+ExtraIP::ExtraIP(const std::string& ip, const std::string& description)
+{
+    _ip = ip;
+    _description = description;
+    _changeCount = 1;
+    _lastSavedChangeCount = 0;
+}
+
+ExtraIP::ExtraIP(wxXmlNode* node)
+{
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+    Load(node);
+}
+
+void ExtraIP::Load(wxXmlNode* node)
+{
+    _ip = node->GetAttribute("IP", "").ToStdString();
+    _description = node->GetAttribute("Description", "").ToStdString();
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+}
+
+wxXmlNode* ExtraIP::Save() const
+{
+    wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "ExtraIP");
+
+    res->AddAttribute("IP", _ip);
+    res->AddAttribute("Description", _description);
+
+    return res;
 }

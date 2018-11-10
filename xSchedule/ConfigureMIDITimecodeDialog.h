@@ -6,8 +6,11 @@
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 //*)
+
+#include "SyncManager.h"
 
 class ConfigureMIDITimecodeDialog: public wxDialog
 {
@@ -15,18 +18,21 @@ class ConfigureMIDITimecodeDialog: public wxDialog
 
 	public:
 
-		ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, int format, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, TIMECODEFORMAT format, size_t offset, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ConfigureMIDITimecodeDialog();
         std::string GetMIDI() const;
-        int GetFormat() const;
+        TIMECODEFORMAT GetFormat() const;
+        int GetOffset() const;
 
 		//(*Declarations(ConfigureMIDITimecodeDialog)
 		wxButton* ButtonCancel;
 		wxButton* Button_Ok;
 		wxChoice* Choice1;
 		wxChoice* ChoiceFormat;
+		wxSpinCtrl* SpinCtrl_TimeOffset;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
 		//*)
 
 	protected:
@@ -36,6 +42,8 @@ class ConfigureMIDITimecodeDialog: public wxDialog
 		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE2;
+		static const long ID_STATICTEXT3;
+		static const long ID_SPINCTRL1;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

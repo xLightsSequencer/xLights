@@ -2,26 +2,32 @@
 #define MODELSTATEDIALOG_H
 
 //(*Headers(ModelStateDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/choicebk.h>
+#include <wx/dialog.h>
+#include <wx/grid.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
-#include <wx/grid.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/choicebk.h>
 //*)
+
+#include <wx/colourdata.h>
 
 #include <map>
 
 class Model;
 class ModelPreview;
+class xLightsFrame;
+class ModelManager;
 
 class ModelStateDialog: public wxDialog
 {
-	public:
+    static wxColourData _colorData;
+
+    public:
 
 		ModelStateDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ModelStateDialog();
@@ -33,6 +39,7 @@ class ModelStateDialog: public wxDialog
 		wxPanel* Matrix;
 		wxCheckBox* CustomColorSingleNode;
 		wxButton* DeleteButton;
+        wxButton* Button_Import;
 		wxChoicebook* StateTypeChoice;
 		wxGrid* NodeRangeGrid;
 		wxChoice* NameChoice;
@@ -49,6 +56,7 @@ class ModelStateDialog: public wxDialog
 		static const long ID_STATICTEXT2;
 		static const long ID_CHOICE3;
 		static const long ID_BUTTON3;
+		static const long ID_BUTTON_IMPORT;
 		static const long ID_BUTTON4;
 		static const long ID_CHECKBOX1;
 		static const long ID_BUTTON1;
@@ -61,6 +69,10 @@ class ModelStateDialog: public wxDialog
 		static const long ID_CHOICEBOOK1;
 		static const long ID_PANEL_PREVIEW;
 		//*)
+
+        static const long STATE_DIALOG_IMPORT_SUB;
+        static const long STATE_DIALOG_IMPORT_MODEL;
+        static const long STATE_DIALOG_IMPORT_FILE;
 
 	private:
 
@@ -83,7 +95,12 @@ class ModelStateDialog: public wxDialog
 		void OnSingleNodeGridCellSelect(wxGridEvent& event);
 		void OnNodeRangeGridCellSelect(wxGridEvent& event);
 		void OnButton_7SegmentClick(wxCommandEvent& event);
+		void OnNodeRangeGridCellRightClick(wxGridEvent& event);
+		void OnNodeRangeGridLabelLeftDClick(wxGridEvent& event);
+		void OnButton_ImportClick(wxCommandEvent& event);
 		//*)
+
+        void OnAddBtnPopup(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 
@@ -95,6 +112,14 @@ class ModelStateDialog: public wxDialog
     void GetValue(wxGrid *grid, wxGridEvent &event, std::map<std::string, std::string> &info);
     void AddLabel(wxString label);
     void ValidateWindow();
+
+    void OnGridPopup(const int rightEventID, wxGridEvent& gridEvent);
+    void ImportSubmodel(wxGridEvent& event);
+    wxString getSubmodelNodes(Model* sm);
+    void ImportStates(const wxString& filename);
+    void ImportStatesFromModel();
+    void AddStates(std::map<std::string, std::map<std::string, std::string> > states);
+    wxArrayString getModelList(ModelManager* modelManager);
 };
 
 #endif

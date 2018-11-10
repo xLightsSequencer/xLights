@@ -31,13 +31,14 @@
 class DDPOutput : public IPOutput
 {
     #pragma region Member Variables
-    wxByte _data[DDP_PACKET_LEN];
-    wxByte _sequenceNum;
+    uint8_t _data[DDP_PACKET_LEN];
+    uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
     int _channelsPerPacket;
     bool _keepChannelNumbers;
-    wxByte* _fulldata;
+    uint8_t* _fulldata;
+    bool _autoStartChannels = false;
 
     // These are used for DDP sync
     static bool __initialised;
@@ -62,33 +63,40 @@ public:
     void SetChannelsPerPacket(int cpp) { _channelsPerPacket = cpp; _dirty = true; }
     virtual std::string GetType() const override { return OUTPUT_DDP; }
     virtual std::string GetLongDescription() const override;
-    virtual std::string GetChannelMapping(long ch) const override;
+    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual int GetMaxChannels() const override { return 1000000; }
-    virtual bool IsValidChannelCount(long channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
+    virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && channelCount <= GetMaxChannels(); }
     virtual bool IsKeepChannelNumbers() const { return _keepChannelNumbers; }
     virtual void KeepChannelNumber(bool b = true) { _keepChannelNumbers = b; _dirty = true; }
+    virtual bool IsLookedUpByControllerName() const override;
+    virtual bool IsAutoLayoutModels() const override { return _autoStartChannels; }
+    virtual void SetAutoStartChannels(bool autoMode) { _autoStartChannels = autoMode; }
+    virtual std::string GetExport() const override;
+
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
     #pragma endregion Getters and Setters
 
     #pragma region Start and Stop
     virtual bool Open() override;
-    virtual void Close() override {};
+    virtual void Close() override;
+    void OpenDatagram();
     #pragma endregion Start and Stop
 
     #pragma region Frame Handling
+    virtual void StartFrame(long msec) override;
     virtual void EndFrame(int suppressFrames) override;
     #pragma endregion Frame Handling
 
     #pragma region Data Setting
-    virtual void SetOneChannel(long channel, unsigned char data) override;
-    virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
+    virtual void SetOneChannel(int32_t channel, unsigned char data) override;
+    virtual void SetManyChannels(int32_t channel, unsigned char* data, size_t size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
 
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
+    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
 #endif
     #pragma endregion UI
 };

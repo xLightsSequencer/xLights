@@ -10,12 +10,13 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~DmxModel();
 
-        virtual void GetBufferSize(const std::string &type, const std::string &transform,
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true, bool wiring = false, bool highlightFirst = false) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
@@ -65,12 +66,19 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active);
         void DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active);
         void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, bool active);
+        void DrawFloodOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active);
+        void DrawSkullModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active);
+        void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, const xlColor *c, float &sx, float &sy, float &sz, bool active);
         int GetChannelValue( int channel );
 
         void Draw3DDMXBaseLeft(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle, float& rot_angle);
         void Draw3DDMXBaseRight(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle, float& rot_angle);
         void Draw3DDMXHead(DrawGLUtils::xlAccumulator &va, const xlColor &c, float &sx, float &sy, float &scale, float &pan_angle, float &tilt_angle);
+        void Draw3DDMXBaseLeft(DrawGLUtils::xl3Accumulator &va, const xlColor &c, float &sx, float &sy, float &sz, float &scale, float &pan_angle, float& rot_angle);
+        void Draw3DDMXBaseRight(DrawGLUtils::xl3Accumulator &va, const xlColor &c, float &sx, float &sy, float &sz, float &scale, float &pan_angle, float& rot_angle);
+        void Draw3DDMXHead(DrawGLUtils::xl3Accumulator &va, const xlColor &c, float &sx, float &sy, float &sz, float &scale, float &pan_angle, float &tilt_angle);
 
+        bool hide_body = false;
         bool style_changed;
         std::string dmx_style;
         int dmx_style_val;

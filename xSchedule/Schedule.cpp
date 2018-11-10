@@ -5,7 +5,7 @@
 #include "City.h"
 
 int __scheduleid = 0;
-std::string Schedule::__city = "";
+std::string Schedule::__city = "Sydney";
 
 Schedule::Schedule(wxXmlNode* node)
 {
@@ -469,6 +469,7 @@ void Schedule::SetEndTime(const std::string& end)
 bool Schedule::CheckActiveAt(const wxDateTime& now)
 {
 #ifdef LOGCALCNEXTTRIGGERTIME
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("   Checking %s.", (const char *)now.Format("%Y-%m-%d %H:%M").c_str());
 #endif
 
@@ -660,7 +661,25 @@ std::string Schedule::GetNextTriggerTime()
 #endif
 
     wxDateTime end = _endDate;
-    if (_everyYear) end.SetYear(wxDateTime::Now().GetYear() + 1);
+
+    wxDateTime end_time = wxDateTime::Now();
+    SetTime(end_time, __city, _endTime, _endTimeString);
+    end_time.SetSecond(0);
+
+    end.SetHour(end_time.GetHour());
+    end.SetMinute(end_time.GetMinute());
+
+#ifdef LOGCALCNEXTTRIGGERTIME
+    logger_base.debug("End date %s.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+
+    if (_everyYear)
+    {
+        end.SetYear(wxDateTime::Now().GetYear() + 1);
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("Adjusted for every year %s.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
+#endif
+    }
 
     // deal with the simple cases
     if (CheckActive())
@@ -680,7 +699,13 @@ std::string Schedule::GetNextTriggerTime()
         }
     }
 
-    if (end < wxDateTime::Now()) return "Never";
+    if (end < wxDateTime::Now())
+    {
+#ifdef LOGCALCNEXTTRIGGERTIME
+        logger_base.debug("End if before today ... so Never.");
+#endif
+        return "Never";
+    }
 
     if (_startDate > wxDateTime::Now()) // tomorrow or later
     {
@@ -717,10 +742,9 @@ std::string Schedule::GetNextTriggerTime()
 
     // check if the right answer is the starttime today
     wxDateTime next = wxDateTime::Now();
-
     SetTime(next, __city, _startTime, _startTimeString);
-
     next.SetSecond(0);
+
 #ifdef LOGCALCNEXTTRIGGERTIME
     logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif

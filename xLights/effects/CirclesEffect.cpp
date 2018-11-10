@@ -166,7 +166,7 @@ void CirclesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
     int start_y = buffer.BufferHt/2;
     bool fade = SettingsMap.GetBool("CHECKBOX_Circles_Linear_Fade", false);
     bool bubbles = SettingsMap.GetBool("CHECKBOX_Circles_Bubbles", false);
-    bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m", false);
+    //bool random = SettingsMap.GetBool("CHECKBOX_Circles_Random_m", false);
     bool collide = SettingsMap.GetBool("CHECKBOX_Circles_Collide", false);
     bool bounce = SettingsMap.GetBool("CHECKBOX_Circles_Bounce", false);
     
@@ -217,8 +217,9 @@ void CirclesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
             effectObjects[ii].Reset((float)start_x, (float)start_y, spd, angle, (float)radius, colorIdx);
             if (bubbles) //keep bubbles going mostly up
             {
-                angle = 90 + rand() % 45 - 22.5; //+/- 22.5 degrees from 90 degrees
-                angle *= 2.0 * M_PI / 180.0;
+                // This looks odd ... rand() is 0-1 so % 45 is going to be rand()
+                angle = 90 + rand() % 45 - 22.5f; //+/- 22.5 degrees from 90 degrees
+                angle *= 2.0f * M_PI / 180.0f;
                 effectObjects[ii]._dx = spd * cos(angle);
                 effectObjects[ii]._dy = spd * sin(angle);
             }

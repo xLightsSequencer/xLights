@@ -136,24 +136,26 @@ void DrawingContext::CleanUp() {
     }
 }
 
-
 PathDrawingContext* PathDrawingContext::GetContext() {
     if (PATH_CONTEXT_POOL != nullptr) {
         return PATH_CONTEXT_POOL->GetContext();
     }
     return nullptr;
 }
+
 void PathDrawingContext::ReleaseContext(PathDrawingContext* pdc) {
     if (PATH_CONTEXT_POOL != nullptr) {
         return PATH_CONTEXT_POOL->ReleaseContext(pdc);
     }
 }
+
 TextDrawingContext* TextDrawingContext::GetContext() {
     if (TEXT_CONTEXT_POOL != nullptr) {
         return TEXT_CONTEXT_POOL->GetContext();
     }
     return nullptr;
 }
+
 void TextDrawingContext::ReleaseContext(TextDrawingContext* pdc) {
     if (TEXT_CONTEXT_POOL != nullptr) {
         return TEXT_CONTEXT_POOL->ReleaseContext(pdc);
@@ -176,6 +178,7 @@ inline void unshare(wxObject &o) {
         o.UnShare();
     }
 }
+
 inline void unshare(const wxObject &o2) {
     wxObject *o = (wxObject*)&o2;
     if (o->GetRefData() != nullptr) {
@@ -183,7 +186,7 @@ inline void unshare(const wxObject &o2) {
     }
 }
 
-AudioManager* RenderBuffer::GetMedia()
+AudioManager* RenderBuffer::GetMedia() const
 {
 	if (xLightsFrame::CurrentSeqXmlFile == nullptr)
 	{
@@ -220,6 +223,42 @@ std::string RenderBuffer::GetModelName() const
     }
 
     return cur_model;
+}
+
+void RenderBuffer::AlphaBlend(const RenderBuffer& src)
+{
+    if (src.BufferWi != BufferWi || src.BufferHt != BufferHt) return;
+
+    for (int y = 0; y < BufferHt; y++)
+    {
+        for (int x = 0; x < BufferWi; x++)
+        {
+            auto pnew = src.GetPixel(x, y);
+            auto pold = GetPixel(x, y);
+
+            if (pnew.alpha == 255 || pold == xlBLACK)
+            {
+                SetPixel(x, y, pnew);
+            }
+            else if (pnew.alpha > 0 && pnew != xlBLACK)
+            {
+                xlColor c;
+                int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+                if (r > 255) r = 255;
+                c.red = r;
+                int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+                if (g > 255) g = 255;
+                c.green = g;
+                int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+                if (b > 255) b = 255;
+                c.blue = b;
+                int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+                if (a > 255) a = 255;
+                c.alpha = a;
+                SetPixel(x, y, c);
+            }
+        }
+    }
 }
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
@@ -314,7 +353,10 @@ TextDrawingContext::TextDrawingContext(int BufferWi, int BufferHt, bool allowSha
     // Linux does text rendering on main thread so using the shared stuff is fine
     : DrawingContext(BufferWi, BufferHt, true, true)
 #endif
-{}
+{
+    fontStyle = 0;
+    fontSize = 0;
+}
 
 TextDrawingContext::~TextDrawingContext() {}
 
@@ -389,8 +431,6 @@ void PathDrawingContext::Clear() {
 }
 
 void TextDrawingContext::Clear() {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (gc != nullptr) {
         delete gc;
         gc = nullptr;
@@ -398,6 +438,7 @@ void TextDrawingContext::Clear() {
     DrawingContext::Clear();
 
 #if USE_GRAPHICS_CONTEXT_FOR_TEXT
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 #ifndef __WXOSX__
     gc = wxGraphicsContext::Create(*image);
 #else
@@ -592,6 +633,18 @@ void TextDrawingContext::GetTextExtents(const wxString &msg, wxArrayDouble &exte
 
 RenderBuffer::RenderBuffer(xLightsFrame *f) : frame(f)
 {
+    BufferHt = 0;
+    BufferWi = 0;
+    ModelBufferHt = 0;
+    ModelBufferWi = 0;
+    curPeriod = 0;
+    curEffStartPer = 0;
+    curEffEndPer = 0;
+    fadeinsteps = 0;
+    fadeoutsteps = 0;
+    allowAlpha = false;
+    needToInit = true;
+    _nodeBuffer = false;
     frameTimeInMs = 50;
     _textDrawingContext = nullptr;
     _pathDrawingContext = nullptr;
@@ -635,7 +688,7 @@ TextDrawingContext * RenderBuffer::GetTextDrawingContext()
     return _textDrawingContext;
 }
 
-void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform)
+void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -645,6 +698,7 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
     if (_textDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {
         _textDrawingContext->ResetSize(newBufferWi, newBufferHt);
     }
+    _nodeBuffer = nodeBuffer;
     BufferHt = newBufferHt;
     BufferWi = newBufferWi;
     ModelBufferHt = newModelBufferHt;
@@ -654,7 +708,10 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, int newModelBuff
         wxASSERT(false);
         logger_base.warn("RenderBuffer had to be expanded for %s from %d to %d pixels", (const char *)GetModelName().c_str(), ModelBufferHt * ModelBufferWi, std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi));
     }
-    int NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
+    size_t NumPixels = std::max(BufferHt, ModelBufferHt) * std::max(BufferWi, ModelBufferWi);
+    // This is an absurdly high number but there are circumstances right now when creating a buffer based on a zoomed in camera when these can be hit.
+    //wxASSERT(NumPixels < 500000);
+    
     pixels.resize(NumPixels);
     tempbuf.resize(NumPixels);
     isTransformed = (bufferTransform != "None");
@@ -820,7 +877,7 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
 
 
 // 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
+void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha)
 {
     if (wrap) {
         while (x < 0) {
@@ -840,7 +897,35 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
     // I dont like this ... it should actually never happen
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
-        pixels[y*BufferWi+x] = color;
+        if (color.alpha == 0)
+        {
+            // transparent ... dont do anything
+        }
+        else if (useAlpha && color.Alpha() != 255)
+        {
+            xlColor pnew = color;
+            xlColor pold = pixels[y*BufferWi + x];
+
+            xlColor c;
+            int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+            if (r > 255) r = 255;
+            c.red = r;
+            int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+            if (g > 255) g = 255;
+            c.green = g;
+            int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+            if (b > 255) b = 255;
+            c.blue = b;
+            int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+            if (a > 255) a = 255;
+            c.alpha = a;
+
+            pixels[y*BufferWi + x] = c;
+        }
+        else
+        {
+            pixels[y*BufferWi + x] = color;
+        }
     }
 }
 
@@ -956,7 +1041,7 @@ void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color,
 }
 
 // Bresenham's line algorithm
-void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color )
+void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool useAlpha)
 {
     int x0 = x0_;
     int x1 = x1_;
@@ -965,15 +1050,36 @@ void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const 
 
     int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
     int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
-    int err = (dx>dy ? dx : -dy)/2, e2;
+    int err = (dx>dy ? dx : -dy)/2;
 
   for(;;){
-    SetPixel(x0,y0, color);
+    SetPixel(x0,y0, color, false, useAlpha);
     if (x0==x1 && y0==y1) break;
-    e2 = err;
+    int e2 = err;
     if (e2 >-dx) { err -= dy; x0 += sx; }
     if (e2 < dy) { err += dx; y0 += sy; }
   }
+}
+
+void RenderBuffer::DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha)
+{
+    if (thickness < 1) return;
+    if (thickness == 1)
+    {
+        DrawLine(x1_, y1_, x2_, y2_, color, useAlpha);
+    }
+    else
+    {
+        DrawCircle(x1_, y1_, thickness / 2, color, true);
+        DrawCircle(x2_, y2_, thickness / 2, color, true);
+        for (int i =0; i < thickness; i++)
+        {
+            int adjust = i - thickness / 2;
+            DrawLine(x1_ + adjust, y1_, x2_ + adjust, y2_, color, useAlpha);
+            DrawLine(x1_, y1_ + adjust, x2_, y2_ + adjust, color, useAlpha);
+            DrawLine(x1_ + adjust, y1_ + adjust, x2_ + adjust, y2_ + adjust, color, useAlpha);
+        }
+    }
 }
 
 void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool direction )
@@ -1015,6 +1121,7 @@ void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, c
         case 7:
             if( y0 > 0 )SetPixel(x0,y0-1, color);
             break;
+        default: break;
         }
     }
     lastx = x0;
@@ -1086,7 +1193,7 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
 }
 
 // 0,0 is lower left
-void RenderBuffer::GetPixel(int x, int y, xlColor &color)
+void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
     // I also dont like this ... I shouldnt need to check against pixel size
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
@@ -1099,7 +1206,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color)
     }
 }
 
-const xlColor &RenderBuffer::GetPixel(int x, int y) {
+const xlColor &RenderBuffer::GetPixel(int x, int y) const {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
         return pixels[y*BufferWi+x];
@@ -1291,6 +1398,19 @@ double RenderBuffer::calcAccel(double ratio, double accel)
 // create a copy of the buffer suitable only for copying out pixel data
 RenderBuffer::RenderBuffer(RenderBuffer& buffer)
 {
+    frame = nullptr;
+    curPeriod = 0;
+    curEffStartPer = 0;
+    curEffEndPer = 0;
+    frameTimeInMs = 0;
+    isTransformed = false;
+    fadeinsteps = 0;
+    fadeoutsteps = 0;
+    needToInit = true;
+    tempInt = 0;
+    tempInt2 = 0;
+    allowAlpha = buffer.allowAlpha;
+    _nodeBuffer = buffer._nodeBuffer;
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
     ModelBufferHt = buffer.ModelBufferHt;

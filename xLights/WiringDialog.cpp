@@ -7,6 +7,7 @@
 
 #include <map>
 #include <list>
+
 #include <wx/position.h>
 #include <wx/dcmemory.h>
 #include <wx/dcscreen.h>
@@ -14,10 +15,13 @@
 #include <wx/menu.h>
 #include <wx/filepicker.h>
 #include <wx/config.h>
-#include "models/Model.h"
 #include <wx/cmndata.h>
 #include <wx/prntbase.h>
 #include <wx/msgdlg.h>
+
+#include "models/Model.h"
+#include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 #define MINFONTSIZE 8
@@ -60,7 +64,7 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
-	StaticBitmap_Wiring = new wxStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(500,500), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
+	StaticBitmap_Wiring = new wxGenericStaticBitmap(this, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(500,500), wxSIMPLE_BORDER, _T("ID_STATICBITMAP1"));
 	FlexGridSizer1->Add(StaticBitmap_Wiring, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	SetSizer(FlexGridSizer1);
 	SetSizer(FlexGridSizer1);
@@ -70,7 +74,6 @@ WiringDialog::WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id,c
 	//*)
 
     Connect(ID_STATICBITMAP1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&WiringDialog::RightClick);
-
     _modelname = modelname;
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -83,7 +86,7 @@ void WiringDialog::SetData(Model* model)
     int nodes = model->GetNodeCount();
 
     std::vector<NodeBaseClassPtr> nodeList;
-    model->InitRenderBufferNodes("Per Preview", "None", nodeList, _cols, _rows);
+    model->InitRenderBufferNodes("Per Preview", "2D", "None", nodeList, _cols, _rows);
 
     float minx = 999999;
     float miny = 999999;
@@ -111,7 +114,7 @@ void WiringDialog::SetData(Model* model)
 
     int string = 0;
     int stringnode = 1;
-    std::map<int, std::list<wxPoint>> data;
+    std::map<int, std::list<wxRealPoint>> data;
     for (int i = 0; i < nodes; ++i)
     {
         if (model->GetNodeStringNumber(i) != string && model->GetDisplayAs() != "Custom")
@@ -134,7 +137,7 @@ void WiringDialog::SetData(Model* model)
             }
             wxASSERT(x >= 0 && x < _cols);
             wxASSERT(y >= 0 && y <= _rows);
-            data[stringnode].push_back(wxPoint(x, y));
+            data[stringnode].push_back(wxRealPoint(x, y));
             if (!_multilight && data[stringnode].size() > 1) _multilight = true;
         }
         stringnode++;
@@ -194,7 +197,7 @@ int AdjustY(int y)
     return y + ADJUST_HEIGHT / 2.0;
 }
 
-void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer)
+void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer)
 {
     wxMemoryDC dc;
     dc.SelectObject(bitmap);
@@ -255,7 +258,7 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     for (auto itp = points.begin(); itp != points.end(); ++itp)
     {
         int last = -10;
-        wxPoint lastpt = wxPoint(0, 0);
+        wxRealPoint lastpt = wxRealPoint(0.0, 0.0);
 
         for (auto it = itp->second.begin(); it != itp->second.end(); ++it)
         {
@@ -384,7 +387,7 @@ bool WiringPrintout::OnPrintPage(int pageNum)
     return true;
 }
 
-void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer)
+void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer)
 {
     static wxColor magenta(255, 0, 255);
     static const wxColor* colors[] = { wxRED, wxBLUE, wxGREEN, wxYELLOW, wxLIGHT_GREY, wxCYAN, wxWHITE, &magenta };
@@ -522,9 +525,9 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
     }
 }
 
-std::map<int, std::list<wxPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool reverse)
+std::map<int, std::list<wxRealPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool reverse)
 {
-    std::map<int, std::list<wxPoint>> res;
+    std::map<int, std::list<wxRealPoint>> res;
 
     for (size_t r = 0; r < grid->GetNumberRows(); r++)
     {
@@ -535,7 +538,7 @@ std::map<int, std::list<wxPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool
                 wxString val = grid->GetCellValue(r, grid->GetNumberCols() - 1 - c);
                 if (val != "")
                 {
-                    res[wxAtoi(val)].push_back(wxPoint(c, r));
+                    res[wxAtoi(val)].push_back(wxRealPoint(c, r));
                 }
             }
         }
@@ -546,7 +549,7 @@ std::map<int, std::list<wxPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool
                 wxString val = grid->GetCellValue(r, c);
                 if (val != "")
                 {
-                    res[wxAtoi(val)].push_back(wxPoint(c, r));
+                    res[wxAtoi(val)].push_back(wxRealPoint(c, r));
                 }
             }
         }
@@ -602,7 +605,6 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
 
 void WiringDialog::OnPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = event.GetId();
     if (id == ID_MNU_EXPORT)
     {
@@ -633,8 +635,7 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
         {
             if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
             {
-                logger_base.error("Problem printing. %d", wxPrinter::GetLastError());
-                wxMessageBox("Problem printing.");
+                DisplayError(wxString::Format("Problem printing wiring. %d", wxPrinter::GetLastError()).ToStdString(), this);
             }
         }
         else

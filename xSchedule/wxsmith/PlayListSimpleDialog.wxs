@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
 	<object class="wxDialog" name="PlayListSimpleDialog">
-		<title>Play List</title>
+		<title>Play List - Simple</title>
 		<centered>1</centered>
 		<pos_arg>1</pos_arg>
 		<size_arg>1</size_arg>
@@ -13,7 +13,6 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minsize>10</minsize>
 					<orientation>vertical</orientation>
 					<minsize>10,10</minsize>
 					<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
@@ -40,7 +39,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
 								<border>5</border>
-								<minsize>300,300</minsize>
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
@@ -67,6 +65,15 @@
 										<object class="wxButton" name="ID_BUTTON5" variable="Button_AddAudio" member="yes">
 											<label>Add Audio Only</label>
 											<handler function="OnButton_AddAudioClick" entry="EVT_BUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxButton" name="ID_BUTTON7" variable="Button_Clone" member="yes">
+											<label>Clone</label>
+											<handler function="OnButton_CloneClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>

@@ -26,7 +26,7 @@ wxPanel *PinwheelEffect::CreatePanel(wxWindow *parent) {
 }
 
 void PinwheelEffect::SetDefaultParameters() {
-    PinwheelPanel *pp = (PinwheelPanel*)panel;
+    PinwheelPanel* pp = (PinwheelPanel*)panel;
     if (pp == nullptr) {
         return;
     }
@@ -39,6 +39,7 @@ void PinwheelEffect::SetDefaultParameters() {
     pp->BitmapButton_Pinwheel_TwistVC->SetActive(false);
 
     SetChoiceValue(pp->Choice_Pinwheel_3D, "none");
+    SetChoiceValue(pp->Choice_Pinwheel_Style, "New Render Method");
 
     SetSliderValue(pp->Slider_PinwheelXC, 0);
     SetSliderValue(pp->Slider_PinwheelYC, 0);
@@ -55,13 +56,14 @@ bool PinwheelEffect::needToAdjustSettings(const std::string &version) {
     // give the base class a chance to adjust any settings
     return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2017.5", version);
 }
-void PinwheelEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
+
+void PinwheelEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
     // give the base class a chance to adjust any settings
     if (RenderableEffect::needToAdjustSettings(version))
     {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
-    SettingsMap &settings = effect->GetSettings();
+    SettingsMap& settings = effect->GetSettings();
     if (settings.Contains("E_TEXTCTRL_Pinwheel_Speed")) {
         std::string val = settings["E_TEXTCTRL_Pinwheel_Speed"];
         settings.erase("E_TEXTCTRL_Pinwheel_Speed");
@@ -69,20 +71,20 @@ void PinwheelEffect::adjustSettings(const std::string &version, Effect *effect, 
     }
 }
 
-
-PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string &pinwheel_3d) {
+PinwheelEffect::Pinwheel3DType PinwheelEffect::to3dType(const std::string& pinwheel_3d) {
     if (pinwheel_3d == "3D") {
         return PW_3D;
-    } else if (pinwheel_3d == "3D Inverted") {
+    }
+    else if (pinwheel_3d == "3D Inverted") {
         return PW_3D_Inverted;
-    } else if (pinwheel_3d == "Sweep") {
+    }
+    else if (pinwheel_3d == "Sweep") {
         return PW_SWEEP;
     }
     return PW_3D_NONE;
 }
 
-
-void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void PinwheelEffect::Render(Effect* effect, SettingsMap& SettingsMap, RenderBuffer& buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
@@ -90,12 +92,12 @@ void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
     int pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", 0, SettingsMap, oset, PINWHEEL_TWIST_MIN, PINWHEEL_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int pinwheel_thickness = GetValueCurveInt("Pinwheel_Thickness", 0, SettingsMap, oset, PINWHEEL_THICKNESS_MIN, PINWHEEL_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     bool pinwheel_rotation = SettingsMap.GetBool("CHECKBOX_Pinwheel_Rotation");
-    const std::string &pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
+    const std::string& pinwheel_3d = SettingsMap["CHOICE_Pinwheel_3D"];
     int xc_adj = GetValueCurveInt("PinwheelXC", 0, SettingsMap, oset, PINWHEEL_X_MIN, PINWHEEL_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int yc_adj = GetValueCurveInt("PinwheelYC", 0, SettingsMap, oset, PINWHEEL_Y_MIN, PINWHEEL_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int pinwheel_armsize = GetValueCurveInt("Pinwheel_ArmSize", 100, SettingsMap, oset, PINWHEEL_ARMSIZE_MIN, PINWHEEL_ARMSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int pspeed = GetValueCurveInt("Pinwheel_Speed", 10, SettingsMap, oset, PINWHEEL_SPEED_MIN, PINWHEEL_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    const std::string &pinwheel_style = SettingsMap["CHOICE_Pinwheel_Style"];
+    const std::string& pinwheel_style = SettingsMap["CHOICE_Pinwheel_Style"];
 
     double pos = (double)((buffer.curPeriod - buffer.curEffStartPer) * pspeed * buffer.frameTimeInMs) / (double)PINWHEEL_SPEED_MAX;
     int degrees_per_arm = 1;
@@ -103,7 +105,7 @@ void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
     float armsize = (pinwheel_armsize / 100.0);
 
     Pinwheel3DType pw3dType = to3dType(pinwheel_3d);
-    
+
     if (pinwheel_style == "New Render Method")
     {
         std::vector<size_t> colorarray;
@@ -112,32 +114,33 @@ void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
         for (int i = 0; i < pinwheel_arms; i++) { colorarray[i] = (i + 1) % buffer.GetColorCount(); }
 
         int xc = (int)(ceil(std::hypot(buffer.BufferWi, buffer.BufferHt) / 2));
-        xc_adj = xc_adj*buffer.BufferWi / 200;
-        yc_adj = yc_adj*buffer.BufferHt / 200;
+        xc_adj = xc_adj * buffer.BufferWi / 200;
+        yc_adj = yc_adj * buffer.BufferHt / 200;
 
         int max_radius = xc * armsize;
         if (pinwheel_thickness == 0) pinwheel_thickness = 1;
-        float tmax = (pinwheel_thickness / 100.0)*degrees_per_arm;
+        float tmax = (pinwheel_thickness / 100.0) * degrees_per_arm;
 
         // Force single visible line in case width is narrower than visible
         float pi_180 = M_PI / 180.0f;
-        for(int a=0; a<pinwheel_arms; a++)
+        for (int a = 0; a < pinwheel_arms; a++)
         {
-            int ColorIdx = a%pinwheel_arms;
+            int ColorIdx = a % pinwheel_arms;
             buffer.palette.GetHSV(colorarray[ColorIdx], hsv);
             xlColor color = xlColor(hsv);
 
-            int angle = (a*degrees_per_arm);
+            int angle = (a * degrees_per_arm);
             if (pinwheel_rotation == 1) { // do we have CW rotation
                 angle = (270 - angle) + pos;
-            } else {
+            }
+            else {
                 angle = angle - 90 - pos;
             }
 
-            for (float r=0; r<=max_radius; r+=0.5)
+            for (float r = 0; r <= max_radius; r += 0.5)
             {
-                int degrees_twist = (r/max_radius) * pinwheel_twist;
-                int t2 = (int)angle%degrees_per_arm;
+                int degrees_twist = (r / max_radius) * pinwheel_twist;
+                int t2 = (int)angle % degrees_per_arm;
                 double round = (float)t2 / (float)tmax;
                 int x = floor((int)(r * buffer.cos((angle + degrees_twist) * pi_180)) + xc_adj + buffer.BufferWi / 2);
                 int y = floor((int)(r * buffer.sin((angle + degrees_twist) * pi_180)) + yc_adj + buffer.BufferHt / 2);
@@ -145,7 +148,7 @@ void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
                 {
                     buffer.palette.GetSpatialColor(colorarray[ColorIdx], xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, round, max_radius, color);
                 }
-                buffer.SetPixel(x,y,color);
+                buffer.SetPixel(x, y, color);
             }
         }
 
@@ -158,26 +161,28 @@ void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
                 int y1 = y - yc_adj - (buffer.BufferHt / 2);
                 double r = std::hypot(x1, y1);
                 if (r <= max_radius) {
-                    double degrees_twist = (r / max_radius)*pinwheel_twist;
+                    double degrees_twist = (r / max_radius) * pinwheel_twist;
                     double theta = (std::atan2(x1, y1) * 180 / 3.14159) + degrees_twist;
                     if (pinwheel_rotation == 1) // do we have CW rotation
                     {
-                        theta = pos + theta + (tmax/2);
-                    } else {
-                        theta = pos - theta + (tmax/2);
+                        theta = pos + theta + (tmax / 2);
+                    }
+                    else {
+                        theta = pos - theta + (tmax / 2);
                     }
                     theta = theta + 540.0;
-                    int t2 = (int)theta%degrees_per_arm;
+                    int t2 = (int)theta % degrees_per_arm;
                     if (t2 <= tmax) {
                         double round = (float)t2 / (float)tmax;
-                        t2 = std::abs(t2 - (tmax/2)) * 2;
+                        t2 = std::abs(t2 - (tmax / 2)) * 2;
                         xlColor color;
-                        int ColorIdx2 = ((int)((theta/degrees_per_arm)))%pinwheel_arms;
+                        int ColorIdx2 = ((int)((theta / degrees_per_arm))) % pinwheel_arms;
                         if (buffer.palette.IsSpatial(colorarray[ColorIdx2]))
                         {
                             buffer.palette.GetSpatialColor(colorarray[ColorIdx2], xc_adj + buffer.BufferWi / 2, yc_adj + buffer.BufferHt / 2, x, y, round, max_radius, color);
                             hsv = color.asHSV();
-                        } else {
+                        }
+                        else {
                             buffer.palette.GetHSV(colorarray[ColorIdx2], hsv);
                         }
                         HSVValue hsv1 = hsv;
@@ -218,39 +223,35 @@ void PinwheelEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuff
                 }
             }
         }
-    } 
-    else 
-    { 
+    }
+    else
+    {
         // Old Render Method
         size_t colorcnt = buffer.GetColorCount();
 
-        int xc= (int)(std::max(buffer.BufferWi, buffer.BufferHt)/2);
+        int xc = (int)(std::max(buffer.BufferWi, buffer.BufferHt) / 2);
 
-        for(int a = 1; a <= pinwheel_arms; a++)
-        {
+        for (int a = 1; a <= pinwheel_arms; a++) {
             int ColorIdx = a % colorcnt;
 
             int base_degrees;
-            if(pinwheel_rotation==1) // do we have CW rotation
+            if (pinwheel_rotation == 1) // do we have CW rotation
             {
-                base_degrees = (a-1)*degrees_per_arm + pos; // yes
+                base_degrees = (a - 1) * degrees_per_arm + pos; // yes
             }
-            else
-            {
-                base_degrees = (a-1)*degrees_per_arm - pos; // no, we are CCW
+            else {
+                base_degrees = (a - 1) * degrees_per_arm - pos; // no, we are CCW
             }
 
-            float tmax = (pinwheel_thickness/100.0)*degrees_per_arm/2.0;
-            for (float t = base_degrees - tmax; t<=base_degrees + tmax; t++)
-            {
-                Draw_arm(buffer, t, xc*armsize, pinwheel_twist, xc_adj,yc_adj, ColorIdx, pw3dType, (t - base_degrees + tmax) / (2 * tmax + 1));
+            float tmax = (pinwheel_thickness / 100.0) * degrees_per_arm / 2.0;
+            for (float t = base_degrees - tmax; t <= base_degrees + tmax; t++) {
+                Draw_arm(buffer, t, xc * armsize, pinwheel_twist, xc_adj, yc_adj, ColorIdx, pw3dType, (t - base_degrees + tmax) / (2 * tmax + 1));
             }
         }
     }
 }
 
-
-void PinwheelEffect::adjustColor(PinwheelEffect::Pinwheel3DType pw3dType, xlColor &color, HSVValue &hsv, bool allowAlpha, float round) {
+void PinwheelEffect::adjustColor(PinwheelEffect::Pinwheel3DType pw3dType, xlColor& color, HSVValue& hsv, bool allowAlpha, float round) {
     switch (pw3dType) {
     case PW_3D:
         if (allowAlpha) {
@@ -284,18 +285,18 @@ void PinwheelEffect::adjustColor(PinwheelEffect::Pinwheel3DType pw3dType, xlColo
     }
 }
 
-void PinwheelEffect::Draw_arm(RenderBuffer &buffer,
-                              int base_degrees,int max_radius,int pinwheel_twist,
-                              int xc_adj,int yc_adj, int colorIdx, PinwheelEffect::Pinwheel3DType pw3dType, float round)
+void PinwheelEffect::Draw_arm(RenderBuffer& buffer,
+    int base_degrees, int max_radius, int pinwheel_twist,
+    int xc_adj, int yc_adj, int colorIdx, PinwheelEffect::Pinwheel3DType pw3dType, float round)
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    float pi_180 = M_PI/180;
+    float pi_180 = M_PI / 180;
 
     int xc = buffer.BufferWi / 2.0;
     int yc = buffer.BufferHt / 2.0;
     xc = xc + (xc_adj / 100.0) * xc; // xc_adj is from -100 to 100
     yc = yc + (yc_adj / 100.0) * yc;
-    
+
     bool isSpatial = buffer.palette.IsSpatial(colorIdx);
     xlColor color;
     HSVValue hsv;
@@ -305,13 +306,13 @@ void PinwheelEffect::Draw_arm(RenderBuffer &buffer,
         adjustColor(pw3dType, color, hsv, buffer.allowAlpha, round);
     }
 
-    for(float r=0.0; r <= max_radius; r += 0.5) {
-        int degrees_twist = (r/max_radius)*pinwheel_twist;
+    for (float r = 0.0; r <= max_radius; r += 0.5) {
+        int degrees_twist = (r / max_radius) * pinwheel_twist;
         int degrees = base_degrees + degrees_twist;
         float phi = degrees * pi_180;
-        int x = r * buffer.cos (phi) + xc;
-        int y = r * buffer.sin (phi) + yc;
- 
+        int x = r * buffer.cos(phi) + xc;
+        int y = r * buffer.sin(phi) + yc;
+
         if (isSpatial) {
             buffer.palette.GetSpatialColor(colorIdx, xc, yc, x, y, round, max_radius, color);
             hsv = color.asHSV();

@@ -2,12 +2,12 @@
 #define SUBMODELGENERATEDIALOG_H
 
 //(*Headers(SubModelGenerateDialog)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/spinctrl.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 //*)
 
 class SubModelGenerateDialog: public wxDialog
@@ -26,12 +26,12 @@ class SubModelGenerateDialog: public wxDialog
 		virtual ~SubModelGenerateDialog();
 
 		//(*Declarations(SubModelGenerateDialog)
-		wxStaticText* StaticText2;
+		wxChoice* Choice1;
 		wxSpinCtrl* SpinCtrl_Count;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
 		wxTextCtrl* TextCtrl_BaseName;
-		wxChoice* Choice1;
 		//*)
 
         int GetCount() const;

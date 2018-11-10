@@ -13,6 +13,7 @@
 #include "MIDI/MidiFile.h"
 #include "sequencer/SequenceElements.h"
 #include "MusicXML.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(NoteImportDialog)
 const long NoteImportDialog::ID_STATICTEXT1 = wxNewId();
@@ -151,7 +152,7 @@ void NoteImportDialog::OnChoice_Piano_Notes_SourceSelect(wxCommandEvent& event)
     wxString notes = Choice_Piano_Notes_Source->GetStringSelection();
     if (notes == "Polyphonic Transcription")
     {
-        wxMessageBox("Polyphonic transcription is known to be unstable and can cause xLights to crash.", "Warning!", wxICON_WARNING | wxOK, this);
+        DisplayWarning("Polyphonic transcription is known to be unstable and can cause xLights to crash.", this);
     }
 
     ValidateWindow();
@@ -424,7 +425,7 @@ void NoteImportDialog::OnButton_Piano_FileClick(wxCommandEvent& event)
     }
     else if (notes == "Music XML File")
     {
-        FileDialog1->SetWildcard("Music XML Files|*.mxl;*.mxl|All Files|*.*");
+        FileDialog1->SetWildcard("Music XML Files|*.mxl;*.mxl;*.musicxml|All Files|*.*");
     }
     if (FileDialog1->ShowModal() == wxID_OK)
     {

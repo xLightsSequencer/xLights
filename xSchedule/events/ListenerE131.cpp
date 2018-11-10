@@ -5,7 +5,7 @@
 #include "ListenerManager.h"
 #include "../../xLights/UtilFunctions.h"
 
-bool ListenerE131::IsValidHeader(wxByte* buffer)
+bool ListenerE131::IsValidHeader(uint8_t* buffer)
 {
     return
         buffer[0] == 0x00 &&
@@ -67,17 +67,17 @@ void ListenerE131::StartProcess()
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
     if (_socket == nullptr)
     {
-        logger_base.error("Error opening datagram for E131 reception.");
+        logger_base.error("Error opening datagram for E131 reception. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_socket->IsOk())
     {
-        logger_base.error("Error opening datagram for E131 reception. OK : FALSE");
+        logger_base.error("Error opening datagram for E131 reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for E131 reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for E131 reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }

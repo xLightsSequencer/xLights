@@ -43,10 +43,15 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Import;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_APIOnly;
+		wxCheckBox* CheckBox_MultithreadedTransmission;
+		wxCheckBox* CheckBox_RemoteAllOff;
+		wxCheckBox* CheckBox_RetryOpen;
 		wxCheckBox* CheckBox_RunBackground;
 		wxCheckBox* CheckBox_SendOffWhenNotRunning;
 		wxCheckBox* CheckBox_SimpleMode;
+		wxCheckBox* CheckBox_SuppressAudioOnRemotes;
 		wxCheckBox* CheckBox_Sync;
+		wxChoice* Choice1;
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
 		wxChoice* Choice_Location;
@@ -54,6 +59,7 @@ class OptionsDialog: public wxDialog
 		wxListView* ListView_Buttons;
 		wxSpinCtrl* SpinCtrl_PasswordTimeout;
 		wxSpinCtrl* SpinCtrl_WebServerPort;
+		wxStaticText* StaticText10;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -74,6 +80,10 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX2;
+		static const long ID_CHECKBOX6;
+		static const long ID_CHECKBOX7;
+		static const long ID_CHECKBOX8;
+		static const long ID_CHECKBOX9;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;
@@ -98,6 +108,8 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHOICE3;
 		static const long ID_STATICTEXT9;
 		static const long ID_CHOICE4;
+		static const long ID_STATICTEXT10;
+		static const long ID_CHOICE5;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)

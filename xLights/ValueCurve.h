@@ -12,6 +12,7 @@
 
 #define VC_X_POINTS 100.0
 
+class wxFileName;
 class AudioManager;
 
 class vcSortablePoint
@@ -91,11 +92,13 @@ class ValueCurve
     float Safe01(float v);
     void ConvertToRealValues(float oldmin, float oldmax);
     float Normalise(int parm, float value);
-    float Denormalise(int parm, float value);
+    float Denormalise(int parm, float value) const;
+    float ApplyGain(float value, int gain) const;
 
 public:
 
     static void SetAudio(AudioManager* am) { __audioManager = am; }
+    static std::string GetValueCurveFolder(const std::string& showFolder);
 
     ValueCurve() { _divisor = 1; SetDefault(); _min = MINVOIDF; _max = MAXVOIDF; }
     ValueCurve(const std::string& serialised);
@@ -103,6 +106,10 @@ public:
     void SetDefault(float min = MINVOIDF, float max = MAXVOIDF, int divisor = MAXVOID);
     wxBitmap GetImage(int x, int y, double scaleFactor = 1.0);
     std::string Serialise();
+    void LoadXVC(const wxFileName& fn);
+    void LoadXVC(const std::string& fn);
+    void SaveXVC(const wxFileName& fn);
+    void SaveXVC(const std::string& fn);
     static void GetRangeParm(int parm, const std::string& type, float& low, float& high);
     bool IsOk() const { return _id != ""; }
     void Deserialise(const std::string& s, bool holdminmax = false);
@@ -127,6 +134,7 @@ public:
     void DeletePoint(float offset);
     bool IsSetPoint(float offset);
     void SetDivisor(float divisor) { _divisor = divisor; }
+    bool IsRealValue() const { return _realValues; }
     int GetPointCount() const { return _values.size(); }
     void SetParameter1(float parameter1) { _parameter1 = SafeParameter(1, parameter1); RenderType(); }
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }
@@ -154,6 +162,7 @@ public:
     static void GetRangeParm3(const std::string& type, float& low, float &high);
     static void GetRangeParm4(const std::string& type, float& low, float &high);
     void Reverse();
+    void Flip();
 };
 
 #endif

@@ -15,6 +15,7 @@ class GlediatorReader
 public:
     GlediatorReader(const std::string& filename, const wxSize& size);
     virtual ~GlediatorReader();
+    size_t GetFrames() { return _frames; }
     std::string GetFilename() const { return _filename; }
     void GetFrame(size_t frame, char* buffer, size_t size);
     size_t GetFrameCount() const { return _frames; };
@@ -49,9 +50,10 @@ class GlediatorEffect : public RenderableEffect
         virtual void SetSequenceElements(SequenceElements *els) override;
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
+        virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
-        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) const override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         virtual bool needToAdjustSettings(const std::string &version) override { return true; }
         virtual bool AppropriateOnNodes() const override { return false; }
         static bool IsGlediatorFile(std::string filename);

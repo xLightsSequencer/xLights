@@ -99,7 +99,7 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, CommandManager* comma
     TextCtrl_Label->SetValue(label);
     TextCtrl_Parameters->SetValue(parameter);
     Choice_Command->SetSelection(-1);
-    for(int i = 0; i < Choice_Command->GetCount(); i++)
+    for (size_t i = 0; i < Choice_Command->GetCount(); i++)
     {
         if (Choice_Command->GetString(i) == command)
         {
@@ -120,7 +120,7 @@ ButtonDetailsDialog::ButtonDetailsDialog(wxWindow* parent, CommandManager* comma
 
     Choice_Hotkey->AppendString(' ');
 
-    for (int i = 0; i < Choice_Hotkey->GetCount(); i++)
+    for (size_t i = 0; i < Choice_Hotkey->GetCount(); i++)
     {
         if (Choice_Hotkey->GetString(i)[0] == hotkey)
         {

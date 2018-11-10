@@ -514,7 +514,7 @@
 																<object class="wxFlexGridSizer" variable="FlexGridSizer15" member="no">
 																	<cols>1</cols>
 																	<growablecols>0</growablecols>
-																	<growablerows>6</growablerows>
+																	<growablerows>5</growablerows>
 																	<object class="sizeritem">
 																		<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_BI" member="yes">
 																			<label>The red circles on the image show the bulbs we have identify. Adjust the sensitivity if there are bulbs missing or phantom bulbs identified.&#x0A;&#x0A;Click next when you are happy that all bulbs have been detected.</label>
@@ -680,23 +680,56 @@
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxCheckBox" name="ID_CHECKBOX_BI_IsSteady" variable="CheckBox_BI_IsSteady" member="yes">
-																			<label>Video is steady</label>
-																			<checked>1</checked>
-																			<handler function="OnCheckBox_BI_IsSteadyClick" entry="EVT_CHECKBOX" />
+																		<object class="wxBoxSizer" variable="BoxSizer1" member="no">
+																			<object class="sizeritem">
+																				<object class="wxCheckBox" name="ID_CHECKBOX_BI_IsSteady" variable="CheckBox_BI_IsSteady" member="yes">
+																					<label>Video is steady</label>
+																					<checked>1</checked>
+																					<handler function="OnCheckBox_BI_IsSteadyClick" entry="EVT_CHECKBOX" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxCheckBox" name="ID_CHECKBOX_BI_ManualUpdate" variable="CheckBox_BI_ManualUpdate" member="yes">
+																					<label>Manual Update</label>
+																					<checked>1</checked>
+																					<handler function="OnCheckBox_BI_ManualUpdateClick" entry="EVT_CHECKBOX" />
+																				</object>
+																				<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
+																			<object class="sizeritem">
+																				<object class="wxFlexGridSizer" variable="FlexGridSizer30" member="no">
+																					<cols>2</cols>
+																					<growablecols>1</growablecols>
+																					<object class="sizeritem">
+																						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText18" member="yes">
+																							<label>Blank Frames Limit</label>
+																						</object>
+																						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																					<object class="sizeritem">
+																						<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_MissingBulbLimit" member="yes">
+																							<value>30</value>
+																							<max>300</max>
+																						</object>
+																						<flag>wxALL|wxEXPAND</flag>
+																						<border>5</border>
+																						<option>1</option>
+																					</object>
+																				</object>
+																				<flag>wxALL|wxEXPAND</flag>
+																				<border>5</border>
+																				<option>1</option>
+																			</object>
 																		</object>
-																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
-																		<option>1</option>
-																	</object>
-																	<object class="sizeritem">
-																		<object class="wxCheckBox" name="ID_CHECKBOX_BI_ManualUpdate" variable="CheckBox_BI_ManualUpdate" member="yes">
-																			<label>Manual Update</label>
-																			<checked>1</checked>
-																			<handler function="OnCheckBox_BI_ManualUpdateClick" entry="EVT_CHECKBOX" />
-																		</object>
-																		<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-																		<border>5</border>
+																		<flag>wxALL|wxEXPAND</flag>
+																		<border>2</border>
 																		<option>1</option>
 																	</object>
 																	<object class="sizeritem">

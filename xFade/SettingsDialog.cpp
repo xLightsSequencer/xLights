@@ -6,12 +6,12 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 
-#include "SettingsDialog.h"
 #include "Settings.h"
+#include "SettingsDialog.h"
 #include "UniverseEntryDialog.h"
-#include "../xLights/IPEntryDialog.h"
-#include "../xSchedule/wxMIDI/src/wxMidi.h"
 #include "FadeExcludeDialog.h"
+#include "../xLights/UtilFunctions.h"
+#include "../xLights/IPEntryDialog.h"
 
 //(*IdInit(SettingsDialog)
 const long SettingsDialog::ID_STATICTEXT5 = wxNewId();
@@ -23,10 +23,12 @@ const long SettingsDialog::ID_BUTTON9 = wxNewId();
 const long SettingsDialog::ID_STATICTEXT2 = wxNewId();
 const long SettingsDialog::ID_STATICTEXT3 = wxNewId();
 const long SettingsDialog::ID_BUTTON12 = wxNewId();
+const long SettingsDialog::ID_STATICTEXT10 = wxNewId();
+const long SettingsDialog::ID_TEXTCTRL1 = wxNewId();
+const long SettingsDialog::ID_STATICTEXT11 = wxNewId();
+const long SettingsDialog::ID_TEXTCTRL2 = wxNewId();
 const long SettingsDialog::ID_STATICTEXT9 = wxNewId();
 const long SettingsDialog::ID_CHOICE1 = wxNewId();
-const long SettingsDialog::ID_STATICTEXT1 = wxNewId();
-const long SettingsDialog::ID_CHOICE2 = wxNewId();
 const long SettingsDialog::ID_STATICTEXT4 = wxNewId();
 const long SettingsDialog::ID_LISTVIEW_UNIVERSES = wxNewId();
 const long SettingsDialog::ID_BUTTON3 = wxNewId();
@@ -56,7 +58,6 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     wxFlexGridSizer* FlexGridSizer10;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
@@ -93,6 +94,18 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     FlexGridSizer6->Add(StaticText_OutputIP, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_ForceOutput = new wxButton(this, ID_BUTTON12, _("Force"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
     FlexGridSizer6->Add(Button_ForceOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText8 = new wxStaticText(this, ID_STATICTEXT10, _("Left xLights IP"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+    FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_LeftIP = new wxTextCtrl(this, ID_TEXTCTRL1, _("127.0.0.1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+    TextCtrl_LeftIP->SetMaxLength(15);
+    FlexGridSizer6->Add(TextCtrl_LeftIP, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT11, _("Right xLights IP"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
+    FlexGridSizer6->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    TextCtrl_RightIP = new wxTextCtrl(this, ID_TEXTCTRL2, _("127.0.0.1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+    TextCtrl_RightIP->SetMaxLength(15);
+    FlexGridSizer6->Add(TextCtrl_RightIP, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText6 = new wxStaticText(this, ID_STATICTEXT9, _("Frame Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT9"));
     FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     Choice_FrameTiming = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
@@ -103,19 +116,12 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     FlexGridSizer6->Add(Choice_FrameTiming, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer6->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer3->AddGrowableCol(1);
-    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("MIDI Device:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer3->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Choice1 = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-    FlexGridSizer3->Add(Choice1, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(0);
     FlexGridSizer4->AddGrowableRow(1);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT4, _("Universes:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
     FlexGridSizer4->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer4->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer4->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ListView_Universes = new wxListView(this, ID_LISTVIEW_UNIVERSES, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_UNIVERSES"));
     FlexGridSizer4->Add(ListView_Universes, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -132,7 +138,7 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     FlexGridSizer9->AddGrowableRow(1);
     StaticText4 = new wxStaticText(this, ID_STATICTEXT6, _("Channel Fade Exclude:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
     FlexGridSizer9->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer9->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ListViewFadeExclude = new wxListView(this, ID_LISTVIEW1, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW1"));
     FlexGridSizer9->Add(ListViewFadeExclude, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -165,6 +171,8 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     Connect(ID_CHECKBOX_ARTNET,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnCheckBox_ArtNETClick);
     Connect(ID_BUTTON9,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_ForceInputClick);
     Connect(ID_BUTTON12,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SettingsDialog::OnButton_ForceOutputClick);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SettingsDialog::OnTextCtrl_LeftIPText);
+    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SettingsDialog::OnTextCtrl_RightIPText);
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SettingsDialog::OnChoice_FrameTimingSelect);
     Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SettingsDialog::OnListView_UniversesItemSelect);
     Connect(ID_LISTVIEW_UNIVERSES,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&SettingsDialog::OnListView_UniversesItemActivated);
@@ -196,25 +204,8 @@ SettingsDialog::SettingsDialog(wxWindow* parent, Settings* settings, wxWindowID 
     GetSize(&w, &h);
     if (w < 600) SetSize(600, h);
     Layout();
-}
 
-std::list<std::string> SettingsDialog::GetMIDIDevices()
-{
-    std::list<std::string> res;
-
-    wxMidiSystem* midiSystem = wxMidiSystem::GetInstance();
-    int devices = midiSystem->CountDevices();
-    for (int i = 0; i < devices; i++)
-    {
-        wxMidiInDevice* midiDev = new wxMidiInDevice(i);
-        if (midiDev->IsInputPort())
-        {
-            res.push_back(wxString::Format("%s [%s] %d", midiDev->DeviceName(), midiDev->InterfaceUsed(), i).ToStdString());
-        }
-        delete midiDev;
-    }
-
-    return res;
+    SetEscapeId(ID_BUTTON2);
 }
 
 SettingsDialog::~SettingsDialog()
@@ -247,7 +238,9 @@ void SettingsDialog::ValidateWindow()
         Button_DeleteFE->Enable(true);
     }
 
-    if (!CheckBox_ArtNET->GetValue() && !CheckBox_E131->GetValue())
+    if ((!CheckBox_ArtNET->GetValue() && !CheckBox_E131->GetValue()) ||
+        !IsIPValid(TextCtrl_LeftIP->GetValue()) ||
+        !IsIPValid(TextCtrl_RightIP->GetValue()))
     {
         Button_Ok->Disable();
     }
@@ -346,6 +339,8 @@ void SettingsDialog::Apply()
     _settings->_targetIP = _targetIPCopy;
     _settings->_targetDesc = _targetDescCopy;
     _settings->_targetProtocol = _targetProtocolCopy;
+    _settings->_leftIP = TextCtrl_LeftIP->GetValue();
+    _settings->_rightIP = TextCtrl_RightIP->GetValue();
 
     wxString frm = Choice_FrameTiming->GetStringSelection();
     if (frm == "25ms")
@@ -369,7 +364,6 @@ void SettingsDialog::Apply()
     _settings->_localInputIP = _localInputIPCopy;
     _settings->_E131 = CheckBox_E131->GetValue();
     _settings->_ArtNET = CheckBox_ArtNET->GetValue();
-    _settings->_midiDevice = Choice1->GetStringSelection();
 }
 
 void SettingsDialog::PopulateFields()
@@ -382,20 +376,11 @@ void SettingsDialog::PopulateFields()
     _targetProtocolCopy = _settings->_targetProtocol;
     _localOutputIPCopy = _settings->_localOutputIP;
     _localInputIPCopy = _settings->_localInputIP;
+    TextCtrl_LeftIP->SetValue(_settings->_leftIP);
+    TextCtrl_RightIP->SetValue(_settings->_rightIP);
 
     LoadUniverses();
     LoadFadeExclude();
-
-    auto devices = GetMIDIDevices();
-    for (auto it = devices.begin(); it != devices.end(); ++it)
-    {
-        Choice1->Append(*it);
-    }
-    Choice1->SetSelection(0);
-    if (_settings->_midiDevice != "")
-    {
-        Choice1->SetStringSelection(_settings->_midiDevice);
-    }
 }
 
 void SettingsDialog::OnButton_OkClick(wxCommandEvent& event)
@@ -647,4 +632,14 @@ void SettingsDialog::LoadFadeExclude()
     ListViewFadeExclude->Select(sel);
 
     ListViewFadeExclude->Thaw();
+}
+
+void SettingsDialog::OnTextCtrl_LeftIPText(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void SettingsDialog::OnTextCtrl_RightIPText(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

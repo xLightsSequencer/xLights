@@ -7,12 +7,12 @@
 //*)
 
 #include <wx/colordlg.h>
-#include "../FSEQFile.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleOptions.h"
 #include "../ScheduleManager.h"
 #include "../MatrixMapper.h"
 #include "PlayListDialog.h"
+#include <log4cpp/Category.hh>
 
 //(*IdInit(PlayListItemScreenMapPanel)
 const long PlayListItemScreenMapPanel::ID_STATICTEXT14 = wxNewId();
@@ -36,6 +36,8 @@ const long PlayListItemScreenMapPanel::ID_STATICTEXT8 = wxNewId();
 const long PlayListItemScreenMapPanel::ID_SPINCTRL4 = wxNewId();
 const long PlayListItemScreenMapPanel::ID_STATICTEXT9 = wxNewId();
 const long PlayListItemScreenMapPanel::ID_TEXTCTRL3 = wxNewId();
+const long PlayListItemScreenMapPanel::ID_STATICTEXT4 = wxNewId();
+const long PlayListItemScreenMapPanel::ID_TEXTCTRL2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListItemScreenMapPanel,wxPanel)
@@ -51,15 +53,188 @@ public:
     {
         SetTransparent(128);
         Connect(wxEVT_PAINT, (wxObjectEventFunction)&OutlineWindow::OnPaint);
-
-        DoSetSize(x, y, w, h);
+        Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&OutlineWindow::OnLeftDown);
+        Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&OutlineWindow::OnLeftUp);
+        Connect(wxEVT_MOTION, (wxObjectEventFunction)&OutlineWindow::OnMove);
+        DoSetSize(x, y, w, h, false);
     }
 
-    void DoSetSize(int x, int y, int w, int h)
+#define SIZINGEDGE std::min(4, w / 10)
+
+    void OnLeftDown(wxMouseEvent& event)
     {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        int x = event.GetX();
+        int y = event.GetY();
+        int w, h;
+        GetSize(&w, &h);
+        if (x < SIZINGEDGE && y < SIZINGEDGE)
+        {
+            _sizing = Sizing::NW;
+            SetCursor(wxCURSOR_SIZENWSE);
+        }
+        else if (x > w - SIZINGEDGE && y > h - SIZINGEDGE)
+        {
+            _sizing = Sizing::SE;
+            SetCursor(wxCURSOR_SIZENWSE);
+        }
+        else if (x > w - SIZINGEDGE && y < SIZINGEDGE)
+        {
+            _sizing = Sizing::NE;
+            SetCursor(wxCURSOR_SIZENESW);
+        }
+        else if (x < SIZINGEDGE && y > h - SIZINGEDGE)
+        {
+            _sizing = Sizing::SW;
+            SetCursor(wxCURSOR_SIZENESW);
+        }
+        else if (x < SIZINGEDGE)
+        {
+            _sizing = Sizing::W;
+            SetCursor(wxCURSOR_SIZEWE);
+        }
+        else if (x > w - SIZINGEDGE)
+        {
+            _sizing = Sizing::E;
+            SetCursor(wxCURSOR_SIZEWE);
+        }
+        else if (y < SIZINGEDGE)
+        {
+            _sizing = Sizing::N;
+            SetCursor(wxCURSOR_SIZENS);
+        }
+        else if (y > h - SIZINGEDGE)
+        {
+            _sizing = Sizing::S;
+            SetCursor(wxCURSOR_SIZENS);
+        }
+        else if (x > 0 && x < w && y > 0 && y < h)
+        {
+            _sizing = Sizing::ALL;
+            SetCursor(wxCURSOR_SIZING);
+        }
+        else
+        {
+            _sizing = Sizing::NONE;
+            SetCursor(wxCURSOR_ARROW);
+        }
+        _lastPos = event.GetPosition();
+        logger_base.debug("Save mouse pos %d,%d", _lastPos.x, _lastPos.y);
+        CaptureMouse();
+    }
+
+    void OnLeftUp(wxMouseEvent& event)
+    {
+        _sizing = Sizing::NONE;
+        ReleaseMouse();
+        SetCursor(wxCURSOR_ARROW);
+    }
+
+    void OnMove(wxMouseEvent& event)
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        if (_sizing != Sizing::NONE)
+        {
+            int w, h;
+            GetSize(&w, &h);
+            int x, y;
+            GetPosition(&x, &y);
+            int mx = event.GetX();
+            int my = event.GetY();
+            int dx = mx - _lastPos.x;
+            int dy = my - _lastPos.y;
+
+            logger_base.debug("Move current pos/size %d,%d %dx%d", x, y, w, h);
+            logger_base.debug("Mouse delta %d,%d -> %d,%d (%d,%d)", _lastPos.x, _lastPos.y, event.GetX(), event.GetY(), dx, dy);
+
+            SetCursor(wxCURSOR_HAND);
+            switch (_sizing)
+            {
+            case Sizing::NW:
+                DoSetSize(x + dx + 1, y + dy + 1, w + -dx - 2, h + -dy - 2, true);
+                mx -= dx;
+                my -= dy;
+                break;
+            case Sizing::NE:
+                DoSetSize(x + 1, y + dy + 1, w + dx - 2, h + -dy - 2, true);
+                my -= dy;
+                break;
+            case Sizing::SW:
+                DoSetSize(x + dx + 1, y + 1, w + -dx - 2, h + dy - 2, true);
+                mx -= dx;
+                break;
+            case Sizing::SE:
+                DoSetSize(x + 1, y + 1, w + dx - 2, h + dy - 2, true);
+                break;
+            case Sizing::N:
+                DoSetSize(x + 1, y + dy + 1, w - 2, h + -dy - 2, true);
+                my -= dy;
+                break;
+            case Sizing::S:
+                DoSetSize(x + 1, y + 1, w - 2, h + dy - 2, true);
+                break;
+            case Sizing::E:
+                DoSetSize(x + 1, y + 1, w + dx - 2, h - 2, true);
+                break;
+            case Sizing::W:
+                DoSetSize(x + dx + 1, y + 1, w + -dx - 2, h - 2, true);
+                mx -= dx;
+                break;
+            case Sizing::ALL:
+                DoSetSize(x + dx + 1, y + dy + 1, w - 2, h - 2, true);
+                mx -= dx;
+                my -= dy;
+                break;
+            default:
+                break;
+            }
+            _lastPos = wxPoint(mx, my);
+        }
+        else
+        {
+            int x = event.GetX();
+            int y = event.GetY();
+            int w, h;
+            GetSize(&w, &h);
+            if ((x < SIZINGEDGE && y < SIZINGEDGE) || (x > w - SIZINGEDGE && y > h - SIZINGEDGE))
+            {
+                SetCursor(wxCURSOR_SIZENWSE);
+            }
+            else if ((x > w - SIZINGEDGE && y < SIZINGEDGE) || (x <SIZINGEDGE && y > h - SIZINGEDGE))
+            {
+                SetCursor(wxCURSOR_SIZENESW);
+            }
+            else if (x < SIZINGEDGE || x > w - SIZINGEDGE)
+            {
+                SetCursor(wxCURSOR_SIZEWE);
+            }
+            else if (y < SIZINGEDGE || y > h - SIZINGEDGE)
+            {
+                SetCursor(wxCURSOR_SIZENS);
+            }
+            else if (x > 0 && x < w && y > 0 && y < h)
+            {
+                SetCursor(wxCURSOR_SIZING);
+            }
+            else
+            {
+                SetCursor(wxCURSOR_ARROW);
+            }
+        }
+    }
+
+    void DoSetSize(int x, int y, int w, int h, bool notify)
+    {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.debug("Setting pos/size %d,%d %dx%d -> %d,%d %dx%d", x, y, w, h, x-1, y-1, w+2, h+2);
         SetSize(x - 1, y - 1, w + 2, h + 2);
         Refresh();
         Update();
+
+        if (notify)
+        {
+            ((PlayListItemScreenMapPanel*)GetParent())->SizeChange(x, y, w, h);
+        }
     }
 
     void OnPaint(wxPaintEvent& event)
@@ -79,6 +254,13 @@ public:
         dc.SetPen(*wxRED_PEN);
         dc.DrawLines(5, points);
     }
+
+    enum class Sizing
+    {
+        NE, NW, SE, SW, N, S, E, W, ALL, NONE
+    };
+    wxPoint _lastPos;
+    Sizing _sizing = Sizing::NONE;
 };
 
 PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayListItemScreenMap* screenMap, wxWindowID id,const wxPoint& pos,const wxSize& size)
@@ -145,6 +327,10 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
 	FlexGridSizer1->Add(StaticText9, 1, wxALL|wxALIGN_LEFT, 5);
 	TextCtrl_Duration = new wxTextCtrl(this, ID_TEXTCTRL3, _("0.050"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer1->Add(TextCtrl_Duration, 1, wxALL|wxEXPAND, 5);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT4, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL2, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
+	FlexGridSizer1->Add(TextCtrl_Delay, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -155,6 +341,8 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
 	Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
 	Connect(ID_SPINCTRL5,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
 	//*)
+
+    Choice_Quality->SetStringSelection("Bilinear");
 
     wxScreenDC screenDC;
     int w, h;
@@ -185,6 +373,7 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
     SpinCtrl_Height->SetValue(_screenMap->GetHeight());
     SpinCtrl_Priority->SetValue(_screenMap->GetPriority());
     CheckBox_Rescale->SetValue(_screenMap->GetRescale());
+    TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)_screenMap->GetDelay() / 1000.0));
 
     _outlineWindow = new OutlineWindow(this, _screenMap->GetX(), _screenMap->GetY(), _screenMap->GetWidth(), _screenMap->GetHeight());
     _outlineWindow->Show();
@@ -214,6 +403,15 @@ PlayListItemScreenMapPanel::~PlayListItemScreenMapPanel()
     _screenMap->SetPriority(SpinCtrl_Priority->GetValue());
     _screenMap->SetRescale(CheckBox_Rescale->GetValue());
     _screenMap->SetQuality(Choice_Quality->GetStringSelection().ToStdString());
+    _screenMap->SetDelay(wxAtof(TextCtrl_Delay->GetValue()) * 1000);
+}
+
+void PlayListItemScreenMapPanel::SizeChange(int x, int y, int w, int h)
+{
+    SpinCtrl_X->SetValue(x);
+    SpinCtrl_Y->SetValue(y);
+    SpinCtrl_Width->SetValue(w);
+    SpinCtrl_Height->SetValue(h);
 }
 
 void PlayListItemScreenMapPanel::ValidateWindow()
@@ -245,5 +443,5 @@ void PlayListItemScreenMapPanel::OnCheckBox_RescaleClick(wxCommandEvent& event)
 
 void PlayListItemScreenMapPanel::OnSpinCtrl_PosChange(wxSpinEvent& event)
 {
-    _outlineWindow->DoSetSize(SpinCtrl_X->GetValue(), SpinCtrl_Y->GetValue(), SpinCtrl_Width->GetValue(), SpinCtrl_Height->GetValue());
+    _outlineWindow->DoSetSize(SpinCtrl_X->GetValue(), SpinCtrl_Y->GetValue(), SpinCtrl_Width->GetValue(), SpinCtrl_Height->GetValue(), false);
 }

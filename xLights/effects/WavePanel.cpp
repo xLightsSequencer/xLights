@@ -190,7 +190,7 @@ WavePanel::WavePanel(wxWindow* parent)
 	FlexGridSizer5->Add(Slider_Y_Offset, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Wave_YOffsetVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Wave_YOffset, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Wave_YOffset"));
 	FlexGridSizer5->Add(BitmapButton_Wave_YOffsetVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer51->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer51->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
 	TextCtrl1 = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Wave_YOffset, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Wave_YOffset"));
 	TextCtrl1->SetMaxLength(4);
 	FlexGridSizer51->Add(TextCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

@@ -8,6 +8,8 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 #include <functional>
+#include "xLightsVersion.h"
+#include "UtilFunctions.h"
 
 #pragma region RenderCache
 
@@ -36,16 +38,25 @@ private:
         wxArrayString files;
         dir.GetAllFiles(cacheFolder, &files, "*.cache");
 
-        for (auto it = files.begin(); it != files.end(); ++it)
+        for (auto it : files)
         {
-            auto rci = new RenderCacheItem(_cache, *it);
+            // allow up to 3 times physical memory
+            // This means the render cache will be swapped out ... but I think that is still better than re-rendering
+            // Abandon loading render cache if we use too much memory
+            if (IsExcessiveMemoryUsage(3.0))
+            {
+                logger_base.warn("Render cache loading abandoned due to too much memory use.");
+                break;
+            }
+
+            auto rci = new RenderCacheItem(_cache, it);
             if (rci != nullptr && !rci->IsPurged())
             {
                 _cache->AddCacheItem(rci);
             }
             else
             {
-                logger_base.warn("Failed to load cache item %s.", (const char*)it->c_str());
+                logger_base.warn("Failed to load cache item %s.", (const char*)it.c_str());
             }
         }
 
@@ -69,7 +80,11 @@ RenderCache::~RenderCache()
 void RenderCache::LoadCache()
 {
     // the thread self deletes so we dont need to track it
-    new RenderCacheLoadThread(this);
+    if (IsEnabled())
+    {
+        wxASSERT(GetBitness() != "32bit");
+        new RenderCacheLoadThread(this);
+    }
 }
 
 void RenderCache::AddCacheItem(RenderCacheItem* rci)
@@ -94,8 +109,15 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
             _cacheFolder = path + wxFileName::GetPathSeparator() + "RenderCache" + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
             if (wxDir::Exists(_cacheFolder))
             {
-                logger_base.debug("Render cache disabled so removing folder %s.", (const char *)_cacheFolder.c_str());
-                wxDir::Remove(_cacheFolder, wxPATH_RMDIR_RECURSIVE);
+                if (GetBitness() == "32bit")
+                {
+                    logger_base.debug("Render cache disabled but NOT removing folder %s as this is the 32 bt version.", (const char *)_cacheFolder.c_str());
+                }
+                else
+                {
+                    logger_base.debug("Render cache disabled so removing folder %s.", (const char *)_cacheFolder.c_str());
+                    wxDir::Remove(_cacheFolder, wxPATH_RMDIR_RECURSIVE);
+                }
             }
         }
         return;
@@ -139,24 +161,25 @@ void RenderCache::RemoveItem(RenderCacheItem *item) {
 
 bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!IsEnabled()) return false;
 
     bool locked = false;
 
-    for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it) {
+    for (auto it : effect->GetSettings()) {
         // we cant cache effects with canvas turned on
-        if (it->first == "T_CHECKBOX_Canvas" && it->second == "1") {
+        if (it.first == "T_CHECKBOX_Canvas" && it.second == "1") {
             return false;
         }
 
         // we also shouldnt cache effects with persistent turned on
-        if (it->first == "B_CHECKBOX_OverlayBkg" && it->second == "1") {
+        if (it.first == "B_CHECKBOX_OverlayBkg" && it.second == "1") {
             return false;
         }
 
         if (_enabled == "Locked Only")
         {
-            if (it->first == "X_Effect_Locked" && it->second == "True") {
+            if (it.first == "X_Effect_Locked" && it.second == "True") {
                 locked = true;
             }
         }
@@ -164,6 +187,15 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 
     if (_enabled == "Locked Only" && !locked)
     {
+        return false;
+    }
+
+    // allow up to 3 times physical memory
+    // This means the render cache will be swapped out ... but I think that is still better than re-rendering
+    if (IsExcessiveMemoryUsage(3.0))
+    {
+        logger_base.error("RenderCache::IsEffectOkForCaching failed memory available test. This is a bad sign. Rendering will be really slow.");
+        wxASSERT(false);
         return false;
     }
 
@@ -198,6 +230,8 @@ void RenderCache::Close()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    if (_cacheFolder == "") return;
+
     logger_base.debug("Closing render cache folder %s.", (const char *)_cacheFolder.c_str());
 
     {
@@ -205,8 +239,12 @@ void RenderCache::Close()
         std::unique_lock<std::mutex> lock(_loadMutex);
     }
 
+    logger_base.debug("    Got lock.");
+
     Purge(nullptr, false);
     _cacheFolder = "";
+
+    logger_base.debug("    Closed.");
 }
 
 static bool doOnEffectsInternal(Element *em, std::function<bool(Effect*)>& func) {
@@ -468,10 +506,37 @@ void RenderCacheItem::Delete()
 
 void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (buffer == nullptr)
+    {
+        logger_base.error("RenderCacheItem::AddFrame was passed a null buffer");
+        return;
+    }
+    
+    if (buffer->pixels.size() == 0)
+    {
+        logger_base.error("RenderCacheItem::AddFrame was passed a buffer with no pixels in it");
+        return;
+    }
+
+    if (_purged)
+    {
+        return;
+    }
+
+    // allow up to 3 times physical memory
+    // This means the render cache will be swapped out ... but I think that is still better than re-rendering
+    if (IsExcessiveMemoryUsage(3.0))
+    {
+        logger_base.error("RenderCacheItem::AddFrame failed memory available test. This is a bad sign. Rendering will be really slow.");
+        PurgeFrames();
+        wxASSERT(false);
+        return;
+    }
+
     int frame = buffer->curPeriod - buffer->curEffStartPer;
 
     std::string mname = GetModelName(buffer);
-
     if (_frameSize.find(mname) == _frameSize.end())
     {
         _frameSize[mname] = sizeof(xlColor) * buffer->pixels.size();
@@ -481,6 +546,8 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
         if (_frameSize[mname] != sizeof(xlColor) * buffer->pixels.size())
         {
             // the buffer size has changed ... we dont support this.
+            logger_base.warn("RenderCacheItem::AddFrame buffer size changed ... we dont support this.");
+            PurgeFrames();
             return;
         }
     }
@@ -492,11 +559,18 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     }
 
     if (frame >= _frames.at(mname).size()) {
-        int maxframe = buffer->curEffEndPer - buffer->curEffStartPer + 1;
+        int maxframe = std::max(frame+1,buffer->curEffEndPer - buffer->curEffStartPer + 1);
         _frames.at(mname).resize(maxframe);
     }
 
     unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize.at(mname));
+    if (frameBuffer == nullptr)
+    {
+        logger_base.warn("RenderCacheItem::AddFrame failed to allocate frameBuffer.");
+        PurgeFrames();
+        wxASSERT(false);
+        return;
+    }
     memcpy(frameBuffer, &buffer->pixels[0], _frameSize.at(mname));
 
     if (_frames.at(mname)[frame] != nullptr) {
@@ -510,9 +584,13 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     if (buffer->curPeriod == buffer->curEffEndPer)
     {
         // if multi models in this cache then only call save when none of them have null pointers at the end
-        for (auto itm = _frames.begin(); itm != _frames.end(); ++itm)
+        for (auto itm : _frames)
         {
-            if (itm->second.back() == nullptr) return;
+            if (itm.second.back() == nullptr)
+            {
+                //logger_base.warn("RenderCacheItem::AddFrame save abandoned due to null frame.");
+                return;
+            }
         }
 
         Save();
@@ -681,6 +759,14 @@ RenderCacheItem::RenderCacheItem(RenderCache* renderCache, const std::string& fi
         {
             for (int i = 0; i < itm->second.size(); i++) {
                 unsigned char* frameBuffer = (unsigned char *)malloc(_frameSize.at(itm->first));
+
+                if (frameBuffer == nullptr)
+                {
+                    file.Close();
+                    PurgeFrames();
+                    return;
+                }
+
                 file.Read(frameBuffer, _frameSize.at(itm->first));
                 itm->second[i] = frameBuffer;
             }

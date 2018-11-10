@@ -66,6 +66,8 @@
 #include "../include/channelblock-icon-64.xpm"
 #include "../include/circle-icon-16.xpm"
 #include "../include/circle-icon-64.xpm"
+#include "../include/cube-icon-16.xpm"
+#include "../include/cube-icon-64.xpm"
 #include "../include/custom-icon-16.xpm"
 #include "../include/custom-icon-64.xpm"
 #include "../include/dmx-icon-16.xpm"
@@ -78,6 +80,8 @@
 #include "../include/matrix-icon-64.xpm"
 #include "../include/poly-icon-16.xpm"
 #include "../include/poly-icon-64.xpm"
+#include "../include/sphere-icon-16.xpm"
+#include "../include/sphere-icon-64.xpm"
 #include "../include/spinner-icon-16.xpm"
 #include "../include/spinner-icon-64.xpm"
 #include "../include/star-icon-16.xpm"
@@ -327,6 +331,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(24, false, id, layers2_16, layers2_24, layers2_32, layers2_48, layers2_64);
     } else if ("xlART_EFFECTSETTINGS" == id) {
         return effectBitmaps.get(24, false, id, effsettings_16, effsettings_24, effsettings_32, effsettings_48, effsettings_64);
+    } else if ("xlART_EFFECTASSISTANT" == id) {
+        return effectBitmaps.get(24, false, id, effassistant_64, effassistant_24, effassistant_32, effassistant_48, effassistant_64);
     } else if ("xlART_MODEL_PREVIEW" == id) {
         return effectBitmaps.get(24, false, id, model_preview_16, model_preview_24, model_preview_32, model_preview_48, model_preview_64);
     } else if ("xlART_HOUSE_PREVIEW" == id) {
@@ -407,6 +413,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(16, false, id, circle_icon_16_xpm, circle_icon_16_xpm, circle_icon_64_xpm, circle_icon_64_xpm, circle_icon_64_xpm);
     } else if ("xlART_CHANNELBLOCK_ICON" == id) {
         return effectBitmaps.get(16, false, id, channelblock_icon_16_xpm, channelblock_icon_16_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm);
+    } else if ("xlART_CUBE_ICON" == id) {
+        return effectBitmaps.get(16, false, id, cube_icon_16_xpm, cube_icon_16_xpm, cube_icon_64_xpm, cube_icon_64_xpm, cube_icon_64_xpm);
     } else if ("xlART_CUSTOM_ICON" == id) {
         return effectBitmaps.get(16, false, id, custom_icon_16_xpm, custom_icon_16_xpm, custom_icon_64_xpm, custom_icon_64_xpm, custom_icon_64_xpm);
     } else if ("xlART_DMX_ICON" == id) {
@@ -419,6 +427,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(16, false, id, matrix_icon_16_xpm, matrix_icon_16_xpm, matrix_icon_64_xpm, matrix_icon_64_xpm, matrix_icon_64_xpm);
     } else if ("xlART_POLY_ICON" == id) {
         return effectBitmaps.get(16, false, id, poly_icon_16_xpm, poly_icon_16_xpm, poly_icon_64_xpm, poly_icon_64_xpm, poly_icon_64_xpm);
+    } else if ("xlART_SPHERE_ICON" == id) {
+        return effectBitmaps.get(16, false, id, sphere_icon_16_xpm, sphere_icon_16_xpm, sphere_icon_64_xpm, sphere_icon_64_xpm, sphere_icon_64_xpm);
     } else if ("xlART_SPINNER_ICON" == id) {
         return effectBitmaps.get(16, false, id, spinner_icon_16_xpm, spinner_icon_16_xpm, spinner_icon_64_xpm, spinner_icon_64_xpm, spinner_icon_64_xpm);
     } else if ("xlART_STAR_ICON" == id) {

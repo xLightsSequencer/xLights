@@ -5,11 +5,11 @@
 #include <wx/wx.h>
 #include "Schedule.h"
 #include "CommandManager.h"
-#include "OSCPacket.h"
-#include "FSEQFile.h"
 #include <wx/socket.h>
 #include <wx/thread.h>
 #include "wxMIDI/src/wxMidi.h"
+#include "Blend.h"
+#include "SyncManager.h"
 
 class PlayListItemText;
 class ScheduleOptions;
@@ -18,43 +18,28 @@ class OutputManager;
 class RunningSchedule;
 class PlayListStep;
 class OutputProcess;
-class Xyzzy;
+class XyzzyBase;
 class PlayListItem;
 class xScheduleFrame;
 class Pinger;
 class ListenerManager;
 
-typedef enum
-{
-    STANDALONE,
-    FPPMASTER,
-    FPPSLAVE,
-    FPPUNICASTSLAVE,
-    ARTNETMASTER,
-    ARTNETSLAVE,
-    OSCMASTER,
-    FPPOSCMASTER,
-    OSCSLAVE,
-    MIDIMASTER,
-    MIDISLAVE
-} SYNCMODE;
-
 class PixelData
 {
     size_t _startChannel;
     size_t _size;
-    wxByte* _data;
+    uint8_t* _data;
     APPLYMETHOD _blendMode;
 
-    void ExtractData(const std::string& data);
+    void ExtractData(const wxString& data);
 
 public:
-    PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode);
+    PixelData(size_t startChannel, const wxString& data, APPLYMETHOD blendMode);
     PixelData(size_t startChannel, size_t channels, const wxColor& c, APPLYMETHOD blendMode);
     virtual ~PixelData();
-    void Set(wxByte* buffer, size_t size);
+    void Set(uint8_t* buffer, size_t size);
     void SetColor(const wxColor& c, APPLYMETHOD blendMode);
-    void SetData(const std::string& data, APPLYMETHOD blendMode);
+    void SetData(const wxString& data, APPLYMETHOD blendMode);
     long GetSize() const { return _size; }
     size_t GetStartChannel() const { return _startChannel; }
 };
@@ -62,7 +47,7 @@ public:
 class ActionMessageData
 {
 public:
-    ActionMessageData(std::string command, std::string parameters, std::string data)
+    ActionMessageData(wxString command, wxString parameters, wxString data)
     {
         _command = command;
         _parameters = parameters;
@@ -75,7 +60,9 @@ public:
 
 class ScheduleManager
 {
-    SYNCMODE _mode;
+    int _mode = (int)SYNCMODE::STANDALONE;
+    REMOTEMODE _remoteMode = REMOTEMODE::DISABLED;
+    bool _testMode = false;
     int _manualOTL;
     std::string _showDir;
     int _lastSavedChangeCount;
@@ -83,61 +70,51 @@ class ScheduleManager
 	std::list<PlayList*> _playLists;
     ScheduleOptions* _scheduleOptions;
     OutputManager* _outputManager;
-    wxByte* _buffer;
+    uint8_t* _buffer = nullptr;
     wxUint32 _startTime;
-    PlayList* _immediatePlay;
-    PlayList* _backgroundPlayList;
+    PlayList* _immediatePlay = nullptr;
+    PlayList* _backgroundPlayList = nullptr;
     std::list<PlayList*> _eventPlayLists;
+    int _overrideMS = 0;
     std::list<PixelData*> _overlayData;
     CommandManager _commandManager;
-    PlayList* _queuedSongs;
+    PlayList* _queuedSongs = nullptr;
     std::list<RunningSchedule*> _activeSchedules;
     wxThreadIdType _mainThread;
     int _brightness;
     int _lastBrightness;
-    wxByte _brightnessArray[256];
-    wxMidiOutDevice* _midiMaster;
-    wxDatagramSocket* _fppSyncMaster;
-    wxDatagramSocket* _artNetSyncMaster;
-    wxDatagramSocket* _oscSyncMaster;
-    wxDatagramSocket* _fppSyncMasterUnicast;
-    wxDatagramSocket* _oscSyncSlave;
+    uint8_t _brightnessArray[256];
+    wxMidiOutDevice* _midiMaster = nullptr;
+    wxDatagramSocket* _fppSyncMaster = nullptr;
+    wxDatagramSocket* _artNetSyncMaster = nullptr;
+    wxDatagramSocket* _fppSyncMasterUnicast = nullptr;
     std::list<OutputProcess*> _outputProcessing;
-    ListenerManager* _listenerManager;
-    Xyzzy* _xyzzy;
+    ListenerManager* _listenerManager = nullptr;
+    XyzzyBase* _xyzzy;
     wxDateTime _lastXyzzyCommand;
     int _timerAdjustment;
     bool _webRequestToggle;
-    Pinger* _pinger;
+    Pinger* _pinger = nullptr;
+    std::unique_ptr<SyncManager> _syncManager = nullptr;
 
     void DisableRemoteOutputs();
     std::string GetPingStatus();
-    void SendOSC(const OSCPacket& osc);
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
-    void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
-    void SendARTNetSync(size_t msec, size_t frameMS);
-    void SendMIDISync(size_t msec, size_t frameMS);
-    void SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS);
-    void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
-    void CloseFPPSyncSendSocket();
-    void CloseARTNetSyncSendSocket();
-    void CloseOSCSyncSendSocket();
-    void CloseMIDIMaster();
     void ManageBackground();
-    bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
+    bool DoText(PlayListItemText* pliText, const wxString& text, const wxString& properties);
     void StartVirtualMatrices();
     void StopVirtualMatrices();
-    void StartFSEQ(const std::string fseq);
     void StartStep(const std::string stepName);
     void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
+    void TestFrame(uint8_t* buffer, long totalChannels, long msec);
 
     public:
 
         void SetPinger(Pinger* pinger) { _pinger = pinger; }
-        void SetMode(SYNCMODE mode);
-        SYNCMODE GetMode() const { return _mode; }
+        void SetMode(int mode, REMOTEMODE remote);
+        void GetMode(int& mode, REMOTEMODE& remote) const { mode = _mode; remote = _remoteMode; }
         void ToggleMute();
         void SetVolume(int volume);
         void AdjustVolumeBy(int volume);
@@ -148,10 +125,7 @@ class ScheduleManager
         void ManualOutputToLightsClick(xScheduleFrame* frame);
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
-        void OpenMIDIMaster();
-        void OpenFPPSyncSendSocket();
-        void OpenARTNetSyncSendSocket();
-        void OpenOSCSyncSendSocket();
+        const SyncManager* GetSyncManager() const { return _syncManager.get(); }
         int GetTimerAdjustment() const { return _timerAdjustment; }
         std::string GetOurIP() const;
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }
@@ -179,11 +153,12 @@ class ScheduleManager
         std::string GetStatus() const;
 		static std::string GetScheduleFile() { return "xlights.xschedule"; }
 		void Save();
-        void StopAll();
+        void StopAll(bool sustain = false);
         void AddPlayList(PlayList* playlist);
         bool IsQueuedPlaylistRunning() const;
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
+        PlayList* GetRunningPlayList(int id) const;
         std::list<PlayList*> GetPlayLists();
         std::list<Command*> GetCommands() const { return _commandManager.GetCommands(); }
         Command* GetCommand(std::string command) const { return _commandManager.GetCommand(command); }
@@ -192,33 +167,35 @@ class ScheduleManager
         int GetBrightness() const { return _brightness; }
         void AdjustBrightness(int by) { _brightness += by; if (_brightness < 0) _brightness = 0; else if (_brightness > 100) _brightness = 100; }
         void SetBrightness(int brightness) { if (brightness < 0) _brightness = 0; else if (brightness > 100) _brightness = 100; else _brightness = brightness; }
-        int Frame(bool outputframe); // called when a frame needs to be displayed ... returns desired frame rate
+        int Frame(bool outputframe, xScheduleFrame* frame); // called when a frame needs to be displayed ... returns desired frame rate
         int CheckSchedule();
         std::string GetShowDir() const { return _showDir; }
         bool PlayPlayList(PlayList* playlist, size_t& rate, bool loop = false, const std::string& step = "", bool forcelast = false, int loops = -1, bool random = false, int steploops = -1);
         bool IsSomethingPlaying() const { return GetRunningPlayList() != nullptr; }
         void OptionsChanged() { _changeCount++; };
         void OutputProcessingChanged() { _changeCount++; };
-        bool Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
-        bool Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
-        bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference);
+        bool Action(const wxString& label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
+        bool Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg);
+        bool Query(const wxString& command, const wxString& parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference);
+        bool IsQuery(const wxString& command);
         PlayList * GetPlayList(const std::string& playlist) const;
-        void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
-        bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
-        bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
-        bool ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive);
+        void StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain = false);
+        bool StoreData(const wxString& key, const wxString& data, wxString& msg) const;
+        bool RetrieveData(const wxString& key, wxString& data, wxString& msg) const;
+        bool ToggleOutputToLights(xScheduleFrame* frame, wxString& msg, bool interactive);
         void SuppressVM(bool suppress);
-        bool ToggleCurrentPlayListRandom(std::string& msg);
-        bool ToggleCurrentPlayListPause(std::string& msg);
-        bool ToggleCurrentPlayListLoop(std::string& msg);
-        bool ToggleCurrentPlayListStepLoop(std::string& msg);
+        bool ToggleCurrentPlayListRandom(wxString& msg);
+        bool ToggleCurrentPlayListPause(wxString& msg);
+        bool ToggleCurrentPlayListLoop(wxString& msg);
+        bool ToggleCurrentPlayListStepLoop(wxString& msg);
         bool IsOutputToLights() const;
         bool IsCurrentPlayListScheduled() const { return _immediatePlay == nullptr && GetRunningPlayList() != _queuedSongs; }
         void SetOutputToLights(xScheduleFrame* frame, bool otl, bool interactive);
         void CheckScheduleIntegrity(bool display);
         void ImportxLightsSchedule(const std::string& filename);
-        bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
+        bool DoXyzzy(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference);
         PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
+        std::string FindStepForFSEQ(const std::string& fseq) const;
         std::string DecodePlayList(const std::string& playlistparameter);
         std::string DecodeStep(const std::string& stepparameter);
         std::string DecodeSchedule(const std::string& scheduleparameter);
@@ -230,6 +207,10 @@ class ScheduleManager
         int GetPPS() const;
         void StartListeners();
         int Sync(const std::string& filename, long ms);
+        int DoSync(const std::string& filename, long ms);
+        bool IsSlave() const;
+        bool IsFPPRemoteOrMaster() const;
+        bool IsTest() const;
+        void SetTestMode(bool test) { _testMode = test; }
 };
-
 #endif

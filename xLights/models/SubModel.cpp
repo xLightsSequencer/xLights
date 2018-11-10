@@ -5,10 +5,9 @@
 
 #include <log4cpp/Category.hh>
 
-SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(p) {
+SubModel::SubModel(Model* p, wxXmlNode* n) : Model(p->GetModelManager()), parent(p) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+    _nodesAllValid = true;
     ModelXml = n;
     StrobeRate = 0;
     Nodes.clear();
@@ -19,6 +18,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     parm2 = 1;
     parm3 = 1;
 
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
 
     bool vert = n->GetAttribute("layout") == "vertical";
@@ -43,7 +43,8 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                     int idx = valstr.Index('-');
                     start = wxAtoi(valstr.Left(idx));
                     end = wxAtoi(valstr.Right(valstr.size() - idx - 1));
-                } else {
+                }
+                else {
                     start = end = wxAtoi(valstr);
                 }
                 if (start == 0)
@@ -63,7 +64,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                     int nn = start;
                     while (!done) {
                         if (nn < p->GetNodeCount()) {
-                            NodeBaseClass *node = p->Nodes[nn]->clone();
+                            NodeBaseClass* node = p->Nodes[nn]->clone();
                             startChannel = (std::min)(startChannel, node->ActChan);
                             Nodes.push_back(NodeBaseClassPtr(node));
                             for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
@@ -76,6 +77,10 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
                             else {
                                 col++;
                             }
+                        }
+                        else
+                        {
+                            _nodesAllValid = false;
                         }
                         if (start > end) {
                             nn--;
@@ -90,7 +95,8 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
             }
             if (vert) {
                 row--;
-            } else {
+            }
+            else {
                 col--;
             }
             if (maxRow < row) {
@@ -102,14 +108,16 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
             if (vert) {
                 row = 0;
                 col++;
-            } else {
+            }
+            else {
                 col = 0;
                 row++;
             }
             line++;
         }
         SetBufferSize(maxRow + 1, maxCol + 1);
-    } else {
+    }
+    else {
         wxString range = n->GetAttribute("subBuffer");
         float x1 = 0;
         float x2 = 100;
@@ -126,10 +134,10 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
         if (x1 > x2) std::swap(x1, x2);
         if (y1 > y2) std::swap(y1, y2);
 
-        x1 *= (float) p->GetDefaultBufferWi();
-        x2 *= (float) p->GetDefaultBufferWi();
-        y1 *= (float) p->GetDefaultBufferHt();
-        y2 *= (float) p->GetDefaultBufferHt();
+        x1 *= (float)p->GetDefaultBufferWi();
+        x2 *= (float)p->GetDefaultBufferWi();
+        y1 *= (float)p->GetDefaultBufferHt();
+        y2 *= (float)p->GetDefaultBufferHt();
         x1 /= 100.0;
         x2 /= 100.0;
         y1 /= 100.0;
@@ -159,7 +167,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
 
         for (int m = 0; m < nn; m++) {
             if (p->IsNodeInBufferRange(m, x1, y1, x2, y2)) {
-                NodeBaseClass *node = p->Nodes[m]->clone();
+                NodeBaseClass* node = p->Nodes[m]->clone();
                 startChannel = (std::min)(startChannel, node->ActChan);
                 Nodes.push_back(NodeBaseClassPtr(node));
                 for (auto c = node->Coords.begin(); c != node->Coords.end(); ++c) {
@@ -169,20 +177,22 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
             }
         }
 
-
         if (maxx < minx || maxy < miny || Nodes.size() == 0) {
             // invalid buffer, set it to just a 1x1 as 0x0 can cause some render issues
             SetBufferSize(1, 1);
-        } else {
-            x2 = int(std::ceil(maxx - minx))+1;
-            y2 = int(std::ceil(maxy - miny))+1;
+        }
+        else {
+            x2 = int(std::ceil(maxx - minx)) + 1;
+            y2 = int(std::ceil(maxy - miny)) + 1;
             SetBufferSize(y2, x2);
         }
     }
     //ModelStartChannel is 1 based
     this->ModelStartChannel = wxString::Format("%u", (startChannel + 1));
-}
 
-void SubModel::AddProperties(wxPropertyGridInterface *grid) {
+    // inheret pixel properties from parent model
+    pixelStyle = p->pixelStyle;
+    transparency = p->transparency;
+    blackTransparency = p->blackTransparency;
+    pixelSize = p->pixelSize;
 }
-

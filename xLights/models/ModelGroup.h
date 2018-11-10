@@ -11,15 +11,20 @@ class ModelManager;
 class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
+
+        static bool AllModelsExist(wxXmlNode* node, const ModelManager& models);
+        static bool RemoveNonExistentModels(wxXmlNode* node, const std::list<std::string>& allmodels);
+
         ModelGroup(wxXmlNode *node, const ModelManager &manager, int previewW, int previewH);
         virtual ~ModelGroup();
 
-        virtual unsigned int GetFirstChannel() override;
-        virtual unsigned int GetLastChannel() override;
+        virtual unsigned int GetFirstChannel() const override;
+        virtual unsigned int GetLastChannel() const override;
         void ModelRemoved(const std::string &name);
         virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);
         void AddModel(const std::string &name);
+        int GetGridSize() const;
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
@@ -32,8 +37,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetModelCount() const { return models.size(); }
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
-        virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }

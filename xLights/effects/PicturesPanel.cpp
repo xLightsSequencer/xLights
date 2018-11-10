@@ -157,7 +157,7 @@ PicturesPanel::PicturesPanel(wxWindow* parent)
 	FlexGridSizer31->Add(BitmapButton_PicturesSpeed, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText96 = new wxStaticText(this, ID_STATICTEXT_Pictures_FrameRateAdj, _("Frame Rate Adj"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Pictures_FrameRateAdj"));
 	FlexGridSizer31->Add(StaticText96, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
-	Slider_Pictures_FR = new BulkEditSliderF1(this, IDD_SLIDER_Pictures_FrameRateAdj, 10, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_FrameRateAdj"));
+	Slider_Pictures_FR = new BulkEditSliderF1(this, IDD_SLIDER_Pictures_FrameRateAdj, 10, 0, 200, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Pictures_FrameRateAdj"));
 	FlexGridSizer31->Add(Slider_Pictures_FR, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_Pictures_FR = new BulkEditTextCtrlF1(this, ID_TEXTCTRL_Pictures_FrameRateAdj, _("1.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Pictures_FrameRateAdj"));
 	TextCtrl_Pictures_FR->SetMaxLength(4);

@@ -7,7 +7,7 @@
 #include <string>
 #include <mutex>
 
-#include "ColorCurve.h"
+#include "../ColorCurve.h" // This needs to be here
 #include "../UtilClasses.h"
 #include "../DrawGLUtils.h"
 #include "../Color.h"
@@ -18,6 +18,7 @@ class RenderCacheItem;
 class RenderBuffer;
 class RenderCache;
 class Model;
+class RenderableEffect;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -46,6 +47,7 @@ class Effect
     xlColorCurveVector mCC;
     DrawGLUtils::xlDisplayList background;
     RenderCacheItem *mCache;
+    wxLongLong _timeToDelete = 0;
 
     Effect() {}  //don't allow default or copy constructor
     Effect(const Effect &e) {}
@@ -58,6 +60,9 @@ public:
 
     int GetID() const { return mID; }
     void SetID(int i) { mID = i; }
+
+    bool IsTimeToDelete() const;
+    void SetTimeToDelete();
 
     int GetEffectIndex() const { return mEffectIndex; }
     void SetEffectIndex(int effectIndex);
@@ -72,7 +77,9 @@ public:
     void SetStartTimeMS(int startTimeMS);
     int GetEndTimeMS() const { return mEndTime; }
     void SetEndTimeMS(int endTimeMS);
-    bool OverlapsWith(int startTimeMS, int EndTimeMS);
+    bool OverlapsWith(int startTimeMS, int EndTimeMS) const;
+
+    void ConvertTo(int effectIndex);
 
     int GetSelected() const { return mSelected; }
     void SetSelected(int selected) { mSelected = selected; }
@@ -95,6 +102,7 @@ public:
     std::string GetSettingsAsString() const;
     void SetSettings(const std::string &settings, bool keepxsettings);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
+    void PressButton(RenderableEffect* re, const std::string& id);
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
     void FixBuffer(const Model* m);
@@ -128,7 +136,7 @@ public:
         return &mColorMask;
     }
     void SetColorMask(xlColor colorMask) { mColorMask = colorMask; }
-    
+
     //gets the cached frame.   Returns true if the frame was filled into the buffer
     bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);

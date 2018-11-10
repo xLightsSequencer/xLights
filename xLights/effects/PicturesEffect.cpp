@@ -39,27 +39,46 @@ PicturesEffect::~PicturesEffect()
     //dtor
 }
 
-std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
+    wxLogNull logNo;  // suppress popups from png images. See http://trac.wxwidgets.org/ticket/15331
     std::list<std::string> res;
 
-    wxString PictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
+    wxString pictureFilename = settings.Get("E_FILEPICKER_Pictures_Filename", "");
 
-    if (PictureFilename == "" || !wxFile::Exists(PictureFilename))
+    if (pictureFilename == "" || !wxFile::Exists(pictureFilename))
     {
-        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    ERR: Picture effect cant find image file '%s'. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
     else
     {
-        if (!IsFileInShowDir(xLightsFrame::CurrentDir, PictureFilename.ToStdString()))
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, pictureFilename.ToStdString()))
         {
-            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    WARN: Picture effect image file '%s' not under show directory. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
         }
 
-        int imageCount = wxImage::GetImageCount(PictureFilename);
+        int imageCount = wxImage::GetImageCount(pictureFilename);
         if (imageCount <= 0)
         {
-            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", PictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+            res.push_back(wxString::Format("    ERR: Picture effect '%s' contains no images. Image invalid. Model '%s', Start %s", pictureFilename, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        }
+
+        if (!renderCache)
+        {
+            wxImage i;
+            i.LoadFile(pictureFilename);
+            if (i.IsOk())
+            {
+                int ih = i.GetHeight();
+                int iw = i.GetWidth();
+
+#define IMAGESIZETHRESHOLD 10
+                if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi())
+                {
+                    float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
+                    res.push_back(wxString::Format("    WARN: Picture effect image file '%s' is %.1f times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '%s', Start %s", pictureFilename, scale, model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+                }
+            }
         }
     }
     return res;
@@ -394,11 +413,27 @@ void PicturesEffect::SetDefaultParameters() {
     pp->ValidateWindow();
 }
 
-std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap)
+std::list<std::string> PicturesEffect::GetFileReferences(const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     res.push_back(SettingsMap["E_FILEPICKER_Pictures_Filename"]);
     return res;
+}
+
+bool PicturesEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKER_Pictures_Filename"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKER_Pictures_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Images");
+            rc = true;
+        }
+    }
+
+    return rc;
 }
 
 bool PicturesEffect::IsPictureFile(std::string filename)

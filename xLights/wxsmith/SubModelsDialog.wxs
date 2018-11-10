@@ -16,103 +16,116 @@
 					<growablecols>1</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
-						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-							<minpanesize>200</minpanesize>
-							<orientation>vertical</orientation>
-							<minsize>950,400</minsize>
-							<object class="wxPanel" name="ID_PANEL4" variable="Panel2" member="yes">
-								<minsize>200,-1</minsize>
-								<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
-									<cols>1</cols>
-									<growablecols>0</growablecols>
-									<growablerows>1</growablerows>
-									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-											<label>SubModels:</label>
-										</object>
-										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
+						<object class="wxPanel" name="ID_PANEL4" variable="Panel2" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+								<cols>1</cols>
+								<rows>3</rows>
+								<growablerows>1</growablerows>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+										<label>SubModels:</label>
 									</object>
-									<object class="sizeritem">
-										<object class="wxListCtrl" name="ID_LISTCTRL_SUB_MODELS" variable="ListCtrl_SubModels" member="yes">
-											<size>150,-1</size>
-											<minsize>150,-1</minsize>
-											<style>wxLC_REPORT</style>
-											<handler function="OnListCtrl_SubModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
-											<handler function="OnListCtrl_SubModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
-											<handler function="OnListCtrl_SubModelsKeyDown" entry="EVT_LIST_KEY_DOWN" />
-											<handler function="OnListCtrl_SubModelsColumnClick" entry="EVT_LIST_COL_CLICK" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-										<option>1</option>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxListCtrl" name="ID_LISTCTRL_SUB_MODELS" variable="ListCtrl_SubModels" member="yes">
+										<style>wxLC_REPORT</style>
+										<handler function="OnListCtrl_SubModelsBeginDrag" entry="EVT_LIST_BEGIN_DRAG" />
+										<handler function="OnListCtrl_SubModelsItemSelect" entry="EVT_LIST_ITEM_SELECTED" />
+										<handler function="OnListCtrl_SubModelsKeyDown" entry="EVT_LIST_KEY_DOWN" />
+										<handler function="OnListCtrl_SubModelsColumnClick" entry="EVT_LIST_COL_CLICK" />
 									</object>
-									<object class="sizeritem">
-										<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
-											<cols>3</cols>
-											<rows>2</rows>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON3" variable="AddButton" member="yes">
-													<label>Add</label>
-													<handler function="OnAddButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+										<cols>2</cols>
+										<rows>4</rows>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON3" variable="AddButton" member="yes">
+												<label>Add</label>
+												<handler function="OnAddButtonClick" entry="EVT_BUTTON" />
 											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
-													<label>Delete</label>
-													<handler function="OnDeleteButtonClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTONCOPY" variable="ButtonCopy" member="yes">
-													<label>Copy</label>
-													<handler function="OnButton_Sub_CopyClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON5" variable="Button_Generate" member="yes">
-													<label>Generate</label>
-													<handler function="OnButton_GenerateClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON_COPY_MODEL" variable="ButtonCopyModel" member="yes">
-													<label>Import from Model</label>
-													<handler function="OnButtonCopyModelClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
-											<object class="sizeritem">
-												<object class="wxButton" name="ID_BUTTON_SUB_IMPORT" variable="Button_Sub_Import" member="yes">
-													<label>Import from File</label>
-													<handler function="OnButton_Sub_ImportClick" entry="EVT_BUTTON" />
-												</object>
-												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-												<border>5</border>
-												<option>1</option>
-											</object>
+											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+											<option>1</option>
 										</object>
-										<flag>wxALL|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-										<border>5</border>
-										<option>1</option>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON4" variable="DeleteButton" member="yes">
+												<label>Delete</label>
+												<handler function="OnDeleteButtonClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTONCOPY" variable="ButtonCopy" member="yes">
+												<label>Copy</label>
+												<handler function="OnButton_Sub_CopyClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON5" variable="Button_Generate" member="yes">
+												<label>Generate</label>
+												<handler function="OnButton_GenerateClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_COPY_MODEL" variable="ButtonCopyModel" member="yes">
+												<label>Import from Model</label>
+												<handler function="OnButtonCopyModelClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON_SUB_IMPORT" variable="Button_Sub_Import" member="yes">
+												<label>Import from File</label>
+												<handler function="OnButton_Sub_ImportClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="ID_BUTTON9" variable="Button_importCustom" member="yes">
+												<label>Import Custom</label>
+												<handler function="OnButton_importCustomClick" entry="EVT_BUTTON" />
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<border>5</border>
+											<option>1</option>
+										</object>
 									</object>
+									<flag>wxALL|wxSHAPED|wxFIXED_MINSIZE</flag>
+									<border>5</border>
+									<option>1</option>
 								</object>
 							</object>
+						</object>
+						<flag>wxEXPAND</flag>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
+							<minpanesize>100</minpanesize>
+							<orientation>vertical</orientation>
 							<object class="wxPanel" name="ID_PANEL5" variable="Panel3" member="yes">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 									<cols>1</cols>
@@ -165,7 +178,7 @@
 																				<label>Vertical Buffer Layout</label>
 																				<handler function="OnLayoutCheckboxClick" entry="EVT_CHECKBOX" />
 																			</object>
-																			<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -174,7 +187,7 @@
 																				<label>Reverse Nodes</label>
 																				<handler function="OnButton_ReverseNodesClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
@@ -183,12 +196,12 @@
 																				<label>Reverse Rows</label>
 																				<handler function="OnButton_ReverseRowsClick" entry="EVT_BUTTON" />
 																			</object>
-																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+																			<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 																			<border>5</border>
 																			<option>1</option>
 																		</object>
 																	</object>
-																	<flag>wxALL|wxEXPAND</flag>
+																	<flag>wxALL|wxEXPAND|wxFIXED_MINSIZE</flag>
 																	<border>5</border>
 																	<option>1</option>
 																</object>
@@ -277,7 +290,7 @@
 																	<option>1</option>
 																</object>
 															</object>
-															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE</flag>
 															<option>1</option>
 														</object>
 													</object>
@@ -302,19 +315,14 @@
 									</object>
 								</object>
 							</object>
-						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxPanel" name="ID_PANEL1" variable="ModelPreviewPanelLocation" member="yes">
-							<minsize>100,100d</minsize>
-							<object class="wxFlexGridSizer" variable="PreviewSizer" member="yes">
-								<cols>1</cols>
-								<rows>1</rows>
-								<growablecols>0</growablecols>
-								<growablerows>0</growablerows>
+							<object class="wxPanel" name="ID_PANEL1" variable="ModelPreviewPanelLocation" member="yes">
+								<minsize>100,100d</minsize>
+								<object class="wxFlexGridSizer" variable="PreviewSizer" member="yes">
+									<cols>1</cols>
+									<rows>1</rows>
+									<growablecols>0</growablecols>
+									<growablerows>0</growablerows>
+								</object>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

@@ -1,27 +1,27 @@
-#include "ScheduleManager.h"
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 #include <wx/log.h>
+#include <wx/dir.h>
+#include <wx/file.h>
+#include <wx/config.h>
+#include <wx/sckaddr.h>
+#include <wx/socket.h>
+#include <wx/filename.h>
+#include <wx/mimetype.h>
+
+#include "ScheduleManager.h"
 #include "ScheduleOptions.h"
 #include "PlayList/PlayList.h"
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/outputs/Output.h"
 #include "PlayList/PlayListStep.h"
 #include "RunningSchedule.h"
-#include <log4cpp/Category.hh>
-#include <wx/dir.h>
-#include <wx/file.h>
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/AudioManager.h"
 #include "xScheduleMain.h"
 #include "xScheduleApp.h"
-#include <wx/config.h>
-#include <wx/sckaddr.h>
-#include <wx/socket.h>
 #include "UserButton.h"
 #include "OutputProcess.h"
-#include <wx/filename.h>
-#include <wx/mimetype.h>
 #include "PlayList/PlayListItemAudio.h"
 #include "PlayList/PlayListItemFSEQ.h"
 #include "PlayList/PlayListItemFSEQVideo.h"
@@ -29,13 +29,15 @@
 #include "PlayList/PlayListItemVideo.h"
 #include "Xyzzy.h"
 #include "PlayList/PlayListItemText.h"
-#include "Control.h"
 #include "../xLights/outputs/IPOutput.h"
-#include "../xLights/outputs/ArtNetOutput.h"
 #include "../xLights/UtilFunctions.h"
 #include "Pinger.h"
 #include "events/ListenerManager.h"
-#include "wxMIDI/src/wxMidi.h"
+#include "wxJSON/jsonreader.h"
+
+#include <memory>
+
+#include <log4cpp/Category.hh>
 
 ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir)
 {
@@ -45,6 +47,8 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
+    _syncManager = std::make_unique<SyncManager>(this);
+    _testMode = false;
     _mainThread = wxThread::GetCurrentId();
     _listenerManager = nullptr;
     _pinger = nullptr;
@@ -53,11 +57,9 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _queuedSongs = new PlayList();
     _queuedSongs->SetName("Song Queue");
     _fppSyncMaster = nullptr;
-    _oscSyncMaster = nullptr;
     _midiMaster = nullptr;
     _artNetSyncMaster = nullptr;
     _fppSyncMasterUnicast = nullptr;
-    _oscSyncSlave = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
@@ -72,11 +74,13 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _lastXyzzyCommand = wxDateTime::Now();
     _outputManager = new OutputManager();
 
-    _mode = SYNCMODE::STANDALONE;
+    _mode = (int)SYNCMODE::STANDALONE;
+    _remoteMode = REMOTEMODE::DISABLED;
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr)
     {
-        _mode = (SYNCMODE)config->ReadLong(_("SyncMode"), SYNCMODE::STANDALONE);
+        _mode = config->ReadLong(_("SyncMode"), (int)SYNCMODE::STANDALONE);
+        _remoteMode = (REMOTEMODE)config->ReadLong(_("RemoteMode"), (int)REMOTEMODE::DISABLED);
     }
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
@@ -98,6 +102,9 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             else if (n->GetName() == "Options")
             {
                 _scheduleOptions = new ScheduleOptions(_outputManager, n, GetCommandManager());
+                _outputManager->SetParallelTransmission(_scheduleOptions->IsParallelTransmission());
+                OutputManager::SetRetryOpen(_scheduleOptions->IsRetryOpen());
+                _outputManager->SetSyncEnabled(_scheduleOptions->IsSync());
                 Schedule::SetCity(_scheduleOptions->GetCity());
             }
             else if (n->GetName() == "OutputProcesses")
@@ -132,6 +139,9 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     {
         _scheduleOptions = new ScheduleOptions();
         Schedule::SetCity(_scheduleOptions->GetCity());
+        _outputManager->SetParallelTransmission(_scheduleOptions->IsParallelTransmission());
+        _outputManager->SetSyncEnabled(_scheduleOptions->IsSync());
+        OutputManager::SetRetryOpen(_scheduleOptions->IsRetryOpen());
     }
 
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());
@@ -168,61 +178,11 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 
     _listenerManager = new ListenerManager(this);
 
-    if (_mode == SYNCMODE::FPPMASTER) {
-        logger_base.info("SyncMode: FPPMASTER");
-        OpenFPPSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::OSCMASTER) {
-        logger_base.info("SyncMode: OSCMASTER");
-        OpenOSCSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::FPPOSCMASTER) {
-        logger_base.info("SyncMode: FPPOSCMASTER");
-        OpenFPPSyncSendSocket();
-        OpenOSCSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::MIDIMASTER) {
-        logger_base.info("SyncMode: MIDIMASTER");
-        OpenMIDIMaster();
-    }
-    else if (_mode == SYNCMODE::MIDISLAVE) {
-        logger_base.info("SyncMode: MIDISLAVE");
-        _listenerManager->SetRemoteMIDI();
-    }
-    else if (_mode == SYNCMODE::FPPSLAVE)
-    {
-        logger_base.info("SyncMode: FPPREMOTE");
-        _listenerManager->SetRemoteFPP();
-    }
-    else if (_mode == SYNCMODE::OSCSLAVE)
-    {
-        logger_base.info("SyncMode: OSCREMOTE");
-        _listenerManager->SetRemoteOSC();
-    }
-    else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
-    {
-        logger_base.info("SyncMode: FPPUNICASTREMOTE");
-        _listenerManager->SetRemoteFPPUnicast();
-    }
-    else if (_mode == SYNCMODE::STANDALONE)
-    {
-        logger_base.info("SyncMode: STANDALONE");
-    }
-    else if (_mode == SYNCMODE::ARTNETMASTER)
-    {
-        logger_base.info("SyncMode: ARTNETMASTER");
-        OpenARTNetSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::ARTNETSLAVE)
-    {
-        logger_base.info("SyncMode: ARTNETREMOTE");
-        _listenerManager->SetRemoteArtNet();
-    }
-    _listenerManager->StartListeners();
+    _syncManager->Start(_mode, _remoteMode);
 
     // This is out frame data buffer ... it cannot be resized
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
-    _buffer = (wxByte*)malloc(_outputManager->GetTotalChannels());
+    _buffer = (uint8_t*)malloc(_outputManager->GetTotalChannels());
     memset(_buffer, 0x00, _outputManager->GetTotalChannels());
 }
 
@@ -254,10 +214,23 @@ void ScheduleManager::StartListeners()
 
 int ScheduleManager::Sync(const std::string& filename, long ms)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxCommandEvent event(EVT_SYNC);
+    event.SetString(filename);
+    event.SetInt(ms);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
+    return 50; // this is a problem
+}
 
+int ScheduleManager::DoSync(const std::string& filename, long ms)
+{
+    static log4cpp::Category &logger_sync = log4cpp::Category::getInstance(std::string("log_sync"));
+    //logger_base.debug("DoSync Enter");
+	
     PlayList* pl = GetRunningPlayList();
     PlayListStep* pls = nullptr;
+
+    // adjust the time we received by the desired latency
+    ms += GetOptions()->GetRemoteLatency();
 
     if (filename != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetNameNoTime() == filename)
     {
@@ -267,19 +240,21 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
     else if (filename == "" && pl != nullptr)
     {
         // dont touch the playlist but need to work out which step should be playing
-        PlayListStep* shouldberunning = pl->GetStepAtTime(ms);
+        long stepMS = 0;
+        PlayListStep* shouldberunning = pl->GetStepAtTime(ms, stepMS);
+        ms = stepMS;
         if (shouldberunning != nullptr)
         {
             if (shouldberunning != pl->GetRunningStep())
             {
-                logger_base.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s'.", (const char *)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
+                logger_sync.debug("Remote sync with no filename ... wrong step was running '%s' switching to '%s'.", (const char *)pl->GetRunningStep()->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 wxCommandEvent event2(EVT_SCHEDULECHANGED);
                 wxPostEvent(wxGetApp().GetTopWindow(), event2);
             }
             if (pl->GetRunningStep() != nullptr)
             {
-                pl->GetRunningStep()->SetSyncPosition(ms, true);
+                pl->GetRunningStep()->SetSyncPosition(ms, GetOptions()->GetRemoteAcceptableJitter(), true);
             }
         }
         else
@@ -294,7 +269,7 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
             }
             else
             {
-                logger_base.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
                 pl->Stop();
             }
         }
@@ -303,22 +278,25 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
     {
         if (_playLists.size() > 0)
         {
+            // we only access the first playlist for timecode
             pl = new PlayList(*_playLists.front());
-            PlayListStep* shouldberunning = pl->GetStepAtTime(ms);
+            long stepMS = 0;
+            PlayListStep* shouldberunning = pl->GetStepAtTime(ms, stepMS);
+            ms = stepMS;
             if (shouldberunning == nullptr)
             {
-                logger_base.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
+                logger_sync.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
                 delete pl;
                 pl = nullptr;
             }
             else
             {
-                logger_base.debug("Remote sync with no filename ... starting playlist '%s' step '%s'.", (const char *)pl->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
+                logger_sync.debug("Remote sync with no filename ... starting playlist '%s' step '%s'.", (const char *)pl->GetNameNoTime().c_str(), (const char *)shouldberunning->GetNameNoTime().c_str());
                 pl->Start(false, false, false);
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 if (pl->GetRunningStep() != nullptr)
                 {
-                    pl->GetRunningStep()->SetSyncPosition(ms, true);
+                    pl->GetRunningStep()->SetSyncPosition(ms, GetOptions()->GetRemoteAcceptableJitter(), true);
                 }
                 _immediatePlay = pl;
                 wxCommandEvent event2(EVT_SCHEDULECHANGED);
@@ -327,7 +305,7 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
         }
         else
         {
-            logger_base.warn("Remote sync with no filename ... No playlist found to run.");
+            logger_sync.warn("Remote sync with no filename ... No playlist found to run.");
         }
     }
     else
@@ -353,15 +331,21 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
     {
         if (ms == 0xFFFFFFFF)
         {
-            if (pls->GetName() == filename)
+            if (pls->GetNameNoTime() == filename)
             {
-                StopPlayList(pl, false);
+                wxCommandEvent event(EVT_STOP);
+                event.SetInt(pl->GetId());
+                if (!GetOptions()->IsRemoteAllOff())
+                {
+                    event.SetString("sustain");
+                }
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
         }
         else if (ms == 0xFFFFFFFE)
         {
             // pause
-            if (pls->GetName() == filename)
+            if (pls->GetNameNoTime() == filename)
             {
                 pl->Suspend(true);
             }
@@ -369,29 +353,37 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
         else if (ms == 0xFFFFFFFD)
         {
             // unpause
-            if (pls->GetName() == filename)
+            if (pls->GetNameNoTime() == filename)
             {
                 pl->Suspend(false);
             }
         }
         else
         {
-            pls->SetSyncPosition((size_t)ms, true);
+            pls->SetSyncPosition((size_t)ms, GetOptions()->GetRemoteAcceptableJitter(), true);
         }
     }
 
-    if (pls != nullptr) return pls->GetFrameMS();
-    if (pl != nullptr) return pl->GetFrameMS();
+    if (pls != nullptr)
+    {
+        _listenerManager->SetFrameMS(pls->GetFrameMS());
+        //logger_base.debug("DoSync Leave");
+        return pls->GetFrameMS();
+    }
+    if (pl != nullptr)
+    {
+        _listenerManager->SetFrameMS(pl->GetFrameMS());
+        //logger_base.debug("DoSync Leave");
+        return pl->GetFrameMS();
+    }
+    _listenerManager->SetFrameMS(50);
+    //logger_base.debug("DoSync Leave");
     return 50;
 }
 
 ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    CloseFPPSyncSendSocket();
-    CloseOSCSyncSendSocket();
-    CloseARTNetSyncSendSocket();
-    CloseMIDIMaster();
     AllOff();
     _outputManager->StopOutput();
     StopVirtualMatrices();
@@ -415,7 +407,7 @@ ScheduleManager::~ScheduleManager()
 
     if (_xyzzy != nullptr)
     {
-        std::string(res);
+        wxString res;
         _xyzzy->Close(res, "");
 
         // clear the screen
@@ -481,6 +473,8 @@ ScheduleManager::~ScheduleManager()
 
     delete _scheduleOptions;
     delete _outputManager;
+    _syncManager = nullptr;
+
     free(_buffer);
 
     logger_base.info("Closed schedule.");
@@ -605,6 +599,22 @@ void ScheduleManager::RemovePlayList(PlayList* playlist)
     _changeCount++;
 }
 
+PlayList* ScheduleManager::GetRunningPlayList(int id) const
+{
+    if (_immediatePlay != nullptr && _immediatePlay->IsRunning() && _immediatePlay->GetId() == id)
+    {
+        return _immediatePlay;
+    }
+    for (auto it : _activeSchedules)
+    {
+        if (it->GetPlayList()->GetId() == id)
+        {
+            return it->GetPlayList();
+        }
+    }
+    return nullptr;
+}
+
 PlayList* ScheduleManager::GetRunningPlayList() const
 {
     // find the highest priority running playlist
@@ -629,14 +639,12 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     return running;
 }
 
-void ScheduleManager::StopAll()
+void ScheduleManager::StopAll(bool sustain)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Stopping all playlists.");
 
-    SendFPPSync("", 0xFFFFFFFF, 50);
-    SendMIDISync(0xFFFFFFFF, 50);
-    SendARTNetSync(0xFFFFFFFF, 50);
+    _syncManager->SendStop();
 
     if (_immediatePlay != nullptr)
     {
@@ -663,7 +671,13 @@ void ScheduleManager::StopAll()
         _eventPlayLists.pop_front();
     }
 
-    AllOff();
+    if (!sustain)
+    {
+        if (!IsSlave() || GetOptions()->IsRemoteAllOff())
+        {
+            AllOff();
+        }
+    }
 }
 
 void ScheduleManager::AllOff()
@@ -731,7 +745,7 @@ void ScheduleManager::AllOff()
             CreateBrightnessArray();
         }
 
-        wxByte* pb = _buffer;
+        uint8_t* pb = _buffer;
         for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
         {
             *pb = _brightnessArray[*pb];
@@ -749,7 +763,7 @@ void ScheduleManager::AllOff()
     _outputManager->EndFrame();
 }
 
-int ScheduleManager::Frame(bool outputframe)
+int ScheduleManager::Frame(bool outputframe, xScheduleFrame* frame)
 {
     static bool reentry = false;
     static int oldrate = 50;
@@ -759,6 +773,9 @@ int ScheduleManager::Frame(bool outputframe)
     reentry = true;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    wxStopWatch sw;
+
     int rate = 0;
     long totalChannels = _outputManager->GetTotalChannels();
 
@@ -767,202 +784,332 @@ int ScheduleManager::Frame(bool outputframe)
     {
         logger_base.info("Stopping xyzzy due to timeout.");
 
-        std::string msg;
+        wxString msg;
         DoXyzzy("close", "", msg, "");
     }
 
-    PlayList* running = GetRunningPlayList();
-
-    if (running != nullptr || _xyzzy != nullptr)
+    if (IsTest())
     {
-        rate = 50;
-        std::string fseq = "";
-        std::string media = "";
-
-        if (running != nullptr)
-        {
-            fseq = running->GetActiveSyncItemFSEQ();
-            media = running->GetActiveSyncItemMedia();
-            rate = running->GetFrameMS();
-        }
-
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
 
         if (outputframe)
         {
             memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
             _outputManager->StartFrame(msec);
+            TestFrame(_buffer, totalChannels, msec);
         }
 
-        bool done = false;
-        if (running != nullptr)
+        // apply any output processing
+        for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
         {
-            done = running->Frame(_buffer, totalChannels, outputframe);
+            (*it)->Frame(_buffer, totalChannels);
+        }
 
-            if (outputframe && (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
+        if (outputframe && _brightness < 100)
+        {
+            if (_brightness != _lastBrightness)
             {
-                if (running->GetActiveSyncItemFSEQ() != "")
-                {
-                    SendFPPSync(fseq, running->GetRunningStep()->GetPosition(), rate);
-                }
-                if (running->GetActiveSyncItemMedia() != "")
-                {
-                    SendFPPSync(media, running->GetRunningStep()->GetPosition(), rate);
-                }
+                _lastBrightness = _brightness;
+                CreateBrightnessArray();
             }
 
-            if (outputframe && (_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER)  && running->GetRunningStep() != nullptr)
+            uint8_t* pb = _buffer;
+            for (int i = 0; i < totalChannels; ++i)
             {
-                SendOSCSync(running->GetRunningStep(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
-            }
-
-            if (outputframe && _mode == SYNCMODE::ARTNETMASTER  && running != nullptr)
-            {
-                SendARTNetSync(running->GetPosition(), running->GetFrameMS());
-            }
-
-            if (outputframe && _mode == SYNCMODE::MIDIMASTER  && running != nullptr)
-            {
-                SendMIDISync(running->GetPosition(), running->GetFrameMS());
-            }
-
-            // for queued songs we must remove the queued song when it finishes
-            if (running == _queuedSongs)
-            {
-                if (_queuedSongs->GetRunningStep() != _queuedSongs->GetSteps().front())
-                {
-                    _queuedSongs->RemoveStep(_queuedSongs->GetSteps().front());
-                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
-                    wxPostEvent(wxGetApp().GetTopWindow(), event);
-                    wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                    wxPostEvent(wxGetApp().GetTopWindow(), event2);
-                }
+                *pb = _brightnessArray[*pb];
+                pb++;
             }
         }
 
-        if (_backgroundPlayList != nullptr)
+        auto vm = GetOptions()->GetVirtualMatrices();
+        for (auto it = vm->begin(); it != vm->end(); ++it)
         {
-            if (!_backgroundPlayList->IsRunning())
-            {
-                _backgroundPlayList->Start(true);
-                logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
-            }
-            _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
-        }
-
-        if (_eventPlayLists.size() > 0)
-        {
-            auto it = _eventPlayLists.begin();
-            while (it != _eventPlayLists.end())
-            {
-                if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe))
-                {
-                    auto temp = it;
-                    ++it;
-                    (*temp)->Stop();
-                    delete *temp;
-                    _eventPlayLists.remove(*temp);
-                }
-                else
-                {
-                    ++it;
-                }
-            }
-        }
-
-        if (_xyzzy != nullptr)
-        {
-            _xyzzy->Frame(_buffer, totalChannels, outputframe);
+            (*it)->Frame(_buffer, totalChannels);
         }
 
         if (outputframe)
         {
-            // apply any overlay data
-            for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
-            {
-                (*it)->Set(_buffer, totalChannels);
-            }
-
-            // apply any output processing
-            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            if (outputframe && _brightness < 100)
-            {
-                if (_brightness != _lastBrightness)
-                {
-                    _lastBrightness = _brightness;
-                    CreateBrightnessArray();
-                }
-
-                wxByte* pb = _buffer;
-                for (int i = 0; i < totalChannels; ++i)
-                {
-                    *pb = _brightnessArray[*pb];
-                    pb++;
-                }
-            }
-
-            auto vm = GetOptions()->GetVirtualMatrices();
-            for (auto it = vm->begin(); it != vm->end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            _listenerManager->ProcessFrame(_buffer, totalChannels);
-
             _outputManager->SetManyChannels(0, _buffer, totalChannels);
             _outputManager->EndFrame();
-        }
-
-        if (done)
-        {
-            if (running != nullptr)
-            {
-                SendFPPSync(fseq, 0xFFFFFFFF, rate);
-                SendFPPSync(media, 0xFFFFFFFF, rate);
-                SendARTNetSync(0xFFFFFFFF, rate);
-                SendMIDISync(0xFFFFFFFF, rate);
-
-                // playlist is done
-                if (!running->IsSuspended())
-                {
-                    StopPlayList(running, false);
-                }
-            }
-
-            wxCommandEvent event(EVT_DOCHECKSCHEDULE);
-            wxPostEvent(wxGetApp().GetTopWindow(), event);
-            wxCommandEvent event2(EVT_SCHEDULECHANGED);
-            wxPostEvent(wxGetApp().GetTopWindow(), event2);
         }
     }
     else
     {
-        if (_scheduleOptions->IsSendOffWhenNotRunning())
+        PlayList* running = GetRunningPlayList();
+        if (running != nullptr || _xyzzy != nullptr)
         {
-            if (outputframe)
+            rate = 50;
+            std::string fseq = "";
+            std::string media = "";
+
+            if (running != nullptr)
             {
-                _outputManager->StartFrame(0);
-                _outputManager->AllOff(false);
+                fseq = running->GetActiveSyncItemFSEQ();
+                media = running->GetActiveSyncItemMedia();
+                rate = running->GetFrameMS();
             }
 
-            if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+            long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
+
+            if (outputframe)
             {
-                if (_backgroundPlayList != nullptr)
+                memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
+                _outputManager->StartFrame(msec);
+            }
+
+            bool done = false;
+            if (running != nullptr)
+            {
+                logger_frame.debug("Frame: About to run step frame %ldms", sw.Time());
+                done = running->Frame(_buffer, totalChannels, outputframe);
+                logger_frame.debug("Frame: step frame done %ldms", sw.Time());
+
+                if (running->GetRunningStep() != nullptr)
                 {
-                    if (!_backgroundPlayList->IsRunning())
+                    size_t fms;
+                    std::string tsn = "";
+                    auto ts = running->GetRunningStep()->GetTimeSource(fms);
+                    if (ts != nullptr)
                     {
-                        _backgroundPlayList->Start(true);
-                        logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                        tsn = running->GetRunningStep()->GetTimeSource(fms)->GetNameNoTime();
                     }
-                    _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
+
+                    _syncManager->SendSync(rate , 
+                        running->GetRunningStep()->GetLengthMS(), 
+                        running->GetRunningStep()->GetPosition(), 
+                        running->GetPosition(),
+                        fseq, 
+                        media, 
+                        running->GetRunningStep()->GetNameNoTime(), 
+                        tsn);
                 }
 
+                // for queued songs we must remove the queued song when it finishes
+                if (running == _queuedSongs)
+                {
+                    if (_queuedSongs->GetRunningStep() != _queuedSongs->GetSteps().front())
+                    {
+                        _queuedSongs->RemoveStep(_queuedSongs->GetSteps().front());
+                        wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
+                        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                    }
+                }
+            }
+
+            if (_backgroundPlayList != nullptr)
+            {
+                if (!_backgroundPlayList->IsRunning())
+                {
+                    _backgroundPlayList->Start(true);
+                    logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                }
+                _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
+            }
+
+            if (_eventPlayLists.size() > 0)
+            {
+                auto it = _eventPlayLists.begin();
+                while (it != _eventPlayLists.end())
+                {
+                    if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe))
+                    {
+                        auto temp = it;
+                        ++it;
+                        (*temp)->Stop();
+                        delete *temp;
+                        _eventPlayLists.remove(*temp);
+                    }
+                    else
+                    {
+                        ++it;
+                    }
+                }
+            }
+
+            if (_xyzzy != nullptr)
+            {
+                _xyzzy->Frame(_buffer, totalChannels, outputframe);
+            }
+
+            if (outputframe)
+            {
+                // apply any overlay data
+                for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                {
+                    (*it)->Set(_buffer, totalChannels);
+                }
+
+                frame->ManipulateBuffer(_buffer, totalChannels);
+
+                logger_frame.debug("Frame: Overlay data done %ldms", sw.Time());
+
+                // apply any output processing
+                for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                logger_frame.debug("Frame: Output processing done %ldms", sw.Time());
+
+                if (outputframe && _brightness < 100)
+                {
+                    if (_brightness != _lastBrightness)
+                    {
+                        _lastBrightness = _brightness;
+                        CreateBrightnessArray();
+                    }
+
+                    uint8_t* pb = _buffer;
+                    for (int i = 0; i < totalChannels; ++i)
+                    {
+                        *pb = _brightnessArray[*pb];
+                        pb++;
+                    }
+                }
+
+                logger_frame.debug("Frame: Brightness done %ldms", sw.Time());
+
+                auto vm = GetOptions()->GetVirtualMatrices();
+                for (auto it = vm->begin(); it != vm->end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                logger_frame.debug("Frame: Virtual matrices done %ldms", sw.Time());
+
+                _listenerManager->ProcessFrame(_buffer, totalChannels);
+
+                logger_frame.debug("Frame: Listening done %ldms", sw.Time());
+
+                _outputManager->SetManyChannels(0, _buffer, totalChannels);
+
+                logger_frame.debug("Frame: Data set %ldms", sw.Time());
+
+                _outputManager->EndFrame();
+
+                logger_frame.debug("Frame: Data sent %ldms", sw.Time());
+            }
+
+            if (done)
+            {
+                if (running != nullptr)
+                {
+                    _syncManager->SendStop();
+
+                    // playlist is done
+                    if (!running->IsSuspended())
+                    {
+                        StopPlayList(running, false);
+                    }
+                }
+
+                wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+            }
+        }
+        else
+        {
+            if (_scheduleOptions->IsSendOffWhenNotRunning())
+            {
+                if (outputframe)
+                {
+                    memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
+                    _outputManager->StartFrame(0);
+                    _outputManager->AllOff(false);
+                }
+
+                if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+                {
+                    if (_backgroundPlayList != nullptr)
+                    {
+                        if (!_backgroundPlayList->IsRunning())
+                        {
+                            _backgroundPlayList->Start(true);
+                            logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                        }
+                        _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
+                    }
+
+                    if (_eventPlayLists.size() > 0)
+                    {
+                        auto it = _eventPlayLists.begin();
+                        while (it != _eventPlayLists.end())
+                        {
+                            if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), true))
+                            {
+                                auto temp = it;
+                                ++it;
+                                (*temp)->Stop();
+                                delete *temp;
+                                _eventPlayLists.remove(*temp);
+                            }
+                            else
+                            {
+                                ++it;
+                            }
+                        }
+                    }
+
+                    // apply any overlay data
+                    for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                    {
+                        (*it)->Set(_buffer, totalChannels);
+                    }
+
+                    frame->ManipulateBuffer(_buffer, totalChannels);
+                }
+
+                // apply any output processing
+                for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                if (outputframe && _brightness < 100)
+                {
+                    if (_brightness != _lastBrightness)
+                    {
+                        _lastBrightness = _brightness;
+                        CreateBrightnessArray();
+                    }
+
+                    uint8_t* pb = _buffer;
+                    for (int i = 0; i < totalChannels; ++i)
+                    {
+                        *pb = _brightnessArray[*pb];
+                        pb++;
+                    }
+                }
+
+                auto vm = GetOptions()->GetVirtualMatrices();
+                for (auto it = vm->begin(); it != vm->end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                _listenerManager->ProcessFrame(_buffer, totalChannels);
+
+                if (outputframe)
+                {
+                    _outputManager->SetManyChannels(0, _buffer, totalChannels);
+                    _outputManager->EndFrame();
+                }
+            }
+            else
+            {
                 if (_eventPlayLists.size() > 0)
                 {
+                    if (outputframe)
+                    {
+                        memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
+                        _outputManager->StartFrame(0);
+                        _outputManager->AllOff(false);
+                    }
+
                     auto it = _eventPlayLists.begin();
                     while (it != _eventPlayLists.end())
                     {
@@ -979,119 +1126,84 @@ int ScheduleManager::Frame(bool outputframe)
                             ++it;
                         }
                     }
-                }
 
-                // apply any overlay data
-                for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
-                {
-                    (*it)->Set(_buffer, totalChannels);
-                }
-            }
+                    frame->ManipulateBuffer(_buffer, totalChannels);
 
-            // apply any output processing
-            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            if (outputframe && _brightness < 100)
-            {
-                if (_brightness != _lastBrightness)
-                {
-                    _lastBrightness = _brightness;
-                    CreateBrightnessArray();
-                }
-
-                wxByte* pb = _buffer;
-                for (int i = 0; i < totalChannels; ++i)
-                {
-                    *pb = _brightnessArray[*pb];
-                    pb++;
-                }
-            }
-
-            auto vm = GetOptions()->GetVirtualMatrices();
-            for (auto it = vm->begin(); it != vm->end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            _listenerManager->ProcessFrame(_buffer, totalChannels);
-
-            if (outputframe)
-            {
-                _outputManager->SetManyChannels(0, _buffer, totalChannels);
-                _outputManager->EndFrame();
-            }
-        }
-        else
-        {
-            if (_eventPlayLists.size() > 0)
-            {
-                if (outputframe)
-                {
-                    _outputManager->StartFrame(0);
-                    _outputManager->AllOff(false);
-                }
-
-                auto it = _eventPlayLists.begin();
-                while (it != _eventPlayLists.end())
-                {
-                    if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), true))
+                    // apply any output processing
+                    for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
                     {
-                        auto temp = it;
-                        ++it;
-                        (*temp)->Stop();
-                        delete *temp;
-                        _eventPlayLists.remove(*temp);
-                    }
-                    else
-                    {
-                        ++it;
-                    }
-                }
-
-                // apply any output processing
-                for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
-                {
-                    (*it2)->Frame(_buffer, totalChannels);
-                }
-
-                if (outputframe && _brightness < 100)
-                {
-                    if (_brightness != _lastBrightness)
-                    {
-                        _lastBrightness = _brightness;
-                        CreateBrightnessArray();
+                        (*it2)->Frame(_buffer, totalChannels);
                     }
 
-                    wxByte* pb = _buffer;
-                    for (int i = 0; i < totalChannels; ++i)
+                    if (outputframe && _brightness < 100)
                     {
-                        *pb = _brightnessArray[*pb];
-                        pb++;
+                        if (_brightness != _lastBrightness)
+                        {
+                            _lastBrightness = _brightness;
+                            CreateBrightnessArray();
+                        }
+
+                        uint8_t* pb = _buffer;
+                        for (int i = 0; i < totalChannels; ++i)
+                        {
+                            *pb = _brightnessArray[*pb];
+                            pb++;
+                        }
                     }
-                }
 
-                auto vm = GetOptions()->GetVirtualMatrices();
-                for (auto it2 = vm->begin(); it2 != vm->end(); ++it2)
-                {
-                    (*it2)->Frame(_buffer, totalChannels);
-                }
+                    for (auto it2 :*GetOptions()->GetVirtualMatrices())
+                    {
+                        it2->Frame(_buffer, totalChannels);
+                    }
 
-                if (outputframe)
-                {
-                    _outputManager->SetManyChannels(0, _buffer, totalChannels);
-                    _outputManager->EndFrame();
+                    if (outputframe)
+                    {
+                        _outputManager->SetManyChannels(0, _buffer, totalChannels);
+                        _outputManager->EndFrame();
+                    }
+
+                    if (_eventPlayLists.size() == 0)
+                    {
+                        // last event playlist ended ... turn everything off
+                        _outputManager->AllOff(true);
+                        for (auto& it2 : *GetOptions()->GetVirtualMatrices())
+                        {
+                            it2->AllOff();
+                        }
+                    }
                 }
             }
         }
     }
 
     reentry = false;
+    if (rate == 0) rate = 50;
     oldrate = rate;
 
+    if (_overrideMS != 0)
+    {
+        rate = _overrideMS;
+    }
+
     return rate;
+}
+
+bool ScheduleManager::IsSlave() const
+{
+    if (_syncManager != nullptr)
+    {
+        return _syncManager->IsSlave();
+    }
+    return false;
+}
+
+bool ScheduleManager::IsFPPRemoteOrMaster() const
+{
+    if (_syncManager != nullptr)
+    {
+        return _syncManager->IsFPPRemoteOrMaster();
+    }
+    return false;
 }
 
 void ScheduleManager::CreateBrightnessArray()
@@ -1099,7 +1211,7 @@ void ScheduleManager::CreateBrightnessArray()
     for (size_t i = 0; i < 256; i++)
     {
         int b = (i * _brightness) / 100;
-        _brightnessArray[i] = (wxByte)(b & 0xFF);
+        _brightnessArray[i] = (uint8_t)(b & 0xFF);
     }
 }
 
@@ -1139,6 +1251,7 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
     }
 
     _immediatePlay = new PlayList(*playlist);
+    wxASSERT(_immediatePlay != nullptr);
     _immediatePlay->Start(loop, random, plloops);
     if (step != "")
     {
@@ -1151,6 +1264,9 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
         _immediatePlay->StopAtEndOfCurrentStep();
     }
 
+    // play the zero frame immediately ... this ensures the first frame happens in less than the first frame time
+    Frame(true, ((xScheduleApp*)wxTheApp)->GetFrame());
+
     rate = 25; // always start fast
     return result;
 }
@@ -1162,7 +1278,7 @@ bool compare_runningschedules(const RunningSchedule* first, const RunningSchedul
 
 int ScheduleManager::CheckSchedule()
 {
-    if (_mode == SYNCMODE::FPPSLAVE || _mode == SYNCMODE::FPPUNICASTSLAVE) return 50;
+    if (_syncManager->IsSlave()) return 50;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking the schedule ...");
@@ -1361,14 +1477,40 @@ int ScheduleManager::CheckSchedule()
     }
 
     logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
-    for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
+    for (auto it : _activeSchedules)
     {
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s", 
-            (const char *)(*it)->GetPlayList()->GetName().c_str(), 
-            (const char *)(*it)->GetSchedule()->GetName().c_str(), 
-            (*it)->GetSchedule()->GetPriority(), 
-            (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")),
-            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""));
+        if (it->GetPlayList() != nullptr && it->GetSchedule() != nullptr)
+        {       
+            PlayListStep* step = it->GetPlayList()->GetRunningStep();
+            std::string runstate = it->IsStopped() ? _("Stopped") :
+                it->GetPlayList()->IsRunning() ? _("Running") :
+                it->GetPlayList()->IsSuspended() ? _("Suspended") :
+                _("Done");
+            std::string suspend = it->GetPlayList()->IsSuspended() ? _("Suspended") : _("");
+            std::string stepname = step == nullptr ? _("").ToStdString() : step->GetNameNoTime();
+            std::string pos = std::string(step == nullptr ? _("") : FORMATTIME(step->GetPosition()));
+            std::string len = std::string(step == nullptr ? _("") : FORMATTIME(step->GetLengthMS()));
+
+            logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s",
+                (const char *)it->GetPlayList()->GetName().c_str(),
+                (const char *)it->GetSchedule()->GetName().c_str(),
+                it->GetSchedule()->GetPriority(),
+                (const char*)runstate.c_str(),
+                (const char*)suspend.c_str(),
+                (const char*)stepname.c_str(),
+                (const char*)pos.c_str(),
+                (const char*)len.c_str()
+            );
+        }
+        else
+        {
+            logger_base.error("        Weird playlist or schedule was null.");
+        }
+    }
+
+    if (_overrideMS != 0)
+    {
+        framems = _overrideMS;
     }
 
     return framems;
@@ -1391,6 +1533,25 @@ std::string ScheduleManager::GetStatus() const
     return "Playing " + curr->GetRunningStep()->GetNameNoTime() + " " + curr->GetRunningStep()->GetStatus();
 }
 
+bool ScheduleManager::IsQuery(const wxString& command)
+{
+    wxString c = command.Lower();
+    if (c == "getplaylists" ||
+        c == "getplayliststeps" ||
+        c == "getmatrices" ||
+        c == "getqueuedsteps" ||
+        c == "listwebfolders" ||
+        c == "getnextscheduledplaylist" ||
+        c == "getplaylistschedules" ||
+        c == "getplaylistschedule" ||
+        c == "getplayingstatus" ||
+        c == "getbuttons")
+    {
+        return true;
+    }
+    return false;
+}
+
 PlayList* ScheduleManager::GetPlayList(const std::string& playlist) const
 {
     for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
@@ -1410,9 +1571,9 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 }
 
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
-bool ScheduleManager::Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
+bool ScheduleManager::Action(const wxString& command, const wxString& parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     bool result = true;
     bool scheduleChanged = false;
@@ -1435,7 +1596,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             if (_mainThread != wxThread::GetCurrentId())
             {
                 logger_base.debug("Action '%s':'%s' arrived not on main thread ... switching threads.",
-                    (const char *)command.c_str(), (const char *)parameters.c_str());
+                    (const char*)command.c_str(), (const char*)parameters.c_str());
 
                 // Because of what this function can do calling it on the main thread is dangerous ... so we need to switch threads
                 ActionMessageData* amd = new ActionMessageData(command, parameters, data);
@@ -1445,30 +1606,29 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else
             {
+                logger_base.debug("Action '%s':'%s'.",
+                    (const char*)command.c_str(), (const char*)parameters.c_str());
                 if (command == "Stop all now")
                 {
-                    StopAll();
+                    // we cant stop here as this might be in the middle of playing the playlist
+                    wxCommandEvent event(EVT_STOP);
+                    event.SetInt(-1);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
                     scheduleChanged = true;
+                }
+                else if (command == "Close xSchedule")
+                {
+                    wxCommandEvent event(EVT_QUIT);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
                 }
                 else if (command == "Stop")
                 {
                     PlayList* p = GetRunningPlayList();
                     if (p != nullptr)
                     {
-                        SendFPPSync("", 0xFFFFFFFF, 50);
-                        SendMIDISync(0xFFFFFFFF, 50);
-                        SendARTNetSync(0xFFFFFFFF, 50);
-                        p->Stop();
-
-                        if (_immediatePlay != nullptr && p->GetId() == _immediatePlay->GetId())
-                        {
-                            delete _immediatePlay;
-                            _immediatePlay = nullptr;
-                        }
-                        else if (p->GetId() == _queuedSongs->GetId())
-                        {
-                            p->RemoveAllSteps();
-                        }
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }
@@ -1483,6 +1643,64 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         }
                     }
                     scheduleChanged = true;
+                }
+                else if (command == "Adjust frame interval by ms")
+                {
+                    if (_overrideMS != 0)
+                    {
+                        rate = _overrideMS;
+                    }
+                    else if (GetRunningPlayList() != nullptr)
+                    {
+                        rate = GetRunningPlayList()->GetFrameMS();
+                    }
+                    else
+                    {
+                        rate = 2 * rate;
+                    }
+                    rate += wxAtoi(parameters);
+                    if (rate != 0)
+                    {
+                        if (rate < 15) rate = 15;
+                        if (rate > 10000) rate = 10000;
+                    }
+                    if (rate == 0)
+                    {
+                        _overrideMS = 0;
+                        if (GetRunningPlayList() != nullptr)
+                        {
+                            rate = GetRunningPlayList()->GetFrameMS();
+                        }
+                        logger_base.debug("Frame rate override cleared. Frame rate now %dms", rate);
+                    }
+                    else
+                    {
+                        _overrideMS = rate;
+                        logger_base.debug("Frame rate adjusted by %dms to %dms", wxAtoi(parameters), rate);
+                    }
+                }
+                else if (command == "Set frame interval to ms")
+                {
+                    rate = wxAtoi(parameters);
+                    if (rate != 0)
+                    {
+                        if (rate < 15) rate = 15;
+                        if (rate > 10000) rate = 10000;
+                    }
+                    if (rate == 0)
+                    {
+                        _overrideMS = 0;
+                        if (GetRunningPlayList() != nullptr)
+                        {
+                            rate = GetRunningPlayList()->GetFrameMS();
+                        }
+                        logger_base.debug("Frame rate override cleared. Frame rate now %dms", rate);
+                    }
+                    else
+                    {
+                        _overrideMS = rate;
+                        logger_base.debug("Frame rate set to %dms", rate);
+                    }
                 }
                 else if (command == "Play selected playlist looped")
                 {
@@ -1533,6 +1751,126 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Change show folder")
+                {
+                    if (parameters == "" || wxDir::Exists(parameters))
+                    {
+                        wxCommandEvent event(EVT_CHANGESHOWFOLDER);
+                        event.SetString(parameters);
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    }
+                    else
+                    {
+                        msg = "Change show folder: Folder does not exist '" + parameters + "'";
+                        result = false;
+                    }
+                }
+                else if (command == "Fire plugin event")
+                {
+                    wxArrayString ep = wxSplit(parameters, '|');
+                    if (ep.size() > 0)
+                    {
+                        std::string plugin = ep[0];
+
+                        std::string eps = "";
+                        if (ep.size() > 1)
+                        {
+                            eps = ep[1];
+                        }
+
+                        if (plugin == "*")
+                        {
+                            ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().FireEvent("Command", eps);
+                        }
+                        else
+                        {
+                            ((xScheduleApp*)wxTheApp)->GetFrame()->GetPluginManager().FirePluginEvent(plugin, "Command", eps);
+                        }
+                    }
+                    else
+                    {
+                        msg = "No plugin specified";
+                        result = false;
+                    }
+                }
+                else if (command == "Set mode")
+                {
+                    int mode = (int)SYNCMODE::STANDALONE;
+                    REMOTEMODE remote = REMOTEMODE::DISABLED;
+                    bool test = false;
+                    wxArrayString modes = wxSplit(parameters, '|');
+                    for (auto it : modes)
+                    {
+                        auto m = it.Lower().Trim().Trim(false);
+                        if (m == "test")
+                        {
+                            test = true;
+                        }
+                        else if (m == "master_fppunicast")
+                        {
+                            mode |= (int)SYNCMODE::FPPUNICASTMASTER;
+                        }
+                        else if (m == "master_fppunicastcsv")
+                        {
+                            mode |= (int)SYNCMODE::FPPUNICASTCSVMASTER;
+                        }
+                        else if (m == "master_artnet")
+                        {
+                            mode |= (int)SYNCMODE::ARTNETMASTER;
+                        }
+                        else if (m == "master_fppbroadcast")
+                        {
+                            mode |= (int)SYNCMODE::FPPBROADCASTMASTER;
+                        }
+                        else if (m == "master_midi")
+                        {
+                            mode |= (int)SYNCMODE::MIDIMASTER;
+                        }
+                        else if (m == "master_osc")
+                        {
+                            mode |= (int)SYNCMODE::OSCMASTER;
+                        }
+                        else if (m == "remote_fppunicast")
+                        {
+                            remote = REMOTEMODE::FPPSLAVE;
+                        }
+                        else if (m == "remote_artnet")
+                        {
+                            remote = REMOTEMODE::ARTNETSLAVE;
+                        }
+                        else if (m == "remote_fppbroadcast")
+                        {
+                            remote = REMOTEMODE::FPPSLAVE;
+                        }
+                        else if (m == "remote_fpp")
+                        {
+                            remote = REMOTEMODE::FPPSLAVE;
+                        }
+                        else if (m == "remote_fppcsv")
+                        {
+                            remote = REMOTEMODE::FPPCSVSLAVE;
+                        }
+                        else if (m == "remote_midi")
+                        {
+                            remote = REMOTEMODE::MIDISLAVE;
+                        }
+                        else if (m == "remote_osc")
+                        {
+                            remote = REMOTEMODE::OSCSLAVE;
+                        }
+                        else if (m == "standalone")
+                        {
+                            // no need to do anything
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Invalid mode set '" + m + "'";
+                        }
+                    }
+                    SetTestMode(test);
+                    SetMode(mode, remote);
+                }
                 else if (command == "Play specified playlist if nothing running")
                 {
                     PlayList* running = GetRunningPlayList();
@@ -1576,7 +1914,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (p != nullptr)
                     {
-                        StopPlayList(p, false);
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }
@@ -1586,7 +1926,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (p != nullptr)
                     {
-                        StopPlayList(p, true);
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        event.SetString("end");
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }
@@ -1596,7 +1939,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (p != nullptr)
                     {
-                        StopPlayList(p, true);
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        event.SetString("end");
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }
@@ -1649,10 +1995,35 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         }
                         else
                         {
-                            rate = p->JumpToNextStep();
+                            p->JumpToNextStep();
+                            rate = 25; // always start fast                        
                         }
                     }
                     scheduleChanged = true;
+                }
+                else if (command == "Add n Seconds To Current Step Position")
+                {
+                    PlayList* p = GetRunningPlayList();
+                    int seconds = wxAtoi(parameters);
+
+                    if (p != nullptr)
+                    {
+                        PlayListStep* pls = p->GetRunningStep();
+                        if (pls != nullptr)
+                        {
+                            pls->Advance(seconds);
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Current playlist has no running step.";
+                        }
+                    }
+                    else
+                    {
+                        result = false;
+                        msg = "No playlist playing.";
+                    }
                 }
                 else if (command == "Restart step in current playlist")
                 {
@@ -1670,7 +2041,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (p != nullptr)
                     {
-                        rate = p->JumpToPriorStep();
+                        p->JumpToPriorStep();
+                        rate = 25; // always start fast                        }
                     }
                     scheduleChanged = true;
                 }
@@ -2129,9 +2501,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
 
                     _queuedSongs->RemoveAllSteps();
-                    SendFPPSync("", 0xFFFFFFFF, 50);
-                    SendMIDISync(0xFFFFFFFF, 50);
-                    SendARTNetSync(0xFFFFFFFF, 50);
+                    _syncManager->SendStop();
 
                     wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                     wxPostEvent(wxGetApp().GetTopWindow(), event);
@@ -2197,13 +2567,64 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Set step position")
+                {
+                    PlayList* p = GetRunningPlayList();
+
+                    if (p != nullptr)
+                    {
+                        PlayListStep* s = p->GetRunningStep();
+                        if (s != nullptr)
+                        {
+                            long ms = wxAtoi(parameters) * s->GetLengthMS() / 255;
+                            s->SetSyncPosition((size_t)ms, GetOptions()->GetRemoteAcceptableJitter(), true);
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "No step running.";
+                        }
+                    }
+                    else
+                    {
+                        result = false;
+                        msg = "No playlist running.";
+                    }
+                }
+                else if (command == "Set step position ms")
+                {
+                PlayList* p = GetRunningPlayList();
+
+                if (p != nullptr)
+                {
+                    PlayListStep* s = p->GetRunningStep();
+                    if (s != nullptr)
+                    {
+                        long ms = wxAtoi(parameters);
+                        if (ms < 0) ms = 0;
+                        if (ms > s->GetLengthMS()) ms = s->GetLengthMS();
+                        s->SetSyncPosition((size_t)ms, GetOptions()->GetRemoteAcceptableJitter(), true);
+                    }
+                    else
+                    {
+                        result = false;
+                        msg = "No step running.";
+                    }
+                }
+                else
+                {
+                    result = false;
+                    msg = "No playlist running.";
+                }
+                }
                 else if (command == "Jump to specified step in current playlist")
                 {
                     PlayList* p = GetRunningPlayList();
 
                     if (p != nullptr)
                     {
-                        rate = p->JumpToStep(parameters);
+                        p->JumpToStep(parameters);
+                        rate = 25; // always start fast                        }
                     }
                     scheduleChanged = true;
                 }
@@ -2226,7 +2647,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         auto r = p->GetRandomStep();
                         if (r != nullptr)
                         {
-                            rate = p->JumpToStep(r->GetNameNoTime());
+                            p->JumpToStep(r->GetNameNoTime());
+                            rate = 25; // always start fast                        }
                             scheduleChanged = true;
                         }
                     }
@@ -2244,6 +2666,73 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                             scheduleChanged = true;
                         }
                     }
+                }
+                else if (command == "Start test mode")
+                {
+                    wxArrayString pp = wxSplit(parameters, '|');
+                    if (pp.size() > 0)
+                    {
+                        GetOptions()->GetTestOptions()->SetMode(pp[0]);
+                    }
+                    if (pp.size() > 1)
+                    {
+                        long start = -1;
+                        long end = -1;
+                        wxString data1;
+                        wxString msg1;
+                        RetrieveData("GetModels", data1, msg1);
+                        wxJSONValue  root;
+                        wxJSONReader reader;
+                        int numErrors = reader.Parse(data1, &root);
+                        if (numErrors == 0)
+                        {
+                            auto models = root["models"].AsArray();
+                            if (models != nullptr)
+                            {
+                                auto size = models->size();
+                                for (int i = 0; i < size && start == -1; i++)
+                                {
+                                    auto m = (*models)[i];
+                                    if (m["name"].AsString() == pp[1])
+                                    {
+                                        start = wxAtoi(m["startchannel"].AsString()) - 1;
+                                        end = start + wxAtoi(m["channels"].AsString()) - 1;
+                                    }
+                                }
+                            }
+                            if (start == -1)
+                            {
+                                logger_base.error("Unable to find model '%s' in models JSON", (const char*)pp[1].c_str());
+                            }
+                        }
+                        else
+                        {
+                            logger_base.error("Unable to load models JSON");
+                        }
+                        GetOptions()->GetTestOptions()->SetBounds(start, end);
+                    }
+                    if (pp.size() > 2)
+                    {
+                        int interval = wxAtoi(pp[2]);
+                        if (interval > 0)
+                        {
+                            GetOptions()->GetTestOptions()->SetInterval(interval);
+                        }
+                    }
+                    if (pp.size() > 3)
+                    {
+                            GetOptions()->GetTestOptions()->SetLevel1(wxAtoi(pp[3]));
+                    }
+                    if (pp.size() > 4)
+                    {
+                            GetOptions()->GetTestOptions()->SetLevel2(wxAtoi(pp[4]));
+                    }
+                    SetTestMode(true);
+                }
+                else if (command == "Stop test mode")
+                {
+                    GetOptions()->GetTestOptions()->ClearBounds();
+                    SetTestMode(false);
                 }
                 else if (command == "Add to the current schedule n minutes")
                 {
@@ -2478,9 +2967,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         bool random = rs->GetPlayList()->IsRandom();
 
                         rs->GetPlayList()->Stop();
-                        SendFPPSync("", 0xFFFFFFFF, 50);
-                        SendMIDISync(0xFFFFFFFF, 50);
-                        SendARTNetSync(0xFFFFFFFF, 50);
+                        _syncManager->SendStop();
                         _activeSchedules.remove(rs);
                         delete rs;
 
@@ -2536,9 +3023,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                             int steploopsleft = p->GetRunningStep()->GetLoopsLeft();
 
                             p->Stop();
-                            SendFPPSync("", 0xFFFFFFFF, 50);
-                            SendMIDISync(0xFFFFFFFF, 50);
-                            SendARTNetSync(0xFFFFFFFF, 50);
+                            _syncManager->SendStop();
 
                             auto plid = p->GetId();
 
@@ -2583,13 +3068,13 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (pliText != nullptr)
                     {
-                        std::string text = "";
+                        wxString text = "";
                         if (split.size() > 1)
                         {
                             text = split[1];
                         }
 
-                        std::string properties = "";
+                        wxString properties = "";
                         if (split.size() > 2)
                         {
                             properties = split[2];
@@ -2738,11 +3223,15 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
         wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
+    if (_overrideMS != 0)
+    {
+        rate = _overrideMS;
+    }
+
     return result;
 }
 
-
-bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
+bool ScheduleManager::Action(const wxString& label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     UserButton* b = _scheduleOptions->GetButton(label);
 
@@ -2756,11 +3245,15 @@ bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Sch
     else
     {
         msg = "Unknown button.";
+        if (_overrideMS != 0)
+        {
+            rate = _overrideMS;
+        }
         return false;
     }
 }
 
-void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
+void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain)
 {
     if (_immediatePlay != nullptr && _immediatePlay->GetId() == playlist->GetId())
     {
@@ -2770,9 +3263,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
         }
         else
         {
-            SendFPPSync("", 0xFFFFFFFF, 50);
-            SendMIDISync(0xFFFFFFFF, 50);
-            SendARTNetSync(0xFFFFFFFF, 50);
+            _syncManager->SendStop();
             _immediatePlay->Stop();
             delete _immediatePlay;
             _immediatePlay = nullptr;
@@ -2789,15 +3280,19 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
             }
             else
             {
-                SendFPPSync("", 0xFFFFFFFF, 50);
-                SendMIDISync(0xFFFFFFFF, 50);
-                SendARTNetSync(0xFFFFFFFF, 50);
+                _syncManager->SendStop();
                 (*it)->Stop();
             }
         }
     }
 
-    AllOff();
+    if (!sustain)
+    {
+        if (!IsSlave() || GetOptions()->IsRemoteAllOff())
+        {
+            AllOff();
+        }
+	}
 }
 
 // 127.0.0.1/xScheduleStash?Command=Store&Key=<key> ... this must be posted with the data in the body of the request ... key must be filename legal
@@ -2808,8 +3303,10 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
-bool ScheduleManager::Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference)
+bool ScheduleManager::Query(const wxString& command, const wxString& parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference)
 {
+    wxASSERT(IsQuery(command));
+
     bool result = true;
     data = "";
     if (command == "GetPlayLists")
@@ -3166,7 +3663,7 @@ void ScheduleManager::DisableRemoteOutputs()
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) {
+    if (_syncManager->IsMaster(SYNCMODE::FPPBROADCASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTCSVMASTER) || _syncManager->IsMaster(SYNCMODE::FPPMULTICASTMASTER)) {
         std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
 
         for (auto it = remotes.begin(); it != remotes.end(); ++it)
@@ -3174,7 +3671,7 @@ void ScheduleManager::DisableRemoteOutputs()
             auto outputs = _outputManager->GetOutputs();
             for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
             {
-                if ((*ito)->IsIpOutput() && *it == (*ito)->GetIP())
+                if ((*ito)->IsIpOutput() && (*it == (*ito)->GetIP() || *it == (*ito)->GetResolvedIP()))
                 {
                     logger_base.debug("Output '%s' disabled as this is a listed remote to receive FPP Sync packets.", (const char*)(*ito)->GetLongDescription().c_str());
                     logger_base.debug("    The only way to re-enable these outputs is to shut down xSchedule and restart it.");
@@ -3194,7 +3691,7 @@ std::string ScheduleManager::GetPingStatus()
         auto ps = _pinger->GetPingers();
 
         bool first = true;
-        for (auto it = ps.begin(); it != ps.end(); ++it)
+        for (auto it : ps)
         {
             if (first)
             {
@@ -3205,7 +3702,7 @@ std::string ScheduleManager::GetPingStatus()
                 res += ",";
             }
 
-            res += "{\"controller\":\"" + (*it)->GetName() + "\",\"result\":\"" + APinger::GetPingResultName((*it)->GetPingResult()) + "\"}";
+            res += "{\"controller\":\"" + it->GetName() + "\",\"result\":\"" + APinger::GetPingResultName(it->GetPingResult()) + "\",\"failcount\":\""+wxString::Format("%d", it->GetFailCount())+"\"}";
         }
     }
 
@@ -3213,7 +3710,7 @@ std::string ScheduleManager::GetPingStatus()
     return res;
 }
 
-bool ScheduleManager::StoreData(const std::string& key, const std::string& data, std::string& msg) const
+bool ScheduleManager::StoreData(const wxString& key, const wxString& data, wxString& msg) const
 {
     bool result = true;
 
@@ -3240,7 +3737,7 @@ bool ScheduleManager::StoreData(const std::string& key, const std::string& data,
     return result;
 }
 
-bool ScheduleManager::RetrieveData(const std::string& key, std::string& data, std::string& msg) const
+bool ScheduleManager::RetrieveData(const wxString& key, wxString& data, wxString& msg) const
 {
     bool result = true;
 
@@ -3257,13 +3754,13 @@ bool ScheduleManager::RetrieveData(const std::string& key, std::string& data, st
 
         wxString d = "";
         dataFile.ReadAll(&d);
-        data = d.ToStdString();
+        data = d;
     }
 
     return result;
 }
 
-bool ScheduleManager::ToggleCurrentPlayListRandom(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListRandom(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
 
@@ -3278,7 +3775,7 @@ bool ScheduleManager::ToggleCurrentPlayListRandom(std::string& msg)
     }
 }
 
-bool ScheduleManager::ToggleCurrentPlayListPause(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListPause(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
     if (p != nullptr)
@@ -3294,7 +3791,7 @@ bool ScheduleManager::ToggleCurrentPlayListPause(std::string& msg)
     return true;
 }
 
-bool ScheduleManager::ToggleCurrentPlayListLoop(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListLoop(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
 
@@ -3309,7 +3806,7 @@ bool ScheduleManager::ToggleCurrentPlayListLoop(std::string& msg)
     }
 }
 
-bool ScheduleManager::ToggleCurrentPlayListStepLoop(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListStepLoop(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
 
@@ -3404,6 +3901,9 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
     if (reenter) return;
     reenter = true;
 
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    wxStopWatch sw;
+
     if (_outputManager != nullptr)
     {
         if (otl)
@@ -3415,9 +3915,15 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                     wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
                 }
                 DisableRemoteOutputs();
-                _outputManager->StartOutput();
+                bool success = _outputManager->StartOutput();
                 StartVirtualMatrices();
                 ManageBackground();
+                logger_frame.debug("Turned on output to lights %ldms", sw.Time());
+                GetListenerManager()->ProcessPacket("State", "Lights On");
+                if (!success)
+                {
+                    GetListenerManager()->ProcessPacket("State", "Output Open Error");
+                }
             }
         }
         else
@@ -3427,6 +3933,8 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                 _outputManager->StopOutput();
                 StopVirtualMatrices();
                 ManageBackground();
+                logger_frame.debug("Turned off output to lights %ldms", sw.Time());
+                GetListenerManager()->ProcessPacket("State", "Lights Off");
             }
         }
     }
@@ -3448,16 +3956,18 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
         _outputManager->StartOutput();
         StartVirtualMatrices();
         ManageBackground();
+        GetListenerManager()->ProcessPacket("State", "Lights On");
     }
     else if (_manualOTL == 0)
     {
         _outputManager->StopOutput();
         StopVirtualMatrices();
         ManageBackground();
+        GetListenerManager()->ProcessPacket("State", "Lights Off");
     }
 }
 
-bool ScheduleManager::ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive)
+bool ScheduleManager::ToggleOutputToLights(xScheduleFrame* frame, wxString& msg, bool interactive)
 {
     if (_outputManager->IsOutputting())
     {
@@ -3490,12 +4000,14 @@ void ScheduleManager::SetVolume(int volume)
     if (cv > 100) cv = 100;
     AudioManager::SetGlobalVolume(cv);
 }
+
 void ScheduleManager::AdjustVolumeBy(int volume)
 {
     int cv = GetVolume();
     cv += volume;
     SetVolume(cv);
 }
+
 int ScheduleManager::GetVolume() const
 {
     return AudioManager::GetGlobalVolume();
@@ -3523,106 +4035,17 @@ void ScheduleManager::ToggleMute()
     }
 }
 
-void ScheduleManager::SetMode(SYNCMODE mode)
+void ScheduleManager::SetMode(int mode, REMOTEMODE remote)
 {
-    if (_mode != mode)
-    {
-        _mode = mode;
+    _mode = mode;
+    _remoteMode = remote;
 
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("SyncMode"), (long)_mode);
-        config->Flush();
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write(_("SyncMode"), (long)_mode);
+    config->Write(_("RemoteMode"), (long)_remoteMode);
+    config->Flush();
 
-        if (_mode == SYNCMODE::FPPMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseOSCSyncSendSocket();
-            CloseARTNetSyncSendSocket();
-            CloseMIDIMaster();
-            OpenFPPSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::OSCMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseFPPSyncSendSocket();
-            CloseARTNetSyncSendSocket();
-            CloseMIDIMaster();
-            OpenOSCSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::ARTNETMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseFPPSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseMIDIMaster();
-            OpenARTNetSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::FPPOSCMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseARTNetSyncSendSocket();
-            CloseMIDIMaster();
-            OpenFPPSyncSendSocket();
-            OpenOSCSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::FPPSLAVE)
-        {
-            _listenerManager->SetRemoteFPP();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::ARTNETSLAVE)
-        {
-            _listenerManager->SetRemoteArtNet();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::OSCSLAVE)
-        {
-            _listenerManager->SetRemoteOSC();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
-        {
-            _listenerManager->SetRemoteFPPUnicast();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::MIDIMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseOSCSyncSendSocket();
-            CloseARTNetSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            OpenMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::MIDISLAVE)
-        {
-            _listenerManager->SetRemoteMIDI();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else
-        {
-            _listenerManager->SetRemoteNone();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        _listenerManager->StartListeners();
-    }
+    _syncManager->Start(mode, remote);
 }
 
 PlayList* ScheduleManager::GetPlayList(int id) const
@@ -3770,15 +4193,15 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
     int warncountsave = 0;
 
     wxFile f;
-    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSequence") + ".txt";
+    wxString filename = wxFileName::CreateTempFileName("xLightsCheckSchedule") + ".txt";
 
     if (display)
     {
         f.Open(filename, wxFile::write);
         if (!f.IsOpened())
         {
-            logger_base.warn("Unable to create results file for Check Sequence. Aborted.");
-            wxMessageBox(_("Unable to create results file for Check Sequence. Aborted."), _("Error"));
+            logger_base.warn("Unable to create results file for Check Schedule. Aborted.");
+            wxMessageBox(_("Unable to create results file for Check Schedule. Aborted."), _("Error"));
             return;
         }
     }
@@ -4519,6 +4942,16 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                     wxString msg = wxString::Format("    ERR: Playlist '%s' step '%s' item '%s' references file '%s' which does not exist.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str(), (const char*)(*i)->GetNameNoTime().c_str(), (const char *)(ff->c_str()));
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
+
+                    for (int j = 0; j < ff->length(); ++j)
+                    {
+                        if (ff->at(j) < 32)
+                        {
+                            msg = wxString::Format("    ERR: Playlist '%s' step '%s' item '%s' references file '%s' which contains illegal character 0x%x.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str(), (const char*)(*i)->GetNameNoTime().c_str(), (const char *)(ff->c_str()), (int)ff->at(j));
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                    }
                 }
             }
         }
@@ -4624,48 +5057,73 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
     }
 }
 
-bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference)
+bool ScheduleManager::DoXyzzy(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference)
 {
     _lastXyzzyCommand = wxDateTime::Now();
 
+    if (command == "highscore")
+    {
+        Xyzzy::GetHighScoreJSON(result, reference);
+        return true;
+    }
+    else if (command == "highscore2")
+    {
+        Xyzzy2::GetHighScoreJSON(result, reference);
+        return true;
+    }
+
     if (_xyzzy == nullptr)
     {
-        _xyzzy = new Xyzzy();
+        if (command.EndsWith("2"))
+        {
+            _xyzzy = new Xyzzy2();
+        }
+        else
+        {
+            _xyzzy = new Xyzzy();
+        }
         wxCommandEvent event(EVT_SCHEDULECHANGED);
         wxPostEvent(wxGetApp().GetTopWindow(), event);
     }
 
-    if (command == "initialise")
+    if (_xyzzy != nullptr)
     {
-        _xyzzy->Initialise(parameters, result, reference);
-    }
-    else if (command == "close")
-    {
-        // clear the screen
-        _xyzzy->DrawBlack(_buffer, _outputManager->GetTotalChannels());
+        wxString c = command;
+        if (c.EndsWith("2")) c = c.SubString(0, c.Length() - 2);
 
-        _xyzzy->Close(result, reference);
-        delete _xyzzy;
-        _xyzzy = nullptr;
+        if (c == "initialise")
+        {
+            _xyzzy->Initialise(parameters, result, reference, _outputManager);
+        }
+        else if (c == "close")
+        {
+            // clear the screen
+            _xyzzy->DrawBlack(_buffer, _outputManager->GetTotalChannels());
 
-        wxCommandEvent event(EVT_SCHEDULECHANGED);
-        wxPostEvent(wxGetApp().GetTopWindow(), event);
-    }
-    else
-    {
-        _xyzzy->Action(command, parameters, result, reference);
-    }
+            _xyzzy->Close(result, reference);
+            delete _xyzzy;
+            _xyzzy = nullptr;
 
-    if (_xyzzy != nullptr && !_xyzzy->IsOk())
-    {
-        delete _xyzzy;
-        _xyzzy = nullptr;
+            wxCommandEvent event(EVT_SCHEDULECHANGED);
+            wxPostEvent(wxGetApp().GetTopWindow(), event);
+        }
+        else
+        {
+            _xyzzy->Action(c, parameters, result, reference);
+        }
+
+        if (_xyzzy != nullptr && !_xyzzy->IsOk())
+        {
+            delete _xyzzy;
+            _xyzzy = nullptr;
+        }
     }
+    else { return false; }
 
     return true;
 }
 
-PixelData::PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode)
+PixelData::PixelData(size_t startChannel, const wxString& data, APPLYMETHOD blendMode)
 {
     _data = nullptr;
     _startChannel = startChannel;
@@ -4679,7 +5137,7 @@ PixelData::PixelData(size_t startChannel, size_t channels, const wxColor& c, APP
     _startChannel = startChannel;
     _blendMode = blendMode;
     _size = channels;
-    _data = (wxByte*)malloc(_size);
+    _data = (uint8_t*)malloc(_size);
 
     SetColor(c, blendMode);
 }
@@ -4715,7 +5173,7 @@ PixelData::~PixelData()
     }
 }
 
-void PixelData::Set(wxByte* buffer, size_t size)
+void PixelData::Set(uint8_t* buffer, size_t size)
 {
     if (_data != nullptr)
     {
@@ -4723,7 +5181,7 @@ void PixelData::Set(wxByte* buffer, size_t size)
     }
 }
 
-void PixelData::ExtractData(const std::string& data)
+void PixelData::ExtractData(const wxString& data)
 {
     std::vector<unsigned char> dout;
     base64_decode(data, dout);
@@ -4733,7 +5191,7 @@ void PixelData::ExtractData(const std::string& data)
     {
         delete _data;
     }
-    _data = (wxByte*)malloc(_size);
+    _data = (uint8_t*)malloc(_size);
     if (_data != nullptr)
     {
         for (size_t i = 0; i < _size; ++i)
@@ -4743,14 +5201,14 @@ void PixelData::ExtractData(const std::string& data)
     }
 }
 
-void PixelData::SetData(const std::string& data, APPLYMETHOD blendMode)
+void PixelData::SetData(const wxString& data, APPLYMETHOD blendMode)
 {
     _blendMode = blendMode;
 
     ExtractData(data);
 }
 
-bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties)
+bool ScheduleManager::DoText(PlayListItemText* pliText, const wxString& text, const wxString& properties)
 {
     bool valid = true;
 
@@ -4766,7 +5224,7 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
 
         if (pv.size() == 2)
         {
-            std::string pvl = pv[0].Lower().ToStdString();
+            wxString pvl = pv[0].Lower();
 
             if (pvl == "color" || pvl == "colour")
             {
@@ -4775,8 +5233,8 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
             }
             else if (pvl == "blendmode")
             {
-                std::string vl = pv[1].Lower().ToStdString();
-                pliText->SetBlendMode(pv[1].ToStdString());
+                wxString vl = pv[1].Lower();
+                pliText->SetBlendMode(pv[1]);
             }
             else if (pvl == "speed")
             {
@@ -4784,11 +5242,11 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
             }
             else if (pvl == "orientation")
             {
-                pliText->SetOrientation(pv[1].ToStdString());
+                pliText->SetOrientation(pv[1]);
             }
             else if (pvl == "movement")
             {
-                pliText->SetOrientation(pv[1].ToStdString());
+                pliText->SetOrientation(pv[1]);
             }
             else if (pvl == "font")
             {
@@ -4839,806 +5297,21 @@ void ScheduleManager::StopVirtualMatrices()
     }
 }
 
-void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS)
-{
-    static std::string lastfseq = "";
-    static std::string lastmedia = "";
-    static size_t lastfseqmsec = 0;
-    static size_t lastmediamsec = 0;
-
-    if (syncItem == "")
-    {
-        if (lastfseq != "")
-        {
-            SendFPPSync(lastfseq, 0xFFFFFFFF, 50);
-        }
-
-        if (lastmedia != "")
-        {
-            SendFPPSync(lastmedia, 0xFFFFFFFF, 50);
-        }
-
-        return;
-    }
-
-    if ((_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _fppSyncMaster == nullptr)
-    {
-        OpenFPPSyncSendSocket();
-    }
-
-    if (_fppSyncMaster == nullptr) return;
-
-    bool dosend = false;
-    if (msec == 0 || msec == 0xFFFFFFFF) dosend = true;
-
-    wxFileName fn(syncItem.c_str());
-    if (fn.GetExt().Lower() == "fseq")
-    {
-        if (lastfseq != syncItem)
-        {
-            if (lastfseq != "")
-            {
-                SendFPPSync(lastfseq, 0xFFFFFFFF, frameMS);
-            }
-
-            lastfseq = syncItem;
-
-            if (msec != 0)
-            {
-                SendFPPSync(syncItem, 0, frameMS);
-            }
-        }
-
-        if (!dosend)
-        {
-            if (msec - lastfseqmsec > 1000)
-            {
-                dosend = true;
-            }
-        }
-    }
-    else
-    {
-        if (lastmedia != syncItem)
-        {
-            if (lastmedia != "")
-            {
-                SendFPPSync(lastmedia, 0xFFFFFFFF, frameMS);
-            }
-
-            lastmedia = syncItem;
-
-            if (msec != 0)
-            {
-                SendFPPSync(syncItem, 0, frameMS);
-            }
-        }
-
-        if (!dosend)
-        {
-            if (msec - lastmediamsec > 1000 && msec - lastfseqmsec > 500)
-            {
-                dosend = true;
-            }
-        }
-    }
-
-    if (!dosend) return;
-
-    wxIPV4address remoteAddr;
-    //remoteAddr.BroadcastAddress();
-    remoteAddr.Hostname("255.255.255.255");
-    remoteAddr.Service(FPP_CTRL_PORT);
-
-    wxASSERT(sizeof(ControlPkt) == 7); // ensure data is packed correctly
-
-    int bufsize = sizeof(ControlPkt) + sizeof(SyncPkt) + fn.GetFullName().Length();
-    unsigned char* buffer = (unsigned char*)malloc(bufsize);
-    memset(buffer, 0x00, bufsize);
-
-    if (buffer != nullptr)
-    {
-        ControlPkt* cp = (ControlPkt*)buffer;
-        strncpy(cp->fppd, "FPPD", 4);
-        cp->pktType = CTRL_PKT_SYNC;
-        cp->extraDataLen = bufsize - sizeof(ControlPkt);
-
-        SyncPkt* sp = (SyncPkt*)(buffer + sizeof(ControlPkt));
-
-        if (msec == 0)
-        {
-            sp->pktType = SYNC_PKT_START;
-        }
-        else if(msec == 0xFFFFFFFF)
-        {
-            sp->pktType = SYNC_PKT_STOP;
-        }
-        else
-        {
-            sp->pktType = SYNC_PKT_SYNC;
-        }
-
-        if (fn.GetExt().Lower() == "fseq")
-        {
-            lastfseqmsec = msec;
-            sp->fileType = SYNC_FILE_SEQ;
-            sp->frameNumber = msec / frameMS;
-
-            if (msec == 0xFFFFFFFF)
-            {
-                lastfseq = "";
-                lastfseqmsec = 0;
-            }
-        }
-        else
-        {
-            lastmediamsec = msec;
-            sp->fileType = SYNC_FILE_MEDIA;
-            sp->frameNumber = 0;
-
-            if (msec == 0xFFFFFFFF)
-            {
-                lastmedia = "";
-                lastmediamsec = 0;
-            }
-        }
-
-        if (sp->pktType == SYNC_PKT_SYNC)
-        {
-            sp->secondsElapsed = msec / 1000.0;
-        }
-        else
-        {
-            sp->frameNumber = 0;
-            sp->secondsElapsed = 0;
-        }
-
-        strcpy(&sp->filename[0], fn.GetFullName().c_str());
-
-        _fppSyncMaster->SendTo(remoteAddr, buffer, bufsize);
-
-        if (sp->fileType == SYNC_FILE_SEQ)
-        {
-            auto remotes = GetOptions()->GetFPPRemotes();
-            for (auto it = remotes.begin(); it != remotes.end(); ++it)
-            {
-                SendUnicastSync(*it, fn.GetFullName().ToStdString(), msec, frameMS, sp->pktType);
-            }
-        }
-
-        free(buffer);
-    }
-}
-
-void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
-{
-    // static size_t lastmsec = 0;
-
-    if ((_mode == SYNCMODE::ARTNETMASTER) && _artNetSyncMaster == nullptr)
-    {
-        OpenARTNetSyncSendSocket();
-    }
-
-    if (_artNetSyncMaster == nullptr) return;
-
-    bool dosend = false;
-    if (msec == 0) dosend = true;
-
-    if (!dosend)
-    {
-        //if (msec - lastmsec > 1000)
-        {
-            dosend = true;
-        }
-    }
-
-    if (!dosend) return;
-
-    // lastmsec = msec;
-
-    wxIPV4address remoteAddr;
-    //remoteAddr.BroadcastAddress();
-    remoteAddr.Hostname("255.255.255.255");
-    remoteAddr.Service(ARTNET_PORT);
-
-    int bufsize = 19;
-    unsigned char* buffer = (unsigned char*)malloc(bufsize);
-    memset(buffer, 0x00, bufsize);
-
-    if (buffer != nullptr)
-    {
-        buffer[0] = 'A';
-        buffer[1] = 'r';
-        buffer[2] = 't';
-        buffer[3] = '-';
-        buffer[4] = 'N';
-        buffer[5] = 'e';
-        buffer[6] = 't';
-        buffer[9] = 0x97;
-        buffer[11] = 0x0E;
-
-        size_t ms = msec;
-
-		if (ms == 0xFFFFFFFF)
-		{
-			ms = 0;
-		}
-		
-        buffer[17] = ms / (3600000);
-        ms = ms % 360000;
-
-        buffer[16] = ms / 60000;
-        ms = ms % 60000;
-
-        buffer[15] = ms / 1000;
-        ms = ms % 1000;
-
-        buffer[18] = GetOptions()->GetARTNetTimeCodeFormat();
-
-        switch(buffer[16])
-        {
-        case 0: //24 fps
-            buffer[14] = ms * 24 / 1000;
-            break;
-        case 1: // 25 fps
-            buffer[14] = ms * 25 / 1000;
-            break;
-        case 2: // 29.97 fps
-            buffer[14] = ms * 2997 / 100000;
-            break;
-        case 3: // 30 fps
-            buffer[14] = ms * 30 / 1000;
-            break;
-        default:
-            break;
-        }
-
-        _artNetSyncMaster->SendTo(remoteAddr, buffer, bufsize);
-
-        free(buffer);
-    }
-}
-
-void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static size_t lastmsec = 9999999999;
-
-    if ((_mode == SYNCMODE::MIDIMASTER) && _midiMaster == nullptr)
-    {
-        OpenMIDIMaster();
-    }
-
-    if (_midiMaster == nullptr) return;
-
-    bool dosend = false;
-    if (msec == 0) dosend = true;
-
-    if (!dosend)
-    {
-        //if (msec - lastmsec > 1000)
-        {
-            dosend = true;
-        }
-    }
-
-    if (!dosend) return;
-
-    bool sendresync = false;
-    if (msec - lastmsec < 0 || msec - lastmsec > 5000)
-    {
-        sendresync = true;
-    }
-
-    if (lastmsec == 9999999999)
-    {
-        wxMidiShortMessage msg(0xFA, 0, 0);
-        msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-        _midiMaster->Write(&msg);
-    }
-    else if (msec == 0xFFFFFFFF)
-    {
-        lastmsec = 9999999999;
-        wxMidiShortMessage msg(0xFC, 0, 0);
-        msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-        _midiMaster->Write(&msg);
-        return;
-    }
-
-    lastmsec = msec;
-
-    // send the packet
-
-    if (sendresync)
-    {
-        wxByte buffer[10];
-        size_t ms = msec;
-        buffer[0] = 0xF0;
-        buffer[1] = 0x7F;
-        buffer[2] = 0x7F;
-        buffer[3] = 0x01;
-        buffer[4] = 0x01;
-
-        buffer[5] = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
-        ms = ms % 360000;
-
-        buffer[6] = ms / 60000;
-        ms = ms % 60000;
-
-        buffer[7] = ms / 1000;
-        ms = ms % 1000;
-
-        switch (GetOptions()->GetMIDITimecodeFormat())
-        {
-        default:
-        case 0: // 24 fps
-            buffer[8] = ms * 24 / 1000;
-            break;
-        case 1: // 25 fps
-            buffer[8] = ms * 25 / 1000;
-            break;
-        case 2: // 29.97 fps
-            buffer[8] = ms * 2997 / 100000;
-            break;
-        case 3: // 30 fps
-            buffer[8] = ms * 30 / 1000;
-            break;
-        }
-        buffer[9] = 0xF7;
-        _midiMaster->Write(buffer);
-    }
-    else
-    {
-        size_t ms = msec;
-        int hours = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
-        ms = ms % 360000;
-
-        int mins = ms / 60000;
-        ms = ms % 60000;
-
-        int secs = ms / 1000;
-        ms = ms % 1000;
-
-        int frames = 0;
-        switch (GetOptions()->GetMIDITimecodeFormat())
-        {
-        default:
-        case 0: // 24 fps
-            frames = ms * 24 / 1000;
-            break;
-        case 1: // 25 fps
-            frames = ms * 25 / 1000;
-            break;
-        case 2: // 29.97 fps
-            frames = ms * 2997 / 100000;
-            break;
-        case 3: // 30 fps
-            frames = ms * 30 / 1000;
-            break;
-        }
-
-        for (int i = 0; i < 8; i++)
-        {
-            int data = 0;
-            switch(i)
-            {
-            case 0:
-                data = frames & 0x0F;
-                break;
-            case 1:
-                data = (frames & 0xF0) >> 4;
-                break;
-            case 2:
-                data = secs & 0x0F;
-                break;
-            case 3:
-                data = (secs & 0xF0) >> 4;
-                break;
-            case 4:
-                data = mins & 0x0F;
-                break;
-            case 5:
-                data = (mins & 0xF0) >> 4;
-                break;
-            case 6:
-                data = hours & 0x0F;
-                break;
-            case 7:
-                data = (hours & 0xF0) >> 4;
-                break;
-            default:
-                break;
-            }
-            wxMidiShortMessage msg(0xF1, (i<<4) + data, 0);
-            msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-            logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-            _midiMaster->Write(&msg);
-        }
-        wxMidiShortMessage msg(0xF8, 0, 0);
-        msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-        _midiMaster->Write(&msg);
-    }
-}
-
-void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS)
-{
-    static std::string lastfseq = "";
-    // static size_t lastfseqmsec = 0;
-
-    if ((_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _oscSyncMaster == nullptr)
-    {
-        OpenOSCSyncSendSocket();
-    }
-
-    if (_oscSyncMaster == nullptr) return;
-
-    wxString path = GetOptions()->GetOSCOptions()->GetMasterPath();
-
-    path.Replace("%STEPNAME%", step->GetNameNoTime());
-    if (step->GetTimeSource(frameMS) != nullptr)
-        path.Replace("%TIMINGITEM%", step->GetTimeSource(frameMS)->GetNameNoTime());
-
-    if (GetOptions()->GetOSCOptions()->IsTime())
-    {
-        switch (GetOptions()->GetOSCOptions()->GetTimeCode())
-        {
-        case OSCTIME::TIME_SECONDS:
-            SendOSC(OSCPacket(path.ToStdString(), (float)msec / 1000));
-            break;
-        case OSCTIME::TIME_MILLISECONDS:
-            SendOSC(OSCPacket(path.ToStdString(), (int)msec));
-            break;
-        }
-    }
-    else
-    {
-        switch (GetOptions()->GetOSCOptions()->GetFrameCode())
-        {
-        case OSCFRAME::FRAME_24:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 24 / 1000)));
-            break;
-        case OSCFRAME::FRAME_25:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 25 / 1000)));
-            break;
-        case OSCFRAME::FRAME_2997:
-            SendOSC(OSCPacket(path.ToStdString(), (int)((float)msec * 29.97 / 1000)));
-            break;
-        case OSCFRAME::FRAME_30:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 30 / 1000)));
-            break;
-        case OSCFRAME::FRAME_60:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 60 / 1000)));
-            break;
-        case OSCFRAME::FRAME_DEFAULT:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec / frameMS)));
-            break;
-        case OSCFRAME::FRAME_PROGRESS:
-            SendOSC(OSCPacket(path.ToStdString(), (float)msec / (float)step->GetLengthMS()));
-            break;
-        }
-    }
-}
-
-void ScheduleManager::SendOSC(const OSCPacket& osc)
-{
-    wxIPV4address remoteAddr;
-    //remoteAddr.BroadcastAddress();
-    remoteAddr.Hostname(GetOptions()->GetOSCOptions()->GetIPAddress());
-    remoteAddr.Service(GetOptions()->GetOSCOptions()->GetServerPort());
-
-    _oscSyncMaster->SendTo(remoteAddr, osc.GetBuffer(), osc.GetBuffSize());
-}
-
-void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxIPV4address remoteAddr;
-    remoteAddr.Hostname(ip);
-    remoteAddr.Service(FPP_CTRL_CSV_PORT);
-
-    char buffer[1024];
-    memset(buffer, 0x00, sizeof(buffer));
-
-    switch (action)
-    {
-    case SYNC_PKT_SYNC:
-        sprintf(buffer, "FPP,%d,%d,%d,%s,%d,%d\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str(), (int)(msec / 1000), (int)msec % 1000);
-        logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
-        break;
-    case SYNC_PKT_STOP:
-        sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
-        logger_base.debug("Sending remote stop unicast packet to %s.", (const char*)ip.c_str());
-        break;
-    case SYNC_PKT_START:
-        sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
-        logger_base.debug("Sending remote start unicast packet to %s.", (const char*)ip.c_str());
-        break;
-    case CTRL_PKT_BLANK:
-        sprintf(buffer, "FPP,%d\n", CTRL_PKT_BLANK);
-        break;
-    default:
-        break;
-    }
-
-    _fppSyncMasterUnicast->SendTo(remoteAddr, buffer, strlen(buffer));
-}
-
-void ScheduleManager::OpenMIDIMaster()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    CloseMIDIMaster();
-
-    if (GetOptions()->GetMIDITimecodeDevice() != "")
-    {
-        _midiMaster = new wxMidiOutDevice(wxAtoi(wxString(GetOptions()->GetMIDITimecodeDevice()).AfterLast(' ')));
-        if (_midiMaster->IsOutputPort())
-        {
-            wxMidiError err = _midiMaster->Open(0);
-            if (err != wxMIDI_NO_ERROR)
-            {
-                delete _midiMaster;
-                _midiMaster = nullptr;
-                logger_base.error("MIDI failed to open as a timecode master: %d", err);
-            }
-            else
-            {
-                logger_base.debug("MIDI opened as a timecode master");
-            }
-        }
-        else
-        {
-            delete _midiMaster;
-            _midiMaster = nullptr;
-            logger_base.debug("Attempt to use input MIDI device as a timecode master. Device must be an output device.");
-            wxMessageBox("Invalid MIDI device type for master mode.");
-        }
-    }
-}
-
-void ScheduleManager::OpenFPPSyncSendSocket()
+std::string ScheduleManager::FindStepForFSEQ(const std::string& fseq) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    CloseFPPSyncSendSocket();
+    for (auto it: _playLists)
+    {
+        PlayListStep* pls = it->GetStepWithFSEQ(fseq);
 
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-
-    _fppSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_fppSyncMaster == nullptr)
-    {
-        logger_base.error("Error opening datagram for FPP Sync as master.");
-    }
-    else if (!_fppSyncMaster->IsOk())
-    {
-        logger_base.error("Error opening datagram for FPP Sync as master. OK : FALSE");
-        delete _fppSyncMaster;
-        _fppSyncMaster = nullptr;
-    }
-    else if (_fppSyncMaster->Error())
-    {
-        logger_base.error("Error opening datagram for FPP Sync as master. %d : %s", _fppSyncMaster->LastError(), (const char*)DecodeIPError(_fppSyncMaster->LastError()).c_str());
-        delete _fppSyncMaster;
-        _fppSyncMaster = nullptr;
-    }
-    else
-    {
-        logger_base.info("FPP Sync as master datagram opened successfully.");
-    }
-
-    std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
-
-    if (remotes.size() > 0)
-    {
-        _fppSyncMasterUnicast = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-        if (_fppSyncMasterUnicast == nullptr)
-        {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master.");
-        }
-        else if (!_fppSyncMasterUnicast->IsOk())
-        {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master. OK : FALSE");
-            delete _fppSyncMasterUnicast;
-            _fppSyncMasterUnicast = nullptr;
-        }
-        else if (_fppSyncMasterUnicast->Error())
-        {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s", _fppSyncMasterUnicast->LastError(), (const char*)DecodeIPError(_fppSyncMasterUnicast->LastError()).c_str());
-            delete _fppSyncMasterUnicast;
-            _fppSyncMasterUnicast = nullptr;
-        }
-        else
-        {
-            logger_base.info("FPP Sync as master unicast datagram opened successfully.");
-        }
-    }
-}
-
-void ScheduleManager::OpenOSCSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseOSCSyncSendSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-
-    _oscSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_oscSyncMaster == nullptr)
-    {
-        logger_base.error("Error opening datagram for OSC Sync as master.");
-    }
-    else if (!_oscSyncMaster->IsOk())
-    {
-        logger_base.error("Error opening datagram for OSC Sync as master. OK : FALSE");
-        delete _oscSyncMaster;
-        _oscSyncMaster = nullptr;
-    }
-    else if (_oscSyncMaster->Error())
-    {
-        logger_base.error("Error opening datagram for OSC Sync as master. %d : %s", 
-            _oscSyncMaster->LastError(), 
-            (const char*)DecodeIPError(_oscSyncMaster->LastError()).c_str());
-        delete _oscSyncMaster;
-        _oscSyncMaster = nullptr;
-    }
-    else
-    {
-        logger_base.info("OSC Sync as master datagram opened successfully.");
-    }
-}
-
-void ScheduleManager::OpenARTNetSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseARTNetSyncSendSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-
-    _artNetSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_artNetSyncMaster == nullptr)
-    {
-        logger_base.error("Error opening datagram for ARTNet Sync as master.");
-    }
-    else if (!_artNetSyncMaster->IsOk())
-    {
-        logger_base.error("Error opening datagram for ARTNet Sync as master. OK : FALSE");
-        delete _artNetSyncMaster;
-        _artNetSyncMaster = nullptr;
-    }
-    else if (_artNetSyncMaster->Error())
-    {
-        logger_base.error("Error opening datagram for ARTNet Sync as master. %d : %s", 
-            _artNetSyncMaster->LastError(), 
-            (const char*)DecodeIPError(_artNetSyncMaster->LastError()).c_str());
-        delete _artNetSyncMaster;
-        _artNetSyncMaster = nullptr;
-    }
-    else
-    {
-        logger_base.info("ARTNet Sync as master datagram opened successfully.");
-    }
-}
-
-void ScheduleManager::CloseFPPSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_fppSyncMaster != nullptr) {
-        logger_base.info("FPP Sync as master datagram closed.");
-        _fppSyncMaster->Close();
-        delete _fppSyncMaster;
-        _fppSyncMaster = nullptr;
-    }
-
-    if (_fppSyncMasterUnicast != nullptr)
-    {
-        logger_base.info("FPP Sync as master unicast datagram closed.");
-        _fppSyncMasterUnicast->Close();
-        delete _fppSyncMasterUnicast;
-        _fppSyncMasterUnicast = nullptr;
-    }
-}
-
-void ScheduleManager::CloseARTNetSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_artNetSyncMaster != nullptr) {
-        logger_base.info("ARTNet Sync as master datagram closed.");
-        _artNetSyncMaster->Close();
-        delete _artNetSyncMaster;
-        _artNetSyncMaster = nullptr;
-    }
-}
-
-void ScheduleManager::CloseOSCSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_oscSyncMaster != nullptr) {
-        logger_base.info("OSC Sync as master datagram closed.");
-        _oscSyncMaster->Close();
-        delete _oscSyncMaster;
-        _oscSyncMaster = nullptr;
-    }
-}
-
-void ScheduleManager::CloseMIDIMaster()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_midiMaster != nullptr)
-    {
-        logger_base.info("Midi Timecode as master closed.");
-        _midiMaster->Close();
-        delete _midiMaster;
-        _midiMaster = nullptr;
-    }
-}
-
-void ScheduleManager::StartFSEQ(const std::string fseq)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    // find this fseq file and run it
-    PlayList* pl = GetRunningPlayList();
-    PlayListStep* pls = nullptr;
-    if (pl != nullptr)
-    {
-        pls = pl->GetStepWithFSEQ(fseq);
-        StopPlayList(pl, false);
-    }
-
-    if (pls == nullptr)
-    {
-        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
-        {
-            pls = (*it)->GetStepWithFSEQ(fseq);
-
-            if (pls != nullptr) {
-                pl = *it;
-                break;
-            }
+        if (pls != nullptr) {
+            return pls->GetNameNoTime();
         }
     }
 
-    if (pl != nullptr && pls != nullptr)
-    {
-        logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
-
-        size_t rate;
-        PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
-
-        wxCommandEvent event1(EVT_FRAMEMS);
-        event1.SetInt(rate);
-        wxPostEvent(wxGetApp().GetTopWindow(), event1);
-
-        wxCommandEvent event2(EVT_SCHEDULECHANGED);
-        wxPostEvent(wxGetApp().GetTopWindow(), event2);
-    }
+    logger_base.debug("No step with fseq file '%s' found.", (const char*)fseq.c_str());
+    return "";
 }
 
 void ScheduleManager::StartTiming(const std::string timingName)
@@ -5671,8 +5344,13 @@ void ScheduleManager::StartTiming(const std::string timingName)
     {
         logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
 
-        size_t rate;
+        size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
+
+        if (_overrideMS != 0)
+        {
+            rate = _overrideMS;
+        }
 
         wxCommandEvent event1(EVT_FRAMEMS);
         event1.SetInt(rate);
@@ -5713,8 +5391,13 @@ void ScheduleManager::StartStep(const std::string stepName)
     {
         logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
 
-        size_t rate;
+        size_t rate = 0;
         PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
+
+        if (_overrideMS != 0)
+        {
+            rate = _overrideMS;
+        }
 
         wxCommandEvent event1(EVT_FRAMEMS);
         event1.SetInt(rate);
@@ -5870,3 +5553,142 @@ std::string ScheduleManager::xScheduleShowDir()
     return showDir.ToStdString();
 }
 
+bool ScheduleManager::IsTest() const
+{
+    return _testMode;
+}
+
+void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
+{
+    auto mode = GetOptions()->GetTestOptions()->GetModeCode();
+    auto interval = GetOptions()->GetTestOptions()->GetInterval();
+    auto level1 = GetOptions()->GetTestOptions()->GetLevel1();
+    auto level2 = GetOptions()->GetTestOptions()->GetLevel2();
+    long start = 0;
+    long end = totalChannels - 1;
+    if (GetOptions()->GetTestOptions()->HasBounds())
+    {
+        GetOptions()->GetTestOptions()->GetBounds(start, end);
+    }
+
+    if (mode == TESTMODE::TEST_ALTERNATE)
+    {
+        auto v1 = level1;
+        auto v2 = level2;
+        int pos = msec % (2 * interval);
+        if (pos >= interval)
+        {
+            v1 = level2;
+            v2 = level1;
+        }
+        for (size_t i = start; i <= end; i++)
+        {
+            if (i % 2 == 0)
+            {
+                buffer[i] = v1;
+            }
+            else
+            {
+                buffer[i] = v2;
+            }
+        }
+    }
+    else if (mode == TESTMODE::TEST_LEVEL1)
+    {
+        memset(&buffer[start], level1, end -  start + 1);
+    }
+    else
+    {
+        uint8_t a = level2;
+        uint8_t b = level2;
+        uint8_t c = level2;
+        if (mode == TESTMODE::TEST_A_B_C)
+        {
+            int pos = msec % (3 * interval);
+            if (pos < interval)
+            {
+                a = level1;
+            }
+            else if (pos < 2 * interval)
+            {
+                b = level1;
+            }
+            else
+            {
+                c = level1;
+            }
+        }
+        else if (mode == TESTMODE::TEST_A_B_C_ALL)
+        {
+            int pos = msec % (4 * interval);
+            if (pos < interval)
+            {
+                a = level1;
+            }
+            else if (pos < 2 * interval)
+            {
+                b = level1;
+            }
+            else if (pos < 3 * interval)
+            {
+                c = level1;
+            }
+            else
+            {
+                a = level1;
+                b = level1;
+                c = level1;
+            }
+        }
+        else if (mode == TESTMODE::TEST_A_B_C_ALL_NONE)
+        {
+            int pos = msec % (5 * interval);
+            if (pos < interval)
+            {
+                a = level1;
+            }
+            else if (pos < 2 * interval)
+            {
+                b = level1;
+            }
+            else if (pos < 3 * interval)
+            {
+                c = level1;
+            }
+            else if (pos < 4 * interval)
+            {
+                a = level1;
+                b = level1;
+                c = level1;
+            }
+        }
+        else if (mode == TESTMODE::TEST_A)
+        {
+            a = level1;
+        }
+        else if (mode == TESTMODE::TEST_B)
+        {
+            b = level1;
+        }
+        else if (mode == TESTMODE::TEST_C)
+        {
+            c = level1;
+        }
+        long tc = (end / 3) * 3;
+        for (size_t i = start; i <= tc; i += 3)
+        {
+            buffer[i] = a;
+            buffer[i + 1] = b;
+            buffer[i + 2] = c;
+        }
+
+        if (tc == end - 1)
+        {
+            buffer[tc] = a;
+        }
+        else if (tc == end - 2)
+        {
+            buffer[tc+1] = b;
+        }
+    }
+}

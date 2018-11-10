@@ -69,6 +69,7 @@ public:
     int GetElementIndex(const std::string &name, int view = MASTER_VIEW);
     Element* GetElement(size_t index, int view = MASTER_VIEW) const;
     TimingElement* GetTimingElement(int n);
+    TimingElement* GetTimingElement(const std::string& name);
     size_t GetElementCount(int view = MASTER_VIEW) const;
     Row_Information_Struct* GetVisibleRowInformation(size_t index);
     Row_Information_Struct* GetVisibleRowInformationFromRow(int row_number);
@@ -79,12 +80,13 @@ public:
     int GetRowInformationSize();
     int GetMaxModelsDisplayed();
     int GetFirstVisibleModelRow();
-    void SelectEffectUsingDescription(std::string description);
-    void SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
+    Effect* SelectEffectUsingDescription(std::string description);
+    Effect* SelectEffectUsingElementLayerTime(std::string element, int layer, int time);
     std::list<std::string> GetAllEffectDescriptions();
     std::list<std::string> GetAllElementNamesWithEffects();
     int GetElementLayerCount(std::string elementName, std::list<int>* layers = nullptr);
     std::list<Effect*> GetElementLayerEffects(std::string elementName, int layer);
+    bool IsValidEffect(Effect* e) const;
 
     int GetTotalNumberOfModelRows();
     void SetMaxRowsDisplayed(int maxRows);
@@ -92,7 +94,7 @@ public:
     void MoveSequenceElement(int index, int dest, int view);
     void MoveElementUp(const std::string &name, int view);
     void MoveElementDown(const std::string &name, int view);
-    void SetFirstVisibleModelRow(int row);
+    int SetFirstVisibleModelRow(int row);
     void SetCurrentView(int view);
     void AddMissingModelsToSequence(const std::string &models, bool visible = true);
     int GetCurrentView() const { return mCurrentView; }
@@ -125,7 +127,7 @@ public:
     void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word);
 
     // Selected Ranges
-    int GetSelectedRangeCount();
+    size_t GetSelectedRangeCount();
     EffectRange* GetSelectedRange(int index);
     void AddSelectedRange(EffectRange* range);
     void DeleteSelectedRange(int index);

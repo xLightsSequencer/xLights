@@ -30,7 +30,7 @@ extern "C"
 #include "outputs/OutputManager.h"
 #include "sequencer/EffectLayer.h"
 #include "xLightsMain.h"
-
+#include "FSEQFile.h"
 #include <log4cpp/Category.hh>
 
 #ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
@@ -40,7 +40,7 @@ extern "C"
 
 void xLightsFrame::ConversionError(const wxString& msg)
 {
-    wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
+    DisplayError(msg.ToStdString());
 }
 
 void xLightsFrame::SetStatusText(const wxString &msg, int filename) {
@@ -439,7 +439,7 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long n
 
     int interval = SeqData.FrameTime() / 10;  // in centiseconds
     if( interval * 10 != SeqData.FrameTime() ) {
-        wxMessageBox("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
+        DisplayError("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
         return;
     }
 
@@ -621,60 +621,76 @@ Rene Nyffenegger rene.nyffenegger@adp-gmbh.ch
 #define ESEQ_HEADER_LENGTH 20
 
 void xLightsFrame:: WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-    SeqDataType *dataBuf, int startAddr, int modelSize)
+                                           SeqDataType *dataBuf, int startAddr, int modelSize,
+                                           bool v2)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (v2) {
+        V2FSEQFile *file = (V2FSEQFile*)FSEQFile::createFSEQFile(filename, 2);
+        file->setNumFrames(numPeriods);
+        file->setStepTime(dataBuf->FrameTime());
+        file->setChannelCount(startAddr + modelSize);
+        
+        //add a sparse range so the header is correct,
+        file->m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(startAddr - 1, modelSize));
+        file->writeHeader();
+        //now reset the sparse range to channel 0 since we don't have all the data in the dataBuf
+        file->m_sparseRanges[0] = std::pair<uint32_t, uint32_t>(0, modelSize);
+        for (int x = 0; x < numPeriods; x++) {
+            file->addFrame(x, &(*dataBuf)[x][0]);
+        }
+        file->finalize();
+        delete file;
+    } else {
+        wxUint32 stepSize = roundTo4(numChans);
+        wxFile f;
+        logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.",
+            (const char*)filename.c_str(),
+            numChans, numPeriods, startAddr, modelSize);
 
-    wxUint32 stepSize = roundTo4(numChans);
-    wxFile f;
+        if (!f.Create(filename, true)) {
+            ConversionError(wxString("Unable to create file: ") + filename);
+            logger_base.error("Unable to create file %s.", (const char*)filename.c_str());
+            return;
+        }
 
-    logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.", 
-        (const char*)filename.c_str(),
-        numChans, numPeriods, startAddr, modelSize);
+        wxUint8 buf[ESEQ_HEADER_LENGTH];
 
-    if (!f.Create(filename, true))
-    {
-        ConversionError(wxString("Unable to create file: ") + filename);
-        logger_base.error("Unable to create file %s.", (const char*)filename.c_str());
-        return;
+        // Header Information
+        // Format Identifier
+        buf[0] = 'E';
+        buf[1] = 'S';
+        buf[2] = 'E';
+        buf[3] = 'Q';
+        // Data offset
+        buf[4] = (wxUint8)1; //Hard coded to export a single model for now
+        buf[5] = 0; //Pad byte
+        buf[6] = 0; //Pad byte
+        buf[7] = 0; //Pad byte
+                    // Step Size
+        buf[8] = (wxUint8)(stepSize & 0xFF);
+        buf[9] = (wxUint8)((stepSize >> 8) & 0xFF);
+        buf[10] = (wxUint8)((stepSize >> 16) & 0xFF);
+        buf[11] = (wxUint8)((stepSize >> 24) & 0xFF);
+        //Model Start address
+        buf[12] = (wxUint8)(startAddr & 0xFF);
+        buf[13] = (wxUint8)((startAddr >> 8) & 0xFF);
+        buf[14] = (wxUint8)((startAddr >> 16) & 0xFF);
+        buf[15] = (wxUint8)((startAddr >> 24) & 0xFF);
+        // Model Size
+        buf[16] = (wxUint8)(modelSize & 0xFF);
+        buf[17] = (wxUint8)((modelSize >> 8) & 0xFF);
+        buf[18] = (wxUint8)((modelSize >> 16) & 0xFF);
+        buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
+        f.Write(buf, ESEQ_HEADER_LENGTH);
+
+        size_t size = dataBuf->NumFrames();
+        size *= stepSize;
+
+        f.Write(&(*dataBuf)[0][0], size);
+
+        f.Close();
     }
-
-    wxUint8 buf[ESEQ_HEADER_LENGTH];
-
-    // Header Information
-    // Format Identifier
-    buf[0] = 'E';
-    buf[1] = 'S';
-    buf[2] = 'E';
-    buf[3] = 'Q';
-    // Data offset
-    buf[4] = (wxUint8)1; //Hard coded to export a single model for now
-    buf[5] = 0; //Pad byte
-    buf[6] = 0; //Pad byte
-    buf[7] = 0; //Pad byte
-                // Step Size
-    buf[8] = (wxUint8)(stepSize & 0xFF);
-    buf[9] = (wxUint8)((stepSize >> 8) & 0xFF);
-    buf[10] = (wxUint8)((stepSize >> 16) & 0xFF);
-    buf[11] = (wxUint8)((stepSize >> 24) & 0xFF);
-    //Model Start address
-    buf[12] = (wxUint8)(startAddr & 0xFF);
-    buf[13] = (wxUint8)((startAddr >> 8) & 0xFF);
-    buf[14] = (wxUint8)((startAddr >> 16) & 0xFF);
-    buf[15] = (wxUint8)((startAddr >> 24) & 0xFF);
-    // Model Size
-    buf[16] = (wxUint8)(modelSize & 0xFF);
-    buf[17] = (wxUint8)((modelSize >> 8) & 0xFF);
-    buf[18] = (wxUint8)((modelSize >> 16) & 0xFF);
-    buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
-    f.Write(buf, ESEQ_HEADER_LENGTH);
-
-    size_t size = dataBuf->NumFrames();
-    size *= stepSize;
-
-    f.Write(&(*dataBuf)[0][0], size);
-
-    f.Close();
 }
 
 // Log messages from libav*
@@ -795,29 +811,27 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
 
 void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
 {
-    int width = image.GetWidth();
-    int height = image.GetHeight();
-
-    if (model->GetDisplayAs() == "ModelGroup")
-    {
+    if (model->GetDisplayAs() == "ModelGroup") {
         ModelGroup* mg = static_cast<ModelGroup*>(model);
 
         // Render each model
-        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m)
-        {
+        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m) {
             // work out this models start channel relative to the buffer
             int start = (*m)->GetFirstChannel() - startAddr;
 
             // Work out where the zero point is for this model
-            ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
-            int x = ((float)width * msl.GetHcenterOffset());
-            int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
+            // FIXME:  Models are no longer fixed percentages on the screen
+            //         We can use msl.GetScreenOffset(preview) but it needs a pointer to the ModelPreview that contains the model to be rendered.
+            int x = 0, y = 0;
+            //ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
+            //int width = image.GetWidth();
+            //int height = image.GetHeight();
+            //int x = ((float)width * msl.GetHcenterOffset());
+            //int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
 
             RenderModelOnImage(image, *m, framedata, start, x, y);
         }
-    }
-    else
-    {
+    } else {
         // Render the model
         RenderModelOnImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1);
     }
@@ -831,7 +845,7 @@ void xLightsFrame:: WriteVideoModelFile(const wxString& filenames, long numChans
 
     int origwidth;
     int origheight;
-    model->GetBufferSize("Default", "None", origwidth, origheight);
+    model->GetBufferSize("Default", "2D", "None", origwidth, origheight);
 
     int width = origwidth;
     int height = origheight;
@@ -1093,7 +1107,7 @@ void xLightsFrame:: WriteMinleonNECModelFile(const wxString& filename, long numC
 
     int width;
     int height;
-    model->GetBufferSize("Default", "None", width, height);
+    model->GetBufferSize("Default", "2D", "None", width, height);
 
     wxFile f;
     if (!f.Create(filename, true))
@@ -1220,107 +1234,16 @@ void xLightsFrame:: ReadXlightsFile(const wxString& FileName, wxString *mediaFil
 
 void xLightsFrame:: WriteFalconPiFile(const wxString& filename)
 {
-    wxUint8 vMinor = 0;
-    wxUint8 vMajor = 1;
-    wxUint16 fixedHeaderLength = 28;
-    wxUint32 stepSize = roundTo4(SeqData.NumChannels());
-
-    wxUint16 stepTime = SeqData.FrameTime();
-    // Ignored by Pi Player
-    wxUint16 numUniverses = 0;
-    // Ignored by Pi Player
-    wxUint16 universeSize = 0;
-    // Gamma 0=encoded 1=linear
-    wxUint8 gamma = 1;
-    // Gamma 0=unknown 1=mono 2=RGB
-    wxUint8 colorEncoding = 2;
-    wxFile f;
-    // Step Size must be multiple of 4
-    //wxUint8 buf[stepSize];
-
-    if (!f.Create(filename, true))
-    {
-        ConversionError(wxString("Unable to create file: ") + filename);
-        return;
-    }
-
-    wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8), stepSize < 1024 ? 1024 : stepSize);
-
-    // Header Information
-    // Format Identifier
-    buf[0] = 'P';
-    buf[1] = 'S';
-    buf[2] = 'E';
-    buf[3] = 'Q';
-
-    buf[6] = vMinor;
-    buf[7] = vMajor;
-    // Fixed header length
-    buf[8] = (wxUint8)(fixedHeaderLength % 256);
-    buf[9] = (wxUint8)(fixedHeaderLength / 256);
-    // Step Size
-    buf[10] = (wxUint8)(stepSize & 0xFF);
-    buf[11] = (wxUint8)((stepSize >> 8) & 0xFF);
-    buf[12] = (wxUint8)((stepSize >> 16) & 0xFF);
-    buf[13] = (wxUint8)((stepSize >> 24) & 0xFF);
-    // Number of Steps
-    buf[14] = (wxUint8)(SeqData.NumFrames() & 0xFF);
-    buf[15] = (wxUint8)((SeqData.NumFrames() >> 8) & 0xFF);
-    buf[16] = (wxUint8)((SeqData.NumFrames() >> 16) & 0xFF);
-    buf[17] = (wxUint8)((SeqData.NumFrames() >> 24) & 0xFF);
-    // Step time in ms
-    buf[18] = (wxUint8)(stepTime & 0xFF);
-    buf[19] = (wxUint8)((stepTime >> 8) & 0xFF);
-    // universe count
-    buf[20] = (wxUint8)(numUniverses & 0xFF);
-    buf[21] = (wxUint8)((numUniverses >> 8) & 0xFF);
-    // universe Size
-    buf[22] = (wxUint8)(universeSize & 0xFF);
-    buf[23] = (wxUint8)((universeSize >> 8) & 0xFF);
-    // universe Size
-    buf[24] = gamma;
-    // universe Size
-    buf[25] = colorEncoding;
-    buf[26] = 0;
-    buf[27] = 0;
-
-    if (mediaFilename.length() > 0) {
-        int len = strlen(mediaFilename.c_str()) + 5;
-        buf[28] = (wxUint8)(len & 0xFF);
-        buf[29] = (wxUint8)((len >> 8) & 0xFF);
-        buf[30] = 'm';
-        buf[31] = 'f';
-        strcpy((char *)&buf[32], mediaFilename.c_str());
-        fixedHeaderLength += len;
-        fixedHeaderLength = roundTo4(fixedHeaderLength);
-    }
-    // Data offset
-    buf[4] = (wxUint8)(fixedHeaderLength % 256);
-    buf[5] = (wxUint8)(fixedHeaderLength / 256);
-    f.Write(buf, fixedHeaderLength);
-
-    size_t size = SeqData.NumFrames();
-    size *= stepSize;
-
-    const unsigned char *data = &SeqData[0][0];
-    size_t toWrite = size;
-    if (toWrite > 1024*1024*1024) {
-        toWrite = 1024*1024*1024;
-    }
-    size_t written = 0;
-    while (written < size) {
-        if ((size - written) < toWrite) {
-            toWrite = size - written;
-        }
-        size_t w = f.Write(&data[written], toWrite);
-        if (w > 0) {
-            written += w;
-        } else {
-            break;
-        }
-    }
-
-    f.Close();
-    free(buf);
+    ConvertParameters write_params(filename,                                     // filename
+                                   SeqData,                                      // sequence data object
+                                   &_outputManager,                               // global network info
+                                   ConvertParameters::READ_MODE_LOAD_MAIN,       // file read mode
+                                   this,                                         // xLights main frame
+                                   nullptr,
+                                   nullptr,
+                                   &mediaFilename, // media filename
+                                   nullptr,
+                                   filename);
+    
+    FileConverter::WriteFalconPiFile(write_params);
 }

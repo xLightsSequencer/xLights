@@ -79,6 +79,7 @@
 												<item>Glediator Record File *.gled</item>
 												<item>Lcb, LOR clipboard *.lcb</item>
 												<item>HLS *.hlsnc</item>
+												<item>LedBlinky Animation *.lwax</item>
 											</content>
 											<selection>0</selection>
 										</object>

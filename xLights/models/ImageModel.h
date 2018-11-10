@@ -2,7 +2,7 @@
 #define IMAGEMODEL_H
 
 #include "Model.h"
-#include "Image.h"
+#include "../Image.h"
 
 class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
@@ -10,12 +10,13 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         ImageModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~ImageModel();
 
-        virtual void GetBufferSize(const std::string &type, const std::string &transform,
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
 
-        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true) override;
+        virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, DrawGLUtils::xl3Accumulator& lva, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = true, bool wiring = false, bool highlightFirst = false) override;
         virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize) override;
 
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
@@ -27,11 +28,18 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsWiringView() const override { return false; }
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual std::list<std::string> GetFileReferences() override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
     protected:
         //void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &sx, float &sy, int width, int height, bool active);
-        void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, float &x1, float &y1, float&x2, float&y2, float& x3, float& y3, float& x4, float& y4, bool active);
+        void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, DrawGLUtils::xlAccumulator &tva, const xlColor *c,
+                               float &x1, float &y1, float&x2, float&y2, float& x3, float& y3, float& x4, float& y4, bool active);
+        void DrawModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, DrawGLUtils::xl3Accumulator &tva, const xlColor *c,
+                               float &x1, float &y1, float &z1,
+                               float &x2, float &y2, float &z2,
+                               float &x3, float &y3, float &z3,
+                               float &x4, float &y4, float &z4, bool active);
         int GetChannelValue(int channel);
 
         ImageModel(const ModelManager &manager);

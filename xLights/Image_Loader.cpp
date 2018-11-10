@@ -7,27 +7,26 @@
 
 #include "DrawGLUtils.h"
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 GLuint loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
-                 bool &scaledW, bool &scaledH, bool &hasAlpha)
+                 bool &scaledW, bool &scaledH, bool &hasAlpha, bool useForcePowerOfTwo)
 {
     // check the file exists
     if(!wxFileExists(path))
     {
-        wxMessageBox( _("Failed to load resource image") );
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.crit("Failed to load resource image: " + path);
+        DisplayCrit( _("Failed to load resource image") + path);
 		exit(1);
     }
     
     wxImage img( path );
     return loadImage(&img, imageWidth, imageHeight, textureWidth, textureHeight,
-                     scaledW, scaledH, hasAlpha);
+                     scaledW, scaledH, hasAlpha, useForcePowerOfTwo);
 
 }
 
 GLuint loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight,
-                  bool &scaledW, bool &scaledH, bool &hasAlpha)
+                  bool &scaledW, bool &scaledH, bool &hasAlpha, bool useForcePowerOfTwo)
 {
 
 	GLuint ID = 0;
@@ -72,6 +71,12 @@ GLuint loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWi
             //we have to scale down, we'll use the entire texture and have opengl scale it to the appropriate aspect ratio
             scaledH = true;
             textureHeight /= 2;
+        }
+        if (useForcePowerOfTwo) {
+            scaledW = true;
+            scaledH = true;
+            imageWidth = textureWidth;
+            imageHeight = textureHeight;
         }
         if (scaledH || scaledW) {
             img->Rescale(scaledW ? textureWidth : imageWidth,

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="ControllerVisualiseDialog">
+		<title>Controller Visualiser</title>
+		<size>500,500</size>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>2</cols>
+			<rows>2</rows>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxPanel" name="ID_PANEL1" variable="Panel1" member="yes">
+					<handler function="OnPanel1Paint" entry="EVT_PAINT" />
+					<handler function="OnPanel1RightDown" entry="EVT_RIGHT_DOWN" />
+					<handler function="OnPanel1Resize" entry="EVT_SIZE" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxScrollBar" name="ID_SCROLLBAR1" variable="ScrollBar_Vertical" member="yes">
+					<thumbsize>1</thumbsize>
+					<range>10</range>
+					<pagesize>1</pagesize>
+					<style>wxSB_VERTICAL</style>
+					<handler function="OnScrollBar_VerticalScroll" entry="EVT_COMMAND_SCROLL" />
+					<handler function="OnScrollBar_VerticalScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+					<handler function="OnScrollBar_VerticalScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxScrollBar" name="ID_SCROLLBAR2" variable="ScrollBar_Horizontal" member="yes">
+					<thumbsize>1</thumbsize>
+					<range>10</range>
+					<pagesize>1</pagesize>
+					<style>wxSB_HORIZONTAL</style>
+					<handler function="OnScrollBar_HorizontalScroll" entry="EVT_COMMAND_SCROLL" />
+					<handler function="OnScrollBar_HorizontalScrollThumbTrack" entry="EVT_COMMAND_SCROLL_THUMBTRACK" />
+					<handler function="OnScrollBar_HorizontalScrollChanged" entry="EVT_COMMAND_SCROLL_CHANGED" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

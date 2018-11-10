@@ -20,6 +20,7 @@ class LorController
         void Save(wxXmlNode* node);
         int GetUnitId() const { return _unit_id; }
         int GetNumChannels() const { return _num_channels; }
+        int GetTotalNumChannels() const;
         AddressMode GetAddressMode() const { return _mode; }
         std::string GetModeString() const;
         std::string GetType() const { return _type; }

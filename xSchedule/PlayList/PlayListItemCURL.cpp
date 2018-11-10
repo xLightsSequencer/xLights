@@ -1,23 +1,53 @@
-#include "PlayListItemCURL.h"
-#include "PlayListItemCURLPanel.h"
-#include "../xScheduleMain.h"
-#include "../ScheduleManager.h"
-#include "PlayList.h"
-#include "PlayListStep.h"
-#include <wx/xml/xml.h>
-#include <wx/notebook.h>
-#include <log4cpp/Category.hh>
-#include "../RunningSchedule.h"
 #include <wx/uri.h>
 #include <wx/protocol/http.h>
 #include <wx/sstream.h>
+#include <wx/xml/xml.h>
+#include <wx/notebook.h>
+
+#include "PlayListItemCURL.h"
+#include "PlayListItemCURLPanel.h"
+#include "../xSMSDaemon/Curl.h"
+
+#include <log4cpp/Category.hh>
+
+class CurlThread : public wxThread
+{
+    std::string _url;
+    std::string _body;
+    std::string _type;
+    std::string _contenttype;
+
+public:
+    CurlThread(const std::string& url, const std::string& body, const std::string& type, const std::string& contenttype) : 
+        _url(url), _body(body), _type(type), _contenttype(contenttype) { }
+
+    virtual void* Entry() override
+    {
+        log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        logger_base.debug("PlayListCurl in thread.");
+
+        logger_base.info("Calling URL %s.", (const char*)_url.c_str());
+
+        if (_type == "POST")
+        {
+            auto res = Curl::HTTPSPost(_url, _body, "", "", _contenttype);
+            logger_base.info("CURL POST : %s", (const char*)res.c_str());
+        }
+        else
+        {
+            auto res = Curl::HTTPSGet(_url);
+            logger_base.info("CURL GET: %s", (const char*)res.c_str());
+        }
+
+        logger_base.debug("PlayListCurl thread done.");
+
+        return nullptr;
+    }
+};
 
 PlayListItemCURL::PlayListItemCURL(wxXmlNode* node) : PlayListItem(node)
 {
-    _started = false;
-    _url = "";
-    _type = "GET";
-    _body = "";
     PlayListItemCURL::Load(node);
 }
 
@@ -25,25 +55,24 @@ void PlayListItemCURL::Load(wxXmlNode* node)
 {
     PlayListItem::Load(node);
     _url = node->GetAttribute("URL", "");
-    _type = node->GetAttribute("Type", "GET");
+    _curltype = node->GetAttribute("Type", "GET");
     _body = node->GetAttribute("Body", "");
+    _contentType = node->GetAttribute("ContentType", "");
 }
 
 PlayListItemCURL::PlayListItemCURL() : PlayListItem()
 {
-    _started = false;
-    _url = "";
-    _type = "GET";
-    _body = "";
+    _type = "PLICURL";
 }
 
 PlayListItem* PlayListItemCURL::Copy() const
 {
     PlayListItemCURL* res = new PlayListItemCURL();
     res->_url = _url;
-    res->_type = _type;
+    res->_curltype = _curltype;
     res->_body = _body;
     res->_started = false;
+    res->_contentType = _contentType;
     PlayListItem::Copy(res);
 
     return res;
@@ -51,11 +80,12 @@ PlayListItem* PlayListItemCURL::Copy() const
 
 wxXmlNode* PlayListItemCURL::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLICURL");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("URL", _url);
-    node->AddAttribute("Type", _type);
+    node->AddAttribute("Type", _curltype);
     node->AddAttribute("Body", _body);
+    node->AddAttribute("ContentType", _contentType);
 
     PlayListItem::Save(node);
 
@@ -87,103 +117,28 @@ std::string PlayListItemCURL::GetNameNoTime() const
 
 std::string PlayListItemCURL::GetTooltip()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule";
+    return GetTagHint();
 }
 
-std::string PlayListItemCURL::PrepareString(const std::string s)
+void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
-	wxString res(s);
-
-        PlayList* pl = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
-        if (pl != nullptr)
-        {
-            if (res.Contains("%RUNNING_PLAYLIST%"))
-            {
-                res.Replace("%RUNNING_PLAYLIST%", pl->GetNameNoTime(), true);
-            }
-            PlayListStep* pls = pl->GetRunningStep();
-            if (pls != nullptr)
-            {
-                if (res.Contains("%RUNNING_PLAYLISTSTEP%"))
-                {
-                    res.Replace("%RUNNING_PLAYLISTSTEP%", pls->GetNameNoTime(), true);
-                }
-                if (res.Contains("%RUNNING_PLAYLISTSTEPMS%"))
-                {
-                    res.Replace("%RUNNING_PLAYLISTSTEPMS%", wxString::Format(wxT("%i"), pls->GetLengthMS()), true);
-                }
-                if (res.Contains("%RUNNING_PLAYLISTSTEPMSLEFT%"))
-                {
-                    res.Replace("%RUNNING_PLAYLISTSTEPMSLEFT%", wxString::Format(wxT("%i"), pls->GetLengthMS() - pls->GetPosition()), true);
-                }
-            }
-        }
-        if (res.Contains("%RUNNING_SCHEDULE%"))
-        {
-            RunningSchedule* rs = xScheduleFrame::GetScheduleManager()->GetRunningSchedule();
-            if (rs != nullptr && rs->GetPlayList()->IsRunning())
-            {
-                res.Replace("%RUNNING_SCHEDULE%", rs->GetSchedule()->GetName(), true);
-            }
-        }
-	
-	return res.ToStdString();
-}
-
-void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
-{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started)
     {
         _started = true;
 
-        std::string url = PrepareString(_url);
-        std::string body = PrepareString(_body);
+        std::string url = ReplaceTags(_url);
+        std::string body = ReplaceTags(_body);
 
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Calling URL %s.", (const char *)url.c_str());
-
-        if (url == "")
+        if (_url == "")
         {
-            logger_base.warn("URL '' invalid.", (const char *)url.c_str());
+            logger_base.warn("PlayListItemCURL: URL '%s' invalid.", (const char*)url.c_str());
             return;
         }
 
-        wxURI uri(url);
-
-        wxHTTP http;
-        http.SetTimeout(10);
-        http.SetMethod(_type);
-        if (http.Connect(uri.GetServer()))
-        {
-            if (_type == "POST")
-            {
-                http.SetPostText("application/x-www-form-urlencoded", _body);
-            }
-            wxString page = uri.GetPath() + "?" + uri.GetQuery();
-            wxInputStream *httpStream = http.GetInputStream(page);
-            if (http.GetError() == wxPROTO_NOERR)
-            {
-                wxString res;
-                wxStringOutputStream out_stream(&res);
-                httpStream->Read(out_stream);
-
-                logger_base.info("CURL: %s", (const char *)res.c_str());
-            }
-            else
-            {
-                logger_base.error("CURL: Error getting page %s from %s.", (const char*)page.c_str(), (const char *)uri.GetServer().c_str());
-            }
-
-            if (_type == "POST")
-            {
-                http.SetPostText("", "");
-            }
-            wxDELETE(httpStream);
-        }
-        else
-        {
-            logger_base.error("CURL: Error connecting to %s.", (const char *)uri.GetServer().c_str());
-        }
+        CurlThread* thread = new CurlThread(url, body, _type, _contentType);
+        thread->Run();
+        wxMicroSleep(1); // encourage the thread to run
     }
 }
 

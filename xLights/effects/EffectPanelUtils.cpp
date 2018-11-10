@@ -24,6 +24,8 @@
 #include "../ValueCurveDialog.h"
 #include <wx/valnum.h>
 
+#include "UtilFunctions.h"
+
 std::map<std::string, bool> EffectPanelUtils::buttonStates;
 static std::map<wxControl *, wxControl*> LINKED_CONTROLS;
 static std::map<wxControl *, ValueCurveButton*> VALUE_CURVE_BUTTONS;
@@ -166,13 +168,16 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
     }
     else
     {
-        if (slider != nullptr)
+        if (vcb->IsEnabled())
         {
-            slider->Enable();
-        }
-        if (textctrl != nullptr)
-        {
-            textctrl->Enable();
+            if (slider != nullptr)
+            {
+                slider->Enable();
+            }
+            if (textctrl != nullptr)
+            {
+                textctrl->Enable();
+            }
         }
     }
 }
@@ -225,6 +230,7 @@ void EffectPanelUtils::OnVCButtonClick(wxCommandEvent& event)
     if (vc->GetValue()->IsActive())
     {
         ValueCurveDialog vcd(vc->GetParent(), vc->GetValue(), slideridd);
+        OptimiseDialogPosition(&vcd);
         if (vcd.ShowModal() == wxOK)
         {
             if (slider != nullptr)

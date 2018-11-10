@@ -75,7 +75,7 @@ void OpenPixelNetOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void OpenPixelNetOutput::SetOneChannel(long channel, unsigned char data)
+void OpenPixelNetOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (_data[channel] != (data == 170 ? 171 : data))
     {

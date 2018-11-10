@@ -30,7 +30,7 @@ class EventBase
         int _lastSavedChangeCount;
         std::string _condition;
         int _threshold;
-        wxByte _lastValue;
+        uint8_t _lastValue;
         bool _first;
 
 	public:
@@ -57,19 +57,20 @@ class EventBase
         void SetP2(std::string value) { if (value != _parm2) { _parm2 = value; _changeCount++; } }
         void SetP3(std::string value) { if (value != _parm3) { _parm3 = value; _changeCount++; } }
         void SetName(std::string value) { if (value != _name) { _name = value; _changeCount++; } }
-        void ProcessCommand(wxByte value, ScheduleManager* scheduleManager);
-        virtual void Process(wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) {}
-        virtual void Process(int universe, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) {}
-        virtual void Process(wxByte stats, wxByte channel, wxByte data1, wxByte data2, ScheduleManager* scheduleManager) {}
-        virtual void Process(const std::string& commPort, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) {}
+        void ProcessCommand(uint8_t value, ScheduleManager* scheduleManager);
+        virtual void Process(uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) {}
+        virtual void Process(int universe, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) {}
+        virtual void Process(uint8_t stats, uint8_t channel, uint8_t data1, uint8_t data2, ScheduleManager* scheduleManager) {}
+        virtual void Process(const std::string& commPort, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& id, ScheduleManager* scheduleManager) {}
         virtual void Process(const std::string& path, const std::string& p1, const std::string& p2, const std::string& p3, ScheduleManager* scheduleManager) {}
+        virtual void Process(const std::string& topic, const std::string& data, ScheduleManager* scheduleManager) {}
         virtual void Process(bool success, const std::string& ip, ScheduleManager* scheduleManager) {}
         void SetCondition(std::string condition) { if (_condition != condition) { _condition = condition; _changeCount++; } }
         void SetThreshold(int threshold) { if (_threshold != threshold) { _threshold = threshold; _changeCount++; } }
         std::string GetCondition() const { return _condition; }
         int GetThreshold() const { return _threshold; }
-        bool EvaluateCondition(wxByte value);
+        bool EvaluateCondition(uint8_t value);
         static std::string DefaultParmTooltip();
 };
 #endif

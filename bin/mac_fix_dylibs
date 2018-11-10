@@ -1,11 +1,22 @@
-#!/bin/sh
+#!/bin/bash
+
+
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+XLVERSION=$(grep xlights_version_string ${SCRIPTDIR}/../xLights/xLightsVersion.h | tr "\"" "\n" | grep 20)
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $XLVERSION" "${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
+SHORTVER=${XLVERSION//./0}
+SHORTVER=${SHORTVER:2}
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $SHORTVER" "${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
 
 
 if [ "$CONFIGURATION" == "Release" ]; then
 
+
 TARGETVER=3.1
 
-if [ -f "/opt/local/lib/libwx_baseu-3.1.2.0.0.dylib" ]; then
+if [ -f "/opt/local/lib/libwx_baseu-3.1.3.0.0.dylib" ]; then
+SRCVER=3.1.3.0.0
+elif [ -f "/opt/local/lib/libwx_baseu-3.1.2.0.0.dylib" ]; then
 SRCVER=3.1.2.0.0
 elif [ -f "/opt/local/lib/libwx_baseu-3.1.1.0.0.dylib" ]; then
 SRCVER=3.1.1.0.0

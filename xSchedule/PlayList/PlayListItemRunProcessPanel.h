@@ -2,11 +2,11 @@
 #define PLAYLISTITEMRUNPROCESSPANEL_H
 
 //(*Headers(PlayListItemRunProcessPanel)
+#include <wx/checkbox.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
 //*)
 
 class PlayListItemRunProcess;
@@ -21,12 +21,12 @@ class PlayListItemRunProcessPanel: public wxPanel
 		virtual ~PlayListItemRunProcessPanel();
 
 		//(*Declarations(PlayListItemRunProcessPanel)
-		wxStaticText* StaticText2;
 		wxCheckBox* CheckBox_WaitForCompletion;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
-		wxTextCtrl* TextCtrl_Delay;
 		wxTextCtrl* TextCtrl_Command;
+		wxTextCtrl* TextCtrl_Delay;
 		wxTextCtrl* TextCtrl_RunProcessName;
 		//*)
 

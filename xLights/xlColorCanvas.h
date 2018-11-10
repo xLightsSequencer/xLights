@@ -29,12 +29,12 @@ class xlColorCanvas : public xlGLCanvas
         void SetRGB( xlColor rgb);
 
     
-        virtual bool UsesVertexTextureAccumulator() {return false;}
+        virtual bool UsesVertexTextureAccumulator() { return false; }
         virtual bool UsesVertexColorAccumulator() {return false;}
         virtual bool UsesVertexAccumulator() {return false;}
         virtual bool UsesAddVertex() {return true;}
     protected:
-        virtual void InitializeGLCanvas();
+        virtual void InitializeGLContext();
 
     private:
 

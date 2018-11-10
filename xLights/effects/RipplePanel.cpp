@@ -40,6 +40,7 @@ const long RipplePanel::IDD_TEXTCTRL_RIPPLE_POINTS = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS = wxNewId();
 const long RipplePanel::ID_STATICTEXT_Ripple_Rotation = wxNewId();
 const long RipplePanel::ID_SLIDER_Ripple_Rotation = wxNewId();
+const long RipplePanel::ID_VALUECURVE_Ripple_Rotation = wxNewId();
 const long RipplePanel::IDD_TEXTCTRL_Ripple_Rotation = wxNewId();
 const long RipplePanel::ID_BITMAPBUTTON_SLIDER_Ripple_Rotation = wxNewId();
 const long RipplePanel::ID_CHECKBOX_Ripple3D = wxNewId();
@@ -58,6 +59,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	BulkEditTextCtrlF1* TextCtrl34;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer57;
 	wxFlexGridSizer* FlexGridSizer60;
 
@@ -133,8 +135,13 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	FlexGridSizer57->Add(BitmapButton_Ripple_Points, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText_Ripple_Rotation = new wxStaticText(this, ID_STATICTEXT_Ripple_Rotation, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Ripple_Rotation"));
 	FlexGridSizer57->Add(StaticText_Ripple_Rotation, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
 	Slider_Ripple_Rotation = new BulkEditSlider(this, ID_SLIDER_Ripple_Rotation, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Ripple_Rotation"));
-	FlexGridSizer57->Add(Slider_Ripple_Rotation, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer3->Add(Slider_Ripple_Rotation, 1, wxALL|wxEXPAND, 2);
+	BitmapButton_Ripple_RotationVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Ripple_Rotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Ripple_Rotation"));
+	FlexGridSizer3->Add(BitmapButton_Ripple_RotationVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer57->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 0);
 	TextCtrl_Ripple_Rotation = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Ripple_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Ripple_Rotation"));
 	TextCtrl_Ripple_Rotation->SetMaxLength(3);
 	FlexGridSizer57->Add(TextCtrl_Ripple_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
@@ -160,6 +167,7 @@ RipplePanel::RipplePanel(wxWindow* parent)
 	Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_VALUECURVE_Ripple_Cycles,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
+	Connect(ID_VALUECURVE_Ripple_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Ripple_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Ripple3D,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&RipplePanel::OnLockButtonClick);
 	//*)
@@ -198,6 +206,7 @@ void RipplePanel::ValidateWindow()
 		BitmapButton_Ripple_Rotation->Enable();
 		Slider_Ripple_Rotation->Enable();
 		TextCtrl_Ripple_Rotation->Enable();
+        BitmapButton_Ripple_RotationVC->Enable();
     }
     else
     {
@@ -208,5 +217,6 @@ void RipplePanel::ValidateWindow()
 		BitmapButton_Ripple_Rotation->Disable();
 		Slider_Ripple_Rotation->Disable();
 		TextCtrl_Ripple_Rotation->Disable();
+        BitmapButton_Ripple_RotationVC->Disable();
     }
 }

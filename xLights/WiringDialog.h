@@ -2,9 +2,9 @@
 #define WIRINGDIALOG_H
 
 //(*Headers(WiringDialog)
+#include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
-#include <wx/dialog.h>
 //*)
 
 #include <wx/grid.h>
@@ -12,6 +12,7 @@
 #include <map>
 #include <list>
 #include <wx/prntbase.h>
+#include <wx/generic/statbmpg.h>
 
 class WiringDialog;
 class Model;
@@ -34,11 +35,11 @@ class WiringDialog: public wxDialog
     int _cols;
     int _rows;
     int _fontSize;
-    std::map<int, std::map<int, std::list<wxPoint>>> _points;
-    void RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer = false);
+    std::map<int, std::map<int, std::list<wxRealPoint>>> _points;
+    void RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer = false);
     wxBitmap Render(int w, int h);
-    void RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxPoint>>>& points, int width, int height, bool printer = false);
-    std::map<int, std::list<wxPoint>> ExtractPoints(wxGrid* grid, bool reverse);
+    void RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std::list<wxRealPoint>>>& points, int width, int height, bool printer = false);
+    std::map<int, std::list<wxRealPoint>> ExtractPoints(wxGrid* grid, bool reverse);
     void RightClick(wxContextMenuEvent& event);
     void OnPopup(wxCommandEvent& event);
     static const long ID_MNU_EXPORT;
@@ -54,14 +55,14 @@ class WiringDialog: public wxDialog
 
     public:
 
-		WiringDialog(wxWindow* parent, wxString modelname,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		WiringDialog(wxWindow* parent, wxString modelname, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~WiringDialog();
         void SetData(wxGrid* grid, bool reverse);
         void SetData(Model* model);
         void DrawBitmap(wxBitmap& bitmap, bool printer = false);
 
 		//(*Declarations(WiringDialog)
-		wxStaticBitmap* StaticBitmap_Wiring;
+		wxGenericStaticBitmap* StaticBitmap_Wiring;
 		//*)
 
 	protected:

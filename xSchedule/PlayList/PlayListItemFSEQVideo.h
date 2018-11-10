@@ -2,7 +2,7 @@
 #define PLAYLISTITEMFSEQVIDEO_H
 
 #include "PlayListItem.h"
-#include "../FSEQFile.h"
+#include "../Blend.h"
 #include <string>
 
 class wxXmlNode;
@@ -12,6 +12,7 @@ class PlayerWindow;
 class VideoReader;
 class CachedVideoReader;
 class OutputManager;
+class FSEQFile;
 
 class PlayListItemFSEQVideo : public PlayListItem
 {
@@ -114,12 +115,13 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start(long stepLengthMS) override;
     virtual void Stop() override;
     virtual void Restart() override;
     virtual void Pause(bool pause) override;
     virtual void Suspend(bool suspend) override;
+    virtual bool Advance(int seconds) override;
     #pragma endregion Playing
 
 #pragma region UI

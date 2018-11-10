@@ -55,4 +55,3 @@ GlediatorPanel::~GlediatorPanel()
 }
 
 PANEL_EVENT_HANDLERS(GlediatorPanel)
-

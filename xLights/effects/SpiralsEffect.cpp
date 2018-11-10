@@ -46,7 +46,7 @@ void SpiralsEffect::SetDefaultParameters()
     SetCheckBoxValue(sp->CheckBox_Spirlas_Shrink, false);
 }
 
-bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap)
+bool SpiralsEffect::SupportsLinearColorCurves(const SettingsMap &SettingsMap) const
 {
     // The blend setting is incompatible with linear colour curves
     return !SettingsMap.GetBool("E_CHECKBOX_Spirals_Blend");

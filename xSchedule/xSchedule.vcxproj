@@ -22,32 +22,34 @@
     <ProjectGuid>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Xlights</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -72,12 +74,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);..\xlights\ffmpeg-dev\include;..\include</IncludePath>
-    <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\wxWidgets\lib\vc_lib;..\lib\windows;GL;$(LibraryPath);$(VCToolsInstallDir)lib\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);../xLights/ffmpeg-dev/include;..\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;../xlights/ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -95,13 +97,13 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);__MSVC__;EXCLUDENETWORKUI</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;iphlpapi.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;imagehlp.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;iphlpapi.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;imagehlp.lib;libzstdd_static.lib;libcurl.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
@@ -111,14 +113,14 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG; __WXDEBUG__;__MSVC__;_CRT_SECURE_NO_WARNINGS;EXCLUDENETWORKUI</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib;libzstdd_static.lib;libcurl.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -163,16 +165,14 @@
   <ItemGroup>
     <ClCompile Include="..\xLights\AudioManager.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
+    <ClCompile Include="..\xLights\FSEQFile.cpp" />
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
     <ClCompile Include="..\xLights\outputs\ArtNetDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\ArtNetOutput.cpp" />
-    <ClCompile Include="..\xLights\outputs\Controller.cpp" />
-    <ClCompile Include="..\xLights\outputs\DDPDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\DDPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\DMXOutput.cpp" />
-    <ClCompile Include="..\xLights\outputs\E131Dialog.cpp" />
     <ClCompile Include="..\xLights\outputs\E131Output.cpp" />
     <ClCompile Include="..\xLights\outputs\IPOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LorController.cpp" />
@@ -182,7 +182,6 @@
     <ClCompile Include="..\xLights\outputs\LOROptimisedOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\LOROutput.cpp" />
     <ClCompile Include="..\xLights\outputs\NullOutput.cpp" />
-    <ClCompile Include="..\xLights\outputs\NullOutputDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\OpenDMXOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\OpenPixelNetOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\Output.cpp" />
@@ -191,8 +190,11 @@
     <ClCompile Include="..\xLights\outputs\RenardOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\serial.cpp" />
     <ClCompile Include="..\xLights\outputs\SerialOutput.cpp" />
-    <ClCompile Include="..\xLights\outputs\SerialPortWithRate.cpp" />
+    <ClCompile Include="..\xLights\outputs\SyncrolightEthernetOutput.cpp" />
+    <ClCompile Include="..\xLights\outputs\SyncrolightSerialOutput.cpp" />
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
+    <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
+    <ClCompile Include="..\xLights\Parallel.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
@@ -215,43 +217,52 @@
     <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
+    <ClCompile Include="ConfigureTest.cpp" />
     <ClCompile Include="DeadChannelDialog.cpp" />
     <ClCompile Include="DimDialog.cpp" />
     <ClCompile Include="DimWhiteDialog.cpp" />
     <ClCompile Include="ESEQFile.cpp" />
     <ClCompile Include="EventARTNetPanel.cpp" />
+    <ClCompile Include="EventARTNetTriggerPanel.cpp" />
     <ClCompile Include="EventDataPanel.cpp" />
     <ClCompile Include="EventDialog.cpp" />
     <ClCompile Include="EventE131Panel.cpp" />
     <ClCompile Include="EventFPPPanel.cpp" />
     <ClCompile Include="EventLorPanel.cpp" />
     <ClCompile Include="EventMIDIPanel.cpp" />
+    <ClCompile Include="EventMQTTPanel.cpp" />
     <ClCompile Include="EventOSCPanel.cpp" />
     <ClCompile Include="EventPingPanel.cpp" />
     <ClCompile Include="EventsDialog.cpp" />
     <ClCompile Include="EventSerialPanel.cpp" />
+    <ClCompile Include="EventStatePanel.cpp" />
     <ClCompile Include="events\EventARTNet.cpp" />
+    <ClCompile Include="events\EventARTNetTrigger.cpp" />
     <ClCompile Include="events\EventBase.cpp" />
     <ClCompile Include="events\EventData.cpp" />
     <ClCompile Include="events\EventE131.cpp" />
     <ClCompile Include="events\EventFPP.cpp" />
     <ClCompile Include="events\EventLor.cpp" />
     <ClCompile Include="events\EventMIDI.cpp" />
+    <ClCompile Include="events\EventMQTT.cpp" />
     <ClCompile Include="events\EventOSC.cpp" />
     <ClCompile Include="events\EventPing.cpp" />
     <ClCompile Include="events\EventSerial.cpp" />
+    <ClCompile Include="events\EventState.cpp" />
     <ClCompile Include="events\ListenerARTNet.cpp" />
     <ClCompile Include="events\ListenerBase.cpp" />
+    <ClCompile Include="events\ListenerCSVFPP.cpp" />
     <ClCompile Include="events\ListenerE131.cpp" />
     <ClCompile Include="events\ListenerFPP.cpp" />
-    <ClCompile Include="events\ListenerFPPUnicast.cpp" />
     <ClCompile Include="events\ListenerLor.cpp" />
     <ClCompile Include="events\ListenerManager.cpp" />
     <ClCompile Include="events\ListenerMIDI.cpp" />
+    <ClCompile Include="events\ListenerMQTT.cpp" />
     <ClCompile Include="events\ListenerOSC.cpp" />
     <ClCompile Include="events\ListenerSerial.cpp" />
+    <ClCompile Include="ExtraIPDialog.cpp" />
+    <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
-    <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GammaDialog.cpp" />
     <ClCompile Include="MatricesDialog.cpp" />
     <ClCompile Include="MatrixMapper.cpp" />
@@ -271,6 +282,11 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemAllOff.cpp" />
+    <ClCompile Include="PlayList\PlayListItemARTNetTrigger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemARTNetTriggerPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDim.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDimPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFade.cpp" />
     <ClCompile Include="PlayList\PlayListItemFadePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFile.cpp" />
@@ -281,8 +297,14 @@
     <ClCompile Include="PlayList\PlayListItemJukeboxPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemMicrophone.cpp" />
     <ClCompile Include="PlayList\PlayListItemMicrophonePanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMIDI.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMIDIPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMQTT.cpp" />
+    <ClCompile Include="PlayList\PlayListItemMQTTPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSC.cpp" />
     <ClCompile Include="PlayList\PlayListItemOSCPanel.cpp" />
+    <ClCompile Include="PlayList\PlayListItemPlugin.cpp" />
+    <ClCompile Include="PlayList\PlayListItemPluginPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemProjector.cpp" />
     <ClCompile Include="PlayList\PlayListItemProjectorPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemScreenMap.cpp" />
@@ -297,7 +319,6 @@
     <ClCompile Include="PlayList\PlayList.cpp" />
     <ClCompile Include="PlayList\PlayListDialog.cpp" />
     <ClCompile Include="PlayList\PlayListItem.cpp" />
-    <ClCompile Include="PlayList\PlayListItemAllOff.cpp" />
     <ClCompile Include="PlayList\PlayListItemAllOffPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemAudio.cpp" />
     <ClCompile Include="PlayList\PlayListItemAudioPanel.cpp" />
@@ -328,7 +349,9 @@
     <ClCompile Include="PlayList\PlayListStep.cpp" />
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
+    <ClCompile Include="PluginManager.cpp" />
     <ClCompile Include="RemapDialog.cpp" />
+    <ClCompile Include="RemoteModeConfigDialog.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
@@ -336,6 +359,11 @@
     <ClCompile Include="ScheduleOptions.cpp" />
     <ClCompile Include="SetDialog.cpp" />
     <ClCompile Include="SustainDialog.cpp" />
+    <ClCompile Include="SyncArtNet.cpp" />
+    <ClCompile Include="SyncFPP.cpp" />
+    <ClCompile Include="SyncManager.cpp" />
+    <ClCompile Include="SyncMIDI.cpp" />
+    <ClCompile Include="SyncOSC.cpp" />
     <ClCompile Include="ThreeToFourDialog.cpp" />
     <ClCompile Include="UserButton.cpp" />
     <ClCompile Include="VideoCache.cpp" />
@@ -364,10 +392,10 @@
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
+    <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\MSWStackWalk.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
-    <ClInclude Include="..\xLights\outputs\DDPDialog.h" />
     <ClInclude Include="..\xLights\outputs\DDPOutput.h" />
     <ClInclude Include="..\xLights\outputs\DLightOutput.h" />
     <ClInclude Include="..\xLights\outputs\DMXOutput.h" />
@@ -388,7 +416,10 @@
     <ClInclude Include="..\xLights\outputs\RenardOutput.h" />
     <ClInclude Include="..\xLights\outputs\serial.h" />
     <ClInclude Include="..\xLights\outputs\SerialOutput.h" />
+    <ClInclude Include="..\xLights\outputs\SyncrolightEthernetOutput.h" />
+    <ClInclude Include="..\xLights\outputs\SyncrolightSerialOutput.h" />
     <ClInclude Include="..\xLights\outputs\TestPreset.h" />
+    <ClInclude Include="..\xLights\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\xLights\UtilFunctions.h" />
     <ClInclude Include="..\xLights\VideoReader.h" />
     <ClInclude Include="..\xLights\xLightsTimer.h" />
@@ -402,44 +433,53 @@
     <ClInclude Include="CommandManager.h" />
     <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
     <ClInclude Include="ConfigureOSC.h" />
+    <ClInclude Include="ConfigureTest.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="DeadChannelDialog.h" />
     <ClInclude Include="DimDialog.h" />
     <ClInclude Include="DimWhiteDialog.h" />
     <ClInclude Include="ESEQFile.h" />
     <ClInclude Include="EventARTNetPanel.h" />
+    <ClInclude Include="EventARTNetTriggerPanel.h" />
     <ClInclude Include="EventDataPanel.h" />
     <ClInclude Include="EventDialog.h" />
     <ClInclude Include="EventE131Panel.h" />
     <ClInclude Include="EventFPPPanel.h" />
     <ClInclude Include="EventLorPanel.h" />
     <ClInclude Include="EventMIDIPanel.h" />
+    <ClInclude Include="EventMQTTPanel.h" />
     <ClInclude Include="EventOSCPanel.h" />
     <ClInclude Include="EventPingPanel.h" />
     <ClInclude Include="EventsDialog.h" />
     <ClInclude Include="EventSerialPanel.h" />
+    <ClInclude Include="EventStatePanel.h" />
     <ClInclude Include="events\EventARTNet.h" />
+    <ClInclude Include="events\EventARTNetTrigger.h" />
     <ClInclude Include="events\EventBase.h" />
     <ClInclude Include="events\EventData.h" />
     <ClInclude Include="events\EventE131.h" />
     <ClInclude Include="events\EventFPP.h" />
     <ClInclude Include="events\EventLor.h" />
     <ClInclude Include="events\EventMIDI.h" />
+    <ClInclude Include="events\EventMQTT.h" />
     <ClInclude Include="events\EventOSC.h" />
     <ClInclude Include="events\EventPing.h" />
     <ClInclude Include="events\EventSerial.h" />
+    <ClInclude Include="events\EventState.h" />
     <ClInclude Include="events\ListenerARTNet.h" />
     <ClInclude Include="events\ListenerBase.h" />
+    <ClInclude Include="events\ListenerCSVFPP.h" />
     <ClInclude Include="events\ListenerE131.h" />
     <ClInclude Include="events\ListenerFPP.h" />
-    <ClInclude Include="events\ListenerFPPUnicast.h" />
     <ClInclude Include="events\ListenerLor.h" />
     <ClInclude Include="events\ListenerManager.h" />
     <ClInclude Include="events\ListenerMIDI.h" />
+    <ClInclude Include="events\ListenerMQTT.h" />
     <ClInclude Include="events\ListenerOSC.h" />
     <ClInclude Include="events\ListenerSerial.h" />
+    <ClInclude Include="ExtraIPDialog.h" />
+    <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
-    <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GammaDialog.h" />
     <ClInclude Include="MatricesDialog.h" />
     <ClInclude Include="MatrixMapper.h" />
@@ -460,6 +500,11 @@
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="PlayList\PlayListItemAllOff.h" />
+    <ClInclude Include="PlayList\PlayListItemARTNetTrigger.h" />
+    <ClInclude Include="PlayList\PlayListItemARTNetTriggerPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemDim.h" />
+    <ClInclude Include="PlayList\PlayListItemDimPanel.h" />
     <ClInclude Include="PlayList\PlayListItemFade.h" />
     <ClInclude Include="PlayList\PlayListItemFadePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFile.h" />
@@ -470,8 +515,14 @@
     <ClInclude Include="PlayList\PlayListItemJukeboxPanel.h" />
     <ClInclude Include="PlayList\PlayListItemMicrophone.h" />
     <ClInclude Include="PlayList\PlayListItemMicrophonePanel.h" />
+    <ClInclude Include="PlayList\PlayListItemMIDI.h" />
+    <ClInclude Include="PlayList\PlayListItemMIDIPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemMQTT.h" />
+    <ClInclude Include="PlayList\PlayListItemMQTTPanel.h" />
     <ClInclude Include="PlayList\PlayListItemOSC.h" />
     <ClInclude Include="PlayList\PlayListItemOSCPanel.h" />
+    <ClInclude Include="PlayList\PlayListItemPlugin.h" />
+    <ClInclude Include="PlayList\PlayListItemPluginPanel.h" />
     <ClInclude Include="PlayList\PlayListItemProjector.h" />
     <ClInclude Include="PlayList\PlayListItemProjectorPanel.h" />
     <ClInclude Include="PlayList\PlayListItemScreenMap.h" />
@@ -485,7 +536,6 @@
     <ClInclude Include="PlayList\PlayList.h" />
     <ClInclude Include="PlayList\PlayListDialog.h" />
     <ClInclude Include="PlayList\PlayListItem.h" />
-    <ClInclude Include="PlayList\PlayListItemAllOff.h" />
     <ClInclude Include="PlayList\PlayListItemAllOffPanel.h" />
     <ClInclude Include="PlayList\PlayListItemAudio.h" />
     <ClInclude Include="PlayList\PlayListItemAudioPanel.h" />
@@ -517,9 +567,11 @@
     <ClInclude Include="PlayList\PlayListStep.h" />
     <ClInclude Include="PlayList\PlayListStepPanel.h" />
     <ClInclude Include="PlayList\VideoWindowPositionDialog.h" />
+    <ClInclude Include="PluginManager.h" />
     <ClInclude Include="ProjectorCodes.h" />
     <ClInclude Include="ReentrancyCounter.h" />
     <ClInclude Include="RemapDialog.h" />
+    <ClInclude Include="RemoteModeConfigDialog.h" />
     <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
@@ -527,6 +579,11 @@
     <ClInclude Include="ScheduleOptions.h" />
     <ClInclude Include="SetDialog.h" />
     <ClInclude Include="SustainDialog.h" />
+    <ClInclude Include="SyncArtNet.h" />
+    <ClInclude Include="SyncFPP.h" />
+    <ClInclude Include="SyncManager.h" />
+    <ClInclude Include="SyncMIDI.h" />
+    <ClInclude Include="SyncOSC.h" />
     <ClInclude Include="ThreeToFourDialog.h" />
     <ClInclude Include="UserButton.h" />
     <ClInclude Include="VideoCache.h" />
@@ -541,6 +598,8 @@
     <ClInclude Include="xScheduleApp.h" />
     <ClInclude Include="xScheduleMain.h" />
     <ClInclude Include="MatrixDialog.h" />
+    <ClInclude Include="xSchedulePlugin.h" />
+    <ClInclude Include="xSMSDaemon\Curl.h" />
     <ClInclude Include="Xyzzy.h" />
   </ItemGroup>
   <ItemGroup>

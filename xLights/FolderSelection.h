@@ -15,7 +15,7 @@ class FolderSelection: public wxDialog
 {
 	public:
 
-		FolderSelection(wxWindow* parent, const wxString &showDirectory, const wxString &mediaDirectory, const wxString &fseqDirectory, 
+		FolderSelection(wxWindow* parent, const wxString &showDirectory, const wxString &mediaDirectory, const wxString &fseqDirectory, const wxString& renderCacheDirectory,
 			const wxString &backupDirectory, const wxString &altBackupDirectory, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~FolderSelection();
 
@@ -24,21 +24,25 @@ class FolderSelection: public wxDialog
 		wxButton* ButtonFindBackupDirectory;
 		wxButton* ButtonFindFSEQDir;
 		wxButton* ButtonFindMediaDir;
+		wxButton* ButtonFindRenderCacheDir;
 		wxButton* ButtonFolderSelectCancel;
 		wxButton* ButtonFolderSelectOk;
 		wxCheckBox* CheckBoxBackupUseShow;
 		wxCheckBox* CheckBoxEnableAltBackup;
 		wxCheckBox* CheckBoxFSEQUseShow;
 		wxCheckBox* CheckBoxMediaUseShow;
+		wxCheckBox* CheckBoxRenderCacheUseShow;
 		wxTextCtrl* TextCtrlAltBackupDirectory;
 		wxTextCtrl* TextCtrlBackupDirectory;
 		wxTextCtrl* TextCtrlFSEQDirectory;
 		wxTextCtrl* TextCtrlMediaDirectory;
+		wxTextCtrl* TextCtrlRenderCacheDirectory;
 		//*)
 
         wxString ShowDirectory;
         wxString MediaDirectory;
         wxString FseqDirectory;
+        wxString RenderCacheDirectory;
         wxString BackupDirectory;
         wxString AltBackupDirectory;
         long LinkMediaDir;
@@ -52,6 +56,9 @@ class FolderSelection: public wxDialog
 		static const long ID_CHECKBOX_FSEQ_USE_SHOW;
 		static const long ID_TEXTCTRL_FSEQ_DIRECTORY;
 		static const long ID_BUTTON_FIND_FSEQ_DIR;
+		static const long ID_CHECKBOX_RENDERCACHE_USE_SHOW;
+		static const long ID_TEXTCTRL_RENDERCACHE_DIRECTORY;
+		static const long ID_BUTTON_FIND_RENDERCACHE_DIR;
 		static const long ID_CHECKBOX_BACKUP_USE_SHOW;
 		static const long ID_TEXTCTRL_BACKUP_DIRECTORY;
 		static const long ID_BUTTON_FIND_BACKUP_DIRECTORY;
@@ -79,6 +86,9 @@ class FolderSelection: public wxDialog
 		void OnCheckBoxEnableAltBackupClick(wxCommandEvent& event);
 		void OnTextCtrlAltBackupDirectoryText(wxCommandEvent& event);
 		void OnButtonFindAltBackupDirectoryClick(wxCommandEvent& event);
+		void OnTextCtrlRenderCacheDirectoryText(wxCommandEvent& event);
+		void OnCheckBoxRenderCacheUseShowClick(wxCommandEvent& event);
+		void OnButtonFindRenderCacheDirClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

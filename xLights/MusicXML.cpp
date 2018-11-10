@@ -2,6 +2,7 @@
 #include <wx/xml/xml.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
+#include <wx/log.h>
 #include <log4cpp/Category.hh>
 
 bool MusicXML::IsOk()
@@ -17,24 +18,39 @@ void MusicXmlNote::Dump()
 
 MusicXML::MusicXML(std::string file)
 {
+    wxLogNull logNo; //kludge: avoid zip errors
+
     if (file != "" && wxFile::Exists(file))
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.info("Loading music XML file: %s", (const char *)file.c_str());
+        static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+        logger_base.info("Loading music XML file: %s", (const char*)file.c_str());
         wxFileInputStream fin(file);
-        wxZipInputStream zin(fin);
-        wxZipEntry *ent = zin.GetNextEntry();
-
-        while (ent != nullptr && (ent->GetName().Contains("\\") || ent->GetName().Contains("/")))
+        if (fin.IsOk())
         {
-            logger_base.info("    Found in zip file %s ... skipping", (const char *)ent->GetName().c_str());
-            ent = zin.GetNextEntry();
+            wxZipInputStream zin(fin);
+
+            if (zin.IsOk())
+            {
+                wxZipEntry* ent = zin.GetNextEntry();
+
+                while (ent != nullptr && (ent->GetName().Contains("\\") || ent->GetName().Contains("/")))
+                {
+                    logger_base.info("    Found in zip file %s ... skipping", (const char*)ent->GetName().c_str());
+                    ent = zin.GetNextEntry();
+                }
+
+                if (ent != nullptr)
+                {
+                    logger_base.info("    Found in zip file %s ... loading", (const char*)ent->GetName().c_str());
+                    _doc.Load(zin);
+                }
+            }
         }
 
-        if (ent != nullptr)
+        if (!IsOk())
         {
-            logger_base.info("    Found in zip file %s ... loading", (const char *)ent->GetName().c_str());
-            _doc.Load(zin);
+            logger_base.info("    Not a zip file %s ... loading as xml", (const char*)file.c_str());
+            _doc.Load(file);
         }
 
         if (!IsOk())
@@ -63,11 +79,12 @@ std::list<MusicXmlNote> MusicXML::GetNotes(std::string track)
         partid = _parts[track];
     }
 
-    int timeperduration = 500;
-
     std::list<MusicXmlNote> res;
 
     wxXmlNode* root = _doc.GetRoot();
+
+    int tempo = 60;
+    int divisions = 100;
 
     if (root->GetName() == "score-partwise")
     {
@@ -88,7 +105,17 @@ std::list<MusicXmlNote> MusicXML::GetNotes(std::string track)
                                 {
                                     if (n4->GetName() == "sound" && n4->HasAttribute("tempo"))
                                     {
-                                        timeperduration = 60 * 1000 / wxAtoi(n4->GetAttribute("tempo"));
+                                        tempo = wxAtoi(n4->GetAttribute("tempo"));
+                                    }
+                                }
+                            }
+                            else if (n3->GetName() == "attributes")
+                            {
+                                for (wxXmlNode* n4 = n3->GetChildren(); n4 != nullptr; n4 = n4->GetNext())
+                                {
+                                    if (n4->GetName() == "divisions")
+                                    {
+                                        divisions = wxAtoi(n4->GetNodeContent().ToStdString());
                                     }
                                 }
                             }
@@ -105,8 +132,14 @@ std::list<MusicXmlNote> MusicXML::GetNotes(std::string track)
         }
     }
 
+    // tempo is beats per minute
+    // divisions is divisions per quarter beat (hence multiplying it by 4)
+    if (tempo == 0) tempo = 60;
+    if (divisions == 0) divisions = 1;
+    float timeperduration = ((60.0 * 1000.0) / tempo) / (4.0 * divisions);
+
     static log4cpp::Category &logger_pianodata = log4cpp::Category::getInstance(std::string("log_pianodata"));
-    logger_pianodata.info("BeatTime %dms", timeperduration);
+    logger_pianodata.info("BeatTime %.2fms", timeperduration);
     logger_pianodata.info("StartMS, EndMS, Note");
     for (auto it = res.begin(); it != res.end(); ++it)
     {

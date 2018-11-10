@@ -13,12 +13,11 @@ protected:
 
     #pragma region Member Variables
     std::string _url;
-    std::string _type;
+    std::string _curltype = "GET";
     std::string _body;
-    bool _started;
+    std::string _contentType;
+    bool _started = false;
     #pragma endregion Member Variables
-
-    std::string PrepareString(const std::string s);
 
 public:
 
@@ -34,10 +33,12 @@ public:
     std::string GetNameNoTime() const override;
     void SetURL(const std::string& url) { if (_url != url) { _url = url; _changeCount++; } }
     std::string GetURL() const { return _url; }
-    void SetType(const std::string& type) { if (_type != type) { _type = type; _changeCount++; } }
-    std::string GetType() const { return _type; }
+    void SetCURLType(const std::string& type) { if (_curltype != type) { _curltype = type; _changeCount++; } }
+    std::string GetCURLType() const { return _curltype; }
     void SetBody(const std::string& body) { if (_body != body) { _body = body; _changeCount++; } }
     std::string GetBody() const { return _body; }
+    void SetContentType(const std::string& contentType) { if (_contentType != contentType) { _contentType = contentType; _changeCount++; } }
+    std::string GetContentType() const { return _contentType; }
     virtual std::string GetTitle() const override;
     #pragma endregion Getters and Setters
 
@@ -45,7 +46,7 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start(long stepLengthMS) override;
     #pragma endregion Playing
 

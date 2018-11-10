@@ -4,15 +4,24 @@
 #include <wx/process.h>
 
 #include <log4cpp/Category.hh>
+#ifndef EXCLUDENETWORKUI
 #include "E131Dialog.h"
+#endif
 #include "OutputManager.h"
 #include "../UtilFunctions.h"
 
 #pragma region Constructors and Destructors
 E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
 {
+    if (_channels > 512) SetChannels(512);
+    if (_autoSize) SetAutoSize(false);
     _numUniverses = wxAtoi(node->GetAttribute("NumUniverses", "1"));
-    CreateMultiUniverses(_numUniverses);
+    _priority = wxAtoi(node->GetAttribute("Priority","100"));
+	_autoStartChannels = (node->GetAttribute("AutoStartChannels", "false") == "true");
+    if (_numUniverses > 1)
+    {
+        CreateMultiUniverses(_numUniverses);
+    }
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -24,8 +33,18 @@ E131Output::E131Output() : IPOutput()
     _universe = 1;
     _sequenceNum = 0;
     _numUniverses = 1;
+    _priority = E131_DEFAULT_PRIORITY;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
+}
+
+E131Output::E131Output(E131Output* output) : IPOutput(output)
+{
+    _numUniverses = output->_numUniverses;
+    if (_numUniverses > 1) {
+        CreateMultiUniverses(_numUniverses);
+    }
+    _priority = output->_priority;
 }
 
 E131Output::~E131Output()
@@ -47,18 +66,26 @@ wxXmlNode* E131Output::Save()
         node->AddAttribute("NumUniverses", wxString::Format(wxT("%i"), _numUniverses));
     }
 
+    if (_priority != E131_DEFAULT_PRIORITY)
+    {
+        node->AddAttribute("Priority",wxString::Format(wxT("%i"), _priority));
+    }
+
+	node->AddAttribute("AutoStartChannels", _autoStartChannels ? "true" : "false");
+
     return node;
 }
 
 void E131Output::CreateMultiUniverses(int num)
 {
     _numUniverses = num;
-    
+
     for (auto i : _outputs) {
         delete i;
     }
-    
     _outputs.clear();
+
+    if (_numUniverses < 2) return;
 
     for (int i = 0; i < _numUniverses; i++)
     {
@@ -68,6 +95,7 @@ void E131Output::CreateMultiUniverses(int num)
         e->SetChannels(_channels);
         e->SetDescription(_description);
         e->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
+        e->SetPriority(_priority);
         _outputs.push_back(e);
     }
 }
@@ -76,8 +104,8 @@ void E131Output::CreateMultiUniverses(int num)
 void E131Output::SendSync(int syncUniverse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static wxByte syncdata[E131_SYNCPACKET_LEN];
-    static wxByte syncSequenceNum = 0;
+    static uint8_t syncdata[E131_SYNCPACKET_LEN];
+    static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
     static wxUint16 _lastsyncuniverse = 0;
     static wxIPV4address syncremoteAddr;
@@ -115,7 +143,7 @@ void E131Output::SendSync(int syncUniverse)
             wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
-            syncdata[j++] = (wxByte)((msb << 4) | lsb);
+            syncdata[j++] = (uint8_t)((msb << 4) | lsb);
         }
 
         syncdata[38] = 0x70;  // Framing Protocol flags and length (high)
@@ -151,17 +179,17 @@ void E131Output::SendSync(int syncUniverse)
 
             if (syncdatagram == nullptr)
             {
-                logger_base.error("Error initialising E131 sync datagram.");
+                logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             }
             else if (!syncdatagram->IsOk())
             {
-                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE");
+                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE %s", (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
             else if (syncdatagram->Error() != wxSOCKET_NOERROR)
             {
-                logger_base.error("Error creating E131 sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
+                logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
@@ -194,10 +222,48 @@ std::string E131Output::GetTag()
 #pragma endregion Static Functions
 
 #pragma region Start and Stop
-bool E131Output::Open()
+void E131Output::OpenDatagram()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_datagram != nullptr) return;
+
+    wxIPV4address localaddr;
+    if (IPOutput::__localIP == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    if (_datagram == nullptr)
+    {
+        logger_base.error("E131Output: %s Error opening datagram.", (const char *)localaddr.IPAddress().c_str());
+    }
+    else if (!_datagram->IsOk())
+    {
+        logger_base.error("E131Output: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+    }
+    else if (_datagram->Error() != wxSOCKET_NOERROR)
+    {
+        logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char *)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
+        delete _datagram;
+        _datagram = nullptr;
+    }
+}
+
+bool E131Output::Open()
+{
     if (!_enabled) return true;
+    _ok = IPOutput::Open();
+    if (_fppProxyOutput) {
+        return _ok;
+    }
 
     if (IsOutputCollection())
     {
@@ -212,12 +278,11 @@ bool E131Output::Open()
     }
     else
     {
-        _ok = IPOutput::Open();
 
         memset(_data, 0x00, sizeof(_data));
         _sequenceNum = 0;
-        wxByte UnivHi = _universe >> 8;   // Universe Number (high)
-        wxByte UnivLo = _universe & 0xff; // Universe Number (low)
+        uint8_t UnivHi = _universe >> 8;   // Universe Number (high)
+        uint8_t UnivLo = _universe & 0xff; // Universe Number (low)
 
         _data[1] = 0x10;   // RLP preamble size (low)
         _data[4] = 0x41;   // ACN Packet Identifier (12 bytes)
@@ -245,7 +310,7 @@ bool E131Output::Open()
             wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
-            _data[j++] = (wxByte)((msb << 4) | lsb);
+            _data[j++] = (uint8_t)((msb << 4) | lsb);
         }
 
         _data[38] = 0x72;  // Framing Protocol flags and length (high)
@@ -253,7 +318,7 @@ bool E131Output::Open()
         _data[43] = 0x02;
         // Source Name (64 bytes)
         strcpy((char*)&_data[44], GetTag().c_str());
-        _data[108] = 100;  // Priority
+        _data[108] = _priority;  // Priority (Default is 100)
         _data[113] = UnivHi;  // Universe Number (high)
         _data[114] = UnivLo;  // Universe Number (low)
         _data[115] = 0x72;  // DMP Protocol flags and length (high)
@@ -264,33 +329,7 @@ bool E131Output::Open()
         _data[123] = 0x02;  // Property value count (high)
         _data[124] = 0x01;  // Property value count (low)
 
-        wxIPV4address localaddr;
-        if (IPOutput::__localIP == "")
-        {
-            localaddr.AnyAddress();
-        }
-        else
-        {
-            localaddr.Hostname(IPOutput::__localIP);
-        }
-
-        _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-        if (_datagram == nullptr)
-        {
-            logger_base.error("E131Output: Error opening datagram.");
-        }
-        else if (!_datagram->IsOk())
-        {
-            logger_base.error("E131Output: Error opening datagram. Network may not be connected? OK : FALSE");
-            delete _datagram;
-            _datagram = nullptr;
-        }
-        else if (_datagram->Error() != wxSOCKET_NOERROR)
-        {
-            logger_base.error("Error creating E131 datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
-            delete _datagram;
-            _datagram = nullptr;
-        }
+        OpenDatagram();
 
         if (wxString(_ip).StartsWith("239.255.") || _ip == "MULTICAST")
         {
@@ -305,15 +344,15 @@ bool E131Output::Open()
         _remoteAddr.Service(E131_PORT);
 
         int i = _channels;
-        wxByte NumHi = (_channels + 1) >> 8;   // Channels (high)
-        wxByte NumLo = (_channels + 1) & 0xff; // Channels (low)
+        uint8_t NumHi = (_channels + 1) >> 8;   // Channels (high)
+        uint8_t NumLo = (_channels + 1) & 0xff; // Channels (low)
 
         _data[123] = NumHi;  // Property value count (high)
         _data[124] = NumLo;  // Property value count (low)
 
         i = E131_PACKET_LEN - 16 - (512 - _channels);
-        wxByte hi = i >> 8;   // (high)
-        wxByte lo = i & 0xff; // (low)
+        uint8_t hi = i >> 8;   // (high)
+        uint8_t lo = i & 0xff; // (low)
 
         _data[16] = hi + 0x70;  // RLP Protocol flags and length (high)
         _data[17] = lo;  // 0x26e = E131_PACKET_LEN - 16
@@ -343,17 +382,30 @@ void E131Output::Close()
             (*it)->Close();
         }
     }
+    else
+    {
+        if (_datagram != nullptr)
+        {
+            delete _datagram;
+            _datagram = nullptr;
+        }
+    }
+    IPOutput::Close();
 }
 #pragma endregion Start and Stop
 
-void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
+void E131Output::SetTransientData(int on, int32_t startChannel, int nullnumber)
 {
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetTransientData(on, startChannel, nullnumber);
+    }
+
     if (IsOutputCollection())
     {
         _outputNumber = on;
         _startChannel = startChannel;
         if (nullnumber > 0) _nullNumber = nullnumber;
-        long nextstartchannel = startChannel;
+        int32_t nextstartchannel = startChannel;
         for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
         {
             (*it)->SetTransientData(on, nextstartchannel, nullnumber);
@@ -362,6 +414,7 @@ void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
     }
     else
     {
+        wxASSERT(startChannel != -1);
         _outputNumber = on;
         _startChannel = startChannel;
         if (nullnumber > 0) _nullNumber = nullnumber;
@@ -371,7 +424,12 @@ void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
 #pragma region Frame Handling
 void E131Output::StartFrame(long msec)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (!_enabled) return;
+    if (_fppProxyOutput) {
+        return _fppProxyOutput->StartFrame(msec);
+    }
 
     if (IsOutputCollection())
     {
@@ -382,6 +440,15 @@ void E131Output::StartFrame(long msec)
     }
     else
     {
+        if (_datagram == nullptr && OutputManager::IsRetryOpen())
+        {
+            OpenDatagram();
+            if (_ok)
+            {
+                logger_base.debug("E131Output: Open retry successful");
+            }
+        }
+
         _timer_msec = msec;
     }
 }
@@ -389,6 +456,11 @@ void E131Output::StartFrame(long msec)
 void E131Output::EndFrame(int suppressFrames)
 {
     if (!_enabled || _suspend) return;
+
+    if (_fppProxyOutput) {
+        _fppProxyOutput->EndFrame(suppressFrames);
+        return;
+    }
 
     if (IsOutputCollection())
     {
@@ -418,6 +490,10 @@ void E131Output::EndFrame(int suppressFrames)
 void E131Output::ResetFrame()
 {
     if (!_enabled) return;
+    if (_fppProxyOutput) {
+        _fppProxyOutput->ResetFrame();
+        return;
+    }
 
     if (IsOutputCollection())
     {
@@ -430,15 +506,19 @@ void E131Output::ResetFrame()
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void E131Output::SetOneChannel(long channel, unsigned char data)
+void E131Output::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (!_enabled) return;
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetOneChannel(channel, data);
+        return;
+    }
 
     if (IsOutputCollection())
     {
-        long unum = channel / _channels;
+        int32_t unum = channel / _channels;
         auto it = _outputs.begin();
-        for (long i = 0; i < unum && it != _outputs.end(); i++)
+        for (int32_t i = 0; i < unum && it != _outputs.end(); i++)
         {
             ++it;
         }
@@ -457,47 +537,41 @@ void E131Output::SetOneChannel(long channel, unsigned char data)
     }
 }
 
-void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
+void E131Output::SetManyChannels(int32_t channel, unsigned char data[], size_t size)
 {
-    if (IsOutputCollection())
-    {
-        long startu = (channel) / _channels;
-        long startc = (channel) % _channels;
+    if (_fppProxyOutput) {
+        _fppProxyOutput->SetManyChannels(channel, data, size);
+    } else if (IsOutputCollection()) {
+        int32_t startu = (channel) / _channels;
+        int32_t startc = (channel) % _channels;
 
         auto o = _outputs.begin();
-        for (long i = 0; i < startu; i++)
-        {
+        for (int32_t i = 0; i < startu; i++) {
             ++o;
         }
 
-        long left = size;
-        while (left > 0 && o != _outputs.end())
-        {
+        size_t left = size;
+        while (left > 0 && o != _outputs.end()) {
 #ifdef _MSC_VER
-            long send = min(left, _channels);
+            size_t send = min(left, (size_t)_channels);
 #else
-            long send = std::min(left, _channels);
+            size_t send = std::min(left, (size_t)_channels);
 #endif
             (*o)->SetManyChannels(startc, &data[size - left], send);
             left -= send;
             ++o;
             startc = 0;
         }
-    }
-    else
-    {
+    } else {
 #ifdef _MSC_VER
-        long chs = min(size, _channels - channel);
+        size_t chs = min(size, (size_t)(_channels - channel));
 #else
-        long chs = std::min(size, GetMaxChannels() - channel);
+        size_t chs = std::min(size, (size_t)(GetMaxChannels() - channel));
 #endif
 
-        if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0)
-        {
+        if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0) {
             // nothing changed
-        }
-        else
-        {
+        } else {
             memcpy(&_data[channel + E131_PACKET_HEADERLEN], data, chs);
             _changed = true;
         }
@@ -506,11 +580,12 @@ void E131Output::SetManyChannels(long channel, unsigned char data[], long size)
 
 void E131Output::AllOff()
 {
-    if (IsOutputCollection())
-    {
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    if (_fppProxyOutput) {
+        _fppProxyOutput->AllOff();
+    } if (IsOutputCollection()) {
+        for (auto& it : _outputs)
         {
-            (*it)->AllOff();
+            it->AllOff();
         }
     }
     else
@@ -522,7 +597,11 @@ void E131Output::AllOff()
 #pragma endregion Data Setting
 
 #pragma region Getters and Setters
-long E131Output::GetEndChannel() const
+bool E131Output::IsLookedUpByControllerName() const {
+    return GetDescription() != "";
+}
+
+int32_t E131Output::GetEndChannel() const
 {
     if (IsOutputCollection())
     {
@@ -534,7 +613,7 @@ long E131Output::GetEndChannel() const
     }
 }
 
-Output* E131Output::GetActualOutput(long startChannel)
+Output* E131Output::GetActualOutput(int32_t startChannel)
 {
     if (!IsOutputCollection())
     {
@@ -564,24 +643,42 @@ std::string E131Output::GetLongDescription() const
     {
         if (!_enabled) res += "INACTIVE ";
         res += "E1.31 " + _ip + " {" + wxString::Format(wxT("%i"), _universe).ToStdString() + "} ";
-        res += "[1-" + std::string(wxString::Format(wxT("%li"), (long)_channels)) + "] ";
-        res += "(" + std::string(wxString::Format(wxT("%li"), (long)GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%li"), (long)GetActualEndChannel())) + ") ";
+        res += "[1-" + std::string(wxString::Format(wxT("%i"), _channels)) + "] ";
+        res += "(" + std::string(wxString::Format(wxT("%i"), GetStartChannel())) + "-" + std::string(wxString::Format(wxT("%i"), GetActualEndChannel())) + ") ";
         res += _description;
     }
 
     return res;
 }
 
-std::string E131Output::GetChannelMapping(long ch) const
+std::string E131Output::GetExport() const
+{
+    if (IsOutputCollection())
+    {
+        wxASSERT(false);
+        return "This should not be here";
+    }
+    std::string enabled = _enabled ? _("Y") : _("N");
+    std::string suppress = _suppressDuplicateFrames ? _("Y") : _("N");
+    std::string multicast = GetIP() == "MULTICAST" ? _("Y") : _("N");
+
+    // "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,
+    // FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+    return wxString::Format("%d,%ld,%ld,%s,%s,%s,%i,,,%s,%i,%s,%s,,%s,,,,,%i,,,,",
+        _outputNumber, GetStartChannel(), GetEndChannel(), GetType(), GetIP(), multicast, GetUniverse(), _description, _channels,
+        enabled, suppress, _fppProxy, _priority).ToStdString();
+}
+
+std::string E131Output::GetChannelMapping(int32_t ch) const
 {
     std::string res = "";
 
     if (IsOutputCollection())
     {
-        long unum = (ch - GetStartChannel()) / _channels;
+        int32_t unum = (ch - GetStartChannel()) / _channels;
 
         auto o = _outputs.begin();
-        for (long i = 0; i < unum; i++)
+        for (int32_t i = 0; i < unum; i++)
         {
             ++o;
         }
@@ -590,11 +687,11 @@ std::string E131Output::GetChannelMapping(long ch) const
     }
     else
     {
-        res = "Channel " + std::string(wxString::Format(wxT("%li"), ch)) + " maps to ...\n";
+        res = "Channel " + std::string(wxString::Format(wxT("%i"), ch)) + " maps to ...\n";
 
         res += "Type: E1.31\n";
         // int u = _universe;
-        long channeloffset = ch - GetStartChannel() + 1;
+        int32_t channeloffset = ch - GetStartChannel() + 1;
         if (_numUniverses > 1)
         {
             // u += (ch - GetStartChannel()) / _channels;
@@ -602,7 +699,7 @@ std::string E131Output::GetChannelMapping(long ch) const
         }
         res += "IP: " + _ip + "\n";
         res += "Universe: " + GetUniverseString() + "\n";
-        res += "Channel: " + std::string(wxString::Format(wxT("%li"), channeloffset)) + "\n";
+        res += "Channel: " + std::string(wxString::Format(wxT("%i"), channeloffset)) + "\n";
 
         if (!_enabled) res += " INACTIVE";
     }
@@ -620,11 +717,17 @@ std::string E131Output::GetUniverseString() const
         return IPOutput::GetUniverseString();
     }
 }
+
+void E131Output::SetPriority(int priority)
+{
+    _priority = priority;
+}
+
 #pragma endregion Getters and Setters
 
 #pragma region UI
 #ifndef EXCLUDENETWORKUI
-Output* E131Output::Configure(wxWindow* parent, OutputManager* outputManager)
+Output* E131Output::Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager)
 {
     E131Dialog dlg(parent, this, outputManager);
 

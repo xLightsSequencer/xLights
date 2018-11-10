@@ -27,6 +27,7 @@ void PlayListItemRunCommand::Load(wxXmlNode* node)
 
 PlayListItemRunCommand::PlayListItemRunCommand() : PlayListItem()
 {
+    _type = "PLICommand";
     _started = false;
     _command = "";
     _parm1 = "";
@@ -49,7 +50,7 @@ PlayListItem* PlayListItemRunCommand::Copy() const
 
 wxXmlNode* PlayListItemRunCommand::Save()
 {
-    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "PLICommand");
+    wxXmlNode * node = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, GetType());
 
     node->AddAttribute("Command", _command);
     node->AddAttribute("Parm1", _parm1);
@@ -78,7 +79,7 @@ std::string PlayListItemRunCommand::GetNameNoTime() const
     return "Run Command";
 }
 
-void PlayListItemRunCommand::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemRunCommand::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {
@@ -91,8 +92,8 @@ void PlayListItemRunCommand::Frame(wxByte* buffer, size_t size, size_t ms, size_
         if (_parm2 != "") parms += "," + _parm2;
         if (_parm3 != "") parms += "," + _parm3;
 
-        size_t rate;
-        std::string msg;
+        size_t rate = 0;
+        wxString msg;
         if (!xScheduleFrame::GetScheduleManager()->Action(_command, parms, "", nullptr, nullptr, rate, msg))
         {
             logger_base.info("Command failed: %s.", (const char *)msg.c_str());

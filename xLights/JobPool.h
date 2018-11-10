@@ -32,7 +32,7 @@ public:
 class JobPoolWorker;
 class JobPool
 {
-    std::atomic_bool threadLock;
+    std::mutex threadLock;
     std::mutex queueLock;
     std::condition_variable signal;
     std::vector<JobPoolWorker*> threads;

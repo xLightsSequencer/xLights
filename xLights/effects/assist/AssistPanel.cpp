@@ -97,6 +97,7 @@ void AssistPanel::RefreshEffect() {
         
         int bw, bh;
         mModel->GetBufferSize(mEffect->GetSettings().Get("B_CHOICE_BufferStyle", "Default"),
+                              mEffect->GetSettings().Get("B_CHOICE_PerPreviewCamera", "2D"),
                               mEffect->GetSettings().Get("B_CHOICE_BufferTransform", "None"),
                               bw, bh);
         

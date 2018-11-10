@@ -16,6 +16,8 @@ const long PlayListItemCURLPanel::ID_STATICTEXT4 = wxNewId();
 const long PlayListItemCURLPanel::ID_CHOICE1 = wxNewId();
 const long PlayListItemCURLPanel::ID_STATICTEXT5 = wxNewId();
 const long PlayListItemCURLPanel::ID_TEXTCTRL4 = wxNewId();
+const long PlayListItemCURLPanel::ID_STATICTEXT6 = wxNewId();
+const long PlayListItemCURLPanel::ID_CHOICE2 = wxNewId();
 const long PlayListItemCURLPanel::ID_STATICTEXT2 = wxNewId();
 const long PlayListItemCURLPanel::ID_TEXTCTRL2 = wxNewId();
 //*)
@@ -54,6 +56,10 @@ PlayListItemCURLPanel::PlayListItemCURLPanel(wxWindow* parent, PlayListItemCURL*
 	FlexGridSizer1->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Body = new wxTextCtrl(this, ID_TEXTCTRL4, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE, wxDefaultValidator, _T("ID_TEXTCTRL4"));
 	FlexGridSizer1->Add(TextCtrl_Body, 1, wxALL|wxEXPAND, 5);
+	StaticText6 = new wxStaticText(this, ID_STATICTEXT6, _("Content Type:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
+	FlexGridSizer1->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_ContentType = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
+	FlexGridSizer1->Add(Choice_ContentType, 1, wxALL|wxEXPAND, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Delay:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	TextCtrl_Delay = new wxTextCtrl(this, ID_TEXTCTRL2, _("0.000"), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL2"));
@@ -63,16 +69,34 @@ PlayListItemCURLPanel::PlayListItemCURLPanel(wxWindow* parent, PlayListItemCURL*
 	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemCURLPanel::OnTextCtrl_CURLNameText);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&PlayListItemCURLPanel::OnChoice_TypeSelect);
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&PlayListItemCURLPanel::OnTextCtrl_DelayText);
 	//*)
+
+    Choice_ContentType->AppendString("TEXT");
+    Choice_ContentType->AppendString("JSON");
+    Choice_ContentType->AppendString("XML");
+    Choice_ContentType->AppendString("TEXT XML");
+    Choice_ContentType->AppendString("HTML");
+    Choice_ContentType->AppendString("FORM");
 
     TextCtrl_CURLName->SetValue(curl->GetRawName());
     TextCtrl_URL->SetValue(curl->GetURL());
     TextCtrl_URL->SetToolTip(PlayListItemCURL::GetTooltip());
     TextCtrl_Body->SetValue(curl->GetBody());
     TextCtrl_Body->SetToolTip(PlayListItemCURL::GetTooltip());
-    Choice_Type->SetStringSelection(curl->GetType());
+    Choice_Type->SetStringSelection(curl->GetCURLType());
     TextCtrl_Delay->SetValue(wxString::Format(wxT("%.3f"), (float)curl->GetDelay() / 1000.0));
+    if (curl->GetContentType() == "")
+    {
+        Choice_ContentType->SetSelection(0);
+    }
+    else
+    {
+        Choice_ContentType->SetStringSelection(curl->GetContentType());
+    }
+
+    ValidateWindow();
 }
 
 PlayListItemCURLPanel::~PlayListItemCURLPanel()
@@ -80,10 +104,25 @@ PlayListItemCURLPanel::~PlayListItemCURLPanel()
 	//(*Destroy(PlayListItemCURLPanel)
 	//*)
     _curl->SetName(TextCtrl_CURLName->GetValue().ToStdString());
-    _curl->SetType(Choice_Type->GetStringSelection().ToStdString());
+    _curl->SetCURLType(Choice_Type->GetStringSelection().ToStdString());
     _curl->SetURL(TextCtrl_URL->GetValue().ToStdString());
     _curl->SetBody(TextCtrl_Body->GetValue().ToStdString());
     _curl->SetDelay(wxAtof(TextCtrl_Delay->GetValue())*1000);
+    _curl->SetContentType(Choice_ContentType->GetStringSelection().ToStdString());
+}
+
+void PlayListItemCURLPanel::ValidateWindow()
+{
+    if (Choice_Type->GetStringSelection() == "GET")
+    {
+        TextCtrl_Body->Enable(false);
+        Choice_ContentType->Enable(false);
+    }
+    else
+    {
+        TextCtrl_Body->Enable();
+        Choice_ContentType->Enable();
+    }
 }
 
 void PlayListItemCURLPanel::OnTextCtrl_DelayText(wxCommandEvent& event)
@@ -94,4 +133,9 @@ void PlayListItemCURLPanel::OnTextCtrl_CURLNameText(wxCommandEvent& event)
 {
     _curl->SetName(TextCtrl_CURLName->GetValue().ToStdString());
     ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+}
+
+void PlayListItemCURLPanel::OnChoice_TypeSelect(wxCommandEvent& event)
+{
+    ValidateWindow();
 }

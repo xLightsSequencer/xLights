@@ -5,6 +5,9 @@
 #include <wx/wfstream.h>
 #include <wx/dir.h>
 #include <wx/textfile.h>
+#include <wx/mstream.h>
+#include <wx/base64.h>
+#include <zstd.h>
 
 #include "../include/spxml-0.5/spxmlparser.hpp"
 
@@ -23,12 +26,15 @@
 
 #define string_format wxString::Format
 
+//     #define USE_COMPRESSION
+
+
 const wxString xLightsXmlFile::ERASE_MODE = "<rendered: erase-mode>";
 const wxString xLightsXmlFile::CANVAS_MODE = "<rendered: canvas-mode>";
 
 xLightsXmlFile::xLightsXmlFile(const wxFileName &filename)
 	: wxFileName(filename),
-	version_string(wxEmptyString),
+	version_string(wxEmptyString), 
 	seq_duration(30.0),
 	media_file(wxEmptyString),
 	seq_type("Animation"), // default to animation
@@ -248,8 +254,6 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
 
 void xLightsXmlFile::ClearMediaFile()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (audio != nullptr)
     {
         ValueCurve::SetAudio(nullptr);
@@ -1112,7 +1116,24 @@ bool xLightsXmlFile::LoadSequence(const wxString& ShowDir, bool ignore_audio)
     is_open = true;
 
     wxXmlNode* root=seqDocument.GetRoot();
-
+    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext()) {
+        if (e->GetName() == "CompressedData") {
+            int size = wxAtoi(e->GetAttribute("size"));
+            wxMemoryBuffer memBuffer = wxBase64Decode(e->GetNodeContent());
+            uint8_t *bytes = new uint8_t[size + 50];
+            int sz = ZSTD_decompress(bytes, size + 50, memBuffer.GetData(), memBuffer.GetDataLen());
+            
+            wxMemoryInputStream in(bytes, sz);
+            wxXmlDocument doc;
+            doc.Load(in);
+            wxXmlNode *c = doc.DetachRoot();
+            root->InsertChildAfter(c, e);
+            root->RemoveChild(e);
+            delete e;
+            e = c;
+            delete [] bytes;
+        }
+    }
     supports_model_blending = "true" == root->GetAttribute("ModelBlending", "false");
 
     if( NeedsTimesCorrected() )
@@ -1638,7 +1659,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
 void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
-    static  log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString line;
 
     for (size_t i = 0; i < filenames.Count(); ++i )
@@ -1649,8 +1669,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
         wxFile f;
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            logger_base.warn("ProcessLorTiming: Failed to open file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to open file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("LOR Timing: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
         f.Close();
@@ -1663,8 +1682,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
         wxXmlDocument input_xml;
         if( !input_xml.Load(next_file.GetFullPath()) )
         {
-            logger_base.warn("ProcessLorTiming: Failed to load XML file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("LOR Timing: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
 
@@ -1876,7 +1894,6 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 {
     wxTextFile f;
     wxString line;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
@@ -1885,8 +1902,7 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            logger_base.warn("ProcessXTiming: Failed to open file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to open file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("xTiming: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
 
@@ -1895,8 +1911,7 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
         wxXmlDocument input_xml;
         if (!input_xml.Load(next_file.GetFullPath()))
         {
-            logger_base.warn("ProcessXTiming: Failed to load XML file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("xTiming: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
 
@@ -1917,13 +1932,6 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
             }
         }
     }
-}
-
-void xLightsXmlFile::ProcessError(const wxString& s)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.error(std::string(s.c_str()));
-    wxMessageBox(s);
 }
 
 wxString RemoveTabs(const wxString& s, size_t tabs)
@@ -1955,14 +1963,14 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            ProcessError("Failed to open file: " + next_file.GetFullPath());
+            DisplayError("Failed to open file: " + next_file.GetFullPath());
             return;
         }
 
         wxString line = f.GetFirstLine();
         if (line.CmpNoCase("lipsync version 1"))
         {
-            ProcessError(wxString::Format(_("Invalid papagayo file @line %d (header '%s')"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid papagayo file @line %d (header '%s')"), linenum, line.c_str()).ToStdString());
             return;
         }
 
@@ -1974,7 +1982,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
         linenum++;
         if (samppersec < 1)
         {
-            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), linenum, line.c_str()).ToStdString());
         }
         int ms = 1000 / samppersec;
 
@@ -1989,14 +1997,14 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
         linenum++;
         if (numsamp < 1)
         {
-            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), linenum, line.c_str()).ToStdString());
         }
 
         int numvoices = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
         linenum++;
         if (numvoices < 1)
         {
-            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()).ToStdString());
         }
         logger_base.info("    Voices %d", numvoices);
 
@@ -2010,7 +2018,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
             linenum++;
             if (voicename.empty())
             {
-                ProcessError(wxString::Format(_("Missing voice# %d of %d"), v, numvoices));
+                DisplayError(wxString::Format(_("Missing voice# %d of %d"), v, numvoices).ToStdString());
                 return;
             }
 
@@ -2022,7 +2030,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
             linenum++;
             if (numphrases < 0)
             {
-                ProcessError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()));
+                DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
             }
 
             Element* element = nullptr;
@@ -2058,7 +2066,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                 linenum++;
                 if (label == "")
                 {
-                    ProcessError(wxString::Format(_("Missing phrase# %d of %d for %s"), p, numphrases, desc.c_str()));
+                    DisplayError(wxString::Format(_("Missing phrase# %d of %d for %s"), p, numphrases, desc.c_str()).ToStdString());
                     return;
                 }
 
@@ -2084,7 +2092,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                 linenum++;
                 if (numwords < 0)
                 {
-                    ProcessError(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), linenum, line.c_str(), desc.c_str()));
+                    DisplayError(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
                 }
 
                 for (int w = 1; w <= numwords; ++w)
@@ -2095,7 +2103,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                     label = line.SubString(0, space1-1);
                     if (label == "")
                     {
-                        ProcessError(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()));
+                        DisplayError(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()).ToStdString());
                         return;
                     }
 
@@ -2126,7 +2134,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                     linenum++;
                     if (numphonemes < 0)
                     {
-                        ProcessError(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), linenum, line.c_str(), desc.c_str()));
+                        DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
                     }
 
                     int outerend = end;
@@ -2159,7 +2167,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                         label = line.SubString(space4 + 1, line.Length());
                         if (label == "")
                         {
-                            ProcessError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()));
+                            DisplayError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()).ToStdString());
                             return;
                         }
                         start = end;
@@ -2180,6 +2188,149 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                 }
             }
         }
+    }
+}
+
+std::string ReadSRTLine(wxTextFile& f, int linenum, long& startMS, long& endMS)
+{
+    startMS = 0;
+    endMS = 0;
+
+    if (f.Eof()) return "";
+
+    int l = 0;
+    if (linenum == 1)
+    {
+        l = wxAtoi(f.GetFirstLine());
+    }
+    else
+    {
+        l = wxAtoi(f.GetNextLine());
+    }
+    while (!f.Eof() && l < linenum)
+    {
+        l = wxAtoi(f.GetNextLine());
+    }
+    if (l > linenum)
+    {
+        return "";
+    }
+
+    if (f.Eof()) return "";
+
+    //00:00:06,580 --> 00:00:08,580
+    auto times = f.GetNextLine();
+    if (Contains(times, "-->"))
+    {
+        int sH, eH, sM, eM, sS, eS, sMS, eMS;
+        wxArrayString c1 = wxSplit(times, ':');
+        if (c1.size() == 5)
+        {
+            sH = wxAtoi(c1[0]);
+            sM = wxAtoi(c1[1]);
+            wxArrayString c2 = wxSplit(c1[2], ',');
+            if (c2.size() == 2)
+            {
+                sS = wxAtoi(c2[0]);
+                wxArrayString c3 = wxSplit(c2[1], ' ');
+                if (c3.size() == 3)
+                {
+                    sMS = wxAtoi(c3[0]);
+                    eH = wxAtoi(c3[2]);
+                    eM = wxAtoi(c1[3]);
+                    wxArrayString c4 = wxSplit(c1[4], ',');
+                    if (c4.size() == 2)
+                    {
+                        eS = wxAtoi(c4[0]);
+                        eMS = wxAtoi(c4[1]);
+                        startMS = sH * 3600000 + sM * 60000 + sS * 1000 + sMS;
+                        endMS = eH * 3600000 + eM * 60000 + eS * 1000 + eMS;
+                    }
+                }
+            }
+        }
+    }
+
+    if (f.Eof()) return "";
+
+    std::string line = "";
+    std::string ll = f.GetNextLine();
+    while (!f.Eof() && ll != "")
+    {
+        if (line != "") line += " ";
+        line += Trim(ll);
+        ll = f.GetNextLine();
+    }
+    return line;
+}
+
+void xLightsXmlFile::ProcessSRT(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
+{
+    static log4cpp::Category& logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxTextFile f;
+
+    for (size_t i = 0; i < filenames.Count(); ++i)
+    {
+        wxFileName next_file(filenames[i]);
+        next_file.SetPath(dir);
+
+        logger_base.info("Loading srt file " + std::string(next_file.GetFullPath().c_str()));
+
+        if (!f.Open(next_file.GetFullPath().c_str()))
+        {
+            DisplayError("Failed to open file: " + next_file.GetFullPath());
+            return;
+        }
+
+        wxString name = wxString::Format(next_file.GetName());
+        name = UniqueTimingName(xLightsParent, name);
+        logger_base.info("    Loading into timing track %s.", (const char*)name.c_str());
+
+        Element* element = nullptr;
+        wxXmlNode* timing = nullptr;
+        if (sequence_loaded)
+        {
+            element = xLightsParent->AddTimingElement(std::string(name.c_str()));
+        }
+        else
+        {
+            AddTimingDisplayElement(name, "1", "0");
+            timing = AddElement(name, "timing");
+        }
+
+        wxXmlNode* l1 = nullptr;
+        EffectLayer* el1 = nullptr;
+        if (sequence_loaded)
+        {
+            el1 = element->GetEffectLayer(0);
+        }
+        else
+        {
+            l1 = AddChildXmlNode(timing, "EffectLayer");
+        }
+
+        long startMS;
+        long endMS;
+        int linenum = 1;
+
+        std::string line = ReadSRTLine(f, linenum++, startMS, endMS);
+
+        do {
+
+            if (line != "" && endMS > startMS)
+            {
+                if (sequence_loaded)
+                {
+                    el1->AddEffect(0, line, "", "", startMS, endMS, EFFECT_NOT_SELECTED, false);
+                }
+                else
+                {
+                    AddTimingEffect(l1, line, "0", "0", wxString::Format("%ld", startMS), wxString::Format("%ld", endMS));
+                }
+            }
+
+            line = ReadSRTLine(f, linenum++, startMS, endMS);
+        } while (!f.Eof());
     }
 }
 
@@ -2426,6 +2577,7 @@ void xLightsXmlFile::ProcessVixen3Timing(const wxString& dir, const wxArrayStrin
 
     xLightsParent->SetCursor(wxCURSOR_WAIT);
 
+    int unnamed = 1;
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
         wxFileName next_file(filenames[i]);
@@ -2754,6 +2906,38 @@ void xLightsXmlFile::Save( SequenceElements& seq_elements)
         }
     }
     UpdateVersion();
+    
+#ifdef USE_COMPRESSION
+    for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext()) {
+        wxString name = e->GetName();
+        if (name == "ColorPalettes" || name == "EffectDB" || name == "ElementEffects") {
+            wxXmlDocument doc;
+
+            wxXmlNode *next = e->GetNext();
+            root->RemoveChild(e);
+
+            doc.SetRoot(e);
+            wxMemoryOutputStream out;
+            doc.Save(out, wxXML_NO_INDENTATION);
+            
+            int max = out.GetOutputStreamBuffer()->Tell();
+            uint8_t *outBuf = new uint8_t[max];
+            int outSize = ZSTD_compress(outBuf, max,
+                                        out.GetOutputStreamBuffer()->GetBufferStart(), max,
+                                        1);
+            // Manipulate data.....
+            wxString b64 = wxBase64Encode(outBuf, outSize);
+            delete [] outBuf;
+            wxXmlNode *newNode = new wxXmlNode(wxXML_ELEMENT_NODE, "CompressedData");
+            newNode->AddChild(new wxXmlNode(wxXML_TEXT_NODE, "", b64));
+            newNode->AddAttribute("size", std::to_string(max));
+            root->InsertChild(newNode, next);
+            
+            e = newNode;
+        }
+    }
+#endif
+    
     seqDocument.Save(GetFullPath());
 }
 
@@ -2819,39 +3003,39 @@ void xLightsXmlFile::AddNewTimingSection(const std::string & interval_name, xLig
     AddChildXmlNode(node, "EffectLayer");
 }
 
-void xLightsXmlFile::AddFixedTimingSection(const std::string & interval_name, xLightsFrame* xLightsParent)
+void xLightsXmlFile::AddFixedTimingSection(const std::string& interval_name, xLightsFrame* xLightsParent)
 {
-    AddTimingDisplayElement( interval_name, "1", "0" );
+    AddTimingDisplayElement(interval_name, "1", "0");
     wxXmlNode* node;
 
-    if( interval_name == "Empty" )
+    if (interval_name == "Empty" || (interval_name != "25ms" && interval_name != "50ms" && interval_name != "100ms" && !EndsWith(interval_name, "ms Metronome")))
     {
-        if( sequence_loaded )
+        if (sequence_loaded)
         {
             xLightsParent->AddTimingElement(interval_name);
         }
-        node = AddElement( interval_name, "timing" );
+        node = AddElement(interval_name, "timing");
     }
     else
     {
-        int interval = wxAtoi(interval_name);;
-        if( sequence_loaded )
+        int interval = wxAtoi(interval_name);
+        if (sequence_loaded)
         {
             TimingElement* element = xLightsParent->AddTimingElement(interval_name);
             element->SetFixedTiming(interval);
             EffectLayer* effectLayer = element->GetEffectLayer(0);
             int time = 0;
             int end_time = GetSequenceDurationMS();
-            while( time <= end_time )
+            while (time <= end_time)
             {
                 int next_time = (time + interval <= end_time) ? time + interval : end_time;
                 int startTime = TimeLine::RoundToMultipleOfPeriod(time, GetFrequency());
                 int endTime = TimeLine::RoundToMultipleOfPeriod(next_time, GetFrequency());
-                effectLayer->AddEffect(0,"","","",startTime,endTime,EFFECT_NOT_SELECTED,false);
+                effectLayer->AddEffect(0, "", "", "", startTime, endTime, EFFECT_NOT_SELECTED, false);
                 time += interval;
             }
         }
-        node = AddFixedTiming( interval_name, string_format("%d",interval) );
+        node = AddFixedTiming(interval_name, string_format("%d", interval));
     }
 
     AddChildXmlNode(node, "EffectLayer");
@@ -2873,44 +3057,44 @@ void xLightsXmlFile::AdjustEffectSettingsForVersion(SequenceElements& elements, 
     std::vector<RenderableEffect*> effects(xLightsParent->GetEffectManager().size());
     int count = 0;
     for (int x = 0; x < xLightsParent->GetEffectManager().size(); x++) {
-        RenderableEffect *eff = xLightsParent->GetEffectManager()[x];
+        RenderableEffect* eff = xLightsParent->GetEffectManager()[x];
         if (eff->needToAdjustSettings(ver)) {
             effects[x] = eff;
             count++;
         }
     }
     if (count > 0) {
-        for( size_t i = 0; i < elements.GetElementCount(); i++ )  {
+        for (size_t i = 0; i < elements.GetElementCount(); i++) {
             Element* elem = elements.GetElement(i);
-            if( elem->GetType() == ELEMENT_TYPE_MODEL ) {
-                ModelElement *me = dynamic_cast<ModelElement*>(elem);
-                for( int j = 0; j < elem->GetEffectLayerCount(); j++ ) {
+            if (elem->GetType() == ELEMENT_TYPE_MODEL) {
+                ModelElement* me = dynamic_cast<ModelElement*>(elem);
+                for (int j = 0; j < elem->GetEffectLayerCount(); j++) {
                     EffectLayer* layer = elem->GetEffectLayer(j);
-                    for( int k = 0; k < layer->GetEffectCount(); k++ ) {
+                    for (int k = 0; k < layer->GetEffectCount(); k++) {
                         Effect* eff = layer->GetEffect(k);
-                        if (eff != nullptr &&  eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
+                        if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                             effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                         }
                     }
                 }
                 for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
-                    SubModelElement *se = me->GetSubModel(s);
+                    SubModelElement* se = me->GetSubModel(s);
                     for (int j = 0; j < se->GetEffectLayerCount(); j++) {
                         EffectLayer* layer = se->GetEffectLayer(j);
-                        for( int k = 0; k < layer->GetEffectCount(); k++ ) {
+                        for (int k = 0; k < layer->GetEffectCount(); k++) {
                             Effect* eff = layer->GetEffect(k);
-                            if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
-                               effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
+                            if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
+                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                             }
                         }
                     }
                     if (se->GetType() == ELEMENT_TYPE_STRAND) {
-                        StrandElement *ste = dynamic_cast<StrandElement*>(se);
+                        StrandElement* ste = dynamic_cast<StrandElement*>(se);
                         for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
                             NodeLayer* nlayer = ste->GetNodeLayer(k);
-                            for( int l = 0; l < nlayer->GetEffectCount(); l++ ) {
+                            for (int l = 0; l < nlayer->GetEffectCount(); l++) {
                                 Effect* eff = nlayer->GetEffect(l);
-                                if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr ) {
+                                if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
                                     effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
                                 }
                             }

@@ -8,13 +8,15 @@
 #include "EventLor.h"
 #include "ListenerE131.h"
 #include "ListenerFPP.h"
+#include "ListenerCSVFPP.h"
 #include "ListenerMIDI.h"
-#include "ListenerFPPUnicast.h"
+#include "ListenerMQTT.h"
 #include "ListenerSerial.h"
 #include "ListenerLor.h"
 #include "ListenerARTNet.h"
 #include "ListenerOSC.h"
 #include "EventMIDI.h"
+#include "EventMQTT.h"
 
 wxDEFINE_EVENT(EVT_MIDI, wxCommandEvent);
 
@@ -37,9 +39,9 @@ void ListenerManager::StartListeners()
         {
             ListenerE131* l = (ListenerE131*)(*it);
             bool found = false;
-            for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
             {
-                if ((*it2)->GetType() == "E131")
+                if (it2->GetType() == "E131")
                 {
                     found = true;
                 }
@@ -59,12 +61,12 @@ void ListenerManager::StartListeners()
         {
             ListenerSerial* l = (ListenerSerial*)(*it);
             bool found = false;
-            for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
             {
-                if ((*it2)->GetType() == "Serial" && l->GetCommPort() == ((EventSerial*)(*it2))->GetCommPort())
+                if (it2->GetType() == "Serial" && l->GetCommPort() == ((EventSerial*)it2)->GetCommPort())
                 {
-                    if (l->GetSpeed() == ((EventSerial*)(*it2))->GetSpeed() &&
-                        l->GetProtocol() == ((EventSerial*)(*it2))->GetProtocol())
+                    if (l->GetSpeed() == ((EventSerial*)it2)->GetSpeed() &&
+                        l->GetProtocol() == ((EventSerial*)it2)->GetProtocol())
                     {
                         found = true;
                     }
@@ -85,17 +87,17 @@ void ListenerManager::StartListeners()
         {
             ListenerLor* l = (ListenerLor*)(*it);
             bool found = false;
-            for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
             {
-                if ((*it2)->GetType() == "LOR" && l->GetCommPort() == ((EventLor*)(*it2))->GetCommPort())
+                if (it2->GetType() == "LOR" && l->GetCommPort() == ((EventLor*)it2)->GetCommPort())
                 {
-                    if (l->GetSpeed() == ((EventLor*)(*it2))->GetSpeed() &&
-                        l->GetProtocol() == ((EventLor*)(*it2))->GetProtocol())
+                    if (l->GetSpeed() == ((EventLor*)it2)->GetSpeed() &&
+                        l->GetProtocol() == ((EventLor*)it2)->GetProtocol())
                     {
                         found = true;
                     }
-				}
-			}
+                }
+            }
             if (!found)
             {
                 l->Stop();
@@ -106,7 +108,7 @@ void ListenerManager::StartListeners()
             {
                 ++it;
             }
-		}
+        }
         else if ((*it)->GetType() == "MIDI")
         {
             if (_sync == 5)
@@ -117,9 +119,9 @@ void ListenerManager::StartListeners()
             {
                 ListenerMIDI* l = (ListenerMIDI*)(*it);
                 bool found = false;
-                for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+                for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
                 {
-                    if ((*it2)->GetType() == "MIDI")
+                    if (it2->GetType() == "MIDI" && ((EventMIDI*)it2)->GetDeviceId() == l->GetDeviceId())
                     {
                         found = true;
                     }
@@ -136,7 +138,29 @@ void ListenerManager::StartListeners()
                 }
             }
         }
-        else if ((*it)->GetType() == "ARTNet")
+        else if ((*it)->GetType() == "MQTT")
+        {
+            ListenerMQTT* l = (ListenerMQTT*)(*it);
+            bool found = false;
+            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
+            {
+                if (it2->GetType() == "MQTT" && l->GetBrokerIP() == ((EventMQTT*)it2)->GetBrokerIP() && l->GetBrokerPort() == ((EventMQTT*)it2)->GetBrokerPort())
+                {
+                    found = true;
+                }
+            }
+            if (!found)
+            {
+                l->Stop();
+                _listeners.erase(it++);
+                delete l;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        else if ((*it)->GetType() == "ARTNet" || (*it)->GetType() == "ARTNetTrigger")
         {
             if (_sync == 3)
             {
@@ -146,9 +170,9 @@ void ListenerManager::StartListeners()
             {
                 ListenerARTNet* l = (ListenerARTNet*)(*it);
                 bool found = false;
-                for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+                for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
                 {
-                    if ((*it2)->GetType() == "ARTNet")
+                    if (it2->GetType() == "ARTNet" || it2->GetType() == "ARTNetTrigger")
                     {
                         found = true;
                     }
@@ -175,9 +199,9 @@ void ListenerManager::StartListeners()
             {
                 ListenerFPP* l = (ListenerFPP*)(*it);
                 bool found = false;
-                for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+                for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
                 {
-                    if ((*it2)->GetType() == "FPP")
+                    if (it2->GetType() == "FPP")
                     {
                         found = true;
                     }
@@ -193,6 +217,35 @@ void ListenerManager::StartListeners()
                     ++it;
                 }
             }
+        }
+        else if ((*it)->GetType() == "FPP CSV")
+        {
+        if (_sync == 6)
+        {
+            ++it;
+        }
+        else
+        {
+            ListenerCSVFPP* l = (ListenerCSVFPP*)(*it);
+            bool found = false;
+            for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
+            {
+                if (it2->GetType() == "FPP CSV")
+                {
+                    found = true;
+                }
+            }
+            if (!found)
+            {
+                l->Stop();
+                _listeners.erase(it++);
+                delete l;
+            }
+            else
+            {
+                ++it;
+            }
+        }
         }
         else if ((*it)->GetType() == "OSC")
         {
@@ -204,9 +257,9 @@ void ListenerManager::StartListeners()
             {
                 ListenerOSC* l = (ListenerOSC*)(*it);
                 bool found = false;
-                for (auto it2 = _scheduleManager->GetOptions()->GetEvents()->begin(); it2 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it2)
+                for (auto it2 : *_scheduleManager->GetOptions()->GetEvents())
                 {
-                    if ((*it2)->GetType() == "OSC")
+                    if (it2->GetType() == "OSC")
                     {
                         found = true;
                     }
@@ -223,32 +276,18 @@ void ListenerManager::StartListeners()
                 }
             }
         }
-        else if ((*it)->GetType() == "FPP Unicast")
-        {
-            if (_sync != 4)
-            {
-                ListenerFPPUnicast* l = (ListenerFPPUnicast*)(*it);
-                l->Stop();
-                _listeners.erase(it++);
-                delete l;
-            }
-            else
-            {
-                ++it;
-            }
-        }
     }
 
     bool update_lor_unit_ids = false;
 
-    for (auto it3 = _scheduleManager->GetOptions()->GetEvents()->begin(); it3 != _scheduleManager->GetOptions()->GetEvents()->end(); ++it3)
+    for (auto it3 : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if ((*it3)->GetType() == "E131")
+        if (it3->GetType() == "E131")
         {
             bool e131Exists = false;
-            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            for (auto it2 : _listeners)
             {
-                if ((*it2)->GetType() == "E131")
+                if (it2->GetType() == "E131")
                 {
                     e131Exists = true;
                     break;
@@ -261,12 +300,12 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
-        else if ((*it3)->GetType() == "ARTNet")
+        else if (it3->GetType() == "ARTNet" || it3->GetType() == "ARTNetTrigger")
         {
             bool artnetExists = false;
-            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            for (auto it2 : _listeners)
             {
-                if ((*it2)->GetType() == "ARTNet")
+                if (it2->GetType() == "ARTNet")
                 {
                     artnetExists = true;
                     break;
@@ -279,13 +318,15 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
-        else if ((*it3)->GetType() == "FPP")
+        else if (it3->GetType() == "FPP")
         {
+            ListenerBase* current = nullptr;
             bool fppExists = false;
-            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            for (auto it2 : _listeners)
             {
-                if ((*it2)->GetType() == "FPP")
+                if (it2->GetType() == "FPP")
                 {
+                    current = it2;
                     fppExists = true;
                     break;
                 }
@@ -296,14 +337,50 @@ void ListenerManager::StartListeners()
                 _listeners.push_back(new ListenerFPP(this));
                 _listeners.back()->Start();
             }
-        }
-        else if ((*it3)->GetType() == "Serial")
-        {
-            EventSerial* e = (EventSerial*)(*it3);
-            bool portExists = false;
-            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            else
             {
-                if ((*it2)->GetType() == "Serial" && ((ListenerSerial*)(*it2))->GetCommPort() == e->GetCommPort())
+                // because FPP binds to the type of sync packet it sees (broadcast/multicast/unicast) we need to delete and recreate to ensure it can pick up anything new
+                current->Stop();
+                _listeners.erase(std::find(_listeners.begin(), _listeners.end(), current));
+                _listeners.push_back(new ListenerFPP(this));
+                _listeners.back()->Start();
+            }
+        }
+        else if (it3->GetType() == "FPP CSV")
+        {
+            ListenerBase* current = nullptr;
+            bool fppExists = false;
+            for (auto it2 : _listeners)
+            {
+                if (it2->GetType() == "FPP CSV")
+                {
+                    current = it2;
+                    fppExists = true;
+                    break;
+                }
+            }
+
+            if (!fppExists)
+            {
+                _listeners.push_back(new ListenerCSVFPP(this));
+                _listeners.back()->Start();
+            }
+            else
+            {
+                // because FPP binds to the type of sync packet it sees (broadcast/multicast/unicast) we need to delete and recreate to ensure it can pick up anything new
+                current->Stop();
+                _listeners.erase(std::find(_listeners.begin(), _listeners.end(), current));
+                _listeners.push_back(new ListenerCSVFPP(this));
+                _listeners.back()->Start();
+            }
+        }
+        else if (it3->GetType() == "Serial")
+        {
+            EventSerial* e = (EventSerial*)it3;
+            bool portExists = false;
+            for (auto it2 : _listeners)
+            {
+                if (it2->GetType() == "Serial" && ((ListenerSerial*)it2)->GetCommPort() == e->GetCommPort())
                 {
                     portExists = true;
                     break;
@@ -316,36 +393,36 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
-        else if ((*it3)->GetType() == "LOR")
+        else if (it3->GetType() == "LOR")
         {
-            EventLor* e = (EventLor*)(*it3);
+            EventLor* e = (EventLor*)it3;
             bool portExists = false;
-            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            for (auto& it2 : _listeners)
             {
-                if ((*it2)->GetType() == "LOR" && ((ListenerLor*)(*it2))->GetCommPort() == e->GetCommPort())
+                if (it2->GetType() == "LOR" && ((ListenerLor*)it2)->GetCommPort() == e->GetCommPort())
                 {
                     portExists = true;
-                    ((ListenerLor*)(*it2))->AddNewUnitId(e->GetUnitId());
+                    ((ListenerLor*)it2)->AddNewUnitId(e->GetUnitId());
                     update_lor_unit_ids = true;
                     break;
                 }
             }
-            
+
             if (!portExists)
             {
                 _listeners.push_back(new ListenerLor(this, e->GetCommPort(), e->GetSerialConfig(), e->GetSpeed(), e->GetProtocol(), e->GetUnitIdString()));
                 _listeners.back()->Start();
                 ((ListenerLor*)(_listeners.back()))->AddNewUnitId(e->GetUnitId());
                 update_lor_unit_ids = true;
-			}
-		}
-        else if ((*it3)->GetType() == "MIDI")
+            }
+        }
+        else if (it3->GetType() == "MIDI")
         {
-            EventMIDI* e = (EventMIDI*)(*it3);
+            EventMIDI* e = (EventMIDI*)it3;
             bool midiExists = false;
-            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            for (auto it2 : _listeners)
             {
-                if ((*it2)->GetType() == "MIDI")
+                if (it2->GetType() == "MIDI" && e->GetDeviceId() == ((ListenerMIDI*)it2)->GetDeviceId())
                 {
                     midiExists = true;
                     break;
@@ -358,12 +435,33 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
-        else if ((*it3)->GetType() == "OSC")
+        else if (it3->GetType() == "MQTT")
+        {
+            EventMQTT* e = (EventMQTT*)it3;
+            bool portExists = false;
+            for (auto it2 : _listeners)
+            {
+                if (it2->GetType() == "MQTT" && ((ListenerMQTT*)it2)->GetBrokerIP() == e->GetBrokerIP() && ((ListenerMQTT*)it2)->GetBrokerPort() == e->GetBrokerPort())
+                {
+                    ((ListenerMQTT*)it2)->Subscribe(e->GetTopic());
+                    portExists = true;
+                    break;
+                }
+            }
+
+            if (!portExists)
+            {
+                _listeners.push_back(new ListenerMQTT(this, e->GetBrokerIP(), e->GetBrokerPort(), e->GetUsername(), e->GetPassword(), e->GetClientId()));
+                _listeners.back()->Start();
+                ((ListenerMQTT*)_listeners.back())->Subscribe(e->GetTopic());
+            }
+        }
+        else if (it3->GetType() == "OSC")
         {
             bool oscExists = false;
-            for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+            for (auto it2 : _listeners)
             {
-                if ((*it2)->GetType() == "OSC")
+                if (it2->GetType() == "OSC")
                 {
                     oscExists = true;
                     break;
@@ -376,20 +474,24 @@ void ListenerManager::StartListeners()
                 _listeners.back()->Start();
             }
         }
-        else if ((*it3)->GetType() == "Data")
+        else if (it3->GetType() == "Data")
         {
             // No listener required
+        }
+        else
+        {
+            wxASSERT(false);
         }
     }
 
     // need to tell LOR listeners to update Unit Ids they need to poll
-    if( update_lor_unit_ids )
+    if (update_lor_unit_ids)
     {
-        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+        for (auto& it2 : _listeners)
         {
-            if ((*it2)->GetType() == "LOR")
+            if (it2->GetType() == "LOR")
             {
-                ((ListenerLor*)(*it2))->EndUnitIdList();
+                ((ListenerLor*)it2)->EndUnitIdList();
             }
         }
     }
@@ -397,9 +499,9 @@ void ListenerManager::StartListeners()
     if (_sync == 1)
     {
         bool fppExists = false;
-        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+        for (auto it2 : _listeners)
         {
-            if ((*it2)->GetType() == "FPP")
+            if (it2->GetType() == "FPP")
             {
                 fppExists = true;
                 break;
@@ -415,9 +517,9 @@ void ListenerManager::StartListeners()
     else if (_sync == 2)
     {
         bool oscExists = false;
-        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+        for (auto it2 : _listeners)
         {
-            if ((*it2)->GetType() == "OSC")
+            if (it2->GetType() == "OSC")
             {
                 oscExists = true;
                 break;
@@ -433,9 +535,9 @@ void ListenerManager::StartListeners()
     else if (_sync == 3)
     {
         bool artnetExists = false;
-        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+        for (auto it2 : _listeners)
         {
-            if ((*it2)->GetType() == "ARTNet")
+            if (it2->GetType() == "ARTNet")
             {
                 artnetExists = true;
                 break;
@@ -448,30 +550,13 @@ void ListenerManager::StartListeners()
             _listeners.back()->Start();
         }
     }
-    else if (_sync == 4)
-    {
-        bool fppUnicastExists = false;
-        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
-        {
-            if ((*it2)->GetType() == "FPP Unicast")
-            {
-                fppUnicastExists = true;
-                break;
-            }
-        }
-
-        if (!fppUnicastExists)
-        {
-            _listeners.push_back(new ListenerFPPUnicast(this));
-            _listeners.back()->Start();
-        }
-    }
     else if (_sync == 5)
     {
+        int devid = wxAtoi(wxString(_scheduleManager->GetOptions()->GetMIDITimecodeDevice()).AfterLast(' '));
         bool midiExists = false;
-        for (auto it2 = _listeners.begin(); it2 != _listeners.end(); ++it2)
+        for (auto it2 : _listeners)
         {
-            if ((*it2)->GetType() == "MIDI")
+            if (it2->GetType() == "MIDI" && ((ListenerMIDI*)it2)->GetDeviceId() == devid)
             {
                 midiExists = true;
                 break;
@@ -482,9 +567,27 @@ void ListenerManager::StartListeners()
         {
             if (_scheduleManager->GetOptions()->GetMIDITimecodeDevice() != "")
             {
-                _listeners.push_back(new ListenerMIDI(wxAtoi(wxString(_scheduleManager->GetOptions()->GetMIDITimecodeDevice()).AfterLast(' ')), this));
+                _listeners.push_back(new ListenerMIDI(devid, this));
                 _listeners.back()->Start();
             }
+        }
+    }
+    else if (_sync == 6)
+    {
+        bool fppExists = false;
+        for (auto it2 : _listeners)
+        {
+            if (it2->GetType() == "FPP CSV")
+            {
+                fppExists = true;
+                break;
+            }
+        }
+
+        if (!fppExists)
+        {
+            _listeners.push_back(new ListenerCSVFPP(this));
+            _listeners.back()->Start();
         }
     }
 }
@@ -501,15 +604,15 @@ void ListenerManager::SetRemoteFPP()
     StartListeners();
 }
 
-void ListenerManager::SetRemoteMIDI()
+void ListenerManager::SetRemoteCSVFPP()
 {
-    _sync = 5;
+    _sync = 6;
     StartListeners();
 }
 
-void ListenerManager::SetRemoteFPPUnicast()
+void ListenerManager::SetRemoteMIDI()
 {
-    _sync = 4;
+    _sync = 5;
     StartListeners();
 }
 
@@ -541,9 +644,9 @@ void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
     {
         _notifyScan = notify;
         bool found = false;
-        for (auto it = _listeners.begin(); it != _listeners.end(); ++it)
+        for (auto it : _listeners)
         {
-            if ((*it)->GetType() == "MIDI" && ((ListenerMIDI*)(*it))->GetDeviceId() == deviceId)
+            if (it->GetType() == "MIDI" && ((ListenerMIDI*)it)->GetDeviceId() == deviceId)
             {
                 found = true;
                 break;
@@ -563,19 +666,36 @@ void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
     }
 }
 
+#define MIN_SYNC_INTERVAL_MS 500
+
 int ListenerManager::Sync(const std::string filename, long ms, const std::string& type)
 {
-    if ((_sync == 3 && type == "ARTNet") ||
-        (_sync == 4 && type == "FPP Unicast") ||
-        (_sync == 2 && type == "OSC") ||
-        (_sync == 5 && type == "MIDI") ||
-        (_sync == 1 && type == "FPP"))
+    if ((_sync == 1 && type == "FPP") || (_sync == 6 && type == "FPP CSV"))
     {
-        return _scheduleManager->Sync(filename, ms);
+        _lastFrameMS = _scheduleManager->Sync(_scheduleManager->FindStepForFSEQ(filename), ms);
+    }
+    else if ((_sync == 3 && type == "ARTNet") ||
+        (_sync == 2 && type == "OSC") ||
+        (_sync == 5 && type == "MIDI"))
+    {
+		if (_lastSyncMS < 0 || _lastSyncMS >= ms || ms > _lastSyncMS + MIN_SYNC_INTERVAL_MS)
+		{
+			_lastFrameMS = _scheduleManager->Sync(filename, ms);
+		}
+		_lastSyncMS = ms;
     }
     else
     {
-        return 50;
+        _lastFrameMS = 50;
+    }
+	return _lastFrameMS;
+}
+
+void ListenerManager::SetFrameMS(int frameMS)
+{
+    for (auto it: _listeners)
+    {
+        it->SetFrameMS(frameMS);
     }
 }
 
@@ -594,34 +714,47 @@ void ListenerManager::Pause(bool pause)
     _pause = pause;
 }
 
-void ListenerManager::ProcessFrame(wxByte* buffer, long buffsize)
+void ListenerManager::ProcessFrame(uint8_t* buffer, long buffsize)
 {
     if (_pause || _stop) return;
 
     // handle any data events
-    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if ((*it)->IsFrameProcess())
+        if (it->IsFrameProcess())
         {
-            (*it)->Process(buffer, buffsize, _scheduleManager);
+            it->Process(buffer, buffsize, _scheduleManager);
         }
     }
 }
 
-void ListenerManager::ProcessPacket(const std::string& source, int universe, wxByte* buffer, long buffsize)
+void ListenerManager::ProcessPacket(const std::string& source, int universe, uint8_t* buffer, long buffsize)
 {
     if (_pause || _stop) return;
 
-    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if ((*it)->GetType() == source)
+        if (it->GetType() == source)
         {
-            (*it)->Process(universe, buffer, buffsize, _scheduleManager);
+            it->Process(universe, buffer, buffsize, _scheduleManager);
         }
     }
 }
 
-void ListenerManager::ProcessPacket(const std::string& source, wxByte status, wxByte channel, wxByte data1, wxByte data2)
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& state, long buffsize)
+{
+    if (_pause || _stop) return;
+
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
+    {
+        if (it->GetType() == source)
+        {
+            it->Process(state, _scheduleManager);
+        }
+    }
+}
+
+void ListenerManager::ProcessPacket(const std::string& source, int deviceId, uint8_t status, uint8_t channel, uint8_t data1, uint8_t data2)
 {
     if (_notifyScan != nullptr && source == "MIDI")
     {
@@ -637,24 +770,34 @@ void ListenerManager::ProcessPacket(const std::string& source, wxByte status, wx
 
     if (_pause || _stop) return;
 
-    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if ((*it)->GetType() == source)
+        if (it->GetType() == source)
         {
-            (*it)->Process(status, channel, data1, data2, _scheduleManager);
+            if (source == "MIDI")
+            {
+                if (((EventMIDI*)it)->GetDeviceId() == deviceId)
+                {
+                    it->Process(status, channel, data1, data2, _scheduleManager);
+                }
+            }
+            else
+            {
+                it->Process(status, channel, data1, data2, _scheduleManager);
+            }
         }
     }
 }
 
-void ListenerManager::ProcessPacket(const std::string& source, const std::string& commPort, wxByte* buffer, long buffsize, int subtype)
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& commPort, uint8_t* buffer, long buffsize, int subtype)
 {
     if (_pause || _stop) return;
 
-    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if (((*it)->GetType() == source) && (subtype == (*it)->GetSubType()))
+        if ((it->GetType() == source) && (subtype == it->GetSubType()))
         {
-            (*it)->Process(commPort, buffer, buffsize, _scheduleManager);
+            it->Process(commPort, buffer, buffsize, _scheduleManager);
         }
     }
 }
@@ -663,11 +806,11 @@ void ListenerManager::ProcessPacket(const std::string& source, const std::string
 {
     if (_pause || _stop) return;
 
-    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if ((*it)->GetType() == source)
+        if (it->GetType() == source)
         {
-            (*it)->Process(id, _scheduleManager);
+            it->Process(id, _scheduleManager);
         }
     }
 }
@@ -676,11 +819,11 @@ void ListenerManager::ProcessPacket(const std::string& source, const std::string
 {
     if (_pause || _stop) return;
 
-    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if ((*it)->GetType() == source)
+        if (it->GetType() == source)
         {
-            (*it)->Process(path, p1, p2, p3, _scheduleManager);
+            it->Process(path, p1, p2, p3, _scheduleManager);
         }
     }
 }
@@ -689,11 +832,24 @@ void ListenerManager::ProcessPacket(const std::string& source, bool result, cons
 {
     if (_pause || _stop) return;
 
-    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
     {
-        if ((*it)->GetType() == source)
+        if (it->GetType() == source)
         {
-            (*it)->Process(result, ip, _scheduleManager);
+            it->Process(result, ip, _scheduleManager);
+        }
+    }
+}
+
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& topic, const std::string& data)
+{
+    if (_pause || _stop) return;
+
+    for (auto& it : *_scheduleManager->GetOptions()->GetEvents())
+    {
+        if (it->GetType() == source)
+        {
+            it->Process(topic, data, _scheduleManager);
         }
     }
 }
@@ -701,8 +857,8 @@ void ListenerManager::ProcessPacket(const std::string& source, bool result, cons
 void ListenerManager::Stop()
 {
     _stop = true;
-    for (auto it = _listeners.begin(); it != _listeners.end(); ++it)
+    for (auto& it : _listeners)
     {
-        (*it)->Stop();
+        it->Stop();
     }
 }

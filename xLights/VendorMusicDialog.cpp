@@ -9,6 +9,7 @@
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include "CachedFileDownloader.h"
+#include "UtilFunctions.h"
 
 CachedFileDownloader& VendorMusicDialog::GetCache() {
     return CachedFileDownloader::GetDefaultCache();
@@ -282,7 +283,7 @@ bool VendorMusicDialog::LoadTree(std::string hash)
 
     if (_vendors.size() == 0)
     {
-        wxMessageBox("Unable to retrieve any vendor information", "Error");
+        DisplayError("Unable to retrieve any vendor information", this);
         return false;
     }
 
@@ -389,7 +390,7 @@ void VendorMusicDialog::OnButton_InsertModelClick(wxCommandEvent& event)
             //else
             {
                 ::wxLaunchDefaultBrowser(((MSLSequenceLyricTreeItemData*)tid)->GetSequenceLyric()->_download.BuildURI());
-                wxMessageBox("File is being downloaded in your browser.");
+                DisplayInfo("File is being downloaded in your browser.", this);
             }
         }
     }

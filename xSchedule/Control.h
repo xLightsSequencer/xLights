@@ -6,6 +6,9 @@
 #define FPP_CTRL_PORT 32320
 #define FPP_CTRL_CSV_PORT 32321
 
+// 239.F.P.P
+#define MULTISYNC_MULTICAST_ADDRESS "239.70.80.80"
+
 #define CTRL_PKT_CMD   0
 #define CTRL_PKT_SYNC  1
 #define CTRL_PKT_EVENT 2
@@ -15,6 +18,7 @@
 #ifdef _MSC_VER
 #define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
 #elif defined(__WXWINDOWS__)
+#pragma pack(push)
 #pragma pack(1)
 #define PACK( __Declaration__ ) __Declaration__
 #else
@@ -23,8 +27,11 @@
 
 PACK( typedef struct { char fppd[4]; uint8_t pktType; uint16_t extraDataLen; } ControlPkt);
 
+#define CTRL_PKT_CMD    0
 #define CTRL_PKT_SYNC   1
 #define CTRL_PKT_EVENT  2
+#define CTRL_PKT_BLANK  3
+#define CTRL_PKT_PING   4
 
 #define SYNC_PKT_START 0
 #define SYNC_PKT_STOP  1
@@ -35,4 +42,8 @@ PACK( typedef struct { char fppd[4]; uint8_t pktType; uint16_t extraDataLen; } C
 
 PACK( typedef struct { uint8_t  pktType; uint8_t  fileType; uint32_t frameNumber; float secondsElapsed; char filename[1]; } SyncPkt);
 
+#ifdef _MSC_VER
+#elif defined(__WXWINDOWS__)
+#pragma pack(pop)
+#endif
 #endif /* _CONTROL_H */

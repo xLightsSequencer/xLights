@@ -434,7 +434,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Connect(Slider_RightBrightness->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickRightBrightness);
     Connect(Slider_MasterBrightness->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickMasterBrightness);
 
-    SetTitle("xLights Fade " + xlights_version_string + " " + GetBitness());
+    SetTitle("xLights Fade " + GetDisplayVersionString());
 
     wxIconBundle icons;
     icons.AddIcon(wxIcon(xlights_16_xpm));
@@ -492,7 +492,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     TextCtrl_LeftTag->SetValue("");
     TextCtrl_RightTag->SetValue("");
 
-    _midiListener = new MIDIListener(_settings.GetMIDIDeviceId(), this);
+    StartMIDIListeners();
 
     ValidateWindow();
 }
@@ -525,16 +525,20 @@ void xFadeFrame::LoadState()
 
 xFadeFrame::~xFadeFrame()
 {
-    if (_midiListener != nullptr)
+    for (auto it: _midiListeners)
     {
-        _midiListener->Stop();
-        //delete _midiListener;
+        it->Stop();
+        //delete it;
     }
+
+    wxMilliSleep(100);
 
     if (_emitter != nullptr)
     {
         _emitter->Stop();
     }
+
+    wxMilliSleep(100);
 
     SaveState();
 
@@ -627,7 +631,7 @@ void xFadeFrame::OnQuit(wxCommandEvent& event)
 
 void xFadeFrame::OnAbout(wxCommandEvent& event)
 {
-    auto about = wxString::Format(wxT("xFade v%s %s, the xLights cross fader."), xlights_version_string, GetBitness());
+    auto about = wxString::Format(wxT("xFade v%s, the xLights cross fader."), GetDisplayVersionString());
     wxMessageBox(about, _("Welcome to..."));
 }
 
@@ -1150,12 +1154,13 @@ void xFadeFrame::CreateArtNETListener()
 
 void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 {
+    int device = wxAtoi(event.GetString());
     wxByte status = (event.GetInt() >> 24) & 0xFF;
     wxByte channel = (event.GetInt() >> 16) & 0xFF;
     wxByte data1 = (event.GetInt() >> 8) & 0xFF;
     wxByte data2 = event.GetInt() & 0xFF;
 
-    wxString controlName = _settings.LookupMIDI(status, channel, data1);
+    wxString controlName = _settings.LookupMIDI(device, status, channel, data1, data2);
 
     if (controlName == "") return;
 
@@ -1196,15 +1201,17 @@ void xFadeFrame::OnMIDIEvent(wxCommandEvent& event)
 
 void xFadeFrame::SetMIDIForControl(wxString controlName, float parm)
 {
-    int status, channel, data1;
-    _settings.LookupMIDI(controlName, status, channel, data1);
+    int status, channel, data1, device, data2;
+    _settings.LookupMIDI(controlName, device, status, channel, data1, data2);
 
-    MIDIAssociateDialog dlg(this, controlName, _midiListener, status, channel, data1);
+    MIDIAssociateDialog dlg(this, _midiListeners, controlName, status, channel, data1, data2, Settings::GetMIDIDeviceName(device));
     if (dlg.ShowModal() == wxID_OK)
     {
-        _settings.SetMIDIControl(controlName, (dlg.Choice_Status->GetSelection() << 4) + 0x80, dlg.Choice_Channel->GetSelection(), dlg.Choice_Data1->GetSelection());
+        _settings.SetMIDIControl(dlg.Choice_MIDIDevice->GetStringSelection(), controlName, (dlg.Choice_Status->GetSelection() << 4) + 0x80, dlg.Choice_Channel->GetSelection(), dlg.Choice_Data1->GetSelection(), dlg.Choice_Data2->GetSelection());
         SaveState();
     }
+    // This removes any unnecessary listeners the associate dialog added
+    StartMIDIListeners();
 }
 
 void xFadeFrame::OnResize(wxSizeEvent& event)
@@ -1395,6 +1402,40 @@ void xFadeFrame::OnUITimerTrigger(wxTimerEvent& event)
     SetFade();
 }
 
+void xFadeFrame::StartMIDIListeners()
+{
+    auto devs = _settings.GetUsedMIDIDevices();
+    for (auto it = begin(_midiListeners); it != end(_midiListeners); )
+    {
+        if (std::find(begin(devs), end(devs), (*it)->GetDeviceId()) == devs.end())
+        {
+            (*it)->Stop();
+            delete *it;
+            it = _midiListeners.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+    for (auto it : _settings.GetUsedMIDIDevices())
+    {
+        bool found = false;
+        for (auto it2 : _midiListeners)
+        {
+            if (it2->GetDeviceId() == it)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            _midiListeners.push_back(new MIDIListener(it, this));
+        }
+    }
+}
+
 std::string xFadeFrame::ExtractE131Tag(wxByte* packet)
 {
     std::string res((char*)&packet[44]);
@@ -1453,22 +1494,25 @@ void xFadeFrame::PressJukeboxButton(int button, bool left)
 {
     wxWindow* panel;
     int port = 0;
+    std::string ip = "127.0.0.1";
     if (left)
     {
         panel = Panel_Left;
         port = 1;
+        ip = _settings._leftIP;
     }
     else
     {
         panel = Panel_Right;
         port = 2;
+        ip = _settings._rightIP;
     }
 
     wxButton* b = GetJukeboxButton(button, panel);
 
     if (b != nullptr)
     {
-        wxString result = xLightsRequest(port, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button));
+        wxString result = xLightsRequest(port, "PLAY_JUKEBOX_BUTTON " + wxString::Format("%d", button), ip);
 
         if (result.StartsWith("SUCCESS"))
         {
@@ -1579,19 +1623,19 @@ void xFadeFrame::OnButtonRClickAdvance(wxContextMenuEvent& event)
 void xFadeFrame::OnButton_MiddleClick(wxCommandEvent& event)
 {
     _direction = 0;
-    UITimer.Start(25);
+    UITimer.Start(25, wxTIMER_CONTINUOUS);
 }
 
 void xFadeFrame::OnButton_LeftClick(wxCommandEvent& event)
 {
     _direction = -1;
-    UITimer.Start(25);
+    UITimer.Start(25, wxTIMER_CONTINUOUS);
 }
 
 void xFadeFrame::OnButton_RightClick(wxCommandEvent& event)
 {
     _direction = 1;
-    UITimer.Start(25);
+    UITimer.Start(25, wxTIMER_CONTINUOUS);
 }
 
 void xFadeFrame::OnButtonClickFT(wxCommandEvent& event)
@@ -1623,8 +1667,8 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
     TextCtrl_RightSequence->SetValue("");
     TextCtrl_LeftTag->SetValue("");
     TextCtrl_RightTag->SetValue("");
-    
-    wxString result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_TOOLTIPS");
+
+    wxString result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_TOOLTIPS", _settings._leftIP);
     if (result.StartsWith("SUCCESS"))
     {
         Panel_Left->Enable(true);
@@ -1655,7 +1699,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             i++;
         }
 
-        result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_EFFECTPRESENT");
+        result = xLightsRequest(1, "GET_JUKEBOX_BUTTON_EFFECTPRESENT", _settings._leftIP);
         if (result.StartsWith("SUCCESS"))
         {
             auto bs = wxSplit(result, '|');
@@ -1686,7 +1730,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(1, "GET_E131_TAG");
+        result = xLightsRequest(1, "GET_E131_TAG", _settings._leftIP);
         if (result.StartsWith("SUCCESS "))
         {
             _leftTag = result.substr(sizeof("SUCCESS ") - 1);
@@ -1697,7 +1741,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         }
         TextCtrl_LeftTag->SetValue(_leftTag);
 
-        result = xLightsRequest(1, "GET_SEQUENCE_NAME");
+        result = xLightsRequest(1, "GET_SEQUENCE_NAME", _settings._leftIP);
         if (result.StartsWith("SUCCESS "))
         {
             TextCtrl_LeftSequence->SetValue(result.substr(sizeof("SUCCESS ") - 1));
@@ -1707,14 +1751,14 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             TextCtrl_LeftSequence->SetValue("No sequence loaded.");
         }
 
-        result = xLightsRequest(1, "TURN_LIGHTS_ON");
+        result = xLightsRequest(1, "TURN_LIGHTS_ON", _settings._leftIP);
     }
     else
     {
         Panel_Left->Enable(false);
     }
 
-    result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_TOOLTIPS");
+    result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_TOOLTIPS", _settings._rightIP);
     if (result.StartsWith("SUCCESS"))
     {
         Panel_Right->Enable(true);
@@ -1746,7 +1790,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             i++;
         }
 
-        result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_EFFECTPRESENT");
+        result = xLightsRequest(2, "GET_JUKEBOX_BUTTON_EFFECTPRESENT", _settings._rightIP);
         if (result.StartsWith("SUCCESS"))
         {
             auto bs = wxSplit(result, '|');
@@ -1777,7 +1821,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             }
         }
 
-        result = xLightsRequest(2, "GET_E131_TAG");
+        result = xLightsRequest(2, "GET_E131_TAG", _settings._rightIP);
         if (result.StartsWith("SUCCESS "))
         {
             _rightTag = result.substr(sizeof("SUCCESS ") - 1);
@@ -1788,7 +1832,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
         }
         TextCtrl_RightTag->SetValue(_rightTag);
 
-        result = xLightsRequest(2, "GET_SEQUENCE_NAME");
+        result = xLightsRequest(2, "GET_SEQUENCE_NAME", _settings._rightIP);
         if (result.StartsWith("SUCCESS "))
         {
             TextCtrl_RightSequence->SetValue(result.substr(sizeof("SUCCESS ") - 1));
@@ -1798,7 +1842,7 @@ void xFadeFrame::OnButton_ConnectToxLightsClick(wxCommandEvent& event)
             TextCtrl_RightSequence->SetValue("No sequence loaded.");
         }
 
-        result = xLightsRequest(2, "TURN_LIGHTS_ON");
+        result = xLightsRequest(2, "TURN_LIGHTS_ON", _settings._rightIP);
     }
     else
     {
@@ -1828,7 +1872,7 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     logger_base.debug("Configure ...");
 
     _suspendListen = true;
-    
+
     SettingsDialog dlg(this, &_settings);
 
     CloseSockets();
@@ -1836,10 +1880,6 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     _emitter->Stop();
     delete _emitter;
     _emitter = nullptr;
-
-    _midiListener->Stop();
-    delete _midiListener;
-    _midiListener = nullptr;
 
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -1851,7 +1891,6 @@ void xFadeFrame::OnButton_ConfigureClick(wxCommandEvent& event)
     _emitter->SetRightBrightness(Slider_RightBrightness->GetValue());
     SetTiming();
     SetFade();
-    _midiListener = new MIDIListener(_settings.GetMIDIDeviceId(), this);
 
     _leftReceived = 0;
     _rightReceived = 0;
@@ -1906,7 +1945,7 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
 
         // initiate transition to right
         _direction = 1;
-        UITimer.Start(25);
+        UITimer.Start(25, wxTIMER_CONTINUOUS);
     }
     else
     {
@@ -1922,7 +1961,7 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
 
         // initiate transition to left
         _direction = -1;
-        UITimer.Start(25);
+        UITimer.Start(25, wxTIMER_CONTINUOUS);
     }
 }
 
@@ -1944,6 +1983,9 @@ void xFadeFrame::OnTimer_StatusTrigger(wxTimerEvent& event)
     else
     {
         StatusBar1->SetStatusText("Sending disabled", 1);
-        logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", _leftReceived, _rightReceived);
+        if (count % 60 == 0)
+        {
+            logger_base.debug("Activity - Left Received %lu, Right Received %lu, Sent DISABLED.", _leftReceived, _rightReceived);
+        }
     }
 }

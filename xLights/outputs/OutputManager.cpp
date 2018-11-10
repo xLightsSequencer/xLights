@@ -1,26 +1,32 @@
 #include "OutputManager.h"
 
 #include <wx/xml/xml.h>
-
-#include <log4cpp/Category.hh>
+#include <wx/msgdlg.h>
+#include <wx/config.h>
 #include <wx/filename.h>
 
 #include "E131Output.h"
+#include "ZCPPOutput.h"
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "TestPreset.h"
-#include <wx/msgdlg.h>
 #include "../osxMacUtils.h"
-#include <wx/config.h>
+#include "../Parallel.h"
+
+#include <log4cpp/Category.hh>
 
 int OutputManager::_lastSecond = -10;
 int OutputManager::_currentSecond = -10;
 int OutputManager::_lastSecondCount = 0;
 int OutputManager::_currentSecondCount = 0;
+bool OutputManager::__isSync = false;
+bool OutputManager::_isRetryOpen = false;
+bool OutputManager::_isInteractive = true;
 
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
 {
+    _parallelTransmission = false;
     _syncEnabled = false;
     _dirty = false;
     _syncUniverse = 0;
@@ -36,6 +42,11 @@ OutputManager::~OutputManager()
 #pragma endregion Constructors and Destructors
 
 #pragma region Save and Load
+std::string OutputManager::GetExportHeader()
+{
+    return "Output Number,Start Absolute,End Absolute,Type,IP,Multicast,Universe/Id,Comm Port,Baud Rate,Description,Channels,Active,Suppress Duplicates,Auto Size,FPP Proxy,Keep Channel Numbers,Channels Per Packet,Port,Dont Configure,Priority,Vendor,Model,Supports Virtual Strings,Supports Smart Remotes";
+}
+
 bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -55,7 +66,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
         {
             if (e->GetName() == "network")
             {
-                _outputs.push_back(Output::Create(e));
+                _outputs.push_back(Output::Create(e, showdir));
                 if (_outputs.back() == nullptr)
                 {
                     // this shouldnt happen unless we are loading a future file with an output type we dont recognise
@@ -72,6 +83,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
             }
             else if (e->GetName() == "testpreset")
             {
+                logger_base.debug("Loading test presets.");
                 TestPreset* tp = new TestPreset(e);
 
                 bool exists = false;
@@ -100,6 +112,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled)
         logger_base.warn("Error loading networks file: %s.", (const char *)fn.GetFullPath().c_str());
         return false;
     }
+    logger_base.debug("Networks loaded.");
 
     SomethingChanged();
 
@@ -148,38 +161,85 @@ bool OutputManager::Save()
 #pragma endregion Save and Load
 
 #pragma region Controller Discovery
-bool OutputManager::Discover()
+bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>& renames)
 {
     bool found = false;
-    auto artnet = ArtNetOutput::Discover();
-    auto ddp = DDPOutput::Discover();
-    auto e131 = E131Output::Discover();
 
     auto outputs = GetAllOutputs("");
 
-    for (auto it =  artnet.begin(); it != artnet.end(); ++it)
+    auto zcpp = ZCPPOutput::Discover(this);
+    for (auto it = zcpp.begin(); it != zcpp.end(); ++it)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        auto match = std::find(outputs.begin(), outputs.end(), *it);
+        if (match == outputs.end())
         {
-            _outputs.push_back(*it);
+            // no match on ip ... but what about description
+            bool updated = false;
+            for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+            {
+                if ((*ito)->GetType() == "ZCPP" && (*ito)->GetDescription() == (*it)->GetDescription())
+                {
+                    if (wxMessageBox("The discovered ZCPP controller matches an existing ZCPP controllers Description but has a different IP address. Do you want to update the IP address for that existing controller in xLights?", "Mismatch IP", wxYES_NO, frame) == wxYES)
+                    {
+                        updated = true;
+                        (*ito)->SetIP((*it)->GetIP());
+                        found = true;
+                    }
+                }
+            }
+
+            if (!updated)
+            {
+                _outputs.push_back(*it);
+                found = true;
+            }
+        }
+        else
+        {
+            // ip address matches
+            if ((*it)->GetDescription() == (*match)->GetDescription())
+            {
+                // descriptions also match ... no need to do anything
+            }
+            else
+            {
+                // existing zcpp with same ip but different description ... maybe we should update the description
+                if (wxMessageBox("The discovered ZCPP controller matches an existing ZCPP controllers IP address but has a different description. Do you want to update the description in xLights?", "Mismatch controller description", wxYES_NO, frame) == wxYES)
+                {
+                    renames[(*match)->GetDescription()] = (*it)->GetDescription();
+                    (*match)->SetDescription((*it)->GetDescription());
+                    found = true;
+                }
+            }
+        }
+    }
+
+    auto e131 = E131Output::Discover(this);
+    for (auto it : e131)
+    {
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
+        {
+            _outputs.push_back(it);
             found = true;
         }
     }
 
-    for (auto it = ddp.begin(); it != ddp.end(); ++it)
+    auto artnet = ArtNetOutput::Discover(this);
+    for (auto it : artnet)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
-            _outputs.push_back(*it);
+            _outputs.push_back(it);
             found = true;
         }
     }
 
-    for (auto it = e131.begin(); it != e131.end(); ++it)
+    auto ddp = DDPOutput::Discover(this);
+    for (auto it : ddp)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
-            _outputs.push_back(*it);
+            _outputs.push_back(it);
             found = true;
         }
     }
@@ -210,36 +270,36 @@ void OutputManager::SetShowDir(const std::string& showDir)
 
 void OutputManager::SuspendAll(bool suspend)
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        (*it)->Suspend(suspend);
+        it->Suspend(suspend);
     }
 }
 
 // get an output based on an absolute channel number
-Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
+Output* OutputManager::GetOutput(int32_t absoluteChannel, int32_t& startChannel) const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsOutputCollection() && absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+        if (it->IsOutputCollection() && absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
         {
-            auto outputs = (*it)->GetOutputs();
+            auto outputs = it->GetOutputs();
 
-            for (auto it2 = outputs.begin(); it2 != outputs.end(); ++it2)
+            for (auto it2 : outputs)
             {
-                if (absoluteChannel >= (*it2)->GetStartChannel() && absoluteChannel <= (*it2)->GetEndChannel())
+                if (absoluteChannel >= it2->GetStartChannel() && absoluteChannel <= it2->GetEndChannel())
                 {
-                    startChannel = absoluteChannel - (*it2)->GetStartChannel() + 1;
-                    return *it2;
+                    startChannel = absoluteChannel - it2->GetStartChannel() + 1;
+                    return it2;
                 }
             }
         }
         else
         {
-            if (absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+            if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
             {
-                startChannel = absoluteChannel - (*it)->GetStartChannel() + 1;
-                return *it;
+                startChannel = absoluteChannel - it->GetStartChannel() + 1;
+                return it;
             }
         }
     }
@@ -248,14 +308,14 @@ Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
 }
 
 // get an output based on an absolute channel number
-Output* OutputManager::GetLevel1Output(long absoluteChannel, long& startChannel) const
+Output* OutputManager::GetLevel1Output(int32_t absoluteChannel, int32_t& startChannel) const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+        if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
         {
-            startChannel = absoluteChannel - (*it)->GetStartChannel() + 1;
-            return *it;
+            startChannel = absoluteChannel - it->GetStartChannel() + 1;
+            return it;
         }
     }
 
@@ -267,7 +327,7 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
 {
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
-        if (universe == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP()))
+        if (universe == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP() || ip == (*it)->GetResolvedIP()))
         {
             return (*it);
         }
@@ -276,11 +336,11 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
         {
             auto outputs = (*it)->GetOutputs();
 
-            for (auto it2 = outputs.begin(); it2 != outputs.end(); ++it2)
+            for (auto it2 : outputs)
             {
-                if (universe == (*it2)->GetUniverse() && (ip == "" || ip == (*it2)->GetIP()))
+                if (universe == it2->GetUniverse() && (ip == "" || ip == it2->GetIP() || ip == (*it)->GetResolvedIP()))
                 {
-                    return (*it2);
+                    return (it2);
                 }
             }
         }
@@ -289,16 +349,28 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
     return nullptr;
 }
 
-long OutputManager::GetTotalChannels() const
+Output* OutputManager::GetOutput(const std::string& description) const
+{
+    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    {
+        if ((*it)->GetDescription() == description && (*it)->IsLookedUpByControllerName())
+        {
+            return *it;
+        }
+    }
+    return nullptr;
+}
+
+int32_t OutputManager::GetTotalChannels() const
 {
     if (_outputs.size() == 0) return 0;
 
     return _outputs.back()->GetEndChannel();
 }
 
-std::string OutputManager::GetChannelName(long channel)
+std::string OutputManager::GetChannelName(int32_t channel)
 {
-    long startChannel = 0;
+    int32_t startChannel = 0;
     ++channel;
     Output* o = GetLevel1Output(channel, startChannel);
 
@@ -315,7 +387,7 @@ std::string OutputManager::GetChannelName(long channel)
     }
 }
 
-long OutputManager::GetAbsoluteChannel(int outputNumber, int startChannel) const
+int32_t OutputManager::GetAbsoluteChannel(int outputNumber, int32_t startChannel) const
 {
     if (outputNumber >= (int)_outputs.size()) return -1;
 
@@ -328,14 +400,14 @@ long OutputManager::GetAbsoluteChannel(int outputNumber, int startChannel) const
     return (*it)->GetStartChannel() + startChannel;
 }
 
-long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int startChannel) const
+int32_t OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int32_t startChannel) const
 {
     auto o = GetAllOutputs(ip);
     auto it = o.begin();
 
     while (it != o.end())
     {
-        if (universe+1 == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP()))
+        if (universe+1 == (*it)->GetUniverse() && (ip == "" || ip == (*it)->GetIP() || ip == (*it)->GetResolvedIP()))
         {
             break;
         }
@@ -347,7 +419,7 @@ long OutputManager::GetAbsoluteChannel(const std::string& ip, int universe, int 
     return (*it)->GetStartChannel() + startChannel;
 }
 
-long OutputManager::DecodeStartChannel(const std::string& startChannelString)
+int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
 {
     // Decodes Absolute, Output:StartChannel, #Universe:StartChannel, and #IP:Universe:StartChannel
     // If there is an error 0 is returned
@@ -406,9 +478,9 @@ bool OutputManager::IsDirty() const
 {
     if (_dirty) return _dirty;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsDirty())
+        if (it->IsDirty())
         {
             return true;
         }
@@ -421,26 +493,26 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
 {
     std::list<int> res;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (ip == "" || ip == (*it)->GetIP())
+        if (ip == "" || (ip == it->GetIP() || ip == it->GetResolvedIP()))
         {
-            if ((*it)->IsOutputCollection())
+            if (it->IsOutputCollection())
             {
-                auto coll = (*it)->GetOutputs();
-                for (auto it2 = coll.begin(); it2 != coll.end(); ++it2)
+                auto coll = it->GetOutputs();
+                for (auto it2 : coll)
                 {
-                    if (std::find(res.begin(), res.end(), (*it2)->GetUniverse()) == res.end())
+                    if (std::find(res.begin(), res.end(), it2->GetUniverse()) == res.end())
                     {
-                        res.push_back((*it2)->GetUniverse());
+                        res.push_back(it2->GetUniverse());
                     }
                 }
             }
             else
             {
-                if (std::find(res.begin(), res.end(), (*it)->GetUniverse()) == res.end())
+                if (std::find(res.begin(), res.end(), it->GetUniverse()) == res.end())
                 {
-                    res.push_back((*it)->GetUniverse());
+                    res.push_back(it->GetUniverse());
                 }
             }
         }
@@ -453,13 +525,13 @@ std::list<std::string> OutputManager::GetIps() const
 {
     std::list<std::string> res;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsIpOutput())
+        if (it->IsIpOutput())
         {
-            if (std::find(res.begin(), res.end(), (*it)->GetIP()) == res.end())
+            if (std::find(res.begin(), res.end(), it->GetIP()) == res.end())
             {
-                res.push_back((*it)->GetIP());
+                res.push_back(it->GetIP());
             }
         }
     }
@@ -470,18 +542,19 @@ std::list<std::string> OutputManager::GetIps() const
 size_t OutputManager::TxNonEmptyCount()
 {
     size_t res = 0;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        res += (*it)->TxNonEmptyCount();
+        res += it->TxNonEmptyCount();
     }
 
     return res;
 }
+
 bool OutputManager::TxEmpty()
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (!(*it)->TxEmpty()) return false;
+        if (!it->TxEmpty()) return false;
     }
 
     return true;
@@ -493,20 +566,20 @@ void OutputManager::SomethingChanged() const
     int nullcnt = 0;
     int cnt = 0;
     int start = 1;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
         cnt++;
-        if ((*it)->GetType() == OUTPUT_NULL)
+        if (it->GetType() == OUTPUT_NULL)
         {
             nullcnt++;
-            (*it)->SetTransientData(cnt, start, nullcnt);
+            it->SetTransientData(cnt, start, nullcnt);
         }
         else
         {
-            (*it)->SetTransientData(cnt, start, -1);
+            it->SetTransientData(cnt, start, -1);
         }
 
-        start += (*it)->GetChannels() * (*it)->GetUniverses();
+        start += it->GetChannels() * it->GetUniverses();
     }
 }
 
@@ -527,10 +600,10 @@ void OutputManager::AddOutput(Output* output, Output* after)
     {
         std::list<Output*> newoutputs;
         bool added = false;
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto it : _outputs)
         {
-            newoutputs.push_back(*it);
-            if (*it == after)
+            newoutputs.push_back(it);
+            if (it == after)
             {
                 newoutputs.push_back(output);
                 added = true;
@@ -559,7 +632,7 @@ void OutputManager::AddOutput(Output* output, int pos)
         std::list<Output*> newoutputs;
         int cnt = 0;
         bool added = false;
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto it : _outputs)
         {
             cnt++;
             if (cnt == pos+1)
@@ -567,7 +640,7 @@ void OutputManager::AddOutput(Output* output, int pos)
                 newoutputs.push_back(output);
                 added = true;
             }
-            newoutputs.push_back(*it);
+            newoutputs.push_back(it);
         }
         if (!added)
         {
@@ -598,9 +671,9 @@ void OutputManager::DeleteAllOutputs()
 {
     _dirty = true;
 
-    for (auto it=  _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        delete (*it);
+        delete (it);
     }
 
     _outputs.clear();
@@ -613,7 +686,7 @@ void OutputManager::MoveOutput(Output* output, int toOutputNumber)
     std::list<Output*> res;
     int i = 1;
     bool added = false;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
         if (i == toOutputNumber + 1)
         {
@@ -621,13 +694,13 @@ void OutputManager::MoveOutput(Output* output, int toOutputNumber)
             added = true;
             i++;
         }
-        if (*it == output)
+        if (it == output)
         {
             // do nothing we are moving this
         }
         else
         {
-            res.push_back(*it);
+            res.push_back(it);
             i++;
         }
     }
@@ -646,9 +719,9 @@ bool OutputManager::AreAllIPOutputs(std::list<int> outputNumbers)
 {
     auto outputs = GetAllOutputs(outputNumbers);
 
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (auto it : outputs)
     {
-        if (!(*it)->IsIpOutput())
+        if (!it->IsIpOutput())
         {
             return false;
         }
@@ -657,46 +730,46 @@ bool OutputManager::AreAllIPOutputs(std::list<int> outputNumbers)
     return true;
 }
 
-std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::list<int>& selected) const
+std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname, const std::list<int>& selected, bool expandCollections) const
 {
     std::list<Output*> res;
 
     std::list<Output*> sel = GetAllOutputs(selected);
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (ip == "" || (*it)->GetIP() == ip)
+        if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetResolvedIP() == ip || it->GetIP() == hostname)))
         {
-            if ((*it)->IsOutputCollection())
+            if (it->IsOutputCollection() && expandCollections)
             {
-                auto o = (*it)->GetOutputs();
-                for (auto it2 = o.begin(); it2 != o.end(); ++it2)
+                auto o = it->GetOutputs();
+                for (auto it2 : o)
                 {
-                    res.push_back(*it2);
+                    res.push_back(it2);
                 }
             }
             else
             {
-                res.push_back(*it);
+                res.push_back(it);
             }
         }
         else
         {
-            for (auto it2 = sel.begin(); it2 != sel.end(); ++it2)
+            for (auto it2 : sel)
             {
-                if ((*it2)->GetOutputNumber() == (*it)->GetOutputNumber())
+                if (it2->GetOutputNumber() == it->GetOutputNumber())
                 {
-                    if ((*it2)->IsOutputCollection())
+                    if (it2->IsOutputCollection() && expandCollections)
                     {
-                        auto o = (*it2)->GetOutputs();
-                        for (auto it3 = o.begin(); it3 != o.end(); ++it3)
+                        auto o = it2->GetOutputs();
+                        for (auto it3 : o)
                         {
-                            res.push_back(*it3);
+                            res.push_back(it3);
                         }
                     }
                     else
                     {
-                        res.push_back(*it2);
+                        res.push_back(it2);
                     }
                 }
             }
@@ -710,17 +783,17 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::list<int>& outputNumb
 {
     std::list<Output*> res;
 
-    for (auto it = outputNumbers.begin(); it != outputNumbers.end(); ++it)
+    for (auto it : outputNumbers)
     {
-        Output* o = GetOutput(*it);
+        Output* o = GetOutput(it);
         if (o != nullptr)
         {
             if (o->IsOutputCollection())
             {
                 auto o2 = o->GetOutputs();
-                for (auto it2 = o2.begin(); it2 != o2.end(); ++it2)
+                for (auto it2 : o2)
                 {
-                    res.push_back(*it2);
+                    res.push_back(it2);
                 }
             }
             else
@@ -737,19 +810,19 @@ std::list<Output*> OutputManager::GetAllOutputs() const
 {
     std::list<Output*> res;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsOutputCollection())
+        if (it->IsOutputCollection())
         {
-            auto o2 = (*it)->GetOutputs();
-            for (auto it2 = o2.begin(); it2 != o2.end(); ++it2)
+            auto o2 = it->GetOutputs();
+            for (auto it2 : o2)
             {
-                res.push_back(*it2);
+                res.push_back(it2);
             }
         }
         else
         {
-            res.push_back(*it);
+            res.push_back(it);
         }
     }
 
@@ -760,15 +833,15 @@ void OutputManager::Replace(Output* replacethis, Output* withthis)
 {
     std::list<Output*> newoutputs;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it) == replacethis)
+        if (it == replacethis)
         {
             newoutputs.push_back(withthis);
         }
         else
         {
-            newoutputs.push_back(*it);
+            newoutputs.push_back(it);
         }
     }
     _outputs = newoutputs;
@@ -803,9 +876,19 @@ void OutputManager::EndFrame()
     if (!_outputting) return;
     if (!_outputCriticalSection.TryEnter()) return;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    if (_parallelTransmission)
     {
-        (*it)->EndFrame(_suppressFrames);
+        std::function<void(Output*&, int)> f = [this](Output*&o, int n) {
+            o->EndFrame(_suppressFrames);
+        };
+        parallel_for(_outputs, f);
+    }
+    else
+    {
+        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        {
+            (*it)->EndFrame(_suppressFrames);
+        }
     }
 
     if (IsSyncEnabled())
@@ -826,6 +909,11 @@ void OutputManager::EndFrame()
         if (UseDDP())
         {
             DDPOutput::SendSync();
+        }
+
+        if (UseZCPP())
+        {
+            ZCPPOutput::SendSync();
         }
     }
     _outputCriticalSection.Leave();
@@ -853,7 +941,10 @@ bool OutputManager::StartOutput()
         if (!ok && ok != preok)
         {
             logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char *)(*it)->GetDescription().c_str());
-            if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started+1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            if (OutputManager::IsInteractive())
+            {
+                if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started + 1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            }
             err = true;
         }
         if (ok) started++;
@@ -904,21 +995,21 @@ void OutputManager::StopOutput()
 void OutputManager::AllOff(bool send)
 {
     if (!_outputCriticalSection.TryEnter()) return;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        (*it)->AllOff();
+        it->AllOff();
         if (send)
         {
-            (*it)->EndFrame(_suppressFrames);
+            it->EndFrame(_suppressFrames);
         }
     }
     _outputCriticalSection.Leave();
 }
 
 // channel here is zero based
-void OutputManager::SetOneChannel(long channel, unsigned char data)
+void OutputManager::SetOneChannel(int32_t channel, unsigned char data)
 {
-    long sc = 0;
+    int32_t sc = 0;
     Output* output = GetLevel1Output(channel + 1, sc);
     if (output != nullptr)
     {
@@ -930,25 +1021,22 @@ void OutputManager::SetOneChannel(long channel, unsigned char data)
 }
 
 // channel here is zero based
-void OutputManager::SetManyChannels(long channel, unsigned char* data, long size)
+void OutputManager::SetManyChannels(int32_t channel, unsigned char* data, size_t size)
 {
     if (size == 0) return;
 
-    long stch;
+    int32_t stch;
     Output* o = GetLevel1Output(channel + 1, stch);
 
     // if this doesnt map to an output then skip it
     if (o == nullptr) return;
 
-    long left = size;
+    size_t left = size;
 
     while (left > 0 && o != nullptr)
     {
-#ifdef _MSC_VER
-        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
-#else
-        long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
-#endif
+        size_t mx = (o->GetChannels() * o->GetUniverses()) - stch + 1;
+        size_t send = std::min(left, mx);
         if (o->IsEnabled())
         {
             o->SetManyChannels(stch - 1, &data[size - left], send);
@@ -963,9 +1051,9 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 #pragma region Sync
 bool OutputManager::UseE131() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_E131)
+        if (it->GetType() == OUTPUT_E131)
         {
             return true;
         }
@@ -976,9 +1064,9 @@ bool OutputManager::UseE131() const
 
 bool OutputManager::UseArtnet() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_ARTNET)
+        if (it->GetType() == OUTPUT_ARTNET)
         {
             return true;
         }
@@ -989,9 +1077,22 @@ bool OutputManager::UseArtnet() const
 
 bool OutputManager::UseDDP() const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->GetType() == OUTPUT_DDP)
+        if (it->GetType() == OUTPUT_DDP)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool OutputManager::UseZCPP() const
+{
+    for (auto it : _outputs)
+    {
+        if (it->GetType() == OUTPUT_ZCPP)
         {
             return true;
         }
@@ -1127,4 +1228,49 @@ void OutputManager::RegisterSentPacket()
         _currentSecond = second;
         _currentSecondCount = 1;
     }
+}
+
+std::list<std::string> OutputManager::GetControllerNames() const
+{
+    std::list<std::string> res;
+
+    for (auto it : _outputs)
+    {
+        if (it->IsLookedUpByControllerName())
+        {
+            auto desc = it->GetDescription();
+            if (desc != "" && std::find(res.begin(), res.end(), desc) == res.end())
+            {
+                res.push_back(desc);
+            }
+        }
+    }
+    return res;
+}
+
+std::list<std::string> OutputManager::GetAutoLayoutControllerNames() const
+{
+    std::list<std::string> res;
+
+    for (auto it : _outputs)
+    {
+        if (it->IsAutoLayoutModels())
+        {
+            auto desc = it->GetDescription();
+            if (desc != "" && std::find(res.begin(), res.end(), desc) == res.end())
+            {
+                res.push_back(desc);
+            }
+        }
+    }
+    return res;
+}
+
+bool OutputManager::IsOutputUsingIP(const std::string& ip) const
+{
+    for (auto it : _outputs)
+    {
+        if (it->GetIP() == ip) return true;
+    }
+    return false;
 }

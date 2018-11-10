@@ -314,6 +314,7 @@ int MatrixMapper::GetWidth() const
     }
     else
     {
+        if (_strandsPerString == 0) return _stringLength;
         return _stringLength / _strandsPerString;
     }
 }
@@ -322,6 +323,7 @@ int MatrixMapper::GetHeight() const
 {
 	if (_orientation == MMORIENTATION::VERTICAL)
 	{
+        if (_strandsPerString == 0) return _stringLength;
         return _stringLength / _strandsPerString;
 	}
     else

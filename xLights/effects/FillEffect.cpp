@@ -21,7 +21,7 @@ FillEffect::~FillEffect()
 }
 
 void FillEffect::SetDefaultParameters() {
-    FillPanel *fp = (FillPanel*)panel;
+    FillPanel *fp = static_cast<FillPanel*>(panel);
     if (fp == nullptr) {
         return;
     }
@@ -43,7 +43,7 @@ void FillEffect::SetDefaultParameters() {
     SetCheckBoxValue(fp->CheckBox_Fill_Wrap, true);
 }
 
-std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> FillEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -123,9 +123,9 @@ static void UpdateFillColor(int &position, int &band_color, int colorcnt, int co
 void GetColorFromPosition(double pos, xlColor& color, size_t colorcnt, RenderBuffer &buffer)
 {
     double color_val = pos * (colorcnt-1);
-    int color_int = (int)color_val;
-    double color_pct = color_val - (double)color_int;
-    int color2 = std::min(color_int+1, (int)colorcnt-1);
+    int color_int = static_cast<int>(color_val);
+    double color_pct = color_val - static_cast<double>(color_int);
+    int color2 = std::min(color_int+1, static_cast<int>(colorcnt)-1);
     if( color_int < color2 )
     {
         buffer.Get2ColorBlend(color_int, color2, std::min( color_pct, 1.0), color);
@@ -153,7 +153,7 @@ void FillEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
     int position = GetValueCurveInt("Fill_Position", 100, SettingsMap, eff_pos, FILL_POSITION_MIN, FILL_POSITION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    double pos_pct = (double)position / 100.0;
+    double pos_pct = static_cast<double>(position) / 100.0;
     int Direction = GetDirection(SettingsMap["CHOICE_Fill_Direction"]);
     int BandSize = GetValueCurveInt("Fill_Band_Size", 0, SettingsMap, eff_pos, FILL_BANDSIZE_MIN, FILL_BANDSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int SkipSize = GetValueCurveInt("Fill_Skip_Size", 0, SettingsMap, eff_pos, FILL_SKIPSIZE_MIN, FILL_SKIPSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -164,166 +164,185 @@ void FillEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
 
     switch (Direction)
     {
-        default:
-        case 0:  // Up
-        case 1:  // Down
-            if( !offset_in_pixels ) {
-                offset = ((buffer.BufferHt-1) * offset) / 100;
-            } else {
-                offset %= buffer.BufferHt;
-            }
-            break;
-        case 2:  // Left
-        case 3:  // Right
-            if( !offset_in_pixels ) {
-                offset = ((buffer.BufferWi-1) * offset) / 100;
-            } else {
-                offset %= buffer.BufferWi;
-            }
-            break;
+    default:
+    case 0:  // Up
+    case 1:  // Down
+        if (!offset_in_pixels) {
+            offset = ((buffer.BufferHt - 1) * offset) / 100;
+        }
+        else {
+            offset %= buffer.BufferHt;
+        }
+        break;
+    case 2:  // Left
+    case 3:  // Right
+        if (!offset_in_pixels) {
+            offset = ((buffer.BufferWi - 1) * offset) / 100;
+        }
+        else {
+            offset %= buffer.BufferWi;
+        }
+        break;
 
     }
 
-
-    int x,y;
     xlColor color;
-    size_t colorcnt = buffer.GetColorCount();
-    int color_size = BandSize +  SkipSize;
+    auto colorcnt = buffer.GetColorCount();
+    int color_size = BandSize + SkipSize;
     int current_color = 0;
     int current_pos = 0;
-    int target = 0;
+    int target;
 
-    if( BandSize == 0 ) {
+    if (BandSize == 0) {
         GetColorFromPosition(eff_pos, color, colorcnt, buffer);
     }
 
     switch (Direction)
     {
-        default:
-        case 0:  // Up
-            offset %= buffer.BufferHt;
-            if( wrap ) {
-                target = buffer.BufferHt*pos_pct+offset;
-            } else {
-                target = offset + (buffer.BufferHt-offset)*pos_pct;
-            }
-            for( y=offset; y<target; y++)
-            {
-                if( BandSize > 0 ) {
-                    color = xlBLACK;
-                    if( current_pos < BandSize )
-                    {
-                        buffer.palette.GetColor(current_color, color);
-                    }
-                }
-                int y_pos = y;
-                if( y_pos >= buffer.BufferHt ) y_pos -= buffer.BufferHt;
-                if( !color_by_time ) {
-                    double pos = (double)y / (double)(buffer.BufferHt+offset-1);
-                    GetColorFromPosition(pos, color, colorcnt, buffer);
-                }
-                for (x=0; x<buffer.BufferWi; x++)
+    default:
+    case 0:  // Up
+        offset %= buffer.BufferHt;
+        if (wrap) {
+            target = buffer.BufferHt*pos_pct + offset;
+        }
+        else {
+            target = offset + (buffer.BufferHt - offset)*pos_pct;
+        }
+        for (int y = offset; y < target; y++)
+        {
+            if (BandSize > 0) {
+                color = xlBLACK;
+                if (current_pos < BandSize)
                 {
-                    buffer.SetPixel(x, y_pos, color);
-                }
-                if( BandSize > 0 ) {
-                    UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
+                    buffer.palette.GetColor(current_color, color);
                 }
             }
-            break;
-        case 1:  // Down
-            offset %= buffer.BufferHt;
-            if( wrap ) {
-                target = buffer.BufferHt*(1.0-pos_pct)-offset;
-            } else {
-                target = (buffer.BufferHt-offset)*(1.0-pos_pct);
-            }
-            for( y=buffer.BufferHt-1-offset; y>=target; y--)
-            {
-                if( BandSize > 0 ) {
-                    color = xlBLACK;
-                    if( current_pos < BandSize )
-                    {
-                        buffer.palette.GetColor(current_color, color);
-                    }
-                }
-                int y_pos = y;
-                if( y_pos < 0 ) y_pos += buffer.BufferHt;
-                if( !color_by_time ) {
-                    double pos = 1.0 - (double)y / (double)(buffer.BufferHt+offset-1);
-                    GetColorFromPosition(pos, color, colorcnt, buffer);
-                }
-                for (x=0; x<buffer.BufferWi; x++)
+            int y_pos = y;
+            if (y_pos >= buffer.BufferHt) y_pos -= buffer.BufferHt;
+            if (!color_by_time) {
+                double pos = 0;
+                if (buffer.BufferHt + offset - 1 != 0)
                 {
-                    buffer.SetPixel(x, y_pos, color);
+                    pos = static_cast<double>(y) / static_cast<double>(buffer.BufferHt + offset - 1);
                 }
-                if( BandSize > 0 ) {
-                    UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
-                }
+                GetColorFromPosition(pos, color, colorcnt, buffer);
             }
-            break;
-        case 2:  // Left
-            offset %= buffer.BufferWi;
-            if( wrap ) {
-                target = buffer.BufferWi*(1.0-pos_pct)-offset;
-            } else {
-                target = (buffer.BufferWi-offset)*(1.0-pos_pct);
-            }
-            for (x=buffer.BufferWi-1-offset; x>=target; x--)
+            for (int x = 0; x < buffer.BufferWi; x++)
             {
-                if( BandSize > 0 ) {
-                    color = xlBLACK;
-                    if( current_pos < BandSize )
-                    {
-                        buffer.palette.GetColor(current_color, color);
-                    }
-                }
-                int x_pos = x;
-                if( x_pos < 0 ) x_pos += buffer.BufferWi;
-                if( !color_by_time ) {
-                    double pos = 1.0 - (double)x / (double)(buffer.BufferWi+offset-1);
-                    GetColorFromPosition(pos, color, colorcnt, buffer);
-                }
-                for( y=0; y<buffer.BufferHt; y++)
+                buffer.SetPixel(x, y_pos, color);
+            }
+            if (BandSize > 0) {
+                UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
+            }
+        }
+        break;
+    case 1:  // Down
+        offset %= buffer.BufferHt;
+        if (wrap) {
+            target = buffer.BufferHt*(1.0 - pos_pct) - offset;
+        }
+        else {
+            target = (buffer.BufferHt - offset)*(1.0 - pos_pct);
+        }
+        for (int y = buffer.BufferHt - 1 - offset; y >= target; y--)
+        {
+            if (BandSize > 0) {
+                color = xlBLACK;
+                if (current_pos < BandSize)
                 {
-                    buffer.SetPixel(x_pos, y, color);
-                }
-                if( BandSize > 0 ) {
-                    UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
+                    buffer.palette.GetColor(current_color, color);
                 }
             }
-            break;
-        case 3:  // Right
-            offset %= buffer.BufferWi;
-            if( wrap ) {
-                target = buffer.BufferWi*pos_pct+offset;
-            } else {
-                target = offset + (buffer.BufferWi-offset)*pos_pct;
+            int y_pos = y;
+            if (y_pos < 0) y_pos += buffer.BufferHt;
+            if (!color_by_time) {
+                double pos = 1.0;
+                if (buffer.BufferHt + offset - 1 != 0)
+                {
+                    pos = 1.0 - static_cast<double>(y) / static_cast<double>(buffer.BufferHt + offset - 1);
+                }
+                GetColorFromPosition(pos, color, colorcnt, buffer);
             }
-            for (x=offset; x<target; x++)
+            for (int x = 0; x < buffer.BufferWi; x++)
             {
-                if( BandSize > 0 ) {
-                    color = xlBLACK;
-                    if( current_pos < BandSize )
-                    {
-                        buffer.palette.GetColor(current_color, color);
-                    }
-                }
-                int x_pos = x;
-                if( x_pos >= buffer.BufferWi ) x_pos -= buffer.BufferWi;
-                if( !color_by_time ) {
-                    double pos = (double)x / (double)(buffer.BufferWi+offset-1);
-                    GetColorFromPosition(pos, color, colorcnt, buffer);
-                }
-                for( y=0; y<buffer.BufferHt; y++)
+                buffer.SetPixel(x, y_pos, color);
+            }
+            if (BandSize > 0) {
+                UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
+            }
+        }
+        break;
+    case 2:  // Left
+        offset %= buffer.BufferWi;
+        if (wrap) {
+            target = buffer.BufferWi*(1.0 - pos_pct) - offset;
+        }
+        else {
+            target = (buffer.BufferWi - offset)*(1.0 - pos_pct);
+        }
+        for (int x = buffer.BufferWi - 1 - offset; x >= target; x--)
+        {
+            if (BandSize > 0) {
+                color = xlBLACK;
+                if (current_pos < BandSize)
                 {
-                    buffer.SetPixel(x_pos, y, color);
-                }
-                if( BandSize > 0 ) {
-                    UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
+                    buffer.palette.GetColor(current_color, color);
                 }
             }
-            break;
-
+            int x_pos = x;
+            if (x_pos < 0) x_pos += buffer.BufferWi;
+            if (!color_by_time) {
+                double pos = 1.0;
+                if (buffer.BufferWi + offset - 1 != 0)
+                {
+                    pos = 1.0 - static_cast<double>(x) / static_cast<double>(buffer.BufferWi + offset - 1);
+                }
+                GetColorFromPosition(pos, color, colorcnt, buffer);
+            }
+            for (int y = 0; y < buffer.BufferHt; y++)
+            {
+                buffer.SetPixel(x_pos, y, color);
+            }
+            if (BandSize > 0) {
+                UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
+            }
+        }
+        break;
+    case 3:  // Right
+        offset %= buffer.BufferWi;
+        if (wrap) {
+            target = buffer.BufferWi*pos_pct + offset;
+        }
+        else {
+            target = offset + (buffer.BufferWi - offset)*pos_pct;
+        }
+        for (int x = offset; x < target; x++)
+        {
+            if (BandSize > 0) {
+                color = xlBLACK;
+                if (current_pos < BandSize)
+                {
+                    buffer.palette.GetColor(current_color, color);
+                }
+            }
+            int x_pos = x;
+            if (x_pos >= buffer.BufferWi) x_pos -= buffer.BufferWi;
+            if (!color_by_time) {
+                double pos = 0;
+                if (buffer.BufferWi + offset - 1 != 0)
+                {
+                    pos = static_cast<double>(x) / static_cast<double>(buffer.BufferWi + offset - 1);
+                }
+                GetColorFromPosition(pos, color, colorcnt, buffer);
+            }
+            for (int y = 0; y < buffer.BufferHt; y++)
+            {
+                buffer.SetPixel(x_pos, y, color);
+            }
+            if (BandSize > 0) {
+                UpdateFillColor(current_pos, current_color, colorcnt, color_size, 1);
+            }
+        }
+        break;
     }
- }
+}

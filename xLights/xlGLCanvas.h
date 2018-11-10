@@ -15,13 +15,19 @@ class xlGLCanvas
                    const wxSize &size=wxDefaultSize,
                    long style=0,
                    const wxString &name=wxPanelNameStr,
-                   bool coreProfile = true);
+                   bool only2d = true);
         virtual ~xlGLCanvas();
 
         void SetCurrentGLContext();
+        int GetCreatedVersion() const {
+            // per Dan if core_profile is enabled then this is at least 3
+            if (DrawGLUtils::IsCoreProfile())
+                return 3;
+            return _ver;
+        }
 
-        int getWidth() { return mWindowWidth; }
-        int getHeight() { return mWindowHeight; }
+        int getWidth() const { return mWindowWidth; }
+        int getHeight() const { return mWindowHeight; }
 
         double translateToBacking(double x);
 
@@ -47,6 +53,8 @@ class xlGLCanvas
 			  const double contentScaleFactor;
 			  unsigned char *tmpBuf;
 		  };
+    
+        static wxGLContext *GetSharedContext() { return m_sharedContext; }
     protected:
       	DECLARE_EVENT_TABLE()
 
@@ -55,24 +63,34 @@ class xlGLCanvas
         int mWindowResized;
         bool mIsInitialized;
 
-        virtual void InitializeGLCanvas() = 0;  // pure virtual method to initialize canvas
+        virtual void InitializeGLCanvas() { mIsInitialized = true; };
+        virtual void InitializeGLContext() = 0;  // pure virtual method to initialize a context (set clear color, viewport, etc...)
         void prepare2DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
+        void prepare3DViewport(int topleft_x, int topleft_y, int bottomrigth_x, int bottomrigth_y);
         void Resized(wxSizeEvent& evt);
         void OnEraseBackGround(wxEraseEvent& event) {};
 
         void CreateGLContext();
-    
-    
+
+
         virtual bool UsesVertexTextureAccumulator() {return true;}
         virtual bool UsesVertexColorAccumulator() {return true;}
         virtual bool UsesVertexAccumulator() {return true;}
+        virtual bool UsesVertex3Accumulator() {return false;}
+        virtual bool UsesVertex3ColorAccumulator() { return false; }
+        virtual bool UsesVertex3TextureAccumulator() { return false; }
         virtual bool UsesAddVertex() {return true;}
 
         DrawGLUtils::xlGLCacheInfo *cache;
 
     private:
+        int _ver = 0;
+        wxString _name;
         wxGLContext* m_context;
+        wxGLContext* m_baseContext;
         bool m_coreProfile;
+    
+        static wxGLContext *m_sharedContext;
 };
 
 #endif // XLGLCANVAS_H

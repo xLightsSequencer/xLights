@@ -14,9 +14,10 @@
 
 
 #define MyTitleName "xLights" 
-#define Year 2018
-#define Version 40
+#define Year 2019
+#define Version 51
 #define Bits 32
+#define Other ""
 
 [Setup]
 ;; (not yet implemented) SignTool=mystandard
@@ -25,16 +26,16 @@ ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
 DisableDirPage=no   
 AppName={#MyTitleName}
-AppVersion={#Year}.{#Version}
-DefaultDirName={pf32}\{#MyTitleName}
-DefaultGroupName={#MyTitleName}
+AppVersion={#Year}.{#Version}{#Other}
+DefaultDirName={pf32}\{#MyTitleName}{#Other}
+DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=include\{#MyTitleName}.ico
 
 UninstallDisplayIcon={app}\{#MyTitleName}.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=output
-OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}
+OutputBaseFilename={#MyTitleName}{#Bits}_{#Year}_{#Version}{#Other}
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "Do you want to create desktop icon?"; Flags: checkablealone
@@ -65,6 +66,12 @@ Source: "bin/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "include\xfade.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; xSMSDaemon
+Source: "bin/xSMSDaemon.dll"; DestDir: "{app}"
+Source: "bin/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+
 Source: "bin/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/libgcc_s_sjlj-1.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -80,17 +87,18 @@ Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/avutil-55.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/swresample-2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 Source: "bin/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
 ; SDL - audio playing
 Source: "bin/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
+; libcurl
+Source: "bin/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; Added files for doing Papagayo effects
 Source: "bin/extended_dictionary"; DestDir: "{app}"
 Source: "bin/phoneme_mapping";     DestDir: "{app}"
 Source: "bin/standard_dictionary"; DestDir: "{app}"
 Source: "bin/user_dictionary";     DestDir: "{app}"
-
-; Path editor
-;Source: "bin/PathEditor.exe";      DestDir: "{app}"
 
 ; readmes and licenses
 Source: "License.txt"; DestDir: "{app}";
@@ -101,6 +109,9 @@ Source: "colorcurves\*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameve
 
 ; Value Curves
 Source: "valuecurves\*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameversion recursesubdirs
+
+; Palettes
+Source: "palettes\*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameversion recursesubdirs
 
 ; controllers
 ; Source: "controllers\*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
@@ -119,17 +130,9 @@ Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xSMSDaemon"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}\xLights"; Check: NeedsAddPath ('C:\Program Files (x86)\xLights')
-
-; Remove Keith's Batch Render to prevent confusion
-[InstallDelete]
-Type: files; Name: "{app}\wxmsw310u_gcc_custom.dll"
-Type: files; Name: "{app}\wxmsw310u_gl_gcc_custom.dll"
-Type: files; Name: "{app}\xLightsBatchRenderer.exe"
-Type: files; Name: "{app}\xLightsBatchRenderer.ico"
-Type: files; Name: "{group}\xLightsBatchRender.lnk"
-Type: files; Name: "{commondesktop}\xLightsBatchRender.lnk"
 
 [Code]
 

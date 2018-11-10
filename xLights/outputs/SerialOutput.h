@@ -36,7 +36,7 @@ public:
     #pragma region Getters and Setters
     virtual bool IsIpOutput() const override { return false; }
     virtual bool IsSerialOutput() const override { return true; }
-    virtual std::string GetChannelMapping(long ch) const override;
+    virtual std::string GetChannelMapping(int32_t ch) const override;
     virtual std::string GetLongDescription() const override;
     virtual std::string GetPingDescription() const override;
     virtual int GetMaxChannels() const override { return 0; }
@@ -47,6 +47,8 @@ public:
     virtual bool TxEmpty() const override;
     int GetId() const { return _universe; }
     void SetId(int id) { _universe = id; _dirty = true; }
+    virtual std::string GetSortName() const override { return GetCommPort(); }
+    virtual std::string GetExport() const override;
     #pragma endregion Getters and Setters
 
     #pragma region Operators
@@ -58,6 +60,8 @@ public:
     virtual void Close() override;
     #pragma endregion Start and Stop
 
+    virtual void StartFrame(long msec) override;
+
     // Create a new serial type of the specified type but copy across this objects settings
     SerialOutput* Mutate(const std::string& newtype);
 
@@ -66,7 +70,7 @@ public:
 
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
-    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
+    virtual Output* Configure(wxWindow* parent, OutputManager* outputManager, ModelManager* modelManager) override;
 #endif
     #pragma endregion UI
 };

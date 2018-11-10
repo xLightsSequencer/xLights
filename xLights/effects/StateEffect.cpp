@@ -23,7 +23,7 @@ StateEffect::~StateEffect()
     //dtor
 }
 
-std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -44,6 +44,17 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
         res.push_back(wxString::Format("    ERR: State effect with no timing selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
+    return res;
+}
+
+std::list<std::string> StateEffect::GetStatesUsed(const SettingsMap& SettingsMap)
+{
+    std::list<std::string> res;
+    auto state = SettingsMap.Get("E_CHOICE_State_StateDefinition", "");
+    if (state != "")
+    {
+        res.emplace_back(state);
+    }
     return res;
 }
 
@@ -149,12 +160,11 @@ void StateEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name)
 {
-    for (auto it2 = map.begin(); it2 != map.end(); ++it2)
+    for (auto it2 : map)
     {
-        wxString f(it2->first);
-        if (f.EndsWith("-Name") && it2->second == name)
+        if (EndsWith(it2.first, "-Name") && it2.second == name)
         {
-            return f.SubString(0, f.Length() - 6).ToStdString();
+            return it2.first.substr(0, it2.first.size() - 5);
         }
     }
 
@@ -177,13 +187,13 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     }
 
     Element *track = elements->GetElement(trackName);
-    std::recursive_mutex tmpLock;
-    std::recursive_mutex *lock = &tmpLock;
+    std::recursive_timed_mutex tmpLock;
+    std::recursive_timed_mutex *lock = &tmpLock;
     if (track != nullptr) {
         lock = &track->GetChangeLock();
     }
 
-    std::unique_lock<std::recursive_mutex> locker(*lock);
+    std::unique_lock<std::recursive_timed_mutex> locker(*lock);
 
     if (buffer.cur_model == "") {
         return;
@@ -235,6 +245,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     int startms = -1;
     int endms = -1;
     int posms = -1;
+
     if (tstates == "") {
 
         // if we dont have a track then exit
@@ -278,7 +289,20 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         while (tkz.HasMoreTokens())
         {
             wxString token = tkz.GetNextToken();
-            sstates.push_back(token.Lower().ToStdString());
+            if (token == "*" || token == "<ALL>")
+            {
+                for (auto it2 : model_info->stateInfo[definition])
+                {
+                    if (EndsWith(it2.first, "-Name") && it2.second != "")
+                    {
+                        sstates.push_back(Lower(it2.second));
+                    }
+                }
+            }
+            else
+            {
+                sstates.push_back(token.Lower().ToStdString());
+            }
         }
     }
     else if (mode == "Countdown")
@@ -418,7 +442,20 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         while (tkz.HasMoreTokens())
         {
             wxString token = tkz.GetNextToken();
-            tmpstates.push_back(token.Lower().ToStdString());
+            if (token == "*" || token == "<ALL>")
+            {
+                for (auto it2 : model_info->stateInfo[definition])
+                {
+                    if (EndsWith(it2.first, "-Name") && it2.second != "")
+                    {
+                        sstates.push_back(Lower(it2.second));
+                    }
+                }
+            }
+            else
+            {
+                tmpstates.push_back(token.Lower().ToStdString());
+            }
         }
 
         int which = tmpstates.size() * progressthroughtimeinterval;

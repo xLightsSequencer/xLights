@@ -14,6 +14,7 @@
 #include "../../include/liquid-32.xpm"
 #include "../../include/liquid-48.xpm"
 #include "../../include/liquid-64.xpm"
+#include <log4cpp/Category.hh>
 
 //#define LE_INTERPOLATE
 
@@ -29,7 +30,7 @@ wxPanel *LiquidEffect::CreatePanel(wxWindow *parent) {
     return new LiquidPanel(parent);
 }
 
-std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff)
+std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res;
 
@@ -178,9 +179,9 @@ void LiquidEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer
         GetValueCurveInt("Flow4", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         GetValueCurveInt("Liquid_SourceSize4", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
-
         SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
-        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0)
+        SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
+        GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR)
     );
 }
 
@@ -278,12 +279,12 @@ void LiquidEffect::Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColo
     free(count);
 #else
     int32 particleCount = ps->GetParticleCount();
-    if (particleCount)
+    if (particleCount > 0)
     {
         const b2Vec2* positionBuffer = ps->GetPositionBuffer();
         const b2ParticleColor* colorBuffer = ps->GetColorBuffer();
 
-        for (int i = 0; i < ps->GetParticleCount(); ++i)
+        for (int i = 0; i < particleCount; ++i)
         {
             int x = positionBuffer[i].x;
             int y = positionBuffer[i].y;
@@ -559,8 +560,10 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
     bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
     bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
-    const std::string& particleType, int despeckle)
+    const std::string& particleType, int despeckle, float gravity)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     bool enabled[4];
     enabled[0] = true;
     enabled[1] = enabled2;
@@ -574,6 +577,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
     }
     b2World*& _world = cache->_world;
 
+    b2Vec2 grav(0.0f, -gravity);
+
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
@@ -584,9 +589,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
             _world = nullptr;
         }
 
-        b2Vec2 gravity(0.0f, -10.0f);
-        _world = new b2World(gravity);
-
+        _world = new b2World(grav);
         if (bottom)
         {
             CreateBarrier(_world, (float)buffer.BufferWi / 2.0, -1.0f, (float)buffer.BufferWi, 0.001f);
@@ -617,6 +620,25 @@ void LiquidEffect::Render(RenderBuffer &buffer,
         }
     }
 
+    // exit if no world
+    if (_world == nullptr) return;
+
+    _world->SetGravity(grav);
+
+    // allow up to 1 times physical memory
+    if (IsExcessiveMemoryUsage(1.0))
+    {
+        logger_base.error("LiquidEffect Render abandoned due to insufficient memory. This is not good. Rendering will be slow.");
+        logger_base.error("To reduce memory turn off render caching and/or change liquid effect settings.");
+
+        // delete our world to get all our memory back
+        delete _world;
+        _world = nullptr;
+
+        wxASSERT(false);
+        return;
+    }
+
     Step(_world, buffer, enabled, lifetime, particleType, mixcolors,
         x1, y1, direction1, velocity1, flow1, sourceSize1, flowMusic1,
         x2, y2, direction2, velocity2, flow2, sourceSize2, flowMusic2,
@@ -631,5 +653,12 @@ void LiquidEffect::Render(RenderBuffer &buffer,
          xlColor color;
         buffer.palette.GetColor(0, color);
         Draw(buffer, ps, color, holdcolor | mixcolors, despeckle);
+    }
+
+    // because of memory usage delete our world when rendered the last frame
+    if (buffer.curPeriod == buffer.curEffEndPer)
+    {
+        delete _world;
+        _world = nullptr;
     }
 }

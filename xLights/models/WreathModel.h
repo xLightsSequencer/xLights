@@ -3,7 +3,6 @@
 
 #include "Model.h"
 
-
 class WreathModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxDialog" name="RemapDMXChannelsDialog">
+		<title>Remap DMX Channels</title>
+		<id_arg>0</id_arg>
+		<style>wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX</style>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="ScrolledWindow1" member="yes">
+					<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
+						<cols>1</cols>
+						<growablecols>0</growablecols>
+						<growablerows>0</growablerows>
+						<object class="sizeritem">
+							<object class="wxGrid" name="ID_GRID1" variable="Grid1" member="yes">
+								<cols>2</cols>
+								<rows>40</rows>
+								<defaultcolsize>150</defaultcolsize>
+								<collabels>
+									<item>Map From</item>
+									<item>Map To</item>
+								</collabels>
+								<size>400,400</size>
+							</object>
+							<flag>wxEXPAND</flag>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
+					<object class="button">
+						<object class="wxButton" name="wxID_OK">
+							<label></label>
+						</object>
+					</object>
+					<object class="button">
+						<object class="wxButton" name="wxID_CANCEL">
+							<label></label>
+						</object>
+					</object>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

@@ -1,23 +1,49 @@
 #include "IPOutput.h"
 
+#include <wx/socket.h>
 #include <wx/xml/xml.h>
 #include <wx/regex.h>
-#include <wx/socket.h>
-#include <log4cpp/Category.hh>
 #include <wx/protocol/http.h>
 
+// This must be below the wx includes
 #ifdef __WXMSW__
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
 #endif
 
+#include "../UtilFunctions.h"
+#include "../xSchedule/xSMSDaemon/Curl.h"
+
+#include <log4cpp/Category.hh>
+
 std::string IPOutput::__localIP = "";
+
+static std::map<std::string, std::string> resolvedIPMap;
+static const std::string &resolveIp(const std::string &ip) {
+    if (IsIPValid(ip) || (ip == "MULTICAST")) {
+        return ip;
+    }
+    const std::string &resolvedIp = resolvedIPMap[ip];
+    if (resolvedIp == "") {
+        wxIPV4address add;
+        add.Hostname(ip);
+        std::string r = add.IPAddress();
+        if (r == "0.0.0.0") {
+            r = ip;
+        }
+        resolvedIPMap[ip] = r;
+        return resolvedIPMap[ip];
+    }
+    return resolvedIp;
+}
 
 #pragma region Constructors and Destructors
 IPOutput::IPOutput(wxXmlNode* node) : Output(node)
 {
     _ip = node->GetAttribute("ComPort", "").ToStdString();
+    _resolvedIp = resolveIp(_ip);
     _universe = wxAtoi(node->GetAttribute("BaudRate", "1"));
 }
 
@@ -25,8 +51,14 @@ IPOutput::IPOutput() : Output()
 {
     _universe = 0;
     _ip = "";
+    _resolvedIp = "";
 }
 #pragma endregion Constructors and Destructors
+
+void IPOutput::SetIP(const std::string& ip) {
+    Output::SetIP(ip);
+    _resolvedIp = resolveIp(_ip);
+}
 
 #pragma region Static Functions
 std::string IPOutput::CleanupIP(const std::string &ip)
@@ -77,62 +109,66 @@ wxXmlNode* IPOutput::Save()
 
 PINGSTATE IPOutput::Ping() const
 {
-    return IPOutput::Ping(GetIP());
+    return IPOutput::Ping(GetIP(), _fppProxy);
 }
 
-PINGSTATE IPOutput::Ping(const std::string ip)
+PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy)
 {
 #ifdef __WXMSW__
-    unsigned long ipaddr = inet_addr(ip.c_str());
-    if (ipaddr == INADDR_NONE) {
-        return PINGSTATE::PING_ALLFAILED;
-    }
+    if (proxy == "")
+    {
+        unsigned long ipaddr = inet_addr(ip.c_str());
+        //unsigned long ipaddr = 0;
+        //inet_pton(AF_INET, ip.c_str(), &ipaddr);
+        if (ipaddr == INADDR_NONE) {
+            return PINGSTATE::PING_ALLFAILED;
+        }
 
-    HANDLE hIcmpFile = IcmpCreateFile();
-    if (hIcmpFile == INVALID_HANDLE_VALUE) {
-        return PINGSTATE::PING_ALLFAILED;
-    }
+        HANDLE hIcmpFile = IcmpCreateFile();
+        if (hIcmpFile == INVALID_HANDLE_VALUE) {
+            return PINGSTATE::PING_ALLFAILED;
+        }
 
-    char SendData[32] = "Data Buffer";
-    uint32_t ReplySize = sizeof(ICMP_ECHO_REPLY) + sizeof(SendData);
-    void* ReplyBuffer = malloc(ReplySize);
-    if (ReplyBuffer == nullptr) {
-        IcmpCloseHandle(hIcmpFile);
-        return PINGSTATE::PING_ALLFAILED;
-    }
+        char SendData[32] = "Data Buffer";
+        uint32_t ReplySize = sizeof(ICMP_ECHO_REPLY) + sizeof(SendData);
+        ICMP_ECHO_REPLY* ReplyBuffer = (ICMP_ECHO_REPLY*)malloc(ReplySize);
+        if (ReplyBuffer == nullptr) {
+            IcmpCloseHandle(hIcmpFile);
+            return PINGSTATE::PING_ALLFAILED;
+        }
 
-    uint32_t dwRetVal = IcmpSendEcho(hIcmpFile, ipaddr, SendData, sizeof(SendData), nullptr, ReplyBuffer, ReplySize, 1000);
-    if (dwRetVal != 0) {
-        IcmpCloseHandle(hIcmpFile);
-        free(ReplyBuffer);
-        return PINGSTATE::PING_OK;
+        uint32_t dwRetVal = IcmpSendEcho(hIcmpFile, ipaddr, SendData, sizeof(SendData), nullptr, ReplyBuffer, ReplySize, 1000);
+        if (dwRetVal != 0 && ReplyBuffer->Status == 0) {
+            IcmpCloseHandle(hIcmpFile);
+            free(ReplyBuffer);
+            return PINGSTATE::PING_OK;
+        }
+        else
+        {
+            IcmpCloseHandle(hIcmpFile);
+            free(ReplyBuffer);
+            return PINGSTATE::PING_ALLFAILED;
+        }
     }
     else
     {
-        IcmpCloseHandle(hIcmpFile);
-        free(ReplyBuffer);
-        return PINGSTATE::PING_ALLFAILED;
-    }
-#else
-
-    wxHTTP http;
-    http.SetMethod("GET");
-    http.SetTimeout(2);
-    bool connected = false;
-    connected = http.Connect(ip, false);
-
-    if (connected)
-    {
-        wxInputStream *httpStream = http.GetInputStream("/");
-        if (http.GetError() == wxPROTO_NOERR)
+#endif
+        std::string url = "http://";
+        if (proxy != "")
+        {
+            url += proxy + "/proxy/";
+        }
+        url += ip + "/";
+        if (Curl::HTTPSGet(url, "", "", 2) != "")
         {
             return PINGSTATE::PING_WEBOK;
         }
-        wxDELETE(httpStream);
-        http.Close();
+        else
+        {
+            return PINGSTATE::PING_UNAVAILABLE;
+        }
+#ifdef __WXMSW__
     }
-
-    return PINGSTATE::PING_UNAVAILABLE;
 #endif
 }
 
@@ -158,7 +194,7 @@ bool IPOutput::operator==(const IPOutput& output) const
 {
     if (GetType() != output.GetType()) return false;
 
-    return _universe == output.GetUniverse() && _ip == output.GetIP();
+    return _universe == output.GetUniverse() && (_ip == output.GetIP() || _ip == output.GetResolvedIP() || _resolvedIp == output.GetIP() || _resolvedIp == output.GetResolvedIP());
 }
 #pragma endregion Operators
 

@@ -2,6 +2,7 @@
 
 #include "PlayList.h"
 #include "PlayListDialog.h"
+#include "PlayListSimpleDialog.h"
 
 //(*InternalHeaders(PlayListPanel)
 #include <wx/intl.h>
@@ -13,6 +14,7 @@ const long PlayListPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListPanel::ID_CHECKBOX1 = wxNewId();
 const long PlayListPanel::ID_CHECKBOX2 = wxNewId();
+const long PlayListPanel::ID_CHECKBOX3 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListPanel,wxPanel)
@@ -42,6 +44,10 @@ PlayListPanel::PlayListPanel(wxWindow* parent, PlayList* playlist, wxWindowID id
 	CheckBox_LastStepOnce = new wxCheckBox(this, ID_CHECKBOX2, _("Last step once only"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_LastStepOnce->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_LastStepOnce, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_AlwaysShuffle = new wxCheckBox(this, ID_CHECKBOX3, _("Always Shuffle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_AlwaysShuffle->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_AlwaysShuffle, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -56,6 +62,7 @@ PlayListPanel::PlayListPanel(wxWindow* parent, PlayList* playlist, wxWindowID id
     TextCtrl_PlayListName->SetValue(playlist->GetNameNoTime());
     CheckBox_FirstOnce->SetValue(playlist->GetFirstOnce());
     CheckBox_LastStepOnce->SetValue(playlist->GetLastOnce());
+    CheckBox_AlwaysShuffle->SetValue(playlist->GetShuffle());
 }
 
 PlayListPanel::~PlayListPanel()
@@ -65,10 +72,19 @@ PlayListPanel::~PlayListPanel()
     _playlist->SetName(TextCtrl_PlayListName->GetValue().ToStdString());
     _playlist->SetFirstOnce(CheckBox_FirstOnce->GetValue());
     _playlist->SetLastOnce(CheckBox_LastStepOnce->GetValue());
+    _playlist->SetShuffle(CheckBox_AlwaysShuffle->GetValue());
 }
 
 void PlayListPanel::OnTextCtrl_PlayListNameText(wxCommandEvent& event)
 {
     _playlist->SetName(TextCtrl_PlayListName->GetValue().ToStdString());
-    ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    auto label = GetParent()->GetParent()->GetParent()->GetParent()->GetLabel();
+    if (label.Contains("Simple"))
+    {
+        ((PlayListSimpleDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    }
+    else
+    {
+        ((PlayListDialog*)GetParent()->GetParent()->GetParent()->GetParent())->UpdateTree();
+    }
 }

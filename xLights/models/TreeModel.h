@@ -3,7 +3,6 @@
 
 #include "MatrixModel.h"
 
-
 class TreeModel : public MatrixModel
 {
     public:

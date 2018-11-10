@@ -65,7 +65,7 @@ void PixelNetOutput::EndFrame(int suppressFrames)
 #pragma endregion Frame Handling
 
 #pragma region Data Setting
-void PixelNetOutput::SetOneChannel(long channel, unsigned char data)
+void PixelNetOutput::SetOneChannel(int32_t channel, unsigned char data)
 {
     if (_data[channel] != (data == 170 ? 171 : data))
     {
@@ -87,4 +87,3 @@ std::string PixelNetOutput::GetSetupHelp() const
     return "Pixelnet controllers attached to a USB Lynx Pixelnet\ndongle";
 }
 #pragma endregion Getters and Setters
-

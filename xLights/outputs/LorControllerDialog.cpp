@@ -184,5 +184,3 @@ void LorControllerDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
 }
-
-

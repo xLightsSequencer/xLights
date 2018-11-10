@@ -33,12 +33,12 @@ class PinwheelPanel: public wxPanel
 		BulkEditSlider* Slider_Pinwheel_Speed;
 		BulkEditSlider* Slider_Pinwheel_Thickness;
 		BulkEditSlider* Slider_Pinwheel_Twist;
+		BulkEditValueCurveButton* BitmapButton_PinwheelXCVC;
+		BulkEditValueCurveButton* BitmapButton_PinwheelYCVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_ArmSizeVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_SpeedVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_ThicknessVC;
 		BulkEditValueCurveButton* BitmapButton_Pinwheel_TwistVC;
-		ValueCurveButton* BitmapButton_PinwheelXCVC;
-		ValueCurveButton* BitmapButton_PinwheelYCVC;
 		wxStaticText* StaticText184;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText63;

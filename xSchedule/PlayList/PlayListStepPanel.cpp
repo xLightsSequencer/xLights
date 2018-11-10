@@ -1,17 +1,18 @@
 #include "PlayListStepPanel.h"
 
 #include "PlayListStep.h"
+#include "PlayListDialog.h"
 
 //(*InternalHeaders(PlayListStepPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
-#include "PlayListDialog.h"
 //*)
 
 //(*IdInit(PlayListStepPanel)
 const long PlayListStepPanel::ID_STATICTEXT1 = wxNewId();
 const long PlayListStepPanel::ID_TEXTCTRL1 = wxNewId();
 const long PlayListStepPanel::ID_CHECKBOX1 = wxNewId();
+const long PlayListStepPanel::ID_CHECKBOX2 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(PlayListStepPanel,wxPanel)
@@ -37,6 +38,10 @@ PlayListStepPanel::PlayListStepPanel(wxWindow* parent, PlayListStep* step, wxWin
 	CheckBox_ExcludeFromRandom = new wxCheckBox(this, ID_CHECKBOX1, _("Exclude from shuffle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ExcludeFromRandom->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_ExcludeFromRandom, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_EveryStep = new wxCheckBox(this, ID_CHECKBOX2, _("Run everything in this step in every step"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_EveryStep->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_EveryStep, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -50,6 +55,7 @@ PlayListStepPanel::PlayListStepPanel(wxWindow* parent, PlayListStep* step, wxWin
 
     TextCtrl_PlayListStepName->SetValue(step->GetRawName());
     CheckBox_ExcludeFromRandom->SetValue(step->GetExcludeFromRandom());
+    CheckBox_EveryStep->SetValue(step->GetEveryStep());
 }
 
 PlayListStepPanel::~PlayListStepPanel()
@@ -58,6 +64,7 @@ PlayListStepPanel::~PlayListStepPanel()
 	//*)
     _step->SetName(TextCtrl_PlayListStepName->GetValue().ToStdString());
     _step->SetExcludeFromRandom(CheckBox_ExcludeFromRandom->GetValue());
+    _step->SetEveryStep(CheckBox_EveryStep->GetValue());
 }
 
 void PlayListStepPanel::OnTextCtrl_PlayListStepNameText(wxCommandEvent& event)
