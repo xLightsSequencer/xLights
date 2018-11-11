@@ -79,7 +79,9 @@ class ValueCurveDialog: public wxDialog
     void LoadXVC(ValueCurve* vc, const wxString& filename);
     void ProcessPresetDir(wxDir& directory, bool subdirs);
     void SetTextCtrlsFromSliders();
+    void SetSlidersFromTextCtrls();
     void SetTextCtrlFromSlider(int parm, wxTextCtrl* text, int value);
+    void SetSliderFromTextCtrl(int parm, wxSlider* slider, float value);
     void SetSliderMinMax();
 
     public:
