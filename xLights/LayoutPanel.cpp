@@ -2977,6 +2977,7 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
 void LayoutPanel::DeleteSelectedModel() {
     if( selectedModel != nullptr && !selectedModel->GetModelScreenLocation().IsLocked()) {
         CreateUndoPoint("All", selectedModel->name);
+
         // This should delete all selected models
         //xlights->AllModels.Delete(selectedModel->name);
         bool selectedModelFound = false;

@@ -735,6 +735,17 @@ void ModelManager::Delete(const std::string &name) {
                     }
                 }
                 models.erase(it);
+
+                // If models are chained to us then make their start channel ... our start channel
+                std::string chainedtous = wxString::Format(">%s:1", model->GetName()).ToStdString();
+                for (auto it3: models)
+                {
+                    if (it3.second->ModelStartChannel == chainedtous)
+                    {
+                        it3.second->SetStartChannel(model->ModelStartChannel);
+                    }
+                }
+
                 delete model->GetModelXml();
                 delete model;
                 ResetModelGroups();
