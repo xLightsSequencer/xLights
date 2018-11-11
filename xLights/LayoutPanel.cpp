@@ -961,9 +961,6 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     bool ascending;
     bool sorted = TreeListViewModels->GetSortColumn(&sortcol, &ascending);
 
-    if (full_refresh) {
-        UnSelectAllModels();
-    }
     std::vector<Model *> dummy_models;
 
     // Update all the custom previews
@@ -983,6 +980,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
     }
 
     if (full_refresh) {
+        UnSelectAllModels();
         int width = 0;
         //turn off the colum width auto-resize.  Makes it REALLY slow to populate the tree
         TreeListViewModels->SetColumnWidth(0, 10);
@@ -1469,11 +1467,13 @@ private:
 
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    auto models = modelPreview->GetModels();
+    for (size_t i = 0; i < models.size(); i++)
     {
-        modelPreview->GetModels()[i]->Selected = false;
-        modelPreview->GetModels()[i]->GroupSelected = false;
-        modelPreview->GetModels()[i]->SelectHandle(-1);
+        Model* m = modelPreview->GetModels()[i];
+        m->Selected = false;
+        m->GroupSelected = false;
+        m->SelectHandle(-1);
     }
     UpdatePreview();
     selectedModel = nullptr;
