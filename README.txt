@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.44 November 11, 2018
+   -- bug (keith)  Fix a crash when deleting models
+   -- bug (keith)  Fix value curve dialog text entry not working correctly #1314
+   -- bug (keith)  Fix fire growth cycles value curve not right
 2018.43 November 10, 2018
    -- bug (dkulp)  Default DDP packet size should be 1440
    -- bug (keith)  Fix test doesnt work on non-contiguous submodels
