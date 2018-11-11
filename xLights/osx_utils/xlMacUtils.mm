@@ -15,7 +15,6 @@
 #include "xlGLCanvas.h"
 #include "osxMacUtils.h"
 
-#include "AudioManager.h"
 
 #include <list>
 
@@ -216,6 +215,8 @@ void ModalPopup(wxWindow *w, wxMenu &menu) {
     //w->PopupMenu(&menu);
 }
 
+#ifndef __NO_AUIDO__
+#include "AudioManager.h"
 
 static const AudioObjectPropertyAddress devlist_address = {
     kAudioHardwarePropertyDevices,
@@ -238,3 +239,4 @@ void AddAudioDeviceChangeListener(AudioManager *am) {
 void RemoveAudioDeviceChangeListener(AudioManager *am) {
     AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &devlist_address, device_list_changed, am);
 }
+#endif
