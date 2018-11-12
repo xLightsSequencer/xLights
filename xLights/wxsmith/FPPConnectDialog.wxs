@@ -255,7 +255,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="wxID_CANCEL" variable="Button1" member="no">
+						<object class="wxButton" name="wxID_CANCEL" variable="cancelButton" member="no">
 							<label>Cancel</label>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
