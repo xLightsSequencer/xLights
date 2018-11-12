@@ -71,7 +71,9 @@ const std::vector<Model*> &ModelPreview::GetModels() {
         } else if (currentLayoutGroup == "Unassigned") {
             for (auto a : xlights->AllModels) {
                 if (a.second->GetLayoutGroup() == "Unassigned") {
-                    tmpModelList.push_back(a.second);
+                    if (a.second->GetDisplayAs() != "ModelGroup") {
+                        tmpModelList.push_back(a.second);
+                    }
                 }
             }
         } else {
