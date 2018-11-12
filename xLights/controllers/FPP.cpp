@@ -55,6 +55,11 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                 }
             }
         }
+        if (!(_version[0] >= '2')) {
+            //either old version or could not determine version
+            wxMessageBox("FPP 1.x is no longer supported.  Things may or may not work.  We strongly recommend upgrading to FPP 2.x",
+                         "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
+        }
         _http.SetTimeout(oldTimeout);
         _ftp.Connect(ip, user, password);
     }
@@ -410,7 +415,7 @@ static wxString URLEncode(const wxString &value)
 }
 
 static inline bool supportsGZIP(const std::string & version) {
-    printf("%s\n", version.c_str());
+    //printf("%s\n", version.c_str());
     if (version[0] <= '1') return false; //FPP 1.x does not
     if (version[0] > '2') return true;   //assume FPP 3.x will support gzip
     if (version[2] == 'x') return true;  //FPP 2.x-master, it does
