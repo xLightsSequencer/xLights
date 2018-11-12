@@ -68,6 +68,7 @@ class FPPConnectDialog: public wxDialog
 		wxButton* Button_UploadToAll;
 		wxCheckBox* CheckBox_UploadController;
 		wxCheckBox* CheckBox_UploadModels;
+		wxCheckBox* PlayListCheckbox;
 		wxCheckListBox* CheckListBox_Sequences;
 		wxChoice* Choice_Drives;
 		wxComboBox* ComboBox_IPAddress;
@@ -81,6 +82,7 @@ class FPPConnectDialog: public wxDialog
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxTextCtrl* PlayListName;
 		wxTextCtrl* TextCtr_Username;
 		wxTextCtrl* TextCtrl_Description;
 		wxTextCtrl* TextCtrl_Password;
@@ -109,6 +111,8 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_NOTEBOOK_FPP;
 		static const long ID_CHECKBOX_UploadController;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX2;
+		static const long ID_TEXTCTRL2;
 		static const long ID_CHECKLISTBOX_Sequences;
 		static const long ID_BUTTON_Upload;
 		static const long ID_BUTTON1;
@@ -139,6 +143,7 @@ class FPPConnectDialog: public wxDialog
 		void OnComboBox_IPAddressTextEnter(wxCommandEvent& event);
 		void OnTextCtrl_DescriptionText(wxCommandEvent& event);
 		void OnButton_Refresh_DrivesClick(wxCommandEvent& event);
+		void OnPlayListCheckboxClick(wxCommandEvent& event);
 		//*)
 
         void OnComboBox_IPAddressTextUpdate(wxCommandEvent& event);

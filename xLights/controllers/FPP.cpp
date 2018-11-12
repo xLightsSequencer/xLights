@@ -37,18 +37,19 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
 
     if (_connected) {
         int oldTimeout = _http.GetTimeout();
-        _http.SetTimeout(2);
+        _http.SetTimeout(5);
         
         wxJSONValue val;
         if (GetURLAsJSON("/fppjson.php?command=getSysInfo", val)) {
             _version = val["Version"].AsString().ToStdString();
         } 
-        if (_version == "" || _version =="null")
+        if (_version == "" || _version == "null")
         {
             std::string version = GetURL("//");
-
             if (version == "") {
                 logger_base.error("FPP: Unable to retrieve FPP web page. Possible they have a password on the UI.");
+                //we'll assume a version 2.x so most things work
+                _version = "2.0";
             } else {
                 //Version: <a href = 'about.php' class = 'nonULLink'>v1.6 - 25 - gd87f066
                 static wxRegEx versionregex("(Version: .*?nonULLink..v)([0-9]+\\.[0-9]+)", wxRE_ADVANCED | wxRE_NEWLINE);
@@ -57,11 +58,11 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                 }
             }
         }
-        //if (!(_version[0] >= '2')) {
-        //    //either old version or could not determine version
-        //    wxMessageBox("FPP 1.x is no longer supported.  Things may or may not work.  We strongly recommend upgrading to FPP 2.x",
-        //                 "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
-        //}
+        if (!(_version[0] >= '2')) {
+            //either old version or could not determine version
+            wxMessageBox("FPP 1.x is no longer supported by the FPP developers.  Some things may not work.  We strongly recommend upgrading to FPP 2.x",
+                         "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
+        }
         _http.SetTimeout(oldTimeout);
         _ftp.Connect(ip, user, password);
     }
@@ -87,6 +88,15 @@ bool FPP::GetURLAsJSON(const std::string& url, wxJSONValue& val) {
         reader.Parse(*httpStream, &val);
         delete httpStream;
         return true;
+    } else {
+        httpStream = _http.GetInputStream(wxString(url));
+        int rc = _http.GetResponse();
+        if (rc == 200) {
+            wxJSONReader reader;
+            reader.Parse(*httpStream, &val);
+            delete httpStream;
+            return true;
+        }
     }
     return false;
 }
@@ -632,7 +642,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
 {
     bool cancelled = false;
     wxString media = "";
-
+    wxString type = "";
     wxXmlDocument doc(file);
     if (doc.IsOk()) {
         wxXmlNode* root = doc.GetRoot();
@@ -642,7 +652,8 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
                     for (auto n1 = n->GetChildren(); n1 != nullptr; n1 = n1->GetNext()) {
                         if (n1->GetName() == "mediaFile") {
                             media = n1->GetNodeContent();
-                            break;
+                        } else if (n1->GetName() == "sequenceType") {
+                            type = n1->GetNodeContent();
                         }
                     }
                     break;
@@ -650,18 +661,15 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
             }
         }
     }
+    if (type == "Animation") {
+        media = "";
+    }
 
     wxFileName fn(file);
     wxString fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
     if (wxFile::Exists(fseq)) {
-        if (UseFTP())
-        {
-            cancelled = _ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, parent);
-        }
-        else
-        {
-            cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true);
-        }
+        cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true);
+        sequences[fn.GetName().ToStdString() + ".fseq"] = "";
     } else {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Unable to upload fseq file %s as it does not exist.", (const char *)fseq.c_str());
@@ -673,14 +681,8 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
         wxFileName fnmedia(media);
 
         if (fnmedia.Exists()) {
-            if (UseFTP())
-            {
-                cancelled = _ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, parent);
-            }
-            else
-            {
-                cancelled = uploadFileViaHTTP(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), media.ToStdString(), parent);
-            }
+            cancelled = uploadFileViaHTTP(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), media.ToStdString(), parent);
+            sequences[fn.GetName().ToStdString() + ".fseq"] = fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString();
         } else {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.error("Unable to upload media file %s as it does not exist.", (const char *)(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString()).c_str());
@@ -690,6 +692,41 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
 
     return cancelled;
 }
+bool FPP::SetPlaylist(const std::string &name, wxWindow *parent) {
+    wxJSONValue origJson;
+    GetURLAsJSON("/fppjson.php?command=getPlayListEntries&pl=" + URLEncode(name) + "&reload=true", origJson);
+
+    for (auto info : sequences) {
+        wxJSONValue entry;
+        if (info.second != "") {
+            entry["type"] = wxString("both");
+            entry["enabled"] = 1;
+            entry["playOnce"] = 0;
+            entry["sequenceName"] = info.first;
+            entry["mediaName"] = info.second;
+            entry["videoOut"] = wxString("--Default--");
+        } else {
+            entry["type"] = wxString("sequence");
+            entry["enabled"] = 1;
+            entry["playOnce"] = 0;
+            entry["sequenceName"] = info.first;
+        }
+        origJson["mainPlaylist"].Append(entry);
+    }
+    origJson.Remove(wxString("playlistInfo"));
+    wxFileName fn;
+    fn.AssignTempFileName(name);
+    std::string file = fn.GetFullPath().ToStdString();
+    wxFileOutputStream ufile(fn.GetFullPath());
+    wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
+    writer.Write(origJson, ufile);
+    ufile.Close();
+    
+    bool cancelled = _ftp.UploadFile(file, "/home/fpp/media/playlists", name + ".json", true, false, parent);
+    ::wxRemoveFile(wxString(file));
+    return cancelled;
+}
+
 
 bool FPP::IsDefaultPassword(const std::string& user, const std::string& password)
 {
@@ -942,7 +979,3 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     return !cancelled;
 }
 
-bool FPP::UseFTP() const
-{
-    return false;
-}
