@@ -49,7 +49,7 @@ public:
     bool SetOutputs(const std::string &controler, ModelManager* allmodels,
                     std::list<int>& selected, wxWindow* parent,
                     int maxstring, int maxdmx);
-
+    bool UseFTP() const;
 };
 
 #endif

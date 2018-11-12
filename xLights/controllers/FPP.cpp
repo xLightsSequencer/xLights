@@ -42,7 +42,9 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
         wxJSONValue val;
         if (GetURLAsJSON("/fppjson.php?command=getSysInfo", val)) {
             _version = val["Version"].AsString().ToStdString();
-        } else {
+        } 
+        if (_version == "" || _version =="null")
+        {
             std::string version = GetURL("//");
 
             if (version == "") {
@@ -161,12 +163,12 @@ bool FPP::SetInputUniversesBridge(std::list<int>& selected, wxWindow* parent)
         std::string file = SaveFPPUniverses(_ip, selected, false, true);
 
         bool cancelled = false;
-        if (_version[0] == '2') {
-            cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", "ci-universes.json", true, false, parent);
-        } else {
+        if (_version[0] == '1') {
             cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
             // deactive outputs to these inputs
             E131Output(false);
+        } else {
+            cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", "ci-universes.json", true, false, parent);
         }
 
         // restart ffpd
@@ -187,10 +189,10 @@ bool FPP::SetOutputUniversesPlayer(wxWindow* parent)
         std::string file = SaveFPPUniverses("", std::list<int>(), false, false);
 
         bool cancelled = false;
-        if (_version[0] == '2') {
-            cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", "co-universes.json", true, false, parent);
-        } else {
+        if (_version[0] == '1') {
             cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
+        } else {
+            cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", "co-universes.json", true, false, parent);
         }
         // active outputs
         E131Output(true);
@@ -260,10 +262,10 @@ std::string FPP::SaveFPPChannelMemoryMaps(ModelManager* allmodels) const
 }
 std::string FPP::SaveFPPUniverses(const std::string& onlyip, const std::list<int>& selected, bool onebased, bool input) const
 {
-    if (_version[0] == '2') {
-        return SaveFPPUniversesV2(onlyip, selected, onebased, input);
+    if (_version[0] == '1') {
+        return SaveFPPUniversesV1(onlyip, selected, onebased);
     }
-    return SaveFPPUniversesV1(onlyip, selected, onebased);
+    return SaveFPPUniversesV2(onlyip, selected, onebased, input);
 }
 
 std::string FPP::SaveFPPUniversesV2(const std::string& onlyip, const std::list<int>& selected, bool onebased, bool input) const
@@ -422,9 +424,11 @@ static inline bool supportsGZIP(const std::string & version) {
     if (std::atoi(&version[2]) <= 3) return false; // FPP 2.0 - 2.3 does not
     return true;
 }
+
 static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
     buffer.AppendData(str.c_str(), str.length());
 }
+
 bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file, wxWindow* parent, bool compress)  {
     static int bufLen = 1024*1024*4; //4MB buffer
     
@@ -650,7 +654,14 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
     wxFileName fn(file);
     wxString fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
     if (wxFile::Exists(fseq)) {
-        cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true);
+        if (UseFTP())
+        {
+            cancelled = _ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, parent);
+        }
+        else
+        {
+            cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true);
+        }
     } else {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.error("Unable to upload fseq file %s as it does not exist.", (const char *)fseq.c_str());
@@ -662,7 +673,14 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
         wxFileName fnmedia(media);
 
         if (fnmedia.Exists()) {
-            cancelled = uploadFileViaHTTP(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), media.ToStdString(), parent);
+            if (UseFTP())
+            {
+                cancelled = _ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, parent);
+            }
+            else
+            {
+                cancelled = uploadFileViaHTTP(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), media.ToStdString(), parent);
+            }
         } else {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.error("Unable to upload media file %s as it does not exist.", (const char *)(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString()).c_str());
@@ -924,4 +942,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     return !cancelled;
 }
 
-
+bool FPP::UseFTP() const
+{
+    return false;
+}
