@@ -57,11 +57,11 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                 }
             }
         }
-        if (!(_version[0] >= '2')) {
-            //either old version or could not determine version
-            wxMessageBox("FPP 1.x is no longer supported.  Things may or may not work.  We strongly recommend upgrading to FPP 2.x",
-                         "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
-        }
+        //if (!(_version[0] >= '2')) {
+        //    //either old version or could not determine version
+        //    wxMessageBox("FPP 1.x is no longer supported.  Things may or may not work.  We strongly recommend upgrading to FPP 2.x",
+        //                 "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
+        //}
         _http.SetTimeout(oldTimeout);
         _ftp.Connect(ip, user, password);
     }
