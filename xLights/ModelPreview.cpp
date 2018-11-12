@@ -124,6 +124,9 @@ void ModelPreview::render(wxPaintEvent& event)
         Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
         if (model != nullptr) {
             model->DisplayEffectOnWindow(this, 2);
+        } else {
+            if (!StartDrawing(mPointSize, true)) return;
+            EndDrawing();
         }
     }
 }
