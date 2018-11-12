@@ -119,6 +119,27 @@
 									<border>5</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX2" variable="PlayListCheckbox" member="yes">
+										<label>Append To Playlist</label>
+										<handler function="OnPlayListCheckboxClick" entry="EVT_CHECKBOX" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxComboBox" name="ID_COMBOBOX1" variable="PlayListName" member="yes">
+										<content>
+											<item></item>
+										</content>
+										<selection>0</selection>
+										<enabled>0</enabled>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>HTTP/FTP</label>
@@ -203,28 +224,6 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-					<cols>3</cols>
-					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX2" variable="PlayListCheckbox" member="yes">
-							<label>Append To Playlist</label>
-							<handler function="OnPlayListCheckboxClick" entry="EVT_CHECKBOX" />
-						</object>
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-						<option>1</option>
-					</object>
-					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="PlayListName" member="yes" />
-						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-						<border>2</border>
-						<option>1</option>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
 				<object class="wxCheckListBox" name="ID_CHECKLISTBOX_Sequences" variable="CheckListBox_Sequences" member="yes">
 					<minsize>-1,100d</minsize>
 					<style>wxLB_SORT</style>
@@ -236,7 +235,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>2</cols>
+					<cols>3</cols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_Upload" variable="Button_Upload" member="yes">
 							<label>Upload</label>
@@ -250,6 +249,14 @@
 						<object class="wxButton" name="ID_BUTTON1" variable="Button_UploadToAll" member="yes">
 							<label>Upload To All</label>
 							<handler function="OnButton_UploadToAllClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxButton" name="wxID_CANCEL" variable="Button1" member="no">
+							<label>Cancel</label>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

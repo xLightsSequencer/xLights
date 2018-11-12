@@ -30,6 +30,8 @@ const long FPPConnectDialog::ID_TEXTCTRL_Username = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT3 = wxNewId();
 const long FPPConnectDialog::ID_TEXTCTRL_Password = wxNewId();
 const long FPPConnectDialog::ID_BUTTON_Console = wxNewId();
+const long FPPConnectDialog::ID_CHECKBOX2 = wxNewId();
+const long FPPConnectDialog::ID_COMBOBOX1 = wxNewId();
 const long FPPConnectDialog::ID_PANEL_FTP = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT4 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE_Drives = wxNewId();
@@ -40,8 +42,6 @@ const long FPPConnectDialog::ID_PANEL_USB = wxNewId();
 const long FPPConnectDialog::ID_NOTEBOOK_FPP = wxNewId();
 const long FPPConnectDialog::ID_CHECKBOX_UploadController = wxNewId();
 const long FPPConnectDialog::ID_CHECKBOX1 = wxNewId();
-const long FPPConnectDialog::ID_CHECKBOX2 = wxNewId();
-const long FPPConnectDialog::ID_TEXTCTRL2 = wxNewId();
 const long FPPConnectDialog::ID_CHECKLISTBOX_Sequences = wxNewId();
 const long FPPConnectDialog::ID_BUTTON_Upload = wxNewId();
 const long FPPConnectDialog::ID_BUTTON1 = wxNewId();
@@ -61,12 +61,12 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
 	//(*Initialize(FPPConnectDialog)
 	wxBoxSizer* BoxSizer1;
+	wxButton* Button1;
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer6;
 
 	Create(parent, wxID_ANY, _("FPP Upload"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -100,6 +100,13 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Console = new wxButton(Panel_FTP, ID_BUTTON_Console, _("FPP Console"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Console"));
 	FlexGridSizer2->Add(Button_Console, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	PlayListCheckbox = new wxCheckBox(Panel_FTP, ID_CHECKBOX2, _("Append To Playlist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	PlayListCheckbox->SetValue(false);
+	FlexGridSizer2->Add(PlayListCheckbox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	PlayListName = new wxComboBox(Panel_FTP, ID_COMBOBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_COMBOBOX1"));
+	PlayListName->SetSelection( PlayListName->Append(wxEmptyString) );
+	PlayListName->Disable();
+	FlexGridSizer2->Add(PlayListName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	Panel_FTP->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel_FTP);
 	FlexGridSizer2->SetSizeHints(Panel_FTP);
@@ -130,21 +137,16 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	CheckBox_UploadModels = new wxCheckBox(this, ID_CHECKBOX1, _("Upload Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_UploadModels->SetValue(false);
 	FlexGridSizer1->Add(CheckBox_UploadModels, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
-	PlayListCheckbox = new wxCheckBox(this, ID_CHECKBOX2, _("Append To Playlist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-	PlayListCheckbox->SetValue(false);
-	FlexGridSizer6->Add(PlayListCheckbox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	PlayListName = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-	FlexGridSizer6->Add(PlayListName, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer1->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	CheckListBox_Sequences = new wxCheckListBox(this, ID_CHECKLISTBOX_Sequences, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SORT, wxDefaultValidator, _T("ID_CHECKLISTBOX_Sequences"));
 	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(this,wxSize(-1,100)));
 	FlexGridSizer1->Add(CheckListBox_Sequences, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Upload = new wxButton(this, ID_BUTTON_Upload, _("Upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Upload"));
 	FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_UploadToAll = new wxButton(this, ID_BUTTON1, _("Upload To All"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
 	FlexGridSizer4->Add(Button_UploadToAll, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button1 = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_CANCEL"));
+	FlexGridSizer4->Add(Button1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
@@ -160,12 +162,12 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_TEXTCTRL_Password,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_PasswordText);
 	Connect(ID_TEXTCTRL_Password,wxEVT_COMMAND_TEXT_ENTER,(wxObjectEventFunction)&FPPConnectDialog::OnTextCtrl_PasswordTextEnter);
 	Connect(ID_BUTTON_Console,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_ConsoleClick);
+	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnPlayListCheckboxClick);
 	Connect(ID_BUTTON_REFRESH_DRIVES,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_Refresh_DrivesClick);
 	Connect(ID_DIRPICKERCTRL1,wxEVT_COMMAND_DIRPICKER_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnFilePickerCtrl_MediaFolderFileChanged);
 	Connect(ID_NOTEBOOK_FPP,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&FPPConnectDialog::OnNotebook_FPPPageChanged);
 	Connect(ID_CHECKBOX_UploadController,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_UploadControllerClick);
 	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckBox_UploadModelsClick);
-	Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnPlayListCheckboxClick);
 	Connect(ID_CHECKLISTBOX_Sequences,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckListBox_SequencesToggled);
 	Connect(ID_BUTTON_Upload,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadToAllClick);
@@ -295,6 +297,23 @@ void FPPConnectDialog::LoadConnectionDetails()
                 TextCtrl_Description->SetValue(cd._description);
                 TextCtrl_Password->SetValue(cd.GetPassword());
             }
+        }
+    }
+    
+    wxString ipdef = ComboBox_IPAddress->GetValue();
+    if (ipdef != "") {
+        wxHTTP http;
+        http.Connect(ipdef);
+        wxInputStream *in = http.GetInputStream("/fppxml.php?command=getPlayLists");
+        if (in) {
+            wxXmlDocument doc(*in);
+            wxXmlNode *n = doc.GetRoot()->GetChildren();
+            while (n) {
+                wxString v = n->GetNodeContent();
+                PlayListName->Append(v);
+                n = n->GetNext();
+            }
+            delete in;
         }
     }
 }
@@ -574,7 +593,7 @@ bool FPPConnectDialog::FTPUpload()
             }
         }
     }
-    if (!cancelled && PlayListCheckbox->IsChecked()) {
+    if (!cancelled && PlayListCheckbox->IsChecked() && PlayListName->GetValue() != "") {
         fpp.SetPlaylist(PlayListName->GetValue().ToStdString(), this);
     }
     return cancelled;
@@ -961,6 +980,20 @@ void FPPConnectDialog::OnComboBox_IPAddressSelected(wxCommandEvent& event)
             TextCtr_Username->SetValue(it->_user);
             TextCtrl_Description->SetValue(it->_description);
             TextCtrl_Password->SetValue(it->GetPassword());
+            
+            wxHTTP http;
+            http.Connect(ip);
+            wxInputStream *in = http.GetInputStream("/fppxml.php?command=getPlayLists");
+            if (in) {
+                wxXmlDocument doc(*in);
+                wxXmlNode *n = doc.GetRoot()->GetChildren();
+                while (n) {
+                    wxString v = n->GetNodeContent();
+                    PlayListName->Append(v);
+                    n = n->GetNext();
+                }
+                delete in;
+            }
         }
     }
 }
