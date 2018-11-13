@@ -51,7 +51,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSpinCtrl" name="ID_DMX_channel" variable="DMXChannelNumber" member="yes">
+						<object class="wxSpinCtrl" name="ID_DMX_channel" variable="DMXChannel" member="yes">
 							<value>1</value>
 							<min>1</min>
 							<max>512</max>
