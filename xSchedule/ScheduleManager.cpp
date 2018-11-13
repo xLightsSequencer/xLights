@@ -4848,6 +4848,11 @@ void ScheduleManager::StopVirtualMatrices()
     }
 }
 
+#define FPP_MEDIA_SYNC_INTERVAL_MS 500
+#define FPP_SEQ_SYNC_INTERVAL_FRAMES 16
+#define FPP_SEQ_SYNC_INTERVAL_INITIAL_FRAMES 4
+#define FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES 32
+
 void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS)
 {
     static std::string lastfseq = "";
@@ -4900,9 +4905,20 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
         if (!dosend)
         {
-            if (msec - lastfseqmsec > 1000)
+            if (msec - lastfseqmsec <= FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES * frameMS)
             {
-                dosend = true;
+                // we are in the initial period
+                if (msec - lastfseqmsec >= FPP_SEQ_SYNC_INTERVAL_INITIAL_FRAMES * frameMS)
+                {
+                    dosend = true;
+                }
+            }
+            else
+            {
+                if (msec - lastfseqmsec >= FPP_SEQ_SYNC_INTERVAL_FRAMES * frameMS)
+                {
+                    dosend = true;
+                }
             }
         }
     }
@@ -4925,7 +4941,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
         if (!dosend)
         {
-            if (msec - lastmediamsec > 1000 && msec - lastfseqmsec > 500)
+            if (msec - lastmediamsec >= FPP_MEDIA_SYNC_INTERVAL_MS)
             {
                 dosend = true;
             }
