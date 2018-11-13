@@ -3622,6 +3622,16 @@ std::string Model::GetProtocol() const
 
     return "";
 }
+std::string Model::GetControllerConnectionDetails() const {
+    int count = 0;
+    for (int x = 0; x < controller_connection.length(); x++) {
+        if (controller_connection[x] == ':') count++;
+        if (count == 2) {
+            return controller_connection.substr(x + 1);
+        }
+    }
+    return "";
+}
 
 int Model::GetPort() const
 {
@@ -3635,12 +3645,15 @@ int Model::GetPort() const
 
     return 0;
 }
+bool Model::IsPixelProtocol(const std::string &p) {
+    wxString protocol = p;
+    protocol.MakeLower();
+    return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard");
+}
 
 bool Model::IsPixelProtocol() const
 {
-    wxString protocol = GetProtocol();
-    protocol.MakeLower();
-    return (GetPort() != 0 && protocol != "dmx" && protocol != "pixelnet" && protocol != "renard");
+    return GetPort() != 0 && IsPixelProtocol(GetProtocol());
 }
 
 void Model::SetControllerConnection(const std::string& controllerConnection)

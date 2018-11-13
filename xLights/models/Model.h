@@ -198,14 +198,17 @@ public:
     static bool IsProtocolValid(std::string protocol);
     int GetPort() const;
     bool IsPixelProtocol() const;
+    static bool IsPixelProtocol(const std::string &protocol);
     std::string GetControllerConnection() const { return controller_connection; }
+    void SetControllerConnection(const std::string& controllerConnection);
+    std::string GetControllerConnectionDetails() const;
+
     long GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {
             return stringStartChan[x];
         }
         return 1;
     }
-    void SetControllerConnection(const std::string& controllerConnection);
     const std::vector<Model *>& GetSubModels() const { return subModels; }
     Model *GetSubModel(const std::string &name);
     int GetNumSubModels() const { return subModels.size();}

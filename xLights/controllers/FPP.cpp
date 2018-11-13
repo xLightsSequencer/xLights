@@ -738,6 +738,16 @@ bool FPP::IsDefaultPassword(const std::string& user, const std::string& password
     return false;
 }
 
+static wxJSONValue parseJSON(const std::string &str) {
+    wxJSONValue json;
+    if (str == "") {
+        return json;
+    }
+    wxJSONReader reader;
+    reader.Parse(str, &json);
+    return json;
+}
+
 bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                      std::list<int>& selected, wxWindow* parent,
                      int maxstring, int maxdmx)
@@ -809,8 +819,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     std::list<Output*> outputs = _outputManager->GetAllOutputs(_ip, selected);
     for (auto ito = outputs.begin(); ito != outputs.end(); ++ito) {
         // find all the models in this range
-        for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
-        {
+        for (auto it = allmodels->begin(); it != allmodels->end(); ++it) {
             if (it->second->GetDisplayAs() != "ModelGroup") {
                 int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
                 int modelend = modelstart + it->second->GetChanCount() - 1;
@@ -827,11 +836,22 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                         // model uses channels in this universe
                         logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s:%d ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort(), it->second->GetNumPhysicalStrings());
                         if (it->second->GetProtocol() == "dmx") {
-                            if (it->second->GetFirstChannel() < DMXMin[it->second->GetPort()]) {
-                                DMXMin[it->second->GetPort()] = it->second->GetFirstChannel();
+                            int firstC = it->second->GetFirstChannel() + 1; //DMX channels are 1 based
+                            int lastC = it->second->GetLastChannel();
+                            wxJSONValue v = parseJSON(it->second->GetControllerConnectionDetails());
+                            if (v.HasMember("channel")) {
+                                //if the DMX device has a channel # assigned, we need to subtract out so the
+                                //DMX channel is sent out correctly
+                                int i = v["channel"].AsInt();
+                                i = i - 1;
+                                firstC -= i;
                             }
-                            if (it->second->GetLastChannel() > DMXMax[it->second->GetPort()]) {
-                                DMXMax[it->second->GetPort()] = it->second->GetLastChannel();
+                            
+                            if (firstC < DMXMin[it->second->GetPort()]) {
+                                DMXMin[it->second->GetPort()] = firstC;
+                            }
+                            if (lastC > DMXMax[it->second->GetPort()]) {
+                                DMXMax[it->second->GetPort()] = lastC;
                             }
                             maxDMXPort = std::max(maxDMXPort, it->second->GetPort());
                         } else {
@@ -905,6 +925,12 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                 vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
                 vs["brightness"] = 100;
                 vs["gamma"] = wxString("1.0");
+            }
+            wxJSONValue cdetails = parseJSON(model->GetControllerConnectionDetails());
+            if (!cdetails.IsNull()) {
+                for (auto k : cdetails.GetMemberNames()) {
+                    vs[k] = cdetails[k];
+                }
             }
             stringData["outputs"][port]["virtualStrings"].Append(vs);
         }

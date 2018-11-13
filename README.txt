@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)  Model controller connection can store various properties including
+                gamma/direction/RGB order/brightness/null pixels which is also used for the FPP
+                controller upload to configure those strings if set
+   -- bug (dkulp) FPP controller upload DMX channels are off by 1
 2018.44 November 11, 2018
    -- bug (keith)  Fix a crash when deleting models
    -- bug (keith)  Fix value curve dialog text entry not working correctly #1314
