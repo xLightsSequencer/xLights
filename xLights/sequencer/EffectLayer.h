@@ -95,6 +95,8 @@ class EffectLayer
 
         std::recursive_mutex &GetLock() {return lock;}
     
+        bool IsFixedTimingLayer();
+
         void CleanupAfterRender();
     protected:
     private:

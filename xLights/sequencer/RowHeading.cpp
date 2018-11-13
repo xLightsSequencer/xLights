@@ -62,6 +62,7 @@ const long RowHeading::ID_ROW_MNU_RENAME_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
+const long RowHeading::ID_ROW_MNU_UNFIX_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_NOTES = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
@@ -318,11 +319,14 @@ void RowHeading::rightClick( wxMouseEvent& event)
     }
     else
     {
+        EffectLayer* el = element->GetEffectLayer(ri->layerIndex);
+
         mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK,"Add Timing Track");
         mnuLayer.Append(ID_ROW_MNU_RENAME_TIMING_TRACK, "Rename Timing Track");
         mnuLayer.Append(ID_ROW_MNU_DELETE_TIMING_TRACK,"Delete Timing Track");
         mnuLayer.Append(ID_ROW_MNU_IMPORT_TIMING_TRACK, "Import Timing Track");
         mnuLayer.Append(ID_ROW_MNU_EXPORT_TIMING_TRACK, "Export Timing Track");
+        mnuLayer.Append(ID_ROW_MNU_UNFIX_TIMING_TRACK, "Make Timing Track Variable")->Enable(el->IsFixedTimingLayer());
         mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS,"Import Lyrics");
@@ -620,6 +624,11 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         }
+    }
+    else if (id == ID_ROW_MNU_UNFIX_TIMING_TRACK)
+    {
+        TimingElement* te = dynamic_cast<TimingElement*>(element);
+        te->Unfix();
     }
     else if (id == ID_ROW_MNU_EXPORT_TIMING_TRACK) {
         wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written

@@ -171,7 +171,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event)
     {
         if ((mTimingPlayOnDClick && event.ShiftDown()) ||
              (!mTimingPlayOnDClick && !event.ShiftDown())) {
-            if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING) {
+            if (selectedEffect->GetParentEffectLayer()->GetParentElement()->GetType() == ELEMENT_TYPE_TIMING && !selectedEffect->GetParentEffectLayer()->IsFixedTimingLayer()) {
                 wxString label = selectedEffect->GetEffectName();
 
                 wxTextEntryDialog dlg(this, "Edit Label", "Enter new label:", label);
@@ -937,7 +937,11 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms,int &index, HitLocati
         int position = GetClippedPositionFromTimeMS(ms);
         int mid = (startPos + endPos) / 2;
 
-        if (!eff->IsLocked())
+        if (effectLayer->IsFixedTimingLayer())
+        {
+            selectionType = HitLocation::NONE;
+        }
+        else if (!eff->IsLocked())
         {
             if ((endPos - startPos) < 8) {
                 //too small to really differentiate, just
@@ -3787,6 +3791,8 @@ void EffectsGrid::SetEffectsTiming()
 
     EffectLayer* el = mSelectedEffect->GetParentEffectLayer();
 
+    if (el->IsFixedTimingLayer()) return;
+
     EffectTimingDialog dlg(this, mSelectedEffect, el, mTimeline->GetTimeFrequency());
 
     if (dlg.ShowModal() == wxID_OK)
@@ -3814,7 +3820,7 @@ void EffectsGrid::DeleteSelectedEffects()
         int end = -1;
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
-            if (ef->GetSelected() != EFFECT_NOT_SELECTED && !ef->IsLocked()) {
+            if (ef->GetSelected() != EFFECT_NOT_SELECTED && !ef->IsLocked() && !el->IsFixedTimingLayer()) {
                 if (ef->GetStartTimeMS() < start) {
                     start = ef->GetStartTimeMS();
                 }
@@ -3869,7 +3875,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
         EffectLayer* el = mSequenceElements->GetEffectLayer(i);
         for (int x = 0; x < el->GetEffectCount(); x++) {
             Effect *ef = el->GetEffect(x);
-            if (ef->GetSelected() != EFFECT_NOT_SELECTED && !ef->IsLocked()) {
+            if (ef->GetSelected() != EFFECT_NOT_SELECTED && !ef->IsLocked() && !el->IsFixedTimingLayer()) {
                 int align_start, align_end, align_delta;
                 if( align_mode == ALIGN_START_TIMES ) {
                     align_start = sel_eff_start;
@@ -3946,7 +3952,7 @@ void EffectsGrid::AlignSelectedEffects(EFF_ALIGN_MODE align_mode)
                 }
 
                 if( all_clear || el->GetRangeIsClearMS( str_time_for_check, end_time_for_check) ) {
-                    if (!ef->IsLocked())
+                    if (!ef->IsLocked() && !el->IsFixedTimingLayer())
                     {
                         mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID(),
                             ef->GetStartTimeMS(), ef->GetEndTimeMS());
@@ -4925,7 +4931,7 @@ void EffectsGrid::ResizeSingleEffectMS(int timems)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (mEffectLayer->GetEffect(mResizeEffectIndex)->IsLocked()) return;
+    if (mEffectLayer->GetEffect(mResizeEffectIndex)->IsLocked() || mEffectLayer->IsFixedTimingLayer()) return;
 
     logger_base.debug("EffectsGrid::ResizeSingleEffect.");
 
@@ -5552,6 +5558,7 @@ void EffectsGrid::DrawEffects()
                 continue;
             }
             lines.PreAlloc(effectLayer->GetEffectCount() * 16);
+            selectedLinesFixed.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectedLinesLocked.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectedLines.PreAlloc(effectLayer->GetEffectCount() * 16);
             selectFocusLines.PreAlloc(16);
@@ -5786,6 +5793,7 @@ void EffectsGrid::DrawEffects()
     DrawGLUtils::Draw(selectedLines, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED), GL_LINES);
     DrawGLUtils::Draw(selectFocusLines, xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT), GL_LINES);
     DrawGLUtils::Draw(selectedLinesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_LOCKED), GL_LINES);
+    DrawGLUtils::Draw(selectedLinesFixed, xlights->color_mgr.GetColor(ColorManager::COLOR_EFFECT_SELECTED_FIXED), GL_LINES);
     DrawGLUtils::Draw(selectFocusLinesLocked, xlights->color_mgr.GetColor(ColorManager::COLOR_REFERENCE_EFFECT_LOCKED), GL_LINES);
 
     DrawGLUtils::SetLineWidth(2.0);
@@ -5805,6 +5813,7 @@ void EffectsGrid::DrawEffects()
     textBackgrounds.Reset();
     timingLines.Reset();
     timingEffLines.Reset();
+    selectedLinesFixed.Reset();
     selectedLinesLocked.Reset();
     texts.Reset();
     backgrounds.Reset();
@@ -5820,6 +5829,8 @@ void EffectsGrid::DrawTimingEffects(int row)
     Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(row);
     TimingElement* element = dynamic_cast<TimingElement*>(ri->element);
     EffectLayer* effectLayer=mSequenceElements->GetVisibleEffectLayer(row);
+
+    bool fixed = element->IsFixedTiming();
 
     xlColor c(xlights->color_mgr.GetTimingColor(ri->colorIndex));
     c.alpha = 128;
@@ -5842,7 +5853,13 @@ void EffectsGrid::DrawTimingEffects(int row)
 
         DrawGLUtils::xlVertexAccumulator* linesLeft;
         DrawGLUtils::xlVertexAccumulator* linesRight;
-        if (effectLayer->GetEffect(effectIndex)->IsLocked())
+        if (fixed)
+        {
+            linesLeft = &selectedLinesFixed;
+            linesRight = &selectedLinesFixed;
+            //DrawGLUtils::xlVertexAccumulator* linesCenter = &timingEffLines;
+        }
+        else if (effectLayer->GetEffect(effectIndex)->IsLocked())
         {
             linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
                 effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLinesLocked;

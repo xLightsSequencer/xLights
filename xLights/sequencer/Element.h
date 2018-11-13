@@ -135,6 +135,8 @@ public:
 
     int GetFixedTiming() const { return mFixed; }
     void SetFixedTiming(int fixed) { mFixed = fixed; }
+    bool IsFixedTiming() const { return mFixed != 0; }
+    void Unfix();
 
     const std::string &GetViews() const { return mViews; }
     void SetViews(const std::string &views) { mViews = views; }

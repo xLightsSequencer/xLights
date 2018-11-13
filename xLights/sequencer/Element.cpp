@@ -186,6 +186,11 @@ TimingElement::TimingElement(SequenceElements *p, const std::string &name)
 TimingElement::~TimingElement() {
 }
 
+void TimingElement::Unfix()
+{
+    mFixed = 0;
+}
+
 SubModelElement::SubModelElement(ModelElement *p, const std::string &name)
 : Element(p->GetSequenceElements(), name), mParentModel(p)
 {

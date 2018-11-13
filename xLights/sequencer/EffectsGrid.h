@@ -225,6 +225,7 @@ private:
     Effect* mSelectedEffect;
 
     DrawGLUtils::xlVertexAccumulator lines;
+    DrawGLUtils::xlVertexAccumulator selectedLinesFixed;
     DrawGLUtils::xlVertexAccumulator selectedLinesLocked;
     DrawGLUtils::xlVertexAccumulator timingEffLines;
     DrawGLUtils::xlVertexColorAccumulator timingLines;

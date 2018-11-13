@@ -240,6 +240,12 @@ int EffectLayer::GetEffectCount() const
     return mEffects.size();
 }
 
+bool EffectLayer::IsFixedTimingLayer()
+{
+    TimingElement* te = dynamic_cast<TimingElement*>(GetParentElement());
+    return !(te == nullptr || !te->IsFixedTiming());
+}
+
 bool EffectLayer::HitTestEffectByTime(int timeMS, int &index)
 {
     for (int i = 0; i < mEffects.size(); i++)
