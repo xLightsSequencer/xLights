@@ -356,7 +356,25 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 wxArrayString mn = wxSplit(orig, ',');
                 std::string modelsRemoved;
                 for (auto it2 = mn.begin(); it2 != mn.end(); ++it2) {
-                    auto m = models.find((*it2).ToStdString());
+
+                    wxString submodel = "";
+                    wxString name = *it2;
+                    if (name.Contains("/"))
+                    {
+                        submodel = name.After('/');
+                        name = name.Before('/');
+                    }
+
+                    auto m = models.find(name.ToStdString());
+
+                    if (m != models.end() && submodel != "")
+                    {
+                        if (m->second->GetSubModel(submodel) == nullptr)
+                        {
+                            m = models.end();
+                        }
+                    }
+
                     if (*it2 == "")
                     {
                         // This can happen if a comma is left behind in the string ... just ignore it
