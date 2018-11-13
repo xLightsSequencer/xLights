@@ -1061,6 +1061,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             TreeListViewModels->SetSortColumn(sortcol, ascending);
         }
     }
+    xlights->PreviewModels = models;
     UpdatePreview();
 
     TreeListViewModels->Thaw();
