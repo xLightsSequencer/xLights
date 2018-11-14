@@ -8,6 +8,7 @@
 class SimpleFTP
 {
     wxFTP _ftp;
+    std::string _ip;
 
 public:
     SimpleFTP();

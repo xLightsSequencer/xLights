@@ -1014,7 +1014,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             port["startChannel"] = 0;
         } else {
             port["startChannel"] = DMXMin[x];
-            if ((DMXMin[x] + (chanPerOut+1)) > maxChan) {
+            if ((DMXMin[x] + (chanPerOut+1) > maxChan)) {
                 maxChan = DMXMin[x] + chanPerOut + 1;
             }
             maxDmxPort = std::max(maxDmxPort, x);
