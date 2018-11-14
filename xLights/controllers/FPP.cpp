@@ -405,12 +405,15 @@ static wxString URLEncode(const wxString &value)
     while (value.length() > nPos) {
         wxChar cChar = value.GetChar(nPos);
         
-        if( ( isalpha( cChar )) || ( isdigit( cChar )) || (cChar == wxT('-')) || (cChar == wxT('@')) || (cChar == wxT('*')) || (cChar == wxT('_')) ) {
+        if( ( isalpha( cChar )) || ( isdigit( cChar )) || (cChar == wxT('-')) || (cChar == wxT('@'))
+           || (cChar == wxT('*')) || (cChar == wxT('_')) ) {
             ret.Append( cChar );
         } else {
             switch( cChar ) {
                 case wxT(' '):  ret.Append('+'); break;
                 case wxT('\n'): ret.Append("%0D%0A"); break;
+                case wxT('.'):  ret.Append('.'); break;
+                case wxT('\"'):  ret.Append("%22"); break;
                 default: {
                     ret.Append("%");
                     if (cChar < 16) {
@@ -449,7 +452,18 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
     //   if all the data was sent
     //4) Nothing is virtual so cannot even subclass to fix issues
     
-    std::string fn(filename);
+    wxString fn;
+    wxString ext;
+
+    for (int a = 0; a < filename.length(); a++) {
+        wxChar ch = filename[a];
+        if (ch == '"') {
+            fn.Append("\\\"");
+        } else {
+            fn.Append(ch);
+        }
+    }
+    
     wxIPV4address address;
     std::string hostname = _ip;
     address.Hostname(hostname);
@@ -459,9 +473,11 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
     wxMemoryOutputStream mout;
     
     bool cancelled = false;
-    wxProgressDialog progress("FPP Upload", fn, 1000, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    wxProgressDialog progress("FPP Upload", filename, 1000, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     progress.Update(0, wxEmptyString, &cancelled);
     int lastDone = 0;
+
+    std::string ct = "Content-Type: application/octet-stream\r\n\r\n";
 
     if (compress && supportsGZIP(_version)) {
         //determine size of gzipped data
@@ -482,7 +498,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             f /= 3;
             if (f != lastDone) {
                 lastDone = f;
-                cancelled = !progress.Update(f, "Compressing " + fn, &cancelled);
+                cancelled = !progress.Update(f, "Compressing " + filename, &cancelled);
                 wxYield();
                 if (cancelled) {
                     delete [] rbuf;
@@ -496,6 +512,9 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
         //printf("compressed: %zu to %zu    %zu\n", total, fileLen, fileLen*100/total);
         mout.GetOutputStreamBuffer()->SetIntPosition(0);
         fn += ".gz";
+        ext = ".gz";
+        ct = "Content-Type: application/z-gzip\r\n\r\n";
+
         delete [] rbuf;
     } else {
         compress = false;
@@ -508,13 +527,11 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
     if (socket.Connect(address)) {
         progress.Show();
 
-        const std::string bound = "----FormBoundaryb29a7c2fe47b9481";
-        const char *ct = "Content-Type: application/octet-stream\r\n\r\n";
+        const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
         
         wxMemoryBuffer memBuffPost;
         addString(memBuffPost, "\r\n--");
         addString(memBuffPost, bound);
-        addString(memBuffPost, "\r\n");
         addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
         addString(memBuffPost, bound);
         addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
@@ -526,13 +543,21 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
         addString(memBuffHeader, "Host: " + hostname + "\r\n");
         addString(memBuffHeader, "Connection: close\r\n");
         addString(memBuffHeader, "Accept: application/json, text/javascript, */*; q=0.01\r\n");
+        addString(memBuffHeader, "Origin: http://" + hostname + "\r\n");
+        addString(memBuffHeader, "X-Requested-With: XMLHttpRequest\r\n");
         addString(memBuffHeader, "Content-Type: multipart/form-data; boundary=" + bound + "\r\n");
         addString(memBuffHeader, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36\r\n");
-        
+        addString(memBuffHeader, "DNT: 1\r\n");
+        addString(memBuffHeader, "Referer: http://" + hostname + "/uploadfile.php\r\n");
+        addString(memBuffHeader, "Accept-Language: en-US,en;q=0.9\r\n");
+
         
         unsigned char *rbuf = new unsigned char[bufLen];
 
-        std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"" + fn + "\"\r\n";
+        
+        std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
+        cd += fn.ToStdString();
+        cd += "\"\r\n";
         wxMemoryBuffer memBuffPre;
         addString(memBuffPre, "--");
         addString(memBuffPre, bound);
@@ -593,7 +618,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             //printf("%ld / %ld    (%ld)\n", totalWritten, totalLen, donePct);
             if (donePct != lastDone) {
                 lastDone = donePct;
-                cancelled = !progress.Update(donePct, "Transferring " + fn, &cancelled);
+                cancelled = !progress.Update(donePct, "Transferring " + filename, &cancelled);
                 wxYield();
             }
             if (cancelled) {
@@ -614,7 +639,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             written += socket.LastWriteCount();
         }
         if (compress) {
-            progress.Update(999, "Decompressing " + fn, &cancelled);
+            progress.Update(999, "Decompressing " + filename, &cancelled);
         }
         socket.Read(rbuf, bufLen-1);
         int i = socket.LastReadCount();
@@ -624,7 +649,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             //upload OK, now rename
             wxHTTP http;
             http.Connect(hostname);
-            wxInputStream *inp = http.GetInputStream("/fppxml.php?command=moveFile&file=" + URLEncode(fn));
+            wxInputStream *inp = http.GetInputStream("/fppxml.php?command=moveFile&file=" + URLEncode(filename + ext));
             if (inp) {
                 delete inp;
             }
