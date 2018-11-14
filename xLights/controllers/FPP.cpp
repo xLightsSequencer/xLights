@@ -834,7 +834,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                         }
                     } else {
                         // model uses channels in this universe
-                        logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s:%d ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetProtocol().c_str(), it->second->GetPort(), it->second->GetNumPhysicalStrings());
+                        logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetControllerConnectionString().c_str(), it->second->GetNumPhysicalStrings());
                         if (it->second->GetProtocol() == "dmx") {
                             int firstC = it->second->GetFirstChannel() + 1; //DMX channels are 1 based
                             int lastC = it->second->GetLastChannel();

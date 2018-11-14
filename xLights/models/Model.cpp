@@ -1705,6 +1705,12 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
     IncrementChangeCount();
 }
 
+std::string Model::GetControllerConnectionString() const
+{
+    if (GetProtocol() == "") return "";
+    return wxString::Format("%s:%d", GetProtocol(), GetPort()).ToStdString();
+}
+
 wxXmlNode *Model::GetControllerConnection() const {
     wxXmlNode *n = GetModelXml()->GetChildren();
     while (n != nullptr) {
@@ -3855,8 +3861,9 @@ std::list<std::string> Model::GetLCProtocols()
 
 bool Model::IsProtocolValid(std::string protocol)
 {
+    wxString p(protocol);
     auto protocols = Model::GetLCProtocols();
-    return (std::find(protocols.begin(), protocols.end(), protocol) != protocols.end());
+    return (std::find(protocols.begin(), protocols.end(), p.Lower()) != protocols.end());
 }
 
 // all when true includes all image files ... even if they dont really exist

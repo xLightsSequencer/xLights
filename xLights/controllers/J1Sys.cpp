@@ -497,29 +497,38 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
 
 char J1Sys::DecodeStringPortProtocol(std::string protocol)
 {
-    if (protocol == "ws2811") return '4';
-    if (protocol == "tm18xx") return '2';
-    if (protocol == "ws2801") return '1';
-    if (protocol == "tls3001") return '3';
-    if (protocol == "lpd6803") return '0';
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "ws2811") return '4';
+    if (p == "tm18xx") return '2';
+    if (p == "ws2801") return '1';
+    if (p == "tls3001") return '3';
+    if (p == "lpd6803") return '0';
 
     return -1;
 }
 
 char J1Sys::DecodeSerialPortProtocol(std::string protocol)
 {
-    if (protocol == "dmx") return 'D';
-    if (protocol == "renard") return 'R';
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "dmx") return 'D';
+    if (p == "renard") return 'R';
 
     return -1;
 }
 
 int J1Sys::DecodeProtocolSpeed(std::string protocol)
 {
-    if (protocol == "ws2811") return 3600;
-    if (protocol == "ws2801") return 750;
-    if (protocol == "dmx") return 5;
-    if (protocol == "renard") return 3;
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "ws2811") return 3600;
+    if (p == "ws2801") return 750;
+    if (p == "dmx") return 5;
+    if (p == "renard") return 3;
     return 0;
 }
 

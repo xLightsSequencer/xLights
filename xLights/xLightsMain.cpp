@@ -4357,7 +4357,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup(),
-                model->GetControllerConnection(),
+                model->GetControllerConnectionString(),
                 type,
                 description,
                 output,
@@ -5107,12 +5107,7 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            //FIXME ControllerConnection
-            std::string cc = it->second->GetProtocol();
-            if (cc != "") {
-                cc += ":" + wxString::Format("%d", it->second->GetPort()).ToStdString();
-            }
-
+            std::string cc = it->second->GetControllerConnectionString();
             if (cc != "")
             {
                 long start = it->second->GetFirstChannel() + 1;
@@ -5160,7 +5155,7 @@ void xLightsFrame::CheckSequence(bool display)
                         (*it2)->GetName(),
                         (*it3)->GetName(),
                         o->GetIP(),
-                        (*it2)->GetControllerConnection(),
+                        (*it2)->GetControllerConnectionString(),
                         m2start - m1end - 1);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;

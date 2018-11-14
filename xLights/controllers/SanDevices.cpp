@@ -781,34 +781,43 @@ char SanDevices::DecodeStringPortProtocol(std::string protocol)
     if (FirmwareVersion::Five == _eVersion)
         return DecodeStringPortProtocolFive(protocol);
 
-    if (protocol == "ws2811") return 'D';
-    if (protocol == "tm18xx") return 'D';
-    if (protocol == "ws2801") return 'B';
-    if (protocol == "tls3001") return 'I';
-    if (protocol == "lpd6803") return 'A';
-    if (protocol == "gece") return 'C';
-    if (protocol == "dmx") return 'K';
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "ws2811") return 'D';
+    if (p == "tm18xx") return 'D';
+    if (p == "ws2801") return 'B';
+    if (p == "tls3001") return 'I';
+    if (p == "lpd6803") return 'A';
+    if (p == "gece") return 'C';
+    if (p == "dmx") return 'K';
 
     return -1;
 }
 
 char SanDevices::DecodeStringPortProtocolFive(std::string protocol)
 {
-    if (protocol == "ws2811") return 'A';
-    if (protocol == "tm18xx") return 'D';
-    if (protocol == "ws2801") return 'C';
-    if (protocol == "lpd6803") return 'B';
-    if (protocol == "gece") return 'O';
-    if (protocol == "dmx") return 'K';
-    if (protocol == "renard") return 'N';
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "ws2811") return 'A';
+    if (p == "tm18xx") return 'D';
+    if (p == "ws2801") return 'C';
+    if (p == "lpd6803") return 'B';
+    if (p == "gece") return 'O';
+    if (p == "dmx") return 'K';
+    if (p == "renard") return 'N';
 
     return -1;
 }
 
 char SanDevices::DecodeSerialPortProtocolFive(std::string protocol)
 {
-    if (protocol == "dmx") return 'K';
-    if (protocol == "renard") return 'N';
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "dmx") return 'K';
+    if (p == "renard") return 'N';
 
     return -1;
 }

@@ -21,11 +21,15 @@ public:
     virtual int GetMaxSerialPort() const override { return 0; } // not implemented yet
     virtual bool IsValidPixelProtocol(const std::string protocol) const override
     {
-        return (protocol == "ws2811" || protocol == "gece");
+        wxString p(protocol);
+        p = p.Lower();
+        return (p == "ws2811" || p == "gece");
     }
     virtual bool IsValidSerialProtocol(const std::string protocol) const override
     {
-        return (protocol == "renard" || protocol == "dmx");
+        wxString p(protocol);
+        p = p.Lower();
+        return (p == "renard" || p == "dmx");
     }
     virtual bool SupportsMultipleProtocols() const override { return false; }
     virtual bool AllUniversesSameSize() const override { return true; }
@@ -187,28 +191,34 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
 
 std::string ESPixelStick::DecodeStringPortProtocol(std::string protocol)
 {
-    if (protocol == "ws2811") return "0";
-    if (protocol == "gece") return "1";
-
+    wxString p(protocol);
+    p = p.Lower();
+    if (p == "ws2811") return "0";
+    if (p == "gece") return "1";
+    
     return "null";
 }
 
 std::string ESPixelStick::DecodeSerialPortProtocol(std::string protocol)
 {
     // This is not right as I dont actually have a board that supports this
+    wxString p(protocol);
+    p = p.Lower();
 
-    if (protocol == "dmx") return "null";
-    if (protocol == "renard") return "null";
-
+    if (p == "dmx") return "null";
+    if (p == "renard") return "null";
+    
     return "null";
 }
 
 std::string ESPixelStick::DecodeSerialSpeed(std::string protocol)
 {
     // This is not right as I dont actually have a board that supports this
+    wxString p(protocol);
+    p = p.Lower();
 
-    if (protocol == "dmx") return "null";
-    if (protocol == "renard") return "null";
+    if (p == "dmx") return "null";
+    if (p == "renard") return "null";
     return "null";
 }
 

@@ -196,6 +196,7 @@ public:
     bool IsPixelProtocol() const;
     std::string GetProtocol() const;
     wxXmlNode *GetControllerConnection() const;
+    std::string GetControllerConnectionString() const;
     
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();

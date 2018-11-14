@@ -431,14 +431,14 @@ void UDControllerPortModel::Dump() const
 
     if (_string == -1)
     {
-        logger_base.debug("                Model %s. Controller Connection %s:%d. Start Channel %ld. End Channel %ld. Channels %ld. Pixels %d. Start Channel #%d:%d",
-            (const char*)_model->GetName().c_str(), (const char *)_model->GetProtocol().c_str(), _model->GetPort(),
+        logger_base.debug("                Model %s. Controller Connection %s. Start Channel %ld. End Channel %ld. Channels %ld. Pixels %d. Start Channel #%d:%d",
+            (const char*)_model->GetName().c_str(), (const char *)_model->GetControllerConnectionString().c_str(), 
             _startChannel, _endChannel, Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
     }
     else
     {
-        logger_base.debug("                Model %s. String %d. Controller Connection %s:%d. Start Channel %ld. End Channel %ld.",
-            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetProtocol().c_str(), _model->GetPort(),
+        logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %ld. End Channel %ld.",
+            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetControllerConnectionString().c_str(),
             _startChannel, _endChannel);
     }
 }

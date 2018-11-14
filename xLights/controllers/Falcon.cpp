@@ -71,21 +71,25 @@ public:
     }
     virtual bool IsValidPixelProtocol(const std::string protocol) const override
     {
-        if (protocol == "ws2811") return true;
-        if (protocol == "tm18xx") return true;
-        if (protocol == "lx1203") return true;
-        if (protocol == "ws2801") return true;
-        if (protocol == "tls3001") return true;
-        if (protocol == "lpd6803") return true;
-        if (protocol == "gece") return true;
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "ws2811") return true;
+        if (p == "tm18xx") return true;
+        if (p == "lx1203") return true;
+        if (p == "ws2801") return true;
+        if (p == "tls3001") return true;
+        if (p == "lpd6803") return true;
+        if (p == "gece") return true;
 
         return false;
     }
     virtual bool IsValidSerialProtocol(const std::string protocol) const override
     {
-        if (protocol == "dmx") return true;
-        if (protocol == "pixelnet") return true;
-        if (protocol == "renard") return true;
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "dmx") return true;
+        if (p == "pixelnet") return true;
+        if (p == "renard") return true;
 
         return false;
     }
@@ -877,13 +881,15 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
 
 int Falcon::DecodeStringPortProtocol(std::string protocol)
 {
-    if (protocol == "ws2811") return 0;
-    if (protocol == "tm18xx") return 1;
-    if (protocol == "lx1203") return 2;
-    if (protocol == "ws2801") return 3;
-    if (protocol == "tls3001") return 4;
-    if (protocol == "lpd6803") return 5;
-    if (protocol == "gece") return 6;
+    wxString p(protocol);
+    p = p.Lower();
+    if (p == "ws2811") return 0;
+    if (p == "tm18xx") return 1;
+    if (p == "lx1203") return 2;
+    if (p == "ws2801") return 3;
+    if (p == "tls3001") return 4;
+    if (p == "lpd6803") return 5;
+    if (p == "gece") return 6;
 
     return -1;
 }
@@ -1089,9 +1095,12 @@ void Falcon::ResetStringOutputs()
 
 int Falcon::DecodeSerialOutputProtocol(std::string protocol)
 {
-    if (protocol == "dmx") return 0;
-    if (protocol == "pixelnet") return 1;
-    if (protocol == "renard") return 2;
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "dmx") return 0;
+    if (p == "pixelnet") return 1;
+    if (p == "renard") return 2;
 
     return -1;
 }

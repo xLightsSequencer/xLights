@@ -817,12 +817,7 @@ void LayoutPanel::refreshModelList() {
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
                 
-                //FIXME - ControllerConnection
-                std::string cc = model->GetProtocol();
-                if (cc != "") {
-                    cc += ":" + wxString::Format("%d", model->GetPort()).ToStdString();
-                }
-
+                std::string cc = model->GetControllerConnectionString();
                 if (cv != cc)
                 {
                     TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
@@ -920,12 +915,10 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
             TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + startStr);
         }
         TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
-        //FIXME - ControllerConnection
-        std::string cc = model->GetProtocol();
-        if (cc != "") {
-            cc += ":" + wxString::Format("%d", model->GetPort()).ToStdString();
-        }
+
+        std::string cc = model->GetControllerConnectionString();
         TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
+
         width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
     }
 
