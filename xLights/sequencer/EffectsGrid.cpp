@@ -4027,15 +4027,23 @@ bool EffectsGrid::AtLeastOneEffectSelected() const
     return false;
 }
 
+std::set<EffectLayer *> EffectsGrid::GetLayersWithSelectedEffects() const {
+    std::set<EffectLayer *> layers;
+    for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++) {
+        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
+        if (el->GetSelectedEffectCount() > 0) {
+            layers.insert(el);
+        }
+    }
+    return layers;
+}
+
 bool EffectsGrid::MultipleEffectsSelected() const
 {
     int count = 0;
-    for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++)
-    {
-        EffectLayer* el = mSequenceElements->GetEffectLayer(i);
-        count += el->GetSelectedEffectCount();
-        if (count > 1)
-        {
+    for (auto layer : GetLayersWithSelectedEffects()) {
+        count += layer->GetSelectedEffectCount();
+        if (count > 1) {
             return true;
         }
     }

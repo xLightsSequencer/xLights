@@ -177,6 +177,8 @@ private:
     void CheckForPartialCell(int x_pos);
     void RaiseEffectDropped(int x, int y) const;
     void RaisePlayModelEffect(Element* element, Effect* effect,bool renderEffect) const;
+    
+    std::set<EffectLayer *> GetLayersWithSelectedEffects() const;
     bool MultipleEffectsSelected() const;
     std::list<Effect*> GetSelectedEffects() const;
     bool PapagayoEffectsSelected() const;
