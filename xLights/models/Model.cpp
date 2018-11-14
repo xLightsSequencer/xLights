@@ -607,66 +607,88 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
-    sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", CONTROLLER_PORTS, wxArrayInt(), GetPort()));
+    sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", CONTROLLER_PORTS, wxArrayInt(), GetPort(1)));
     wxString protocol = GetProtocol();
     protocol.UpperCase();
     int idx = CONTROLLER_PROTOCOLS.Index(protocol);
     sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
     
     wxXmlNode *node = GetControllerConnection();
-    if (protocol == "DMX") {
+    if (protocol == "DMX" || protocol == "PIXELNET") {
         int chan = wxAtoi(node->GetAttribute("channel", "1"));
-        sp = grid->AppendIn(p, new wxUIntProperty("DMX Channel", "ModelControllerConnectionDMXChannel", chan));
+        sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", chan));
         sp->SetAttribute("Min", 1);
         sp->SetAttribute("Max", 512);
         sp->SetEditor("SpinCtrl");
     } else if (IsPixelProtocol(protocol)) {
-        
         sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
         sp->SetAttribute("UseCheckbox", true);
-        if (node->HasAttribute("nullNodes")) {
-            int chan = wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"));
-            sp2 = grid->AppendIn(sp, new wxUIntProperty("Null Pixels", "ModelControllerConnectionPixelNullNodes", chan));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 100);
-            sp2->SetEditor("SpinCtrl");
+        sp2 = grid->AppendIn(sp, new wxUIntProperty("Null Pixels", "ModelControllerConnectionPixelNullNodes",
+                                                    wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))));
+        sp2->SetAttribute("Min", 0);
+        sp2->SetAttribute("Max", 100);
+        sp2->SetEditor("SpinCtrl");
+        if (!node->HasAttribute("nullNodes")) {
+            grid->DisableProperty(sp2);
+            grid->Collapse(sp);
         }
+        
         sp = grid->AppendIn(p, new wxBoolProperty("Set Brightness", "ModelControllerConnectionPixelSetBrightness", node->HasAttribute("brightness")));
         sp->SetAttribute("UseCheckbox", true);
-        if (node->HasAttribute("brightness")) {
-            int chan = wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"));
-            sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness", chan));
-            sp2->SetAttribute("Min", 0);
-            sp2->SetAttribute("Max", 100);
-            sp2->SetEditor("SpinCtrl");
+        sp2 = grid->AppendIn(sp, new wxUIntProperty("Brightness", "ModelControllerConnectionPixelBrightness",
+                                                    wxAtoi(GetControllerConnection()->GetAttribute("brightness", "100"))));
+        sp2->SetAttribute("Min", 0);
+        sp2->SetAttribute("Max", 100);
+        sp2->SetEditor("SpinCtrl");
+        if (!node->HasAttribute("brightness")) {
+            grid->DisableProperty(sp2);
+            grid->Collapse(sp);
         }
+        
         sp = grid->AppendIn(p, new wxBoolProperty("Set Gamma", "ModelControllerConnectionPixelSetGamma", node->HasAttribute("gamma")));
         sp->SetAttribute("UseCheckbox", true);
-        if (node->HasAttribute("gamma")) {
-            double chan = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
-            sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", chan));
-            sp2->SetAttribute("Min", 0.1);
-            sp2->SetAttribute("Max", 5.0);
-            sp2->SetAttribute("Precision", 1);
-            sp2->SetAttribute("Step", 0.1);
-            sp2->SetEditor("SpinCtrl");
+        double gamma = wxAtof(GetControllerConnection()->GetAttribute("gamma", "1.0"));
+        sp2 = grid->AppendIn(sp, new wxFloatProperty("Gamma", "ModelControllerConnectionPixelGamma", gamma));
+        sp2->SetAttribute("Min", 0.1);
+        sp2->SetAttribute("Max", 5.0);
+        sp2->SetAttribute("Precision", 1);
+        sp2->SetAttribute("Step", 0.1);
+        sp2->SetEditor("SpinCtrl");
+        if (!node->HasAttribute("gamma")) {
+            grid->DisableProperty(sp2);
+            grid->Collapse(sp);
         }
+        
         sp = grid->AppendIn(p, new wxBoolProperty("Set Color Order", "ModelControllerConnectionPixelSetColorOrder", node->HasAttribute("colorOrder")));
         sp->SetAttribute("UseCheckbox", true);
-        if (node->HasAttribute("colorOrder")) {
-            wxString chan = GetControllerConnection()->GetAttribute("colorOrder", "RGB");
-            int idx = CONTROLLER_COLORORDER.Index(chan);
-            if (idx < 0) {
-                idx = 0;
-            }
-            sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", CONTROLLER_COLORORDER, wxArrayInt(), idx));
+        int cidx = CONTROLLER_COLORORDER.Index(GetControllerConnection()->GetAttribute("colorOrder", "RGB"));
+        sp2 = grid->AppendIn(sp, new wxEnumProperty("Color Order", "ModelControllerConnectionPixelColorOrder", CONTROLLER_COLORORDER, wxArrayInt(), cidx < 0 ? 0 : cidx));
+        if (!node->HasAttribute("colorOrder")) {
+            grid->DisableProperty(sp2);
+            grid->Collapse(sp);
         }
+        
         sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
         sp->SetAttribute("UseCheckbox", true);
-        if (node->HasAttribute("reverse")) {
-            int idx = wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"));
-            sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(), idx));
+        sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(),
+                                                    wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"))));
+        if (!node->HasAttribute("reverse")) {
+            grid->DisableProperty(sp2);
+            grid->Collapse(sp);
         }
+        
+        sp = grid->AppendIn(p, new wxBoolProperty("Set Group Count", "ModelControllerConnectionPixelSetGroupCount", node->HasAttribute("groupCount")));
+        sp->SetAttribute("UseCheckbox", true);
+        sp2 = grid->AppendIn(sp, new wxUIntProperty("Group Count", "ModelControllerConnectionPixelGroupCount",
+                                                    wxAtoi(GetControllerConnection()->GetAttribute("groupCount", "1"))));
+        sp2->SetAttribute("Min", 0);
+        sp2->SetAttribute("Max", 50);
+        sp2->SetEditor("SpinCtrl");
+        if (!node->HasAttribute("groupCount")) {
+            grid->DisableProperty(sp2);
+            grid->Collapse(sp);
+        }
+
     }
 }
 
@@ -692,7 +714,7 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
 
 static void clearUnusedProtocolProperties(wxXmlNode *node) {
     std::string protocol = node->GetAttribute("Protocol");
-    bool isDMX = protocol == "DMX" || protocol == "dmx";
+    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet";
     bool isPixel = Model::IsPixelProtocol(protocol);
     
     if (!isPixel) {
@@ -701,6 +723,7 @@ static void clearUnusedProtocolProperties(wxXmlNode *node) {
         node->DeleteAttribute("nullNodes");
         node->DeleteAttribute("colorOrder");
         node->DeleteAttribute("reverse");
+        node->DeleteAttribute("groupCount");
     }
     if (!isDMX) {
         node->DeleteAttribute("channel");
@@ -752,84 +775,122 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[event.GetValue().GetLong()]);
         }
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionDMXChannel") {
         GetControllerConnection()->DeleteAttribute("channel");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("channel", wxString::Format("%i", (int)event.GetValue().GetLong()));
             clearUnusedProtocolProperties(GetControllerConnection());
         }
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness") {
+        GetControllerConnection()->DeleteAttribute("brightness");
+        wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
+        grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->DeleteAttribute("brightness");
             GetControllerConnection()->AddAttribute("brightness", "100");
+            prop->SetValueFromInt(100);
+            grid->Expand(event.GetProperty());
         } else {
-            GetControllerConnection()->DeleteAttribute("brightness");
+            grid->Collapse(event.GetProperty());
         }
-        return 3 | 0x0004;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetBrightness.ModelControllerConnectionPixelBrightness") {
         GetControllerConnection()->DeleteAttribute("brightness");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("brightness", wxString::Format("%i", (int)event.GetValue().GetLong()));
         }
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma") {
+        GetControllerConnection()->DeleteAttribute("gamma");
+        wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
+        grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->DeleteAttribute("gamma");
             GetControllerConnection()->AddAttribute("gamma", "1.0");
+            prop->SetValue(1.0f);
+            grid->Expand(event.GetProperty());
         } else {
-            GetControllerConnection()->DeleteAttribute("gamma");
+            grid->Collapse(event.GetProperty());
         }
-        return 3 | 0x0004;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma") {
         GetControllerConnection()->DeleteAttribute("gamma");
         GetControllerConnection()->AddAttribute("gamma", wxString::Format("%f", (float)event.GetValue().GetDouble()));
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection") {
+        GetControllerConnection()->DeleteAttribute("reverse");
+        wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
+        grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->DeleteAttribute("reverse");
             GetControllerConnection()->AddAttribute("reverse", "0");
+            prop->SetValueFromInt(0);
+            grid->Expand(event.GetProperty());
         } else {
-            GetControllerConnection()->DeleteAttribute("reverse");
+            grid->Collapse(event.GetProperty());
         }
-        return 3 | 0x0004;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection.ModelControllerConnectionPixelDirection") {
         GetControllerConnection()->DeleteAttribute("reverse");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("reverse", wxString::Format("%i", (int)event.GetValue().GetLong()));
         }
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder") {
+        GetControllerConnection()->DeleteAttribute("colorOrder");
+        wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
+        grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->DeleteAttribute("colorOrder");
             GetControllerConnection()->AddAttribute("colorOrder", "RGB");
+            prop->SetValueFromString("RGB");
+            grid->Expand(event.GetProperty());
         } else {
-            GetControllerConnection()->DeleteAttribute("colorOrder");
+            grid->Collapse(event.GetProperty());
         }
-        return 3 | 0x0004;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetColorOrder.ModelControllerConnectionPixelColorOrder") {
         GetControllerConnection()->DeleteAttribute("colorOrder");
         GetControllerConnection()->AddAttribute("colorOrder", CONTROLLER_COLORORDER[event.GetValue().GetLong()]);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes") {
+        GetControllerConnection()->DeleteAttribute("nullNodes");
+        wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
+        grid->EnableProperty(prop, event.GetValue().GetBool());
         if (event.GetValue().GetBool()) {
-            GetControllerConnection()->DeleteAttribute("nullNodes");
             GetControllerConnection()->AddAttribute("nullNodes", "0");
+            prop->SetValueFromInt(0);
+            grid->Expand(event.GetProperty());
         } else {
-            GetControllerConnection()->DeleteAttribute("nullNodes");
+            grid->Collapse(event.GetProperty());
         }
-        return 3 | 0x0004;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelNullNodes") {
         GetControllerConnection()->DeleteAttribute("nullNodes");
-        if (event.GetValue().GetLong() > 0) {
+        if (event.GetValue().GetLong() >= 0) {
             GetControllerConnection()->AddAttribute("nullNodes", wxString::Format("%i", (int)event.GetValue().GetLong()));
         }
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount") {
+        GetControllerConnection()->DeleteAttribute("groupCount");
+        wxPGProperty *prop = grid->GetFirstChild(event.GetProperty());
+        grid->EnableProperty(prop, event.GetValue().GetBool());
+        if (event.GetValue().GetBool()) {
+            GetControllerConnection()->AddAttribute("groupCount", "0");
+            prop->SetValueFromInt(0);
+            grid->Expand(event.GetProperty());
+        } else {
+            grid->Collapse(event.GetProperty());
+        }
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelGroupCount") {
+        GetControllerConnection()->DeleteAttribute("groupCount");
+        if (event.GetValue().GetLong() >= 0) {
+            GetControllerConnection()->AddAttribute("groupCount", wxString::Format("%i", (int)event.GetValue().GetLong()));
+        }
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "SubModels") {
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 2;
+        return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "Description") {
         description = event.GetValue().GetString();
         ModelXml->DeleteAttribute("Description");
@@ -838,7 +899,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->AddAttribute("Description", XmlSafe(description));
         }
         IncrementChangeCount();
-        return 2;
+        return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelFaces") {
         wxXmlNode *f = ModelXml->GetChildren();
         while (f != nullptr) {
@@ -852,7 +913,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         Model::WriteFaceInfo(ModelXml, faceInfo);
         IncrementChangeCount();
-        return 2;
+        return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelStates") {
         wxXmlNode *f = ModelXml->GetChildren();
         while (f != nullptr) {
@@ -867,7 +928,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         Model::WriteStateInfo(ModelXml, stateInfo);
         IncrementChangeCount();
-        return 2;
+        return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType"
                || event.GetPropertyName() == "ModelRGBWHandling") {
@@ -899,7 +960,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 3 | ((event.GetPropertyName() == "ModelStringType" ) ? 0x0004 | 0x0008 : 0);
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | ((event.GetPropertyName() == "ModelStringType" ) ? GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST : 0);
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
 
         wxString val = event.GetValue().GetString();
@@ -918,7 +979,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         RecalcStartChannels();
         IncrementChangeCount();
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
         int c = Model::HasOneString(DisplayAs) ? 1 : parm1;
@@ -940,7 +1001,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         RecalcStartChannels();
         AdjustStringProperties(grid, parm1);
         IncrementChangeCount();
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
@@ -956,18 +1017,18 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         ModelXml->AddAttribute(str, val);
         RecalcStartChannels();
         IncrementChangeCount();
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelLayoutGroup") {
         layout_group = LAYOUT_GROUPS[event.GetValue().GetLong()];
         ModelXml->DeleteAttribute("LayoutGroup");
         ModelXml->AddAttribute("LayoutGroup", layout_group);
         IncrementChangeCount();
-        return 3 | 0x0010;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_UPDATE_ALL_MODEL_LISTS;
     }
 
     int i = GetModelScreenLocation().OnPropertyGridChange(grid, event);
 
-    if (i & 0x2) {
+    if (i & GRIDCHANGE_MARK_DIRTY) {
         GetModelScreenLocation().Write(ModelXml);
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
@@ -1708,7 +1769,16 @@ void Model::SetFromXml(wxXmlNode* ModelNode, bool zb) {
 std::string Model::GetControllerConnectionString() const
 {
     if (GetProtocol() == "") return "";
-    return wxString::Format("%s:%d", GetProtocol(), GetPort()).ToStdString();
+    std::string ret = wxString::Format("%s:%d", GetProtocol(), GetPort(1)).ToStdString();
+    
+    wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
+    while (att != nullptr) {
+        if (att->GetName() != "Port" && att->GetName() != "Protocol") {
+            ret += ":" + att->GetName() + "=" + att->GetValue();
+        }
+        att = att->GetNext();
+    }
+    return ret;
 }
 
 wxXmlNode *Model::GetControllerConnection() const {
@@ -3809,7 +3879,7 @@ wxString Model::SerialiseSubmodel() const
 
 bool Model::IsControllerConnectionValid() const
 {
-    return (Model::IsProtocolValid(GetProtocol()) && GetPort() > 0);
+    return (Model::IsProtocolValid(GetProtocol()) && GetPort(1) > 0);
 }
 
 std::string Model::GetProtocol() const
@@ -3818,13 +3888,16 @@ std::string Model::GetProtocol() const
     return s.ToStdString();
 }
 
-int Model::GetPort() const
+int Model::GetPort(int string) const
 {
     wxString s = GetControllerConnection()->GetAttribute("Port", "0");
     int port = wxAtoi(s);
     return port;
 }
 bool Model::IsPixelProtocol(const std::string &p) {
+    if (p == "") {
+        return false;
+    }
     wxString protocol = p;
     protocol.MakeLower();
     return (protocol != "dmx" && protocol != "pixelnet" && protocol != "renard");
@@ -3832,7 +3905,7 @@ bool Model::IsPixelProtocol(const std::string &p) {
 
 bool Model::IsPixelProtocol() const
 {
-    return GetPort() != 0 && IsPixelProtocol(GetProtocol());
+    return GetPort(1) != 0 && IsPixelProtocol(GetProtocol());
 }
 
 std::list<std::string> Model::GetProtocols()

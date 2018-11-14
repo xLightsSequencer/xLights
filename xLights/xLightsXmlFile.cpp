@@ -247,8 +247,6 @@ void xLightsXmlFile::SetMediaFile(const wxString& ShowDir, const wxString& filen
 
 void xLightsXmlFile::ClearMediaFile()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (audio != nullptr)
     {
         ValueCurve::SetAudio(nullptr);

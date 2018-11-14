@@ -7,8 +7,6 @@
 
 SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(p) {
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     _nodesAllValid = true;
     ModelXml = n;
     StrobeRate = 0;
@@ -20,6 +18,7 @@ SubModel::SubModel(Model *p, wxXmlNode *n) : Model(p->GetModelManager()),parent(
     parm2 = 1;
     parm3 = 1;
 
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Submodel init %s:%s", (const char*)p->GetFullName().c_str(), (const char*)name.c_str());
 
     bool vert = n->GetAttribute("layout") == "vertical";

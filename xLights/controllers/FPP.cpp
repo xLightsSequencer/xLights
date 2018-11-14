@@ -967,6 +967,14 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             if (node->HasAttribute("colorOrder")) {
                 vs["colorOrder"] = node->GetAttribute("colorOrder");
             }
+            if (node->HasAttribute("groupCount")) {
+                vs["groupCount"] = wxAtoi(node->GetAttribute("groupCount"));
+            }
+
+            if (vs["groupCount"].AsInt() > 1) {
+                //if the group count is >1, we need to adjust the number of pixels
+                vs["pixelCount"] = model->NodesPerString() * vs["groupCount"].AsInt();
+            }
 
             stringData["outputs"][port]["virtualStrings"].Append(vs);
         }
@@ -995,7 +1003,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
         port["outputNumber"] = (x - 1);
         port["outputType"] = wxString("DMX");
         if (DMXMin[x] == INT_MAX) {
-            port["startChannel"] = 1;
+            port["startChannel"] = 0;
         } else {
             port["startChannel"] = DMXMin[x];
             if ((DMXMin[x] + 513) > maxChan) {
@@ -1022,7 +1030,6 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
         dmxData["device"] = dev;
         stringData["subType"] = dev;
     }
-    
     
     wxFileName fn;
     fn.AssignTempFileName("pixelOutputs");

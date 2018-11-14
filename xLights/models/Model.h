@@ -128,6 +128,15 @@ public:
      *     0x0008  -  Rebuild the model list
      *     0x0010  -  Update all model lists
      */
+    enum {
+        GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
+        GRIDCHANGE_MARK_DIRTY = 0x0002,
+        GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
+        GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
+        GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+        
+        GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
+    };
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation &GetModelScreenLocation() = 0;
@@ -192,7 +201,7 @@ protected:
 
 public:
     bool IsControllerConnectionValid() const;
-    int GetPort() const;
+    int GetPort(int string = 1) const;
     bool IsPixelProtocol() const;
     std::string GetProtocol() const;
     wxXmlNode *GetControllerConnection() const;

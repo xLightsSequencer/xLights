@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  FPP Connect - failure to unzip fseq if name contains certain special characters
    -- enh (dkulp)  FPP Connect via HTTP/FTP - option to create/append to playlist whatever is uploaded
    -- enh (dkulp)  Model controller connection can store various properties including
                    gamma/direction/RGB order/brightness/null pixels which is also used for the FPP
