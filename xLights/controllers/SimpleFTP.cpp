@@ -19,6 +19,11 @@ SimpleFTP::SimpleFTP()
     _ftp.SetFlags(wxSOCKET_NOWAIT_WRITE);
 }
 
+std::string SimpleFTP::Pwd() {
+    if (!IsConnected()) return "";
+    return _ftp.Pwd();
+}
+
 bool SimpleFTP::Connect(std::string ip, std::string user, std::string password)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -60,8 +65,17 @@ bool SimpleFTP::IsConnected() const
 bool SimpleFTP::GetFile(std::string targetfile, std::string folder, std::string file, bool binary, wxWindow* parent) {
     if (!IsConnected()) return false;
     
-    _ftp.ChDir(folder);
-    
+    if (!_ftp.ChDir(folder)) {
+        wxString result = _ftp.GetLastResult();
+        result.UpperCase();
+        if (result.Contains("TIMEOUT")) {
+            // we timed out, lets reconnect
+            _ftp.Close();
+            _ftp.Connect(_ip);
+        }
+        _ftp.ChDir(folder);
+    }
+
     if (binary) {
         _ftp.SetBinary();
     } else {
@@ -128,6 +142,7 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
             _ftp.Close();
             _ftp.Connect(_ip);
         }
+        _ftp.ChDir(folder);
     }
 
     if (binary)

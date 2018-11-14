@@ -64,7 +64,9 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                          "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
         }
         _http.SetTimeout(oldTimeout);
-        _ftp.Connect(ip, user, password);
+        if (!_ftp.Connect(ip, user, password)) {
+            _connected = false;
+        }
     }
 }
 
@@ -689,7 +691,8 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
     if (type == "Animation") {
         media = "";
     }
-
+    //issue a ftp command so it doesn't timeout while we are uploading files
+    _ftp.Pwd();
     wxFileName fn(file);
     wxString fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
     if (wxFile::Exists(fseq)) {
@@ -761,16 +764,6 @@ bool FPP::IsDefaultPassword(const std::string& user, const std::string& password
     }
 
     return false;
-}
-
-static wxJSONValue parseJSON(const std::string &str) {
-    wxJSONValue json;
-    if (str == "") {
-        return json;
-    }
-    wxJSONReader reader;
-    reader.Parse(str, &json);
-    return json;
 }
 
 bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
