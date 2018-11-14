@@ -12,6 +12,8 @@
 #include <wx/stattext.h>
 //*)
 
+class wxXmlNode;
+
 class ControllerConnectionDialog: public wxDialog
 {
 	public:
@@ -41,8 +43,8 @@ class ControllerConnectionDialog: public wxDialog
 
         wxSpinCtrlDouble *Gamma;
     
-        void Set(const wxString &controllerconnection);
-        std::string Get();
+        void Set(wxXmlNode *controllerConnection);
+        void Get(wxXmlNode *controllerConnection);
 
 	protected:
 

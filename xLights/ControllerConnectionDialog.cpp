@@ -3,6 +3,7 @@
 
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
+#include <wx/xml/xml.h>
 
 //(*InternalHeaders(ControllerConnectionDialog)
 #include <wx/intl.h>
@@ -175,80 +176,50 @@ void ControllerConnectionDialog::OnButton_CancelClick(wxCommandEvent& event)
     EndDialog(wxID_CANCEL);
 }
 
-void ControllerConnectionDialog::Set(const wxString &s) {
-    int x = 0;
-    int start = 0;
-    int state = 0;
-    while (x <= s.length()) {
-        if (x == s.length() || s[x] == ':') {
-            wxString val = s.Mid(start, x - start);
-            start = x + 1;
-            if (state == 0) {
-                for (int i = 0; i < Choice_Protocol->GetCount(); i++) {
-                    if (val.Lower() == Choice_Protocol->GetString(i).Lower()) {
-                        Choice_Protocol->SetSelection(i);
-                        break;
-                    }
+void ControllerConnectionDialog::Set(wxXmlNode *node) {
+    if (node != nullptr) {
+    
+        wxString protocol = node->GetAttribute("Protocol", "WS2811");
+        protocol.UpperCase();
+        Choice_Protocol->SetStringSelection(protocol);
+        SpinCtrl_Port->SetValue(wxAtoi(node->GetAttribute("Port", "1")));
+        
+        if (protocol == "DMX") {
+            if (node->HasAttribute("channel")) {
+                int c = wxAtoi(node->GetAttribute("channel"));
+                if (c > 0 && c < 513) {
+                    CheckBox_DMXChannel->SetValue(true);
+                    DMXChannel->Enable(true);
+                    DMXChannel->SetValue(c);
                 }
-                state++;
-            } else if (state == 1) {
-                int port = wxAtoi(val);
-                if (port > 0) {
-                    SpinCtrl_Port->SetValue(port);
-                }
-                state++;
-                if (x <= s.length()) {
-                    val = s.Mid(x + 1);
-                    wxJSONValue json;
-                    wxJSONReader reader;
-                    reader.Parse(val, &json);
-
-                    std::string protocol = Choice_Protocol->GetStringSelection().ToStdString();
-                    if (protocol == "DMX" || protocol == "dmx") {
-                        if (json.HasMember("channel")) {
-                            int c = json["channel"].AsInt();
-                            if (c > 0 && c < 513) {
-                                CheckBox_DMXChannel->SetValue(true);
-                                DMXChannel->Enable(true);
-                                DMXChannel->SetValue(c);
-                            }
-                        }
-                    } else if (Model::IsPixelProtocol(protocol)) {
-                        if (json.HasMember("brightness")) {
-                            CheckBox_Brightness->SetValue(true);
-                            Brightness->Enable(true);
-                            Brightness->SetValue(json["brightness"].AsInt());
-                        }
-                        if (json.HasMember("gamma")) {
-                            CheckBox_Gamma->SetValue(true);
-                            Gamma->Enable(true);
-                            if (json["gamma"].IsDouble()) {
-                                Gamma->SetValue(json["gamma"].AsDouble());
-                            } else {
-                                Gamma->SetValue(json["gamma"].AsInt());
-                            }
-                        }
-                        if (json.HasMember("nullNodes")) {
-                            CheckBox_NullNodes->SetValue(true);
-                            NullNodes->Enable(true);
-                            NullNodes->SetValue(json["nullNodes"].AsInt());
-                        }
-                        if (json.HasMember("colorOrder")) {
-                            CheckBox_ColorOrder->SetValue(true);
-                            ColorOrder->Enable(true);
-                            ColorOrder->SetStringSelection(json["colorOrder"].AsString());
-                        }
-                        if (json.HasMember("reverse")) {
-                            CheckBox_PixelDirection->SetValue(true);
-                            PixelDirection->Enable(true);
-                            PixelDirection->SetSelection(json["reverse"].AsInt());
-                        }
-                    }
-                }
-                break;
+            }
+        } else if (Model::IsPixelProtocol(protocol)) {
+            if (node->HasAttribute("brightness")) {
+                CheckBox_Brightness->SetValue(true);
+                Brightness->Enable(true);
+                Brightness->SetValue(wxAtoi(node->GetAttribute("brightness")));
+            }
+            if (node->HasAttribute("gamma")) {
+                CheckBox_Gamma->SetValue(true);
+                Gamma->Enable(true);
+                Gamma->SetValue(wxAtof(node->GetAttribute("gamma")));
+            }
+            if (node->HasAttribute("nullNodes")) {
+                CheckBox_NullNodes->SetValue(true);
+                NullNodes->Enable(true);
+                NullNodes->SetValue(wxAtoi(node->GetAttribute("nullNodes")));
+            }
+            if (node->HasAttribute("colorOrder")) {
+                CheckBox_ColorOrder->SetValue(true);
+                ColorOrder->Enable(true);
+                ColorOrder->SetStringSelection(node->GetAttribute("colorOrder"));
+            }
+            if (node->HasAttribute("reverse")) {
+                CheckBox_PixelDirection->SetValue(true);
+                PixelDirection->Enable(true);
+                PixelDirection->SetSelection(wxAtoi(node->GetAttribute("reverse")));
             }
         }
-        ++x;
     }
     ProtocolSelected(Choice_Protocol->GetStringSelection());
     Choice_Protocol->SetFocus();
@@ -257,32 +228,31 @@ void ControllerConnectionDialog::Set(const wxString &s) {
     SpinCtrl_Port->SetFocusFromKbd();
 }
 
-std::string ControllerConnectionDialog::Get() {
+void ControllerConnectionDialog::Get(wxXmlNode *node) {
     std::string protocol = Choice_Protocol->GetStringSelection().ToStdString();
-    std::string res = protocol + ":" + wxString::Format("%d", SpinCtrl_Port->GetValue()).ToStdString();
+    node->DeleteAttribute("Protocol");
+    node->AddAttribute("Protocol", protocol);
+    node->DeleteAttribute("Port");
+    node->AddAttribute("Port", wxString::Format("%d", SpinCtrl_Port->GetValue()));
 
+    node->DeleteAttribute("channel");
+    node->DeleteAttribute("brightness");
+    node->DeleteAttribute("gamma");
+    node->DeleteAttribute("nullNodes");
+    node->DeleteAttribute("colorOrder");
+    node->DeleteAttribute("reverse");
     if (protocol == "DMX" || protocol == "dmx") {
         if (CheckBox_DMXChannel->IsChecked()) {
-            wxJSONValue value;
-            value["channel"] = DMXChannel->GetValue();
-            wxJSONWriter writer(wxJSONWRITER_NO_LINEFEEDS | wxJSONWRITER_NO_INDENTATION, 0, 0);
-            wxString json;
-            writer.Write(value, json);
-            res += ":" + json.ToStdString();
+            node->AddAttribute("Port", wxString::Format("%d", DMXChannel->GetValue()));
         }
     } else if (Model::IsPixelProtocol(protocol)) {
         wxJSONValue value;
-        if (CheckBox_Brightness->IsChecked()) value["brightness"] = Brightness->GetValue();
-        if (CheckBox_Gamma->IsChecked()) value["gamma"] = Gamma->GetValue();
-        if (CheckBox_NullNodes->IsChecked()) value["nullNodes"] = NullNodes->GetValue();
-        if (CheckBox_ColorOrder->IsChecked()) value["colorOrder"] = ColorOrder->GetStringSelection();
-        if (CheckBox_PixelDirection->IsChecked()) value["reverse"] = PixelDirection->GetSelection();
-        wxJSONWriter writer(wxJSONWRITER_NO_LINEFEEDS | wxJSONWRITER_NO_INDENTATION, 0, 0);
-        wxString json;
-        writer.Write(value, json);
-        res += ":" + json.ToStdString();
+        if (CheckBox_Brightness->IsChecked()) node->AddAttribute("brightness", wxString::Format("%d", Brightness->GetValue()));
+        if (CheckBox_Gamma->IsChecked()) node->AddAttribute("gamma", wxString::Format("%f", Gamma->GetValue()));
+        if (CheckBox_NullNodes->IsChecked()) node->AddAttribute("nullNodes", wxString::Format("%d", NullNodes->GetValue()));
+        if (CheckBox_ColorOrder->IsChecked()) node->AddAttribute("colorOrder", ColorOrder->GetStringSelection());
+        if (CheckBox_PixelDirection->IsChecked()) node->AddAttribute("reverse", wxString::Format("%d",  PixelDirection->GetSelection()));
     }
-    return res;
 }
 
 void ControllerConnectionDialog::OnPixelDirectionClick(wxCommandEvent& event)

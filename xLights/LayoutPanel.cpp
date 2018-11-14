@@ -1272,31 +1272,24 @@ void LayoutPanel::BulkEditDimmingCurves()
 void LayoutPanel::BulkEditControllerConnection()
 {
     // get the first controller connection
-    std::string cc = "";
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (modelPreview->GetModels()[i]->GroupSelected)
-        {
-            //FIXME ControllerConnection
-            std::string cc = modelPreview->GetModels()[i]->GetProtocol();
-            if (cc != "") {
-                cc += ":" + wxString::Format("%d", modelPreview->GetModels()[i]->GetPort()).ToStdString();
+    wxXmlNode *cc = nullptr;
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+        if (modelPreview->GetModels()[i]->GroupSelected) {
+            std::string port = modelPreview->GetModels()[i]->GetProtocol();
+            if (port != "") {
+                cc = modelPreview->GetModels()[i]->GetControllerConnection();
+                break;
             }
-            if (cc != "") break;
         }
     }
 
     ControllerConnectionDialog dlg(this);
     dlg.Set(cc);
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->GroupSelected)
-            {
-                //FIXME ControllerConnection
-                //modelPreview->GetModels()[i]->SetControllerConnection(dlg.Get());
+    if (dlg.ShowModal() == wxID_OK) {
+        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+            if (modelPreview->GetModels()[i]->GroupSelected) {
+                dlg.Get(modelPreview->GetModels()[i]->GetControllerConnection());
             }
         }
 
