@@ -11,12 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-   -- enh (dkulp) FPP Connect via HTTP/FTP - option to create/append to playlist whatever is uploaded
+   -- enh (dkulp)  FPP Connect via HTTP/FTP - option to create/append to playlist whatever is uploaded
    -- enh (dkulp)  Model controller connection can store various properties including
-                gamma/direction/RGB order/brightness/null pixels which is also used for the FPP
-                controller upload to configure those strings if set
-   -- bug (dkulp) FPP controller upload DMX channels are off by 1
-   -- bug (dkulp) ModelPreview window not refreshing if model not selected
+                   gamma/direction/RGB order/brightness/null pixels which is also used for the FPP
+                   controller upload to configure those strings if set
+   -- bug (dkulp)  FPP controller upload DMX channels are off by 1
+   -- bug (dkulp)  ModelPreview window not refreshing if model not selected
+   -- enh (keith)  Prevent model chains from breaking when chained models are deleted
+   -- bug (keith)  Fix xschedule pauses when web connection interupted
+   -- enh (keith)  Make fixed timing tracks more obvious and make them convertable to unfixed
+   -- enh (keith)  Adjust xSchedule FPP sync packets to match v2.x new send pattern
+   -- bug (keith)  Fix deleting a model containing a submodel which is in a group generates non-sensical 
+                   errors and removes all the submodels from the group.
+   -- bug (keith)  Fix polyline arc last segment doesnt arc
 2018.44 November 11, 2018
    -- bug (keith)  Fix a crash when deleting models
    -- bug (keith)  Fix value curve dialog text entry not working correctly #1314
