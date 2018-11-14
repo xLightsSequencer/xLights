@@ -839,6 +839,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     dmxData["startChannel"] = 1;
     dmxData["type"] = wxString("BBBSerial");
     dmxData["subType"] = wxString("DMX");
+    bool isDMX = true;
 
     // Get universes based on IP
     std::list<Output*> outputs = _outputManager->GetAllOutputs(_ip, selected);
@@ -860,7 +861,13 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                     } else {
                         // model uses channels in this universe
                         logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetControllerConnectionString().c_str(), it->second->GetNumPhysicalStrings());
-                        if (it->second->GetProtocol() == "dmx") {
+                        if (it->second->GetProtocol() == "dmx" || it->second->GetProtocol() == "DMX"
+                            || it->second->GetProtocol() == "pixelnet" || it->second->GetProtocol() == "PIXELNET") {
+                            if (it->second->GetProtocol() == "pixelnet" || it->second->GetProtocol() == "PIXELNET") {
+                                dmxData["subType"] = wxString("Pixelnet");
+                                isDMX = false;
+                            }
+                            
                             int firstC = it->second->GetFirstChannel() + 1; //DMX channels are 1 based
                             int lastC = it->second->GetLastChannel();
                             wxXmlNode *v = it->second->GetControllerConnection();
@@ -998,23 +1005,24 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     
     int maxChan = 0;
     int maxDmxPort = -1;
+    int chanPerOut = isDMX ? 512 : 4096;
     for (int x = 1; x <= 8; x++) {
         wxJSONValue port;
         port["outputNumber"] = (x - 1);
-        port["outputType"] = wxString("DMX");
+        port["outputType"] = isDMX ? wxString("DMX") : wxString("Pixelnet");
         if (DMXMin[x] == INT_MAX) {
             port["startChannel"] = 0;
         } else {
             port["startChannel"] = DMXMin[x];
-            if ((DMXMin[x] + 513) > maxChan) {
-                maxChan = DMXMin[x] + 513;
+            if ((DMXMin[x] + (chanPerOut+1)) > maxChan) {
+                maxChan = DMXMin[x] + chanPerOut + 1;
             }
             maxDmxPort = std::max(maxDmxPort, x);
         }
-        port["channelCount"] = 512;
+        port["channelCount"] = chanPerOut;
         dmxData["outputs"].Append(port);
     }
-    dmxData["channelCount"] = maxChan < 512 ? 512 : maxChan;
+    dmxData["channelCount"] = maxChan < chanPerOut ? chanPerOut : maxChan;
     if (maxChan == 0) {
         dmxData["enabled"] = 0;
         dmxData["subType"] = wxString("off");
