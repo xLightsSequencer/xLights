@@ -217,7 +217,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     background = nullptr;
     _firstTreeLoad = true;
     _lastXlightsModel = "";
-    appearanceVisible = sizeVisible = stringPropsVisible = false;
+    appearanceVisible = sizeVisible = stringPropsVisible = controllerConnectionVisible = false;
 
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -775,6 +775,10 @@ void LayoutPanel::clearPropGrid() {
     if (p != nullptr) {
         stringPropsVisible = propertyEditor->IsPropertyExpanded(p);
     }
+    p = propertyEditor->GetPropertyByName("ModelControllerConnectionProperties");
+    if (p != nullptr) {
+        controllerConnectionVisible = propertyEditor->IsPropertyExpanded(p);
+    }
     propertyEditor->Clear();
 }
 
@@ -812,7 +816,13 @@ void LayoutPanel::refreshModelList() {
                     TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
-                std::string cc = model->GetControllerConnection();
+                
+                //FIXME - ControllerConnection
+                std::string cc = model->GetProtocol();
+                if (cc != "") {
+                    cc += ":" + wxString::Format("%d", model->GetPort()).ToStdString();
+                }
+
                 if (cv != cc)
                 {
                     TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
@@ -910,7 +920,12 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
             TreeListViewModels->SetItemText(item, Col_StartChan, "*** " + startStr);
         }
         TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
-        TreeListViewModels->SetItemText(item, Col_ControllerConnection, model->GetControllerConnection());
+        //FIXME - ControllerConnection
+        std::string cc = model->GetProtocol();
+        if (cc != "") {
+            cc += ":" + wxString::Format("%d", model->GetPort()).ToStdString();
+        }
+        TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
         width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
     }
 
@@ -1262,7 +1277,11 @@ void LayoutPanel::BulkEditControllerConnection()
     {
         if (modelPreview->GetModels()[i]->GroupSelected)
         {
-            cc = modelPreview->GetModels()[i]->GetControllerConnection();
+            //FIXME ControllerConnection
+            std::string cc = modelPreview->GetModels()[i]->GetProtocol();
+            if (cc != "") {
+                cc += ":" + wxString::Format("%d", modelPreview->GetModels()[i]->GetPort()).ToStdString();
+            }
             if (cc != "") break;
         }
     }
@@ -1276,7 +1295,8 @@ void LayoutPanel::BulkEditControllerConnection()
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
-                modelPreview->GetModels()[i]->SetControllerConnection(dlg.Get());
+                //FIXME ControllerConnection
+                //modelPreview->GetModels()[i]->SetControllerConnection(dlg.Get());
             }
         }
 
@@ -1549,6 +1569,12 @@ void LayoutPanel::SetupPropGrid(Model *model) {
         }
         if (!stringPropsVisible) {
             wxPGProperty *prop = propertyEditor->GetPropertyByName("ModelStringProperties");
+            if (prop != nullptr) {
+                propertyEditor->Collapse(prop);
+            }
+        }
+        if (!controllerConnectionVisible) {
+            wxPGProperty *prop = propertyEditor->GetPropertyByName("ModelControllerConnectionProperties");
             if (prop != nullptr) {
                 propertyEditor->Collapse(prop);
             }
@@ -3047,7 +3073,8 @@ void LayoutPanel::ReplaceModel()
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
             {
                 modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
-                modelToReplaceItWith->SetControllerConnection(replaceModel->GetControllerConnection());
+                //FIXME ControllerConnection
+                //modelToReplaceItWith->SetControllerConnection(replaceModel->GetControllerConnection());
             }
         }
 

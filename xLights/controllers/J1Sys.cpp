@@ -233,8 +233,8 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                         if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
                         {
                             warnedmodels.push_back(it->second);
-                            logger_base.warn("J1Sys Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
-                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed: '" + it->second->GetControllerConnection() + "'. Model ignored.", "Model Ignored");
+                            logger_base.warn("J1Sys Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str());
+                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed. Model ignored.", "Model Ignored");
                         }
                     }
                     else

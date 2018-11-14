@@ -112,6 +112,7 @@ public:
 
     void SetProperty(wxString property, wxString value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface *grid);
+    virtual void AddControllerProperties(wxPropertyGridInterface *grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
@@ -180,7 +181,6 @@ protected:
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
     std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
     std::string layout_group;
-    std::string controller_connection;
     int rgbwHandlingType;
 
     unsigned long changeCount;
@@ -192,16 +192,15 @@ protected:
 
 public:
     bool IsControllerConnectionValid() const;
+    int GetPort() const;
+    bool IsPixelProtocol() const;
     std::string GetProtocol() const;
+    wxXmlNode *GetControllerConnection() const;
+    
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
     static bool IsProtocolValid(std::string protocol);
-    int GetPort() const;
-    bool IsPixelProtocol() const;
     static bool IsPixelProtocol(const std::string &protocol);
-    std::string GetControllerConnection() const { return controller_connection; }
-    void SetControllerConnection(const std::string& controllerConnection);
-    std::string GetControllerConnectionDetails() const;
 
     long GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {

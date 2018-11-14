@@ -101,7 +101,7 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
 
         if (!ok)
         {
-            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.\n", (const char *)(*it)->GetFullName().c_str(), (const char *)ip.c_str(), (const char *)(*it)->GetControllerConnection().c_str()).ToStdString();
+            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)(*it)->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
         }
     }
 }
@@ -431,14 +431,14 @@ void UDControllerPortModel::Dump() const
 
     if (_string == -1)
     {
-        logger_base.debug("                Model %s. Controller Connection %s. Start Channel %ld. End Channel %ld. Channels %ld. Pixels %d. Start Channel #%d:%d",
-            (const char*)_model->GetName().c_str(), (const char *)_model->GetControllerConnection().c_str(),
+        logger_base.debug("                Model %s. Controller Connection %s:%d. Start Channel %ld. End Channel %ld. Channels %ld. Pixels %d. Start Channel #%d:%d",
+            (const char*)_model->GetName().c_str(), (const char *)_model->GetProtocol().c_str(), _model->GetPort(),
             _startChannel, _endChannel, Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
     }
     else
     {
-        logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %ld. End Channel %ld.",
-            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetControllerConnection().c_str(),
+        logger_base.debug("                Model %s. String %d. Controller Connection %s:%d. Start Channel %ld. End Channel %ld.",
+            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetProtocol().c_str(), _model->GetPort(),
             _startChannel, _endChannel);
     }
 }

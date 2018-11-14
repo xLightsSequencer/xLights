@@ -830,7 +830,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                         // only warn if we have not already warned
                         if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end()) {
                             warnedmodels.push_back(it->second);
-                            logger_base.warn("FPP Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
+                            logger_base.warn("FPP Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str());
                         }
                     } else {
                         // model uses channels in this universe
@@ -838,11 +838,11 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                         if (it->second->GetProtocol() == "dmx") {
                             int firstC = it->second->GetFirstChannel() + 1; //DMX channels are 1 based
                             int lastC = it->second->GetLastChannel();
-                            wxJSONValue v = parseJSON(it->second->GetControllerConnectionDetails());
-                            if (v.HasMember("channel")) {
+                            wxXmlNode *v = it->second->GetControllerConnection();
+                            if (v->HasAttribute("channel")) {
                                 //if the DMX device has a channel # assigned, we need to subtract out so the
                                 //DMX channel is sent out correctly
-                                int i = v["channel"].AsInt();
+                                int i = wxAtoi(v->GetAttribute("channel", "1"));
                                 i = i - 1;
                                 firstC -= i;
                             }
@@ -926,12 +926,23 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                 vs["brightness"] = 100;
                 vs["gamma"] = wxString("1.0");
             }
-            wxJSONValue cdetails = parseJSON(model->GetControllerConnectionDetails());
-            if (!cdetails.IsNull()) {
-                for (auto k : cdetails.GetMemberNames()) {
-                    vs[k] = cdetails[k];
-                }
+            wxXmlNode *node = model->GetControllerConnection();
+            if (node->HasAttribute("reverse")) {
+                vs["reverse"] = wxAtoi(node->GetAttribute("reverse"));
             }
+            if (node->HasAttribute("gamma")) {
+                vs["gamma"] = wxAtof(node->GetAttribute("gamma"));
+            }
+            if (node->HasAttribute("brightness")) {
+                vs["brightness"] = wxAtoi(node->GetAttribute("brightness"));
+            }
+            if (node->HasAttribute("nullNodes")) {
+                vs["nullNodes"] = wxAtoi(node->GetAttribute("nullNodes"));
+            }
+            if (node->HasAttribute("colorOrder")) {
+                vs["colorOrder"] = node->GetAttribute("colorOrder");
+            }
+
             stringData["outputs"][port]["virtualStrings"].Append(vs);
         }
     }

@@ -5107,7 +5107,13 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            if (it->second->GetControllerConnection() != "")
+            //FIXME ControllerConnection
+            std::string cc = it->second->GetProtocol();
+            if (cc != "") {
+                cc += ":" + wxString::Format("%d", it->second->GetPort()).ToStdString();
+            }
+
+            if (cc != "")
             {
                 long start = it->second->GetFirstChannel() + 1;
                 long sc;
@@ -5115,7 +5121,7 @@ void xLightsFrame::CheckSequence(bool display)
 
                 if (o != nullptr && o->IsIpOutput() && o->GetIP() != "MULTICAST")
                 {
-                    std::string key = o->GetIP() + it->second->GetControllerConnection();
+                    std::string key = o->GetIP() + cc;
                     if (modelsByPort.find(key) == modelsByPort.end())
                     {
                         modelsByPort[key] = new std::list<Model*>();
