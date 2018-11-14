@@ -64,17 +64,17 @@ void ListenerARTNet::StartProcess()
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST | wxSOCKET_REUSEADDR);
     if (_socket == nullptr)
     {
-        logger_base.error("Error opening datagram for ARTNet reception.");
+        logger_base.error("Error opening datagram for ARTNet reception. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_socket->IsOk())
     {
-        logger_base.error("Error opening datagram for ARTNet reception. OK : FALSE");
+        logger_base.error("Error opening datagram for ARTNet reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for ARTNet reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for ARTNet reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }

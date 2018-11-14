@@ -61,17 +61,17 @@ void ListenerFPP::StartProcess()
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
     if (_socket == nullptr)
     {
-        logger_base.error("Error opening datagram for FPP reception.");
+        logger_base.error("Error opening datagram for FPP reception. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_socket->IsOk())
     {
-        logger_base.error("Error opening datagram for FPP reception. OK : FALSE");
+        logger_base.error("Error opening datagram for FPP reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for FPP reception. %d : %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str());
+        logger_base.error("Error opening datagram for FPP reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }

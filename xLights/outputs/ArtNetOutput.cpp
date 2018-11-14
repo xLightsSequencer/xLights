@@ -97,18 +97,18 @@ void ArtNetOutput::SendSync()
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (syncdatagram == nullptr)
         {
-            logger_base.error("Error initialising Artnet sync datagram.");
+            logger_base.error("Error initialising Artnet sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
         } else if (!syncdatagram->IsOk())
         {
-            logger_base.error("Error initialising Artnet sync datagram ... is network connected? OK : FALSE");
+            logger_base.error("Error initialising Artnet sync datagram ... is network connected? %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
         }
         else if (syncdatagram->Error())
         {
-            logger_base.error("Error creating Artnet sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
+            logger_base.error("Error creating Artnet sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -169,12 +169,12 @@ bool ArtNetOutput::Open()
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
     if (_datagram == nullptr)
     {
-        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d.", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse());
+        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char *)localaddr.IPAddress().c_str());
         _ok = false;
         return _ok;
     } else if (!_datagram->IsOk())
     {
-        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. OK : FALSE", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse());
+        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s OK : FALSE", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char *)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -182,7 +182,7 @@ bool ArtNetOutput::Open()
     }
     else if (_datagram->Error())
     {
-        logger_base.error("Error creating Artnet datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
+        logger_base.error("Error creating Artnet datagram => %d : %s. %s", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;

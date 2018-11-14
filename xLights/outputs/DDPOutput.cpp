@@ -78,18 +78,18 @@ void DDPOutput::SendSync()
         syncdatagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
         if (syncdatagram == nullptr)
         {
-            logger_base.error("Error initialising DDP sync datagram.");
+            logger_base.error("Error initialising DDP sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             return;
         } else if (!syncdatagram->IsOk())
         {
-            logger_base.error("Error initialising DDP sync datagram ... is network connected? OK: FALSE");
+            logger_base.error("Error initialising DDP sync datagram ... is network connected? OK: FALSE %s", (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
         }
         else if (syncdatagram->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating DDP sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
+            logger_base.error("Error creating DDP sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete syncdatagram;
             syncdatagram = nullptr;
             return;
@@ -159,12 +159,12 @@ bool DDPOutput::Open()
     _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
     if (_datagram == nullptr)
     {
-        logger_base.error("Error initialising DDP datagram for %s.", (const char *)_ip.c_str());
+        logger_base.error("Error initialising DDP datagram for %s. %s", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
         _ok = false;
         return _ok;
     } else if (!_datagram->IsOk())
     {
-        logger_base.error("Error initialising DDP datagram for %s. OK: FALSE", (const char *)_ip.c_str());
+        logger_base.error("Error initialising DDP datagram for %s. %s OK: FALSE", (const char *)_ip.c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;
@@ -172,7 +172,7 @@ bool DDPOutput::Open()
     }
     else if (_datagram->Error() != wxSOCKET_NOERROR)
     {
-        logger_base.error("Error creating DDP datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
+        logger_base.error("Error creating DDP datagram => %d : %s. %s", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _datagram;
         _datagram = nullptr;
         _ok = false;

@@ -11,6 +11,10 @@
 
 #define ZERO 0
 
+// When defined web status is sent every frame ... great for finding issues with connectivity to web clients.
+// Must be commented out in release builds
+//#define WEBOVERLOAD
+
 #include "xScheduleMain.h"
 #include <wx/msgdlg.h>
 #include "PlayList/PlayList.h"
@@ -1313,7 +1317,9 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     int rate = __schedule->Frame(_timerOutputFrame);
 
+#ifndef WEBOVERLOAD
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
+#endif
     {
         // This code must be commented out before release!!!
 #ifdef TRACE_SCHEDULE_PERFORMANCE
@@ -2527,6 +2533,10 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
 
 void xScheduleFrame::UpdateUI()
 {
+    static bool reentry = false;
+    if (reentry) return;
+    reentry = true;
+
 #ifdef TRACE_SCHEDULE_PERFORMANCE
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2840,6 +2850,8 @@ void xScheduleFrame::UpdateUI()
 
 // this may be the performance issue cause if it triggers an update event which is then slow !!!!!!
 //    Refresh();
+
+    reentry = false;
 }
 
 void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)

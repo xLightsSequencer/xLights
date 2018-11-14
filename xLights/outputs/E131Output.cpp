@@ -151,17 +151,17 @@ void E131Output::SendSync(int syncUniverse)
 
             if (syncdatagram == nullptr)
             {
-                logger_base.error("Error initialising E131 sync datagram.");
+                logger_base.error("Error initialising E131 sync datagram. %s", (const char *)localaddr.IPAddress().c_str());
             }
             else if (!syncdatagram->IsOk())
             {
-                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE");
+                logger_base.error("Error initialising E131 sync datagram ... is network connected? OK : FALSE %s", (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
             else if (syncdatagram->Error() != wxSOCKET_NOERROR)
             {
-                logger_base.error("Error creating E131 sync datagram => %d : %s.", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str());
+                logger_base.error("Error creating E131 sync datagram => %d : %s. %s", syncdatagram->LastError(), (const char *)DecodeIPError(syncdatagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete syncdatagram;
                 syncdatagram = nullptr;
             }
@@ -277,17 +277,17 @@ bool E131Output::Open()
         _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (_datagram == nullptr)
         {
-            logger_base.error("E131Output: Error opening datagram.");
+            logger_base.error("E131Output: %s Error opening datagram.", (const char *)localaddr.IPAddress().c_str());
         }
         else if (!_datagram->IsOk())
         {
-            logger_base.error("E131Output: Error opening datagram. Network may not be connected? OK : FALSE");
+            logger_base.error("E131Output: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char *)localaddr.IPAddress().c_str());
             delete _datagram;
             _datagram = nullptr;
         }
         else if (_datagram->Error() != wxSOCKET_NOERROR)
         {
-            logger_base.error("Error creating E131 datagram => %d : %s.", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
+            logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char *)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
             delete _datagram;
             _datagram = nullptr;
         }

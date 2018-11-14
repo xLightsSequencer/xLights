@@ -2750,7 +2750,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
     return result;
 }
 
-
 bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
 {
     UserButton* b = _scheduleOptions->GetButton(label);
@@ -5447,11 +5446,11 @@ void ScheduleManager::OpenFPPSyncSendSocket()
     _fppSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
     if (_fppSyncMaster == nullptr)
     {
-        logger_base.error("Error opening datagram for FPP Sync as master.");
+        logger_base.error("Error opening datagram for FPP Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_fppSyncMaster->IsOk())
     {
-        logger_base.error("Error opening datagram for FPP Sync as master. OK : FALSE");
+        logger_base.error("Error opening datagram for FPP Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _fppSyncMaster;
         _fppSyncMaster = nullptr;
     }
@@ -5473,17 +5472,17 @@ void ScheduleManager::OpenFPPSyncSendSocket()
         _fppSyncMasterUnicast = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
         if (_fppSyncMasterUnicast == nullptr)
         {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master.");
+            logger_base.error("Error opening unicast datagram for FPP Sync as master %s.", (const char *)localaddr.IPAddress().c_str());
         }
         else if (!_fppSyncMasterUnicast->IsOk())
         {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master. OK : FALSE");
+            logger_base.error("Error opening unicast datagram for FPP Sync as master %s. OK : FALSE", (const char *)localaddr.IPAddress().c_str());
             delete _fppSyncMasterUnicast;
             _fppSyncMasterUnicast = nullptr;
         }
         else if (_fppSyncMasterUnicast->Error())
         {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s", _fppSyncMasterUnicast->LastError(), (const char*)DecodeIPError(_fppSyncMasterUnicast->LastError()).c_str());
+            logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s %s", _fppSyncMasterUnicast->LastError(), (const char*)DecodeIPError(_fppSyncMasterUnicast->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
             delete _fppSyncMasterUnicast;
             _fppSyncMasterUnicast = nullptr;
         }
@@ -5513,11 +5512,11 @@ void ScheduleManager::OpenOSCSyncSendSocket()
     _oscSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
     if (_oscSyncMaster == nullptr)
     {
-        logger_base.error("Error opening datagram for OSC Sync as master.");
+        logger_base.error("Error opening datagram for OSC Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_oscSyncMaster->IsOk())
     {
-        logger_base.error("Error opening datagram for OSC Sync as master. OK : FALSE");
+        logger_base.error("Error opening datagram for OSC Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _oscSyncMaster;
         _oscSyncMaster = nullptr;
     }
@@ -5554,11 +5553,11 @@ void ScheduleManager::OpenARTNetSyncSendSocket()
     _artNetSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
     if (_artNetSyncMaster == nullptr)
     {
-        logger_base.error("Error opening datagram for ARTNet Sync as master.");
+        logger_base.error("Error opening datagram for ARTNet Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_artNetSyncMaster->IsOk())
     {
-        logger_base.error("Error opening datagram for ARTNet Sync as master. OK : FALSE");
+        logger_base.error("Error opening datagram for ARTNet Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
         delete _artNetSyncMaster;
         _artNetSyncMaster = nullptr;
     }
