@@ -13,7 +13,7 @@
 
 // When defined web status is sent every frame ... great for finding issues with connectivity to web clients.
 // Must be commented out in release builds
-//#define WEBOVERLOAD
+// #define WEBOVERLOAD
 
 #include "xScheduleMain.h"
 #include <wx/msgdlg.h>
@@ -2533,10 +2533,6 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
 
 void xScheduleFrame::UpdateUI()
 {
-    static bool reentry = false;
-    if (reentry) return;
-    reentry = true;
-
 #ifdef TRACE_SCHEDULE_PERFORMANCE
     wxStopWatch sw;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2850,8 +2846,6 @@ void xScheduleFrame::UpdateUI()
 
 // this may be the performance issue cause if it triggers an update event which is then slow !!!!!!
 //    Refresh();
-
-    reentry = false;
 }
 
 void xScheduleFrame::OnMenuItem_BackgroundPlaylistSelected(wxCommandEvent& event)
@@ -2975,6 +2969,7 @@ void xScheduleFrame::SendStatus()
             std::string msg;
             __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
         }
+
         _webServer->SendMessageToAllWebSockets(result);
     }
 }
