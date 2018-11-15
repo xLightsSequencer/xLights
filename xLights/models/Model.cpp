@@ -668,7 +668,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
             grid->Collapse(sp);
         }
         
-        sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
+        sp = grid->AppendIn(p, new wxBoolProperty("Set Pixel Direction", "ModelControllerConnectionPixelSetDirection", node->HasAttribute("reverse")));
         sp->SetAttribute("UseCheckbox", true);
         sp2 = grid->AppendIn(sp, new wxEnumProperty("Direction", "ModelControllerConnectionPixelDirection", CONTROLLER_DIRECTION, wxArrayInt(),
                                                     wxAtoi(GetControllerConnection()->GetAttribute("reverse", "0"))));
