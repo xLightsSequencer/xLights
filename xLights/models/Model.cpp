@@ -3890,8 +3890,17 @@ std::string Model::GetProtocol() const
 
 int Model::GetPort(int string) const
 {
+    wxString p = wxString::Format("%d", string);
+    if (GetControllerConnection()->HasAttribute(p)) {
+        wxString s = GetControllerConnection()->GetAttribute(p);
+        return wxAtoi(s);
+    }
+    
     wxString s = GetControllerConnection()->GetAttribute("Port", "0");
     int port = wxAtoi(s);
+    if (port > 0) {
+        port += string - 1;
+    }
     return port;
 }
 bool Model::IsPixelProtocol(const std::string &p) {

@@ -1317,6 +1317,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
+    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop);
     if (rotate_90) {
         OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
         if (up) {
@@ -1340,7 +1341,6 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
         OffsetTop += buffer.BufferHt / 2 - font->GetCapsHeight() / 2;
     }
 
-    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop);
 
     if (text != "") {
         int space_offset = 0;
