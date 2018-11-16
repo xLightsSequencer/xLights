@@ -692,8 +692,6 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     }
 }
 
-
-
 static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
     wxString tp = "Single Color Custom";
     wxColour c;
@@ -768,8 +766,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         GetControllerConnection()->DeleteAttribute("Port");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("Port", CONTROLLER_PORTS[event.GetValue().GetLong()]);
+
+            if (GetProtocol() == "")
+            {
+                GetControllerConnection()->DeleteAttribute("Protocol");
+                GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[1]); // default to ws2811
+            }
         }
-        return 2;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         GetControllerConnection()->DeleteAttribute("Protocol");
         if (event.GetValue().GetLong() > 0) {
