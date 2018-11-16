@@ -18,6 +18,7 @@ class FPP
 	std::string _password;
 	std::string _ip;
     std::string _version;
+    bool _forceFTP;
     bool _connected;
     OutputManager* _outputManager;
     
