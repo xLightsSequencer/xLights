@@ -106,7 +106,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	PlayListName = new wxComboBox(Panel_FTP, ID_COMBOBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_COMBOBOX1"));
 	PlayListName->SetSelection( PlayListName->Append(wxEmptyString) );
 	PlayListName->Disable();
-	FlexGridSizer2->Add(PlayListName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(PlayListName, 1, wxALL|wxEXPAND, 2);
 	Panel_FTP->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel_FTP);
 	FlexGridSizer2->SetSizeHints(Panel_FTP);
