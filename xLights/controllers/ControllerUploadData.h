@@ -68,6 +68,7 @@ public:
     std::string GetColourOrder(const std::string& currentColourOrder);
     std::string GetDirection(const std::string& currentDirection);
     int GetGroupCount(int currentGroupCount);
+    int GetDMXChannelOffset();
 };
 
 class UDControllerPort

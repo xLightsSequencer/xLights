@@ -428,6 +428,13 @@ int UDControllerPortModel::GetGroupCount(int currentGroupCount)
     return currentGroupCount;
 }
 
+int UDControllerPortModel::GetDMXChannelOffset()
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("channel"))  return wxAtoi(node->GetAttribute("channel"));
+    return 0;
+}
+
 UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int string)
 {
     _model = m;
