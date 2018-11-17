@@ -62,6 +62,12 @@ public:
     int GetUniverseStartChannel() const { return _universeStartChannel; }
     std::string GetProtocol() const { return _protocol; }
     bool Check(const UDControllerPort* port, bool pixel, ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const;
+    int GetBrightness(int currentBrightness);
+    int GetNullPixels(int currentNullPixels);
+    float GetGamma(int currentGamma);
+    std::string GetColourOrder(const std::string& currentColourOrder);
+    std::string GetDirection(const std::string& currentDirection);
+    int GetGroupCount(int currentGroupCount);
 };
 
 class UDControllerPort

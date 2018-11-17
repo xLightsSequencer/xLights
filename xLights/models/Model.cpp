@@ -885,7 +885,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             grid->Collapse(event.GetProperty());
         }
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
-    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetNullNodes.ModelControllerConnectionPixelGroupCount") {
+    } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGroupCount.ModelControllerConnectionPixelGroupCount") {
         GetControllerConnection()->DeleteAttribute("groupCount");
         if (event.GetValue().GetLong() >= 0) {
             GetControllerConnection()->AddAttribute("groupCount", wxString::Format("%i", (int)event.GetValue().GetLong()));

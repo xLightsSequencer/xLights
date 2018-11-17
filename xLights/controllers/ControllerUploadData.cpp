@@ -1,4 +1,5 @@
 #include <wx/msgdlg.h>
+#include <wx/xml/xml.h>
 
 #include "ControllerUploadData.h"
 #include "../outputs/Output.h"
@@ -383,6 +384,48 @@ bool UDController::ModelProcessed(Model* m)
     }
 
     return false;
+}
+
+int UDControllerPortModel::GetBrightness(int currentBrightness)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("brightness"))  return wxAtoi(node->GetAttribute("brightness"));
+    return currentBrightness;
+}
+
+int UDControllerPortModel::GetNullPixels(int currentNullPixels)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("nullNodes"))  return wxAtoi(node->GetAttribute("nullNodes"));
+    return currentNullPixels;
+}
+
+float UDControllerPortModel::GetGamma(int currentGamma)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("gamma"))  return wxAtof(node->GetAttribute("gamma"));
+    return currentGamma;
+}
+
+std::string UDControllerPortModel::GetColourOrder(const std::string& currentColourOrder)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("colorOrder"))  return node->GetAttribute("colorOrder");
+    return currentColourOrder;
+}
+
+std::string UDControllerPortModel::GetDirection(const std::string& currentDirection)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("reverse"))  return wxAtoi(node->GetAttribute("reverse")) == 1 ? "Reverse" : "Forward";
+    return currentDirection;
+}
+
+int UDControllerPortModel::GetGroupCount(int currentGroupCount)
+{
+    wxXmlNode* node = _model->GetControllerConnection();
+    if (node->HasAttribute("groupCount"))  return wxAtoi(node->GetAttribute("groupCount"));
+    return currentGroupCount;
 }
 
 UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int string)
