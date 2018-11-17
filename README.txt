@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)  Fix node layout crash for custom models
+   -- bug (dkulp)  Add some fallbacks for FPP upload if UI security is on
+   -- bug (keith)  Fix some old value curve warnings ... hopefully for good
+   -- enh (keith)  Warn in check sequence if videos are being rendered without render cache
+   -- enh (keith)  Update the falcon upload to recognise the new connection properties ... these are 
+                   taken from the first model on each output
+   -- enh (keith)  Add keybindings support for the effect and colour update buttons. F5 defaults for 
+                   effect update but you need to delete keybindings to have the new defaults added
 2018.45 November 15, 2018
    -- bug (dkulp)  FPP Connect - failure to unzip fseq if name contains certain special characters
    -- enh (dkulp)  FPP Connect via HTTP/FTP - option to create/append to playlist whatever is uploaded
