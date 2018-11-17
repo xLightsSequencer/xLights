@@ -605,6 +605,16 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             wxCommandEvent e;
             mSequenceElements->GetXLightsFrame()->ShowHidePerspectivesWindow(e);
         }
+        else if (type == "EFFECT_UPDATE")
+        {
+            wxCommandEvent eventEffectUpdated(EVT_EFFECT_UPDATED);
+            wxPostEvent(GetParent(), eventEffectUpdated);
+        }
+        else if (type == "COLOR_UPDATE")
+        {
+            wxCommandEvent eventEffectUpdated(EVT_EFFECT_PALETTE_UPDATED);
+            wxPostEvent(GetParent(), eventEffectUpdated);
+        }
         else
         {
             logger_base.warn("Keybinding '%s' not recognised.", (const char*)type.c_str());

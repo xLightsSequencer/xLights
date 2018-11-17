@@ -796,6 +796,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 if (m != nullptr)
                 {
                     dmxOffset = m->GetDMXChannelOffset();
+                    if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
                 }
 
                 int sc = port->GetStartChannel() - dmxOffset + 1;

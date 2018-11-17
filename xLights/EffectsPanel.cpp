@@ -217,8 +217,6 @@ wxString EffectsPanel::GetRandomEffectString(int effidx)
     return s;
 }
 
-
-
 //selectable clear canvas before render: -DJ
 //this allows multiple effects to be overlayed for composite models
 //also provides useful "bread crumbs" for some effects such as Spirograph
@@ -266,6 +264,7 @@ bool EffectsPanel::isRandom_(wxControl* ctl, const char*debug)
     }
     return false;
 }
+
 bool EffectsPanel::isRandom_(void)
 {
     return isRandom(EffectChoicebook);
