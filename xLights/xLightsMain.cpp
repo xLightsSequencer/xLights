@@ -5642,12 +5642,13 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, "Effect problems");
 
         // check all effects
+        bool videoCacheWarning = false;
         for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName());
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning);
 
                 if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
@@ -5656,7 +5657,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName());
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -5664,7 +5665,7 @@ void xLightsFrame::CheckSequence(bool display)
                             for (int l = 0; l < nl->GetEffectCount(); l++)
                             {
                                 Effect* ef = nl->GetEffect(l);
-                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true);
+                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning);
                             }
                         }
                     }
@@ -5673,11 +5674,18 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName());
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning);
                         }
                     }
                 }
             }
+        }
+
+        if (videoCacheWarning)
+        {
+            wxString msg = wxString::Format("    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
         }
 
         if (errcount + warncount == errcountsave + warncountsave)
@@ -5727,10 +5735,25 @@ void xLightsFrame::CheckSequence(bool display)
     }
 }
 
-void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node)
+void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning)
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
+
+    if (ef->GetEffectName() == "Video")
+    {
+        if (_enableRenderCache == "Disabled")
+        {
+            videoCacheWarning = true;
+        }
+        else if (!ef->IsLocked() && _enableRenderCache == "Locked Only")
+        {
+            videoCacheWarning = true;
+            wxString msg = wxString::Format("    WARN: Video effect unlocked but only locked video effects are being render cached. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
 
     // check value curves not updated
     for (auto it = sm.begin(); it != sm.end(); ++it)
@@ -5819,7 +5842,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning)
 {
     for (int j = 0; j < e->GetEffectLayerCount(); j++)
     {
@@ -5873,7 +5896,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                 }
             }
 
-            CheckEffect(ef, f, errcount, warncount, name, modelName);
+            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning);
         }
 
         // This assumes effects are stored in start time order per layer
@@ -7818,7 +7841,6 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
                     if (lastEffect != nullptr && lastPhenome == it->first)
                     {
                         lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());
-                        phenomeFound = true;
                     }
                     else
                     {
@@ -8561,7 +8583,6 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
         _enableRenderCache = "Locked Only";
     }
 
-
     _renderCache.Enable(_enableRenderCache);
     _renderCache.CleanupCache(&mSequenceElements); // purge anything the cache no longer needs
 
@@ -8720,14 +8741,12 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
             event.Skip();
         }
         return;
-        break;
     case NEWSEQUENCER:
         if (!mainSequencer->HandleSequencerKeyBinding(event))
         {
             event.Skip();
         }
         return;
-        break;
     default:
         break;
     }
