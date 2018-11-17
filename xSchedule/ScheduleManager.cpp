@@ -1454,6 +1454,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else
             {
+                logger_base.debug("Action '%s':'%s'.",
+                    (const char *)command.c_str(), (const char *)parameters.c_str());
                 if (command == "Stop all now")
                 {
                     StopAll();
@@ -5375,7 +5377,7 @@ void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& 
     {
     case SYNC_PKT_SYNC:
         sprintf(buffer, "FPP,%d,%d,%d,%s,%d,%d\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str(), (int)(msec / 1000), (int)msec % 1000);
-        logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
+        //logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
         break;
     case SYNC_PKT_STOP:
         sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());

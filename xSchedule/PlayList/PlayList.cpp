@@ -411,7 +411,7 @@ void PlayList::RemoveSchedule(Schedule* schedule)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-     
+
         if (!rec.SoleReference())
         {
             logger_base.warn("PlayList removing schedule but we appear to be manipulating it elsewhere. This may not end well.");
@@ -476,6 +476,7 @@ int PlayList::GetPos(PlayListStep* step)
 
 bool PlayList::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_currentStep != nullptr)
     {
         if (IsPaused() || IsSuspended())
@@ -486,6 +487,7 @@ bool PlayList::Frame(wxByte* buffer, size_t size, bool outputframe)
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size, outputframe))
         {
+            logger_base.debug("PlayList: Frame moving to next step because step is done.");
             return !MoveToNextStep();
         }
     }
@@ -520,7 +522,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("******** Playlist %s starting to play.", (const char*)GetName().c_str());
         logger_base.info("********     %s %s %s",
-            (const char*)(_looping ? ("LOOPING" + (_loops > 0 ? wxString::Format(" Loops %d", _loops).c_str() : "")).c_str() : ""),
+            (const char*)(_looping ? ("LOOPING" + (_loops > 0 ? wxString::Format(" Loops %d", _loops).c_str() : wxString("").c_str())).c_str() : wxString("").c_str()),
             (const char*)(_random ? "RANDOM" : ""),
             (const char*)(step == "" ? step.c_str() : wxString::Format("Step: %s", step).c_str())
         );
@@ -773,6 +775,8 @@ int PlayList::Suspend(bool suspend)
 
 bool PlayList::JumpToPriorStep()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("PlayList: JumpToPriorStep");
     bool success = false;
 
     if (_currentStep == nullptr) return false;
@@ -790,6 +794,9 @@ bool PlayList::JumpToPriorStep()
 
 bool PlayList::JumpToNextStep()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("PlayList: JumpToNextStep");
+
     bool success = true;
 
     _pauseTime = 0;
@@ -812,6 +819,9 @@ bool PlayList::JumpToNextStep()
 
 bool PlayList::MoveToNextStep()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("PlayList: MoveToNextStep");
+
     bool success = true;
 
     if (_currentStep == nullptr) return false;
@@ -861,6 +871,9 @@ void PlayList::RestartCurrentStep()
 
 bool PlayList::JumpToStep(const std::string& step)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("PlayList: JumpToStep %s", (const char*)step.c_str());
+
     bool success = true;
 
     _lastLoop = false;
