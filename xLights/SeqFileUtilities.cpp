@@ -27,7 +27,7 @@
 #include "ModelPreview.h"
 #include "sequencer/MainSequencer.h"
 
-#include "effects/SpiralsPanel.h"
+#include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
 #include "effects/BarsEffect.h"
 #include "effects/CurtainEffect.h"

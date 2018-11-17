@@ -127,6 +127,7 @@ public:
     void DeletePoint(float offset);
     bool IsSetPoint(float offset);
     void SetDivisor(float divisor) { _divisor = divisor; }
+    bool IsRealValue() const { return _realValues; }
     int GetPointCount() const { return _values.size(); }
     void SetParameter1(float parameter1) { _parameter1 = SafeParameter(1, parameter1); RenderType(); }
     void SetParameter2(float parameter2) { _parameter2 = SafeParameter(2, parameter2); RenderType(); }

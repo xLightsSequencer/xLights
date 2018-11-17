@@ -5738,7 +5738,10 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
         wxString value = it->second;
         if (value.Contains("|Type=") && !value.Contains("RV=TRUE"))
         {
-            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            int start = value.Find("|Id=") + 4;
+            wxString property = value.substr(start);
+            property = property.BeforeFirst('|');
+            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s (%s)", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()), property);
             LogAndWrite(f, msg.ToStdString());
             errcount++;
         }
