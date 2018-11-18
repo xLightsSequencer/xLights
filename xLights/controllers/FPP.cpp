@@ -60,9 +60,14 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                 if (versionregex.Matches(wxString(version))) {
                     _version = versionregex.GetMatch(wxString(version), 2).ToStdString();
                 }
+                if (_version == "")
+                {
+                    _version = "2.0";
+                    _forceFTP = true;
+                }
             }
         }
-        logger_base.error("FPP: using version %s.", _version.c_str());
+        logger_base.debug("FPP: using version %s.", _version.c_str());
         if (!(_version[0] >= '2')) {
             //either old version or could not determine version
             wxMessageBox("FPP 1.x is no longer supported by the FPP developers.  Some things may not work.  We strongly recommend upgrading to FPP 2.x",
@@ -206,7 +211,7 @@ bool FPP::SetOutputUniversesPlayer(wxWindow* parent)
         std::string file = SaveFPPUniverses("", std::list<int>(), false, false);
 
         bool cancelled = false;
-        if (_version[0] == '1') {
+        if (_version[0] == '1' || _forceFTP) {
             cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
         } else {
             cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", "co-universes.json", true, false, parent);

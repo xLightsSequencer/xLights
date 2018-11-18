@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.46 November 18, 2018
    -- bug (dkulp)  Fix node layout crash for custom models
    -- bug (dkulp)  Add some fallbacks for FPP upload if UI security is on
    -- bug (keith)  Fix some old value curve warnings ... hopefully for good
