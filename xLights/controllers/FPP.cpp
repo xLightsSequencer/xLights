@@ -211,7 +211,7 @@ bool FPP::SetOutputUniversesPlayer(wxWindow* parent)
         std::string file = SaveFPPUniverses("", std::list<int>(), false, false);
 
         bool cancelled = false;
-        if (_version[0] == '1' || _forceFTP) {
+        if (_version[0] == '1') {
             cancelled = _ftp.UploadFile(file, "/home/fpp/media", "universes", true, false, parent);
         } else {
             cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", "co-universes.json", true, false, parent);
