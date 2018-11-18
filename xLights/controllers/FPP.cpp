@@ -787,8 +787,10 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
     std::string fppFileName = "co-bbbStrings.json";
+    int minPorts = 1;
     if (controller == "PiHat") {
         fppFileName = "co-pixelStrings.json";
+        minPorts = 2;
     }
 
     wxFileName fnOrig;
@@ -908,7 +910,9 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             }
         }
     }
-    
+    if (maxport < minPorts) {
+        maxport = minPorts;
+    }
 
     if (controller == "PiHat") {
         stringData["type"] = wxString("RPIWS281X");
