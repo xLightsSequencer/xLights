@@ -62,7 +62,7 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                 }
                 if (_version == "")
                 {
-                    _version = "2.0";
+                    _version = "1.10"; // if force FTP isnt allowed to upload universes file then we have to assume this is 1.x as this is where 1.x ends up
                     _forceFTP = true;
                 }
             }
