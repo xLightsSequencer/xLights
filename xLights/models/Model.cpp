@@ -819,7 +819,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetGamma.ModelControllerConnectionPixelGamma") {
         GetControllerConnection()->DeleteAttribute("gamma");
-        GetControllerConnection()->AddAttribute("gamma", wxString::Format("%f", (float)event.GetValue().GetDouble()));
+        GetControllerConnection()->AddAttribute("gamma", wxString::Format("%g", (float)event.GetValue().GetDouble()));
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPixelSetDirection") {
         GetControllerConnection()->DeleteAttribute("reverse");
