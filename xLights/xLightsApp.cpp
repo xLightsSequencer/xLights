@@ -214,7 +214,7 @@ void DumpConfig()
 //IMPLEMENT_APP(xLightsApp)
 int main(int argc, char **argv)
 {
-    srand(time(NULL));
+    srand(time(nullptr));
     InitialiseLogging(true);
     // Dan/Chris ... if you get an exception here the most likely reason is the line
     // appender.A1.fileName= in the xlights.xxx.properties file
@@ -581,6 +581,12 @@ bool xLightsApp::OnInit()
             }
             if (showDir.IsNull()) {
                 showDir=wxPathOnly(sequenceFile);
+                while (showDir != "" && !wxFile::Exists(showDir + "/" + "xlights_rgbeffects.xml"))
+                {
+                    auto old = showDir;
+                    showDir = wxPathOnly(showDir);
+                    if (showDir == old) showDir = "";
+                }
             }
             sequenceFiles.push_back(sequenceFile);
         }
