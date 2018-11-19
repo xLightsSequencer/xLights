@@ -60,9 +60,12 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                 if (versionregex.Matches(wxString(version))) {
                     _version = versionregex.GetMatch(wxString(version), 2).ToStdString();
                 }
-                if (_version == "")
-                {
-                    _version = "1.10"; // if force FTP isnt allowed to upload universes file then we have to assume this is 1.x as this is where 1.x ends up
+                if (_version == "") {
+                    logger_base.debug("FPP: Unable to determine version from HTML page: %s", version.c_str());
+
+                    //I tested 1.8/1.9/1.10 and the regex above detects the 1.x version fine
+                    //if we're getting here, figure out why the regex is not working don't change this default
+                    _version = "2.0";
                     _forceFTP = true;
                 }
             }

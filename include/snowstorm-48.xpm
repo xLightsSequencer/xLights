@@ -3,7 +3,7 @@ static const char *snowstorm_48[] = {
 /* width height num_colors chars_per_pixel */
 "48 48 631 2", 
 /* colors */
-"   c None",
+"   c #000000",
 ".  c #88D97C",
 "X  c #14141B",
 "o  c #6F757D",

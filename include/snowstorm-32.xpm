@@ -6,7 +6,7 @@ static const char *snowstorm_32[] = {
 "   c #6A8280",
 ".  c #607570",
 "X  c #313B39",
-"o  c None",
+"o  c #000000",
 "O  c #545A5F",
 "+  c #76938C",
 "@  c #404846",
