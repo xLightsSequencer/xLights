@@ -817,7 +817,7 @@ void LayoutPanel::refreshModelList() {
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
                 
-                std::string cc = model->GetControllerConnectionString();
+                std::string cc = model->GetControllerConnectionRangeString();
                 if (cv != cc)
                 {
                     TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
@@ -916,7 +916,7 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         }
         TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
 
-        std::string cc = model->GetControllerConnectionString();
+        std::string cc = model->GetControllerConnectionRangeString();
         TreeListViewModels->SetItemText(item, Col_ControllerConnection, cc);
 
         width = std::max(TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_StartChan)), TreeListViewModels->WidthFor(TreeListViewModels->GetItemText(item, Col_EndChan)));
@@ -3059,8 +3059,20 @@ void LayoutPanel::ReplaceModel()
             if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
             {
                 modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel, true);
-                //FIXME ControllerConnection
-                //modelToReplaceItWith->SetControllerConnection(replaceModel->GetControllerConnection());
+
+                auto tocc = modelToReplaceItWith->GetControllerConnection();
+                auto fromcc = replaceModel->GetControllerConnection();
+                if (fromcc->GetAttribute("Protocol", "") != "")
+                {
+                    tocc->DeleteAttribute("Protocol");
+                    tocc->AddAttribute("Protocol", fromcc->GetAttribute("Protocol"));
+                }
+                
+                if (fromcc->GetAttribute("Port", "") != "")
+                {
+                    tocc->DeleteAttribute("Port");
+                    tocc->AddAttribute("Port", fromcc->GetAttribute("Port"));
+                }
             }
         }
 

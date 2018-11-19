@@ -4357,7 +4357,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup(),
-                model->GetControllerConnectionString(),
+                model->GetControllerConnectionRangeString(),
                 type,
                 description,
                 output,
@@ -5107,7 +5107,11 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            std::string cc = it->second->GetControllerConnectionString();
+            std::string cc = "";
+            if (it->second->IsControllerConnectionValid())
+            {
+                cc = wxString::Format("%s:%d", it->second->GetProtocol(), it->second->GetPort()).ToStdString();
+            }
             if (cc != "")
             {
                 long start = it->second->GetFirstChannel() + 1;

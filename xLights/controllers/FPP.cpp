@@ -873,7 +873,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                         }
                     } else {
                         // model uses channels in this universe
-                        logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetControllerConnectionString().c_str(), it->second->GetNumPhysicalStrings());
+                        logger_base.debug("FPP Outputs Upload: Uploading Model %s. %s ports %d", (const char *)it->first.c_str(), (const char *)it->second->GetControllerConnectionRangeString().c_str(), it->second->GetNumPhysicalStrings());
                         if (it->second->GetProtocol() == "dmx" || it->second->GetProtocol() == "DMX"
                             || it->second->GetProtocol() == "pixelnet" || it->second->GetProtocol() == "PIXELNET") {
                             if (it->second->GetProtocol() == "pixelnet" || it->second->GetProtocol() == "PIXELNET") {

@@ -1785,6 +1785,25 @@ std::string Model::GetControllerConnectionString() const
     return ret;
 }
 
+std::string Model::GetControllerConnectionRangeString() const
+{
+    if (GetProtocol() == "") return "";
+    std::string ret = wxString::Format("%s:%d", GetProtocol(), GetPort(1)).ToStdString();
+    if (GetNumPhysicalStrings() > 1)
+    {
+        ret = wxString::Format("%s-%d", ret, GetPort() + GetNumPhysicalStrings() - 1).ToStdString();
+    }
+
+    wxXmlAttribute* att = GetControllerConnection()->GetAttributes();
+    while (att != nullptr) {
+        if (att->GetName() != "Port" && att->GetName() != "Protocol") {
+            ret += ":" + att->GetName() + "=" + att->GetValue();
+        }
+        att = att->GetNext();
+    }
+    return ret;
+}
+
 wxXmlNode *Model::GetControllerConnection() const {
     wxXmlNode *n = GetModelXml()->GetChildren();
     while (n != nullptr) {
