@@ -5,7 +5,7 @@
 #include "City.h"
 
 int __scheduleid = 0;
-std::string Schedule::__city = "";
+std::string Schedule::__city = "Sydney";
 
 Schedule::Schedule(wxXmlNode* node)
 {
@@ -661,8 +661,13 @@ std::string Schedule::GetNextTriggerTime()
 #endif
 
     wxDateTime end = _endDate;
-    end.SetHour(_endTime.GetHour());
-    end.SetMinute(_endTime.GetMinute());
+
+    wxDateTime end_time = wxDateTime::Now();
+    SetTime(end_time, __city, _endTime, _endTimeString);
+    end_time.SetSecond(0);
+
+    end.SetHour(end_time.GetHour());
+    end.SetMinute(end_time.GetMinute());
 
 #ifdef LOGCALCNEXTTRIGGERTIME
     logger_base.debug("End date %s.", (const char *)end.Format("%Y-%m-%d %H:%M").c_str());
@@ -737,10 +742,9 @@ std::string Schedule::GetNextTriggerTime()
 
     // check if the right answer is the starttime today
     wxDateTime next = wxDateTime::Now();
-
     SetTime(next, __city, _startTime, _startTimeString);
-
     next.SetSecond(0);
+
 #ifdef LOGCALCNEXTTRIGGERTIME
     logger_base.debug("Checking %s.", (const char *)next.Format("%Y-%m-%d %H:%M").c_str());
 #endif
