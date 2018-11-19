@@ -2,15 +2,15 @@
 #define PLAYLISTITEMFSEQPANEL_H
 
 //(*Headers(PlayListItemFSEQPanel)
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/filepicker.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/filepicker.h>
-#include <wx/spinctrl.h>
-#include <wx/slider.h>
-#include <wx/panel.h>
-#include <wx/choice.h>
 //*)
 
 class OutputManager;
@@ -30,26 +30,26 @@ class PlayListItemFSEQPanel: public wxPanel
 		virtual ~PlayListItemFSEQPanel();
 
 		//(*Declarations(PlayListItemFSEQPanel)
-		wxSlider* Slider1;
-		wxStaticText* StaticText_StartChannel;
-		wxChoice* Choice_BlendMode;
-		wxSpinCtrl* SpinCtrl_Channels;
-		wxStaticText* StaticText2;
-		wxStaticText* StaticText6;
-		wxCheckBox* CheckBox_FastStartAudio;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticText3;
-		wxCheckBox* CheckBox_LimitChannels;
-		wxTextCtrl* TextCtrl_Delay;
-		wxSpinCtrl* SpinCtrl_Priority;
-		wxCheckBox* CheckBox_OverrideAudio;
 		AudioFilePickerCtrl* FilePickerCtrl_AudioFile;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
 		FSEQFilePickerCtrl* FilePickerCtrl_FSEQFile;
-		wxTextCtrl* TextCtrl_StartChannel;
-		wxStaticText* StaticText4;
+		wxCheckBox* CheckBox_FastStartAudio;
+		wxCheckBox* CheckBox_LimitChannels;
+		wxCheckBox* CheckBox_OverrideAudio;
 		wxCheckBox* CheckBox_OverrideVolume;
+		wxChoice* Choice_BlendMode;
+		wxSlider* Slider1;
+		wxSpinCtrl* SpinCtrl_Channels;
+		wxSpinCtrl* SpinCtrl_Priority;
+		wxStaticText* StaticText1;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText_StartChannel;
+		wxTextCtrl* TextCtrl_Delay;
+		wxTextCtrl* TextCtrl_StartChannel;
 		//*)
 
 	protected:

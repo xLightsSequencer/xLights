@@ -468,6 +468,13 @@
     </ClCompile>
     <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="ExtraIPDialog.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDimPanel.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList\PlayListItemDim.cpp">
+      <Filter>PlayList</Filter>
+    </ClCompile>
+    <ClCompile Include="..\xLights\Parallel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -914,6 +921,12 @@
     </ClInclude>
     <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="ExtraIPDialog.h" />
+    <ClInclude Include="PlayList\PlayListItemDimPanel.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList\PlayListItemDim.h">
+      <Filter>PlayList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
