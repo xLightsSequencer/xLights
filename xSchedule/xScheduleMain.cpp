@@ -153,6 +153,7 @@ const long xScheduleFrame::ID_STATICTEXT2 = wxNewId();
 const long xScheduleFrame::ID_STATICBITMAP1 = wxNewId();
 const long xScheduleFrame::ID_PANEL4 = wxNewId();
 const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
+const long xScheduleFrame::ID_MNU_USEXLIGHTSFOLDER = wxNewId();
 const long xScheduleFrame::ID_MNU_SAVE = wxNewId();
 const long xScheduleFrame::idMenuQuit = wxNewId();
 const long xScheduleFrame::ID_MNU_MNUADDPLAYLIST = wxNewId();
@@ -472,8 +473,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     SetSizer(FlexGridSizer1);
     MenuBar1 = new wxMenuBar();
     Menu1 = new wxMenu();
-    MenuItem_ShowFolder = new wxMenuItem(Menu1, ID_MNU_SHOWFOLDER, _("Show &Folder"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_ShowFolder = new wxMenuItem(Menu1, ID_MNU_SHOWFOLDER, _("Select Show &Folder"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ShowFolder);
+    MenuItem_UsexLightsFolder = new wxMenuItem(Menu1, ID_MNU_USEXLIGHTSFOLDER, _("Switch to xLights Folder"), _("Switch to xLights Show Folder"), wxITEM_NORMAL);
+    Menu1->Append(MenuItem_UsexLightsFolder);
     MenuItem_Save = new wxMenuItem(Menu1, ID_MNU_SAVE, _("&Save"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_Save);
     MenuItem1 = new wxMenuItem(Menu1, idMenuQuit, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
@@ -579,6 +582,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_LISTVIEW2,wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,(wxObjectEventFunction)&xScheduleFrame::OnListView_PingItemRClick);
     Connect(ID_LISTVIEW1,wxEVT_COMMAND_LIST_ITEM_ACTIVATED,(wxObjectEventFunction)&xScheduleFrame::OnListView_RunningItemActivated);
     Connect(ID_MNU_SHOWFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ShowFolderSelected);
+    Connect(ID_MNU_USEXLIGHTSFOLDER,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_UsexLightsFolderSelected);
     Connect(ID_MNU_SAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_SaveSelected);
     Connect(idMenuQuit,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(ID_MNU_MNUADDPLAYLIST,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_AddPlayListSelected);
@@ -807,12 +811,14 @@ void xScheduleFrame::LoadSchedule()
             StaticText_ShowDir->SetForegroundColour(*wxBLACK);
             StaticText_ShowDir->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
                 wxFONTWEIGHT_NORMAL, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+            MenuItem_UsexLightsFolder->Enable(false);
         }
         else
         {
             StaticText_ShowDir->SetForegroundColour(wxColour(255,128,0));
             StaticText_ShowDir->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
                 wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+            MenuItem_UsexLightsFolder->Enable(true);
         }
     }
     else
@@ -821,6 +827,7 @@ void xScheduleFrame::LoadSchedule()
         StaticText_ShowDir->SetForegroundColour(*wxRED);
         StaticText_ShowDir->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
             wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
+        MenuItem_UsexLightsFolder->Enable(true);
     }
 
     logger_base.debug("Adding IPs to ping.");
@@ -3159,4 +3166,17 @@ void xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommand
             RemoteWarning();
         }
     }
+}
+
+void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
+{
+    _showDir = ScheduleManager::xLightsShowDir();
+    SaveShowDir();
+    _timerSchedule.Stop();
+    _timer.Stop();
+    LoadSchedule();
+    _timer.Start(50 / 2, false);
+    _timerSchedule.Start(50, true);
+
+    ValidateWindow();
 }
