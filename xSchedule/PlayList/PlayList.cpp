@@ -487,7 +487,7 @@ bool PlayList::Frame(wxByte* buffer, size_t size, bool outputframe)
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size, outputframe))
         {
-            logger_base.debug("PlayList: Frame moving to next step because step is done.");
+            logger_base.debug("PlayList: Frame moving to next step because step '%s' is done.", _currentStep->GetNameNoTime().c_str());
             return !MoveToNextStep();
         }
     }
@@ -830,7 +830,6 @@ bool PlayList::MoveToNextStep()
 
     if (_commandAtEndOfCurrentStep != "")
     {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("Step completed so running command: '%s' parameters: '%s'.", (const char *)_commandAtEndOfCurrentStep.c_str(), (const char *)_commandParametersAtEndOfCurrentStep.c_str());
 
         wxCommandEvent event(EVT_RUNACTION);
@@ -843,13 +842,20 @@ bool PlayList::MoveToNextStep()
 
     bool didloop;
     _currentStep = GetNextStep(didloop);
+
     if (didloop) DoLoop();
 
     _forceNextStep = "";
 
-    if (_currentStep == nullptr) return false;
+    if (_currentStep == nullptr)
+    {
+        logger_base.debug("Move to next step found no step to move to.");
+        return false;
+    }
 
     _currentStep->Start(-1);
+
+    logger_base.debug("Move to next step moved to %s.", _currentStep->GetNameNoTime().c_str());
 
     if (_suspendAtEndOfStep)
     {

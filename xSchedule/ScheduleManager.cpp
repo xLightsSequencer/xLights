@@ -1372,12 +1372,17 @@ int ScheduleManager::CheckSchedule()
     logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s", 
+        PlayListStep* step = (*it)->GetPlayList()->GetRunningStep();
+        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s", 
             (const char *)(*it)->GetPlayList()->GetName().c_str(), 
             (const char *)(*it)->GetSchedule()->GetName().c_str(), 
             (*it)->GetSchedule()->GetPriority(), 
             (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")),
-            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""));
+            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""),
+            (step == nullptr ? wxString("").c_str() : step->GetNameNoTime().c_str()),
+            (step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetPosition())),
+            (step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetLengthMS()))
+            );
     }
 
     return framems;
