@@ -413,7 +413,12 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
 
 void ValueCurve::Reverse()
 {
-    _timeOffset = 100 - _timeOffset;
+    // Only reverse the time offset if a non zero value was used
+    if (_timeOffset != 0)
+    {
+        _timeOffset = 100 - _timeOffset;
+    }
+
     if (_type == "Custom")
     {
         for (auto it = _values.begin(); it != _values.end(); ++it)
