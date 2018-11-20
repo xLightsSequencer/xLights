@@ -1742,7 +1742,7 @@ void xLightsFrame::UploadFPPBridgeInput()
             }
         }
 
-        FPP fpp(&_outputManager, ip.ToStdString(), theUser.ToStdString(), password.ToStdString());
+        FPP fpp(&_outputManager, "2.0", ip.ToStdString(), theUser.ToStdString(), password.ToStdString());
 
         if (fpp.IsConnected()) {
             if (fpp.SetInputUniversesBridge(selected, this)) {
@@ -1859,7 +1859,7 @@ void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxp
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        FPP fpp(&_outputManager, ip.ToStdString(), "fpp", "falcon");
+        FPP fpp(&_outputManager, "2.0", ip.ToStdString(), "fpp", "falcon");
         if (fpp.IsConnected()) {
             if (fpp.SetOutputs(controller, &AllModels, selected, this, maxport, maxdmx)) {
                 SetStatusText("FPP Upload Complete.");

@@ -24,7 +24,7 @@
 
 #include <log4cpp/Category.hh>
 
-FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
+FPP::FPP(OutputManager* outputManager, const std::string& defaultVersion, const std::string& ip, const std::string& user, const std::string& password)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _outputManager = outputManager;
@@ -33,6 +33,8 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
 	_ip = ip;
     _version = "";
     _forceFTP = false;
+    std::string dv = "2.0";
+    if (defaultVersion == "1.x") dv = "1.10";
 
 	_connected = _http.Connect(_ip);
 
@@ -52,7 +54,7 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
                 //we'll assume a version 2.x so most things work, but need to use FTP at this point since
                 //the upload page will be password protected.  That said, a bunch of things are not supported with FTP
                 //FIXME - add basic auth support
-                _version = "2.0";
+                _version = dv;
                 _forceFTP = true;
             } else {
                 //Version: <a href = 'about.php' class = 'nonULLink'>v1.6 - 25 - gd87f066
@@ -65,7 +67,7 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
 
                     //I tested 1.8/1.9/1.10 and the regex above detects the 1.x version fine
                     //if we're getting here, figure out why the regex is not working don't change this default
-                    _version = "2.0";
+                    _version = dv;
                     _forceFTP = true;
                 }
             }

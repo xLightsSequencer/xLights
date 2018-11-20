@@ -34,7 +34,7 @@ public:
     std::string Version() { return _version; };
 	void RestartFFPD();
 	void E131Output(bool enable);
-    FPP(OutputManager* outputManager, const std::string& ip, const std::string& user = "", const std::string& password = "");
+    FPP(OutputManager* outputManager, const std::string& defaultVersion, const std::string& ip, const std::string& user = "", const std::string& password = "");
     FPP(OutputManager* outputManager);
     bool IsConnected() const { return _connected; };
     ~FPP();
