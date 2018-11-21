@@ -15,6 +15,9 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
+        virtual std::list<std::string> GetFileReferences() override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame) override;
+
         long GetCustomWidth() const { return parm1;}
         long GetCustomHeight() const { return parm2;}
         void SetCustomWidth(long w);

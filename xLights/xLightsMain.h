@@ -558,6 +558,7 @@ public:
     void OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event);
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
+    void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -671,6 +672,7 @@ public:
     static const long ID_MENUITEM_GenerateCustomModel;
     static const long ID_MNU_GENERATELYRICS;
     static const long ID_MNU_CHECKSEQ;
+    static const long ID_MNU_CLEANUPFILE;
     static const long ID_MENU_VIEW_LOG;
     static const long ID_MENUITEM18;
     static const long ID_EXPORT_MODELS;
@@ -922,6 +924,7 @@ public:
     wxMenuItem* MenuItem_BkpPQuarter;
     wxMenuItem* MenuItem_BkpPWeek;
     wxMenuItem* MenuItem_BkpPYear;
+    wxMenuItem* MenuItem_CleanupFileLocations;
     wxMenuItem* MenuItem_CrashXLights;
     wxMenuItem* MenuItem_Donate;
     wxMenuItem* MenuItem_DownloadSequences;
@@ -1489,6 +1492,8 @@ private:
     void CreateNotes(EffectLayer* el, std::map<int, std::list<float>>& notes, int interval, int frames);
     std::string CreateNotesLabel(const std::list<float>& notes) const;
     void CheckSequence(bool display);
+    void CleanupRGBEffectsFileLocations();
+    void CleanupSequenceFileLocations();
     void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning);
     void CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
@@ -1563,6 +1568,10 @@ public:
     int GetPlayStatus() const { return playType; }
     MainSequencer* GetMainSequencer() const { return mainSequencer; }
     wxString GetSeqXmlFileName();
+
+    std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory);
+    bool IsInShowFolder(const std::string & file) const;
+    bool FilesMatch(const std::string & file1, const std::string & file2) const;
 
 	void DoPlaySequence();
     void RecalcModels(bool force = false);

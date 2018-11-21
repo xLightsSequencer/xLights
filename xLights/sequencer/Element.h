@@ -21,6 +21,7 @@ class NetInfoClass;
 class Element;
 class ModelElement;
 class Model;
+class xLightsFrame;
 
 class ChangeListener {
 public:
@@ -55,6 +56,7 @@ public:
     int GetLayerNumberFromIndex(int index);
     size_t GetEffectLayerCount() const;
     std::list<std::string> GetFileReferences(EffectManager& em) const;
+    bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
     bool SelectEffectUsingDescription(std::string description);
     bool SelectEffectUsingLayerTime(int layer, int time);
 
@@ -261,3 +263,4 @@ class ModelElement : public Element
 };
 
 #endif // ELEMENT_H
+

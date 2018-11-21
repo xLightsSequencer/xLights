@@ -613,6 +613,20 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
     return res;
 }
 
+bool Element::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
+{
+    bool rc = false;
+    if (GetType() != ELEMENT_TYPE_TIMING)
+    {
+        for (int j = 0; j < GetEffectLayerCount(); j++)
+        {
+            EffectLayer* el = GetEffectLayer(j);
+            rc = el->CleanupFileLocations(frame, em) || rc;
+        }
+    }
+    return rc;
+}
+
 bool Element::SelectEffectUsingDescription(std::string description)
 {
     for (int j = 0; j < GetEffectLayerCount(); j++)

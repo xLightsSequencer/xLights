@@ -3971,6 +3971,49 @@ bool Model::IsProtocolValid(std::string protocol)
     return (std::find(protocols.begin(), protocols.end(), p.Lower()) != protocols.end());
 }
 
+bool Model::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it)
+    {
+        if (it->second.find("Type") != it->second.end() && it->second.at("Type") == "Matrix")
+        {
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+            {
+                if (it2->first != "CustomColors" && it2->first != "ImagePlacement" && it2->first != "Type" && it2->second != "")
+                {
+                    if (wxFile::Exists(it2->second))
+                    {
+                        if (!frame->IsInShowFolder(it2->second))
+                        {
+                            it2->second = frame->MoveToShowFolder(it2->second, wxString(wxFileName::GetPathSeparator()) + "Faces");
+                            rc = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (rc)
+    {
+        wxXmlNode *f = ModelXml->GetChildren();
+        while (f != nullptr) {
+            if ("faceInfo" == f->GetName()) {
+                ModelXml->RemoveChild(f);
+                delete f;
+                f = ModelXml->GetChildren();
+            }
+            else {
+                f = f->GetNext();
+            }
+        }
+        Model::WriteFaceInfo(ModelXml, faceInfo);
+    }
+
+    return rc;
+}
+
 // all when true includes all image files ... even if they dont really exist
 std::list<std::string> Model::GetFaceFiles(bool all) const
 {

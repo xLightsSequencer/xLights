@@ -16,6 +16,7 @@ class VideoEffect : public RenderableEffect
         virtual void SetDefaultParameters() override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         virtual bool AppropriateOnNodes() const override { return false; }
         virtual bool SupportsRenderCache() const override { return true; }
         static bool IsVideoFile(std::string filename);

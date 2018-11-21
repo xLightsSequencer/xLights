@@ -272,6 +272,8 @@ public:
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
     std::list<std::string> GetFaceFiles(bool all = false) const;
+    virtual bool CleanupFileLocations(xLightsFrame* frame);
+    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     void SelectHandle(int handle);
     int GetSelectedHandle();
@@ -282,7 +284,6 @@ public:
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);
-    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     std::vector<std::string> GetModelState() const;

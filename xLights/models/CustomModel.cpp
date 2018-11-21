@@ -100,7 +100,6 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     return Model::OnPropertyGridChange(grid, event);
 }
 
-
 int CustomModel::GetStrandLength(int strand) const {
     return Nodes.size();
 }
@@ -156,6 +155,34 @@ void CustomModel::SetCustomLightness(long lightness)
     ModelXml->DeleteAttribute("CustomBkgLightness");
     ModelXml->AddAttribute("CustomBkgLightness", wxString::Format("%ld", lightness));
     SetFromXml(ModelXml, zeroBased);
+}
+
+bool CustomModel::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    if (wxFile::Exists(custom_background))
+    {
+        if (!frame->IsInShowFolder(custom_background))
+        {
+            custom_background = frame->MoveToShowFolder(custom_background, wxString(wxFileName::GetPathSeparator()) + "Images");
+            ModelXml->DeleteAttribute("CustomBkgImage");
+            ModelXml->AddAttribute("CustomBkgImage", custom_background);
+            SetFromXml(ModelXml, zeroBased);
+            rc =  true;
+        }
+    }
+
+    return Model::CleanupFileLocations(frame) || rc;
+}
+
+std::list<std::string> CustomModel::GetFileReferences()
+{
+    std::list<std::string> res;
+    if (wxFile::Exists(custom_background))
+    {
+        res.push_back(custom_background);
+    }
+    return res;
 }
 
 void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, int StartChannel, int ChannelsPerString) {

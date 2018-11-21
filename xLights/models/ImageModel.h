@@ -27,6 +27,7 @@ class ImageModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool SupportsWiringView() const override { return false; }
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual std::list<std::string> GetFileReferences() override;
+        virtual bool CleanupFileLocations(xLightsFrame* frame) override;
         virtual std::list<std::string> CheckModelSettings() override;
 
     protected:

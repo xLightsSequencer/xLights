@@ -14,7 +14,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix a crash passing in an xml file to xlights which is not in the show folder
    -- bug (keith)  Ensure a city is always set
    -- bug (keith)  Fix a possible crash on sequence close
+   -- bug (keith)  Fix schedule hang if pre-load audio and audio is shorter than fseq
+   -- bug (keith)  Only reverse offset of a value curve if the offset is not zero
+   -- bug (keith)  Allow default FPP version to be set for when FPP Connect cant determine the version
    -- enh (keith)  Add the ability to dim a range of channels as a playlist item
+   -- enh (keith)  Add a tool to cleanup file locations ... bringing them all under the show folder
+   -- enh (keith)  Display the range of controller outputs in the model list
 2018.46 November 18, 2018
    -- bug (dkulp)  Fix node layout crash for custom models
    -- bug (dkulp)  Add some fallbacks for FPP upload if UI security is on

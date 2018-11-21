@@ -1210,3 +1210,21 @@ std::list<std::string> EffectLayer::GetFileReferences(EffectManager& em) const
 
     return res;
 }
+
+bool EffectLayer::CleanupFileLocations(xLightsFrame* frame, EffectManager& em)
+{
+    bool rc = false;
+
+    for (int k = 0; k < GetEffectCount(); k++)
+    {
+        Effect* ef = GetEffect(k);
+
+        if (ef->GetEffectIndex() >= 0)
+        {
+            RenderableEffect *eff = em[ef->GetEffectIndex()];
+            rc = eff->CleanupFileLocations(frame, ef->GetSettings()) || rc;
+        }
+    }
+
+    return rc;
+}

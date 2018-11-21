@@ -41,6 +41,7 @@ class RenderableEffect
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) { return false; }
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) { return false; }
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) { return std::list<std::string>(); }
+        virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) { return false; }
         virtual bool AppropriateOnNodes() const { return true; }
         virtual bool CanRenderPartialTimeInterval() const { return false; }
 

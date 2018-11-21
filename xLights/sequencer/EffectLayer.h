@@ -17,6 +17,7 @@ class Element;
 class Model;
 class ValueCurve;
 class EffectsGrid;
+class xLightsFrame;
 
 class EffectLayer
 {
@@ -32,6 +33,7 @@ class EffectLayer
         void RemoveEffect(int index);
         void RemoveAllEffects(UndoManager *undo_mgr);
         std::list<std::string> GetFileReferences(EffectManager& em) const;
+        bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
 
         int SelectEffectByTypeInTimeRange(const std::string &type, int startTimeMS, int endTimeMS);
         std::vector<Effect*> GetEffectsByTypeAndTime(const std::string &type, int startTimeMS, int endTimeMS);
