@@ -149,7 +149,7 @@ class ScheduleOptions
         std::string GetMIDITimecodeDevice() const { return _MIDITimecodeDevice; }
         void SetMIDITimecodeDevice(std::string midi) { if (midi != _MIDITimecodeDevice) { _MIDITimecodeDevice = midi; _changeCount++; } }
         int GetMIDITimecodeFormat() const { return _MIDITimecodeFormat; }
-        int GetMIDITimecodeOffset() const { return _MIDITimecodeOffset; }
+        size_t GetMIDITimecodeOffset() const { return _MIDITimecodeOffset; }
         void SetMIDITimecodeFormat(int format) { if (format != _MIDITimecodeFormat) { _MIDITimecodeFormat = format; _changeCount++; } }
         void SetMIDITimecodeOffset(size_t offset) { if (offset != _MIDITimecodeOffset) { _MIDITimecodeOffset = offset; _changeCount++; } }
         void SetAdvancedMode(bool advancedMode) { if (_advancedMode != advancedMode) { _advancedMode = advancedMode; _changeCount++; } }

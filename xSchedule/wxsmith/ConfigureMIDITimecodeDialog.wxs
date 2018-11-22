@@ -47,7 +47,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-					<label>Time offset (seconds)</label>
+					<label>Time offset (milliseconds)</label>
 				</object>
 				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
@@ -56,7 +56,7 @@
 			<object class="sizeritem">
 				<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SpinCtrl_TimeOffset" member="yes">
 					<value>0</value>
-					<max>10000</max>
+					<max>3700000</max>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
