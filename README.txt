@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.47 November 22, 2018
    -- bug (keith)  Fix a crash passing in an xml file to xlights which is not in the show folder
    -- bug (keith)  Ensure a city is always set
    -- bug (keith)  Fix a possible crash on sequence close
