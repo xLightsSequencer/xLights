@@ -5,7 +5,7 @@
 #include <string>
 #include <wx/socket.h>
 
-#define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((long)ms) / 60000, (((long)ms) % 60000) / 1000, ((long)ms) % 1000).c_str()
+#define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 
 // Consolidated set of utility functions
 std::string DecodeIPError(wxSocketError err);

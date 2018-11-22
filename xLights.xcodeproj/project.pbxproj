@@ -438,6 +438,9 @@
 		67B2CFF11C3A186A003C17CA /* FanEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD01C3A186A003C17CA /* FanEffect.cpp */; };
 		67B2CFF21C3A186A003C17CA /* FacesEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD21C3A186A003C17CA /* FacesEffect.cpp */; };
 		67B2CFF31C3A186A003C17CA /* DMXEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B2CFD41C3A186A003C17CA /* DMXEffect.cpp */; };
+		67B31CB821AC2E5A005ECB82 /* PlayListItemDimPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */; };
+		67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */; };
+		67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674C7C7921132E3E0056FB9D /* Parallel.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50A2045B96000F5B99D /* SequenceVideoPreview.cpp */; };
 		67B5F50F2045B96100F5B99D /* SequenceVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */; };
@@ -1508,6 +1511,10 @@
 		67B2CFD31C3A186A003C17CA /* FacesEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FacesEffect.h; path = effects/FacesEffect.h; sourceTree = "<group>"; };
 		67B2CFD41C3A186A003C17CA /* DMXEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DMXEffect.cpp; path = effects/DMXEffect.cpp; sourceTree = "<group>"; };
 		67B2CFD51C3A186A003C17CA /* DMXEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DMXEffect.h; path = effects/DMXEffect.h; sourceTree = "<group>"; };
+		67B31CB421AC2E5A005ECB82 /* PlayListItemDimPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemDimPanel.h; path = PlayList/PlayListItemDimPanel.h; sourceTree = "<group>"; };
+		67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemDimPanel.cpp; path = PlayList/PlayListItemDimPanel.cpp; sourceTree = "<group>"; };
+		67B31CB621AC2E5A005ECB82 /* PlayListItemDim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemDim.h; path = PlayList/PlayListItemDim.h; sourceTree = "<group>"; };
+		67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemDim.cpp; path = PlayList/PlayListItemDim.cpp; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		67B4C92017B53D960006B951 /* CoreMediaIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMediaIO.framework; path = System/Library/Frameworks/CoreMediaIO.framework; sourceTree = SDKROOT; };
 		67B4C92117B53D960006B951 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -3299,6 +3306,10 @@
 		67F23FA91E329E6100F8B985 /* PlayList */ = {
 			isa = PBXGroup;
 			children = (
+				67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */,
+				67B31CB621AC2E5A005ECB82 /* PlayListItemDim.h */,
+				67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */,
+				67B31CB421AC2E5A005ECB82 /* PlayListItemDimPanel.h */,
 				678058CF2176619800BFD388 /* PlayListItemFade.cpp */,
 				678058CE2176619800BFD388 /* PlayListItemFade.h */,
 				678058CD2176619800BFD388 /* PlayListItemFadePanel.cpp */,
@@ -3659,7 +3670,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = bin/mac_fix_dylibs;
+			shellScript = "bin/mac_fix_dylibs\n";
 			showEnvVarsInLog = 0;
 		};
 		67480D4E20726AD300B3ED60 /* Run Script */ = {
@@ -4101,6 +4112,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */,
 				672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */,
 				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,
 				67FF749720BD82B6000EA3A3 /* PlayListItemJukebox.cpp in Sources */,
@@ -4139,6 +4151,7 @@
 				67D75E5A2020ED60005BAC6E /* ListenerOSC.cpp in Sources */,
 				67D75E2E2020ED1B005BAC6E /* EventDialog.cpp in Sources */,
 				6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */,
+				67B31CB821AC2E5A005ECB82 /* PlayListItemDimPanel.cpp in Sources */,
 				67F2401B1E32A09E00F8B985 /* JobPool.cpp in Sources */,
 				67F2401C1E32A09E00F8B985 /* PluginBufferingAdapter.cpp in Sources */,
 				672F88C820E10BD1005BE1F4 /* PlayListItemMicrophonePanel.cpp in Sources */,
@@ -4162,6 +4175,7 @@
 				1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */,
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
 				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
+				67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */,
 				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
