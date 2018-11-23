@@ -1284,7 +1284,7 @@ std::string Model::ComputeStringStartChannel(int i) {
             {
                 if (o != nullptr)
                 {
-                    return wxString::Format("%s:i:%ld", comps[0], o->GetUniverse(), ststch).ToStdString();
+                    return wxString::Format("%s:%i:%ld", comps[0], o->GetUniverse(), ststch).ToStdString();
                 }
                 else
                 {
