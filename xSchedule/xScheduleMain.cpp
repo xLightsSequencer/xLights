@@ -1310,7 +1310,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     long long now = wxGetLocalTimeMillis().GetValue();
     if (now - lastms > _timer.GetInterval() * 4)
     {
-        if (lastms != 0)
+        if (lastms != 0 && __schedule->IsOutputToLights())
         {
             logger_base.warn("Frame interval greater than 200%% of what it should have been [%d] %d", _timer.GetInterval() * 2, (int)(now - lastms));
         }
