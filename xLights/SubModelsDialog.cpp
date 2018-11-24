@@ -541,7 +541,16 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
     if (sm != nullptr)
     {
-        sm->strands[sm->strands.size() - 1 - r] = NodesGrid->GetCellValue(r, 0);
+        int str = (int)sm->strands.size() - 1 - r;
+        if (str < 0)
+        {
+            logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
+            wxASSERT(false);
+        }
+        else
+        {
+            sm->strands[str] = NodesGrid->GetCellValue(r, 0);
+        }
     }
     else
     {

@@ -423,7 +423,7 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
 
 bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
-        ReentrancyCounter rec(_reentrancyCounter);
+    ReentrancyCounter rec(_reentrancyCounter);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

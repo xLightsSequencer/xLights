@@ -1377,11 +1377,11 @@ int ScheduleManager::CheckSchedule()
             (const char *)(*it)->GetPlayList()->GetName().c_str(), 
             (const char *)(*it)->GetSchedule()->GetName().c_str(), 
             (*it)->GetSchedule()->GetPriority(), 
-            (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")),
-            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""),
-            (step == nullptr ? wxString("").c_str() : step->GetNameNoTime().c_str()),
-            (step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetPosition())),
-            (step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetLengthMS()))
+            (const char*)(*it)->IsStopped() ? wxString("Stopped").c_str() : ((*it)->GetPlayList()->IsRunning() ? wxString("Running").c_str() : ((*it)->GetPlayList()->IsSuspended() ? wxString("Suspended").c_str() : wxString("Done").c_str())),
+            (const char*)((*it)->GetPlayList()->IsSuspended() ? wxString("Suspended").c_str() : wxString("").c_str()),
+            (const char*)(step == nullptr ? wxString("").c_str() : step->GetNameNoTime().c_str()),
+            (const char*)(step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetPosition())),
+            (const char*)(step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetLengthMS()))
             );
     }
 

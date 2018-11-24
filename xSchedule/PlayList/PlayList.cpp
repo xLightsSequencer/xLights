@@ -487,7 +487,7 @@ bool PlayList::Frame(wxByte* buffer, size_t size, bool outputframe)
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size, outputframe))
         {
-            logger_base.debug("PlayList: Frame moving to next step because step '%s' is done.", _currentStep->GetNameNoTime().c_str());
+            logger_base.debug("PlayList: Frame moving to next step because step '%s' is done.", (const char *)_currentStep->GetNameNoTime().c_str());
             return !MoveToNextStep();
         }
     }
@@ -855,7 +855,7 @@ bool PlayList::MoveToNextStep()
 
     _currentStep->Start(-1);
 
-    logger_base.debug("Move to next step moved to %s.", _currentStep->GetNameNoTime().c_str());
+    logger_base.debug("Move to next step moved to %s.", (const char*)_currentStep->GetNameNoTime().c_str());
 
     if (_suspendAtEndOfStep)
     {
