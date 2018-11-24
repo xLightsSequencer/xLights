@@ -557,7 +557,7 @@ public:
                     long sc = model->NodeStartChannel(i);
                     for (int j = 0; j < model->GetChanCountPerNode(); j++)
                     {
-                        _nonContiguousChannels.push_back(sc + _absoluteStartChannel + 1 + j);
+                        _nonContiguousChannels.push_back(sc + j + 1);
                     }
                 }
                 _absoluteStartChannel = -1;
