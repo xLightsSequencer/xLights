@@ -413,7 +413,6 @@ std::string FPP::SaveFPPUniversesV1(const std::string& onlyip, const std::list<i
     return file;
 }
 
-
 static wxString URLEncode(const wxString &value)
 {
     wxString ret = wxT("");
@@ -460,6 +459,7 @@ static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
 }
 
 bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file, wxWindow* parent, bool compress)  {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static int bufLen = 1024*1024*4; //4MB buffer
     
    //we cannot use wxHTTP for a few reasons:
@@ -491,12 +491,14 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
     
     bool cancelled = false;
     wxProgressDialog progress("FPP Upload", filename, 1000, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+    logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
     progress.Update(0, wxEmptyString, &cancelled);
     int lastDone = 0;
 
     std::string ct = "Content-Type: application/octet-stream\r\n\r\n";
 
     if (compress && supportsGZIP(_version)) {
+        logger_base.debug("Uploading it compressed.");
         //determine size of gzipped data
         progress.Show();
         unsigned char *rbuf = new unsigned char[bufLen];
@@ -534,11 +536,11 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
 
         delete [] rbuf;
     } else {
+        logger_base.debug("Uploading it uncompressed.");
         compress = false;
         wxFile f_in(file);
         fileLen = f_in.Length();
     }
-    
     
     wxSocketClient socket(wxSOCKET_NOWAIT_WRITE);
     if (socket.Connect(address)) {
@@ -655,8 +657,10 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             socket.Write(&data[written], len - written);
             written += socket.LastWriteCount();
         }
+        logger_base.debug("Uploaded.");
         if (compress) {
             progress.Update(999, "Decompressing " + filename, &cancelled);
+            logger_base.debug("Decompressing.");
         }
         socket.Read(rbuf, bufLen-1);
         int i = socket.LastReadCount();
@@ -670,6 +674,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             if (inp) {
                 delete inp;
             }
+            logger_base.debug("Renaming done.");
         }
         progress.Update(100, wxEmptyString, &cancelled);
         delete [] rbuf;
@@ -680,6 +685,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
     
     return true;
 }
+
 bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent)
 {
     bool cancelled = false;
@@ -743,6 +749,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
 
     return cancelled;
 }
+
 bool FPP::SetPlaylist(const std::string &name, wxWindow *parent) {
     wxJSONValue origJson;
     GetURLAsJSON("/fppjson.php?command=getPlayListEntries&pl=" + URLEncode(name) + "&reload=true", origJson);
