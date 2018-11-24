@@ -1,16 +1,13 @@
-#include "PlayListItemSerial.h"
-#include "PlayListItemSerialPanel.h"
-#include "../xScheduleMain.h"
-#include "../ScheduleManager.h"
-#include "PlayList.h"
-#include "PlayListStep.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
-#include <log4cpp/Category.hh>
-#include "../RunningSchedule.h"
+
+#include "PlayListItemSerial.h"
+#include "PlayListItemSerialPanel.h"
 #include "../xLights/outputs/serial.h"
 #include "../../xLights/outputs/SerialOutput.h"
 #include "../../xLights/UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 PlayListItemSerial::PlayListItemSerial(wxXmlNode* node) : PlayListItem(node)
 {
@@ -86,47 +83,14 @@ std::string PlayListItemSerial::GetNameNoTime() const
 
 std::string PlayListItemSerial::GetTooltip()
 {
-    return "Use \\xAA to enter binary values where AA is a hexadecimal value.\n\nAvailable variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule";
+    return "Use \\xAA to enter binary values where AA is a hexadecimal value.\n\n" + GetTagHint();
 }
 
 unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
 {
-	wxString working(s);
+	wxString working = ReplaceTags(s);
 
-	PlayList* pl = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
-	if (pl != nullptr)
-	{
-		if (working.Contains("%RUNNING_PLAYLIST%"))
-		{
-			working.Replace("%RUNNING_PLAYLIST%", pl->GetNameNoTime(), true);
-		}
-		PlayListStep* pls = pl->GetRunningStep();
-		if (pls != nullptr)
-		{
-			if (working.Contains("%RUNNING_PLAYLISTSTEP%"))
-			{
-				working.Replace("%RUNNING_PLAYLISTSTEP%", pls->GetNameNoTime(), true);
-			}
-			if (working.Contains("%RUNNING_PLAYLISTSTEPMS%"))
-			{
-				working.Replace("%RUNNING_PLAYLISTSTEPMS%", wxString::Format(wxT("%i"), pls->GetLengthMS()), true);
-			}
-			if (working.Contains("%RUNNING_PLAYLISTSTEPMSLEFT%"))
-			{
-				working.Replace("%RUNNING_PLAYLISTSTEPMSLEFT%", wxString::Format(wxT("%i"), pls->GetLengthMS() - pls->GetPosition()), true);
-			}
-		}
-	}
-	if (working.Contains("%RUNNING_SCHEDULE%"))
-	{
-		RunningSchedule* rs = xScheduleFrame::GetScheduleManager()->GetRunningSchedule();
-		if (rs != nullptr && rs->GetPlayList()->IsRunning())
-		{
-			working.Replace("%RUNNING_SCHEDULE%", rs->GetSchedule()->GetName(), true);
-		}
-	}
-
-	unsigned char* buffer = (unsigned char*)malloc(working.size());
+    unsigned char* buffer = (unsigned char*)malloc(working.size());
 	used = 0;
 
 	for (int i = 0; i < working.size(); i++)

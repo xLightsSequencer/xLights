@@ -1,14 +1,12 @@
-#include "PlayListItemOSC.h"
-#include "PlayListItemOSCPanel.h"
-#include "PlayList.h"
 #include <wx/xml/xml.h>
 #include <wx/notebook.h>
-#include <log4cpp/Category.hh>
+
+#include "PlayListItemOSC.h"
+#include "PlayListItemOSCPanel.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
-#include "PlayListStep.h"
-#include "../RunningSchedule.h"
-#include "../../xLights/AudioManager.h"
+
+#include <log4cpp/Category.hh>
 
 PlayListItemOSC::PlayListItemOSC(wxXmlNode* node) : PlayListItem(node)
 {
@@ -105,7 +103,7 @@ std::string PlayListItemOSC::GetNameNoTime() const
 
 std::string PlayListItemOSC::GetTooltip()
 {
-    return "Available variables:\n    %RUNNING_PLAYLIST% - current playlist\n    %RUNNING_PLAYLISTSTEP% - step name\n    %RUNNING_PLAYLISTSTEPMS% - Position in current step\n    %RUNNING_PLAYLISTSTEPMSLEFT% - Time left in current step\n    %RUNNING_SCHEDULE% - Name of schedule\n    %STEPNAME% - Current step\n    %NEXTSTEPNAME% - Next step\n    %ALBUM% - from mp3\n    %TITLE% - from mp3\n    %ARTIST% - from mp3\n    %SHOWDIR% - the current show directory";
+    return GetTagHint() + "\n    %SHOWDIR% - the current show directory";
 }
 
 OSCTYPE PlayListItemOSC::EncodeType(const std::string type) const
@@ -156,72 +154,7 @@ std::string PlayListItemOSC::SubstituteVariables(const std::string value)
         res.Replace("%SHOWDIR%", xScheduleFrame::GetScheduleManager()->GetShowDir(), true);
     }
 
-    PlayList* pl = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
-    if (pl != nullptr)
-    {
-        if (res.Contains("%RUNNING_PLAYLIST%"))
-        {
-            res.Replace("%RUNNING_PLAYLIST%", pl->GetNameNoTime(), true);
-        }
-        PlayListStep* pls = pl->GetRunningStep();
-        if (pls != nullptr)
-        {
-            if (res.Contains("%RUNNING_PLAYLISTSTEP%"))
-            {
-                res.Replace("%RUNNING_PLAYLISTSTEP%", pls->GetNameNoTime(), true);
-            }
-            if (res.Contains("%RUNNING_PLAYLISTSTEPMS%"))
-            {
-                res.Replace("%RUNNING_PLAYLISTSTEPMS%", wxString::Format(wxT("%i"), pls->GetLengthMS()), true);
-            }
-            if (res.Contains("%RUNNING_PLAYLISTSTEPMSLEFT%"))
-            {
-                res.Replace("%RUNNING_PLAYLISTSTEPMSLEFT%", wxString::Format(wxT("%i"), pls->GetLengthMS() - pls->GetPosition()), true);
-            }
-        }
-    }
-    if (res.Contains("%RUNNING_SCHEDULE%"))
-    {
-        RunningSchedule* rs = xScheduleFrame::GetScheduleManager()->GetRunningSchedule();
-        if (rs != nullptr && rs->GetPlayList()->IsRunning())
-        {
-            res.Replace("%RUNNING_SCHEDULE%", rs->GetSchedule()->GetName(), true);
-        }
-    }
-
-    auto playlist = xScheduleFrame::GetScheduleManager()->GetRunningPlayList();
-    PlayListStep* step = nullptr;
-    if (playlist != nullptr && !playlist->IsRandom())
-    {
-        step = playlist->GetRunningStep();
-        bool dummy;
-        auto nextstep = playlist->GetNextStep(dummy);
-        if (nextstep != nullptr)
-        {
-            res.Replace("%NEXTSTEPNAME%", nextstep->GetNameNoTime());
-        }
-    }
-    res.Replace("%NEXTSTEPNAME%", "");
-
-    if (step == nullptr)
-    {
-        step = xScheduleFrame::GetScheduleManager()->GetStepContainingPlayListItem(GetId());
-    }
-
-    if (step != nullptr)
-    {
-        res.Replace("%STEPNAME%", step->GetNameNoTime());
-
-        AudioManager* audio = step->GetAudioManager();
-        if (audio != nullptr)
-        {
-            res.Replace("%TITLE%", audio->Title());
-            res.Replace("%ARTIST%", audio->Artist());
-            res.Replace("%ALBUM%", audio->Album());
-        }
-    }
-
-    return res.ToStdString();
+    return ReplaceTags(res.ToStdString());
 }
 
 void PlayListItemOSC::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)

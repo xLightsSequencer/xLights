@@ -7,6 +7,7 @@
 #include <wx/notebook.h>
 
 class wxXmlNode;
+class AudioManager;
 
 class PlayListItem
 {
@@ -30,6 +31,10 @@ protected:
     void Save(wxXmlNode* node);
     void Copy(PlayListItem* to) const;
     bool IsInSlaveMode() const;
+    std::string ReplaceTags(const std::string s) const;
+
+protected:
+    static std::string GetTagHint();
 
 public:
 
