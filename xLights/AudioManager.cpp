@@ -2221,6 +2221,14 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 	int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
 	struct SwrContext *au_convert_ctx = swr_alloc_set_opts(nullptr, out_channel_layout, out_sample_fmt, out_sample_rate,
 		in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
+
+    if (au_convert_ctx == nullptr)
+    {
+        logger_base.error("DoLoadAudioData: swe_alloc_set_opts was null");
+        // let it go as it may be the cause of a crash
+        wxASSERT(false);
+    }
+
 	swr_init(au_convert_ctx);
 
 	// start at the beginning
@@ -2248,11 +2256,26 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     int outSamples;
 					try
 					{
+                        if (frame->data == nullptr)
+                        {
+                            logger_base.error("DoLoadAudioData: frame->data was nullptr.");
+                            // let this go maybe it causes the crash
+                            wxASSERT(false);
+                        }
+					    if (frame->nb_samples == 0)
+					    {
+                            logger_base.error("DoLoadAudioData: frame->nb_samples was 0.");
+                            // let this go maybe it causes the crash
+                            wxASSERT(false);
+                        }
+
 						outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
 					}
 					catch (...)
 					{
-						swr_free(&au_convert_ctx);
+                        logger_base.error("DoLoadAudioData: swr_convert threw an exception.");
+                        wxASSERT(false);
+                        swr_free(&au_convert_ctx);
 						av_free(out_buffer);
 						av_free(frame);
 						return;
