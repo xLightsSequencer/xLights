@@ -29,6 +29,7 @@ protected:
     wxUint32 _id;
     wxUint32 _suspend;
     int _loops;
+    bool _everyStep;
 #pragma endregion Member Variables
 
     std::string FormatTime(size_t timems, bool ms = false) const;
@@ -65,6 +66,8 @@ public:
     void DoLoop() { _loops--; }
     bool IsMoreLoops() const { return _loops > 0; }
     void SetLoops(int loops) { _loops = loops; }
+    void SetEveryStep(bool everyStep) { if (_everyStep != everyStep) { _everyStep = everyStep; _changeCount++; } }
+    bool GetEveryStep(void) const { return _everyStep; }
     bool IsPaused() const { return _pause != 0; }
     void Stop();
     void Suspend(bool suspend);

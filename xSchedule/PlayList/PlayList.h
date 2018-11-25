@@ -21,6 +21,7 @@ protected:
     int _reentrancyCounter;
     wxUint32 _id;
     std::list<PlayListStep*> _steps;
+    std::list<PlayListStep*> _everySteps;
     std::list<Schedule*> _schedules;
     int _lastSavedChangeCount;
     int _changeCount;

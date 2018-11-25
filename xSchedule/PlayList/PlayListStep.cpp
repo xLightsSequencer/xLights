@@ -46,6 +46,7 @@ PlayListStep::PlayListStep(OutputManager* outputManager, wxXmlNode* node)
     _excludeFromRandom = false;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
+    _everyStep = false;
     Load(outputManager, node);
 }
 
@@ -67,6 +68,7 @@ PlayListStep::PlayListStep()
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _excludeFromRandom = false;
+    _everyStep = false;
 }
 
 PlayListStep::PlayListStep(const PlayListStep& step)
@@ -81,6 +83,7 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     _lastSavedChangeCount = step._lastSavedChangeCount;
     _changeCount = step._changeCount;
     _excludeFromRandom = step._excludeFromRandom;
+    _everyStep = step._everyStep;
     _id = step._id;
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -135,6 +138,10 @@ wxXmlNode* PlayListStep::Save()
     {
         res->AddAttribute("ExcludeRandom", "TRUE");
     }
+    if (_everyStep)
+    {
+        res->AddAttribute("EveryStep", "TRUE");
+    }
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -151,6 +158,7 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
 {
     _name = node->GetAttribute("Name", "");
     _excludeFromRandom = node->GetAttribute("ExcludeRandom", "FALSE") == "TRUE";
+    _everyStep = node->GetAttribute("EveryStep", "FALSE") == "TRUE";
 
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
