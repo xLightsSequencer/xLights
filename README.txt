@@ -11,12 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.48 November 26, 2018
+   -- bug (keith)  Add extra logging to try to identify xSchedule audio load crash
+   -- bug (keith)  Fix bars effect expand on large model loops around
+   -- bug (keith)  Fix single strand skips renders in correctly on odd width models
    -- bug (keith)  Fix vendor model download failing
+   -- bug (keith)  Fix playlist loops loops once more than it should
    -- bug (keith)  Fix indiv start channels default incorrectly if using #ip:u:sc
    -- bug (keith)  Fix make view master crashes 
    -- bug (keith)  Fix output processor colour order not saving
    -- bug (keith)  Fix test model channel for dis-contiguous channel model is incorrect: 
    -- bug (keith)  Fix crash in submodel dialog
+   -- enh (keith)  Add ability to define a step in a playlist that plays as part of every step in the playlist
 2018.47 November 22, 2018
    -- bug (keith)  Fix a crash passing in an xml file to xlights which is not in the show folder
    -- bug (keith)  Ensure a city is always set
