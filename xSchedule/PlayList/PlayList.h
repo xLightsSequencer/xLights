@@ -88,7 +88,7 @@ public:
     bool SetLooping(bool looping) { _looping = looping; return true; }
     bool IsStepLooping() const { return _loopStep; }
     int GetLoopsLeft() const { return _loops; }
-    void DoLoop() { --_loops; if (_loops == 0) { _loops = -1; _looping = false; } }
+    void DoLoop() { --_loops; if (_loops == 1) { _loops = -1; _looping = false; } }
     void SetStepLooping(bool loop) { _loopStep = loop; }
     PlayListStep* GetStepAtTime(long ms);
     size_t GetPosition();
