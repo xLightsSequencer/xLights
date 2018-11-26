@@ -1369,6 +1369,37 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
     }
 }
 
+// Consolidate the everyday steps into the main steps list
+// Used when editing the playlist
+void PlayList::ConsolidateEveryDay()
+{
+    while(_everySteps.size() > 0)
+    {
+        _steps.push_front(_everySteps.back());
+        _everySteps.pop_front();
+    }
+}
+
+// Extracts the everyday tagged steps into the right list
+void PlayList::SeparateEveryDay()
+{
+    auto it = _steps.begin();
+    while (it != _steps.end())
+    {
+        if ((*it)->GetEveryStep())
+        {
+            auto tomove = it;
+            ++it;
+            _everySteps.push_back(*tomove);
+            _steps.erase(tomove);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
 int PlayList::GetFrameMS()
 {
     {

@@ -83,7 +83,7 @@ class xScheduleFrame : public wxFrame
     void DeleteSelectedItem();
     void ValidateWindow();
     void CreateButtons();
-    void UpdateStatus();
+    void UpdateStatus(bool force = false);
     void UpdateSchedule();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string GetScheduleName(Schedule* schedule, const std::list<RunningSchedule*>& active) const;
@@ -92,7 +92,7 @@ class xScheduleFrame : public wxFrame
     bool HandleSpecialKeys(wxKeyEvent& event);
     void AddPlayList(bool  forceadvanced = false);
     void EditSelectedItem(bool  forceadvanced = false);
-    void UpdateUI();
+    void UpdateUI(bool force = false);
     void DoPaste();
     void DoCopy();
     void AddSchedule();

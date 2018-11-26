@@ -141,6 +141,9 @@ public:
     PlayListItemText* GetRunningText(const std::string& name);
     #pragma endregion Getters and Setters
 
+    void ConsolidateEveryDay();
+    void SeparateEveryDay();
+
     wxXmlNode* Save();
     void Load(OutputManager* outputManager, wxXmlNode * node);
     

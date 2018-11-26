@@ -190,6 +190,8 @@ PlayListDialog::PlayListDialog(wxWindow* parent, OutputManager* outputManager, P
     // save the current state in case the user cancels
     _savedState = new PlayList(*playlist);
 
+    _playlist->ConsolidateEveryDay();
+
     PopulateTree(playlist, nullptr, nullptr);
 
     TreeCtrl_PlayList->DragAcceptFiles(true);
@@ -851,6 +853,7 @@ void PlayListDialog::OnButton_OkClick(wxCommandEvent& event)
 {
     SwapPage(nullptr);
     delete _savedState;
+    _playlist->SeparateEveryDay();
     EndDialog(wxID_OK);
 }
 

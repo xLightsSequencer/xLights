@@ -94,8 +94,8 @@ void PlayListItemFile::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     {
         _started = true;
 
-        wxString content = ReplaceTags(_content);
-        wxString fileName = ReplaceTags(_fileName);
+        wxString content = FileReplaceTags(_content);
+        wxString fileName = FileReplaceTags(_fileName);
 
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

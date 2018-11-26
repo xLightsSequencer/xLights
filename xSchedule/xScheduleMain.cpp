@@ -765,7 +765,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     RemoteWarning();
 
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -1030,7 +1030,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
         TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
         __schedule->AddPlayList(newpl);
     }
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -1065,7 +1065,7 @@ void xScheduleFrame::DeleteSelectedItem()
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event)
 {
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -1295,7 +1295,7 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event)
 {
     EditSelectedItem();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -1779,7 +1779,7 @@ std::string FormatTime(size_t timems, bool ms = false)
     }
 }
 
-void xScheduleFrame::UpdateStatus()
+void xScheduleFrame::UpdateStatus(bool force)
 {
 #ifdef TRACE_SCHEDULE_PERFORMANCE
     wxStopWatch sw;
@@ -1827,7 +1827,8 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (p->GetId() != lastid ||
+        if (force ||
+            p->GetId() != lastid ||
             p->GetChangeCount() != lastcc ||
             (int)p->IsRunning() != lastrunning ||
             p->GetSteps().size() != laststeps)
@@ -2261,7 +2262,6 @@ void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &repo
     memBuff.AppendData(ct, strlen(ct));
     memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
 
-
     wxFile f_in(report.GetCompressedFileName());
     wxFileOffset fLen = f_in.Length();
     void* tmp = memBuff.GetAppendBuf(fLen);
@@ -2420,7 +2420,7 @@ void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 {
     AddPlayList();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -2444,21 +2444,21 @@ void xScheduleFrame::AddPlayList(bool forceadvanced)
 void xScheduleFrame::OnButton_AddClick(wxCommandEvent& event)
 {
     AddPlayList();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_EditClick(wxCommandEvent& event)
 {
     EditSelectedItem();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
 {
     DeleteSelectedItem();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -2538,7 +2538,7 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
     delete amd;
 }
 
-void xScheduleFrame::UpdateUI()
+void xScheduleFrame::UpdateUI(bool force)
 {
 #ifdef TRACE_SCHEDULE_PERFORMANCE
     wxStopWatch sw;
@@ -2548,7 +2548,7 @@ void xScheduleFrame::UpdateUI()
 
     StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
 
-    UpdateStatus();
+    UpdateStatus(force);
 
 #ifdef TRACE_SCHEDULE_PERFORMANCE
     logger_base.debug("        Status updated %ldms", sw.Time());
