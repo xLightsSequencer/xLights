@@ -3625,6 +3625,8 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
 	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
@@ -3632,6 +3634,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 		mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
 		if (mps == MEDIAPLAYINGSTATE::PLAYING)
 		{
+            logger_base.debug("Test: Suspending play.");
 			CurrentSeqXmlFile->GetMedia()->Pause();
 			SetAudioControls();
 		}
@@ -3643,6 +3646,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	bool output = CheckBoxLightOutput->IsChecked();
 	if (output)
 	{
+        logger_base.debug("Test: Turning off output to lights.");
         _outputManager.AllOff();
         CheckBoxLightOutput->SetValue(false);
         EnableOutputs();
@@ -3654,16 +3658,21 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
     // Make sure all the models in model groups are valid
     AllModels.ResetModelGroups();
 
+    logger_base.debug("Test: Opening test dialog.");
+
 	// display the test dialog
     PixelTestDialog dialog(this, &_outputManager, networkFile, &AllModels);
     dialog.CenterOnParent();
     dialog.ShowModal();
+
+    logger_base.debug("Test: Test dialog closed.");
 
 	SetCursor(wxCURSOR_DEFAULT);
 
 	// resume output if it was set
 	if (output)
 	{
+        logger_base.debug("Test: Turning back on output to lights.");
         CheckBoxLightOutput->SetValue(true);
         EnableOutputs();
 	}
@@ -3673,7 +3682,8 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	// resume playing the media if it was playing
 	if (mps == MEDIAPLAYINGSTATE::PLAYING)
 	{
-		CurrentSeqXmlFile->GetMedia()->Play();
+        logger_base.debug("Test: Resuming play.");
+        CurrentSeqXmlFile->GetMedia()->Play();
 		SetAudioControls();
 	}
 }
