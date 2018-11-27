@@ -2040,7 +2040,7 @@ void LayoutPanel::FinalizeModel()
             float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
             bool cancelled = false;
 
-            wxProgressDialog prog("Model download", "Downloading models ...", 100, this);
+            wxProgressDialog prog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
             if (selectedButton->GetModelType() == "Download")
             {
                 prog.Show();

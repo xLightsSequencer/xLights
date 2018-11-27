@@ -18,7 +18,6 @@
 #include "../ModelDimmingCurveDialog.h"
 #include "../StartChannelDialog.h"
 #include "../SubModelsDialog.h"
-#include "../ControllerConnectionDialog.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
 #include "../outputs/IPOutput.h"
@@ -3700,7 +3699,10 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             xlights->SetCursor(wxCURSOR_WAIT);
             if (dlg.DlgInit(prog, low, high))
             {
-                if (prog != nullptr) prog->Hide();
+                if (prog != nullptr)
+                {
+                    prog->Update(100);
+                }
                 xlights->SetCursor(wxCURSOR_DEFAULT);
                 if (dlg.ShowModal() == wxID_OK)
                 {
