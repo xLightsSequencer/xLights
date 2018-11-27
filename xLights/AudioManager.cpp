@@ -52,7 +52,7 @@ void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0
     SDL_memset(stream, 0, len);
-    
+
     std::mutex *audio_lock = (std::mutex*)udata;
 
     std::unique_lock<std::mutex> locker(*audio_lock);
@@ -95,7 +95,7 @@ private:
     AVCodecContext* _codecContext;
     AVStream* _audioStream;
     AVFrame* _frame;
-    
+
 public:
     AudioLoadJob(AudioManager* audio, AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     virtual ~AudioLoadJob() {};
@@ -110,7 +110,7 @@ class AudioScanJob : Job
 private:
     AudioManager* _audio;
     std::string _status;
-    
+
 public:
     AudioScanJob(AudioManager* audio);
     virtual ~AudioScanJob() {};
@@ -624,7 +624,7 @@ void SDL::SeekAndLimitPlayLength(int id, long pos, long len)
     auto d = GetData(id);
 
     if (d == nullptr) return;
-    
+
     d->SeekAndLimitPlayLength(pos, len);
 }
 
@@ -1942,7 +1942,7 @@ int AudioManager::decodesideinfosize(int version, int mono)
 void AudioManager::SetFrameInterval(int intervalMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    
+
     // If this is different from what it was previously
 	if (_intervalMS != intervalMS)
 	{
@@ -2209,10 +2209,10 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("DoLoadAudioData: Doing load of song data.");
 
-    logger_base.debug("formatContext 0x%lx", (long)formatContext);
-    logger_base.debug("codecContext 0x%lx", (long)codecContext);
-    logger_base.debug("audioStream 0x%lx", (long)audioStream);
-    logger_base.debug("frame 0x%lx", (long)frame);
+    logger_base.debug("formatContext 0x%lx", wxLongLong((size_t)formatContext).ToLong());
+    logger_base.debug("codecContext 0x%lx", wxLongLong((size_t)codecContext).ToLong());
+    logger_base.debug("audioStream 0x%lx", wxLongLong((size_t)audioStream).ToLong());
+    logger_base.debug("frame 0x%lx", wxLongLong((size_t)frame).ToLong());
 
     wxStopWatch sw;
 
@@ -2224,7 +2224,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     int out_channels = av_get_channel_layout_nb_channels(out_channel_layout);
     AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
     int out_sample_rate = _rate;
-    
+
     AVPacket readingPacket;
 	av_init_packet(&readingPacket);
 
@@ -2389,7 +2389,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                         // let this go maybe it causes the crash
                         wxASSERT(false);
                     }
-                    
+
 				    outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
 				}
 				catch (...)
@@ -2434,7 +2434,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     _trackSize = _loadedData;
 #endif
     wxASSERT(_trackSize == _loadedData);
-    
+
 	// Clean up!
 	swr_free(&au_convert_ctx);
 	av_free(out_buffer);
@@ -2765,7 +2765,7 @@ void xLightsVamp::LoadPlugins(AudioManager* paudio)
     logger_base.debug("Loading plugins.");
 
     Vamp::HostExt::PluginLoader::PluginKeyList pluginList = _loader->listPlugins();
-    
+
     logger_base.debug("Plugins found %d.", pluginList.size());
 
 	for (size_t x = 0; x < pluginList.size(); x++)
