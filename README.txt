@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.49 November 27, 2018
+   -- bug (keith)  Maybe one fix for xSchedule crashes loading audio + lots of extra logging to try and work out why it crashes
+   -- bug (keith)  Fix model download progress dialog does not hide
+   -- bug (keith)  Fix cant delete an every step step
 2018.48 November 26, 2018
    -- bug (keith)  Add extra logging to try to identify xSchedule audio load crash
    -- bug (keith)  Fix bars effect expand on large model loops around
