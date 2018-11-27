@@ -348,7 +348,7 @@ std::string PlayListStep::GetNameNoTime()
         return _items.front()->GetNameNoTime();
     }
 }
-
+    
 PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
 {
     ms = 9999;

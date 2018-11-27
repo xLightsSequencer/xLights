@@ -474,7 +474,7 @@ void PlayList::RemoveStep(PlayListStep* step)
             logger_base.warn("PlayList removing step but we appear to be manipulating it elsewhere. This may not end well.");
         }
 
-        if (step->GetEveryStep())
+        if (step->GetEveryStep() && _everySteps.size() > 0) // if we are editing then this will be empty and the step will be in as a regular step
         {
             _everySteps.remove(step);
         }
