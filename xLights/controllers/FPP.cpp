@@ -686,7 +686,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
     return true;
 }
 
-bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent)
+bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent, bool suppressZip)
 {
     bool cancelled = false;
     wxString media = "";
@@ -720,7 +720,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
         if (_forceFTP) {
             cancelled = _ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, parent);
         } else {
-            cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true);
+            cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true && !suppressZip);
         }
         sequences[fn.GetName().ToStdString() + ".fseq"] = "";
     } else {

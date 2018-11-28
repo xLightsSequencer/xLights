@@ -32,6 +32,7 @@ const long FPPConnectDialog::ID_TEXTCTRL_Password = wxNewId();
 const long FPPConnectDialog::ID_BUTTON_Console = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT7 = wxNewId();
 const long FPPConnectDialog::ID_CHOICE1 = wxNewId();
+const long FPPConnectDialog::ID_CHECKBOX3 = wxNewId();
 const long FPPConnectDialog::ID_CHECKBOX2 = wxNewId();
 const long FPPConnectDialog::ID_COMBOBOX1 = wxNewId();
 const long FPPConnectDialog::ID_PANEL_FTP = wxNewId();
@@ -109,6 +110,10 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Choice_DefaultVersion->SetSelection( Choice_DefaultVersion->Append(_("2.x")) );
 	Choice_DefaultVersion->SetToolTip(_("We recommend you leave this at 2.x unless you have a 1.x FPP AND experience issues uploading."));
 	FlexGridSizer2->Add(Choice_DefaultVersion, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressZip = new wxCheckBox(Panel_FTP, ID_CHECKBOX3, _("Suppress zipping of content"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+	CheckBox_SuppressZip->SetValue(false);
+	FlexGridSizer2->Add(CheckBox_SuppressZip, 1, wxALL|wxEXPAND, 5);
 	PlayListCheckbox = new wxCheckBox(Panel_FTP, ID_CHECKBOX2, _("Append To Playlist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	PlayListCheckbox->SetValue(false);
 	FlexGridSizer2->Add(PlayListCheckbox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -598,9 +603,9 @@ bool FPPConnectDialog::FTPUpload()
 
             if (xLightsFrame::CurrentDir == xLightsFrame::FseqDir) {
                 wxFileName fn(file);
-                cancelled = fpp.UploadSequence(file.ToStdString(), fn.GetPath().ToStdString(), this);
+                cancelled = fpp.UploadSequence(file.ToStdString(), fn.GetPath().ToStdString(), this, CheckBox_SuppressZip->IsChecked());
             } else {
-                cancelled = fpp.UploadSequence(file.ToStdString(), xLightsFrame::FseqDir.ToStdString(), this);
+                cancelled = fpp.UploadSequence(file.ToStdString(), xLightsFrame::FseqDir.ToStdString(), this, CheckBox_SuppressZip->IsChecked());
             }
         }
     }

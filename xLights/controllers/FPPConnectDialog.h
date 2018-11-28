@@ -68,6 +68,7 @@ class FPPConnectDialog: public wxDialog
 		wxButton* Button_Refresh_Drives;
 		wxButton* Button_Upload;
 		wxButton* Button_UploadToAll;
+		wxCheckBox* CheckBox_SuppressZip;
 		wxCheckBox* CheckBox_UploadController;
 		wxCheckBox* CheckBox_UploadModels;
 		wxCheckBox* PlayListCheckbox;
@@ -107,6 +108,7 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_BUTTON_Console;
 		static const long ID_STATICTEXT7;
 		static const long ID_CHOICE1;
+		static const long ID_CHECKBOX3;
 		static const long ID_CHECKBOX2;
 		static const long ID_COMBOBOX1;
 		static const long ID_PANEL_FTP;
