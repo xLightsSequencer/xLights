@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)  FPP Connect - save/load previous file selections on dialog open and close
 2018.49 November 27, 2018
    -- bug (keith)  Maybe one fix for xSchedule crashes loading audio + lots of extra logging to try and work out why it crashes
    -- bug (keith)  Fix model download progress dialog does not hide

@@ -180,6 +180,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	Connect(ID_CHECKLISTBOX_Sequences,wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,(wxObjectEventFunction)&FPPConnectDialog::OnCheckListBox_SequencesToggled);
 	Connect(ID_BUTTON_Upload,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FPPConnectDialog::OnButton_UploadToAllClick);
+	Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&FPPConnectDialog::OnClose);
 	//*)
 
     CheckListBox_Sequences->Connect(ID_CHECKLISTBOX_Sequences, wxEVT_RIGHT_UP, (wxObjectEventFunction)&FPPConnectDialog::OnSequenceRClick, nullptr, this);
@@ -193,6 +194,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     LoadSequences();
 
     LoadConnectionDetails();
+    LoadSettings();
     ValidateWindow();
 }
 
@@ -308,7 +310,7 @@ void FPPConnectDialog::LoadConnectionDetails()
             }
         }
     }
-    
+
     wxString ipdef = ComboBox_IPAddress->GetValue();
     if (ipdef != "") {
         wxHTTP http;
@@ -372,7 +374,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Scanning folder for sequences for FPP upload: %s", (const char *)dir.c_str());
 
-    wxString fseqDir = xLightsFrame::FseqDir;
+    const wxString fseqDir = xLightsFrame::FseqDir;
 
     wxDir directory;
     directory.Open(dir);
@@ -761,6 +763,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     if (!cancelled)
     {
+        SaveSettings();
         EndDialog(0);
     }
 }
@@ -989,7 +992,7 @@ void FPPConnectDialog::OnComboBox_IPAddressSelected(wxCommandEvent& event)
             TextCtr_Username->SetValue(it->_user);
             TextCtrl_Description->SetValue(it->_description);
             TextCtrl_Password->SetValue(it->GetPassword());
-            
+
             wxHTTP http;
             http.Connect(ip);
             wxInputStream *in = http.GetInputStream("/fppxml.php?command=getPlayLists");
@@ -1056,6 +1059,7 @@ void FPPConnectDialog::OnButton_UploadToAllClick(wxCommandEvent& event)
 
     if (!cancelled)
     {
+        SaveSettings();
         EndDialog(0);
     }
 }
@@ -1123,4 +1127,69 @@ void FPPConnectDialog::OnButton_Refresh_DrivesClick(wxCommandEvent& event)
 void FPPConnectDialog::OnPlayListCheckboxClick(wxCommandEvent& event)
 {
     PlayListName->Enable(PlayListCheckbox->IsChecked());
+}
+
+void FPPConnectDialog::SaveSettings()
+{
+    wxString selected = "";
+    for (int x = 0; x < CheckListBox_Sequences->GetCount(); x++) {
+        if (CheckListBox_Sequences->IsChecked(x)) {
+            if (selected != "")
+            {
+                selected += ",";
+            }
+            selected += CheckListBox_Sequences->GetString(x);
+        }
+    }
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("FPPConnectSelectedSequences", selected);
+    config->Write("FPPConnectUploadController", CheckBox_UploadController->IsChecked());
+    config->Write("FPPConnectUploadModels", CheckBox_UploadModels->IsChecked());
+    config->Write("FPPConnectDefaultVersion", Choice_DefaultVersion->GetSelection());
+    config->Write("FPPConnectPlayListUpload", PlayListCheckbox->IsChecked());
+    config->Write("FPPConnectPlayListName", PlayListName->GetStringSelection());
+    config->Write("FPPConnectUSBDrive", Choice_Drives->GetStringSelection());
+    config->Flush();
+}
+
+void FPPConnectDialog::LoadSettings()
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    if (config != nullptr)
+    {
+        const wxString itcsv = config->Read("FPPConnectSelectedSequences", wxEmptyString);
+
+        if (!itcsv.IsEmpty())
+        {
+            const wxArrayString items = wxSplit(itcsv, ',');
+
+            for (auto it = items.begin(); it != items.end(); ++it)
+            {
+                const int index = CheckListBox_Sequences->FindString(*it);
+                if (index != wxNOT_FOUND)
+                {
+                    CheckListBox_Sequences->Check(index, true);
+                }
+            }
+        }
+
+        CheckBox_UploadController->SetValue(config->ReadBool("FPPConnectUploadController", false));
+        CheckBox_UploadModels->SetValue(config->ReadBool("FPPConnectUploadModels", false));
+
+        PlayListCheckbox->SetValue(config->ReadBool("FPPConnectPlayListUpload", false));
+        Choice_DefaultVersion->SetSelection(config->ReadLong("FPPConnectDefaultVersion", Choice_DefaultVersion->GetCount() - 1));
+
+        PlayListName->SetStringSelection(config->Read("FPPConnectPlayListName", wxEmptyString));
+        Choice_Drives->SetStringSelection(config->Read("FPPConnectUSBDrive", wxEmptyString));
+        //wxCommandEvent event;
+        OnPlayListCheckboxClick(wxCommandEvent());
+    }
+}
+
+
+void FPPConnectDialog::OnClose(wxCloseEvent& event)
+{
+    SaveSettings();
+    EndDialog(0);
 }

@@ -54,6 +54,8 @@ class FPPConnectDialog: public wxDialog
     void SaveConnectionDetails();
     void LoadConnectionDetails();
     void CreateDriveList();
+    void SaveSettings();
+    void LoadSettings();
 
 	public:
 
@@ -148,6 +150,7 @@ class FPPConnectDialog: public wxDialog
 		void OnTextCtrl_DescriptionText(wxCommandEvent& event);
 		void OnButton_Refresh_DrivesClick(wxCommandEvent& event);
 		void OnPlayListCheckboxClick(wxCommandEvent& event);
+		void OnClose(wxCloseEvent& event);
 		//*)
 
         void OnComboBox_IPAddressTextUpdate(wxCommandEvent& event);
