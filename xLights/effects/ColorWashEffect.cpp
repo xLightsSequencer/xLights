@@ -170,7 +170,7 @@ void ColorWashEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     if (buffer.cur_model != "") {
         Model* model_info = buffer.GetModel();
         if (model_info != nullptr) {
-            if( model_info->GetDisplayAs() == "DMX" ) {
+            if( model_info->GetDisplayAs() == "DMX" && !buffer.IsNodeBuffer()) {
                 xlColor c;
                 DmxModel* dmx = (DmxModel*)model_info;
 

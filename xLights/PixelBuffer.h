@@ -96,6 +96,10 @@ private:
     class LayerInfo {
     public:
         LayerInfo(xLightsFrame *frame) : buffer(frame) {
+            ModelBufferHt = 0;
+            ModelBufferWi = 0;
+            inMaskFactor = 0;
+            outMaskFactor = 0;
 			blur = 0;
             rotation = 0.0f;
             rotations = 0;
@@ -236,7 +240,7 @@ private:
 
     //both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
     void mixColors(const wxCoord &x, const wxCoord &y, xlColor &fg, xlColor &bg, int layer);
-    void reset(int layers, int timing);
+    void reset(int layers, int timing, bool isNode = false);
 	void Blur(LayerInfo* layer, float offset);
     void RotoZoom(LayerInfo* layer, float offset);
     void RotateX(LayerInfo* layer, float offset);

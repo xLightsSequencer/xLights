@@ -66,7 +66,7 @@ PixelBufferClass::~PixelBufferClass()
 }
 
 
-void PixelBufferClass::reset(int nlayers, int timing)
+void PixelBufferClass::reset(int nlayers, int timing, bool isNode)
 {
     for (int x = 0; x < numLayers; x++)
     {
@@ -105,7 +105,7 @@ void PixelBufferClass::reset(int nlayers, int timing)
         layers[x]->ypivotValueCurve = "";
         layers[x]->ModelBufferHt = layers[x]->BufferHt;
         layers[x]->ModelBufferWi = layers[x]->BufferWi;
-        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform);
+        layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->ModelBufferHt, layers[x]->ModelBufferWi, layers[x]->bufferTransform, isNode);
     }
 }
 
@@ -135,6 +135,7 @@ void PixelBufferClass::InitBuffer(const Model &pbc, int layers, int timing, bool
     }
     reset(layers + 1, timing);
 }
+
 void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing, int layers)
 {
     if (ssModel == nullptr) {
@@ -145,6 +146,7 @@ void PixelBufferClass::InitStrandBuffer(const Model &pbc, int strand, int timing
     model = ssModel;
     reset(layers + 1, timing);
 }
+
 void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, int timing)
 {
     modelName = pbc.GetFullName();
@@ -153,7 +155,7 @@ void PixelBufferClass::InitNodeBuffer(const Model &pbc, int strand, int node, in
     }
     ssModel->Reset(1, pbc, strand, node);
     model = ssModel;
-    reset(2, timing);
+    reset(2, timing, true);
 }
 
 void PixelBufferClass::Clear(int which)
@@ -1629,6 +1631,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         }
     }
 }
+
 bool PixelBufferClass::IsPersistent(int layer) {
     return layers[layer]->persistent;
 }

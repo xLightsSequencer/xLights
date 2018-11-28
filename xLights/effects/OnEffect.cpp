@@ -217,7 +217,7 @@ void OnEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffe
     if (buffer.cur_model != "") {
         Model* model_info = buffer.GetModel();
         if (model_info != nullptr) {
-            if( model_info->GetDisplayAs() == "DMX" ) {
+            if( model_info->GetDisplayAs() == "DMX" && !buffer.IsNodeBuffer()) {
                 xlColor c;
                 DmxModel* dmx = (DmxModel*)model_info;
 
