@@ -1188,7 +1188,9 @@ void FPPConnectDialog::LoadSettings()
         PlayListName->SetStringSelection(config->Read("FPPConnectPlayListName", wxEmptyString));
         Choice_Drives->SetStringSelection(config->Read("FPPConnectUSBDrive", wxEmptyString));
         //wxCommandEvent event;
-        OnPlayListCheckboxClick(wxCommandEvent());
+
+        wxCommandEvent ce;
+        OnPlayListCheckboxClick(ce);
     }
 }
 

@@ -803,7 +803,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     int dir,
                                     bool center, int Effect, int Countdown, int tspeed,
                                     int startx, int starty, int endx, int endy,
-                                    bool isPixelBased)
+                                    bool isPixelBased) const
 {
     int i;
     wxString Line = Line_orig;
@@ -836,6 +836,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
                 msg = msg + tempmsg.GetChar(i) + "\n";
             }
             break;
+        default: break;
     }
     
     TextRenderCache *cache = GetCache(buffer, id);
@@ -881,6 +882,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             yoffset=textsize.GetWidth();
             textsize.Set(textsize.GetHeight(),textsize.GetWidth());  // swap width & height
             break;
+        default: break;
     }
     //msg.Printf(wxS("w=%d, h=%d"),textsize.GetWidth(),textsize.GetHeight());
 
@@ -1040,7 +1042,7 @@ wxImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     return buffer.GetTextDrawingContext()->FlushAndGetImage();
 }
 
-void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig)
+void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig) const
 {
     long tempLong,longsecs;
     int framesPerSec = 1000 / buffer.frameTimeInMs;
@@ -1415,7 +1417,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
 }
 
 void TextEffect::AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
-                             int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop )
+                             int txtwidth, int txtheight, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop ) const
 {
     int tspeed = wxAtoi(settings.Get("TEXTCTRL_Text_Speed", "10"));
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
@@ -1427,7 +1429,7 @@ void TextEffect::AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap&
     int ylimit=totheight*8 + 1;
 
     TextDirection dir = TextEffectDirectionsIndex(settings["CHOICE_Text_Dir"]);
-    int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);  // not implemented yet - hoping to switch to value curves anyways
+    //int center = wxAtoi(settings["CHECKBOX_TextToCenter"]);  // not implemented yet - hoping to switch to value curves anyways
 
     switch (dir) {
         case TEXTDIR_VECTOR:

@@ -2209,10 +2209,10 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("DoLoadAudioData: Doing load of song data.");
 
-    logger_base.debug("formatContext 0x%lx", wxLongLong((size_t)formatContext).ToLong());
-    logger_base.debug("codecContext 0x%lx", wxLongLong((size_t)codecContext).ToLong());
-    logger_base.debug("audioStream 0x%lx", wxLongLong((size_t)audioStream).ToLong());
-    logger_base.debug("frame 0x%lx", wxLongLong((size_t)frame).ToLong());
+    logger_base.debug("formatContext 0x%lx", wxLongLong((size_t)formatContext).GetLo());
+    logger_base.debug("codecContext 0x%lx", wxLongLong((size_t)codecContext).GetLo());
+    logger_base.debug("audioStream 0x%lx", wxLongLong((size_t)audioStream).GetLo());
+    logger_base.debug("frame 0x%lx", wxLongLong((size_t)frame).GetLo());
 
     wxStopWatch sw;
 
