@@ -150,8 +150,8 @@ protected:
     static const long ID_PANEL3;
     static const long ID_NOTEBOOK1;
     static const long ID_PANEL5;
-    static const long ID_SPLITTERWINDOW1;
     static const long ID_PANEL1;
+    static const long ID_SPLITTERWINDOW1;
     //*)
 
     wxString GetSelectedName() const;
