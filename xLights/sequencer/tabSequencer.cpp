@@ -325,6 +325,8 @@ static void HandleChoices(xLightsFrame *frame,
                           std::vector<Element*> &toMap,
                           std::vector<Element*> &ignore)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxArrayString choices;
     choices.push_back("Rename the model in the sequence");
     choices.push_back("Delete the model in the sequence");
@@ -344,6 +346,8 @@ static void HandleChoices(xLightsFrame *frame,
                                                  "Select Model", ToArrayString(ModelNames));
                     if (namedlg.ShowModal() == wxID_OK) {
                         std::string newName = namedlg.GetStringSelection().ToStdString();
+
+                        logger_base.debug("Sequence Element Mismatch 2: rename '%s' to '%s'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
 
                         // remove the existing element before we rename
                         if (dynamic_cast<SubModelElement*>(element) != nullptr) {
@@ -366,18 +370,22 @@ static void HandleChoices(xLightsFrame *frame,
                     // Delete the model
                     if (dynamic_cast<SubModelElement*>(element) != nullptr) {
                         SubModelElement *sme = dynamic_cast<SubModelElement*>(element) ;
+                        logger_base.debug("Sequence Element Mismatch 2: delete '%s'", (const char*)sme->GetFullName().c_str());
                         sme->GetModelElement()->RemoveSubModel(sme->GetName());
                     } else {
+                        logger_base.debug("Sequence Element Mismatch 2: delete '%s'", (const char*)element->GetFullName().c_str());
                         frame->GetSequenceElements().DeleteElement(element->GetName());
                     }
                     break;
                 case 2:
                     // Map effects
+                    logger_base.debug("Sequence Element Mismatch 2: map '%s'", (const char*)element->GetFullName().c_str());
                     toMap.push_back(element);
                     //relo
                     break;
                 case 3:
                     // Handle later
+                    logger_base.debug("Sequence Element Mismatch 2: handle later '%s'", (const char*)element->GetFullName().c_str());
                     ignore.push_back(element);
                     break;
                 default:
@@ -412,6 +420,8 @@ static bool HasEffects(ModelElement *el) {
 
 void xLightsFrame::CheckForValidModels()
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     //bool cancelled = cancelled_in;
     bool cancelled = false;
 
@@ -474,15 +484,18 @@ void xLightsFrame::CheckForValidModels()
 
                 if (cancelled || !HasEffects(me) || dialog.RadioButtonDelete->GetValue()) {
                     // Just delete the element from the sequence we are opening
+                    logger_base.debug("Sequence Element Mismatch: deleting '%s'", (const char*)name.c_str());
                     mSequenceElements.DeleteElement(name);
                 }
                 else if (dialog.RadioButtonMap->GetValue()) {
                     // add it to the list of things we will map later
+                    logger_base.debug("Sequence Element Mismatch: map later '%s'", (const char*)name.c_str());
                     mapLater.push_back(me);
                 }
                 else {
                     // change the name of the element to the new name
                     std::string newName = dialog.ChoiceModels->GetStringSelection().ToStdString();
+                    logger_base.debug("Sequence Element Mismatch: rename '%s' to '%s'", (const char*)name.c_str(), (const char*)newName.c_str());
                     mSequenceElements.DeleteElement(newName); // delete the existing element
                     mSequenceElements.GetElement(x)->SetName(newName);
                     ((ModelElement*)mSequenceElements.GetElement(x))->Init(*AllModels[newName]);
@@ -560,6 +573,7 @@ void xLightsFrame::CheckForValidModels()
                     }
                     else {
                         // no effects at any level so just remove it
+                        logger_base.debug("Sequence Element Mismatch 2: deleting '%s'", (const char*)name.c_str());
                         mSequenceElements.DeleteElement(name);
                     }
                 }

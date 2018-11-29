@@ -87,6 +87,7 @@ FPP::FPP(OutputManager* outputManager, const std::string& defaultVersion, const 
 
 FPP::FPP(OutputManager* outputManager)
 {
+    _forceFTP = false;
     _outputManager = outputManager;
     _connected = false;
 }
@@ -686,7 +687,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
     return true;
 }
 
-bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent, bool suppressZip)
+bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wxWindow* parent, bool suppressZip, bool uploadMedia)
 {
     bool cancelled = false;
     wxString media = "";
@@ -729,7 +730,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
         wxMessageBox("Unable to upload fseq file " + fseq + " as it does not exist.", "Error", 4, parent);
     }
 
-    if (!cancelled && media != "") {
+    if (!cancelled && media != "" && uploadMedia) {
         media = FixFile("", media);
         wxFileName fnmedia(media);
 
