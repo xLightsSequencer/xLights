@@ -21,6 +21,7 @@ class OutputManager
     bool _syncEnabled;
     bool _dirty;
     int _suppressFrames;
+    bool _parallelTransmission;
     bool _outputting; // true if we are currently sending out data
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
@@ -71,6 +72,8 @@ public:
     bool Discover(); // discover controllers and add them to the list if they are not already there
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
+    void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
+    bool GetParallelTransmission() const { return _parallelTransmission; }
     #pragma endregion Output Management
 
     void SomethingChanged() const;

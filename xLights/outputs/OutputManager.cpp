@@ -1,17 +1,18 @@
 #include "OutputManager.h"
 
 #include <wx/xml/xml.h>
-
-#include <log4cpp/Category.hh>
+#include <wx/msgdlg.h>
+#include <wx/config.h>
 #include <wx/filename.h>
 
 #include "E131Output.h"
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "TestPreset.h"
-#include <wx/msgdlg.h>
 #include "../osxMacUtils.h"
-#include <wx/config.h>
+#include "../Parallel.h"
+
+#include <log4cpp/Category.hh>
 
 int OutputManager::_lastSecond = -10;
 int OutputManager::_currentSecond = -10;
@@ -21,6 +22,7 @@ int OutputManager::_currentSecondCount = 0;
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
 {
+    _parallelTransmission = false;
     _syncEnabled = false;
     _dirty = false;
     _syncUniverse = 0;
@@ -803,9 +805,19 @@ void OutputManager::EndFrame()
     if (!_outputting) return;
     if (!_outputCriticalSection.TryEnter()) return;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    if (_parallelTransmission)
     {
-        (*it)->EndFrame(_suppressFrames);
+        std::function<void(Output*&, int)> f = [this](Output*&o, int n) {
+            o->EndFrame(_suppressFrames);
+        };
+        parallel_for(_outputs, f);
+    }
+    else
+    {
+        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        {
+            (*it)->EndFrame(_suppressFrames);
+        }
     }
 
     if (IsSyncEnabled())
@@ -944,11 +956,7 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 
     while (left > 0 && o != nullptr)
     {
-#ifdef _MSC_VER
-        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
-#else
         long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
-#endif
         if (o->IsEnabled())
         {
             o->SetManyChannels(stch - 1, &data[size - left], send);

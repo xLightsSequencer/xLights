@@ -32,6 +32,7 @@
 #include "PlayList/PlayListStep.h"
 #include <wx/bitmap.h>
 #include "../xLights/xLightsVersion.h"
+#include "../xLights/outputs/OutputManager.h"
 #include <wx/protocol/http.h>
 #include <wx/debugrpt.h>
 #include "RunningSchedule.h"
@@ -1535,6 +1536,8 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
             _webServer->SetPassword(__schedule->GetOptions()->GetPassword());
             _webServer->SetPasswordTimeout(__schedule->GetOptions()->GetPasswordTimeout());
         }
+
+        __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
 
         __schedule->OptionsChanged();
 
