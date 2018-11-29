@@ -1463,7 +1463,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     (const char *)command.c_str(), (const char *)parameters.c_str());
                 if (command == "Stop all now")
                 {
-                    StopAll();
+                    // we cant stop here as this might be in the middle of playing the playlist
+                    wxCommandEvent event(EVT_STOP);
+                    event.SetInt(-1);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
                     scheduleChanged = true;
                 }
                 else if (command == "Stop")
@@ -1471,20 +1474,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     PlayList* p = GetRunningPlayList();
                     if (p != nullptr)
                     {
-                        SendFPPSync("", 0xFFFFFFFF, 50);
-                        SendMIDISync(0xFFFFFFFF, 50);
-                        SendARTNetSync(0xFFFFFFFF, 50);
-                        p->Stop();
-
-                        if (_immediatePlay != nullptr && p->GetId() == _immediatePlay->GetId())
-                        {
-                            delete _immediatePlay;
-                            _immediatePlay = nullptr;
-                        }
-                        else if (p->GetId() == _queuedSongs->GetId())
-                        {
-                            p->RemoveAllSteps();
-                        }
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }
@@ -1592,7 +1584,9 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (p != nullptr)
                     {
-                        StopPlayList(p, false);
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }
@@ -1602,7 +1596,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (p != nullptr)
                     {
-                        StopPlayList(p, true);
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        event.SetString("end");
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }
@@ -1612,7 +1609,10 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (p != nullptr)
                     {
-                        StopPlayList(p, true);
+                        wxCommandEvent event(EVT_STOP);
+                        event.SetInt(p->GetId());
+                        event.SetString("end");
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
                     }
                     scheduleChanged = true;
                 }

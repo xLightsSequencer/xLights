@@ -311,6 +311,7 @@ wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOACTION, wxCommandEvent);
+wxDEFINE_EVENT(EVT_STOP, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 
@@ -323,6 +324,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
     EVT_COMMAND(wxID_ANY, EVT_DOACTION, xScheduleFrame::DoAction)
+    EVT_COMMAND(wxID_ANY, EVT_STOP, xScheduleFrame::DoStop)
     EVT_COMMAND(wxID_ANY, EVT_XYZZY, xScheduleFrame::DoXyzzy)
     EVT_COMMAND(wxID_ANY, EVT_XYZZYEVENT, xScheduleFrame::DoXyzzyEvent)
     END_EVENT_TABLE()
@@ -623,6 +625,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
     Connect(wxID_ANY, EVT_DOACTION, (wxObjectEventFunction)&xScheduleFrame::DoAction);
+    Connect(wxID_ANY, EVT_STOP, (wxObjectEventFunction)&xScheduleFrame::DoStop);
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
@@ -2508,6 +2511,30 @@ void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
 
 void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
 {
+    UpdateSchedule();
+    UpdateUI();
+}
+
+void xScheduleFrame::DoStop(wxCommandEvent& event)
+{
+    bool end = false;
+    if (event.GetString() == "end")
+    {
+        end = true;
+    }
+
+    if (event.GetInt() == -1)
+    {
+        __schedule->StopAll();
+    }
+    else
+    {
+        PlayList* p = __schedule->GetPlayList(event.GetInt());
+        if (p != nullptr)
+        {
+            __schedule->StopPlayList(p, end);
+        }
+    }
     UpdateSchedule();
     UpdateUI();
 }

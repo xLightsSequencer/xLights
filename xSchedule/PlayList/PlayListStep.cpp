@@ -397,14 +397,14 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
 
             if ((*it)->ControlsTiming())
             {
-                if (timesource == nullptr)
+                if (timesource == nullptr && (*it)->GetDurationMS() > 0)
                 {
                     timesource = *it;
                     ms = msec;
                 }
                 else
                 {
-                    if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                    if (timesource != nullptr && (*it)->GetDurationMS() > 0 && (*it)->GetPriority() > timesource->GetPriority())
                     {
                         timesource = *it;
                         ms = msec;
