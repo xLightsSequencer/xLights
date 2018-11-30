@@ -1976,7 +1976,7 @@ int CountChar(const std::string& s, char c)
     return count;
 }
 
-std::string Model::GetStartChannelInDisplayFormat()
+std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
 {
     if (ModelStartChannel == "")
     {
@@ -1984,11 +1984,11 @@ std::string Model::GetStartChannelInDisplayFormat()
     }
     else if (ModelStartChannel[0] == '#' || ModelStartChannel[0] == '>' || ModelStartChannel[0] == '@' || CountChar(ModelStartChannel, ':') > 0)
     {
-        return wxString::Format("%s (%u)", ModelStartChannel, GetNumberFromChannelString(ModelStartChannel)).ToStdString();
+        return GetFirstChannelInStartChannelFormat(outputManager, nullptr);
     }
     else
     {
-        return ModelStartChannel;
+        return wxString::Format("%u", GetFirstChannel());
     }
 }
 
@@ -2088,6 +2088,102 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
     }
 }
 
+std::string Model::GetFirstChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels)
+{
+    bool allocated = false;
+    if (visitedModels == nullptr)
+    {
+        allocated = true;
+        visitedModels = new std::list<std::string>();
+    }
+    visitedModels->push_back(GetName());
+
+    std::string modelFormat = ModelStartChannel;
+    char firstChar = ModelStartChannel[0];
+
+    unsigned int firstChannel = GetFirstChannel()+1;
+
+    if ((firstChar == '@' || firstChar == '>') && CountChar(ModelStartChannel, ':') == 1)
+    {
+        std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
+        Model *m = modelManager[referencedModel];
+
+        if (m != nullptr && std::find(visitedModels->begin(), visitedModels->end(), referencedModel) == visitedModels->end())
+        {
+            std::string end = m->GetFirstChannelInStartChannelFormat(outputManager, visitedModels);
+            if (end != "")
+            {
+                if (end[0] == '#')
+                {
+                    firstChar = '#';
+                    modelFormat = end;
+                }
+                else if (CountChar(end, ':') == 1)
+                {
+                    firstChar = '0';
+                    modelFormat = end;
+                }
+            }
+        }
+    }
+
+    if (allocated)
+    {
+        delete visitedModels;
+    }
+
+    if (firstChar == '#')
+    {
+        // universe:channel
+        long startChannel;
+        Output* output = outputManager->GetOutput(firstChannel, startChannel);
+
+        if (output == nullptr) {
+            return wxString::Format("%u", firstChannel).ToStdString();
+        }
+
+        if (output->IsOutputCollection())
+        {
+            output = output->GetActualOutput(firstChannel);
+            startChannel = firstChannel - output->GetStartChannel() + 1;
+        }
+
+        if (CountChar(modelFormat, ':') == 1)
+        {
+            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, firstChannel).ToStdString();
+        }
+        else
+        {
+            std::string ip = "<err>";
+            if (output->IsIpOutput())
+            {
+                ip = ((IPOutput*)output)->GetIP();
+            }
+            return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, firstChannel).ToStdString();
+        }
+    }
+    else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
+    {
+        // absolute
+        return wxString::Format("%u", firstChannel).ToStdString();
+    }
+    else
+    {
+        // output:channel
+        long startChannel;
+        Output* output = outputManager->GetLevel1Output(firstChannel, startChannel);
+
+        if (output == nullptr)
+        {
+            return wxString::Format("%u", firstChannel).ToStdString();
+        }
+        else
+        {
+            return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, firstChannel).ToStdString();
+        }
+    }
+}
+
 unsigned int Model::GetLastChannel() {
     unsigned int LastChan=0;
     size_t NodeCount=GetNodeCount();
@@ -2096,18 +2192,26 @@ unsigned int Model::GetLastChannel() {
         {
             return (unsigned int)NodeCount * Nodes[idx]->GetChanCount() - 1;
         }
-        LastChan=std::max(LastChan,Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
+        unsigned int lc = std::max(LastChan,Nodes[idx]->ActChan + Nodes[idx]->GetChanCount() - 1);
+        if (lc > LastChan)
+        {
+            LastChan = lc;
+        }
     }
     return LastChan;
 }
 
 unsigned int Model::GetFirstChannel() {
-    unsigned int LastChan = -1;
+    unsigned int FirstChan = 0xFFFFFFFF;
     size_t NodeCount = GetNodeCount();
     for (size_t idx = 0; idx < NodeCount; idx++) {
-        LastChan = std::min(LastChan, Nodes[idx]->ActChan);
+        unsigned int fc = std::min(FirstChan, Nodes[idx]->ActChan);
+        if (fc < FirstChan)
+        {
+            FirstChan = fc;
+        }
     }
-    return LastChan;
+    return FirstChan;
 }
 
 unsigned int Model::GetNumChannels() {

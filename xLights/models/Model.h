@@ -255,7 +255,8 @@ public:
     void AddOffset(double xPct, double yPct);
     virtual unsigned int GetLastChannel();
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
-    std::string GetStartChannelInDisplayFormat();
+    std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
+    std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
     bool IsValidStartChannelString() const;
     virtual unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
