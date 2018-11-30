@@ -1161,6 +1161,7 @@ void FPPConnectDialog::SaveSettings()
     config->Write("FPPConnectPlayListName", PlayListName->GetStringSelection());
     config->Write("FPPConnectUSBDrive", Choice_Drives->GetStringSelection());
     config->Write("FPPConnectSuppressZip", CheckBox_SuppressZip->IsChecked());
+    config->Write("FPPConnectSuppressMediaUpload", CheckBox_SuppressMediaUpload->IsChecked());
     config->Flush();
 }
 
@@ -1194,6 +1195,7 @@ void FPPConnectDialog::LoadSettings()
         PlayListName->SetStringSelection(config->Read("FPPConnectPlayListName", wxEmptyString));
         Choice_Drives->SetStringSelection(config->Read("FPPConnectUSBDrive", wxEmptyString));
         CheckBox_SuppressZip->SetValue(config->ReadBool("FPPConnectSuppressZip", false));
+        CheckBox_SuppressMediaUpload->SetValue(config->ReadBool("FPPConnectSuppressMediaUpload", false));
 
         wxCommandEvent ce;
         OnPlayListCheckboxClick(ce);
