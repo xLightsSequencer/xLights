@@ -2355,12 +2355,11 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
         if (read < 10000) logger_base.debug("DoLoadAudioData: HHH. %ld", read);
     }
 
-    logger_base.debug("DoLoadAudioData: Cleanup buffered data.");
     // Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
 	// is set, there can be buffered up frames that need to be flushed, so we'll do that
 	if (codecContext->codec != nullptr && codecContext->codec->capabilities & CODEC_CAP_DELAY)
 	{
-		av_init_packet(&readingPacket);
+        logger_base.debug("DoLoadAudioData: Cleanup buffered data.");
 		// Decode all the remaining frames in the buffer, until the end is reached
 		int gotFrame = 1;
 		while (gotFrame)
@@ -2405,7 +2404,17 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     return;
 				}
 
-				// copy the PCM data into the PCM buffer for playing
+                if (read + outSamples > _trackSize)
+                {
+                    // I dont understand why this happens ... add logging when i can
+                    // I have seen this happen with a wma file ... but i dont know why
+                    logger_base.warn("DoLoadAudioData: This shouldnt happen ... read [" + wxString::Format("%i", (long)read) + "] + nb_samples [" + wxString::Format("%i", outSamples) + "] > _tracksize [" + wxString::Format("%ld", (long)_trackSize) + "] .");
+
+                    // override the track size
+                    _trackSize = read + outSamples;
+                }
+
+                // copy the PCM data into the PCM buffer for playing
 				memcpy(_pcmdata + (read * out_channels * 2), out_buffer, outSamples * out_channels * 2);
 
 				for (int i = 0; i < outSamples; i++)
@@ -2436,7 +2445,8 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     wxASSERT(_trackSize == _loadedData);
 
 	// Clean up!
-	swr_free(&au_convert_ctx);
+    logger_base.debug("DoLoadAudioData: Cleaning up");
+    swr_free(&au_convert_ctx);
 	av_free(out_buffer);
 	av_free(frame);
 
