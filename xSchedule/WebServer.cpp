@@ -712,6 +712,18 @@ void WebServer::SendMessageToAllWebSockets(const std::string& message)
     reentry = false;
 }
 
+bool WebServer::IsSomeoneListening() const
+{
+    for (auto it : _connections)
+    {
+        if (it.second->IsWebSocket())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 WebServer::WebServer(int port, bool apionly, const std::string& password, int mins)
 {
     __apiOnly = apionly; // put this in a global.

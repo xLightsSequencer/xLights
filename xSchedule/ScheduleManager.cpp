@@ -761,6 +761,9 @@ int ScheduleManager::Frame(bool outputframe)
     reentry = true;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    wxStopWatch sw;
+
     int rate = 0;
     long totalChannels = _outputManager->GetTotalChannels();
 
@@ -774,7 +777,6 @@ int ScheduleManager::Frame(bool outputframe)
     }
 
     PlayList* running = GetRunningPlayList();
-
     if (running != nullptr || _xyzzy != nullptr)
     {
         rate = 50;
@@ -799,7 +801,9 @@ int ScheduleManager::Frame(bool outputframe)
         bool done = false;
         if (running != nullptr)
         {
+            logger_frame.debug("Frame: About to run step frame %ldms", sw.Time());
             done = running->Frame(_buffer, totalChannels, outputframe);
+            logger_frame.debug("Frame: step frame done %ldms", sw.Time());
 
             if (outputframe && (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
             {
@@ -885,11 +889,15 @@ int ScheduleManager::Frame(bool outputframe)
                 (*it)->Set(_buffer, totalChannels);
             }
 
+            logger_frame.debug("Frame: Overlay data done %ldms", sw.Time());
+
             // apply any output processing
             for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
             {
                 (*it)->Frame(_buffer, totalChannels);
             }
+
+            logger_frame.debug("Frame: Output processing done %ldms", sw.Time());
 
             if (outputframe && _brightness < 100)
             {
@@ -907,16 +915,27 @@ int ScheduleManager::Frame(bool outputframe)
                 }
             }
 
+            logger_frame.debug("Frame: Brightness done %ldms", sw.Time());
+
             auto vm = GetOptions()->GetVirtualMatrices();
             for (auto it = vm->begin(); it != vm->end(); ++it)
             {
                 (*it)->Frame(_buffer, totalChannels);
             }
 
+            logger_frame.debug("Frame: Virtual matrices done %ldms", sw.Time());
+
             _listenerManager->ProcessFrame(_buffer, totalChannels);
 
+            logger_frame.debug("Frame: Listening done %ldms", sw.Time());
+
             _outputManager->SetManyChannels(0, _buffer, totalChannels);
+
+            logger_frame.debug("Frame: Data set %ldms", sw.Time());
+
             _outputManager->EndFrame();
+
+            logger_frame.debug("Frame: Data sent %ldms", sw.Time());
         }
 
         if (done)
@@ -3421,6 +3440,9 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
     if (reenter) return;
     reenter = true;
 
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    wxStopWatch sw;
+
     if (_outputManager != nullptr)
     {
         if (otl)
@@ -3435,6 +3457,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                 _outputManager->StartOutput();
                 StartVirtualMatrices();
                 ManageBackground();
+                logger_frame.debug("Turned on output to lights %ldms", sw.Time());
             }
         }
         else
@@ -3444,6 +3467,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                 _outputManager->StopOutput();
                 StopVirtualMatrices();
                 ManageBackground();
+                logger_frame.debug("Turned off output to lights %ldms", sw.Time());
             }
         }
     }

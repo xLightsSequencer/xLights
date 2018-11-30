@@ -23,6 +23,7 @@ class xLightsTimer :
     std::atomic<bool> pending;
     xLightsTimerCallback* _timerCallback;
     std::atomic<bool> _suspend;
+    std::atomic<bool> _log;
 public:
     xLightsTimer();
     virtual ~xLightsTimer();
@@ -31,6 +32,7 @@ public:
     virtual void Notify() override;
     virtual void DoSendTimer();
     int GetInterval() const;
+    void SetLog(bool log) { _log = true; }
 
     // If you use this method to receive the timer notification then be sure that you dont do any UI
     // updates in the callback function as it will be called on another thread. Also if you are going
