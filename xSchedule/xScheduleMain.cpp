@@ -2502,7 +2502,7 @@ void xScheduleFrame::DoStop(wxCommandEvent& event)
     }
     else
     {
-        PlayList* p = __schedule->GetPlayList(event.GetInt());
+        PlayList* p = __schedule->GetRunningPlayList(event.GetInt());
         if (p != nullptr)
         {
             __schedule->StopPlayList(p, end);

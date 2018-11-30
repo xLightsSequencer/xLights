@@ -5169,14 +5169,28 @@ void xLightsFrame::CheckSequence(bool display)
                 {
                     long sc;
                     Output* o = _outputManager.GetOutput(m1start, sc);
-                    wxString msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
-                        (*it2)->GetName(),
-                        (*it3)->GetName(),
-                        o->GetIP(),
-                        (*it2)->GetControllerConnectionString(),
-                        m2start - m1end - 1);
+                    wxString msg;
+                    if (m2start - m1end - 1 <= 30)
+                    {
+                        msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a small gap of %d channels between them. Maybe these are NULL Pixels?",
+                            (*it2)->GetName(),
+                            (*it3)->GetName(),
+                            o->GetIP(),
+                            (*it2)->GetControllerConnectionString(),
+                            m2start - m1end - 1);
+                        warncount++;
+                    }
+                    else
+                    {
+                        msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
+                            (*it2)->GetName(),
+                            (*it3)->GetName(),
+                            o->GetIP(),
+                            (*it2)->GetControllerConnectionString(),
+                            m2start - m1end - 1);
+                        errcount++;
+                    }
                     LogAndWrite(f, msg.ToStdString());
-                    errcount++;
                 }
 
                 ++it2;

@@ -184,6 +184,7 @@ class ScheduleManager
         bool IsQueuedPlaylistRunning() const;
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
+        PlayList* GetRunningPlayList(int id) const;
         std::list<PlayList*> GetPlayLists();
         std::list<Command*> GetCommands() const { return _commandManager.GetCommands(); }
         Command* GetCommand(std::string command) const { return _commandManager.GetCommand(command); }

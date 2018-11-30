@@ -607,6 +607,22 @@ void ScheduleManager::RemovePlayList(PlayList* playlist)
     _changeCount++;
 }
 
+PlayList* ScheduleManager::GetRunningPlayList(int id) const
+{
+    if (_immediatePlay != nullptr && _immediatePlay->IsRunning() && _immediatePlay->GetId() == id)
+    {
+        return _immediatePlay;
+    }
+    for (auto it : _activeSchedules)
+    {
+        if (it->GetPlayList()->GetId() == id)
+        {
+            return it->GetPlayList();
+        }
+    }
+    return nullptr;
+}
+
 PlayList* ScheduleManager::GetRunningPlayList() const
 {
     // find the highest priority running playlist

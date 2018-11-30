@@ -361,6 +361,7 @@ enum TextDirection {
     TEXTDIR_WAVEY_LRUPDOWN,
     TEXTDIR_VECTOR
 };
+
 static TextDirection TextEffectDirectionsIndex(const wxString &st) {
     if (st == "left") return TEXTDIR_LEFT;
     if (st == "right") return TEXTDIR_RIGHT;
@@ -385,6 +386,7 @@ static int TextCountDownIndex(const wxString &st) {
     if (st == "minutes seconds") return 7;
     return 0;
 }
+
 static int TextEffectsIndex(const wxString &st) {
     if (st == "vert text up") return 1;
     if (st == "vert text down") return 2;
@@ -1367,11 +1369,12 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
             if (text[i] == ' ') {
                 space_offset++;
             }
-            int ascii = (int)text[i];
+            char ascii = text[i];
             int x_start_corner = (ascii % 8) * (char_width + 1) + 1;
             int y_start_corner = (ascii / 8) * (char_height + 1) + 1;
 
             int actual_width = font->GetCharWidth(ascii);
+            wxASSERT(actual_width > 0);
             if (rotate_90 && up) {
                 OffsetTop -= actual_width;
             }
@@ -1380,20 +1383,23 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
                 int x_pos = x_start_corner + w;
                 for (int y_pos = y_start_corner; y_pos < y_start_corner + char_height; y_pos++)
                 {
-                    int red = image.GetRed(x_pos, y_pos);
-                    int green = image.GetGreen(x_pos, y_pos);
-                    int blue = image.GetBlue(x_pos, y_pos);
-                    if (red == 255 && green == 255 && blue == 255) {
-                        if (rotate_90) {
-                            if (up) {
-                                buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                    if (x_pos >= 0 && x_pos < image.GetWidth() && y_pos >= 0 && y_pos < image.GetHeight())
+                    {
+                        int red = image.GetRed(x_pos, y_pos);
+                        int green = image.GetGreen(x_pos, y_pos);
+                        int blue = image.GetBlue(x_pos, y_pos);
+                        if (red == 255 && green == 255 && blue == 255) {
+                            if (rotate_90) {
+                                if (up) {
+                                    buffer.SetPixel(y_pos - y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (actual_width - 1 - x_pos + x_start_corner + OffsetTop), c, false);
+                                }
+                                else {
+                                    buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                                }
                             }
                             else {
-                                buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + OffsetLeft, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
+                                buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                             }
-                        }
-                        else {
-                            buffer.SetPixel(x_pos - x_start_corner + OffsetLeft, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                         }
                     }
                 }
@@ -1446,7 +1452,7 @@ void TextEffect::AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap&
             }
             break;
         case TEXTDIR_LEFT:
-            OffsetLeft = buffer.BufferWi - state % xlimit/8 + PreOffsetLeft;
+            OffsetLeft = buffer.BufferWi - state % (xlimit+buffer.BufferWi)/8 + PreOffsetLeft + txtwidth / 2;
             break; // left
         case TEXTDIR_RIGHT:
             OffsetLeft = state % xlimit/8 - txtwidth + PreOffsetLeft;
