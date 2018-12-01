@@ -589,6 +589,7 @@ static inline void setupProtocolList() {
         CONTROLLER_COLORORDER.push_back("WBRG");
         CONTROLLER_COLORORDER.push_back("WBGR");
     }
+
     if (CONTROLLER_PORTS.IsEmpty()) {
         //not ideal.  Would like to be able to limit to what the controller supports
         CONTROLLER_PORTS.push_back("");
@@ -597,16 +598,14 @@ static inline void setupProtocolList() {
         }
     }
 }
+
 void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
+
     setupProtocolList();
 
-    
-    wxPGProperty *p;
-    wxPGProperty *sp, *sp2;
+    wxPGProperty *p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
-    p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
-
-    sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", CONTROLLER_PORTS, wxArrayInt(), GetPort(1)));
+    wxPGProperty *sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", CONTROLLER_PORTS, wxArrayInt(), GetPort(1)));
     wxString protocol = GetProtocol();
     protocol.UpperCase();
     int idx = CONTROLLER_PROTOCOLS.Index(protocol);
@@ -622,8 +621,8 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
     } else if (IsPixelProtocol(protocol)) {
         sp = grid->AppendIn(p, new wxBoolProperty("Set Null Pixels", "ModelControllerConnectionPixelSetNullNodes", node->HasAttribute("nullNodes")));
         sp->SetAttribute("UseCheckbox", true);
-        sp2 = grid->AppendIn(sp, new wxUIntProperty("Null Pixels", "ModelControllerConnectionPixelNullNodes",
-                                                    wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))));
+        wxPGProperty *sp2 = grid->AppendIn(sp, new wxUIntProperty("Null Pixels", "ModelControllerConnectionPixelNullNodes",
+                                                                  wxAtoi(GetControllerConnection()->GetAttribute("nullNodes", "0"))));
         sp2->SetAttribute("Min", 0);
         sp2->SetAttribute("Max", 100);
         sp2->SetEditor("SpinCtrl");
@@ -772,13 +771,13 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[1]); // default to ws2811
             }
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         GetControllerConnection()->DeleteAttribute("Protocol");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[event.GetValue().GetLong()]);
         }
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionDMXChannel") {
         GetControllerConnection()->DeleteAttribute("channel");
         if (event.GetValue().GetLong() > 0) {
