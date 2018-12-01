@@ -1982,9 +1982,13 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     {
         return "(1)";
     }
-    else if (ModelStartChannel[0] == '#' || ModelStartChannel[0] == '>' || ModelStartChannel[0] == '@' || CountChar(ModelStartChannel, ':') > 0)
+    else if (ModelStartChannel[0] == '>')
     {
-        return GetFirstChannelInStartChannelFormat(outputManager, nullptr);
+        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel());
+    }
+    else if (ModelStartChannel[0] == '#' || ModelStartChannel[0] == '@' || CountChar(ModelStartChannel, ':') > 0)
+    {
+        return GetFirstChannelInStartChannelFormat(outputManager);
     }
     else
     {
@@ -1992,7 +1996,12 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     }
 }
 
-std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels)
+std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManager)
+{
+    return GetChannelInStartChannelFormat(outputManager, nullptr, GetLastChannel() + 1);
+}
+
+std::string Model::GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel)
 {
     bool allocated = false;
     if (visitedModels == nullptr)
@@ -2005,8 +2014,6 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
     std::string modelFormat = ModelStartChannel;
     char firstChar = ModelStartChannel[0];
 
-    unsigned int lastChannel = GetLastChannel()+1;
-
     if ((firstChar == '@' || firstChar == '>') && CountChar(ModelStartChannel, ':') == 1)
     {
         std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
@@ -2014,7 +2021,7 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
 
         if (m != nullptr && std::find(visitedModels->begin(), visitedModels->end(), referencedModel) == visitedModels->end())
         {
-            std::string end = m->GetLastChannelInStartChannelFormat(outputManager, visitedModels);
+            std::string end = m->GetChannelInStartChannelFormat(outputManager, visitedModels, channel);
             if (end != "")
             {
                 if (end[0] == '#')
@@ -2040,21 +2047,21 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
     {
         // universe:channel
         long startChannel;
-        Output* output = outputManager->GetOutput(lastChannel, startChannel);
+        Output* output = outputManager->GetOutput(channel, startChannel);
 
         if (output == nullptr) {
-            return wxString::Format("%u", lastChannel).ToStdString();
+            return wxString::Format("%u", channel).ToStdString();
         }
 
         if (output->IsOutputCollection())
         {
-            output = output->GetActualOutput(lastChannel);
-            startChannel = lastChannel - output->GetStartChannel() + 1;
+            output = output->GetActualOutput(channel);
+            startChannel = channel - output->GetStartChannel() + 1;
         }
 
         if (CountChar(modelFormat, ':') == 1)
         {
-            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, lastChannel).ToStdString();
+            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, channel).ToStdString();
         }
         else
         {
@@ -2063,125 +2070,34 @@ std::string Model::GetLastChannelInStartChannelFormat(OutputManager* outputManag
             {
                 ip = ((IPOutput*)output)->GetIP();
             }
-            return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, lastChannel).ToStdString();
+            return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, channel).ToStdString();
         }
     }
     else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
     {
         // absolute
-        return wxString::Format("%u", lastChannel).ToStdString();
+        return wxString::Format("%u", channel).ToStdString();
     }
     else
     {
         // output:channel
         long startChannel;
-        Output* output = outputManager->GetLevel1Output(lastChannel, startChannel);
+        Output* output = outputManager->GetLevel1Output(channel, startChannel);
 
         if (output == nullptr)
         {
-            return wxString::Format("%u", lastChannel).ToStdString();
+            return wxString::Format("%u", channel).ToStdString();
         }
         else
         {
-            return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, lastChannel).ToStdString();
+            return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, channel).ToStdString();
         }
     }
 }
 
-std::string Model::GetFirstChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels)
+std::string Model::GetFirstChannelInStartChannelFormat(OutputManager* outputManager)
 {
-    bool allocated = false;
-    if (visitedModels == nullptr)
-    {
-        allocated = true;
-        visitedModels = new std::list<std::string>();
-    }
-    visitedModels->push_back(GetName());
-
-    std::string modelFormat = ModelStartChannel;
-    char firstChar = ModelStartChannel[0];
-
-    unsigned int firstChannel = GetFirstChannel()+1;
-
-    if ((firstChar == '@' || firstChar == '>') && CountChar(ModelStartChannel, ':') == 1)
-    {
-        std::string referencedModel = ModelStartChannel.substr(1, ModelStartChannel.find(':') - 1);
-        Model *m = modelManager[referencedModel];
-
-        if (m != nullptr && std::find(visitedModels->begin(), visitedModels->end(), referencedModel) == visitedModels->end())
-        {
-            std::string end = m->GetFirstChannelInStartChannelFormat(outputManager, visitedModels);
-            if (end != "")
-            {
-                if (end[0] == '#')
-                {
-                    firstChar = '#';
-                    modelFormat = end;
-                }
-                else if (CountChar(end, ':') == 1)
-                {
-                    firstChar = '0';
-                    modelFormat = end;
-                }
-            }
-        }
-    }
-
-    if (allocated)
-    {
-        delete visitedModels;
-    }
-
-    if (firstChar == '#')
-    {
-        // universe:channel
-        long startChannel;
-        Output* output = outputManager->GetOutput(firstChannel, startChannel);
-
-        if (output == nullptr) {
-            return wxString::Format("%u", firstChannel).ToStdString();
-        }
-
-        if (output->IsOutputCollection())
-        {
-            output = output->GetActualOutput(firstChannel);
-            startChannel = firstChannel - output->GetStartChannel() + 1;
-        }
-
-        if (CountChar(modelFormat, ':') == 1)
-        {
-            return wxString::Format("#%d:%ld (%u)", output->GetUniverse(), startChannel, firstChannel).ToStdString();
-        }
-        else
-        {
-            std::string ip = "<err>";
-            if (output->IsIpOutput())
-            {
-                ip = ((IPOutput*)output)->GetIP();
-            }
-            return wxString::Format("#%s:%d:%ld (%u)", ip, output->GetUniverse(), startChannel, firstChannel).ToStdString();
-        }
-    }
-    else if (firstChar == '@' || firstChar == '>' || CountChar(modelFormat, ':') == 0)
-    {
-        // absolute
-        return wxString::Format("%u", firstChannel).ToStdString();
-    }
-    else
-    {
-        // output:channel
-        long startChannel;
-        Output* output = outputManager->GetLevel1Output(firstChannel, startChannel);
-
-        if (output == nullptr)
-        {
-            return wxString::Format("%u", firstChannel).ToStdString();
-        }
-        else
-        {
-            return wxString::Format("%d:%ld (%u)", output->GetOutputNumber(), startChannel, firstChannel).ToStdString();
-        }
-    }
+    return GetChannelInStartChannelFormat(outputManager, nullptr, GetFirstChannel() + 1);
 }
 
 unsigned int Model::GetLastChannel() {
