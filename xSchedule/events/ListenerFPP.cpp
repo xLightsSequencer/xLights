@@ -133,7 +133,7 @@ void ListenerFPP::Poll()
                         uint32_t frameNumber = sp->frameNumber;
                         long ms = frameNumber * _frameMS;
 
-                        //logger_base.debug("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char *)fileName.c_str());
+                        logger_base.debug("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char *)fileName.c_str());
 
                         if (packetType != -1)
                         {

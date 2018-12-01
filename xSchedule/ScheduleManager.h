@@ -128,7 +128,6 @@ class ScheduleManager
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
     void StopVirtualMatrices();
-    void StartFSEQ(const std::string fseq);
     void StartStep(const std::string stepName);
     void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;

@@ -5689,48 +5689,6 @@ void ScheduleManager::CloseMIDIMaster()
     }
 }
 
-void ScheduleManager::StartFSEQ(const std::string fseq)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    // find this fseq file and run it
-    PlayList* pl = GetRunningPlayList();
-    PlayListStep* pls = nullptr;
-    if (pl != nullptr)
-    {
-        pls = pl->GetStepWithFSEQ(fseq);
-        StopPlayList(pl, false);
-    }
-
-    if (pls == nullptr)
-    {
-        for (auto it = _playLists.begin(); it != _playLists.end(); ++it)
-        {
-            pls = (*it)->GetStepWithFSEQ(fseq);
-
-            if (pls != nullptr) {
-                pl = *it;
-                break;
-            }
-        }
-    }
-
-    if (pl != nullptr && pls != nullptr)
-    {
-        logger_base.debug("... Starting %s %s.", (const char *)pl->GetNameNoTime().c_str(), (const char *)pls->GetNameNoTime().c_str());
-
-        size_t rate;
-        PlayPlayList(pl, rate, false, pls->GetNameNoTime(), true);
-
-        wxCommandEvent event1(EVT_FRAMEMS);
-        event1.SetInt(rate);
-        wxPostEvent(wxGetApp().GetTopWindow(), event1);
-
-        wxCommandEvent event2(EVT_SCHEDULECHANGED);
-        wxPostEvent(wxGetApp().GetTopWindow(), event2);
-    }
-}
-
 std::string ScheduleManager::FindStepForFSEQ(const std::string& fseq) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -5744,6 +5702,7 @@ std::string ScheduleManager::FindStepForFSEQ(const std::string& fseq) const
         }
     }
 
+    logger_base.debug("No step with fseq file '%s' found.", (const char*)fseq.c_str());
     return "";
 }
 
