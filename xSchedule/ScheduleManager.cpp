@@ -256,6 +256,15 @@ void ScheduleManager::StartListeners()
 
 int ScheduleManager::Sync(const std::string& filename, long ms)
 {
+    wxCommandEvent event(EVT_SYNC);
+    event.SetString(filename);
+    event.SetInt(ms);
+    wxPostEvent(wxGetApp().GetTopWindow(), event);
+    return 50;
+}
+
+int ScheduleManager::DoSync(const std::string& filename, long ms)
+{
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     PlayList* pl = GetRunningPlayList();
@@ -355,15 +364,17 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
     {
         if (ms == 0xFFFFFFFF)
         {
-            if (pls->GetName() == filename)
+            if (pls->GetNameNoTime() == filename)
             {
-                StopPlayList(pl, false);
+                wxCommandEvent event(EVT_STOP);
+                event.SetInt(pl->GetId());
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
         }
         else if (ms == 0xFFFFFFFE)
         {
             // pause
-            if (pls->GetName() == filename)
+            if (pls->GetNameNoTime() == filename)
             {
                 pl->Suspend(true);
             }
@@ -371,7 +382,7 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
         else if (ms == 0xFFFFFFFD)
         {
             // unpause
-            if (pls->GetName() == filename)
+            if (pls->GetNameNoTime() == filename)
             {
                 pl->Suspend(false);
             }
@@ -1185,6 +1196,7 @@ bool ScheduleManager::PlayPlayList(PlayList* playlist, size_t& rate, bool loop, 
     }
 
     _immediatePlay = new PlayList(*playlist);
+    wxASSERT(_immediatePlay != nullptr);
     _immediatePlay->Start(loop, random, plloops);
     if (step != "")
     {
@@ -5717,6 +5729,22 @@ void ScheduleManager::StartFSEQ(const std::string fseq)
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(wxGetApp().GetTopWindow(), event2);
     }
+}
+
+std::string ScheduleManager::FindStepForFSEQ(const std::string& fseq) const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    for (auto it: _playLists)
+    {
+        PlayListStep* pls = it->GetStepWithFSEQ(fseq);
+
+        if (pls != nullptr) {
+            return pls->GetNameNoTime();
+        }
+    }
+
+    return "";
 }
 
 void ScheduleManager::StartTiming(const std::string timingName)

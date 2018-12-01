@@ -1419,11 +1419,11 @@ PlayListStep* PlayList::GetStepWithFSEQ(const std::string fseqFile)
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto it: _steps)
         {
-            if ((*it)->IsRunningFSEQ(fseqFile))
+            if (it->IsRunningFSEQ(fseqFile))
             {
-                return *it;
+                return it;
             }
         }
     }

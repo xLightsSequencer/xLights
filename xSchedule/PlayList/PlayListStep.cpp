@@ -495,9 +495,9 @@ void PlayListStep::Start(int loops)
     _startTime = wxGetUTCTimeMillis().GetLo();
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (auto it: _items)
         {
-            (*it)->Start(GetLengthMS());
+            it->Start(GetLengthMS());
         }
     }
 }

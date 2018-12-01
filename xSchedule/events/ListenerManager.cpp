@@ -565,11 +565,14 @@ void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
 
 int ListenerManager::Sync(const std::string filename, long ms, const std::string& type)
 {
-    if ((_sync == 3 && type == "ARTNet") ||
-        (_sync == 4 && type == "FPP Unicast") ||
-        (_sync == 2 && type == "OSC") ||
-        (_sync == 5 && type == "MIDI") ||
+    if ((_sync == 4 && type == "FPP Unicast") ||
         (_sync == 1 && type == "FPP"))
+    {
+        return _scheduleManager->Sync(_scheduleManager->FindStepForFSEQ(filename), ms);
+    }
+    else if ((_sync == 3 && type == "ARTNet") ||
+        (_sync == 2 && type == "OSC") ||
+        (_sync == 5 && type == "MIDI"))
     {
         return _scheduleManager->Sync(filename, ms);
     }

@@ -57,6 +57,7 @@ class Pinger;
 wxDECLARE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SYNC, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOACTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_STOP, wxCommandEvent);
@@ -203,6 +204,7 @@ public:
         void RunAction(wxCommandEvent& event);
         void ScheduleChange(wxCommandEvent& event);
         void DoCheckSchedule(wxCommandEvent& event);
+        void Sync(wxCommandEvent& event);
         void DoAction(wxCommandEvent& event);
         void DoStop(wxCommandEvent& event);
         void DoXyzzy(wxCommandEvent& event);
