@@ -105,17 +105,17 @@ void ListenerFPP::Poll()
         unsigned char buffer[2048];
         memset(buffer, 0x00, sizeof(buffer));
 
-        wxStopWatch sw;
-        logger_base.debug("Trying to read FPP packet.");
+        //wxStopWatch sw;
+        //logger_base.debug("Trying to read FPP packet.");
         _socket->Read(&buffer[0], sizeof(buffer));
         if (_stop) return;
-        logger_base.debug(" Read done. %ldms", sw.Time());
+        //logger_base.debug(" Read done. %ldms", sw.Time());
 
         if (_socket->GetLastIOReadSize() == 0)
         {
-            logger_base.debug("Waiting for read.");
+            //logger_base.debug("Waiting for read.");
             _socket->WaitForRead(0, 50);
-            logger_base.debug("Waiting for read done.");
+            //logger_base.debug("Waiting for read done.");
         }
         else
         {
@@ -133,7 +133,7 @@ void ListenerFPP::Poll()
                         uint32_t frameNumber = sp->frameNumber;
                         long ms = frameNumber * _frameMS;
 
-                        logger_base.debug("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char *)fileName.c_str());
+                        //logger_base.debug("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char *)fileName.c_str());
 
                         if (packetType != -1)
                         {
