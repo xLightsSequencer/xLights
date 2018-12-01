@@ -11,8 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.50 December 1, 2018
    -- bug (scott)  Fix Submodel Dialog missing buttons and scaling issues
    -- enh (scott)  FPP Connect - save/load previous file selections on dialog open and close
+   -- bug (keith)  Fix test dialog cant multiselect to change testing state
+   -- bug (keith)  More work on xSchedule audio load failure ... maybe a fix
+   -- bug (keith)  Fix some more old value curve errors
+   -- bug (keith)  Fix xl Font move left and invalid chars not rendering correctly. This may impact some sequences if you have been working around this bug
+   -- bug (keith)  Add xSchedule performance logging which can be turned on
+   -- enh (keith)  Add optional parallel output of data in xschedule
+   -- enh (keith)  Add ability to skip media upload to FPP
+   -- bug (keith)  Fix xSchedule crash if you schedule a stop command
+   -- bug (keith)  Fixes for node effects on dmx models and some effect selection issues. Also fixes some LMS import problems
+   -- enh (keith)  Allow opt out of using gzip for FPP upload
 2018.49 November 27, 2018
    -- bug (keith)  Maybe one fix for xSchedule crashes loading audio + lots of extra logging to try and work out why it crashes
    -- bug (keith)  Fix model download progress dialog does not hide
