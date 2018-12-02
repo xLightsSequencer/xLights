@@ -769,6 +769,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             {
                 GetControllerConnection()->DeleteAttribute("Protocol");
                 GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[1]); // default to ws2811
+                grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetValue(GetProtocol());
             }
         }
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
