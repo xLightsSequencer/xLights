@@ -2209,11 +2209,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("DoLoadAudioData: Doing load of song data.");
 
-    logger_base.debug("formatContext 0x%lx", wxLongLong((size_t)formatContext).GetLo());
-    logger_base.debug("codecContext 0x%lx", wxLongLong((size_t)codecContext).GetLo());
-    logger_base.debug("audioStream 0x%lx", wxLongLong((size_t)audioStream).GetLo());
-    logger_base.debug("frame 0x%lx", wxLongLong((size_t)frame).GetLo());
-
     wxStopWatch sw;
 
     long read = 0;
@@ -2231,10 +2226,8 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     #define CONVERSION_BUFFER_SIZE 192000
     uint8_t* out_buffer = (uint8_t *)av_malloc(CONVERSION_BUFFER_SIZE * out_channels * 2); // 1 second of audio
 
-    logger_base.debug("DoLoadAudioData: AAA.");
     int64_t in_channel_layout = av_get_default_channel_layout(codecContext->channels);
 
-    logger_base.debug("DoLoadAudioData: BBB.");
     struct SwrContext *au_convert_ctx = swr_alloc_set_opts(nullptr, out_channel_layout, out_sample_fmt, out_sample_rate,
 		in_channel_layout, codecContext->sample_fmt, codecContext->sample_rate, 0, nullptr);
 
@@ -2248,11 +2241,9 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 	swr_init(au_convert_ctx);
 
 	// start at the beginning
-    logger_base.debug("DoLoadAudioData: CCC.");
     av_seek_frame(formatContext, 0, 0, AVSEEK_FLAG_ANY);
 
 	// Read the packets in a loop
-    logger_base.debug("DoLoadAudioData: DDD.");
     while (av_read_frame(formatContext, &readingPacket) == 0)
 	{
         if (readingPacket.stream_index == audioStream->index)
@@ -2266,7 +2257,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 				// Some frames rely on multiple packets, so we have to make sure the frame is finished before
 				// we can use it
 				int gotFrame = 0;
-                if (read < 10000) logger_base.debug("DoLoadAudioData: EEE. %ld", read);
                 int result = avcodec_decode_audio4(codecContext, frame, &gotFrame, &decodingPacket);
 
 				if (result >= 0 && gotFrame)
@@ -2294,7 +2284,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                             wxASSERT(false);
                         }
 
-                        if (read < 10000) logger_base.debug("DoLoadAudioData: FFF. %ld", read);
                         outSamples = swr_convert(au_convert_ctx, &out_buffer, CONVERSION_BUFFER_SIZE, (const uint8_t **)frame->data, frame->nb_samples);
 					}
 					catch (...)
@@ -2304,7 +2293,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                         swr_free(&au_convert_ctx);
 						av_free(out_buffer);
 						av_free(frame);
-                        avcodec_close(codecContext);
                         avformat_close_input(&formatContext);
                         _trackSize = _loadedData; // makes it looks like we are done
                         return;
@@ -2350,9 +2338,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 		}
 
 		// You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-        if (read < 10000) logger_base.debug("DoLoadAudioData: GGG. %ld", read);
         av_packet_unref(&readingPacket);
-        if (read < 10000) logger_base.debug("DoLoadAudioData: HHH. %ld", read);
     }
 
     // Some codecs will cause frames to be buffered up in the decoding process. If the CODEC_CAP_DELAY flag
@@ -2398,7 +2384,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     swr_free(&au_convert_ctx);
 					av_free(out_buffer);
 					av_free(frame);
-                    avcodec_close(codecContext);
                     avformat_close_input(&formatContext);
                     _trackSize = _loadedData; // makes it looks like we are done
                     return;
@@ -2450,7 +2435,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
 	av_free(out_buffer);
 	av_free(frame);
 
-    avcodec_close(codecContext);
     avformat_close_input(&formatContext);
 
     logger_base.debug("DoLoadAudioData: Song data loaded in %ld. Read: %ld", sw.Time(), read);
