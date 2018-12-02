@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)  Reduce frequency of model property reload
+   -- bug (keith)  Keep sort in models when things are changed
+   -- bug (keith)  Speed up virtual matrices by reducing unnecessary work
+   -- bug (keith)  Fix chained model start channel displayed off by 1
+   -- bug (chrisP) Fix FPP models file formatting error
+   -- bug (keith)  Fix FPP sync when xSchedule is the remote
 2018.50 December 1, 2018
    -- bug (scott)  Fix Submodel Dialog missing buttons and scaling issues
    -- enh (scott)  FPP Connect - save/load previous file selections on dialog open and close

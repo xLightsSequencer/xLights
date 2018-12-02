@@ -607,12 +607,22 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty *sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", CONTROLLER_PORTS, wxArrayInt(), GetPort(1)));
     wxString protocol = GetProtocol();
-    protocol.UpperCase();
-    int idx = CONTROLLER_PROTOCOLS.Index(protocol);
+    protocol.LowerCase();
+    int idx = -1;
+    int i = 0;
+    for (auto it : CONTROLLER_PROTOCOLS)
+    {
+        if (protocol == it.Lower())
+        {
+            idx = i;
+            break;
+        }
+        i++;
+    }
     sp = grid->AppendIn(p, new wxEnumProperty("Protocol", "ModelControllerConnectionProtocol", CONTROLLER_PROTOCOLS, wxArrayInt(), idx));
     
     wxXmlNode *node = GetControllerConnection();
-    if (protocol == "DMX" || protocol == "PIXELNET") {
+    if (protocol == "dmx" || protocol == "pixelnet" || protocol == "renard") {
         int chan = wxAtoi(node->GetAttribute("channel", "1"));
         sp = grid->AppendIn(p, new wxUIntProperty(protocol + " Channel", "ModelControllerConnectionDMXChannel", chan));
         sp->SetAttribute("Min", 1);
@@ -710,7 +720,7 @@ static wxString GetColorString(wxPGProperty *p, xlColor &xc) {
 
 static void clearUnusedProtocolProperties(wxXmlNode *node) {
     std::string protocol = node->GetAttribute("Protocol");
-    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet";
+    bool isDMX = protocol == "DMX" || protocol == "dmx" || protocol == "PIXELNET" || protocol == "pixelnet" || protocol == "PixelNet" || protocol == "Renard";
     bool isPixel = Model::IsPixelProtocol(protocol);
     
     if (!isPixel) {
@@ -770,14 +780,29 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
                 GetControllerConnection()->DeleteAttribute("Protocol");
                 GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[1]); // default to ws2811
                 grid->GetPropertyByName("ModelControllerConnectionProtocol")->SetValue(GetProtocol());
+
+                // need to refresh to add protocol specific options
+                return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
             }
         }
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
+        std::string oldProtocol = GetProtocol();
         GetControllerConnection()->DeleteAttribute("Protocol");
         if (event.GetValue().GetLong() > 0) {
             GetControllerConnection()->AddAttribute("Protocol", CONTROLLER_PROTOCOLS[event.GetValue().GetLong()]);
         }
+        std::string newProtocol = GetProtocol();
+        if (
+            ((newProtocol == "DMX" || newProtocol == "PixelNet" || newProtocol == "Renard") && IsPixelProtocol(oldProtocol)) ||
+            ((oldProtocol == "DMX" || oldProtocol == "PixelNet" || oldProtocol == "Renard") && IsPixelProtocol(newProtocol)) ||
+            (oldProtocol == "" && newProtocol != "") ||
+            (newProtocol == "" && oldProtocol != ""))
+        {
+            // if we switch between a DMX and pixel protocol we need to rebuild the properties
+            return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_REBUILD_PROP_GRID;
+        }
+
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelControllerConnectionDMXChannel") {
         GetControllerConnection()->DeleteAttribute("channel");
