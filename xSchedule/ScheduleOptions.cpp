@@ -227,6 +227,11 @@ wxXmlNode* ScheduleOptions::Save()
         res->AddAttribute("SendBackgroundWhenNotRunning", "TRUE");
     }
 
+    if (IsParallelTransmission())
+    {
+        res->AddAttribute("ParallelTransmission", "TRUE");
+    }
+
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
     res->AddAttribute("PasswordTimeout", wxString::Format(wxT("%i"), _passwordTimeout));
     res->AddAttribute("ARTNetTimeCodeFormat", wxString::Format("%d", _artNetTimeCodeFormat));

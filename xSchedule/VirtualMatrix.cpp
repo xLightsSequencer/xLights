@@ -6,7 +6,12 @@
 #include "xScheduleApp.h"
 #include "../xLights/outputs/OutputManager.h"
 
-VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier)
+extern "C"
+{
+    #include <libswscale/swscale.h>
+}
+
+VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, VMROTATION rotation, wxImageResizeQuality quality, int swsQuality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier)
 {
     _suppress = false;
     _outputManager = outputManager;
@@ -20,6 +25,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
     _matrixMultiplier = matrixMultiplier;
     _rotation = rotation;
     _quality = quality;
+    _swsQuality = swsQuality;
     _size = size;
     _location = loc;
     _startChannel = startChannel;
@@ -40,6 +46,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager)
     _matrixMultiplier = 1;
     _rotation = VMROTATION::VM_NORMAL;
     _quality = wxIMAGE_QUALITY_HIGH;
+    _swsQuality = -1;
     _size = wxSize(300, 300);
     _location = wxPoint(0,0);
     _startChannel = "1";
@@ -59,7 +66,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
     _useMatrixSize = useMatrixSize;
     _matrixMultiplier = matrixMultiplier;
     _rotation = EncodeRotation(rotation);
-    _quality = EncodeScalingQuality(quality);
+    _quality = EncodeScalingQuality(quality, _swsQuality);
     _size = size;
     _location = loc;
     _startChannel = startChannel;
@@ -78,7 +85,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
     _topMost = (n->GetAttribute("TopMost", "TRUE") == "TRUE");
     _useMatrixSize = (n->GetAttribute("UseMatrixSize", "FALSE") == "TRUE");
     _rotation = EncodeRotation(n->GetAttribute("Rotation", "None").ToStdString());
-    _quality = EncodeScalingQuality(n->GetAttribute("Quality", "High").ToStdString());
+    _quality = EncodeScalingQuality(n->GetAttribute("Quality", "High").ToStdString(), _swsQuality);
     _size = wxSize(wxAtoi(n->GetAttribute("WW", "300")), wxAtoi(n->GetAttribute("WH", "300")));
     _matrixMultiplier = wxAtoi(n->GetAttribute("MatrixMultiplier", "1"));
     _location = wxPoint(wxAtoi(n->GetAttribute("X", "0")), wxAtoi(n->GetAttribute("Y", "0")));
@@ -102,7 +109,7 @@ wxXmlNode* VirtualMatrix::Save()
         res->AddAttribute("UseMatrixSize", "TRUE");
     }
     res->AddAttribute("Rotation", DecodeRotation(_rotation));
-    res->AddAttribute("Quality", DecodeScalingQuality(_quality));
+    res->AddAttribute("Quality", DecodeScalingQuality(_quality, _swsQuality));
     res->AddAttribute("WW", wxString::Format(wxT("%i"), (long)_size.GetWidth()));
     res->AddAttribute("WH", wxString::Format(wxT("%i"), (long)_size.GetHeight()));
     res->AddAttribute("X", wxString::Format(wxT("%i"), (long)_location.x));
@@ -145,8 +152,9 @@ std::string VirtualMatrix::DecodeRotation(VMROTATION rotation)
     }
 }
 
-wxImageResizeQuality VirtualMatrix::EncodeScalingQuality(const std::string quality)
+wxImageResizeQuality VirtualMatrix::EncodeScalingQuality(const std::string quality, int& swsQuality)
 {
+    swsQuality = -1;
     if (wxString(quality).Lower() == "normal")
     {
         return wxIMAGE_QUALITY_NORMAL;
@@ -167,25 +175,115 @@ wxImageResizeQuality VirtualMatrix::EncodeScalingQuality(const std::string quali
     {
         return wxIMAGE_QUALITY_HIGH;
     }
+    else if (wxString(quality).Lower() == "fast bilinear")
+    {
+        swsQuality = SWS_FAST_BILINEAR;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "sws bilinear")
+    {
+        swsQuality = SWS_BILINEAR;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "sws bicubic")
+    {
+        swsQuality = SWS_BICUBIC;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "x")
+    {
+        swsQuality = SWS_X;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "point")
+    {
+        swsQuality = SWS_POINT;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "area")
+    {
+        swsQuality = SWS_AREA;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "bicublin")
+    {
+        swsQuality = SWS_BICUBLIN;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "gauss")
+    {
+        swsQuality = SWS_GAUSS;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "sinc")
+    {
+        swsQuality = SWS_SINC;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "lanczos")
+    {
+        swsQuality = SWS_LANCZOS;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+    else if (wxString(quality).Lower() == "spline")
+    {
+        swsQuality = SWS_SPLINE;
+        return wxIMAGE_QUALITY_HIGH;
+    }
+
     return wxIMAGE_QUALITY_NORMAL;
 }
 
-std::string VirtualMatrix::DecodeScalingQuality(wxImageResizeQuality quality)
+std::string VirtualMatrix::DecodeScalingQuality(wxImageResizeQuality quality, int swsQuality)
 {
-    switch (quality)
+    if (swsQuality < 0)
     {
-    case wxIMAGE_QUALITY_NORMAL:
-        return "Normal";
-    case wxIMAGE_QUALITY_BICUBIC:
-        return "Bicubic";
-    case wxIMAGE_QUALITY_BILINEAR:
-        return "Bilinear";
-    case wxIMAGE_QUALITY_BOX_AVERAGE:
-        return "Box Average";
-    case wxIMAGE_QUALITY_HIGH:
-        return "High";
+        switch (quality)
+        {
+        case wxIMAGE_QUALITY_NORMAL:
+            return "Normal";
+        case wxIMAGE_QUALITY_BICUBIC:
+            return "Bicubic";
+        case wxIMAGE_QUALITY_BILINEAR:
+            return "Bilinear";
+        case wxIMAGE_QUALITY_BOX_AVERAGE:
+            return "Box Average";
+        case wxIMAGE_QUALITY_HIGH:
+            return "High";
+        default:
+            break;
+        }
     }
-
+    else
+    {
+        switch (swsQuality)
+        {
+        case SWS_FAST_BILINEAR:
+            return "Fast Bilinear";
+        case SWS_BILINEAR:
+            return "SWS Bilinear";
+        case SWS_BICUBIC:
+            return "SWS Bicubic";
+        case SWS_X:
+            return "X";
+        case SWS_POINT:
+            return "Point";
+        case SWS_AREA:
+            return "Area";
+        case SWS_BICUBLIN:
+            return "Bicublin";
+        case SWS_GAUSS:
+            return "Gauss";
+        case SWS_SINC:
+            return "Sinc";
+        case SWS_LANCZOS:
+            return "Lanczos";
+        case SWS_SPLINE:
+            return "Spline";
+        default:
+            break;
+        }
+    }
     return "Normal";
 }
 
@@ -217,7 +315,7 @@ void VirtualMatrix::Frame(wxByte*buffer, size_t size)
 
     if (_rotation == VMROTATION::VM_NORMAL)
     {
-        _window->SetImage(_image.Copy());
+        _window->SetImage(_image);
     }
     else if (_rotation == VMROTATION::VM_90)
     {
@@ -239,7 +337,7 @@ void VirtualMatrix::Start()
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, _quality, wxID_ANY, _location, _size);
+        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, _quality, _swsQuality, wxID_ANY, _location, _size);
     }
     else
     {

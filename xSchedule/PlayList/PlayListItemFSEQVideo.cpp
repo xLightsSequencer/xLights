@@ -646,7 +646,7 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_HIGH, -1, wxID_ANY, _origin, _size);
     }
     else
     {

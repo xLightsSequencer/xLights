@@ -186,7 +186,8 @@ void PlayListItemScreenMap::Frame(wxByte* buffer, size_t size, size_t ms, size_t
         wxImage image;
         if (_rescale)
         {
-            wxImageResizeQuality quality = VirtualMatrix::EncodeScalingQuality(_quality);
+            int swsQuality = -1;
+            wxImageResizeQuality quality = VirtualMatrix::EncodeScalingQuality(_quality, swsQuality);
             image = sourceBitmap.ConvertToImage().Rescale(_matrixMapper->GetWidth(), _matrixMapper->GetHeight(), quality);
         }
         else
