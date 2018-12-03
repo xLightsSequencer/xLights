@@ -679,7 +679,7 @@ void ModelFaceDialog::TryToSetAllMatrixModels(std::string name, std::string key,
             //get list of etc Phonemes
             const std::list<std::string> findList = GetPhonemes("etc");
             //loop through and find the "etc" file
-            for(const auto phen :findList)
+            for(const auto &phen :findList)
             {
                 const wxFileName fn2 = GetFileNamePhoneme(fn, *it, i, phen);
                 if (fn2.Exists())
