@@ -125,7 +125,9 @@ VirtualMatrixDialog::VirtualMatrixDialog(wxWindow* parent, OutputManager* output
     //Choice_Quality->Append("Sinc");
     //Choice_Quality->Append("Lanczos");
     //Choice_Quality->Append("Spline");
- 
+
+    Choice_Quality->SetStringSelection("Bilinear");
+
     TextCtrl_Name->SetValue(_name);
     Choice_Rotation->SetStringSelection(_rotation);
     Choice_Quality->SetStringSelection(_quality);

@@ -1,13 +1,16 @@
-#include "PlayerWindow.h"
 #include <wx/dcclient.h>
-#include <log4cpp/Category.hh>
 #include <wx/stopwatch.h>
+
+#include "PlayerWindow.h"
+#include "../VirtualMatrix.h"
 
 extern "C"
 {
     #include <libswscale/swscale.h>
     #include <libavutil/frame.h>
 }
+
+#include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(PlayerWindow, wxWindow)
     EVT_MOTION(PlayerWindow::OnMouseMove)
@@ -57,7 +60,7 @@ PlayerWindow::PlayerWindow(wxWindow* parent, bool topMost, wxImageResizeQuality 
     GetSize(&w, &h);
     int x, y;
     GetPosition(&x, &y);
-    logger_base.info("Player window created location (%d, %d) size (%d, %d).", x, y, w, h);
+    logger_base.info("Player window created location (%d, %d) size (%d, %d) Quality: %s.", x, y, w, h, (const char*)VirtualMatrix::DecodeScalingQuality(quality, swsQuality).c_str());
 }
 
 PlayerWindow::~PlayerWindow()

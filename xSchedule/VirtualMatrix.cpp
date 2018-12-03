@@ -85,7 +85,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
     _topMost = (n->GetAttribute("TopMost", "TRUE") == "TRUE");
     _useMatrixSize = (n->GetAttribute("UseMatrixSize", "FALSE") == "TRUE");
     _rotation = EncodeRotation(n->GetAttribute("Rotation", "None").ToStdString());
-    _quality = EncodeScalingQuality(n->GetAttribute("Quality", "High").ToStdString(), _swsQuality);
+    _quality = EncodeScalingQuality(n->GetAttribute("Quality", "Bilinear").ToStdString(), _swsQuality);
     _size = wxSize(wxAtoi(n->GetAttribute("WW", "300")), wxAtoi(n->GetAttribute("WH", "300")));
     _matrixMultiplier = wxAtoi(n->GetAttribute("MatrixMultiplier", "1"));
     _location = wxPoint(wxAtoi(n->GetAttribute("X", "0")), wxAtoi(n->GetAttribute("Y", "0")));

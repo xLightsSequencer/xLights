@@ -162,6 +162,8 @@ PlayListItemScreenMapPanel::PlayListItemScreenMapPanel(wxWindow* parent, PlayLis
 	Connect(ID_SPINCTRL5,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&PlayListItemScreenMapPanel::OnSpinCtrl_PosChange);
 	//*)
 
+    Choice_Quality->SetStringSelection("Bilinear");
+
     wxScreenDC screenDC;
     int w, h;
     screenDC.GetSize(&w, &h);
