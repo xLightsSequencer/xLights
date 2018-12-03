@@ -2017,7 +2017,7 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     }
     else
     {
-        return wxString::Format("%u", GetFirstChannel());
+        return wxString::Format("%u", GetFirstChannel() + 1);
     }
 }
 
