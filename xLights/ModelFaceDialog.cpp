@@ -842,6 +842,8 @@ void ModelFaceDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
         if (dialog.ShowModal() == wxID_OK)
         {
             NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, dialog.GetNodeList());
+            NodeRangeGrid->Refresh();
+            GetValue(NodeRangeGrid, event, faceData[name]);
             dialog.Close();
         }
     }

@@ -4588,6 +4588,16 @@ void ScheduleManager::CheckScheduleIntegrity(bool display)
                     wxString msg = wxString::Format("    ERR: Playlist '%s' step '%s' item '%s' references file '%s' which does not exist.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str(), (const char*)(*i)->GetNameNoTime().c_str(), (const char *)(ff->c_str()));
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
+
+                    for (int j = 0; j < ff->length(); ++j)
+                    {
+                        if (ff->at(j) < 32)
+                        {
+                            msg = wxString::Format("    ERR: Playlist '%s' step '%s' item '%s' references file '%s' which contains illegal character 0x%x.", (const char*)(*n)->GetNameNoTime().c_str(), (const char*)(*s)->GetNameNoTime().c_str(), (const char*)(*i)->GetNameNoTime().c_str(), (const char *)(ff->c_str()), (int)ff->at(j));
+                            LogAndWrite(f, msg.ToStdString());
+                            errcount++;
+                        }
+                    }
                 }
             }
         }
