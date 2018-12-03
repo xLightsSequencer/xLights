@@ -42,6 +42,7 @@ class MainSequencer: public wxPanel
         void TagAllSelectedEffects();
         void UnTagAllEffects();
         Effect* GetSelectedEffect();
+        void CancelRender();
         int GetSelectedEffectCount(const std::string effectName) const;
         bool AreAllSelectedEffectsOnTheSameElement() const;
         void ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);

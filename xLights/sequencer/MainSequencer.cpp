@@ -541,6 +541,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         {
             PanelEffectGrid->LockEffects(true);
         }
+        else if (type == "CANCEL_RENDER")
+        {
+            CancelRender();
+        }
         else if (type == "UNLOCK_EFFECT")
         {
             PanelEffectGrid->LockEffects(false);
@@ -771,21 +775,24 @@ void MainSequencer::OnCharHook(wxKeyEvent& event)
             }
             break;
         case WXK_ESCAPE:
-            {
-                static bool escapeReenter = false;
-                
-                if (!escapeReenter) {
-                    escapeReenter = true;
-                    if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
-                        mSequenceElements->GetXLightsFrame()->AbortRender();
-                    }
-                    escapeReenter = false;
-                }
-            }
+            CancelRender();
             break;
         default:
             event.Skip();
             break;
+    }
+}
+
+void MainSequencer::CancelRender()
+{
+    static bool escapeReenter = false;
+
+    if (!escapeReenter) {
+        escapeReenter = true;
+        if (mSequenceElements != nullptr && mSequenceElements->GetXLightsFrame() != nullptr) {
+            mSequenceElements->GetXLightsFrame()->AbortRender();
+        }
+        escapeReenter = false;
     }
 }
 

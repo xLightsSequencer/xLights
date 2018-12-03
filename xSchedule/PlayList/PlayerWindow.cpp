@@ -113,7 +113,7 @@ void PlayerWindow::SetImage(const wxImage& image)
 
                 if (image.GetWidth() != width || image.GetHeight() != height)
                 {
-                    SwsContext *_swsCtx = sws_getContext(srcWidth, srcHeight, AVPixelFormat::AV_PIX_FMT_RGB24, 
+                    SwsContext *swsCtx = sws_getContext(srcWidth, srcHeight, AVPixelFormat::AV_PIX_FMT_RGB24, 
                                                          width, height, AVPixelFormat::AV_PIX_FMT_RGB24, 
                                                          _swsQuality, nullptr, nullptr, nullptr);
 
@@ -122,10 +122,12 @@ void PlayerWindow::SetImage(const wxImage& image)
                     const uint8_t* srcPtr = (uint8_t*)image.GetData();
                     uint8_t* const dstPtr = (uint8_t*)_image.GetData();
 
-                    sws_scale(_swsCtx, 
+                    sws_scale(swsCtx, 
                               &srcPtr, &srcRow, 
                               0, height, 
                               &dstPtr, &dstRow);
+
+                    sws_freeContext(swsCtx);
                 }
                 else
                 {
