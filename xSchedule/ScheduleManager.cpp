@@ -1725,7 +1725,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     scheduleChanged = true;
                 }
-                else if (command == "Add x Seconds To Current Step Position")
+                else if (command == "Add n Seconds To Current Step Position")
                 {
                     PlayList* p = GetRunningPlayList();
                     int seconds = wxAtoi(parameters);

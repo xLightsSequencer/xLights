@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)  Fix absolute model start channels off by one in model list
+   -- enh (keith)  Add "Close xSchedule" api
+   -- enh (keith)  Add "Add n Seconds To Current Step Position" api
+   -- enh (keith)  Add option in xSchedule to continue to try to connect outputs that fail to connect ... and when it fails do it silently
+   -- enh (keith)  Add a state event to xSchedule which fires when it starts, lights go on, lights go off and when an output fails to start
+   -- enh (keith)  Force LOR outputs to occasionally output a channel even if it hasnt changed
 2018.51 December 3, 2018
    -- bug (keith)  More work on xSchedule audio load failure ... maybe a fix
    -- bug (keith)  Reduce frequency of model property reload
