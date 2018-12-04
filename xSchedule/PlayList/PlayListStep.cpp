@@ -526,6 +526,21 @@ void PlayListStep::Pause(bool pause)
     }
 }
 
+void PlayListStep::Advance(int seconds)
+{
+    size_t msPerFrame = 1000;
+    PlayListItem* timesource = GetTimeSource(msPerFrame);
+
+    if (timesource != nullptr)
+    {
+        if (timesource->Advance(seconds)) return;
+    }
+
+    _startTime -= seconds * 1000;
+    if (_startTime > wxGetUTCTimeMillis().GetLo()) _startTime = wxGetUTCTimeMillis().GetLo();
+    if (wxGetUTCTimeMillis().GetLo() - _startTime > GetLengthMS()) _startTime = wxGetUTCTimeMillis().GetLo() - GetLengthMS();
+}
+
 void PlayListStep::Suspend(bool suspend)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

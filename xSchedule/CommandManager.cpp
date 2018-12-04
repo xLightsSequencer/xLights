@@ -336,5 +336,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Set playlist as background", 1, pl, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Clear background playlist", 0, {}, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Close xSchedule", 0, {}, false, false, false, false, true, true, true, false));
+    _commands.push_back(new Command("Add x Seconds To Current Step Position", 1, i, false, false, true, false, false, true, true, false));
 }
 

@@ -36,7 +36,7 @@ protected:
 protected:
     static std::string GetTagHint();
 
-public:
+    public:
 
     #pragma region Constructors and Destructors
     PlayListItem(wxXmlNode* node);
@@ -88,6 +88,7 @@ public:
     virtual void Restart() {}
     virtual void Pause(bool pause) {}
     virtual void Suspend(bool suspend) {}
+    virtual bool Advance(int seconds) { return false; }
     #pragma endregion Playing
 
     #pragma region UI

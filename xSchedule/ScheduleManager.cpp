@@ -1725,6 +1725,30 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Add x Seconds To Current Step Position")
+                {
+                    PlayList* p = GetRunningPlayList();
+                    int seconds = wxAtoi(parameters);
+
+                    if (p != nullptr)
+                    {
+                        PlayListStep* pls = p->GetRunningStep();
+                        if (pls != nullptr)
+                        {
+                            pls->Advance(seconds);
+                        }
+                        else
+                        {
+                            result = false;
+                            msg = "Current playlist has no running step.";
+                        }
+                    }
+                    else
+                    {
+                        result = false;
+                        msg = "No playlist playing.";
+                    }
+                }
                 else if (command == "Restart step in current playlist")
                 {
                     PlayList* p = GetRunningPlayList();

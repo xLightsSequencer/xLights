@@ -120,6 +120,7 @@ public:
     virtual void Restart() override;
     virtual void Pause(bool pause) override;
     virtual void Suspend(bool suspend) override;
+    virtual bool Advance(int seconds) override;
     #pragma endregion Playing
 
 #pragma region UI

@@ -73,6 +73,7 @@ public:
     void Suspend(bool suspend);
     void Restart();
     void Pause(bool pause);
+    virtual void Advance(int seconds);
     std::string GetActiveSyncItemFSEQ();
     std::string GetActiveSyncItemMedia();
     int GetPlayStepSize() const { return _items.size(); }
