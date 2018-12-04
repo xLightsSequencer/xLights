@@ -334,6 +334,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    OutputManager::SetInteractive(false);
     _pinger = nullptr;
     __schedule = nullptr;
     _statusSetAt = wxDateTime::Now();
@@ -1522,6 +1523,7 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
         }
 
         __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
+        OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
 
         __schedule->OptionsChanged();
 

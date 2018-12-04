@@ -63,10 +63,12 @@ public:
 
     #pragma region Start and Stop
     virtual bool Open() override;
-    virtual void Close() override {};
+    virtual void Close() override;
+    void OpenDatagram();
     #pragma endregion Start and Stop
 
     #pragma region Frame Handling
+    virtual void StartFrame(long msec) override;
     virtual void EndFrame(int suppressFrames) override;
     #pragma endregion Frame Handling
 

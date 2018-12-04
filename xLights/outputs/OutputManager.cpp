@@ -18,6 +18,8 @@ int OutputManager::_lastSecond = -10;
 int OutputManager::_currentSecond = -10;
 int OutputManager::_lastSecondCount = 0;
 int OutputManager::_currentSecondCount = 0;
+bool OutputManager::_isRetryOpen = false;
+bool OutputManager::_isInteractive = true;
 
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
@@ -865,7 +867,10 @@ bool OutputManager::StartOutput()
         if (!ok && ok != preok)
         {
             logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char *)(*it)->GetDescription().c_str());
-            if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started+1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            if (OutputManager::IsInteractive())
+            {
+                if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started + 1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            }
             err = true;
         }
         if (ok) started++;

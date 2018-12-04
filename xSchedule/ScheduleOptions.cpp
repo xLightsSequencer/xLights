@@ -33,6 +33,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
+    _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -166,6 +167,7 @@ ScheduleOptions::ScheduleOptions()
     _sync = false;
     _sendOffWhenNotRunning = false;
     _parallelTransmission = false;
+    _retryOutputOpen = false;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
     _crashBehaviour = "Prompt user";
@@ -230,6 +232,11 @@ wxXmlNode* ScheduleOptions::Save()
     if (IsParallelTransmission())
     {
         res->AddAttribute("ParallelTransmission", "TRUE");
+    }
+
+    if (IsRetryOpen())
+    {
+        res->AddAttribute("RetryOutputOpen", "TRUE");
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));

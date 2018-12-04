@@ -194,6 +194,41 @@ std::string E131Output::GetTag()
 #pragma endregion Static Functions
 
 #pragma region Start and Stop
+void E131Output::OpenDatagram()
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_datagram != nullptr) return;
+
+    wxIPV4address localaddr;
+    if (IPOutput::__localIP == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    if (_datagram == nullptr)
+    {
+        logger_base.error("E131Output: %s Error opening datagram.", (const char *)localaddr.IPAddress().c_str());
+    }
+    else if (!_datagram->IsOk())
+    {
+        logger_base.error("E131Output: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+    }
+    else if (_datagram->Error() != wxSOCKET_NOERROR)
+    {
+        logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char *)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
+        delete _datagram;
+        _datagram = nullptr;
+    }
+}
+
 bool E131Output::Open()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -264,33 +299,7 @@ bool E131Output::Open()
         _data[123] = 0x02;  // Property value count (high)
         _data[124] = 0x01;  // Property value count (low)
 
-        wxIPV4address localaddr;
-        if (IPOutput::__localIP == "")
-        {
-            localaddr.AnyAddress();
-        }
-        else
-        {
-            localaddr.Hostname(IPOutput::__localIP);
-        }
-
-        _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-        if (_datagram == nullptr)
-        {
-            logger_base.error("E131Output: %s Error opening datagram.", (const char *)localaddr.IPAddress().c_str());
-        }
-        else if (!_datagram->IsOk())
-        {
-            logger_base.error("E131Output: %s Error opening datagram. Network may not be connected? OK : FALSE", (const char *)localaddr.IPAddress().c_str());
-            delete _datagram;
-            _datagram = nullptr;
-        }
-        else if (_datagram->Error() != wxSOCKET_NOERROR)
-        {
-            logger_base.error("E131Output: %s Error creating E131 datagram => %d : %s.", (const char *)localaddr.IPAddress().c_str(), _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str());
-            delete _datagram;
-            _datagram = nullptr;
-        }
+        OpenDatagram();
 
         if (wxString(_ip).StartsWith("239.255.") || _ip == "MULTICAST")
         {
@@ -343,6 +352,14 @@ void E131Output::Close()
             (*it)->Close();
         }
     }
+    else
+    {
+        if (_datagram != nullptr)
+        {
+            delete _datagram;
+            _datagram = nullptr;
+        }
+    }
 }
 #pragma endregion Start and Stop
 
@@ -371,6 +388,9 @@ void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
 #pragma region Frame Handling
 void E131Output::StartFrame(long msec)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static int __retries = -1;
+
     if (!_enabled) return;
 
     if (IsOutputCollection())
@@ -382,6 +402,15 @@ void E131Output::StartFrame(long msec)
     }
     else
     {
+        if (_datagram == nullptr && OutputManager::IsRetryOpen())
+        {
+            OpenDatagram();
+            if (_ok)
+            {
+                logger_base.debug("E131Output: Open retry successful");
+            }
+        }
+
         _timer_msec = msec;
     }
 }

@@ -44,6 +44,7 @@ class OptionsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_APIOnly;
 		wxCheckBox* CheckBox_MultithreadedTransmission;
+		wxCheckBox* CheckBox_RetryOpen;
 		wxCheckBox* CheckBox_RunBackground;
 		wxCheckBox* CheckBox_SendOffWhenNotRunning;
 		wxCheckBox* CheckBox_SimpleMode;
@@ -76,6 +77,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX5;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX6;
+		static const long ID_CHECKBOX7;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;

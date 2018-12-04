@@ -30,6 +30,8 @@ class OutputManager
     static int _currentSecond;
     static int _lastSecondCount;
     static int _currentSecondCount;
+    static bool _isRetryOpen;
+    static bool _isInteractive;
 
     bool SetGlobalOutputtingFlag(bool state, bool force = false);
 
@@ -44,6 +46,10 @@ public:
     static std::string GetNetworksFileName() { return NETWORKSFILE; }
     int GetPacketsPerSecond() const;
     static void RegisterSentPacket();
+    static bool IsRetryOpen() { return _isRetryOpen; }
+    static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
+    static bool IsInteractive() { return _isInteractive; }
+    static void SetInteractive(bool interactive) { _isInteractive = interactive; }
     #pragma endregion Static Functions
 
     #pragma region Save and Load

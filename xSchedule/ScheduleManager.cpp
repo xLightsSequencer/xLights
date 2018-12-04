@@ -99,6 +99,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
             {
                 _scheduleOptions = new ScheduleOptions(_outputManager, n, GetCommandManager());
                 _outputManager->SetParallelTransmission(_scheduleOptions->IsParallelTransmission());
+                OutputManager::SetRetryOpen(_scheduleOptions->IsRetryOpen());
                 Schedule::SetCity(_scheduleOptions->GetCity());
             }
             else if (n->GetName() == "OutputProcesses")
