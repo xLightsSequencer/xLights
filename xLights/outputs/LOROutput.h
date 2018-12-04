@@ -17,6 +17,7 @@ protected:
     #pragma region Member Variables
     long _lastheartbeat;
     wxByte _data[LOR_PACKET_LEN];
+    wxByte _notSentCount[LOR_PACKET_LEN];
     wxByte _lastSent[LOR_MAX_CHANNELS];
     #pragma endregion Member Variables
 

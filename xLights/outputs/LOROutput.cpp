@@ -6,6 +6,7 @@
 LOROutput::LOROutput(SerialOutput* output) : SerialOutput(output)
 {
     memset(_lastSent, 0x00, sizeof(_lastSent));
+    memset(_notSentCount, 0x00, sizeof(_notSentCount));
     _lastheartbeat = -1;
     memset(_data, 0, sizeof(_data));
 }
@@ -13,6 +14,7 @@ LOROutput::LOROutput(SerialOutput* output) : SerialOutput(output)
 LOROutput::LOROutput(wxXmlNode* node) : SerialOutput(node)
 {
     memset(_lastSent, 0x00, sizeof(_lastSent));
+    memset(_notSentCount, 0x00, sizeof(_notSentCount));
     _lastheartbeat = -1;
     memset(_data, 0, sizeof(_data));
 }
@@ -20,6 +22,7 @@ LOROutput::LOROutput(wxXmlNode* node) : SerialOutput(node)
 LOROutput::LOROutput() : SerialOutput()
 {
     memset(_lastSent, 0x00, sizeof(_lastSent));
+    memset(_notSentCount, 0x00, sizeof(_notSentCount));
     _lastheartbeat = -1;
     memset(_data, 0, sizeof(_data));
 }
@@ -67,6 +70,7 @@ bool LOROutput::Open()
 
     // initialise to a known state of all off
     memset(_lastSent, 0xFF, sizeof(_lastSent));
+    memset(_notSentCount, 0xF0, sizeof(_notSentCount));
     AllOff();
 
     return _ok;
@@ -100,8 +104,9 @@ void LOROutput::SetOneChannel(long channel, unsigned char data)
 
     // because LOR sends the channel number in the packet we can skip sending data that hasnt changed ... I think
     // Copied this from the way FPP seems to handle it - KW
-    if (_lastSent[channel] != data)
+    if (_lastSent[channel] != data || _notSentCount[channel] > 200)
     {
+        _notSentCount[channel] = 0;
         wxByte d[6];
         d[0] = 0;
         d[1] = channel >> 4;
@@ -116,6 +121,10 @@ void LOROutput::SetOneChannel(long channel, unsigned char data)
             _serial->Write((char *)d, 6);
             _lastSent[channel] = data;
         }
+    }
+    else
+    {
+        _notSentCount[channel]++;
     }
 }
 
