@@ -2110,6 +2110,13 @@ int AudioManager::OpenMediaFile()
 	/* Get Track Size */
 	GetTrackMetrics(formatContext, codecContext, audioStream);
 
+    if (!_ok)
+    {
+        avformat_close_input(&formatContext);
+        formatContext = nullptr;
+        return 1;
+    }
+
 	// Check if we have read this before ... if so dump the old data
 	if (_data[1] != nullptr && _data[1] != _data[0])
 	{
@@ -2158,6 +2165,13 @@ int AudioManager::OpenMediaFile()
 
 	LoadTrackData(formatContext, codecContext, audioStream);
 
+    if (!_ok)
+    {
+        avformat_close_input(&formatContext);
+        formatContext = nullptr;
+        return 1;
+    }
+
     // only initialise if we successfully got data
     if (_pcmdata != nullptr)
     {
@@ -2172,6 +2186,7 @@ int AudioManager::OpenMediaFile()
 void AudioManager::LoadTrackData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     logger_base.debug("Preparing to load song data.");
 
     // setup our conversion format ... we need to conver the input to a standard format before we can process anything
@@ -2448,6 +2463,9 @@ SDL* AudioManager::GetSDL()
 void AudioManager::GetTrackMetrics(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.error("Getting track metrics.");
+
     _trackSize = 0;
 
 	AVFrame* frame = av_frame_alloc();
