@@ -231,6 +231,7 @@
     <ClCompile Include="EventPingPanel.cpp" />
     <ClCompile Include="EventsDialog.cpp" />
     <ClCompile Include="EventSerialPanel.cpp" />
+    <ClCompile Include="EventStatePanel.cpp" />
     <ClCompile Include="events\EventARTNet.cpp" />
     <ClCompile Include="events\EventBase.cpp" />
     <ClCompile Include="events\EventData.cpp" />
@@ -241,6 +242,7 @@
     <ClCompile Include="events\EventOSC.cpp" />
     <ClCompile Include="events\EventPing.cpp" />
     <ClCompile Include="events\EventSerial.cpp" />
+    <ClCompile Include="events\EventState.cpp" />
     <ClCompile Include="events\ListenerARTNet.cpp" />
     <ClCompile Include="events\ListenerBase.cpp" />
     <ClCompile Include="events\ListenerE131.cpp" />
@@ -423,6 +425,7 @@
     <ClInclude Include="EventPingPanel.h" />
     <ClInclude Include="EventsDialog.h" />
     <ClInclude Include="EventSerialPanel.h" />
+    <ClInclude Include="EventStatePanel.h" />
     <ClInclude Include="events\EventARTNet.h" />
     <ClInclude Include="events\EventBase.h" />
     <ClInclude Include="events\EventData.h" />
@@ -433,6 +436,7 @@
     <ClInclude Include="events\EventOSC.h" />
     <ClInclude Include="events\EventPing.h" />
     <ClInclude Include="events\EventSerial.h" />
+    <ClInclude Include="events\EventState.h" />
     <ClInclude Include="events\ListenerARTNet.h" />
     <ClInclude Include="events\ListenerBase.h" />
     <ClInclude Include="events\ListenerE131.h" />

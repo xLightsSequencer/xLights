@@ -3483,10 +3483,15 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                     wxMessageBox("Warning: Lights output is already open in another process. This will cause issues.", "WARNING", 4 | wxCENTRE, frame);
                 }
                 DisableRemoteOutputs();
-                _outputManager->StartOutput();
+                bool success = _outputManager->StartOutput();
                 StartVirtualMatrices();
                 ManageBackground();
                 logger_frame.debug("Turned on output to lights %ldms", sw.Time());
+                GetListenerManager()->ProcessPacket("State", "Lights On");
+                if (!success)
+                {
+                    GetListenerManager()->ProcessPacket("State", "Output Open Error");
+                }
             }
         }
         else
@@ -3497,6 +3502,7 @@ void ScheduleManager::SetOutputToLights(xScheduleFrame* frame, bool otl, bool in
                 StopVirtualMatrices();
                 ManageBackground();
                 logger_frame.debug("Turned off output to lights %ldms", sw.Time());
+                GetListenerManager()->ProcessPacket("State", "Lights Off");
             }
         }
     }
@@ -3518,12 +3524,14 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
         _outputManager->StartOutput();
         StartVirtualMatrices();
         ManageBackground();
+        GetListenerManager()->ProcessPacket("State", "Lights On");
     }
     else if (_manualOTL == 0)
     {
         _outputManager->StopOutput();
         StopVirtualMatrices();
         ManageBackground();
+        GetListenerManager()->ProcessPacket("State", "Lights Off");
     }
 }
 

@@ -475,6 +475,10 @@
       <Filter>PlayList</Filter>
     </ClCompile>
     <ClCompile Include="..\xLights\Parallel.cpp" />
+    <ClCompile Include="events\EventState.cpp">
+      <Filter>Events</Filter>
+    </ClCompile>
+    <ClCompile Include="EventStatePanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -927,6 +931,10 @@
     <ClInclude Include="PlayList\PlayListItemDim.h">
       <Filter>PlayList</Filter>
     </ClInclude>
+    <ClInclude Include="events\EventState.h">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="EventStatePanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

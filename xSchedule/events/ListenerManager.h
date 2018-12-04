@@ -25,7 +25,8 @@ class ListenerManager
 		virtual ~ListenerManager();
 		void Pause(bool pause = true);
 		void ProcessFrame(wxByte* buffer, long buffsize);
-		void ProcessPacket(const std::string& source, int universe, wxByte* buffer, long buffsize);
+        void ProcessPacket(const std::string& source, const std::string& state, long buffsize);
+        void ProcessPacket(const std::string& source, int universe, wxByte* buffer, long buffsize);
 		void ProcessPacket(const std::string& source, const std::string& commPort, wxByte* buffer, long buffsize, int subtype);
 		void ProcessPacket(const std::string& source, wxByte status, wxByte channel, wxByte data1, wxByte data2);
 		void ProcessPacket(const std::string& source, const std::string& id);

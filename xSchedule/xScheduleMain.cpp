@@ -50,6 +50,7 @@
 #include "../xLights/UtilFunctions.h"
 #include "ConfigureMIDITimecodeDialog.h"
 #include "City.h"
+#include "events/ListenerManager.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -722,6 +723,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         Close();
     }
 
+    __schedule->GetListenerManager()->ProcessPacket("State", "Startup");
+
     // Uncomment this to run the MatrixMapper tests
     //MatrixMapper::Test(__schedule->GetOutputManager());
 
@@ -932,6 +935,8 @@ void xScheduleFrame::OnQuit(wxCommandEvent& event)
             __schedule->ClearDirty();
         }
     }
+
+    //__schedule->GetListenerManager()->ProcessPacket("State", "Shutdown");
 
     Close();
 }

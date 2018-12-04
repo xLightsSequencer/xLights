@@ -624,6 +624,19 @@ void ListenerManager::ProcessPacket(const std::string& source, int universe, wxB
     }
 }
 
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& state, long buffsize)
+{
+    if (_pause || _stop) return;
+
+    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    {
+        if ((*it)->GetType() == source)
+        {
+            (*it)->Process(state, _scheduleManager);
+        }
+    }
+}
+
 void ListenerManager::ProcessPacket(const std::string& source, wxByte status, wxByte channel, wxByte data1, wxByte data2)
 {
     if (_notifyScan != nullptr && source == "MIDI")
