@@ -1519,6 +1519,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     wxPostEvent(wxGetApp().GetTopWindow(), event);
                     scheduleChanged = true;
                 }
+                else if (command == "Close xSchedule")
+                {
+                    wxCommandEvent event(EVT_QUIT);
+                    wxPostEvent(wxGetApp().GetTopWindow(), event);
+                }
                 else if (command == "Stop")
                 {
                     PlayList* p = GetRunningPlayList();

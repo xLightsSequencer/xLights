@@ -313,6 +313,7 @@ wxDEFINE_EVENT(EVT_SYNC, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STOP, wxCommandEvent);
+wxDEFINE_EVENT(EVT_QUIT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 
@@ -327,6 +328,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
     EVT_COMMAND(wxID_ANY, EVT_DOACTION, xScheduleFrame::DoAction)
     EVT_COMMAND(wxID_ANY, EVT_STOP, xScheduleFrame::DoStop)
+    EVT_COMMAND(wxID_ANY, EVT_QUIT, xScheduleFrame::OnQuit)
     EVT_COMMAND(wxID_ANY, EVT_XYZZY, xScheduleFrame::DoXyzzy)
     EVT_COMMAND(wxID_ANY, EVT_XYZZYEVENT, xScheduleFrame::DoXyzzyEvent)
     END_EVENT_TABLE()
@@ -632,6 +634,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
     Connect(wxID_ANY, EVT_DOACTION, (wxObjectEventFunction)&xScheduleFrame::DoAction);
     Connect(wxID_ANY, EVT_STOP, (wxObjectEventFunction)&xScheduleFrame::DoStop);
+    Connect(wxID_ANY, EVT_QUIT, (wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
