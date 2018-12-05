@@ -327,6 +327,9 @@ bool SerialOutput::Open()
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0)
         {
+            delete _serial;
+            _serial = nullptr;
+
             logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
             _ok = false;
 

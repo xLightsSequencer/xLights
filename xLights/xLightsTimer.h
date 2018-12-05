@@ -24,6 +24,7 @@ class xLightsTimer :
     xLightsTimerCallback* _timerCallback;
     std::atomic<bool> _suspend;
     std::atomic<bool> _log;
+
 public:
     xLightsTimer();
     virtual ~xLightsTimer();

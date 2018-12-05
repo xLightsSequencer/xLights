@@ -3,6 +3,7 @@
 #include "xLightsTimer.h"
 #include <wx/thread.h>
 #include <log4cpp/Category.hh>
+#include <mutex>
 
 #ifndef __WXOSX__
 #define USE_THREADED_TIMER
@@ -15,16 +16,22 @@ class xlTimerThread : public wxThread
 {
 public:
     xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool log);
+    void Reset(int interval, bool oneshot);
     void Stop();
+    void Suspend();
     void SetFudgeFactor(int ff);
     int GetInterval() const { return _interval; }
 private:
     std::atomic<bool> _stop;
-    bool _oneshot;
-    int _interval;
+    std::atomic<bool> _suspend;
+    std::atomic<bool> _oneshot;
+    std::atomic<int> _interval;
     int _fudgefactor;
     bool _log;
     wxTimer* _timer;
+    std::timed_mutex _waiter;
+    std::mutex _suspendLock;
+    void DoSleep(int millis);
     virtual ExitCode Entry() override;
 };
 
@@ -37,30 +44,38 @@ xLightsTimer::xLightsTimer()
     _t = nullptr;
     pending = false;
 }
+
 xLightsTimer::~xLightsTimer()
 {
     if (_t != nullptr)
     {
         _t->Stop();
-        _t = nullptr; // while it may not exit immediately it will exit and kill itself
     }
 }
+
 void xLightsTimer::Stop()
 {
     if (_t != nullptr)
     {
-        _t->Stop();
-        _t = nullptr; // while it may not exit immediately it will exit and kill itself
+        _t->Suspend();
     }
 }
+
 bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/)
 {
     Stop();
-    _t = new xlTimerThread(time, oneShot, this, _log);
-    if (_t == nullptr) return false;
-    _t->Create();
-    _t->SetPriority(WXTHREAD_DEFAULT_PRIORITY + 1); // run it with slightly higher priority to ensure events are generated in a timely manner
-    _t->Run();
+    if (_t == nullptr)
+    {
+        _t = new xlTimerThread(time, oneShot, this, _log);
+        if (_t == nullptr) return false;
+        _t->Create();
+        _t->SetPriority(WXTHREAD_DEFAULT_PRIORITY + 1); // run it with slightly higher priority to ensure events are generated in a timely manner
+        _t->Run();
+    }
+    else
+    {
+        _t->Reset(time, oneShot);
+    }
     return true;
 }
 
@@ -73,6 +88,7 @@ void xLightsTimer::DoSendTimer() {
     //infinite number of CallAfters consuming the CPU
     pending = false;
 }
+
 void xLightsTimer::Notify() {
     if (_suspend)
     {
@@ -100,48 +116,91 @@ int xLightsTimer::GetInterval() const
     return -1;
 }
 
-
-xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool log)
+xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool log) : wxThread(wxTHREAD_JOINABLE)
 {
     _log = log;
     _stop = false;
+    _suspend = false;
     _fudgefactor = 0;
     _interval = interval;
     _timer = timer;
     _oneshot = (oneshot == wxTIMER_ONE_SHOT);
+    _waiter.lock();
 }
+
+void xlTimerThread::Reset(int interval, bool oneshot)
+{
+    _interval = interval;
+    _oneshot = oneshot;
+    _suspend = false;
+    _suspendLock.unlock();
+    _waiter.lock();
+}
+
+void xlTimerThread::Suspend()
+{
+    _suspend = true;
+    _suspendLock.lock();
+    _waiter.unlock();
+    wxMilliSleep(1); // give the timer thread a chance to use the unlocked waiter
+}
+
 void xlTimerThread::Stop()
 {
     _stop = true;
+    _waiter.unlock();
+    wxMilliSleep(1); // give the timer thread a chance to use the unlocked waiter
 }
+
+void xlTimerThread::DoSleep(int millis)
+{
+    if (_waiter.try_lock_for(std::chrono::milliseconds(millis)))
+    {
+        _waiter.unlock();
+    }
+}
+
 wxThread::ExitCode xlTimerThread::Entry()
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool log = _log;
     bool stop = _stop;
-    int fudgefactor = _fudgefactor;
     bool oneshot = _oneshot;
+    int interval = _interval;
+    int fudgefactor = _fudgefactor;
     long long last = wxGetLocalTimeMillis().GetValue();
 
     while (!stop)
     {
-        long long now = wxGetLocalTimeMillis().GetValue();
-        long long toSleep = last + _interval + fudgefactor - now;
-        //if (log)
-        //{
-        //    logger_base.debug("Timer sleeping for %ldms", (std::max)(1, (int)toSleep));
-        //}
-        wxMilliSleep((std::max)(1, (int)toSleep));
-        last = wxGetLocalTimeMillis().GetValue();
-        stop = _stop;
-        fudgefactor = _fudgefactor;
-        if (oneshot || !stop)
+        if (_suspend)
         {
-            _timer->Notify();
+            _suspendLock.lock();
+            _suspendLock.unlock();
         }
-        if (oneshot)
+
+        oneshot = _oneshot;
+        interval = _interval;
+
+        if (!_stop)
         {
-            stop = true;
+            long long now = wxGetLocalTimeMillis().GetValue();
+            long long toSleep = last + interval + fudgefactor - now;
+            //if (log)
+            //{
+            //    logger_base.debug("Timer sleeping for %ldms", (std::max)(1, (int)toSleep));
+            //}
+            DoSleep((std::max)(1, (int)toSleep));
+            last = wxGetLocalTimeMillis().GetValue();
+            stop = _stop;
+            fudgefactor = _fudgefactor;
+            if (oneshot || !stop)
+            {
+                _timer->Notify();
+            }
+            if (oneshot)
+            {
+                _suspend = true;
+            }
         }
     }
 

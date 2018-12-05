@@ -747,10 +747,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         UpdateUI();
     }
 
-    _timer.Stop();
     if (rate == 0) rate = 50;
-    _timer.Start(rate/2, false);
-    _timerSchedule.Stop();
+    _timer.Start(rate / 2, false);
     _timerSchedule.Start(500, true);
 
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
@@ -1435,14 +1433,12 @@ void xScheduleFrame::UpdateSchedule()
     // Ensure I am firing on the minute
     if (wxDateTime::Now().GetSecond() != 0)
     {
-        _timerSchedule.Stop();
         int time = (60 - wxDateTime::Now().GetSecond()) * 1000;
         if (time == 0) time = 1;
         _timerSchedule.Start(time, false);
     }
     else if (_timerSchedule.GetInterval() != 60000)
     {
-        _timerSchedule.Stop();
         _timerSchedule.Start(60000, false);
     }
 
@@ -1588,7 +1584,7 @@ void xScheduleFrame::CreateButtons()
     for (auto it = bs.begin(); it != bs.end(); ++it)
     {
         // only show not hidden buttons
-        if (!wxString((*it)->GetLabel()).StartsWith("HIDE_"))
+        if (!wxString((*it)->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand((*it)->GetCommand()) != nullptr)
         {
             CreateButton((*it)->GetLabel(), (*it)->GetColor());
         }
@@ -2357,7 +2353,6 @@ void xScheduleFrame::CorrectTimer(int rate)
     {
         logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / 2);
 
-        _timer.Stop();
         _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
     }
 }
