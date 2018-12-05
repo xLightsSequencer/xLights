@@ -1728,9 +1728,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             _enableRenderCache = "Locked Only";
             MenuItem_RC_LockedOnly->Check(true);
         }
-        logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
-        _renderCache.Enable(_enableRenderCache);
     }
+    logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
+    _renderCache.Enable(_enableRenderCache);
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
