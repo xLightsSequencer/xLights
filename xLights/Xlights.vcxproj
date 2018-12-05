@@ -77,7 +77,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;./ffmpeg-dev/include;$(ProjectDir);</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows;GL;./ffmpeg-dev/lib</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL;..\lib\windows;./ffmpeg-dev/lib</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);..\bin64</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -88,7 +88,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;$(IncludePath);ffmpeg-dev\include;..\include;$(ProjectDir);</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL;</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;..\lib\windows64;GL</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);..\bin64</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -148,12 +148,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -161,7 +161,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <Profile>true</Profile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib;WS2_32.Lib;liquidfun.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppLIB.lib;iphlpapi.lib;WS2_32.Lib;liquidfun.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -209,8 +209,15 @@
     <ClCompile Include="LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="LyricUserDictDialog.cpp" />
     <ClCompile Include="MatrixFaceDownloadDialog.cpp" />
+    <ClCompile Include="models\BaseObject.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
+    <ClCompile Include="models\GridlinesObject.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
+    <ClCompile Include="models\ImageObject.cpp" />
+    <ClCompile Include="models\MeshObject.cpp" />
+    <ClCompile Include="models\ObjectManager.cpp" />
+    <ClCompile Include="models\ViewObject.cpp" />
+    <ClCompile Include="models\ViewObjectManager.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
@@ -465,6 +472,7 @@
     <ClCompile Include="support\EzGrid.cpp" />
     <ClCompile Include="support\FastComboEditor.cpp" />
     <ClCompile Include="support\GridCellChoiceRenderer.cpp" />
+    <ClCompile Include="support\VectorMath.cpp" />
     <ClCompile Include="TabConvert.cpp" />
     <ClCompile Include="TabPreview.cpp" />
     <ClCompile Include="TabSequence.cpp" />
@@ -496,6 +504,9 @@
     <ClCompile Include="VideoExporter.cpp" />
     <ClCompile Include="VendorModelDialog.cpp" />
     <ClCompile Include="VideoReader.cpp" />
+    <ClCompile Include="ViewObjectPanel.cpp" />
+    <ClCompile Include="ViewpointDialog.cpp" />
+    <ClCompile Include="ViewpointMgr.cpp" />
     <ClCompile Include="ViewsModelsPanel.cpp" />
     <ClCompile Include="VSAFile.cpp" />
     <ClCompile Include="VsaImportDialog.cpp" />
@@ -555,8 +566,16 @@
     <ClInclude Include="LinkJukeboxButtonDialog.h" />
     <ClInclude Include="LyricUserDictDialog.h" />
     <ClInclude Include="MatrixFaceDownloadDialog.h" />
+    <ClInclude Include="models\BaseObject.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
+    <ClInclude Include="models\GridlinesObject.h" />
     <ClInclude Include="models\ImageModel.h" />
+    <ClInclude Include="models\ImageObject.h" />
+    <ClInclude Include="models\MeshObject.h" />
+    <ClInclude Include="models\ObjectManager.h" />
+    <ClInclude Include="models\tiny_obj_loader.h" />
+    <ClInclude Include="models\ViewObject.h" />
+    <ClInclude Include="models\ViewObjectManager.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
@@ -811,6 +830,7 @@
     <ClInclude Include="support\EzGrid.h" />
     <ClInclude Include="support\FastComboEditor.h" />
     <ClInclude Include="support\GridCellChoiceRenderer.h" />
+    <ClInclude Include="support\VectorMath.h" />
     <ClInclude Include="TimingPanel.h" />
     <ClInclude Include="tmGridCell.h" />
     <ClInclude Include="TopEffectsPanel.h" />
@@ -846,6 +866,9 @@
     <ClInclude Include="VideoExporter.h" />
     <ClInclude Include="VendorModelDialog.h" />
     <ClInclude Include="VideoReader.h" />
+    <ClInclude Include="ViewObjectPanel.h" />
+    <ClInclude Include="ViewpointDialog.h" />
+    <ClInclude Include="ViewpointMgr.h" />
     <ClInclude Include="ViewsModelsPanel.h" />
     <ClInclude Include="VSAFile.h" />
     <ClInclude Include="VsaImportDialog.h" />

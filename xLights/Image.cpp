@@ -6,23 +6,23 @@ Image::Image() : ID(0)
 {
 }
 
-Image::Image(wxString path, bool whiteIsAlphaIfNoAlpha) : ID(0)
+Image::Image(wxString path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo) : ID(0)
 {
-    load(path, whiteIsAlphaIfNoAlpha);
+    load(path, whiteIsAlphaIfNoAlpha, useForcePowerOfTwo);
 }
 
-Image::Image(wxImage &img, bool whiteIsAlphaIfNoAlpha) : ID(0)
+Image::Image(wxImage &img, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo) : ID(0)
 {
-    load(img, whiteIsAlphaIfNoAlpha);
+    load(img, whiteIsAlphaIfNoAlpha, useForcePowerOfTwo);
 }
 
-void Image::load(wxString path, bool whiteIsAlphaIfNoAlpha)
+void Image::load(wxString path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo)
 {
     wxImage img(path);
-    load(img, whiteIsAlphaIfNoAlpha);
+    load(img, whiteIsAlphaIfNoAlpha, useForcePowerOfTwo);
 }
 
-void Image::load(wxImage &img, bool whiteIsAlphaIfNoAlpha)
+void Image::load(wxImage &img, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo)
 {
     mAlpha = img.HasAlpha();
 
@@ -43,7 +43,7 @@ void Image::load(wxImage &img, bool whiteIsAlphaIfNoAlpha)
     }
 
     bool scaledW, scaledH;
-    ID = loadImage(&img, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha);
+    ID = loadImage(&img, width, height, textureWidth, textureHeight, scaledW, scaledH, mAlpha, useForcePowerOfTwo);
     if (scaledW) {
         tex_coord_x = 1.0;
     } else {

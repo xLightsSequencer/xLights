@@ -13,7 +13,7 @@ END_EVENT_TABLE()
 
 
 SequenceVideoPreview::SequenceVideoPreview(wxPanel *parent)
-    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ViewPreview", true), _texId(0), _texWidth(0), _texHeight(0)
+    : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ViewPreview"), _texId(0), _texWidth(0), _texHeight(0)
 {
 
 }

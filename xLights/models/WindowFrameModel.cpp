@@ -18,6 +18,7 @@ WindowFrameModel::~WindowFrameModel()
 void WindowFrameModel::InitModel() {
     rotation = (ModelXml->GetAttribute("Rotation", "CW") == "Clockwise" || ModelXml->GetAttribute("Rotation", "CW") == "CW") ? 0 : 1;
     InitFrame();
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 int WindowFrameModel::NodesPerString()

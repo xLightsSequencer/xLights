@@ -1,8 +1,5 @@
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
-#include <wx/regex.h>
-
-#include <cctype>
 
 #include "ModelManager.h"
 #include "Model.h"
@@ -33,8 +30,6 @@
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
     xlights(xl),
-    modelNode(nullptr),
-    groupNode(nullptr),
     layoutsNode(nullptr),
     previewWidth(0),
     previewHeight(0)
@@ -56,6 +51,11 @@ void ModelManager::clear() {
         }
     }
     models.clear();
+}
+
+BaseObject *ModelManager::GetObject(const std::string &name) const
+{
+    return GetModel(name);
 }
 
 Model *ModelManager::GetModel(const std::string &name) const {
@@ -168,9 +168,8 @@ void ModelManager::LoadModels(wxXmlNode *modelNode, int previewW, int previewH) 
         if (e->GetName() == "model") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                Model *m = createAndAddModel(e);
+                Model *m = createAndAddModel(e, previewW, previewH);
                 if (m != nullptr) {
-                    m->SetMinMaxModelScreenCoordinates(previewW, previewH);
                     countValid += m->CouldComputeStartChannel ? 1 : 0;
                 }
             }
@@ -442,59 +441,8 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
 // generate the next similar model name to the candidateName we are given
 std::string ModelManager::GenerateModelName(const std::string& candidateName) const
 {
-    // if it is already unique return it
-    if (GetModel(candidateName) == nullptr) return candidateName;
-
-    std::string base = candidateName;
-    char sep = '-';
-
-    static wxRegEx dashRegex("-[0-9]+$", wxRE_ADVANCED);
-    static wxRegEx underscoreRegex("_[0-9]+$", wxRE_ADVANCED);
-    static wxRegEx spaceRegex(" [0-9]+$", wxRE_ADVANCED);
-    static wxRegEx nilRegex("[A-Za-z][0-9]+$", wxRE_ADVANCED);
-    if (dashRegex.Matches(candidateName))
-    {
-        base = wxString(candidateName).BeforeLast('-');
-    }
-    else if (underscoreRegex.Matches(candidateName))
-    {
-        base = wxString(candidateName).BeforeLast('_');
-        sep = '_';
-    }
-    else if (spaceRegex.Matches(candidateName))
-    {
-        base = wxString(candidateName).BeforeLast(' ');
-        sep = ' ';
-    }
-    else if (nilRegex.Matches(candidateName))
-    {
-        while (base != "" && std::isdigit(base[base.size() - 1]))
-        {
-            base = base.substr(0, base.size() - 1);
-        }
-        sep = 'x';
-    }
-
-    // We start at 2 assuming if we are adding multiple then the user will typically rename the first one number one.
-    int seq = 2;
-
-    for (;;)
-    {
-        std::string tryName = base;
-
-        if (sep == 'x')
-        {
-            tryName += std::to_string(seq++);
-        }
-        else
-        {
-            tryName += sep + std::to_string(seq++);
-        }
-
-        if (GetModel(tryName) == nullptr) return tryName;
-    }
+    return GenerateObjectName(candidateName);
 }
-
 
 Model* ModelManager::CreateDefaultModel(const std::string &type, const std::string &startChannel) const {
     Model *model;
@@ -615,13 +563,11 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
     }
-    if (model != nullptr) {
-        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
-    }
     return model;
 }
 
-Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
+Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bool zeroBased ) const {
+
     if (node->GetName() == "modelGroup") {
         ModelGroup *grp = new ModelGroup(node, *this, previewWidth, previewHeight);
         grp->Reset(zeroBased);
@@ -669,8 +615,10 @@ Model *ModelManager::CreateModel(wxXmlNode *node, bool zeroBased) const {
         wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
         return nullptr;
     }
-    if (model != nullptr) {
-        model->SetMinMaxModelScreenCoordinates(previewWidth, previewHeight);
+    model->GetModelScreenLocation().previewW = previewW;
+    model->GetModelScreenLocation().previewH = previewH;
+    if (model->GetModelScreenLocation().CheckUpgrade(node) == UPGRADE_EXEC_READ) {
+        model->GetModelScreenLocation().Read(node);
     }
     return model;
 }
@@ -703,8 +651,8 @@ void ModelManager::AddModel(Model *model) {
     }
 }
 
-Model *ModelManager::createAndAddModel(wxXmlNode *node) {
-    Model *model = CreateModel(node);
+Model *ModelManager::createAndAddModel(wxXmlNode *node, int previewW, int previewH) {
+    Model *model = CreateModel(node, previewW, previewH);
     AddModel(model);
     return model;
 }

@@ -23,7 +23,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         virtual bool SupportsWiringView() const override { return false; }
         virtual int GetNumStrands() const override;
         virtual const std::vector<std::string> &GetBufferStyles() const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform, std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual int GetNumPhysicalStrings() const override { return 1; }
 
         virtual void InsertHandle(int after_handle) override;
@@ -48,10 +48,11 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         struct xlPolyPoint {
             float x;
             float y;
+            float z;
             float length;
             mutable bool has_curve;
-            mutable BezierCurveCubic* curve;
-            mutable glm::mat3 *matrix;
+            mutable BezierCurveCubic3D* curve;
+            mutable glm::mat4 *matrix;
         };
         float total_length;
 
@@ -60,12 +61,15 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
             return wxString::Format(wxT("Seg%d"),idx+1).ToStdString();
         }
 
-    private:
         std::vector<int> polyLineSizes;
         bool hasIndivSeg;
         bool segs_collapsed;
-        void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos );
+        virtual void DistributeLightsAcrossCurveSegment(int lights, int segment, size_t &idx, std::vector<xlPolyPoint> &pPos,
+                                                        std::vector<unsigned int>& dropSizes, unsigned int& drop_index, float& mheight);
         void NormalizePointData();
+        std::vector<int> polyLineSegDropSizes;
+        unsigned int numDropPoints;
+        float height;
 
 };
 

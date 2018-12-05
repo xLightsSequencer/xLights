@@ -4,6 +4,8 @@
 #include <wx/choice.h>
 #include <wx/font.h>
 #include <wx/intl.h>
+#include <wx/notebook.h>
+#include <wx/scrolbar.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/splitter.h>
@@ -28,16 +30,34 @@
 #include "ChannelLayoutDialog.h"
 #include "ControllerConnectionDialog.h"
 #include "ModelGroupPanel.h"
+#include "ViewObjectPanel.h"
 #include "LayoutGroup.h"
 #include "models/ModelImages.h"
 #include "models/SubModel.h"
 #include "models/ModelGroup.h"
+#include "models/ViewObject.h"
 #include "WiringDialog.h"
 #include "ModelDimmingCurveDialog.h"
 #include "UtilFunctions.h"
 #include "ColorManager.h"
+#include "support/VectorMath.h"
+#include "osxMacUtils.h"
 #include "KeyBindings.h"
 #include "sequencer/MainSequencer.h"
+
+#ifndef __WXOSX__
+static bool IsMouseEventFromTouchpad() {
+	return false;
+    // In theory this is the windows solution ... but
+    // - It does not compile in codeblocks - likely solveable
+    // - Testing on my laptop my trackpad appears to be a mouse ... not a touchpad which means it doesnt do anything useful
+    //        but maybe i could get it to work with my touch screen
+    //INPUT_MESSAGE_SOURCE ims;
+    //::GetCurrentInputMessageSource(&ims);
+
+    //return ims.deviceType == IMDT_TOUCHPAD;
+}
+#endif
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -61,6 +81,9 @@ static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeigh
 }
 
 //(*IdInit(LayoutPanel)
+const long LayoutPanel::ID_PANEL4 = wxNewId();
+const long LayoutPanel::ID_PANEL_Objects = wxNewId();
+const long LayoutPanel::ID_NOTEBOOK_OBJECTS = wxNewId();
 const long LayoutPanel::ID_PANEL3 = wxNewId();
 const long LayoutPanel::ID_PANEL2 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
@@ -69,6 +92,9 @@ const long LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PANEL5 = wxNewId();
 const long LayoutPanel::ID_STATICTEXT1 = wxNewId();
 const long LayoutPanel::ID_CHOICE_PREVIEWS = wxNewId();
+const long LayoutPanel::ID_CHECKBOX_3D = wxNewId();
+const long LayoutPanel::ID_SCROLLBAR1 = wxNewId();
+const long LayoutPanel::ID_SCROLLBAR2 = wxNewId();
 const long LayoutPanel::ID_PANEL1 = wxNewId();
 const long LayoutPanel::ID_SPLITTERWINDOW2 = wxNewId();
 //*)
@@ -104,11 +130,14 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
+const long LayoutPanel::ID_PREVIEW_ALIGN_GROUND = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_LEFT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_RIGHT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_H_CENTER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_V_CENTER = wxNewId();
+const long LayoutPanel::ID_PREVIEW_ALIGN_FRONT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_ALIGN_BACK = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_H_DISTRIBUTE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_V_DISTRIBUTE = wxNewId();
@@ -127,6 +156,14 @@ const long LayoutPanel::ID_PREVIEW_MODEL_ADDCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_DELCURVE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_SAVE_LAYOUT_IMAGE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_PRINT_LAYOUT_IMAGE = wxNewId();
+const long LayoutPanel::ID_PREVIEW_SAVE_VIEWPOINT = wxNewId();
+const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
+const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_GRIDLINES = wxNewId();
+const long LayoutPanel::ID_ADD_OBJECT_MESH = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -206,11 +243,12 @@ private:
 
 LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer) : xlights(xl), main_sequencer(sequencer),
     m_creating_bound_rect(false), mPointSize(2), m_moving_handle(false), m_dragging(false),
-    m_over_handle(-1), selectedButton(nullptr), newModel(nullptr), selectedModel(nullptr),
-    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true),
+    m_over_handle(-1), selectedButton(nullptr), obj_button(nullptr), newModel(nullptr), selectedBaseObject(nullptr), highlightedBaseObject(nullptr),
+    colSizesSet(false), updatingProperty(false), mNumGroups(0), mPropGridActive(true), last_selection(nullptr), last_highlight(nullptr),
     mSelectedGroup(nullptr), currentLayoutGroup("Default"), pGrp(nullptr), backgroundFile(""), previewBackgroundScaled(false),
-    previewBackgroundBrightness(100), m_polyline_active(false), ignore_next_event(false), mHitTestNextSelectModelIndex(0),
-    ModelGroupWindow(nullptr)
+    previewBackgroundBrightness(100), previewBackgroundAlpha(100), m_polyline_active(false), mHitTestNextSelectModelIndex(0),
+    ModelGroupWindow(nullptr), ViewObjectWindow(nullptr), editing_models(true), m_mouse_down(false), m_wheel_down(false),
+    selectionLatched(false), over_handle(-1), creating_model(false)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -222,7 +260,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	//(*Initialize(LayoutPanel)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizerPreview;
+	wxFlexGridSizer* LayoutGLSizer;
 	wxFlexGridSizer* LeftPanelSizer;
 	wxFlexGridSizer* PreviewGLSizer;
 
@@ -242,13 +283,27 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	ModelSplitter->SetMinimumPaneSize(100);
 	ModelSplitter->SetSashGravity(0.5);
 	FirstPanel = new wxPanel(ModelSplitter, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
+	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer4->AddGrowableCol(0);
+	FlexGridSizer4->AddGrowableRow(0);
+	Notebook_Objects = new wxNotebook(FirstPanel, ID_NOTEBOOK_OBJECTS, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_OBJECTS"));
+	PanelModels = new wxPanel(Notebook_Objects, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	PanelObjects = new wxPanel(Notebook_Objects, ID_PANEL_Objects, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Objects"));
+	Notebook_Objects->AddPage(PanelModels, _("Models"), false);
+	Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
+	FlexGridSizer4->Add(Notebook_Objects, 1, wxALL|wxEXPAND, 1);
+	FirstPanel->SetSizer(FlexGridSizer4);
+	FlexGridSizer4->Fit(FirstPanel);
+	FlexGridSizer4->SetSizeHints(FirstPanel);
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 2);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
-	LeftPanelSizer->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
 	FlexGridSizer2->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanelSizer->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
@@ -259,7 +314,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	PreviewGLSizer = new wxFlexGridSizer(2, 1, 0, 0);
 	PreviewGLSizer->AddGrowableCol(0);
 	PreviewGLSizer->AddGrowableRow(1);
-	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 6, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	ToolSizer = new wxFlexGridSizer(0, 10, 0, 0);
 	FlexGridSizer1->Add(ToolSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 3);
@@ -271,7 +326,21 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizer1->Add(StaticText1, 1, wxLEFT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 40);
 	ChoiceLayoutGroups = new wxChoice(PreviewGLPanel, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
 	FlexGridSizer1->Add(ChoiceLayoutGroups, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_3D = new wxCheckBox(PreviewGLPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
+	CheckBox_3D->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PreviewGLSizer->Add(FlexGridSizer1, 1, wxALL|wxALIGN_LEFT, 3);
+	LayoutGLSizer = new wxFlexGridSizer(0, 2, 0, 0);
+	LayoutGLSizer->AddGrowableCol(0);
+	LayoutGLSizer->AddGrowableRow(0);
+	ScrollBarLayoutVert = new wxScrollBar(PreviewGLPanel, ID_SCROLLBAR1, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL, wxDefaultValidator, _T("ID_SCROLLBAR1"));
+	ScrollBarLayoutVert->SetScrollbar(0, 1, 10, 1);
+	LayoutGLSizer->Add(ScrollBarLayoutVert, 1, wxALL|wxEXPAND, 0);
+	ScrollBarLayoutHorz = new wxScrollBar(PreviewGLPanel, ID_SCROLLBAR2, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL, wxDefaultValidator, _T("ID_SCROLLBAR2"));
+	ScrollBarLayoutHorz->SetScrollbar(0, 1, 10, 1);
+	LayoutGLSizer->Add(ScrollBarLayoutHorz, 1, wxALL|wxEXPAND, 0);
+	LayoutGLSizer->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	PreviewGLSizer->Add(LayoutGLSizer, 1, wxALL|wxEXPAND, 0);
 	PreviewGLPanel->SetSizer(PreviewGLSizer);
 	PreviewGLSizer->Fit(PreviewGLPanel);
 	PreviewGLSizer->SetSizeHints(PreviewGLPanel);
@@ -281,16 +350,18 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	FlexGridSizerPreview->Fit(this);
 	FlexGridSizerPreview->SetSizeHints(this);
 
+	Connect(ID_NOTEBOOK_OBJECTS,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
 	Connect(ID_SPLITTERWINDOW1,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnModelSplitterSashPosChanged);
 	Connect(ID_CHECKBOXOVERLAP,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
+	Connect(ID_CHECKBOX_3D,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
     logger_base.debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, true);
-    PreviewGLSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
+    LayoutGLSizer->Insert(0, modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
     FlexGridSizerPreview->Fit(this);
@@ -302,6 +373,16 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown, nullptr,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
+    modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDClick, nullptr, this);
+    modelPreview->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheel, nullptr, this);
+    modelPreview->Connect(wxEVT_MIDDLE_DOWN, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheelDown, nullptr, this);
+    modelPreview->Connect(wxEVT_MIDDLE_UP, (wxObjectEventFunction)&LayoutPanel::OnPreviewMouseWheelUp, nullptr, this);
+    modelPreview->Connect(wxEVT_MAGNIFY, (wxObjectEventFunction)&LayoutPanel::OnPreviewMagnify, nullptr, this);
+
+    modelPreview->EnableTouchEvents(wxTOUCH_ROTATE_GESTURE | wxTOUCH_ZOOM_GESTURE);
+    modelPreview->Connect(wxEVT_GESTURE_ROTATE, (wxObjectEventFunction)&LayoutPanel::OnPreviewRotateGesture, nullptr, this);
+    modelPreview->Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&LayoutPanel::OnPreviewZoomGesture, nullptr, this);
+
 
     propertyEditor = new wxPropertyGrid(ModelSplitter,
                                         wxID_ANY, // id
@@ -318,20 +399,32 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     propertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE);
 #endif
     InitImageList();
-    TreeListViewModels = CreateTreeListCtrl(wxTL_DEFAULT_STYLE);
+
+    wxFlexGridSizer* FlexGridSizerModels = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizerModels->AddGrowableCol(0);
+	FlexGridSizerModels->AddGrowableRow(0);
+	wxPanel* new_panel = new wxPanel(PanelModels, wxNewId(), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_OBJECTS_PANEL"));
+	FlexGridSizerModels->Add(new_panel, 1, wxALL|wxEXPAND, 0);
+    PanelModels->SetSizer(FlexGridSizerModels);
+    wxSizer* sizer1 = new wxBoxSizer(wxVERTICAL);
+    TreeListViewModels = CreateTreeListCtrl(wxTL_DEFAULT_STYLE, new_panel);
+    sizer1->Add(TreeListViewModels, wxSizerFlags(2).Expand());
+    new_panel->SetSizer(sizer1);
+    sizer1->SetSizeHints(new_panel);
+
     comparator.SetFrame(xlights);
     TreeListViewModels->SetItemComparator(&comparator);
 
-    wxSizer* sizer1 = new wxBoxSizer(wxVERTICAL);
-    sizer1->Add(TreeListViewModels, wxSizerFlags(2).Expand());
-    FirstPanel->SetSizer(sizer1);
-    sizer1->SetSizeHints(FirstPanel);
 
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
 
     wxConfigBase* config = wxConfigBase::Get();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
+    is_3d = config->ReadBool("LayoutMode3D", false);
+
+    CheckBox_3D->SetValue(is_3d);
+    modelPreview->Set3D(is_3d);
 
     propertyEditor->Connect(wxEVT_PG_CHANGING, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChanging,0,this);
     propertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnPropertyGridChange,0,this);
@@ -342,7 +435,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel property grid created");
 
-    ToolSizer->SetCols(18);
+    ToolSizer->SetCols(19);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
@@ -361,6 +454,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Wreath", wreath);
     AddModelButton("Import Custom", import);
     AddModelButton("Download", download);
+    obj_button = AddModelButton("Add Object", object);
+    obj_button->Enable(is_3d);
 
     logger_base.debug("LayoutPanel model buttons created");
 
@@ -386,12 +481,31 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel model group panel created");
 
+    // Setup the Object List Panel
+    //wxScrolledWindow *sw2 = new wxScrolledWindow(ModelSplitter);
+    wxBoxSizer* sizer2 = new wxBoxSizer(wxVERTICAL);
+    //->SetSizer(sizer2);
+    objects_panel = new ViewObjectPanel(PanelObjects, xlights->AllObjects, this);
+    sizer2->Add( objects_panel, 1, wxEXPAND | wxALL, 1 );
+    sizer2->SetSizeHints(objects_panel);
+    PanelObjects->SetSizer(sizer2);
+    sizer1->SetSizeHints(PanelObjects);
+    //sw2->SetScrollRate(5,5);
+    //sw2->Hide();
+    //ViewObjectWindow = sw2;
+    logger_base.debug("LayoutPanel object panel created");
+
     LeftPanelSizer->Fit(LeftPanel);
     LeftPanelSizer->SetSizeHints(LeftPanel);
     FlexGridSizerPreview->Fit(this);
     FlexGridSizerPreview->SetSizeHints(this);
 
     ModelGroupWindow = sw;
+
+    if( !is_3d ) {
+        Notebook_Objects->RemovePage(1);
+    }
+
     if (sp != -1) {
         SplitterWindow2->SetSashGravity(0.0);
         SplitterWindow2->SetSashPosition(sp);
@@ -400,8 +514,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         ModelSplitter->SetSashGravity(0.0);
         ModelSplitter->SetSashPosition(msp);
     }
-
-    Reset();
 
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
@@ -479,10 +591,10 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_WINDOW_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_WREATH_ICON", scaleFactor);
 }
-wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
+wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
 {
     wxTreeListCtrl* const
-        tree = new wxTreeListCtrl(FirstPanel, ID_TREELISTVIEW_MODELS,
+        tree = new wxTreeListCtrl(panel, ID_TREELISTVIEW_MODELS,
                                   wxDefaultPosition, wxDefaultSize,
                                   style, "ID_TREELISTVIEW_MODELS");
     tree->SetImageList(m_imageList);
@@ -509,6 +621,8 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style)
 
 void LayoutPanel::Reset()
 {
+    selectedBaseObject = nullptr;
+    highlightedBaseObject = nullptr;
     SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
     ChoiceLayoutGroups->Clear();
     ChoiceLayoutGroups->Append("Default");
@@ -534,6 +648,7 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
 #ifdef __WXOSX__
     if (dirty) {
         ButtonSavePreview->SetBackgroundColour(wxColour(255,0,0));
+        xlights->UnsavedRgbEffectsChanges = true;
     } else {
         ButtonSavePreview->SetBackgroundColour(wxTransparentColour);
     }
@@ -541,6 +656,7 @@ void LayoutPanel::SetDirtyHiLight(bool dirty) {
 #else
     if (dirty) {
         ButtonSavePreview->SetBackgroundColour(wxColour(255,108,108));
+        xlights->UnsavedRgbEffectsChanges = true;
     } else {
         ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
@@ -552,7 +668,7 @@ std::string LayoutPanel::GetCurrentPreview() const
     return ChoiceLayoutGroups->GetStringSelection().ToStdString();
 }
 
-void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
+NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     wxImage image(data);
 #ifdef __WXOSX__
     wxBitmap bitmap(image, -1, 2.0);
@@ -567,6 +683,7 @@ void LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
     Connect(button->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnNewModelTypeButtonClicked);
+    return button;
 }
 
 LayoutPanel::~LayoutPanel()
@@ -586,10 +703,19 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     updatingProperty = true;
     if (name == "BkgBrightness") {
        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
-            xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong());
+            xlights->SetPreviewBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
          } else {
-            pGrp->SetBackgroundBrightness(event.GetValue().GetLong());
-            modelPreview->SetBackgroundBrightness(event.GetValue().GetLong());
+            pGrp->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
+            modelPreview->SetBackgroundBrightness(event.GetValue().GetLong(), previewBackgroundAlpha);
+            xlights->MarkEffectsFileDirty(false);
+            UpdatePreview();
+        }
+    } else if (name == "BkgTransparency") {
+        if( currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned" ) {
+            xlights->SetPreviewBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
+        } else {
+            pGrp->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
+            modelPreview->SetBackgroundBrightness(previewBackgroundBrightness, 100 - event.GetValue().GetLong());
             xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
@@ -617,62 +743,71 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
             xlights->MarkEffectsFileDirty(false);
             UpdatePreview();
         }
-    } else if (selectedModel != nullptr) {
-        //model property
-        if ("ModelName" == name) {
-            std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+    } else {
+        if (editing_models) {
+            if (selectedBaseObject != nullptr) {
+                Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+                //model property
+                if ("ModelName" == name) {
+                    std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
 
-            if (safename != event.GetValue().GetString().ToStdString())
-            {
-                // need to update the property grid with the modified name
-                wxPGProperty* prop = propertyEditor->GetPropertyByName("ModelName");
-                if (prop != nullptr) {
-                    prop->SetValue(safename);
+                    if (safename != event.GetValue().GetString().ToStdString())
+                    {
+                        // need to update the property grid with the modified name
+                        wxPGProperty* prop = propertyEditor->GetPropertyByName("ModelName");
+                        if (prop != nullptr) {
+                            prop->SetValue(safename);
+                        }
+                    }
+                    std::string oldname = selectedModel->name;
+                    if (oldname != safename) {
+                        RenameModelInTree(selectedModel, safename);
+                        selectedBaseObject = nullptr;
+                        xlights->RenameModel(oldname, safename);
+                        if (oldname == lastModelName) {
+                            lastModelName = safename;
+                        }
+                        xlights->RecalcModels(true);
+                        SelectBaseObject(safename);
+                        CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
+                        xlights->MarkEffectsFileDirty(true);
+                    }
+                }
+                else {
+                    int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
+                    if (i & 0x0001) {
+                        xlights->UpdatePreview();
+                    }
+                    if (i & 0x0002) {
+                        xlights->MarkEffectsFileDirty(true);
+                    }
+                    if (i & 0x0004) {
+                        CallAfter(&LayoutPanel::resetPropertyGrid);
+                    }
+                    if (i & 0x0008) {
+                        CallAfter(&LayoutPanel::refreshModelList);
+                    }
+                    if (i & 0x0010) {
+                        // Preview assignment change so model may not exist in current preview anymore
+                        CallAfter(&LayoutPanel::RefreshLayout);
+                    }
+                    if (i == 0) {
+                        printf("Did not handle %s   %s\n",
+                            (const char *)event.GetPropertyName().c_str(),
+                            (const char *)event.GetValue().GetString().c_str());
+                    }
+
+                    if ("SubModels" == name) {
+                        // if the sequencer is open we need to force a refresh to make sure submodel names are right
+                        wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+                        wxPostEvent(xlights, eventForceRefresh);
+                        CallAfter(&LayoutPanel::ReloadModelList);
+                    }
                 }
             }
-            std::string oldname = selectedModel->name;
-            if (oldname != safename) {
-                RenameModelInTree(selectedModel, safename);
-                selectedModel = nullptr;
-                xlights->RenameModel(oldname, safename);
-                if (oldname == lastModelName) {
-                    lastModelName = safename;
-                }
-                xlights->RecalcModels(true);
-                SelectModel(safename);
-                CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
-                xlights->MarkEffectsFileDirty(true);
-            }
-        } else {
-            int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
-            if (i & 0x0001) {
-                xlights->UpdatePreview();
-            }
-            if (i & 0x0002) {
-                xlights->MarkEffectsFileDirty(true);
-            }
-            if (i & 0x0004) {
-                CallAfter(&LayoutPanel::resetPropertyGrid);
-            }
-            if (i & 0x0008) {
-                CallAfter(&LayoutPanel::refreshModelList);
-            }
-            if (i & 0x0010) {
-                // Preview assignment change so model may not exist in current preview anymore
-                CallAfter(&LayoutPanel::RefreshLayout);
-            }
-            if (i == 0) {
-                printf("Did not handle %s   %s\n",
-                       (const char *)event.GetPropertyName().c_str(),
-                       (const char *)event.GetValue().GetString().c_str());
-            }
-
-            if ("SubModels" == name) {
-                // if the sequencer is open we need to force a refresh to make sure submodel names are right
-                wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-                wxPostEvent(xlights, eventForceRefresh);
-                CallAfter(&LayoutPanel::ReloadModelList);
-            }
+        }
+        else {
+            objects_panel->OnPropertyGridChange(propertyEditor, event);
         }
     }
     updatingProperty = false;
@@ -680,59 +815,87 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
-    if (selectedModel != nullptr) {
-        if ("ModelName" == name) {
-            std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
-            // refuse clashing names or names with unsafe characters
-            if (xlights->AllModels[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
-                CreateUndoPoint("ModelName", selectedModel->name, safename);
-                event.Veto();
+    if (selectedBaseObject != nullptr) {
+        if( editing_models ) {
+            Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+            if ("ModelName" == name) {
+                std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+                // refuse clashing names or names with unsafe characters
+                if (xlights->AllModels[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
+                    CreateUndoPoint("ModelName", selectedModel->name, safename);
+                    event.Veto();
+                }
+                // todo do I need to do anything special here
+            //} else if ("SubModels" == name) {
+                // ignore the submodel changes for now.
+            //    int a = 0;
+            } else {
+                CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+                selectedModel->OnPropertyGridChanging(propertyEditor, event);
             }
-            // todo do I need to do anything special here
-        //} else if ("SubModels" == name) {
-            // ignore the submodel changes for now.
-        //    int a = 0;
         } else {
-            CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
-            selectedModel->OnPropertyGridChanging(propertyEditor, event);
+            ViewObject* selectedObject = dynamic_cast<ViewObject*>(selectedBaseObject);
+            if ("ObjectName" == name) {
+                std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
+                // refuse clashing names or names with unsafe characters
+                if (xlights->AllObjects[safename] != nullptr || safename != event.GetValue().GetString().ToStdString()) {
+                    CreateUndoPoint("ObjectName", selectedObject->name, safename);
+                    event.Veto();
+                }
+            } else {
+                CreateUndoPoint("ObjectProperty", selectedObject->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+                //objects_panel->GetSelectedObject()->OnPropertyGridChanging(propertyEditor, event);
+            }
         }
-    } else {
+    }
+    else {
         CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
     }
 }
 
 void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
-    if (selectedModel != nullptr) {
-        if( selectedModel->GetDisplayAs() == "Poly Line" ) {
-            int segment = selectedModel->OnPropertyGridSelection(propertyEditor, event);
-            selectedModel->GetModelScreenLocation().SelectSegment(segment);
-            UpdatePreview();
+    if (selectedBaseObject != nullptr) {
+        if( editing_models ) {
+            Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+            if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+                int segment = selectedModel->OnPropertyGridSelection(propertyEditor, event);
+                selectedModel->GetBaseObjectScreenLocation().SelectSegment(segment);
+                UpdatePreview();
+            }
         }
     }
 }
 
 void LayoutPanel::OnPropertyGridItemCollapsed(wxPropertyGridEvent& event) {
-    if (selectedModel != nullptr) {
-        if( selectedModel->GetDisplayAs() == "Poly Line" ) {
-            selectedModel->OnPropertyGridItemCollapsed(propertyEditor, event);
+    if (selectedBaseObject != nullptr) {
+        if( editing_models ) {
+            Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+            if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+                selectedModel->OnPropertyGridItemCollapsed(propertyEditor, event);
+            }
         }
     }
 }
 
 void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
-    if (selectedModel != nullptr) {
-        if( selectedModel->GetDisplayAs() == "Poly Line" ) {
-            selectedModel->OnPropertyGridItemExpanded(propertyEditor, event);
+    if (selectedBaseObject != nullptr) {
+        if( editing_models ) {
+            Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+            if( selectedModel->GetDisplayAs() == "Poly Line" ) {
+                selectedModel->OnPropertyGridItemExpanded(propertyEditor, event);
+            }
         }
     }
 }
 
 void LayoutPanel::RefreshLayout()
 {
-    std::string selectedModelName = "";
-    if (selectedModel != nullptr) selectedModelName = selectedModel->name;
+    std::string selectedBaseObjectName = "";
+    if (selectedBaseObject != nullptr) selectedBaseObjectName = selectedBaseObject->name;
     xlights->UpdateModelsList();
-    if (selectedModelName != "") SelectModel(selectedModelName);
+    if (selectedBaseObjectName != "") {
+         SelectBaseObject(selectedBaseObjectName);
+    }
     ShowPropGrid(true);
 }
 
@@ -743,9 +906,11 @@ void LayoutPanel::RenderLayout()
     modelPreview->Render();
     if (m_creating_bound_rect)
     {
-        modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y,
-            ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
-        modelPreview->GetAccumulator().Finish(GL_LINES);
+        if (!is_3d) {
+            modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y,
+                ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+            modelPreview->GetAccumulator().Finish(GL_LINES);
+        }
     }
     modelPreview->EndDrawing();
 }
@@ -758,8 +923,8 @@ void LayoutPanel::UpdatePreview()
 
 void LayoutPanel::resetPropertyGrid() {
     clearPropGrid();
-    if (selectedModel != nullptr) {
-        SetupPropGrid(selectedModel);
+    if (selectedBaseObject != nullptr) {
+        SetupPropGrid(selectedBaseObject);
     }
 }
 void LayoutPanel::clearPropGrid() {
@@ -960,6 +1125,7 @@ void LayoutPanel::ReloadModelList() {
 void LayoutPanel::UpdateModelList(bool full_refresh) {
     std::vector<Model *> models;
     UpdateModelList(full_refresh, models);
+    objects_panel->UpdateObjectList(full_refresh, currentLayoutGroup);
 }
 
 void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models) {
@@ -1114,7 +1280,12 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                     Model *m = xlights->AllModels[*it2];
                     if (m != nullptr) {
                         if (mark_selected) {
+                            if (selectedBaseObject == nullptr)
+                            {
+                                SelectModel(m, false);
+                            }
                             m->GroupSelected = true;
+                            m->Highlighted = true;
                         }
                         if (m->DisplayAs == "SubModel") {
                             if (mark_selected) {
@@ -1126,11 +1297,13 @@ void LayoutPanel::UpdateModelsForPreview(const std::string &group, LayoutGroup* 
                             if (mark_selected) {
                                 for (auto it3 = mg->Models().begin(); it3 != mg->Models().end(); ++it3) {
                                     if ((*it3)->DisplayAs != "ModelGroup") {
-                                        if (std::find(prev_models.begin(), prev_models.end(), *it3) == prev_models.end())
+                                        if (selectedBaseObject == nullptr)
                                         {
-                                            prev_models.push_back(*it3);
+                                            SelectModel((*it3), false);
                                         }
                                         (*it3)->GroupSelected = true;
+                                        (*it3)->Highlighted = true;
+                                        prev_models.push_back(*it3);
                                     }
                                     else
                                     {
@@ -1320,7 +1493,7 @@ void LayoutPanel::BulkEditControllerPreview()
         }
     }
 
-    Model* sm = selectedModel;
+    Model* sm = dynamic_cast<Model*>(selectedBaseObject);
 
     wxArrayString choices = Model::GetLayoutGroups(xlights->AllModels);
     int sel = 0;
@@ -1392,13 +1565,13 @@ void LayoutPanel::CreateModelGroupFromSelected()
         wxString grp = currentLayoutGroup == "All Models" ? "Unassigned" : currentLayoutGroup;
         node->AddAttribute("LayoutGroup", grp);
 
-        bool selectedModelAdded = selectedModel == nullptr;
+        bool selectedModelAdded = selectedBaseObject == nullptr;
         wxString ModelsInGroup = "";
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
-                if (modelPreview->GetModels()[i] == selectedModel)
+                if (modelPreview->GetModels()[i] == selectedBaseObject)
                 {
                     selectedModelAdded = true;
                 }
@@ -1415,7 +1588,7 @@ void LayoutPanel::CreateModelGroupFromSelected()
             {
                 ModelsInGroup += ",";
             }
-            ModelsInGroup += selectedModel->GetName();
+            ModelsInGroup += selectedBaseObject->GetName();
         }
 
         node->AddAttribute("models", ModelsInGroup);
@@ -1425,7 +1598,7 @@ void LayoutPanel::CreateModelGroupFromSelected()
         xlights->MarkEffectsFileDirty(true);
         model_grp_panel->UpdatePanel(name.ToStdString());
         ShowPropGrid(false);
-        SelectModel(name.ToStdString());
+        SelectBaseObject(name.ToStdString());
         wxArrayString models = wxSplit(ModelsInGroup, ',');
         for (auto it = models.begin(); it != models.end(); ++it)
         {
@@ -1475,16 +1648,34 @@ private:
 
 void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 {
-    auto models = modelPreview->GetModels();
-    for (size_t i = 0; i < models.size(); i++)
-    {
-        Model* m = modelPreview->GetModels()[i];
-        m->Selected = false;
-        m->GroupSelected = false;
-        m->SelectHandle(-1);
+    highlightedBaseObject = nullptr;
+    selectedBaseObject = nullptr;
+    selectionLatched = false;
+
+    if( editing_models ) {
+        auto models = modelPreview->GetModels();
+        for (size_t i = 0; i < models.size(); i++)
+        {
+            Model* m = modelPreview->GetModels()[i];
+            m->Selected = false;
+            m->Highlighted = false;
+            m->GroupSelected = false;
+            m->SelectHandle(-1);
+            m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
+    } else {
+        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+            ViewObject *view_object = it->second;
+            view_object->Selected = false;
+            view_object->Highlighted = false;
+            view_object->GroupSelected = false;
+            view_object->SelectHandle(-1);
+            view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        }
     }
+
     UpdatePreview();
-    selectedModel = nullptr;
+    selectedBaseObject = nullptr;
     mSelectedGroup = nullptr;
 
     if (!updatingProperty && addBkgProps) {
@@ -1494,6 +1685,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         GetBackgroundImageForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundFile
         GetBackgroundScaledForSelectedPreview();      // don't need return value....just let it set local variable previewBackgroundScaled
         GetBackgroundBrightnessForSelectedPreview();  // don't need return value....just let it set local variable previewBackgroundBrightness
+        GetBackgroundAlphaForSelectedPreview();       // don't need return value....just let it set local variable previewBackgroundBrightness
 
         if (backgroundFile != previewBackgroundFile) {
             delete background;
@@ -1526,25 +1718,35 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         prop->SetAttribute("Min", 0);
         prop->SetAttribute("Max", 100);
         prop->SetEditor("SpinCtrl");
+
+        prop = propertyEditor->Append(new wxUIntProperty("Transparency", "BkgTransparency",  100 - previewBackgroundAlpha));
+        prop->SetAttribute("Min", 0);
+        prop->SetAttribute("Max", 100);
+        prop->SetEditor("SpinCtrl");
+
         propertyEditor->Thaw();
     }
 }
 
-void LayoutPanel::SetupPropGrid(Model *model) {
+void LayoutPanel::SetupPropGrid(BaseObject *base_object) {
 
-    if (model == nullptr || propertyEditor == nullptr) return;
+    if (base_object == nullptr || propertyEditor == nullptr) return;
 
     propertyEditor->Freeze();
     clearPropGrid();
 
-    propertyEditor->Append(new wxStringProperty("Name", "ModelName", model->name));
+    if( editing_models ) {
+        propertyEditor->Append(new wxStringProperty("Name", "ModelName", base_object->name));
+    } else {
+        propertyEditor->Append(new wxStringProperty("Name", "ObjectName", base_object->name));
+    }
 
-    model->AddProperties(propertyEditor);
+    base_object->AddProperties(propertyEditor);
 
-    if (dynamic_cast<SubModel*>(model) == nullptr) {
+    if (dynamic_cast<SubModel*>(base_object) == nullptr) {
         wxPGProperty *p2 = propertyEditor->Append(new wxPropertyCategory("Size/Location", "ModelSize"));
 
-        model->AddSizeLocationProperties(propertyEditor);
+        base_object->AddSizeLocationProperties(propertyEditor);
         if (!sizeVisible) {
             propertyEditor->Collapse(p2);
         }
@@ -1568,6 +1770,55 @@ void LayoutPanel::SetupPropGrid(Model *model) {
         }
     }
     propertyEditor->Thaw();
+}
+
+void LayoutPanel::SelectBaseObject3D()
+{
+    if (is_3d) {
+        // latch center handle immediately
+        if (selectedBaseObject != nullptr) {
+            if( editing_models ) {
+                Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+                selectedModel->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                selectedModel->GetBaseObjectScreenLocation().SetActiveAxis(-1);
+            } else {
+                ViewObject* selectedViewObject = dynamic_cast<ViewObject*>(selectedBaseObject);
+                selectedViewObject->GetObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                selectedViewObject->GetObjectScreenLocation().SetActiveAxis(-1);
+            }
+            highlightedBaseObject = selectedBaseObject;
+            selectionLatched = true;
+        }
+    }
+}
+void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree)
+{
+    if( editing_models ) {
+        Model *m = xlights->AllModels[name];
+        if (m == nullptr)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("LayoutPanel:SelectBaseObject Unable to select model '%s'.", (const char *)name.c_str());
+        }
+        SelectModel(m, highlight_tree);
+    } else {
+        ViewObject *v = xlights->AllObjects[name];
+        if (v == nullptr)
+        {
+            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.warn("LayoutPanel:SelectBaseObject Unable to select object '%s'.", (const char *)name.c_str());
+        }
+        SelectViewObject(v, highlight_tree);
+    }
+}
+
+void LayoutPanel::SelectBaseObject(BaseObject *obj, bool highlight_tree)
+{
+    if( editing_models ) {
+        SelectModel(dynamic_cast<Model*>(obj), highlight_tree);
+    } else {
+        SelectViewObject(dynamic_cast<ViewObject*>(obj), highlight_tree);
+    }
 }
 
 void LayoutPanel::SelectModel(const std::string & name, bool highlight_tree)
@@ -1636,7 +1887,10 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
         propertyEditor->Thaw();
     }
 
-    selectedModel = m;
+    selectedBaseObject = m;
+    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+    selectionLatched = true;
+
     if (CheckBoxOverlap->GetValue()) {
         for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
               item.IsOk();
@@ -1646,7 +1900,7 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
             {
                 ModelTreeData *data = dynamic_cast<ModelTreeData*>(TreeListViewModels->GetItemData(item));
                 Model *mm = data != nullptr ? data->GetModel() : nullptr;
-                if (mm != nullptr && mm != selectedModel) {
+                if (mm != nullptr && mm != selectedBaseObject) {
                     int startChan = mm->GetNumberFromChannelString(mm->ModelStartChannel);
                     int endChan = mm->GetLastChannel();
                     if ((startChan >= foundStart) && (endChan <= foundEnd)) {
@@ -1665,6 +1919,41 @@ void LayoutPanel::SelectModel(Model *m, bool highlight_tree) {
             }
         }
     }
+    SelectBaseObject3D();
+    UpdatePreview();
+}
+
+void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
+
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // TODO need to strip out extra logging once I know for sure what is going on
+    if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectViewObject modelPreview is nullptr ... this is going to crash.");
+
+    modelPreview->SetFocus();
+    int foundStart = 0;
+    int foundEnd = 0;
+
+    if (v != nullptr) {
+        v->Selected = true;
+
+        if( highlight_tree ) {
+            objects_panel->HighlightObject(v);
+        }
+        SetupPropGrid(v);
+    } else {
+        propertyEditor->Freeze();
+        clearPropGrid();
+        propertyEditor->Thaw();
+    }
+
+    selectedBaseObject = v;
+    if (v) {
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        selectionLatched = true;
+    }
+    SelectBaseObject3D();
+
     UpdatePreview();
 }
 
@@ -1693,6 +1982,10 @@ void LayoutPanel::SaveEffects()
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->UpdateXmlWithScale();
+    }
+    for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        view_object->UpdateXmlWithScale();
     }
     xlights->SaveEffectsFile();
     xlights->SetStatusText(_("Preview layout saved"));
@@ -1753,7 +2046,7 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl *treel
         if (ia > ib)
             return 1;
         if (ia < ib)
-            return -1;
+    return -1;
         return NumberAwareStringCompare(a->name, b->name);
     }
 
@@ -1791,11 +2084,26 @@ int LayoutPanel::ModelListComparator::Compare(wxTreeListCtrl *treelist, unsigned
     return SortElementsFunction(treelist, first, second, column);
 }
 
-int LayoutPanel::FindModelsClicked(int x,int y,std::vector<int> &found)
+void LayoutPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
 {
+    VectorMath::ScreenPosToWorldRay(
+        x, modelPreview->getHeight() - y,
+        modelPreview->getWidth(), modelPreview->getHeight(),
+        modelPreview->GetProjViewMatrix(),
+        ray_origin,
+        ray_direction
+    );
+}
+
+int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int> &found)
+{
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(x, y, ray_origin, ray_direction);
+
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (modelPreview->GetModels()[i]->HitTest(modelPreview, x, y))
+        if (modelPreview->GetModels()[i]->HitTest(modelPreview, ray_origin, ray_direction))
         {
             found.push_back(i);
         }
@@ -1818,7 +2126,7 @@ bool LayoutPanel::SelectSingleModel(int x, int y)
         mHitTestNextSelectModelIndex = 0;
         return true;
     }
-    else if (modelCount>1)
+    else if (modelCount > 1)
     {
         for (int i = 0; i < modelCount; i++)
         {
@@ -1838,15 +2146,29 @@ void LayoutPanel::SelectAllInBoundingRect()
 {
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
-        if(modelPreview->GetModels()[i]->IsContained(modelPreview,m_bound_start_x,m_bound_start_y,
-                                         m_bound_end_x,m_bound_end_y))
+        if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
         {
             // if we dont have a selected model make the first one we find the selected model so alignment etc works
-            if (selectedModel == nullptr)
+            if (selectedBaseObject == nullptr)
             {
-                SelectModel(modelPreview->GetModels()[i]->GetName(), false);
+                SelectBaseObject(modelPreview->GetModels()[i]->GetName(), false);
             }
             modelPreview->GetModels()[i]->GroupSelected = true;
+        }
+    }
+}
+
+void LayoutPanel::HighlightAllInBoundingRect()
+{
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y))
+        {
+            modelPreview->GetModels()[i]->Highlighted = true;
+        }
+        else if(!modelPreview->GetModels()[i]->Selected &&
+               !modelPreview->GetModels()[i]->GroupSelected){
+            modelPreview->GetModels()[i]->Highlighted = false;
         }
     }
 }
@@ -1867,19 +2189,28 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         if(modelPreview->GetModels()[found[0]]->Selected)
         {
             modelPreview->GetModels()[found[0]]->Selected = false;
+            modelPreview->GetModels()[found[0]]->Highlighted = false;
             modelPreview->GetModels()[found[0]]->GroupSelected = false;
+            modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+            modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(-1);
         }
         else if (modelPreview->GetModels()[found[0]]->GroupSelected)
         {
             SetSelectedModelToGroupSelected();
             modelPreview->GetModels()[found[0]]->Selected = true;
+            modelPreview->GetModels()[found[0]]->Highlighted = true;
             SelectModel(modelPreview->GetModels()[found[0]]);
+            modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+            modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
         }
         else
         {
+            modelPreview->GetModels()[found[0]]->Highlighted = true;
             if( ModelsSelectedCount() == 0 ) {
                 modelPreview->GetModels()[found[0]]->Selected = true;
                 SelectModel(modelPreview->GetModels()[found[0]]);
+                modelPreview->GetModels()[found[0]]->SelectHandle(-1);
+                modelPreview->GetModels()[found[0]]->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
             } else {
                 modelPreview->GetModels()[found[0]]->GroupSelected = true;
             }
@@ -1902,29 +2233,222 @@ void LayoutPanel::SetSelectedModelToGroupSelected()
     }
 }
 
+void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
+{
+    UnSelectAllModels();
+    m_mouse_down = false;
+}
+
+void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
+{
+    m_moving_handle = false;
+    // don't mark mouse down if a selection is being made
+    if (highlightedBaseObject != nullptr) {
+        if (selectionLatched) {
+            m_over_handle = -1;
+            if (selectedBaseObject != nullptr) {
+                glm::vec3 ray_origin;
+                glm::vec3 ray_direction;
+                GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+                selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle);
+            }
+            if (m_over_handle != -1) {
+                if ((m_over_handle & 0x2000) > 0) {
+                    // an axis was selected
+                    if (selectedBaseObject != nullptr) {
+                        int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(m_over_handle & 0xff);
+                        selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(-1);
+                        bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
+                        // this is designed to pretend the control and shift keys are down when creating models to
+                        // make them scale from the desired handle depending on model type
+                        selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+                        UpdatePreview();
+                        m_moving_handle = true;
+                        m_mouse_down = true;
+                        last_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+                    }
+                }
+                else if ((m_over_handle & 0x10000) > 0) {
+                    // a segment was selected
+                    if (selectedBaseObject != nullptr) {
+                        selectedBaseObject->GetBaseObjectScreenLocation().SelectSegment(m_over_handle & 0xFFF);
+                        UpdatePreview();
+                    }
+                }
+                else {
+                    if (selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle() == m_over_handle) {
+                        selectedBaseObject->GetBaseObjectScreenLocation().AdvanceAxisTool();
+                    }
+                    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(m_over_handle);
+                    UpdatePreview();
+                }
+            }
+            else {
+                m_mouse_down = true;
+            }
+        }
+        else {
+            SelectBaseObject(highlightedBaseObject);
+            selectionLatched = true;
+            // latch center handle immediately
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+            UpdatePreview();
+        }
+    }
+    else {
+        m_mouse_down = true;
+    }
+
+    m_last_mouse_x = event.GetX();
+    m_last_mouse_y = event.GetY();
+
+    if (selectedButton != nullptr) {
+        //create a new model
+        int wi, ht;
+        modelPreview->GetVirtualCanvasSize(wi, ht);
+        m_moving_handle = true;
+        m_creating_bound_rect = false;
+        const std::string& model_type = selectedButton->GetModelType();
+        newModel = CreateNewModel(model_type);
+        newModel->SetLayoutGroup(currentLayoutGroup);
+
+        if (newModel != nullptr) {
+            if (model_type == "Poly Line") {
+                m_polyline_active = true;
+            }
+            UnSelectAllModels();
+            newModel->Selected = true;
+            newModel->GetBaseObjectScreenLocation().SetActiveHandle(newModel->GetBaseObjectScreenLocation().GetDefaultHandle());
+            newModel->GetBaseObjectScreenLocation().SetAxisTool(newModel->GetBaseObjectScreenLocation().GetDefaultTool());
+            selectionLatched = true;
+            highlightedBaseObject = newModel;
+            selectedBaseObject = newModel;
+            creating_model = true;
+            if (wi > 0 && ht > 0)
+            {
+                modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+                newModel->UpdateXmlWithScale();
+            }
+            bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
+            // this is designed to pretend the control and shift keys are down when creating models to
+            // make them scale from the desired handle depending on model type
+            selectedBaseObject->MoveHandle3D(modelPreview, selectedBaseObject->GetBaseObjectScreenLocation().GetDefaultHandle(), event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), true, z_scale);
+            lastModelName = newModel->name;
+            modelPreview->SetAdditionalModel(newModel);
+        }
+    }
+
+    ShowPropGrid(true);
+    modelPreview->SetFocus();
+
+    if (event.ControlDown())
+    {
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        // if control key is down check to see if we are highlighting another model for group selection
+        if (event.ControlDown()) {
+            int which_model = -1;
+            float distance = 1000000000.0f;
+            float intersection_distance = 1000000000.0f;
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+            {
+                if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                    if (intersection_distance < distance) {
+                        distance = intersection_distance;
+                        which_model = i;
+                    }
+                }
+            }
+            if (which_model != -1)
+            {
+                if (modelPreview->GetModels()[which_model]->Highlighted) {
+                    if (!modelPreview->GetModels()[which_model]->GroupSelected &&
+                        !modelPreview->GetModels()[which_model]->Selected) {
+                        modelPreview->GetModels()[which_model]->GroupSelected = true;
+                    }
+                    else if (modelPreview->GetModels()[which_model]->GroupSelected) {
+                        modelPreview->GetModels()[which_model]->GroupSelected = false;
+                        modelPreview->GetModels()[which_model]->Selected = true;
+                        if (selectedBaseObject != nullptr) {
+                            selectedBaseObject->GroupSelected = true;
+                            selectedBaseObject->Selected = false;
+                            selectedBaseObject->SelectHandle(-1);
+                            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                        }
+                        selectedBaseObject = modelPreview->GetModels()[which_model];
+                        highlightedBaseObject = selectedBaseObject;
+                        selectedBaseObject->SelectHandle(-1);
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    }
+                    else if (modelPreview->GetModels()[which_model]->Selected) {
+                        modelPreview->GetModels()[which_model]->Selected = false;
+                        modelPreview->GetModels()[which_model]->Highlighted = false;
+                        modelPreview->GetModels()[which_model]->SelectHandle(-1);
+                        modelPreview->GetModels()[which_model]->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                        selectedBaseObject = nullptr;
+                        // select first model we find
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i]->GroupSelected) {
+                                selectedBaseObject = modelPreview->GetModels()[i];
+                                selectedBaseObject->GroupSelected = false;
+                                selectedBaseObject->Selected = true;
+                                selectedBaseObject->SelectHandle(-1);
+                                selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                                break;
+                            }
+                        }
+                        highlightedBaseObject = selectedBaseObject;
+                    }
+                    UpdatePreview();
+                }
+            }
+        }
+    }
+    else if (event.ShiftDown())
+    {
+        m_creating_bound_rect = true;
+        m_bound_start_x = event.GetX();
+        m_bound_start_y = event.GetY();
+        m_bound_end_x = m_bound_start_x;
+        m_bound_end_y = m_bound_start_y;
+    }
+    else {
+        m_creating_bound_rect = false;
+        m_dragging = false;
+    }
+}
+
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
-    if( m_polyline_active )
+    if (m_polyline_active)
     {
         Model *m = newModel;
-        int y = event.GetY();
-        y = modelPreview->GetVirtualCanvasHeight() - y;
-        m->AddHandle(modelPreview, event.GetPosition().x, y);
+        m->AddHandle(modelPreview, event.GetX(), event.GetY());
         m->UpdateXmlWithScale();
         m->InitModel();
         xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
         m_over_handle++;
+        int handle = m->GetBaseObjectScreenLocation().GetActiveHandle();
+        handle++;
+        m->GetBaseObjectScreenLocation().SetActiveHandle(handle);
         return;
     }
 
     ShowPropGrid(true);
     modelPreview->SetFocus();
-    int y = event.GetY();
+
+    if (is_3d) {
+        ProcessLeftMouseClick3D(event);
+        return;
+    }
+
     if (event.ControlDown())
     {
-        ignore_next_event = true;
-        SelectMultipleModels(event.GetX(),y);
+        SelectMultipleModels(event.GetX(), event.GetY());
         m_dragging = true;
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
@@ -1932,48 +2456,53 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     else if (event.ShiftDown())
     {
         m_creating_bound_rect = true;
-        m_bound_start_x = event.GetX();
-        m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_start_x = ray_origin.x;
+        m_bound_start_y = ray_origin.y;
+        m_bound_end_x = m_bound_start_x;
+        m_bound_end_y = m_bound_start_y;
     }
     else if (m_over_handle != -1)
     {
-        m_moving_handle = true;
-        if( selectedModel != nullptr ) {
-            selectedModel->SelectHandle(m_over_handle);
-            UpdatePreview();
+        if ((m_over_handle & 0x10000) > 0) {
+            // a segment was selected
+            if (selectedBaseObject != nullptr) {
+                selectedBaseObject->GetBaseObjectScreenLocation().SelectSegment(m_over_handle & 0xFFF);
+                modelPreview->SetCursor(wxCURSOR_DEFAULT);
+                UpdatePreview();
+            }
+        }
+        else {
+            m_moving_handle = true;
+            if (selectedBaseObject != nullptr) {
+                selectedBaseObject->SelectHandle(m_over_handle);
+                UpdatePreview();
+            }
         }
     }
     else if (selectedButton != nullptr)
     {
         //create a new model
-        int wi, ht;
-        modelPreview->GetVirtualCanvasSize(wi, ht);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
-        int cy = modelPreview->GetVirtualCanvasHeight() - m_previous_mouse_y;
-        if (m_previous_mouse_x < wi
-            && cy < ht
-            && cy >= 0) {
+        m_moving_handle = true;
+        m_creating_bound_rect = false;
+        const std::string& model_type = selectedButton->GetModelType();
+        newModel = CreateNewModel(model_type);
+        newModel->SetLayoutGroup(currentLayoutGroup);
 
-            m_moving_handle = true;
-            m_creating_bound_rect = false;
-            const std::string& model_type = selectedButton->GetModelType();
-            newModel = CreateNewModel(model_type);
-            if (newModel != nullptr) {
-                newModel->SetLayoutGroup(currentLayoutGroup);
-                if( model_type == "Poly Line" ) {
-                    m_polyline_active = true;
-                }
-
-                newModel->Selected = true;
-                if (wi > 0 && ht > 0)
-                {
-                    modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y));
-                    newModel->UpdateXmlWithScale();
-                }
-                lastModelName = newModel->name;
-                modelPreview->SetAdditionalModel(newModel);
+        if (newModel != nullptr) {
+            if (model_type == "Poly Line") {
+                m_polyline_active = true;
             }
+            UnSelectAllModels();
+            newModel->Selected = true;
+            modelPreview->SetCursor(newModel->InitializeLocation(m_over_handle, event.GetX(), event.GetY(), modelPreview));
+            newModel->UpdateXmlWithScale();
+            lastModelName = newModel->name;
+            modelPreview->SetAdditionalModel(newModel);
         }
     }
     else
@@ -1981,37 +2510,66 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m_moving_handle = false;
         m_creating_bound_rect = false;
 
-        if(!event.wxKeyboardState::ControlDown())
+        if (!event.wxKeyboardState::ControlDown())
         {
             UnSelectAllModels();
         }
 
-        if (SelectSingleModel(event.GetX(), y))
+        if (SelectSingleModel(event.GetX(), event.GetY()))
         {
             m_dragging = true;
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
-            xlights->SetStatusText(wxString::Format("x=%d y=%d",m_previous_mouse_x,m_previous_mouse_y));
+            xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
         }
         else
         {
             m_creating_bound_rect = true;
-            m_bound_start_x = event.GetX();
-            m_bound_start_y = modelPreview->GetVirtualCanvasHeight() - y;
+            glm::vec3 ray_origin;
+            glm::vec3 ray_direction;
+            GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+            m_bound_start_x = ray_origin.x;
+            m_bound_start_y = ray_origin.y;
+            m_bound_end_x = m_bound_start_x;
+            m_bound_end_y = m_bound_start_y;
         }
     }
 }
 
 void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
-    if( m_polyline_active ) return;
+    if (m_polyline_active) {
+        m_mouse_down = false;
+        return;
+    }
+
+    if (is_3d && m_mouse_down) {
+        if (selectedBaseObject != nullptr) {
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveAxis(-1);
+            UpdatePreview();
+        }
+        modelPreview->SetCameraView(0, 0, true);
+    }
+
+    m_mouse_down = false;
+    m_moving_handle = false;
+    over_handle = NO_HANDLE;
 
     int y = event.GetY();
 
     if (m_creating_bound_rect)
     {
-        m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
+        if (is_3d) {
+            m_bound_end_x = event.GetX();
+            m_bound_end_y = event.GetY();
+        }
+        else {
+            glm::vec3 ray_origin;
+            glm::vec3 ray_direction;
+            GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+            m_bound_end_x = ray_origin.x;
+            m_bound_end_y = ray_origin.y;
+        }
         SelectAllInBoundingRect();
         m_creating_bound_rect = false;
         UpdatePreview();
@@ -2031,14 +2589,16 @@ void LayoutPanel::FinalizeModel()
     m_moving_handle = false;
     m_dragging = false;
     m_polyline_active = false;
+    creating_model = false;
+    m_over_handle = NO_HANDLE;
 
     if (newModel != nullptr) {
         if (selectedButton != nullptr && (selectedButton->GetModelType() == "Import Custom" || selectedButton->GetModelType() == "Download"))
         {
-            float min_x = (float)(newModel->GetModelScreenLocation().GetLeft()) / (float)(newModel->GetModelScreenLocation().previewW);
-            float max_x = (float)(newModel->GetModelScreenLocation().GetRight()) / (float)(newModel->GetModelScreenLocation().previewW);
-            float min_y = (float)(newModel->GetModelScreenLocation().GetBottom()) / (float)(newModel->GetModelScreenLocation().previewH);
-            float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
+            float min_x = (float)(newModel->GetBaseObjectScreenLocation().GetLeft());
+            float max_x = (float)(newModel->GetBaseObjectScreenLocation().GetRight());
+            float min_y = (float)(newModel->GetBaseObjectScreenLocation().GetBottom());
+            float max_y = (float)(newModel->GetBaseObjectScreenLocation().GetTop());
             bool cancelled = false;
 
             wxProgressDialog prog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
@@ -2049,7 +2609,6 @@ void LayoutPanel::FinalizeModel()
             newModel = Model::GetXlightsModel(newModel, _lastXlightsModel, xlights, cancelled, selectedButton->GetModelType() == "Download", &prog, 0, 99);
             if (cancelled || newModel == nullptr) {
                 newModel = nullptr;
-                m_over_handle = -1;
                 modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 selectedButton->SetState(0);
                 selectedButton = nullptr;
@@ -2069,45 +2628,388 @@ void LayoutPanel::FinalizeModel()
 
         newModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
 
-        m_over_handle = -1;
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         modelPreview->SetAdditionalModel(nullptr);
         if (selectedButton != nullptr && selectedButton->GetState() == 1) {
             std::string name = newModel->name;
             newModel = nullptr;
-            selectedButton->SetState(0);
-            selectedButton = nullptr;
+            if (selectedButton != nullptr) {
+                selectedButton->SetState(0);
+                selectedButton = nullptr;
+            }
+            selectedBaseObject = nullptr;
             xlights->UpdateModelsList();
-            UpdatePreview();
-            SelectModel(name);
+            SelectBaseObject(name);
+            SelectBaseObject3D();
         } else {
             newModel = nullptr;
             xlights->UpdateModelsList();
-            UpdatePreview();
         }
+        UpdatePreview();
     }
 }
 
 void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 {
     m_dragging = false;
+    m_wheel_down = false;
+}
+
+void LayoutPanel::OnPreviewMouseWheelDown(wxMouseEvent& event)
+{
+    m_previous_mouse_x = event.GetX();
+    m_previous_mouse_y = event.GetY();
+    m_wheel_down = true;
+}
+
+void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
+{
+    m_wheel_down = false;
+}
+void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
+    if (selectedBaseObject != nullptr) {
+        //rotate model
+        float delta = (m_last_mouse_x - (event.GetRotationAngle() * 1000)) / 1000.0;
+        if (!event.IsGestureStart()) {
+            //convert to degrees
+            delta = (delta/(2*M_PI))*360.0;
+            if (delta > 90) {
+                delta -= 360;
+            }
+            if (delta < -90) {
+                delta += 360;
+            }
+
+            int axis = 2;  //default is around z axis
+            if (wxGetKeyState(WXK_SHIFT)) {
+                axis = 0;
+            } else if (wxGetKeyState(WXK_CONTROL)) {
+                axis = 1;
+            }
+            if (selectedBaseObject->GetBaseObjectScreenLocation().Rotate(axis, delta)) {
+                SetupPropGrid(selectedBaseObject);
+                xlights->MarkEffectsFileDirty(true);
+                UpdatePreview();
+            }
+        } else {
+            CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
+        }
+    }
+    m_last_mouse_x = (event.GetRotationAngle() * 1000);
+}
+void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
+    float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
+    if (selectedBaseObject != nullptr) {
+        if (!event.IsGestureStart()) {
+            //resize model
+            if (selectedBaseObject->GetBaseObjectScreenLocation().Scale(1.0f - delta)) {
+                SetupPropGrid(selectedBaseObject);
+                xlights->MarkEffectsFileDirty(true);
+                UpdatePreview();
+            }
+        } else {
+            CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, "Zoom");
+        }
+    }  else {
+        modelPreview->SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
+        UpdatePreview();
+    }
+    m_last_mouse_x = (event.GetZoomFactor() * 1000);
+}
+void LayoutPanel::OnPreviewMagnify(wxMouseEvent& event) {
+    if (event.GetWheelRotation() == 0 || event.GetMagnification() == 0.0f) {
+        //magnification of 0 is sometimes generated for other gestures (pinch/zoom), ignore
+        return;
+    }
+    modelPreview->SetZoomDelta(event.GetMagnification() > 0 ? -0.1f : 0.1f);
+}
+
+void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
+{
+    if (event.GetWheelRotation() == 0) {
+        //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
+        return;
+    }
+    bool fromTrackPad = IsMouseEventFromTouchpad();
+    if (is_3d) {
+        if (!fromTrackPad || event.ControlDown()) {
+            modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+        } else {
+            float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            if (event.ShiftDown()) {
+                modelPreview->SetPan(delta_x, delta_y);
+            } else {
+                modelPreview->SetCameraView(delta_x, delta_y, false);
+                modelPreview->SetCameraView(0, 0, true);
+            }
+        }
+    } else {
+        if (!fromTrackPad || event.ControlDown()) {
+            modelPreview->SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+        } else {
+            float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+
+            // account for grid rotation
+            float angle = glm::radians(modelPreview->GetCameraRotation());
+            float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+            float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+            delta_x *= modelPreview->GetZoom() * 2.0f;
+            delta_y *= modelPreview->GetZoom() * 2.0f;
+            modelPreview->SetPan(delta_x, delta_y);
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+        }
+    }
+    UpdatePreview();
+}
+
+void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
+{
+    if (m_creating_bound_rect)
+    {
+        m_bound_end_x = event.GetX();
+        m_bound_end_y = event.GetY();
+        HighlightAllInBoundingRect();
+        UpdatePreview();
+        return;
+    }
+    else if (m_wheel_down)
+    {
+        float new_x = event.GetX() - m_previous_mouse_x;
+        float new_y = event.GetY() - m_previous_mouse_y;
+        // account for grid rotation
+        float angle = glm::radians(modelPreview->GetCameraRotation());
+        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+        delta_x *= modelPreview->GetZoom() * 2.0f;
+        delta_y *= modelPreview->GetZoom() * 2.0f;
+        modelPreview->SetPan(delta_x, delta_y);
+        m_previous_mouse_x = event.GetX();
+        m_previous_mouse_y = event.GetY();
+        UpdatePreview();
+    }
+    else if (m_mouse_down) {
+        if (m_moving_handle) {
+            if (selectedBaseObject != nullptr) {
+                int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
+                int selectedModelCnt = ModelsSelectedCount();
+                if (selectedBaseObject != newModel) {
+                    CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
+                }
+                bool z_scale = selectedBaseObject->GetBaseObjectScreenLocation().GetSupportsZScaling();
+                // this is designed to pretend the control and shift keys are down when creating models to
+                // make them scale from the desired handle depending on model type
+                selectedBaseObject->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+                SetupPropGrid(selectedBaseObject);
+                xlights->MarkEffectsFileDirty(true);
+                if (selectedModelCnt > 1) {
+                    glm::vec3 new_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+                    new_worldpos = new_worldpos - last_worldpos;
+                    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                    {
+                        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected) {
+                            if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                modelPreview->GetModels()[i]->AddOffset(new_worldpos.x, new_worldpos.y, new_worldpos.z);
+                            }
+                        }
+                    }
+                    last_worldpos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
+                }
+                UpdatePreview();
+            }
+        }
+        else {
+            int delta_x = event.GetPosition().x - m_last_mouse_x;
+            int delta_y = event.GetPosition().y - m_last_mouse_y;
+            modelPreview->SetCameraView(delta_x, delta_y, false);
+            UpdatePreview();
+        }
+    }
+    else {
+        if (!selectionLatched) {
+            glm::vec3 ray_origin;
+            glm::vec3 ray_direction;
+            GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+            BaseObject* which_object = nullptr;
+            float distance = 1000000000.0f;
+            float intersection_distance = 1000000000.0f;
+            if( editing_models ) {
+                for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                {
+                    if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                        if (intersection_distance < distance) {
+                            distance = intersection_distance;
+                            which_object = modelPreview->GetModels()[i];
+                        }
+                    }
+                }
+            } else {
+                for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+                    ViewObject *view_object = it->second;
+                    if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                        if (intersection_distance < distance) {
+                            distance = intersection_distance;
+                            which_object = view_object;
+                        }
+                    }
+                }
+            }
+            if (which_object == nullptr)
+            {
+                if (highlightedBaseObject != nullptr) {
+                    highlightedBaseObject->Highlighted = false;
+                    highlightedBaseObject = nullptr;
+                    UpdatePreview();
+                }
+            }
+            else
+            {
+                if (which_object != last_selection) {
+                    UnSelectAllModels();
+                    highlightedBaseObject = which_object;
+                    highlightedBaseObject->Highlighted = true;
+                    UpdatePreview();
+                }
+            }
+            last_selection = which_object;
+        }
+        if (m_moving_handle)
+        {
+            BaseObject *obj = newModel;
+            if (obj == nullptr) {
+                obj = selectedBaseObject;
+                if (obj == nullptr) return;
+            }
+            int active_handle = obj->GetBaseObjectScreenLocation().GetActiveHandle();
+            if (obj != newModel) {
+                CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", obj->name, std::to_string(active_handle));
+            }
+            bool z_scale = obj->GetBaseObjectScreenLocation().GetSupportsZScaling();
+            // this is designed to pretend the control and shift keys are down when creating models to
+            // make them scale from the desired handle depending on model type
+            obj->MoveHandle3D(modelPreview, active_handle, event.ShiftDown() | creating_model, event.ControlDown() | (creating_model & z_scale), event.GetX(), event.GetY(), false, z_scale);
+            SetupPropGrid(obj);
+            xlights->MarkEffectsFileDirty(true);
+            UpdatePreview();
+        }
+        else {
+            if (selectedBaseObject != nullptr) {
+                glm::vec3 ray_origin;
+                glm::vec3 ray_direction;
+                GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+                // check for mouse over handle and if so highlight it
+                modelPreview->SetCursor(selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle));
+                if (m_over_handle != over_handle) {
+                    selectedBaseObject->GetBaseObjectScreenLocation().MouseOverHandle(m_over_handle);
+                    over_handle = m_over_handle;
+                    UpdatePreview();
+                }
+                else if( event.ControlDown() ) {
+                    // For now require control to be active before we start highlighting other models while a model is selected otherwise
+                    // it gets hard to work on selected model with everything else highlighting.
+                    // See if hovering over a model and if so highlight it or remove highlight as you leave it if it wasn't selected.
+                    BaseObject* which_object = nullptr;
+                    float distance = 1000000000.0f;
+                    float intersection_distance = 1000000000.0f;
+                    if( editing_models ) {
+                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+                        {
+                            if (modelPreview->GetModels()[i] != selectedBaseObject) {
+                                if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                                    if (intersection_distance < distance) {
+                                        distance = intersection_distance;
+                                        which_object = modelPreview->GetModels()[i];
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+                            ViewObject *view_object = it->second;
+                            if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                                if (intersection_distance < distance) {
+                                    distance = intersection_distance;
+                                    which_object = view_object;
+                                }
+                            }
+                        }
+                    }
+                    if (which_object != nullptr)
+                    {
+                        if (last_highlight != which_object) {
+                            if (!which_object->Highlighted) {
+                                which_object->Highlighted = true;
+                            }
+                            UpdatePreview();
+                        }
+                    }
+                    if (last_highlight != nullptr && last_highlight != which_object) {
+                        if (last_highlight->Highlighted &&
+                            !(last_highlight->Selected || last_highlight->GroupSelected)) {
+                            last_highlight->Highlighted = false;
+                            UpdatePreview();
+                        }
+                    }
+                    last_highlight = which_object;
+                }
+            }
+        }
+    }
 }
 
 void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
-    int y = event.GetY();
+    if (is_3d) {
+        OnPreviewMouseMove3D(event);
+        return;
+    }
+
+    /*/ FIXME:  Delete when not needed for debugging
+    /////////////////////////////////////
+    // temporary for debugging
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
+    {
+        Model* whichModel = modelPreview->GetModels()[i];
+        if (modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().HitTest(ray_origin, ray_direction)) {
+            whichModel->Highlighted = true;
+        }
+        else {
+            whichModel->Highlighted = false;
+        }
+        UpdatePreview();
+    }
+    /////////////////////////////////////*/
 
     if (m_creating_bound_rect)
     {
-        m_bound_end_x = event.GetPosition().x;
-        m_bound_end_y = modelPreview->GetVirtualCanvasHeight() - y;
+        glm::vec3 ray_origin;
+        glm::vec3 ray_direction;
+        GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+        m_bound_end_x = ray_origin.x;
+        m_bound_end_y = ray_origin.y;
         UpdatePreview();
         return;
+    }
+    else if (m_wheel_down)
+    {
+        float delta_x = event.GetX() - m_previous_mouse_x;
+        float delta_y = event.GetY() - m_previous_mouse_y;
+        delta_x /= modelPreview->GetZoom();
+        delta_y /= modelPreview->GetZoom();
+        modelPreview->SetPan(delta_x, -delta_y);
+        m_previous_mouse_x = event.GetX();
+        m_previous_mouse_y = event.GetY();
+        UpdatePreview();
     }
 
     Model *m = newModel;
     if (m == nullptr) {
-        m = selectedModel;
+        m = dynamic_cast<Model*>(selectedBaseObject);
         if( m == nullptr ) return;
     }
 
@@ -2116,8 +3018,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         if (m != newModel) {
             CreateUndoPoint("SingleModel", m->name, std::to_string(m_over_handle));
         }
-        y = modelPreview->GetVirtualCanvasHeight() - y;
-        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetPosition().x, y);
+        m->MoveHandle(modelPreview,m_over_handle, event.ShiftDown(), event.GetX(), event.GetY());
         SetupPropGrid(m);
         xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
@@ -2126,6 +3027,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         double delta_x = event.GetPosition().x - m_previous_mouse_x;
         double delta_y = -(event.GetPosition().y - m_previous_mouse_y);
+        delta_x /= modelPreview->GetZoom();
+        delta_y /= modelPreview->GetZoom();
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
         if (wi > 0 && ht > 0)
@@ -2135,8 +3038,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 if(modelPreview->GetModels()[i]->Selected || modelPreview->GetModels()[i]->GroupSelected)
                 {
                     CreateUndoPoint("SingleModel", m->name, "location");
-
-                    modelPreview->GetModels()[i]->AddOffset(delta_x/wi, delta_y/ht);
+                    modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
                     modelPreview->GetModels()[i]->UpdateXmlWithScale();
                     SetupPropGrid(modelPreview->GetModels()[i]);
                     xlights->MarkEffectsFileDirty(true);
@@ -2152,7 +3054,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
     {
         if(m->Selected)
         {
-            modelPreview->SetCursor(m->CheckIfOverHandles(m_over_handle,event.GetPosition().x,modelPreview->GetVirtualCanvasHeight() - y));
+            modelPreview->SetCursor(m->GetBaseObjectScreenLocation().CheckIfOverHandles(modelPreview, m_over_handle, event.GetX(), event.GetY()));
         }
     }
 }
@@ -2160,23 +3062,32 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
-
     wxMenu mnu;
 
-    int selectedModelCnt = ModelsSelectedCount();
-    if (selectedModelCnt > 1)
+    int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
+
+    if (selectedObjectCnt > 1)
     {
         wxMenu* mnuBulkEdit = new wxMenu();
-        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
+        if( editing_models ) {
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Connection");
+        }
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_PREVIEW, "Preview");
-        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_DIMMINGCURVES, "Dimming Curves");
+        if( editing_models ) {
+            mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_DIMMINGCURVES, "Dimming Curves");
+        }
         mnuBulkEdit->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
 
         wxMenu* mnuAlign = new wxMenu();
         mnuAlign->Append(ID_PREVIEW_ALIGN_TOP,"Top");
         mnuAlign->Append(ID_PREVIEW_ALIGN_BOTTOM,"Bottom");
         mnuAlign->Append(ID_PREVIEW_ALIGN_LEFT,"Left");
-        mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT,"Right");
+        mnuAlign->Append(ID_PREVIEW_ALIGN_RIGHT, "Right");
+        if (is_3d) {
+            mnuAlign->Append(ID_PREVIEW_ALIGN_FRONT, "Front");
+            mnuAlign->Append(ID_PREVIEW_ALIGN_BACK, "Back");
+            mnuAlign->Append(ID_PREVIEW_ALIGN_GROUND, "With Ground");
+        }
         mnuAlign->Append(ID_PREVIEW_ALIGN_H_CENTER,"Horizontal Center");
         mnuAlign->Append(ID_PREVIEW_ALIGN_V_CENTER,"Vertical Center");
         mnuAlign->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
@@ -2200,36 +3111,42 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         mnu.AppendSeparator();
     }
 
-    if (selectedModelCnt > 0) {
-        Model* model = selectedModel;
-        if (model != nullptr && !model->GetModelScreenLocation().IsLocked())
+    if (selectedObjectCnt > 0) {
+        if (selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked())
         {
             bool need_sep = false;
-            int sel_seg = model->GetSelectedSegment();
-            if( sel_seg != -1 ) {
-                if( !model->HasCurve(sel_seg) ) {
-                    mnu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
-                    mnu.Append(ID_PREVIEW_MODEL_ADDCURVE,"Define Curve");
-                } else {
-                    mnu.Append(ID_PREVIEW_MODEL_DELCURVE,"Remove Curve");
+            if( editing_models ) {
+                Model* model = dynamic_cast<Model*>(selectedBaseObject);
+                int sel_seg = model->GetSelectedSegment();
+                if( sel_seg != -1 ) {
+                    if( !model->HasCurve(sel_seg) ) {
+                        mnu.Append(ID_PREVIEW_MODEL_ADDPOINT,"Add Point");
+                        mnu.Append(ID_PREVIEW_MODEL_ADDCURVE,"Define Curve");
+                    } else {
+                        mnu.Append(ID_PREVIEW_MODEL_DELCURVE,"Remove Curve");
+                    }
+                    need_sep = true;
                 }
-                need_sep = true;
-            }
-            int sel_hdl = model->GetSelectedHandle();
-            if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (model->GetNumHandles() > 2) ) {
-                mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
-                need_sep = true;
+                int sel_hdl = model->GetSelectedHandle();
+                if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (model->GetNumHandles() > 2) ) {
+                    mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
+                    need_sep = true;
+                }
             }
             if( need_sep ) {
                 mnu.AppendSeparator();
             }
-            if( model->GetDisplayAs() == "Matrix" )
+            if( editing_models && (selectedBaseObject->GetDisplayAs() == "Matrix" ))
             {
                 mnu.Append(ID_PREVIEW_MODEL_ASPECTRATIO,"Correct Aspect Ratio");
             }
+            if (is_3d && selectedObjectCnt == 1) {
+                mnu.Append(ID_PREVIEW_ALIGN_GROUND, "Align With Ground");
+            }
         }
-        if (model != nullptr)
+        if (editing_models && (selectedBaseObject != nullptr))
         {
+            Model* model = dynamic_cast<Model*>(selectedBaseObject);
             mnu.Append(ID_PREVIEW_MODEL_NODELAYOUT, "Node Layout");
             mnu.Append(ID_PREVIEW_MODEL_LOCK, "Lock");
             mnu.Append(ID_PREVIEW_MODEL_UNLOCK, "Unlock");
@@ -2248,14 +3165,14 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnu.Append(ID_PREVIEW_MODEL_CREATEGROUP, "Create Group");
         }
 
-        if (selectedModelCnt == 1 && modelPreview->GetModels().size() > 1)
+        if (editing_models && (selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1))
         {
             mnu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
         }
     }
 
     if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
-        if (selectedModelCnt > 0) {
+        if (selectedObjectCnt > 0) {
             mnu.AppendSeparator();
         }
         mnu.Append(ID_PREVIEW_DELETE_ACTIVE,"Delete this Preview");
@@ -2263,6 +3180,48 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
+
+    // ViewPoint menus
+    mnu.AppendSeparator();
+    mnu.Append(ID_PREVIEW_SAVE_VIEWPOINT, _("Save Current ViewPoint"));
+    if (is_3d) {
+        if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
+            wxMenu* mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            {
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
+            }
+            mnu.Append(ID_PREVIEW_VIEWPOINT3D, "Load ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+
+            mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            {
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
+            }
+            mnu.Append(ID_PREVIEW_DELETEVIEWPOINT3D, "Delete ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+        }
+    }
+    else {
+        if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
+            wxMenu* mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            {
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
+            }
+            mnu.Append(ID_PREVIEW_VIEWPOINT2D, "Load ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+
+            mnuViewPoint = new wxMenu();
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            {
+                mnuViewPoint->Append(xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId(), xlights->viewpoint_mgr.GetCamera2D(i)->GetName());
+            }
+            mnu.Append(ID_PREVIEW_DELETEVIEWPOINT2D, "Delete ViewPoint", mnuViewPoint, "");
+            mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+        }
+    }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -2277,7 +3236,11 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_TOP)
     {
-        PreviewModelAlignTops();
+        if(editing_models ) {
+            PreviewModelAlignTops();
+        } else {
+            objects_panel->PreviewObjectAlignTops();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_SAVE_LAYOUT_IMAGE)
     {
@@ -2289,7 +3252,19 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_BOTTOM)
     {
-        PreviewModelAlignBottoms();
+        if(editing_models ) {
+            PreviewModelAlignBottoms();
+        } else {
+            objects_panel->PreviewObjectAlignBottoms();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_GROUND)
+    {
+        if(editing_models ) {
+            PreviewModelAlignWithGround();
+        } else {
+            objects_panel->PreviewObjectAlignWithGround();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION)
     {
@@ -2305,39 +3280,91 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_LEFT)
     {
-        PreviewModelAlignLeft();
+        if(editing_models ) {
+            PreviewModelAlignLeft();
+        } else {
+            objects_panel->PreviewObjectAlignLeft();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_RIGHT)
     {
-        PreviewModelAlignRight();
+        if(editing_models ) {
+            PreviewModelAlignRight();
+        } else {
+            objects_panel->PreviewObjectAlignRight();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_FRONT)
+    {
+        if(editing_models ) {
+            PreviewModelAlignFronts();
+        } else {
+            objects_panel->PreviewObjectAlignFronts();
+        }
+    }
+    else if (event.GetId() == ID_PREVIEW_ALIGN_BACK)
+    {
+        if(editing_models ) {
+            PreviewModelAlignBacks();
+        } else {
+            objects_panel->PreviewObjectAlignBacks();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_H_CENTER)
     {
-        PreviewModelAlignHCenter();
+        if(editing_models ) {
+            PreviewModelAlignHCenter();
+        } else {
+            objects_panel->PreviewObjectAlignHCenter();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_ALIGN_V_CENTER)
     {
-        PreviewModelAlignVCenter();
+        if(editing_models ) {
+            PreviewModelAlignVCenter();
+        } else {
+            objects_panel->PreviewObjectAlignVCenter();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_H_DISTRIBUTE)
     {
-        PreviewModelHDistribute();
+        if(editing_models ) {
+            PreviewModelHDistribute();
+        } else {
+            objects_panel->PreviewObjectHDistribute();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_V_DISTRIBUTE)
     {
-        PreviewModelVDistribute();
+        if(editing_models ) {
+            PreviewModelVDistribute();
+        } else {
+            objects_panel->PreviewObjectVDistribute();
+        }
     }
     else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEWIDTH)
     {
-        PreviewModelResize(true, false);
+        if(editing_models ) {
+            PreviewModelResize(true, false);
+        } else {
+            objects_panel->PreviewObjectResize(true, false);
+        }
     }
     else if (event.GetId() == ID_PREVIEW_RESIZE_SAMEHEIGHT)
     {
-        PreviewModelResize(false, true);
+        if(editing_models ) {
+            PreviewModelResize(false, true);
+        } else {
+            objects_panel->PreviewObjectResize(false, true);
+        }
     }
     else if (event.GetId() == ID_PREVIEW_RESIZE_SAMESIZE)
     {
-        PreviewModelResize(true, true);
+        if(editing_models ) {
+            PreviewModelResize(true, true);
+        } else {
+            objects_panel->PreviewObjectResize(true, true);
+        }
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_NODELAYOUT)
     {
@@ -2355,7 +3382,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
     {
-        Model* md = selectedModel;
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md == nullptr) return;
         md->ExportAsCustomXModel();
     }
@@ -2369,26 +3396,26 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ASPECTRATIO)
     {
-        Model* md=selectedModel;
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
-        int screen_wi = md->GetModelScreenLocation().GetMWidth();
-        int screen_ht = md->GetModelScreenLocation().GetMHeight();
-        float render_ht = md->GetModelScreenLocation().GetRenderHt();
-        float render_wi = md->GetModelScreenLocation().GetRenderWi();
+        int screen_wi = md->GetBaseObjectScreenLocation().GetMWidth();
+        int screen_ht = md->GetBaseObjectScreenLocation().GetMHeight();
+        float render_ht = md->GetBaseObjectScreenLocation().GetRenderHt();
+        float render_wi = md->GetBaseObjectScreenLocation().GetRenderWi();
         float ht_ratio = render_ht / (float)screen_ht;
         float wi_ratio = render_wi / (float)screen_wi;
         if( ht_ratio > wi_ratio) {
             render_wi = render_wi / ht_ratio;
-            md->GetModelScreenLocation().SetMWidth((int)render_wi);
+            md->GetBaseObjectScreenLocation().SetMWidth((int)render_wi);
         } else {
             render_ht = render_ht / wi_ratio;
-            md->GetModelScreenLocation().SetMHeight((int)render_ht);
+            md->GetBaseObjectScreenLocation().SetMHeight((int)render_ht);
         }
         UpdatePreview();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
-        Model* md=selectedModel;
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
         md->ExportXlightsModel();
     }
@@ -2398,7 +3425,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ADDPOINT)
     {
-        Model* md=selectedModel;
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
         int handle = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(handle+0x8000));
@@ -2410,7 +3437,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_DELETEPOINT)
     {
-        Model* md=selectedModel;
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
         int selected_handle = md->GetSelectedHandle();
         if( (selected_handle != -1) && (md->GetNumHandles() > 2) )
@@ -2425,7 +3452,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_ADDCURVE)
     {
-        Model* md=selectedModel;
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x2000));
@@ -2436,7 +3463,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_DELCURVE)
     {
-        Model* md=selectedModel;
+        Model* md=dynamic_cast<Model*>(selectedBaseObject);
         if( md == nullptr ) return;
         int seg = md->GetSelectedSegment();
         CreateUndoPoint("SingleModel", md->name, std::to_string(seg+0x1000));
@@ -2444,6 +3471,45 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
         md->UpdateXmlWithScale();
         md->InitModel();
         UpdatePreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_SAVE_VIEWPOINT)
+    {
+        modelPreview->SaveCurrentCameraPosition();
+        SetDirtyHiLight(true);
+    }
+    else if (is_3d) {
+        if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
+            {
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId())
+                {
+                    modelPreview->SetCamera3D(i);
+                    UpdatePreview();
+                    break;
+                }
+                else if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetDeleteMenuId())
+                {
+                    xlights->viewpoint_mgr.DeleteCamera3D(i);
+                }
+            }
+        }
+    }
+    else {
+        if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
+            {
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId())
+                {
+                    modelPreview->SetCamera2D(i);
+                    UpdatePreview();
+                    break;
+                }
+                else if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetDeleteMenuId())
+                {
+                    xlights->viewpoint_mgr.DeleteCamera2D(i);
+                }
+            }
+        }
     }
 }
 
@@ -2453,9 +3519,25 @@ wxMessageBox(msg, _("Export Error")); \
 return; \
 }
 
+void LayoutPanel::PreviewModelAlignWithGround()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) return;
+
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected || modelPreview->GetModels()[i]->Selected)
+        {
+            modelPreview->GetModels()[i]->SetBottom(0.0f);
+        }
+    }
+    UpdatePreview();
+}
+
 void LayoutPanel::ShowNodeLayout()
 {
-    Model* md = selectedModel;
+    Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr) return;
     wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager());
     ChannelLayoutDialog dialog(this);
@@ -2465,7 +3547,7 @@ void LayoutPanel::ShowNodeLayout()
 
 void LayoutPanel::ShowWiring()
 {
-    Model* md = selectedModel;
+    Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr) return;
     WiringDialog dlg(this, md->GetName());
     dlg.SetData(md);
@@ -2478,12 +3560,12 @@ void LayoutPanel::PreviewModelAlignTops()
     if (selectedindex<0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int top = modelPreview->GetModels()[selectedindex]->GetTop(modelPreview);
+    float top = modelPreview->GetModels()[selectedindex]->GetTop();
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetTop(modelPreview, top);
+            modelPreview->GetModels()[i]->SetTop(top);
         }
     }
     UpdatePreview();
@@ -2495,12 +3577,12 @@ void LayoutPanel::PreviewModelAlignBottoms()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int bottom = modelPreview->GetModels()[selectedindex]->GetBottom(modelPreview);
+    float bottom = modelPreview->GetModels()[selectedindex]->GetBottom();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetBottom(modelPreview, bottom);
+            modelPreview->GetModels()[i]->SetBottom(bottom);
         }
     }
     UpdatePreview();
@@ -2512,12 +3594,46 @@ void LayoutPanel::PreviewModelAlignLeft()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int left = modelPreview->GetModels()[selectedindex]->GetLeft(modelPreview);
+    float left = modelPreview->GetModels()[selectedindex]->GetLeft();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetLeft(modelPreview, left);
+            modelPreview->GetModels()[i]->SetLeft(left);
+        }
+    }
+    UpdatePreview();
+}
+
+void LayoutPanel::PreviewModelAlignFronts()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) return;
+
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+    float front = modelPreview->GetModels()[selectedindex]->GetFront();
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            modelPreview->GetModels()[i]->SetFront(front);
+        }
+    }
+    UpdatePreview();
+}
+
+void LayoutPanel::PreviewModelAlignBacks()
+{
+    int selectedindex = GetSelectedModelIndex();
+    if (selectedindex < 0) return;
+
+    CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
+    float back = modelPreview->GetModels()[selectedindex]->GetBack();
+    for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
+    {
+        if (modelPreview->GetModels()[i]->GroupSelected)
+        {
+            modelPreview->GetModels()[i]->SetBack(back);
         }
     }
     UpdatePreview();
@@ -2531,25 +3647,30 @@ void LayoutPanel::PreviewModelResize(bool sameWidth, bool sameHeight)
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
 
     if (sameWidth)
+
     {
-        int width = modelPreview->GetModels()[selectedindex]->GetWidth(modelPreview);
+        int width = modelPreview->GetModels()[selectedindex]->GetWidth();
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
-                modelPreview->GetModels()[i]->SetWidth(modelPreview, width);
+                modelPreview->GetModels()[i]->SetWidth(width);
+                bool z_scale = modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().GetSupportsZScaling();
+                if (z_scale) {
+                    modelPreview->GetModels()[i]->GetBaseObjectScreenLocation().SetMDepth(width);
+                }
             }
         }
     }
 
     if (sameHeight)
     {
-        int height = modelPreview->GetModels()[selectedindex]->GetHeight(modelPreview);
+        int height = modelPreview->GetModels()[selectedindex]->GetHeight();
         for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
-                modelPreview->GetModels()[i]->SetHeight(modelPreview, height);
+                modelPreview->GetModels()[i]->SetHeight(height);
             }
         }
     }
@@ -2562,12 +3683,12 @@ void LayoutPanel::PreviewModelAlignRight()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    int right = modelPreview->GetModels()[selectedindex]->GetRight(modelPreview);
+    float right = modelPreview->GetModels()[selectedindex]->GetRight();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetRight(modelPreview, right);
+            modelPreview->GetModels()[i]->SetRight(right);
         }
     }
     UpdatePreview();
@@ -2579,12 +3700,12 @@ void LayoutPanel::PreviewModelAlignHCenter()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    float center = modelPreview->GetModels()[selectedindex]->GetHcenterOffset();
+    float center = modelPreview->GetModels()[selectedindex]->GetHcenterPos();
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetHcenterOffset(center);
+            modelPreview->GetModels()[i]->SetHcenterPos(center);
         }
     }
     UpdatePreview();
@@ -2592,16 +3713,16 @@ void LayoutPanel::PreviewModelAlignHCenter()
 
 bool SortModelX(const Model* first, const Model* second)
 {
-    float firstmodelX = first->GetModelScreenLocation().GetHcenterOffset();
-    float secondmodelX = second->GetModelScreenLocation().GetHcenterOffset();
+    float firstmodelX = first->GetBaseObjectScreenLocation().GetHcenterPos();
+    float secondmodelX = second->GetBaseObjectScreenLocation().GetHcenterPos();
 
     return firstmodelX < secondmodelX;
 }
 
 bool SortModelY(const Model* first, const Model* second)
 {
-    float firstmodelY = first->GetModelScreenLocation().GetVcenterOffset();
-    float secondmodelY = second->GetModelScreenLocation().GetVcenterOffset();
+    float firstmodelY = first->GetBaseObjectScreenLocation().GetVcenterPos();
+    float secondmodelY = second->GetBaseObjectScreenLocation().GetVcenterPos();
 
     return firstmodelY < secondmodelY;
 }
@@ -2620,7 +3741,7 @@ void LayoutPanel::PreviewModelHDistribute()
         if (m->GroupSelected || m->Selected)
         {
             count++;
-            float x = m->GetHcenterOffset();
+            float x = m->GetHcenterPos();
 
             if (x < minx) minx = x;
             if (x > maxx) maxx = x;
@@ -2641,7 +3762,7 @@ void LayoutPanel::PreviewModelHDistribute()
     {
         if (it == models.begin())
         {
-            x = (*it)->GetHcenterOffset() + space;
+            x = (*it)->GetHcenterPos() + space;
         }
         else if (*it == models.back())
         {
@@ -2649,7 +3770,7 @@ void LayoutPanel::PreviewModelHDistribute()
         }
         else
         {
-            (*it)->SetHcenterOffset(x);
+            (*it)->SetHcenterPos(x);
             x += space;
         }
     }
@@ -2670,7 +3791,7 @@ void LayoutPanel::PreviewModelVDistribute()
         if (m->GroupSelected || m->Selected)
         {
             count++;
-            float y = m->GetVcenterOffset();
+            float y = m->GetVcenterPos();
 
             if (y < miny) miny = y;
             if (y > maxy) maxy = y;
@@ -2691,7 +3812,7 @@ void LayoutPanel::PreviewModelVDistribute()
     {
         if (it == models.begin())
         {
-            y = (*it)->GetVcenterOffset() + space;
+            y = (*it)->GetVcenterPos() + space;
         }
         else if (*it == models.back())
         {
@@ -2699,7 +3820,7 @@ void LayoutPanel::PreviewModelVDistribute()
         }
         else
         {
-            (*it)->SetVcenterOffset(y);
+            (*it)->SetVcenterPos(y);
             y += space;
         }
     }
@@ -2712,12 +3833,12 @@ void LayoutPanel::PreviewModelAlignVCenter()
     if (selectedindex < 0) return;
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
-    float center = modelPreview->GetModels()[selectedindex]->GetVcenterOffset();
+    float center = modelPreview->GetModels()[selectedindex]->GetVcenterPos();
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected)
         {
-            modelPreview->GetModels()[i]->SetVcenterOffset(center);
+            modelPreview->GetModels()[i]->SetVcenterPos(center);
         }
     }
     UpdatePreview();
@@ -2748,6 +3869,19 @@ int LayoutPanel::ModelsSelectedCount() const
     return selectedModelCount;
 }
 
+int LayoutPanel::ViewObjectsSelectedCount() const
+{
+    int selectedObjectCount = 0;
+    for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        if(view_object->Selected || view_object->GroupSelected)
+        {
+            selectedObjectCount++;
+        }
+    }
+    return selectedObjectCount;
+}
+
 void LayoutPanel::OnModelSplitterSashPosChanged(wxSplitterEvent& event)
 {
     if (ModelGroupWindow == nullptr) {
@@ -2771,20 +3905,98 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
 void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     for (auto it = buttons.begin(); it != buttons.end(); ++it) {
         if (event.GetId() == (*it)->GetId()) {
-            int state = (*it)->GetState();
-            (*it)->SetState(state + 1);
-            if ((*it)->GetState()) {
-                selectedButton = (*it);
-                UnSelectAllModels();
-                modelPreview->SetFocus();
-            } else {
-                selectedButton = nullptr;
-                _lastXlightsModel = "";
+            if ((*it)->GetModelType() == "Add Object") {
+                DisplayAddObjectPopup();
+            }
+            else {
+                int state = (*it)->GetState();
+                (*it)->SetState(state + 1);
+                if ((*it)->GetState()) {
+                    selectedButton = (*it);
+                    UnSelectAllModels();
+                    modelPreview->SetFocus();
+                }
+                else {
+                    selectedButton = nullptr;
+                    _lastXlightsModel = "";
+                }
+                Notebook_Objects->ChangeSelection(0);
+                editing_models = true;
             }
         } else if ((*it)->GetState()) {
             (*it)->SetState(0);
         }
     }
+}
+
+void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]) {
+    wxMenuItem* menu_item = mnu.Append(id, name);
+    if (icon != nullptr) {
+        wxImage image(icon);
+#ifdef __WXOSX__
+        wxBitmap bitmap(image, -1, 2.0);
+#else
+        image.Rescale(ScaleWithSystemDPI(GetContentScaleFactor(), 24),
+            ScaleWithSystemDPI(GetContentScaleFactor(), 24),
+            wxIMAGE_QUALITY_HIGH);
+        wxBitmap bitmap(image);
+#endif
+        menu_item->SetBitmap(image);
+    }
+}
+
+void LayoutPanel::DisplayAddObjectPopup() {
+    wxMenu mnuObjects;
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_IMAGE, "Image", add_object_image_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_GRIDLINES, "Gridlines", add_object_gridlines_xpm);
+    AddObjectButton(mnuObjects, ID_ADD_OBJECT_MESH, "Mesh", add_object_mesh_xpm);
+    mnuObjects.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnAddObjectPopup, nullptr, this);
+    PopupMenu(&mnuObjects);
+}
+
+void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    int id = event.GetId();
+    ViewObject* vobj = nullptr;
+    bool object_created = false;
+    if (id == ID_ADD_OBJECT_IMAGE)
+    {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_IMAGE");
+        CreateUndoPoint("All", "", "");
+        vobj = xlights->AllObjects.CreateAndAddObject("Image");
+        vobj->SetLayoutGroup(currentLayoutGroup);
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
+    }
+    else if (id == ID_ADD_OBJECT_GRIDLINES)
+    {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_GRIDLINES");
+        CreateUndoPoint("All", "", "");
+        vobj = xlights->AllObjects.CreateAndAddObject("Gridlines");
+        vobj->SetLayoutGroup(currentLayoutGroup);
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
+    }
+    else if (id == ID_ADD_OBJECT_MESH)
+    {
+        logger_base.debug("OnAddObjectPopup - ID_ADD_OBJECT_MESH");
+        CreateUndoPoint("All", "", "");
+        vobj = xlights->AllObjects.CreateAndAddObject("Mesh");
+        vobj->SetLayoutGroup(currentLayoutGroup);
+        objects_panel->UpdateObjectList(true, currentLayoutGroup);
+        object_created = true;
+    }
+
+    if( object_created ) {
+        Notebook_Objects->ChangeSelection(1);
+        editing_models = false;
+        SelectViewObject(vobj, true);
+        vobj->UpdateXmlWithScale();
+        SetupPropGrid(vobj);
+    }
+
+    Refresh();
 }
 
 Model *LayoutPanel::CreateNewModel(const std::string &type) const
@@ -2828,16 +4040,18 @@ std::list<Model*> LayoutPanel::GetSelectedModels() const
 {
     std::list<Model*> res;
 
-    if (selectedModel != nullptr)
-    {
-        res.push_back(selectedModel);
-    }
-
-    for (auto it = modelPreview->GetModels().begin(); it!= modelPreview->GetModels().end(); ++it)
-    {
-        if ((*it) != selectedModel && ((*it)->Selected || (*it)->GroupSelected))
+    if( editing_models ) {
+        if (selectedBaseObject != nullptr)
         {
-            res.push_back(*it);
+            res.push_back(dynamic_cast<Model*>(selectedBaseObject));
+        }
+
+        for (auto it = modelPreview->GetModels().begin(); it!= modelPreview->GetModels().end(); ++it)
+        {
+            if ((*it) != selectedBaseObject && ((*it)->Selected || (*it)->GroupSelected))
+            {
+                res.push_back(*it);
+            }
         }
     }
 
@@ -2846,6 +4060,7 @@ std::list<Model*> LayoutPanel::GetSelectedModels() const
 
 void LayoutPanel::Nudge(int key)
 {
+    if (!editing_models) return;
     std::list<Model*> selectedModels = GetSelectedModels();
     if (selectedModels.size() > 0)
     {
@@ -2860,23 +4075,23 @@ void LayoutPanel::Nudge(int key)
 
         for (auto it = selectedModels.begin(); it != selectedModels.end(); ++it)
         {
-            int wi, ht;
-            modelPreview->GetVirtualCanvasSize(wi, ht);
-            float xpct = 0;
-            float ypct = 0;
+            float deltax = 0;
+            float deltay = 0;
             if (key == WXK_UP) {
-                ypct = 1.0 / ht;
+                deltay = 1.0;
             }
             else if (key == WXK_DOWN) {
-                ypct = -1.0 / ht;
+                deltay = -1.0;
             }
             else if (key == WXK_LEFT) {
-                xpct = -1.0 / wi;
+                deltax = -1.0;
             }
             else if (key == WXK_RIGHT) {
-                xpct = 1.0 / wi;
+                deltax = 1.0;
             }
-            (*it)->AddOffset(xpct, ypct);
+            // FIXME:  Only nudges in X/Z plane currently
+            (*it)->AddOffset(deltax, 0.0, deltay);
+
             (*it)->UpdateXmlWithScale();
             SetupPropGrid(*it);
         }
@@ -2979,7 +4194,12 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             break;
 
         case WXK_ESCAPE:
-            FinalizeModel();
+            if (m_polyline_active) {
+                FinalizeModel();
+            }
+            else if (is_3d) {
+                UnSelectAllModels();
+            }
             break;
 
         default:
@@ -2989,17 +4209,16 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
 }
 
 void LayoutPanel::DeleteSelectedModel() {
-    if( selectedModel != nullptr && !selectedModel->GetModelScreenLocation().IsLocked()) {
-        CreateUndoPoint("All", selectedModel->name);
-
+    if( selectedBaseObject != nullptr && !selectedBaseObject->GetBaseObjectScreenLocation().IsLocked()) {
+        CreateUndoPoint("All", selectedBaseObject->name);
         // This should delete all selected models
-        //xlights->AllModels.Delete(selectedModel->name);
+        //xlights->AllModels.Delete(selectedBaseObject->name);
         bool selectedModelFound = false;
         for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
         {
             if (modelPreview->GetModels()[i]->GroupSelected)
             {
-                if (!selectedModelFound && modelPreview->GetModels()[i]->name == selectedModel->name)
+                if (!selectedModelFound && modelPreview->GetModels()[i]->name == selectedBaseObject->name)
                 {
                     selectedModelFound = true;
                 }
@@ -3008,9 +4227,9 @@ void LayoutPanel::DeleteSelectedModel() {
         }
         if (!selectedModelFound)
         {
-            xlights->AllModels.Delete(selectedModel->name);
+            xlights->AllModels.Delete(selectedBaseObject->name);
         }
-        selectedModel = nullptr;
+        selectedBaseObject = nullptr;
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
     }
@@ -3018,15 +4237,15 @@ void LayoutPanel::DeleteSelectedModel() {
 
 void LayoutPanel::ReplaceModel()
 {
-    if (selectedModel == nullptr) return;
+    if (selectedBaseObject == nullptr) return;
 
-    Model* modelToReplaceItWith = selectedModel;
+    Model* modelToReplaceItWith = dynamic_cast<Model*>(selectedBaseObject);
 
     wxArrayString choices;
 
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
-        if (modelPreview->GetModels()[i]->GetName() != selectedModel->GetName())
+        if (modelPreview->GetModels()[i]->GetName() != selectedBaseObject->GetName())
         {
             choices.Add(modelPreview->GetModels()[i]->GetName());
         }
@@ -3094,7 +4313,7 @@ void LayoutPanel::LockSelectedModels(bool lock)
     {
         if (modelPreview->GetModels()[i]->GroupSelected)
         {
-            if (!selectedModelFound && modelPreview->GetModels()[i]->name == selectedModel->name)
+            if (!selectedModelFound && modelPreview->GetModels()[i]->name == selectedBaseObject->name)
             {
                 selectedModelFound = true;
             }
@@ -3104,7 +4323,7 @@ void LayoutPanel::LockSelectedModels(bool lock)
     }
     if (!selectedModelFound)
     {
-        selectedModel->Lock(lock);
+        selectedBaseObject->Lock(lock);
     }
     xlights->MarkEffectsFileDirty(true);
 }
@@ -3112,10 +4331,10 @@ void LayoutPanel::LockSelectedModels(bool lock)
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
-    } else if (selectedModel != nullptr) {
+    } else if (selectedBaseObject != nullptr) {
         CopyPasteModel copyData;
 
-        copyData.SetModel(selectedModel);
+        copyData.SetModel(dynamic_cast<Model*>(selectedBaseObject));
 
         if (copyData.IsOk() && wxTheClipboard->Open()) {
             if (!wxTheClipboard->SetData(new wxTextDataObject(copyData.Serialise()))) {
@@ -3129,7 +4348,7 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
 void LayoutPanel::DoCut(wxCommandEvent& event) {
     if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
         event.Skip();
-    } else if (selectedModel != nullptr) {
+    } else if (selectedBaseObject != nullptr) {
         DoCopy(event);
         DeleteSelectedModel();
     }
@@ -3140,7 +4359,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
-            CreateUndoPoint("All", selectedModel == nullptr ? "" : selectedModel->name);
+            CreateUndoPoint("All", selectedBaseObject == nullptr ? "" : selectedBaseObject->name);
 
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
@@ -3193,14 +4412,14 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     newModel->GetModelXml()->DeleteAttribute("name");
                     newModel->Lock(false);
                     newModel->GetModelXml()->AddAttribute("name", name);
-                    newModel->AddOffset(0.02, 0.02);
+                    newModel->AddOffset(0.02, 0.02, 0.0);
                     newModel->UpdateXmlWithScale();
                     xlights->AllModels.AddModel(newModel);
                     lastModelName = name;
 
                     xlights->UpdateModelsList();
                     xlights->MarkEffectsFileDirty(true);
-                    SelectModel(name);
+                    SelectBaseObject(name);
                 }
             }
             else
@@ -3237,6 +4456,18 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             OnPropertyGridChange(event2);
             xlights->MarkEffectsFileDirty(true);
             resetPropertyGrid();
+        } else if (undoBuffer[sz].type == "ObjectProperty") {
+            ViewObject* vobj = xlights->AllObjects[undoBuffer[sz].model];
+            SelectViewObject(vobj);
+            wxPropertyGridEvent event2;
+            event2.SetPropertyGrid(propertyEditor);
+            wxStringProperty wsp("Object", undoBuffer[sz].key, undoBuffer[sz].data);
+            event2.SetProperty(&wsp);
+            wxVariant value(undoBuffer[sz].data);
+            event2.SetPropertyValue(value);
+            OnPropertyGridChange(event2);
+            xlights->MarkEffectsFileDirty(true);
+            resetPropertyGrid();
         } else if (undoBuffer[sz].type == "SingleModel") {
             Model *m = xlights->AllModels[undoBuffer[sz].model];
             if (m != nullptr) {
@@ -3262,6 +4493,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             gdoc.Load(gin);
             wxStringInputStream min(undoBuffer[sz].models);
             wxXmlDocument mdoc(min);
+            wxStringInputStream oin(undoBuffer[sz].models);
+            wxXmlDocument odoc(oin);
 
             wxXmlNode *m = xlights->ModelsNode->GetChildren();
             while (m != nullptr) {
@@ -3274,6 +4507,19 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 mdoc.GetRoot()->RemoveChild(m);
                 xlights->ModelsNode->AddChild(m);
                 m = mdoc.GetRoot()->GetChildren();
+            }
+
+            wxXmlNode *o = xlights->ViewObjectsNode->GetChildren();
+            while (o != nullptr) {
+                xlights->ViewObjectsNode->RemoveChild(o);
+                delete o;
+                o = xlights->ViewObjectsNode->GetChildren();
+            }
+            o = odoc.GetRoot()->GetChildren();
+            while (o != nullptr) {
+                odoc.GetRoot()->RemoveChild(o);
+                xlights->ViewObjectsNode->AddChild(o);
+                o = odoc.GetRoot()->GetChildren();
             }
 
             m = xlights->ModelGroupsNode->GetChildren();
@@ -3305,6 +4551,14 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->UpdateModelsList();
             xlights->MarkEffectsFileDirty(true);
             SelectModel(origName);
+        } else if (undoBuffer[sz].type == "ObjectName") {
+            std::string origName = undoBuffer[sz].model;
+            std::string newName = undoBuffer[sz].key;
+            xlights->RenameObject(newName, origName);
+            xlights->UpdateModelsList();
+            xlights->MarkEffectsFileDirty(true);
+            ViewObject *vobj = xlights->AllObjects[origName];
+            SelectViewObject(vobj);
         }
         modelPreview->SetFocus();
 
@@ -3317,11 +4571,17 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     int idx = undoBuffer.size();
 
     //printf("%s   %s   %s  %s\n", type.c_str(), model.c_str(), key.c_str(), data.c_str());
-    if (idx > 0 && (type == "SingleModel" || type == "ModelProperty" || type == "Background")
-        && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
-        //SingleModel - multi mouse movement, just record the original
-        //Background/ModelProperty - multiple changes of the same property (like spinning spin button)
-        return;
+    if (idx > 0 )  {
+        if ((type == "SingleModel" || type == "ModelProperty" || type == "Background")
+            && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
+            //SingleModel - multi mouse movement, just record the original
+            //Background/ModelProperty - multiple changes of the same property (like spinning spin button)
+            return;
+        }
+        else if ((type == "SingleObject" || type == "ObjectProperty")
+            && undoBuffer[idx - 1].model == model && undoBuffer[idx - 1].key == key)  {
+            return;
+        }
     }
     if (idx >= 100) {  //100 steps is more than enough IMO
         for (int x = 1; x < idx; x++) {
@@ -3339,11 +4599,11 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
     if (type == "SingleModel") {
         Model *m = newModel;
         if (m == nullptr) {
-            if( selectedModel == nullptr ) {
+            if( selectedBaseObject == nullptr ) {
                 undoBuffer.resize(idx);
                 return;
             }
-            m=selectedModel;
+            m=dynamic_cast<Model*>(selectedBaseObject);
         }
         wxXmlDocument doc;
         wxXmlNode *parent = m->GetModelXml()->GetParent();
@@ -3355,6 +4615,23 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         undoBuffer[idx].data = stream.GetString();
         doc.DetachRoot();
         parent->InsertChild(m->GetModelXml(), next);
+    } else if (type == "SingleObject") {
+        ViewObject *obj = nullptr;
+        if( selectedBaseObject == nullptr ) {
+            undoBuffer.resize(idx);
+            return;
+        }
+        obj=dynamic_cast<ViewObject*>(selectedBaseObject);
+        wxXmlDocument doc;
+        wxXmlNode *parent = obj->GetModelXml()->GetParent();
+        wxXmlNode *next = obj->GetModelXml()->GetNext();
+        parent->RemoveChild(obj->GetModelXml());
+        doc.SetRoot(obj->GetModelXml());
+        wxStringOutputStream stream;
+        doc.Save(stream);
+        undoBuffer[idx].data = stream.GetString();
+        doc.DetachRoot();
+        parent->InsertChild(obj->GetModelXml(), next);
     } else if (type == "All") {
         wxXmlDocument doc;
         wxXmlNode *parent = xlights->ModelsNode->GetParent();
@@ -3366,6 +4643,16 @@ void LayoutPanel::CreateUndoPoint(const std::string &type, const std::string &mo
         undoBuffer[idx].models = stream.GetString();
         doc.DetachRoot();
         parent->InsertChild(xlights->ModelsNode, next);
+
+        parent = xlights->ViewObjectsNode->GetParent();
+        next = xlights->ViewObjectsNode->GetNext();
+        parent->RemoveChild(xlights->ViewObjectsNode);
+        doc.SetRoot(xlights->ViewObjectsNode);
+        wxStringOutputStream stream3;
+        doc.Save(stream3);
+        undoBuffer[idx].objects = stream3.GetString();
+        doc.DetachRoot();
+        parent->InsertChild(xlights->ViewObjectsNode, next);
 
         wxStringOutputStream stream2;
         parent = xlights->ModelGroupsNode->GetParent();
@@ -3397,7 +4684,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             wxString name = TreeListViewModels->GetItemText(mSelectedGroup);
             if (wxMessageBox("Are you sure you want to remove the " + name + " group?", "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
                 xlights->AllModels.Delete(name.ToStdString());
-                selectedModel = nullptr;
+                selectedBaseObject = nullptr;
                 mSelectedGroup = nullptr;
                 UnSelectAllModels();
                 ShowPropGrid(true);
@@ -3435,7 +4722,6 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
             }
         }
 
-        selectedModel = nullptr;
         mSelectedGroup = nullptr;
         UnSelectAllModels();
         ShowPropGrid(true);
@@ -3524,8 +4810,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event)
     {
         if (wxMessageBox("While this will make your start channel valid and not overlapping it will not magically make your start channel right for your show. It will however solve strange nodes lighting up in the sequencer.\nAre you ok with this?", "WARNING", wxYES_NO | wxCENTRE) == wxYES)
         {
-            if (selectedModel != nullptr)
+            if (selectedBaseObject != nullptr)
             {
+                Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
                 Model* lastModel = nullptr;
                 long lastModelEndChannel = 0;
                 for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
@@ -3630,6 +4917,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         Model *model = it->second;
         model->Selected = false;
         model->GroupSelected = false;
+        model->Highlighted = false;
     }
 
     std::string choice_layout = std::string(ChoiceLayoutGroups->GetStringSelection().c_str());
@@ -3673,7 +4961,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
     }
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
     modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
-    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
+    modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
     UpdatePreview();
 
     xlights->SetStoredLayoutGroup(currentLayoutGroup);
@@ -3809,7 +5097,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
                 ChoiceLayoutGroups->SetSelection(i);
                 modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
                 modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
-                modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
+                modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
                 UpdatePreview();
                 break;
             }
@@ -3841,6 +5129,14 @@ int LayoutPanel::GetBackgroundBrightnessForSelectedPreview()
         previewBackgroundBrightness = pGrp->GetBackgroundBrightness();
     }
     return previewBackgroundBrightness;
+}
+int LayoutPanel::GetBackgroundAlphaForSelectedPreview()
+{
+    previewBackgroundAlpha = xlights->GetDefaultPreviewBackgroundAlpha();
+    if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
+        previewBackgroundAlpha = pGrp->GetBackgroundAlpha();
+    }
+    return previewBackgroundAlpha;
 }
 
 void LayoutPanel::SwitchChoiceToCurrentLayoutGroup() {
@@ -3896,7 +5192,7 @@ void LayoutPanel::DeleteCurrentPreview()
         UpdateModelList(true);
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
-        modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview());
+        modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
         UpdatePreview();
     }
 }
@@ -3934,6 +5230,11 @@ void LayoutPanel::SetCurrentLayoutGroup(const std::string& group)
 
 void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
 {
+    if( !editing_models ) {
+        objects_panel->OnItemContextMenu(event);
+        return;
+    }
+
     wxMenu mnuContext;
     wxTreeListItem item = event.GetItem();
     if( item.IsOk() ) {
@@ -3951,6 +5252,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
         return;
     }
 
+    Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
     if (selectedModel != nullptr && selectedModel->GetDisplayAs() != "SubModel") {
         mnuContext.Append(ID_MNU_DELETE_MODEL,"Delete");
         mnuContext.AppendSeparator();
@@ -4026,35 +5328,43 @@ static inline void SetToolTipForTreeList(wxTreeListCtrl *tv, const std::string &
 void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
 {
     UnSelectAllModels(false);
-    wxTreeListItem item = event.GetItem();
-    if (item.IsOk()) {
+    if( editing_models ) {
+        wxTreeListItem item = event.GetItem();
+        if (item.IsOk()) {
 
-        ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
-        Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
-        if (model != nullptr) {
-            if (model->GetDisplayAs() == "ModelGroup") {
-                mSelectedGroup = item;
-                ShowPropGrid(false);
-                UpdateModelList(false);
-                model_grp_panel->UpdatePanel(model->name);
+            ModelTreeData *data = (ModelTreeData*)TreeListViewModels->GetItemData(item);
+            Model *model = ((data != nullptr) ? data->GetModel() : nullptr);
+            if (model != nullptr) {
+                if (model->GetDisplayAs() == "ModelGroup") {
+                    mSelectedGroup = item;
+                    ShowPropGrid(false);
+                    UpdateModelList(false);
+                    model_grp_panel->UpdatePanel(model->name);
+                } else {
+                    mSelectedGroup = nullptr;
+                    ShowPropGrid(true);
+                    SelectModel(model, false);
+                    SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                }
             } else {
                 mSelectedGroup = nullptr;
+                selectedBaseObject = nullptr;
                 ShowPropGrid(true);
-                SelectModel(model, false);
-                SetToolTipForTreeList(TreeListViewModels, xlights->GetChannelToControllerMapping(model->GetNumberFromChannelString(model->ModelStartChannel)));
+                UnSelectAllModels(true);
+                SetToolTipForTreeList(TreeListViewModels, "");
             }
+            #ifndef LINUX
+            TreeListViewModels->SetFocus();
+            #endif
         } else {
-            mSelectedGroup = nullptr;
-            selectedModel = nullptr;
-            ShowPropGrid(true);
-            UnSelectAllModels(true);
             SetToolTipForTreeList(TreeListViewModels, "");
         }
-        #ifndef LINUX
-        TreeListViewModels->SetFocus();
-        #endif
     } else {
-        SetToolTipForTreeList(TreeListViewModels, "");
+        ViewObject* view_object = nullptr;
+        bool show_prop_grid = objects_panel->OnSelectionChanged(event, &view_object, currentLayoutGroup);
+        SelectViewObject(view_object, false);
+        ShowPropGrid(show_prop_grid);
+        selectedBaseObject = view_object;
     }
 }
 
@@ -4219,6 +5529,30 @@ std::string CopyPasteModel::Serialise() const
     }
 }
 
+void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
+{
+    is_3d = CheckBox_3D->GetValue();
+    modelPreview->Set3D(is_3d);
+    if (is_3d) {
+        if (selectedBaseObject != nullptr) {
+            selectionLatched = true;
+            highlightedBaseObject = selectedBaseObject;
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        }
+        else {
+            UnSelectAllModels();
+        }
+	    Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
+    } else {
+        Notebook_Objects->RemovePage(1);
+    }
+    obj_button->Enable(is_3d);
+
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write("LayoutMode3D", is_3d);
+    Refresh();
+}
+
 bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -4314,4 +5648,14 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
     }
 
     return false;
+}
+
+void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
+{
+    UnSelectAllModels();
+    if (Notebook_Objects->GetPageText(Notebook_Objects->GetSelection()) == "Models") {
+        editing_models = true;
+    } else {
+        editing_models = false;
+    }
 }

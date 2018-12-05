@@ -208,6 +208,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Guarantee minimum size of the display elements panel when it is shown
    -- bug (keith)  Fix vixen export generates illegal sequence timing
    -- enh (keith)  Add new xSchedule APIs for stopping event playlists: Stop event playlist; Stop event playlist if playing step
+2018.34 3D Beta October 1, 2018
+   -- enh (gil)    Add obj file import
+   -- bug (gil)    Lots of fixes
 2018.34 October 1, 2018
    -- enh (dkulp)  On OSX, detect if default audio device changes and move audio to new device
    -- enh (dkulp)  Update to newer standard dictionary
@@ -241,6 +244,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix screen wont update after exporting preview to video
    -- bug (keith)  Fix some number pad keys dont work
    -- enh (keith)  Consolidate render cache folders
+   -- enh (dkulp)  Bunch of performance updates for Test dialog on OSX
+2018.31 3D Beta August 30, 2018
+   -- enh (gil)    Add images and grids to layout
+   -- enh (gil)    Add easier way to invert trees
+   -- bug (gil)    Disable some 3d items when in 2d
 2018.31 August 30, 2018
    -- bug (dkulp)  Fix performance regression for "Sparkles reflect music"
    -- bug (gil)    Fix timings not snapping when not zoomed in. Fixes #1221.
@@ -276,6 +284,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)  Allow timing mark creation after pausing playback
    -- bug (keith)  Fix timing tags dont load properly
    -- bug (keith)  Fix morph text control is not editable
+2018.28 3D Beta August 12, 2018
+   -- bug (gil)    Fix 3D buffer for nested groups
+   -- bug (gil)    Fix pan to account for grid rotations in house view
+   -- enh (dkulp)  Enhance mouse/trackpad on OSX
 2018.28 August 18, 2018
    -- bug (gil)    Fix VSA Imports with multiple event types and treat DMX relays as 8bit effects.
    -- enh (keith)  Extend significantly the keybindings available functions
@@ -287,6 +299,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Minimise render events when bulk editing
    -- bug (keith)  Direct user in check sequence how to fix legacy value curves
    -- bug (dkulp)  Fix reading back from render cache changes pixel colour
+2018.27 3D Beta August 12, 2018
+   -- enh (gil)    xLights 3D
 2018.27 August 11, 2018
    -- bug (dkulp)  Fix some issues with subbuffers
    -- bug (dkulp)  Dont double up the windows menu

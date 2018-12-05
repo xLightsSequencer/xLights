@@ -14,19 +14,32 @@ END_EVENT_TABLE()
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 
-static wxGLAttributes GetAttributes() {
+
+#ifdef __WXMSW__
+#define DEPTH_BUFFER_BITS 16
+#else
+#define DEPTH_BUFFER_BITS 32
+#endif
+
+static wxGLAttributes GetAttributes(bool need3d) {
     wxGLAttributes atts;
     atts.PlatformDefaults()
         .RGBA()
         .MinRGBA(8, 8, 8, 8)
-        .DoubleBuffer()
-        .EndList();
+        .DoubleBuffer();
+    if (need3d) {
+        atts.Depth(DEPTH_BUFFER_BITS);
+    }
+    atts.EndList();
     if (!wxGLCanvas::IsDisplaySupported(atts)) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
-            .DoubleBuffer()
-            .EndList();
+            .DoubleBuffer();
+        if (need3d) {
+            atts.Depth(DEPTH_BUFFER_BITS);
+        }
+        atts.EndList();
     }
     return atts;
 }
@@ -125,14 +138,14 @@ bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, 
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
-                       bool coreProfile)
-    :   wxGLCanvas(parent, GetAttributes(), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
+                       bool only2d)
+    :   wxGLCanvas(parent, GetAttributes(!only2d), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
         mWindowWidth(0),
         mWindowHeight(0),
         mWindowResized(false),
         mIsInitialized(false),
         m_context(nullptr),
-        m_coreProfile(coreProfile),
+        m_coreProfile(true),
         cache(nullptr)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -158,9 +171,9 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         ::DestroyWindow(m_hWnd);
         m_hWnd = nullptr;
         m_hDC = nullptr;
-        
+
         int r = CreateWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name);
-        
+
         PIXELFORMATDESCRIPTOR pfd = {
             sizeof(PIXELFORMATDESCRIPTOR),  //  size of this pfd
             1,                     // version number
@@ -175,7 +188,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
             0,                     // shift bit ignored
             0,                     // no accumulation buffer
             0, 0, 0, 0,            // accum bits ignored
-            16,                    // 16-bit z-buffer
+            only2d ? (uint8_t)0 : (uint8_t)16,       // 16-bit z-buffer
             0,                     // no stencil buffer
             0,                     // no auxiliary buffer
             PFD_MAIN_PLANE,        // main layer
@@ -318,7 +331,7 @@ void AddDebugLog(xlGLCanvas *c) {
 #endif
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool);
+DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
@@ -464,7 +477,10 @@ void xlGLCanvas::SetCurrentGLContext() {
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                                   UsesVertexColorAccumulator(),
                                   UsesVertexAccumulator(),
-                                  UsesAddVertex()));
+                                  UsesAddVertex(),
+								  UsesVertex3Accumulator(),
+                                  UsesVertex3TextureAccumulator(),
+                                  UsesVertex3ColorAccumulator()));
         }
         if (cache == nullptr && ver >=2
             && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {
@@ -566,4 +582,9 @@ void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomright
     mWindowResized = false;
 }
 
+void xlGLCanvas::prepare3DViewport(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y)
+{
+    DrawGLUtils::SetViewport3D(*this, topleft_x, topleft_y, bottomright_x, bottomright_y);
+    mWindowResized = false;
+}
 

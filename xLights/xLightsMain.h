@@ -61,10 +61,12 @@
 #include "SequenceData.h"
 #include "effects/EffectManager.h"
 #include "models/ModelManager.h"
+#include "models/ViewObjectManager.h"
 #include "xLightsTimer.h"
 #include "JobPool.h"
 #include "SequenceViewManager.h"
 #include "ColorManager.h"
+#include "ViewpointMgr.h"
 #include "PhonemeDictionary.h"
 #include "xLightsXmlFile.h"
 #include "sequencer/EffectsGrid.h"
@@ -163,13 +165,6 @@ static const wxString strSupportedFileTypes = "LOR Music Sequences (*.lms)|*.lms
 static const wxString strSequenceSaveAsFileTypes = "xLights Sequences(*.xml)|*.xml";
 
 typedef SequenceData SeqDataType;
-
-enum play_modes
-{
-    play_off,
-    play_single,
-    play_list
-};
 
 enum SeqPlayerStates
 {
@@ -1043,7 +1038,6 @@ public:
     int mSavedChangeCount;
     int mLastAutosaveCount;
     wxDateTime starttime;
-    play_modes play_mode;
     ModelPreview* modelPreview;
     EffectManager effectManager;
     int effGridPrevX;
@@ -1072,7 +1066,6 @@ public:
     int DecodeBackupPurgeDays(std::string s);
     void DoBackupPurge();
     void DoAltBackup(bool prompt = true);
-    void SetPlayMode(play_modes newmode);
     bool EnableOutputs(bool ignoreCheck = false);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
@@ -1143,6 +1136,7 @@ public:
 
     wxString mBackgroundImage;
     int mBackgroundBrightness;
+    int mBackgroundAlpha;
     bool mScaleBackgroundImage = false;
     std::string mStoredLayoutGroup;
     int _suppressDuplicateFrames;
@@ -1234,6 +1228,7 @@ public:
     void ApplyEffectsPreset(const std::string& presetName);
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
     bool RenameModel(const std::string old_name, const std::string& new_name);
+    bool RenameObject(const std::string old_name, const std::string& new_name);
     bool EnsureSequenceElementsAreOrderedCorrectly(const std::string ModelName, std::vector<std::string>& submodelOrder);
     void UpdateSequenceLength();
 
@@ -1277,6 +1272,7 @@ public:
     wxXmlNode* ModelsNode;
     wxXmlNode* ModelGroupsNode;
     wxXmlNode* LayoutGroupsNode;
+    wxXmlNode* ViewObjectsNode;
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     void OpenSequence(wxString passed_filename, ConvertLogDialog* plog);
     void SaveSequence();
@@ -1366,7 +1362,8 @@ public:
     const wxString & GetDefaultPreviewBackgroundImage();
     bool GetDefaultPreviewBackgroundScaled();
     int GetDefaultPreviewBackgroundBrightness();
-    void SetPreviewBackgroundBrightness(int i);
+    int GetDefaultPreviewBackgroundAlpha();
+    void SetPreviewBackgroundBrightness(int brightness, int alpha);
     void UpdatePreview();
     void UpdateModelsList();
     void RowHeadingsChanged( wxCommandEvent& event);
@@ -1388,6 +1385,7 @@ public:
     void SetACSettings(ACMODE mode);
     void SetACSettings(ACTYPE type);
     bool IsPaneDocked(wxWindow* window) const;
+    ModelPreview* GetHousePreview() const;
 
     void UnselectEffect();
 
@@ -1558,7 +1556,9 @@ public:
     std::vector<LayoutGroup *> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
     ModelManager AllModels;
+    ViewObjectManager AllObjects;
     ColorManager color_mgr;
+    ViewpointMgr viewpoint_mgr;
     EffectTreeDialog *EffectTreeDlg;
 
     void LoadJukebox(wxXmlNode* node);

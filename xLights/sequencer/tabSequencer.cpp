@@ -39,6 +39,7 @@
 #include "../PerspectivesPanel.h"
 #include "../SelectPanel.h"
 #include "../LayoutGroup.h"
+#include "../ViewpointMgr.h"
 
 #include <log4cpp/Category.hh>
 
@@ -106,7 +107,7 @@ void xLightsFrame::CreateSequencer()
     logger_base.debug("        Buffer.");
     bufferPanel = new BufferPanel(PanelSequencer);
 
-    logger_base.debug("        Persepctive.");
+    logger_base.debug("        Perspective.");
     perspectivePanel = new PerspectivesPanel(PanelSequencer);
 
     logger_base.debug("        Effect.");
@@ -245,7 +246,7 @@ void xLightsFrame::InitSequencer()
     }
 
     mSequencerInitialize = true;
-    _housePreviewPanel->GetModelPreview()->InitializePreview(mBackgroundImage, mBackgroundBrightness);
+    _housePreviewPanel->GetModelPreview()->InitializePreview(mBackgroundImage, mBackgroundBrightness, mBackgroundAlpha);
     _housePreviewPanel->GetModelPreview()->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 

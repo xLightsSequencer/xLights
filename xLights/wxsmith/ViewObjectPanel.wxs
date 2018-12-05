@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<wxsmith>
+	<object class="wxPanel" name="ViewObjectPanel">
+		<minsize>200,200</minsize>
+		<pos_arg>1</pos_arg>
+		<size_arg>1</size_arg>
+		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+			<cols>1</cols>
+			<growablecols>0</growablecols>
+			<growablerows>0</growablerows>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
+					<cols>1</cols>
+					<growablecols>0</growablecols>
+					<growablerows>0</growablerows>
+					<object class="sizeritem">
+						<object class="wxPanel" name="ID_TREELISTVIEW_PANEL" variable="FirstPanel" member="yes" />
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+		</object>
+	</object>
+</wxsmith>

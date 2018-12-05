@@ -20,6 +20,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual bool ModelRenamed(const std::string &oldName, const std::string &newName) override;
         bool SubModelRenamed(const std::string &oldName, const std::string &newName);
         void AddModel(const std::string &name);
+        int GetGridSize() const;
 
         bool IsSelected() const { return selected;}
         const std::vector<std::string> &ModelNames() const { return modelNames;}
@@ -32,8 +33,8 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetModelCount() const { return models.size(); }
 
         virtual const std::vector<std::string> &GetBufferStyles() const override;
-        virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }

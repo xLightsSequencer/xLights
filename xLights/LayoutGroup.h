@@ -24,8 +24,9 @@ class LayoutGroup : public wxObject
         void SetBackgroundScaled(bool scaled);
         bool GetBackgroundScaled() {return mScaleBackgroundImage;}
 
-        void SetBackgroundBrightness(int i);
+        void SetBackgroundBrightness(int i, int a);
         int GetBackgroundBrightness() {return mBackgroundBrightness;}
+        int GetBackgroundAlpha() {return mBackgroundAlpha;}
 
         void SetPreviewPosition(wxPoint point);
         void SetPreviewSize(wxSize size_);
@@ -58,6 +59,7 @@ class LayoutGroup : public wxObject
         wxString mBackgroundImage;
         bool mScaleBackgroundImage;
         int mBackgroundBrightness;
+        int mBackgroundAlpha;
         std::vector<Model*> previewModels;
         bool mPreviewHidden;
         bool mPreviewCreated;

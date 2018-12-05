@@ -66,6 +66,7 @@ void xLightsFrame::ResetEffectsXml()
 {
 	_sequenceViewManager.Reset();
     ModelsNode=nullptr;
+    ViewObjectsNode=nullptr;
     EffectsNode=nullptr;
     PalettesNode=nullptr;
     ModelGroupsNode=nullptr;
@@ -148,13 +149,16 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     ModelsNode = EffectsNode = PalettesNode = ModelGroupsNode = LayoutGroupsNode = SettingsNode = PerspectivesNode = nullptr;
 	wxXmlNode* viewsNode = nullptr;
 	wxXmlNode* colorsNode = nullptr;
+	wxXmlNode* viewpointsNode = nullptr;
     for(wxXmlNode* e=root->GetChildren(); e!=nullptr; e=e->GetNext() )
     {
         if (e->GetName() == "models") ModelsNode=e;
+        if (e->GetName() == "view_objects") ViewObjectsNode=e;
         if (e->GetName() == "effects") EffectsNode=e;
         if (e->GetName() == "palettes") PalettesNode=e;
 		if (e->GetName() == "views") viewsNode = e;
 		if (e->GetName() == "colors") colorsNode = e;
+		if (e->GetName() == "Viewpoints") viewpointsNode = e;
         if (e->GetName() == "modelGroups") ModelGroupsNode=e;
         if (e->GetName() == "layoutGroups") LayoutGroupsNode=e;
         if (e->GetName() == "settings") SettingsNode=e;
@@ -164,6 +168,31 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     {
         ModelsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "models" );
         root->AddChild( ModelsNode );
+        UnsavedRgbEffectsChanges = true;
+    }
+    if (ViewObjectsNode == nullptr)
+    {
+        ViewObjectsNode = new wxXmlNode( wxXML_ELEMENT_NODE, "view_objects" );
+        root->AddChild( ViewObjectsNode );
+        wxXmlNode *node = new wxXmlNode(wxXML_ELEMENT_NODE, "view_object");
+        ViewObjectsNode->AddChild(node);
+        node->AddAttribute("DisplayAs", "Gridlines");
+        node->AddAttribute("LayoutGroup", "Default");
+        node->AddAttribute("name", "Gridlines");
+        node->AddAttribute("GridLineSpacing", "50");
+        node->AddAttribute("GridWidth", "2000.0");
+        node->AddAttribute("GridHeight", "1000.0");
+        node->AddAttribute("WorldPosX", "0.0000");
+        node->AddAttribute("WorldPosY", "0.0000");
+        node->AddAttribute("WorldPosZ", "0.0000");
+        node->AddAttribute("ScaleX", "1.0000");
+        node->AddAttribute("ScaleY", "1.0000");
+        node->AddAttribute("ScaleZ", "1.0000");
+        node->AddAttribute("RotateX", "90.0");
+        node->AddAttribute("RotateY", "0");
+        node->AddAttribute("RotateZ", "0");
+        node->AddAttribute("versionNumber", "3");
+        node->AddAttribute("Active", "1");
         UnsavedRgbEffectsChanges = true;
     }
     if (EffectsNode == nullptr)
@@ -192,6 +221,11 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     if (colorsNode != nullptr)
     {
 		color_mgr.Load(colorsNode);
+	}
+
+    if (viewpointsNode != nullptr)
+    {
+		viewpoint_mgr.Load(viewpointsNode);
 	}
 
     if (ModelGroupsNode == nullptr)
@@ -321,13 +355,14 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     }
 
     mBackgroundBrightness = wxAtoi(GetXmlSetting("backgroundBrightness","100"));
-    SetPreviewBackgroundBrightness(mBackgroundBrightness);
+    mBackgroundAlpha = wxAtoi(GetXmlSetting("backgroundAlpha","100"));
+    SetPreviewBackgroundBrightness(mBackgroundBrightness, mBackgroundAlpha);
     mScaleBackgroundImage = wxAtoi(GetXmlSetting("scaleImage","0")) > 0;
     SetPreviewBackgroundScaled(mScaleBackgroundImage);
 
     std::string group = layoutPanel->GetCurrentLayoutGroup();
     if( group != "Default" && group != "All Models" && group != "Unassigned" ) {
-        modelPreview->SetBackgroundBrightness(layoutPanel->GetBackgroundBrightnessForSelectedPreview());
+        modelPreview->SetBackgroundBrightness(layoutPanel->GetBackgroundBrightnessForSelectedPreview(), layoutPanel->GetBackgroundAlphaForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(layoutPanel->GetBackgroundScaledForSelectedPreview());
     }
 
@@ -610,6 +645,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 
 	color_mgr.Save(&EffectsXml);
 
+	viewpoint_mgr.Save(&EffectsXml);
+
     wxFileName effectsFile;
     effectsFile.AssignDir( CurrentDir );
     if (backup)
@@ -780,6 +817,29 @@ void xLightsFrame::SetChoicebook(wxChoicebook* cb, const wxString& PageName)
     }
 }
 
+bool xLightsFrame::RenameObject(const std::string OldName, const std::string& NewName)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    bool internalsChanged = false;
+
+    if (OldName == NewName) {
+        return false;
+    }
+
+    logger_base.debug("Renaming object '%s' to '%s'.", (const char*)OldName.c_str(), (const char *)NewName.c_str());
+
+    Element* elem_to_rename = mSequenceElements.GetElement(OldName);
+    if (elem_to_rename != nullptr)
+    {
+        elem_to_rename->SetName(NewName);
+    }
+
+    internalsChanged = AllObjects.Rename(OldName, NewName);
+
+    UnsavedRgbEffectsChanges = true;
+    return internalsChanged;
+}
+
 void xLightsFrame::OnBitmapButtonSaveSeqClick(wxCommandEvent& event)
 {
     SaveSequence();
@@ -825,6 +885,7 @@ static void AddModelsToPreview(ModelGroup *grp, std::vector<Model *> &PreviewMod
 void xLightsFrame::UpdateModelsList()
 {
     if (ModelsNode == nullptr) return; // this happens when xlights is first loaded
+    if (ViewObjectsNode == nullptr) return; // this happens when xlights is first loaded
 
     playModel = nullptr;
     PreviewModels.clear();
@@ -833,6 +894,8 @@ void xLightsFrame::UpdateModelsList()
     AllModels.LoadModels(ModelsNode,
                          modelPreview->GetVirtualCanvasWidth(),
                          modelPreview->GetVirtualCanvasHeight());
+
+    AllObjects.LoadViewObjects(ViewObjectsNode);
 
     std::vector<std::string> current;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
