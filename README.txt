@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.52 December 5, 2018
+   *** CAUTION: This release on windows/linux include some changes which have a small risk of leading to xlights/xschedule hanging
+                so please test before using in your show. If you have issues it is safe to go back to a prior release.
+   -- bug (keith)  Fix some memory leaks in xlights/xschedule - this also may help with some lag
+   -- bug (keith)  Fix prevent 32bit from trying to load render cache if it is there
+   -- bug (keith)  Fix some xSchedule options not applied until restart
    -- bug (keith)  Fix absolute model start channels off by one in model list
    -- enh (keith)  Add "Close xSchedule" api
    -- enh (keith)  Add "Add n Seconds To Current Step Position" api
