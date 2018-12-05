@@ -100,6 +100,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
                 _scheduleOptions = new ScheduleOptions(_outputManager, n, GetCommandManager());
                 _outputManager->SetParallelTransmission(_scheduleOptions->IsParallelTransmission());
                 OutputManager::SetRetryOpen(_scheduleOptions->IsRetryOpen());
+                _outputManager->SetSyncEnabled(_scheduleOptions->IsSync());
                 Schedule::SetCity(_scheduleOptions->GetCity());
             }
             else if (n->GetName() == "OutputProcesses")
@@ -135,6 +136,8 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
         _scheduleOptions = new ScheduleOptions();
         Schedule::SetCity(_scheduleOptions->GetCity());
         _outputManager->SetParallelTransmission(_scheduleOptions->IsParallelTransmission());
+        _outputManager->SetSyncEnabled(_scheduleOptions->IsSync());
+        OutputManager::SetRetryOpen(_scheduleOptions->IsRetryOpen());
     }
 
     _outputManager->Load(_showDir, _scheduleOptions->IsSync());

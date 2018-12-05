@@ -1515,8 +1515,6 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        Schedule::SetCity(__schedule->GetOptions()->GetCity());
-
         if (oldport != __schedule->GetOptions()->GetWebServerPort())
         {
             delete _webServer;
@@ -1530,8 +1528,10 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
             _webServer->SetPasswordTimeout(__schedule->GetOptions()->GetPasswordTimeout());
         }
 
+        Schedule::SetCity(__schedule->GetOptions()->GetCity());
         __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
         OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
+        __schedule->GetOutputManager()->SetSyncEnabled(__schedule->GetOptions()->IsSync());
 
         __schedule->OptionsChanged();
 
