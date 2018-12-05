@@ -9,7 +9,6 @@
 #define USE_THREADED_TIMER
 #endif
 
-
 #ifdef USE_THREADED_TIMER
 
 class xlTimerThread : public wxThread
@@ -29,8 +28,17 @@ private:
     int _fudgefactor;
     bool _log;
     wxTimer* _timer;
+
+    // the main thread holds a lock on this mutex while the timer is running
+    // it is the timer thread timing out trying to lock it that actually makes the timer work
+    // when stopped or suspended the main thread releases the lock.
+    // If the timer thread manages to get the lock it immediately releases it
     std::timed_mutex _waiter;
+    
+    // when the main thread holds this lock the timer thread will block ... waiting for it to be
+    // released. Once the timer thread gets it it immediately releases it.
     std::mutex _suspendLock;
+    
     void DoSleep(int millis);
     virtual ExitCode Entry() override;
 };
@@ -125,6 +133,8 @@ xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool lo
     _interval = interval;
     _timer = timer;
     _oneshot = (oneshot == wxTIMER_ONE_SHOT);
+
+    // grab the wait lock so the timer thread has its timing behaviour
     _waiter.lock();
 }
 
@@ -133,29 +143,48 @@ void xlTimerThread::Reset(int interval, bool oneshot)
     _interval = interval;
     _oneshot = oneshot;
     _suspend = false;
-    _suspendLock.unlock();
+
+    // grab the wait lock so the timer thread goes back to its timing behaviour
     _waiter.lock();
+
+    // now release the suspend
+    _suspendLock.unlock();
 }
 
 void xlTimerThread::Suspend()
 {
     _suspend = true;
+
+    // lock the suspend lock on the main thread so the timer thread will block until it is released
     _suspendLock.lock();
+
+    // release this lock on the main thread which immediately stops the timer wait
     _waiter.unlock();
-    wxMilliSleep(1); // give the timer thread a chance to use the unlocked waiter
+
+    // give the timer thread a chance to use the unlocked waiter
+    wxMilliSleep(1); 
 }
 
 void xlTimerThread::Stop()
 {
     _stop = true;
+
+    // release this lock on the main thread which immediately stops the timer wait
     _waiter.unlock();
-    wxMilliSleep(1); // give the timer thread a chance to use the unlocked waiter
+
+    // also release any suspended state so the thread will exit
+    _suspendLock.unlock();
+    
+    // give the timer thread a chance to use the unlocked waiter
+    wxMilliSleep(1);
 }
 
 void xlTimerThread::DoSleep(int millis)
 {
+    // try to grab the lock but time out after the desired number of milliseconds
     if (_waiter.try_lock_for(std::chrono::milliseconds(millis)))
     {
+        // we got the lock so release it immediately
         _waiter.unlock();
     }
 }
@@ -174,7 +203,18 @@ wxThread::ExitCode xlTimerThread::Entry()
     {
         if (_suspend)
         {
+            if (_interval < 0)
+            {
+                // this was one shot so we cant use the locks ... do it oldschool
+                while (_suspend)
+                {
+                    wxMilliSleep(1);
+                }
+            }
+            // we look like we are in suspend mode so try to grab the suspend lock and block until we get it
             _suspendLock.lock();
+
+            // now we got it ... release it
             _suspendLock.unlock();
         }
 
@@ -199,7 +239,13 @@ wxThread::ExitCode xlTimerThread::Entry()
             }
             if (oneshot)
             {
+                // if it is one shot then it immediately suspends
                 _suspend = true;
+
+                // this is done so we can use the oldschool suspend without using the mutex
+                // this is necessary because the suspendLock has to be grabbed by another thread 
+                // and we have no way of making that happen
+                _interval = -1;
             }
         }
     }
