@@ -176,6 +176,8 @@
 		674E3EE920CEB5530087FDA1 /* WarpPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674E3EE820CEB5530087FDA1 /* WarpPanel.cpp */; };
 		674E3EEC20CEB6010087FDA1 /* DissolveTransitionPattern.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674E3EEA20CEB6000087FDA1 /* DissolveTransitionPattern.cpp */; };
 		674E9C641C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 674E9C631C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib */; };
+		675081ED21B80EC600A48CD1 /* EventState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675081EB21B80EC600A48CD1 /* EventState.cpp */; };
+		675081F021B80F0500A48CD1 /* EventStatePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */; };
 		6755B8691F75D304005EEEF5 /* FontManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6755B8671F75D303005EEEF5 /* FontManager.cpp */; };
 		67582EC81C73643900850363 /* osx_shared_mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC71C73643900850363 /* osx_shared_mutex.cpp */; };
 		67582ECA1C73646300850363 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
@@ -1070,6 +1072,10 @@
 		674E3EEA20CEB6000087FDA1 /* DissolveTransitionPattern.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DissolveTransitionPattern.cpp; sourceTree = "<group>"; };
 		674E3EEB20CEB6000087FDA1 /* DissolveTransitionPattern.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DissolveTransitionPattern.h; sourceTree = "<group>"; };
 		674E9C631C9106D600D12F0D /* libwx_osx_cocoau_propgrid-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_propgrid-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_osx_cocoau_propgrid-3.1.dylib"; sourceTree = "<group>"; };
+		675081EB21B80EC600A48CD1 /* EventState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventState.cpp; path = events/EventState.cpp; sourceTree = "<group>"; };
+		675081EC21B80EC600A48CD1 /* EventState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventState.h; path = events/EventState.h; sourceTree = "<group>"; };
+		675081EE21B80F0400A48CD1 /* EventStatePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EventStatePanel.h; sourceTree = "<group>"; };
+		675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EventStatePanel.cpp; sourceTree = "<group>"; };
 		6755B8671F75D303005EEEF5 /* FontManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FontManager.cpp; sourceTree = "<group>"; };
 		6755B8681F75D304005EEEF5 /* FontManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontManager.h; sourceTree = "<group>"; };
 		67582EC71C73643900850363 /* osx_shared_mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = osx_shared_mutex.cpp; path = osx_utils/osx_shared_mutex.cpp; sourceTree = "<group>"; };
@@ -2601,6 +2607,8 @@
 		67D75E352020ED4B005BAC6E /* events */ = {
 			isa = PBXGroup;
 			children = (
+				675081EB21B80EC600A48CD1 /* EventState.cpp */,
+				675081EC21B80EC600A48CD1 /* EventState.h */,
 				67480D522072773F00B3ED60 /* EventPing.cpp */,
 				67480D4F2072773E00B3ED60 /* EventPing.h */,
 				67480D512072773F00B3ED60 /* EventPingPanel.cpp */,
@@ -3133,6 +3141,8 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */,
+				675081EE21B80F0400A48CD1 /* EventStatePanel.h */,
 				670B171421973D06004F0993 /* ExtraIPDialog.cpp */,
 				670B171621973D07004F0993 /* ExtraIPDialog.h */,
 				670B171521973D07004F0993 /* ExtraIPsDialog.cpp */,
@@ -4165,6 +4175,7 @@
 				67F240211E32A09E00F8B985 /* PluginInputDomainAdapter.cpp in Sources */,
 				67F240221E32A09E00F8B985 /* PluginLoader.cpp in Sources */,
 				67F240231E32A09E00F8B985 /* PluginSummarisingAdapter.cpp in Sources */,
+				675081F021B80F0500A48CD1 /* EventStatePanel.cpp in Sources */,
 				67F240241E32A09E00F8B985 /* PluginWrapper.cpp in Sources */,
 				67F240251E32A09E00F8B985 /* RealTime.cpp in Sources */,
 				67F240261E32A09E00F8B985 /* VideoReader.cpp in Sources */,
@@ -4186,6 +4197,7 @@
 				67F2400B1E32A03F00F8B985 /* IPOutput.cpp in Sources */,
 				67F2400C1E32A03F00F8B985 /* LOROutput.cpp in Sources */,
 				67C581511E4B95A400932DFA /* VirtualMatrix.cpp in Sources */,
+				675081ED21B80EC600A48CD1 /* EventState.cpp in Sources */,
 				67FFB81D1FA3F65E007F9FBB /* DeadChannelDialog.cpp in Sources */,
 				67D75E6D2020ED96005BAC6E /* PlayListItemFPPEventPanel.cpp in Sources */,
 				67F2400D1E32A03F00F8B985 /* NullOutput.cpp in Sources */,
