@@ -268,7 +268,7 @@ void xlTimerThread::DoSleep(int millis)
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
     if (millis > 5000)
     {
-        logger_base.debug("THREAD: DoSleep(%d)", millis);
+        logger_timer.debug("THREAD: DoSleep(%d)", millis);
     }
     
     // try to grab the lock but time out after the desired number of milliseconds
@@ -276,7 +276,7 @@ void xlTimerThread::DoSleep(int millis)
     {
         if (millis > 5000)
         {
-            logger_base.debug("THREAD: DoSleep(%d) ... timer was aborted", millis);
+            logger_timer.debug("THREAD: DoSleep(%d) ... timer was aborted", millis);
         }
         // we got the lock so release it immediately
         _waiter.unlock();
@@ -285,7 +285,7 @@ void xlTimerThread::DoSleep(int millis)
     {
         if (millis > 5000)
         {
-            logger_base.debug("THREAD: DoSleep(%d) ... timer fired", millis);
+            logger_timer.debug("THREAD: DoSleep(%d) ... timer fired", millis);
         }
     }
 }
