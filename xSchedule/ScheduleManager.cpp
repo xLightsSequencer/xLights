@@ -5016,7 +5016,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
         if (!dosend)
         {
-            if (msec - lastfseqmsec <= FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES * frameMS)
+            if (msec <= FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES * frameMS)
             {
                 // we are in the initial period
                 if (msec - lastfseqmsec >= FPP_SEQ_SYNC_INTERVAL_INITIAL_FRAMES * frameMS)
