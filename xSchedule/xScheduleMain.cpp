@@ -563,9 +563,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select show folder ..."), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     _timer.SetOwner(this, ID_TIMER1);
-    _timer.Start(500000, false, "FrameTimer");
+    _timer.Start(500000, false);
     _timerSchedule.SetOwner(this, ID_TIMER2);
-    _timerSchedule.Start(50000, false, "ScheduleTimer");
+    _timerSchedule.Start(50000, false);
     FileDialog1 = new wxFileDialog(this, _("Select file"), wxEmptyString, _("xlights_schedule.xml"), _("xlights_schedule.xml"), wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -753,8 +753,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     }
 
     if (rate == 0) rate = 50;
-    _timer.Start(rate / 2, false);
-    _timerSchedule.Start(500, true);
+    _timer.Start(rate / 2, false, "FrameTimer");
+    _timerSchedule.Start(500, true, "ScheduleTimer");
 
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
 
