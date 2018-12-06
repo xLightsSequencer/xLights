@@ -161,7 +161,7 @@ void xlTimerThread::Reset(int interval, bool oneshot, const std::string& name)
     
     if (name != "") _name = name;
     
-    logger_timer.debug("Timer %s reset from interval %d to interval %d %s", (const char*)_name.c_str(), _interval, interval, oneshot ? "ONESHOT" : "");
+    logger_timer.debug("Timer %s reset from interval %d to interval %d %s", (const char*)_name.c_str(), (int)_interval, interval, oneshot ? "ONESHOT" : "");
     
     wxASSERT(_suspend == true);
     wxASSERT(_stop == false);
