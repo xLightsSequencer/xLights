@@ -75,10 +75,13 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
     wxStopWatch sw;
 
+    logger_timer.info("Starting timer");
+    
     if (name != "") _name = name;
 
     if (_t == nullptr)
     {
+        logger_timer.info("Creating timer thread");
         logger_timer.debug("Timer created for %s", (const char*)_name.c_str());
         _t = new xlTimerThread(name, time, oneShot, this, _log);
         if (_t == nullptr) return false;
@@ -88,6 +91,7 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     }
     else
     {
+        logger_timer.info("Resetting timer as thread already exists.");
         Stop();
         _t->Reset(time, oneShot);
     }
