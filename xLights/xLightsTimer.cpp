@@ -9,8 +9,6 @@
 
 #ifdef USE_THREADED_TIMER
 
-//#define TIMER_DETAILED_LOGGING
-
 class xlTimerThread : public wxThread
 {
 public:
@@ -74,18 +72,14 @@ void xLightsTimer::Stop()
 
 bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/, const std::string& name)
 {
-#ifdef TIMER_DETAILED_LOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
     wxStopWatch sw;
-#endif 
 
     if (name != "") _name = name;
 
     if (_t == nullptr)
     {
-#ifdef TIMER_DETAILED_LOGGING
-        logger_base.debug("Timer created for %s", (const char*)_name.c_str());
-#endif
+        logger_timer.debug("Timer created for %s", (const char*)_name.c_str());
         _t = new xlTimerThread(name, time, oneShot, this, _log);
         if (_t == nullptr) return false;
         _t->Create();
@@ -98,9 +92,7 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
         _t->Reset(time, oneShot);
     }
 
-#ifdef TIMER_DETAILED_LOGGING
-    logger_base.debug("Timer %s started in %ldms", (const char*)_name.c_str(), sw.Time());
-#endif
+    logger_timer.debug("Timer %s started in %ldms", (const char*)_name.c_str(), sw.Time());
 
     return true;
 }
@@ -160,11 +152,9 @@ xlTimerThread::xlTimerThread(const std::string& name, int interval, bool oneshot
 
 void xlTimerThread::Reset(int interval, bool oneshot)
 {
-#ifdef TIMER_DETAILED_LOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Timer %s reset to interval %d %s", (const char*)_name.c_str(), interval, oneshot ? "ONESHOT" : "");
-#endif
-
+    static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
+    logger_timer.debug("Timer %s reset to interval %d %s", (const char*)_name.c_str(), interval, oneshot ? "ONESHOT" : "");
+    
     wxASSERT(_suspend == true);
     wxASSERT(_stop == false);
 
@@ -173,9 +163,7 @@ void xlTimerThread::Reset(int interval, bool oneshot)
     _interval = interval;
     _oneshot = oneshot;
 
-#ifdef TIMER_DETAILED_LOGGING
     wxStopWatch sw;
-#endif
 
     // if this was not a one shot suspend
     if (oldInterval != -1)
@@ -193,23 +181,17 @@ void xlTimerThread::Reset(int interval, bool oneshot)
         _suspendLock.unlock();
     }
 
-#ifdef TIMER_DETAILED_LOGGING
-    logger_base.debug("    Reset took %ldms", sw.Time());
-#endif
+    logger_timer.debug("    Reset took %ldms", sw.Time());
 }
 
 void xlTimerThread::Suspend()
 {
-#ifdef TIMER_DETAILED_LOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#endif
+    static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
 
     if (_suspend) return;
 
-#ifdef TIMER_DETAILED_LOGGING
-    logger_base.debug("Timer %s suspend", (const char*)_name.c_str());
+    logger_timer.debug("Timer %s suspend", (const char*)_name.c_str());
     wxStopWatch sw;
-#endif
 
     _suspend = true;
 
@@ -228,23 +210,17 @@ void xlTimerThread::Suspend()
         wxMilliSleep(1);
     }
 
-#ifdef TIMER_DETAILED_LOGGING
-    logger_base.debug("    Suspend took %ldms", sw.Time());
-#endif
+    logger_timer.debug("    Suspend took %ldms", sw.Time());
 }
 
 void xlTimerThread::Stop()
 {
-#ifdef TIMER_DETAILED_LOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#endif 
+    static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
 
     if (_stop) return;
 
-#ifdef TIMER_DETAILED_LOGGING
-    logger_base.debug("Timer %s stop", (const char*)_name.c_str());
+    logger_timer.debug("Timer %s stop", (const char*)_name.c_str());
     wxStopWatch sw;
-#endif
 
     int oldInterval = _interval;
     _stop = true;
@@ -263,9 +239,7 @@ void xlTimerThread::Stop()
     // give the timer thread a chance to use the unlocked waiter
     wxMilliSleep(1);
 
-#ifdef TIMER_DETAILED_LOGGING
-    logger_base.debug("    Stop took %ldms", sw.Time());
-#endif
+    logger_timer.debug("    Stop took %ldms", sw.Time());
 }
 
 void xlTimerThread::DoSleep(int millis)
@@ -280,9 +254,7 @@ void xlTimerThread::DoSleep(int millis)
 
 wxThread::ExitCode xlTimerThread::Entry()
 {
-#ifdef TIMER_DETAILED_LOGGING
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-#endif
+    static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
 
     bool log = _log;
     bool stop = _stop;
@@ -295,9 +267,7 @@ wxThread::ExitCode xlTimerThread::Entry()
     {
         if (_suspend)
         {
-#ifdef TIMER_DETAILED_LOGGING
-            logger_base.debug("THREAD: Timer %s thread suspended.", (const char *)_name.c_str());
-#endif
+            logger_timer.debug("THREAD: Timer %s thread suspended.", (const char *)_name.c_str());
             if (_interval < 0)
             {
                 // this was one shot so we cant use the locks ... do it oldschool
@@ -318,9 +288,7 @@ wxThread::ExitCode xlTimerThread::Entry()
                 _suspendLock.unlock();
             }
 
-#ifdef TIMER_DETAILED_LOGGING
-            logger_base.debug("THREAD: Timer %s thread unsuspended.", (const char *)_name.c_str());
-#endif
+            logger_timer.debug("THREAD: Timer %s thread unsuspended.", (const char *)_name.c_str());
         }
 
         oneshot = _oneshot;
@@ -342,16 +310,12 @@ wxThread::ExitCode xlTimerThread::Entry()
             fudgefactor = _fudgefactor;
             if (oneshot || (!stop && !suspend))
             {
-#ifdef TIMER_DETAILED_LOGGING
-                logger_base.debug("THREAD: Timer %s fired.", (const char *)_name.c_str());
-#endif
+                logger_timer.debug("THREAD: Timer %s fired.", (const char *)_name.c_str());
                 _timer->Notify();
             }
             if (oneshot)
             {
-#ifdef TIMER_DETAILED_LOGGING
-                logger_base.debug("THREAD: %s ONESHOT SO AUTOMATICALLY SUSPENDING.", (const char *)_name.c_str());
-#endif
+                logger_timer.debug("THREAD: %s ONESHOT SO AUTOMATICALLY SUSPENDING.", (const char *)_name.c_str());
                 // if it is one shot then it immediately suspends
                 _suspend = true;
 
@@ -363,9 +327,7 @@ wxThread::ExitCode xlTimerThread::Entry()
         }
     }
 
-#ifdef TIMER_DETAILED_LOGGING
-    logger_base.debug("Timer %s thread exiting.", (const char *)_name.c_str());
-#endif
+    logger_timer.debug("Timer %s thread exiting.", (const char *)_name.c_str());
 
     return wxThread::ExitCode(nullptr);
 }

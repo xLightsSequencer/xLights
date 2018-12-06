@@ -1426,15 +1426,24 @@ int ScheduleManager::CheckSchedule()
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
         PlayListStep* step = (*it)->GetPlayList()->GetRunningStep();
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s", 
+        std::string runstate = (*it)->IsStopped() ? "Stopped" : 
+                                                     (*it)->GetPlayList()->IsRunning() ? "Running" : 
+                                                                                         (*it)->GetPlayList()->IsSuspended() ? "Suspended" : 
+                                                                                                                               "Done";
+        std::string suspend = (*it)->GetPlayList()->IsSuspended() ? "Suspended" : "";
+        std::string stepname = step == nullptr ? "" : step->GetNameNoTime();
+        std::string pos = std::string(step == nullptr ? "" : FORMATTIME(step->GetPosition()));
+        std::string len = std::string(step == nullptr ? "" : FORMATTIME(step->GetLengthMS()));
+
+        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s",
             (const char *)(*it)->GetPlayList()->GetName().c_str(), 
             (const char *)(*it)->GetSchedule()->GetName().c_str(), 
             (*it)->GetSchedule()->GetPriority(), 
-            (const char*)((*it)->IsStopped() ? wxString("Stopped") : ((*it)->GetPlayList()->IsRunning() ? wxString("Running") : ((*it)->GetPlayList()->IsSuspended() ? wxString("Suspended") : wxString("Done")))).c_str(),
-            (const char*)(((*it)->GetPlayList()->IsSuspended() ? wxString("Suspended") : wxString(""))).c_str(),
-            (const char*)((step == nullptr ? wxString("") : wxString(step->GetNameNoTime()))).c_str(),
-            (const char*)((step == nullptr ? wxString("") : FORMATTIME(step->GetPosition()))).c_str(),
-            (const char*)((step == nullptr ? wxString("") : FORMATTIME(step->GetLengthMS()))).c_str()
+            (const char*)runstate.c_str(),
+            (const char*)suspend.c_str(),
+            (const char*)stepname.c_str(),
+            (const char*)pos.c_str(),
+            (const char*)len.c_str()
             );
     }
 
