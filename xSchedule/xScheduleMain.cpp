@@ -348,6 +348,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _webicon = wxBitmap(web_icon_24);
     _webIconDisplayed = false;
 
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
+
     //(*Initialize(xScheduleFrame)
     wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer2;
@@ -560,8 +563,6 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     SetStatusBar(StatusBar1);
     DirDialog1 = new wxDirDialog(this, _("Select show folder ..."), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     _timer.SetOwner(this, ID_TIMER1);
-    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
-    _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
     _timer.Start(500000, false, "FrameTimer");
     _timerSchedule.SetOwner(this, ID_TIMER2);
     _timerSchedule.Start(50000, false, "ScheduleTimer");
@@ -674,6 +675,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
 
+    logger_base.debug("xSchedule UI %d,%d %dx%d.", x, y, w, h);
+
     ListView_Running->AppendColumn("Step");
     ListView_Running->AppendColumn("Duration");
     ListView_Running->AppendColumn("");
@@ -709,6 +712,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     BitmapButton_VolumeDown->SetBitmap(_volumedown);
     BitmapButton_VolumeUp->SetBitmap(_volumeup);
 
+    logger_base.debug("Loading show folder.");
     if (showdir == "")
     {
         LoadShowDir();
@@ -718,6 +722,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         _showDir = showdir;
     }
 
+    logger_base.debug("Loading schedule.");
     LoadSchedule();
 
     if (__schedule == nullptr)
