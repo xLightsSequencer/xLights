@@ -255,16 +255,6 @@ void ModelPreview::render(wxPaintEvent& event)
 
 void ModelPreview::Render()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    // draw all the view objects
-    if( is_3d ) {
-        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-            ViewObject *view_object = it->second;
-            view_object->Draw(this, view_object_accumulator, allowSelected);
-        }
-    }
-
     const std::vector<Model*> &models = GetModels();
     if (!models.empty()) {
         bool isModelSelected = false;
@@ -297,29 +287,35 @@ void ModelPreview::Render()
             }
         }
     }
+    // draw all the view objects
+    if (is_3d) {
+        for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+            ViewObject *view_object = it->second;
+            view_object->Draw(this, view_object_accumulator, allowSelected);
+        }
+    }
 }
 
 void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) {
     if (StartDrawing(mPointSize)) {
-        // draw all the view objects
-        if (is_3d) {
-            for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
-                ViewObject *view_object = it->second;
-                view_object->Draw(this, view_object_accumulator, allowSelected);
-            }
-        }
         const std::vector<Model*> &models = GetModels();
         for (auto m : models) {
             int NodeCnt = m->GetNodeCount();
             for (size_t n = 0; n < NodeCnt; ++n) {
                 int start = m->NodeStartChannel(n);
                 m->SetNodeChannelValues(n, &data[start]);
-                if (is_3d)
-                    m->DisplayModelOnWindow(this, accumulator3d, true);
-                else
-                    m->DisplayModelOnWindow(this, accumulator, false);
             }
-            m->DisplayModelOnWindow(this, accumulator);
+            if (is_3d)
+                m->DisplayModelOnWindow(this, accumulator3d, true);
+            else
+                m->DisplayModelOnWindow(this, accumulator, false);
+        }
+        // draw all the view objects
+        if (is_3d) {
+            for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+                ViewObject *view_object = it->second;
+                view_object->Draw(this, view_object_accumulator, allowSelected);
+            }
         }
         EndDrawing(swapBuffers);
     }
@@ -377,14 +373,13 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
             SetBackgroundBrightness(xlights->LayoutGroups[id - 1]->GetBackgroundBrightness(), xlights->LayoutGroups[id - 1]->GetBackgroundAlpha());
             SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
         }
-    } else if (id == 0x1000) {
+    }
+    if (id == 0x1000) {
         is_3d = !is_3d;
     } else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i)
-            {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId())
-                {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum3DCameras(); ++i) {
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera3D(i)->GetMenuId()) {
                     SetCamera3D(i);
                     break;
                 }
@@ -392,10 +387,8 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         }
     } else {
         if (xlights->viewpoint_mgr.GetNum2DCameras() > 0) {
-            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i)
-            {
-                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId())
-                {
+            for (size_t i = 0; i < xlights->viewpoint_mgr.GetNum2DCameras(); ++i) {
+                if (event.GetId() == xlights->viewpoint_mgr.GetCamera2D(i)->GetMenuId()) {
                     SetCamera2D(i);
                     break;
                 }
@@ -406,14 +399,12 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     Update();
 }
 
-void ModelPreview::keyPressed(wxKeyEvent& event) {}
-void ModelPreview::keyReleased(wxKeyEvent& event) {}
-
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
     virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
     allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr), xlights(xlights_), is_3d(false),
-    m_mouse_down(false), m_wheel_down(false),  m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
+    m_mouse_down(false), m_wheel_down(false),  m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
+    currentLayoutGroup("Default"), currentModel("&---none---&"), additionalModel(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -423,7 +414,8 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", false),
     virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
     allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr), xlights(xl), is_3d(false),
-    m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
+    m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
+    currentLayoutGroup("Default"), currentModel("&---none---&"), additionalModel(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -672,8 +664,7 @@ void ModelPreview::SetZoomDelta(float delta)
 {
     if (is_3d) {
         camera3d->SetZoom( camera3d->GetZoom() * (1.0f + delta));
-    }
-    else {
+    } else {
         camera2d->SetZoom(camera2d->GetZoom() * (1.0f - delta));
         camera2d->SetZoomCorrX(((mWindowWidth * camera2d->GetZoom()) - mWindowWidth) / 2.0f);
         camera2d->SetZoomCorrY(((mWindowHeight * camera2d->GetZoom()) - mWindowHeight) / 2.0f);
@@ -685,8 +676,7 @@ void ModelPreview::SetPan(float deltax, float deltay)
     if (is_3d) {
         camera3d->SetPanX(camera3d->GetPanX() + deltax);
         camera3d->SetPanY(camera3d->GetPanY() + deltay);
-    }
-    else {
+    } else {
         camera2d->SetPanX(camera2d->GetPanX() + deltax);
         camera2d->SetPanY(camera2d->GetPanY() + deltay);
     }
@@ -743,16 +733,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
             LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
             accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
             accumulator.Finish(GL_TRIANGLES);
-        }
-
-        else {
+        } else {
             accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
             accumulator.Finish(GL_TRIANGLES);
         }
-    }
-
-    /*****************************   3D   ********************************/
-    if (is_3d) {
+    } else {
+        /*****************************   3D   ********************************/
         glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), 1.0f, camera3d->GetPosY() + camera3d->GetPanY()));
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -772,7 +758,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
-        accumulator.PreAlloc(maxVertexCount);
+        accumulator3d.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
     }
 
@@ -818,12 +804,18 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
-    if (accumulator.count > maxVertexCount) {
-        maxVertexCount = accumulator.count;
+    if (is_3d) {
+        if (accumulator3d.count > maxVertexCount) {
+            maxVertexCount = accumulator3d.count;
+        }
+        DrawGLUtils::Draw(accumulator3d);
+        DrawGLUtils::Draw(view_object_accumulator);
+    } else {
+        if (accumulator.count > maxVertexCount) {
+            maxVertexCount = accumulator.count;
+        }
+        DrawGLUtils::Draw(accumulator);
     }
-    DrawGLUtils::Draw(view_object_accumulator);
-    DrawGLUtils::Draw(accumulator);
-    DrawGLUtils::Draw(accumulator3d);
     DrawGLUtils::PopMatrix();
     if (swapBuffers)
     {

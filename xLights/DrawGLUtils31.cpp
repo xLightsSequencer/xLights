@@ -661,8 +661,10 @@ public:
         program->SetMatrix(*matrix);
         program->SetRenderType(0);
 
-        int offset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
+        int toffset0 = 0;
+        int roffset0 = program->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
         LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+        int offset0 = roffset0;
 
         program->BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
@@ -675,12 +677,15 @@ public:
                 texturep->UseProgram();
                 if (!tverticesBound) {
                     texturep->SetMatrix(*matrix);
+                    toffset0 = texturep->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat));
+                    LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
                     texturep->BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
-                    LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+                    LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0 ));
                     tverticesBound = true;
-                } else {
-                    LOG_GL_ERRORV(glEnableVertexAttribArray(2));
                 }
+                offset0 = toffset0;
+                LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+                LOG_GL_ERRORV(glEnableVertexAttribArray(2));
                 LOG_GL_ERRORV(glDisableVertexAttribArray(1));
                 LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                 LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
@@ -699,6 +704,8 @@ public:
                     LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, alpha));
                     texturep->SetRenderType(0);
                 }
+                LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+                LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
             } else if (type == GL_POINTS && enableCapability == 0x0B10) {
                 //POINT_SMOOTH, removed in OpenGL3.x
                 program->SetRenderType(1);
@@ -717,14 +724,13 @@ public:
                 }
             }
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
             LOG_GL_ERRORV(glDrawArrays(type, offset0 + it->start, it->count));
             if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
                 LOG_GL_ERRORV(glDisable(enableCapability));
             }
             if (it->textureId != -1) {
+                offset0 = roffset0;
+                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
                 LOG_GL_ERRORV(glEnableVertexAttribArray(1));
                 LOG_GL_ERRORV(glDisableVertexAttribArray(2));
                 program->UseProgram();

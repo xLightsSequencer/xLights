@@ -124,8 +124,6 @@ private:
     //void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
-	void keyPressed(wxKeyEvent& event);
-	void keyReleased(wxKeyEvent& event);
     void OnPopup(wxCommandEvent& event);
 	void drawGrid(float size, float step);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
