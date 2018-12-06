@@ -20,16 +20,18 @@ class xLightsTimer :
     public wxTimer
 {
     xlTimerThread* _t;
-    std::atomic<bool> pending;
+    std::atomic<bool> _pending;
     xLightsTimerCallback* _timerCallback;
     std::atomic<bool> _suspend;
     std::atomic<bool> _log;
+    std::string _name;
 
 public:
     xLightsTimer();
     virtual ~xLightsTimer();
     virtual void Stop() override;
-    virtual bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS) override;
+    bool Start(int time, bool oneShot, const std::string& name);
+    virtual bool Start(int time = -1, bool oneShot = wxTIMER_CONTINUOUS) override { return Start(time, oneShot, ""); }
     virtual void Notify() override;
     virtual void DoSendTimer();
     int GetInterval() const;

@@ -562,9 +562,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _timer.SetOwner(this, ID_TIMER1);
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
-    _timer.Start(500000, false);
+    _timer.Start(500000, false, "FrameTimer");
     _timerSchedule.SetOwner(this, ID_TIMER2);
-    _timerSchedule.Start(50000, false);
+    _timerSchedule.Start(50000, false, "ScheduleTimer");
     FileDialog1 = new wxFileDialog(this, _("Select file"), wxEmptyString, _("xlights_schedule.xml"), _("xlights_schedule.xml"), wxFD_DEFAULT_STYLE|wxFD_OPEN|wxFD_FILE_MUST_EXIST, wxDefaultPosition, wxDefaultSize, _T("wxFileDialog"));
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);

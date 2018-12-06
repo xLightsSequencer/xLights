@@ -1,5 +1,3 @@
-
-
 #include "xLightsTimer.h"
 #include <wx/thread.h>
 #include <log4cpp/Category.hh>
@@ -11,10 +9,12 @@
 
 #ifdef USE_THREADED_TIMER
 
+//#define TIMER_DETAILED_LOGGING
+
 class xlTimerThread : public wxThread
 {
 public:
-    xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool log);
+    xlTimerThread(const std::string& name, int interval, bool oneshot, wxTimer* timer, bool log);
     void Reset(int interval, bool oneshot);
     void Stop();
     void Suspend();
@@ -25,9 +25,11 @@ private:
     std::atomic<bool> _suspend;
     std::atomic<bool> _oneshot;
     std::atomic<int> _interval;
+    std::atomic<int> _suspendCount;
     int _fudgefactor;
     bool _log;
     wxTimer* _timer;
+    std::string _name;
 
     // the main thread holds a lock on this mutex while the timer is running
     // it is the timer thread timing out trying to lock it that actually makes the timer work
@@ -50,7 +52,8 @@ xLightsTimer::xLightsTimer()
     _suspend = false;
     _timerCallback = nullptr;
     _t = nullptr;
-    pending = false;
+    _pending = false;
+    _name = "";
 }
 
 xLightsTimer::~xLightsTimer()
@@ -69,12 +72,21 @@ void xLightsTimer::Stop()
     }
 }
 
-bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/)
+bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*/, const std::string& name)
 {
-    Stop();
+#ifdef TIMER_DETAILED_LOGGING
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxStopWatch sw;
+#endif 
+
+    if (name != "") _name = name;
+
     if (_t == nullptr)
     {
-        _t = new xlTimerThread(time, oneShot, this, _log);
+#ifdef TIMER_DETAILED_LOGGING
+        logger_base.debug("Timer created for %s", (const char*)_name.c_str());
+#endif
+        _t = new xlTimerThread(name, time, oneShot, this, _log);
         if (_t == nullptr) return false;
         _t->Create();
         _t->SetPriority(WXTHREAD_DEFAULT_PRIORITY + 1); // run it with slightly higher priority to ensure events are generated in a timely manner
@@ -82,19 +94,25 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     }
     else
     {
+        Stop();
         _t->Reset(time, oneShot);
     }
+
+#ifdef TIMER_DETAILED_LOGGING
+    logger_base.debug("Timer %s started in %ldms", (const char*)_name.c_str(), sw.Time());
+#endif
+
     return true;
 }
 
 void xLightsTimer::DoSendTimer() {
-    if (!pending) {
+    if (!_pending) {
         return;
     }
     wxTimer::Notify();
     //reset pending to false AFTER sending the event so if sending takes to long, it results in a skipped frame instead of
     //infinite number of CallAfters consuming the CPU
-    pending = false;
+    _pending = false;
 }
 
 void xLightsTimer::Notify() {
@@ -110,7 +128,7 @@ void xLightsTimer::Notify() {
     }
     else
     {
-        pending = true;
+        _pending = true;
         CallAfter(&xLightsTimer::DoSendTimer);
     }
 }
@@ -124,8 +142,9 @@ int xLightsTimer::GetInterval() const
     return -1;
 }
 
-xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool log) : wxThread(wxTHREAD_JOINABLE)
+xlTimerThread::xlTimerThread(const std::string& name, int interval, bool oneshot, wxTimer* timer, bool log) : wxThread(wxTHREAD_JOINABLE)
 {
+    _name = name;
     _log = log;
     _stop = false;
     _suspend = false;
@@ -133,6 +152,7 @@ xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool lo
     _interval = interval;
     _timer = timer;
     _oneshot = (oneshot == wxTIMER_ONE_SHOT);
+    _suspendCount = 0;
 
     // grab the wait lock so the timer thread has its timing behaviour
     _waiter.lock();
@@ -140,43 +160,112 @@ xlTimerThread::xlTimerThread(int interval, bool oneshot, wxTimer* timer, bool lo
 
 void xlTimerThread::Reset(int interval, bool oneshot)
 {
+#ifdef TIMER_DETAILED_LOGGING
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Timer %s reset to interval %d %s", (const char*)_name.c_str(), interval, oneshot ? "ONESHOT" : "");
+#endif
+
+    wxASSERT(_suspend == true);
+    wxASSERT(_stop == false);
+
+    int oldInterval = _interval;
+
     _interval = interval;
     _oneshot = oneshot;
+
+#ifdef TIMER_DETAILED_LOGGING
+    wxStopWatch sw;
+#endif
+
+    // if this was not a one shot suspend
+    if (oldInterval != -1)
+    {
+        // grab the wait lock so the timer thread goes back to its timing behaviour
+        _waiter.lock();
+    }
+
     _suspend = false;
 
-    // grab the wait lock so the timer thread goes back to its timing behaviour
-    _waiter.lock();
+    // if this was not a one shot suspend
+    if (oldInterval != -1)
+    {
+        // now release the suspend
+        _suspendLock.unlock();
+    }
 
-    // now release the suspend
-    _suspendLock.unlock();
+#ifdef TIMER_DETAILED_LOGGING
+    logger_base.debug("    Reset took %ldms", sw.Time());
+#endif
 }
 
 void xlTimerThread::Suspend()
 {
+#ifdef TIMER_DETAILED_LOGGING
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
+
+    if (_suspend) return;
+
+#ifdef TIMER_DETAILED_LOGGING
+    logger_base.debug("Timer %s suspend", (const char*)_name.c_str());
+    wxStopWatch sw;
+#endif
+
     _suspend = true;
 
     // lock the suspend lock on the main thread so the timer thread will block until it is released
     _suspendLock.lock();
 
+    int sc = _suspendCount;
+
     // release this lock on the main thread which immediately stops the timer wait
     _waiter.unlock();
 
-    // give the timer thread a chance to use the unlocked waiter
-    wxMilliSleep(1); 
+    // this ensures the other thread saw suspended before we continue
+    while (sc == _suspendCount)
+    {
+        // give the timer thread a chance to use the unlocked waiter
+        wxMilliSleep(1);
+    }
+
+#ifdef TIMER_DETAILED_LOGGING
+    logger_base.debug("    Suspend took %ldms", sw.Time());
+#endif
 }
 
 void xlTimerThread::Stop()
 {
+#ifdef TIMER_DETAILED_LOGGING
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif 
+
+    if (_stop) return;
+
+#ifdef TIMER_DETAILED_LOGGING
+    logger_base.debug("Timer %s stop", (const char*)_name.c_str());
+    wxStopWatch sw;
+#endif
+
+    int oldInterval = _interval;
     _stop = true;
+    _suspend = false;
 
     // release this lock on the main thread which immediately stops the timer wait
     _waiter.unlock();
 
-    // also release any suspended state so the thread will exit
-    _suspendLock.unlock();
-    
+    // if this wasnt suspended as a result of a one shot
+    if (oldInterval != -1)
+    {
+        // also release any suspended state so the thread will exit
+        _suspendLock.unlock();
+    }
+
     // give the timer thread a chance to use the unlocked waiter
     wxMilliSleep(1);
+
+#ifdef TIMER_DETAILED_LOGGING
+    logger_base.debug("    Stop took %ldms", sw.Time());
+#endif
 }
 
 void xlTimerThread::DoSleep(int millis)
@@ -191,7 +280,10 @@ void xlTimerThread::DoSleep(int millis)
 
 wxThread::ExitCode xlTimerThread::Entry()
 {
-    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#ifdef TIMER_DETAILED_LOGGING
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+#endif
+
     bool log = _log;
     bool stop = _stop;
     bool oneshot = _oneshot;
@@ -203,19 +295,32 @@ wxThread::ExitCode xlTimerThread::Entry()
     {
         if (_suspend)
         {
+#ifdef TIMER_DETAILED_LOGGING
+            logger_base.debug("THREAD: Timer %s thread suspended.", (const char *)_name.c_str());
+#endif
             if (_interval < 0)
             {
                 // this was one shot so we cant use the locks ... do it oldschool
+                ++_suspendCount;
                 while (_suspend)
                 {
                     wxMilliSleep(1);
                 }
             }
-            // we look like we are in suspend mode so try to grab the suspend lock and block until we get it
-            _suspendLock.lock();
+            else
+            {
+                ++_suspendCount;
 
-            // now we got it ... release it
-            _suspendLock.unlock();
+                // we look like we are in suspend mode so try to grab the suspend lock and block until we get it
+                _suspendLock.lock();
+
+                // now we got it ... release it
+                _suspendLock.unlock();
+            }
+
+#ifdef TIMER_DETAILED_LOGGING
+            logger_base.debug("THREAD: Timer %s thread unsuspended.", (const char *)_name.c_str());
+#endif
         }
 
         oneshot = _oneshot;
@@ -230,15 +335,23 @@ wxThread::ExitCode xlTimerThread::Entry()
             //    logger_base.debug("Timer sleeping for %ldms", (std::max)(1, (int)toSleep));
             //}
             DoSleep((std::max)(1, (int)toSleep));
+
             last = wxGetLocalTimeMillis().GetValue();
             stop = _stop;
+            bool suspend = _suspend;
             fudgefactor = _fudgefactor;
-            if (oneshot || !stop)
+            if (oneshot || (!stop && !suspend))
             {
+#ifdef TIMER_DETAILED_LOGGING
+                logger_base.debug("THREAD: Timer %s fired.", (const char *)_name.c_str());
+#endif
                 _timer->Notify();
             }
             if (oneshot)
             {
+#ifdef TIMER_DETAILED_LOGGING
+                logger_base.debug("THREAD: %s ONESHOT SO AUTOMATICALLY SUSPENDING.", (const char *)_name.c_str());
+#endif
                 // if it is one shot then it immediately suspends
                 _suspend = true;
 
@@ -249,6 +362,10 @@ wxThread::ExitCode xlTimerThread::Entry()
             }
         }
     }
+
+#ifdef TIMER_DETAILED_LOGGING
+    logger_base.debug("Timer %s thread exiting.", (const char *)_name.c_str());
+#endif
 
     return wxThread::ExitCode(nullptr);
 }
