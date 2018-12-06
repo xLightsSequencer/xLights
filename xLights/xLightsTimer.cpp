@@ -137,6 +137,8 @@ int xLightsTimer::GetInterval() const
 
 xlTimerThread::xlTimerThread(const std::string& name, int interval, bool oneshot, wxTimer* timer, bool log) : wxThread(wxTHREAD_JOINABLE)
 {
+    static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
+
     _name = name;
     _log = log;
     _stop = false;
