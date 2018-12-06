@@ -75,14 +75,11 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
     wxStopWatch sw;
 
-    logger_timer.info("Starting timer");
-    
     if (name != "") _name = name;
 
     if (_t == nullptr)
     {
-        logger_timer.info("Creating timer thread");
-        logger_timer.debug("Timer created for %s", (const char*)_name.c_str());
+        logger_timer.debug("Timer thread created for %s", (const char*)_name.c_str());
         _t = new xlTimerThread(name, time, oneShot, this, _log);
         if (_t == nullptr) return false;
         _t->Create();
@@ -91,7 +88,7 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     }
     else
     {
-        logger_timer.info("Resetting timer as thread already exists.");
+        logger_timer.info("Resetting timer %s as thread already exists.", (const char*)_name.c_str());
         Stop();
         _t->Reset(time, oneShot);
     }
@@ -151,7 +148,9 @@ xlTimerThread::xlTimerThread(const std::string& name, int interval, bool oneshot
     _suspendCount = 0;
 
     // grab the wait lock so the timer thread has its timing behaviour
+    logger_timer.debug("About to grab the waiter");
     _waiter.lock();
+    logger_timer.debug("    got it");
 }
 
 void xlTimerThread::Reset(int interval, bool oneshot)
@@ -164,6 +163,11 @@ void xlTimerThread::Reset(int interval, bool oneshot)
 
     int oldInterval = _interval;
 
+    if (oldInterval == -1)
+    {
+        logger_timer.debug("Timer being reset was a one shot");
+    }
+    
     _interval = interval;
     _oneshot = oneshot;
 
@@ -173,7 +177,9 @@ void xlTimerThread::Reset(int interval, bool oneshot)
     if (oldInterval != -1)
     {
         // grab the wait lock so the timer thread goes back to its timing behaviour
+        logger_timer.debug("About to grab the waiter");
         _waiter.lock();
+        logger_timer.debug("    got it");
     }
 
     _suspend = false;
@@ -182,7 +188,9 @@ void xlTimerThread::Reset(int interval, bool oneshot)
     if (oldInterval != -1)
     {
         // now release the suspend
+        logger_timer.debug("About to release the suspendLock");
         _suspendLock.unlock();
+        logger_timer.debug("    released");
     }
 
     logger_timer.debug("    Reset took %ldms", sw.Time());
@@ -200,12 +208,16 @@ void xlTimerThread::Suspend()
     _suspend = true;
 
     // lock the suspend lock on the main thread so the timer thread will block until it is released
+    logger_timer.debug("About to grab the suspendLock");
     _suspendLock.lock();
+    logger_timer.debug("    got it");
 
     int sc = _suspendCount;
 
     // release this lock on the main thread which immediately stops the timer wait
+    logger_timer.debug("About to release the waiter");
     _waiter.unlock();
+    logger_timer.debug("    released");
 
     // this ensures the other thread saw suspended before we continue
     while (sc == _suspendCount)
@@ -271,7 +283,7 @@ wxThread::ExitCode xlTimerThread::Entry()
     {
         if (_suspend)
         {
-            logger_timer.debug("THREAD: Timer %s thread suspended.", (const char *)_name.c_str());
+            logger_timer.debug("THREAD: Timer %s thread suspended. Interval %d", (const char *)_name.c_str(), interval);
             if (_interval < 0)
             {
                 // this was one shot so we cant use the locks ... do it oldschool
@@ -286,10 +298,13 @@ wxThread::ExitCode xlTimerThread::Entry()
                 ++_suspendCount;
 
                 // we look like we are in suspend mode so try to grab the suspend lock and block until we get it
+                logger_timer.debug("THREAD: About to grab the suspend lock");
                 _suspendLock.lock();
+                logger_timer.debug("THREAD:     got it");
 
                 // now we got it ... release it
                 _suspendLock.unlock();
+                logger_timer.debug("THREAD:     released it");
             }
 
             logger_timer.debug("THREAD: Timer %s thread unsuspended.", (const char *)_name.c_str());
@@ -327,6 +342,7 @@ wxThread::ExitCode xlTimerThread::Entry()
                 // this is necessary because the suspendLock has to be grabbed by another thread 
                 // and we have no way of making that happen
                 _interval = -1;
+                interval = -1;
             }
         }
     }
