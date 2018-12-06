@@ -13,7 +13,7 @@ class xlTimerThread : public wxThread
 {
 public:
     xlTimerThread(const std::string& name, int interval, bool oneshot, wxTimer* timer, bool log);
-    void Reset(int interval, bool oneshot);
+    void Reset(int interval, bool oneshot, const std::string& name);
     void Stop();
     void Suspend();
     void SetFudgeFactor(int ff);
@@ -90,7 +90,7 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     {
         logger_timer.info("Resetting timer %s as thread already exists.", (const char*)_name.c_str());
         Stop();
-        _t->Reset(time, oneShot);
+        _t->Reset(time, oneShot, _name);
     }
 
     logger_timer.debug("Timer %s started in %ldms", (const char*)_name.c_str(), sw.Time());
@@ -155,10 +155,13 @@ xlTimerThread::xlTimerThread(const std::string& name, int interval, bool oneshot
     logger_timer.debug("    got it");
 }
 
-void xlTimerThread::Reset(int interval, bool oneshot)
+void xlTimerThread::Reset(int interval, bool oneshot, const std::string& name)
 {
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
-    logger_timer.debug("Timer %s reset to interval %d %s", (const char*)_name.c_str(), interval, oneshot ? "ONESHOT" : "");
+    
+    if (name != "") _name = name;
+    
+    logger_timer.debug("Timer %s reset from interval %d to interval %d %s", (const char*)_name.c_str(), _interval, interval, oneshot ? "ONESHOT" : "");
     
     wxASSERT(_suspend == true);
     wxASSERT(_stop == false);
@@ -262,11 +265,28 @@ void xlTimerThread::Stop()
 
 void xlTimerThread::DoSleep(int millis)
 {
+    static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
+    if (millis > 5000)
+    {
+        logger_base.debug("THREAD: DoSleep(%d)", millis);
+    }
+    
     // try to grab the lock but time out after the desired number of milliseconds
     if (_waiter.try_lock_for(std::chrono::milliseconds(millis)))
     {
+        if (millis > 5000)
+        {
+            logger_base.debug("THREAD: DoSleep(%d) ... timer was aborted", millis);
+        }
         // we got the lock so release it immediately
         _waiter.unlock();
+    }
+    else
+    {
+        if (millis > 5000)
+        {
+            logger_base.debug("THREAD: DoSleep(%d) ... timer fired", millis);
+        }
     }
 }
 
