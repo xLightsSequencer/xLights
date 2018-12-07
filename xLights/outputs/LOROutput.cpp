@@ -124,12 +124,15 @@ void LOROutput::SetOneChannel(long channel, unsigned char data)
     }
     else
     {
-        _notSentCount[channel]++;
+        _notSentCount[channel] = _notSentCount[channel] + 1;
     }
 }
 
 void LOROutput::AllOff()
 {
+    // force everything to be sent
+    memset(_notSentCount, 0xF0, sizeof(_notSentCount));
+
     for (int i = 0; i < _channels; i++)
     {
         SetOneChannel(i, 0x00);
