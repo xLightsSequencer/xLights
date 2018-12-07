@@ -14,32 +14,63 @@ END_EVENT_TABLE()
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 
-
-#ifdef __WXMSW__
-#define DEPTH_BUFFER_BITS 16
-#else
-#define DEPTH_BUFFER_BITS 32
-#endif
+static const int DEPTH_BUFFER_BITS[] = {32, 16, 8};
 
 static wxGLAttributes GetAttributes(bool need3d) {
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+    
     wxGLAttributes atts;
+    if (need3d) {
+        for (int x = 0; x < 3; x++) {
+            atts.Reset();
+            atts.PlatformDefaults()
+                .RGBA()
+                .MinRGBA(8, 8, 8, 8)
+                .DoubleBuffer()
+                .Depth(DEPTH_BUFFER_BITS[x])
+                .EndList();
+            if (wxGLCanvas::IsDisplaySupported(atts)) {
+                logger_opengl.debug("Depth of %d supported, using it", DEPTH_BUFFER_BITS[x]);
+                return atts;
+            }
+            logger_opengl.debug("Depth of %d not supported", DEPTH_BUFFER_BITS[x]);
+        }
+        logger_opengl.debug("Could not find an attribs thats working with MnRGBA\n");
+        // didn't find a display, try without MinRGBA
+        for (int x = 0; x < 3; x++) {
+            atts.Reset();
+            atts.PlatformDefaults()
+                .RGBA()
+                .DoubleBuffer()
+                .Depth(DEPTH_BUFFER_BITS[x])
+                .EndList();
+            if (wxGLCanvas::IsDisplaySupported(atts)) {
+                logger_opengl.debug("Depth of %d supported without MinRGBA, using it", DEPTH_BUFFER_BITS[x]);
+                return atts;
+            }
+            logger_opengl.debug("Depth of %d not supported without MinRGBA", DEPTH_BUFFER_BITS[x]);
+        }
+        logger_opengl.debug("Could not find an attribs thats working");
+        atts.Reset();
+        atts.PlatformDefaults()
+            .RGBA()
+            .DoubleBuffer()
+            .Depth(8)
+            .EndList();
+        return atts;
+    }
+               
     atts.PlatformDefaults()
         .RGBA()
         .MinRGBA(8, 8, 8, 8)
-        .DoubleBuffer();
-    if (need3d) {
-        atts.Depth(DEPTH_BUFFER_BITS);
-    }
-    atts.EndList();
+        .DoubleBuffer()
+        .EndList();
     if (!wxGLCanvas::IsDisplaySupported(atts)) {
         atts.Reset();
         atts.PlatformDefaults()
             .RGBA()
-            .DoubleBuffer();
-        if (need3d) {
-            atts.Depth(DEPTH_BUFFER_BITS);
-        }
-        atts.EndList();
+            .DoubleBuffer()
+            .EndList();
     }
     return atts;
 }

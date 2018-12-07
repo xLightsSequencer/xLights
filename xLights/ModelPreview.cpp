@@ -415,7 +415,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
     allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr), xlights(xl), is_3d(false),
     m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
-    currentLayoutGroup("Default"), currentModel("&---none---&"), additionalModel(nullptr)
+    currentLayoutGroup("Default"), currentModel(""), additionalModel(nullptr)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -744,7 +744,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f));
         ViewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;
-        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)mWindowWidth / (float)mWindowHeight, 1.0f, 20000.0f);  // this must match prepare3DViewport call
+        ProjMatrix = glm::perspective(glm::radians(45.0f), (float)translateToBacking(mWindowWidth) / (float)translateToBacking(mWindowHeight), 1.0f, 20000.0f);  // this must match prepare3DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;
 
         // FIXME: commented out for debugging speed
