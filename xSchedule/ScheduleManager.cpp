@@ -264,7 +264,7 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
     event.SetString(filename);
     event.SetInt(ms);
     wxPostEvent(wxGetApp().GetTopWindow(), event);
-    return 50;
+    return 50; // this is a problem
 }
 
 int ScheduleManager::DoSync(const std::string& filename, long ms)
@@ -397,8 +397,17 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
         }
     }
 
-    if (pls != nullptr) return pls->GetFrameMS();
-    if (pl != nullptr) return pl->GetFrameMS();
+    if (pls != nullptr)
+    {
+        _listenerManager->SetFrameMS(pls->GetFrameMS());
+        return pls->GetFrameMS();
+    }
+    if (pl != nullptr)
+    {
+        _listenerManager->SetFrameMS(pl->GetFrameMS());
+        return pl->GetFrameMS();
+    }
+    _listenerManager->SetFrameMS(50);
     return 50;
 }
 

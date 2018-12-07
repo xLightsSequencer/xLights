@@ -627,6 +627,9 @@ size_t PlayListStep::GetPosition()
         }
     }
 
+    wxASSERT(frameMS >= 0);
+    wxASSERT(frameMS < 100000000);
+
     return frameMS;
 }
 
@@ -844,6 +847,8 @@ std::string PlayListStep::FormatTime(size_t timems, bool ms) const
 
 std::string PlayListStep::GetStatus(bool ms)
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     std::string fps = "Unknown";
 
     if (GetFrameMS() > 0)
@@ -851,7 +856,11 @@ std::string PlayListStep::GetStatus(bool ms)
         fps = wxString::Format(wxT("%i"), (int)(1000 / GetFrameMS())).ToStdString();
     }
     
-    return "Time: " + FormatTime(GetPosition(), ms) + " Left: " + FormatTime(GetLengthMS() - GetPosition(), ms) + " FPS: " + fps;
+    std::string res = "Time: " + FormatTime(GetPosition(), ms) + " Left: " + FormatTime(GetLengthMS() - GetPosition(), ms) + " FPS: " + fps;
+
+    //logger_base.debug(res);
+
+    return res;
 }
 
 std::list<PlayListItem*> PlayListStep::GetItems()

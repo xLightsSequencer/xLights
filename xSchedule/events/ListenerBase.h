@@ -3,6 +3,7 @@
 
 #include <string>
 #include <wx/wx.h>
+#include <atomic>
 
 class ListenerManager;
 class ScheduleManager;
@@ -15,6 +16,7 @@ class ListenerBase
         ListenerManager* _listenerManager;
         ListenerThread* _thread;
         bool _isOk;
+        std::atomic<int> _frameMS;
 
 	public:
         ListenerBase(ListenerManager* listenerManager);
@@ -26,6 +28,7 @@ class ListenerBase
         virtual void StopProcess() = 0;
         bool IsOk() const { return _isOk; }
         virtual void Poll() {};
+        void SetFrameMS(int frameMS) { _frameMS = frameMS; }
 };
 
 class ListenerThread : public wxThread
