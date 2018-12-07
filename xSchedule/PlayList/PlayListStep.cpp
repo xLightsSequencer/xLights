@@ -650,7 +650,7 @@ size_t PlayListStep::GetLengthMS()
             for (auto it = _items.begin(); it != _items.end(); ++it)
             {
                 // duration has to look valid
-                if ((*it)->GetDurationMS() < 99999999999)
+                if ((*it)->GetDurationMS() < 999999999)
                 {
                     len = std::max(len, (*it)->GetDurationMS());
                 }
