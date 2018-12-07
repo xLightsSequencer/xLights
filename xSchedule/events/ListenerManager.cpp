@@ -582,6 +582,14 @@ int ListenerManager::Sync(const std::string filename, long ms, const std::string
     }
 }
 
+void ListenerManager::SetFrameMS(int frameMS)
+{
+    for (auto it: _listeners)
+    {
+        it->SetFrameMS(frameMS);
+    }
+}
+
 ListenerManager::~ListenerManager()
 {
     Stop();

@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.53 December 8, 2018
+   -- bug (keith)  Fix test dialog hangs on exit
+   -- bug (keith)  Controller property changes dont update immediately in model list
+   -- bug (keith)  When xSchedule is a FPP remote all sequences play as if they were 50ms timing
+   -- bug (keith)  When xSchedule is FPP master it sends more sync packets than it should
+   -- bug (keith)  Fix xSchedule hang - hard to be certain i got all causes but i likely did.
+   -- bug (keith)  Fix xSchedule corrupts sequence file name leading to skipping of step - possible fix. 
+                   This may also address looping problems but it is hard to be sure as I dont have those problems.
 2018.52 December 5, 2018
    *** CAUTION: This release on windows/linux include some changes which have a small risk of leading to xlights/xschedule hanging
                 so please test before using in your show. If you have issues it is safe to go back to a prior release.

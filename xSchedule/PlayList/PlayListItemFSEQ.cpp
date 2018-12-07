@@ -434,6 +434,7 @@ bool PlayListItemFSEQ::Advance(int seconds)
         _audioManager->Seek(newPos);
         return true;
     }
+    return false;
 }
 
 size_t PlayListItemFSEQ::GetPositionMS() const
@@ -442,21 +443,30 @@ size_t PlayListItemFSEQ::GetPositionMS() const
     {
         if (_delay != 0)
         {
-            if (_currentFrame * GetFrameMS() < _delay)
+            if (_currentFrame * _msPerFrame < _delay)
             {
-                return _currentFrame * GetFrameMS();
+                return _currentFrame * _msPerFrame;
             }
         }
         return _delay + _audioManager->Tell();
     }
     else
     {
-        return _currentFrame * GetFrameMS();
+        return _currentFrame * _msPerFrame;
     }
+}
+
+bool PlayListItemFSEQ::Done() const
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("FSEQ Done %d <- %ld >= %ld - %ld", GetPositionMS() >= GetDurationMS() - _msPerFrame, GetPositionMS(), GetDurationMS(), _msPerFrame);
+    return GetPositionMS() >= GetDurationMS() - _msPerFrame;
 }
 
 void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (outputframe)
     {
         if (_fseqFile != nullptr)
@@ -486,6 +496,7 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             }
         }
         _currentFrame++;
+        //logger_base.debug("Current Frame %d", _currentFrame);
     }
 }
 

@@ -43,5 +43,6 @@ class ListenerManager
         void MidiRedirect(wxWindow* notify, int deviceId);
         int Sync(const std::string filename, long ms, const std::string& type);
         ScheduleManager* GetScheduleManager() const { return _scheduleManager; }
+        void SetFrameMS(int frameMS);
 };
 #endif

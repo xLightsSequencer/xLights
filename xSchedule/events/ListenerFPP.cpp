@@ -143,7 +143,7 @@ void ListenerFPP::Poll()
                             {
                                 logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
 
-                                _frameMS = _listenerManager->Sync(fileName, 0, GetType());
+                                _listenerManager->Sync(fileName, 0, GetType());
                             }
                             break;
                             case SYNC_PKT_STOP:

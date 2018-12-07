@@ -264,7 +264,7 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
     event.SetString(filename);
     event.SetInt(ms);
     wxPostEvent(wxGetApp().GetTopWindow(), event);
-    return 50;
+    return 50; // this is a problem
 }
 
 int ScheduleManager::DoSync(const std::string& filename, long ms)
@@ -397,8 +397,17 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
         }
     }
 
-    if (pls != nullptr) return pls->GetFrameMS();
-    if (pl != nullptr) return pl->GetFrameMS();
+    if (pls != nullptr)
+    {
+        _listenerManager->SetFrameMS(pls->GetFrameMS());
+        return pls->GetFrameMS();
+    }
+    if (pl != nullptr)
+    {
+        _listenerManager->SetFrameMS(pl->GetFrameMS());
+        return pl->GetFrameMS();
+    }
+    _listenerManager->SetFrameMS(50);
     return 50;
 }
 
@@ -1426,15 +1435,24 @@ int ScheduleManager::CheckSchedule()
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
         PlayListStep* step = (*it)->GetPlayList()->GetRunningStep();
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s", 
+        std::string runstate = (*it)->IsStopped() ? "Stopped" : 
+                                                     (*it)->GetPlayList()->IsRunning() ? "Running" : 
+                                                                                         (*it)->GetPlayList()->IsSuspended() ? "Suspended" : 
+                                                                                                                               "Done";
+        std::string suspend = (*it)->GetPlayList()->IsSuspended() ? "Suspended" : "";
+        std::string stepname = step == nullptr ? "" : step->GetNameNoTime();
+        std::string pos = std::string(step == nullptr ? "" : FORMATTIME(step->GetPosition()));
+        std::string len = std::string(step == nullptr ? "" : FORMATTIME(step->GetLengthMS()));
+
+        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s",
             (const char *)(*it)->GetPlayList()->GetName().c_str(), 
             (const char *)(*it)->GetSchedule()->GetName().c_str(), 
             (*it)->GetSchedule()->GetPriority(), 
-            (const char*)((*it)->IsStopped() ? wxString("Stopped") : ((*it)->GetPlayList()->IsRunning() ? wxString("Running") : ((*it)->GetPlayList()->IsSuspended() ? wxString("Suspended") : wxString("Done")))).c_str(),
-            (const char*)(((*it)->GetPlayList()->IsSuspended() ? wxString("Suspended") : wxString(""))).c_str(),
-            (const char*)((step == nullptr ? wxString("") : wxString(step->GetNameNoTime()))).c_str(),
-            (const char*)((step == nullptr ? wxString("") : FORMATTIME(step->GetPosition()))).c_str(),
-            (const char*)((step == nullptr ? wxString("") : FORMATTIME(step->GetLengthMS()))).c_str()
+            (const char*)runstate.c_str(),
+            (const char*)suspend.c_str(),
+            (const char*)stepname.c_str(),
+            (const char*)pos.c_str(),
+            (const char*)len.c_str()
             );
     }
 
@@ -5016,7 +5034,7 @@ void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size
 
         if (!dosend)
         {
-            if (msec - lastfseqmsec <= FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES * frameMS)
+            if (msec <= FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES * frameMS)
             {
                 // we are in the initial period
                 if (msec - lastfseqmsec >= FPP_SEQ_SYNC_INTERVAL_INITIAL_FRAMES * frameMS)
