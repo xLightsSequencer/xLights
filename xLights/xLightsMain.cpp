@@ -2442,7 +2442,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
-        EffectSettingsTimer.Start(50);
+        EffectSettingsTimer.Start(50, wxTIMER_CONTINUOUS);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
     }
@@ -3677,6 +3677,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
         EnableOutputs();
 	}
 
+    // Restart the timer without changing the interval
 	Timer1.Start();
 
 	// resume playing the media if it was playing
@@ -3765,6 +3766,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
         EnableOutputs();
     }
 
+    // restarts the timer without changing the interval
     Timer1.Start();
 
     // resume playing the media if it was playing
