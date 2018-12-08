@@ -357,7 +357,7 @@ void xlTimerThread::SetFudgeFactor(int ff)
 xLightsTimer::xLightsTimer() {}
 xLightsTimer::~xLightsTimer() {}
 void xLightsTimer::Stop() {wxTimer::Stop();}
-bool xLightsTimer::Start(int time, bool oneShot) {return wxTimer::Start(time, oneShot);};
+bool xLightsTimer::Start(int time, bool oneShot, const std::string& name) {return wxTimer::Start(time, oneShot);};
 void xLightsTimer::Notify() {wxTimer::Notify();}
 int xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
 void xLightsTimer::DoSendTimer() {};
