@@ -155,8 +155,10 @@ static void RemoveThreadName() {}
 #else
 //no idea how to do this on Windows or even if there is value in doing so
 static std::map<DWORD, std::string> __threadNames;
+static std::mutex thread_name_mutex;
 static std::string OriginalThreadName()
 {
+    std::unique_lock<std::mutex> lock(thread_name_mutex);
     if (__threadNames.find(::GetCurrentThreadId()) != __threadNames.end()) {
         return __threadNames[::GetCurrentThreadId()];
     }
@@ -165,11 +167,13 @@ static std::string OriginalThreadName()
 
 static void SetThreadName(const std::string &name)
 {
+    std::unique_lock<std::mutex> lock(thread_name_mutex);
     __threadNames[::GetCurrentThreadId()] = name;
 }
 
 static void RemoveThreadName()
 {
+    std::unique_lock<std::mutex> lock(thread_name_mutex);
     auto it = __threadNames.find(::GetCurrentThreadId());
     if (it != __threadNames.end())
         __threadNames.erase(it);
