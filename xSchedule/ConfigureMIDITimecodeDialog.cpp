@@ -46,9 +46,9 @@ ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::
 	ChoiceFormat->Append(_("29.97 fps"));
 	ChoiceFormat->Append(_("30 fps"));
 	FlexGridSizer1->Add(ChoiceFormat, 1, wxALL|wxEXPAND, 5);
-	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Time offset (seconds)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Time offset (milliseconds)"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer1->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SpinCtrl_TimeOffset = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 10000, 0, _T("ID_SPINCTRL1"));
+	SpinCtrl_TimeOffset = new wxSpinCtrl(this, ID_SPINCTRL1, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 3700000, 0, _T("ID_SPINCTRL1"));
 	SpinCtrl_TimeOffset->SetValue(_T("0"));
 	FlexGridSizer1->Add(SpinCtrl_TimeOffset, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

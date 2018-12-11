@@ -11,6 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.47 November 22, 2018
+   -- bug (keith)  Fix a crash passing in an xml file to xlights which is not in the show folder
+   -- bug (keith)  Ensure a city is always set
+   -- bug (keith)  Fix a possible crash on sequence close
+   -- bug (keith)  Fix schedule hang if pre-load audio and audio is shorter than fseq
+   -- bug (keith)  Only reverse offset of a value curve if the offset is not zero
+   -- bug (keith)  Allow default FPP version to be set for when FPP Connect cant determine the version
+   -- enh (keith)  Add the ability to dim a range of channels as a playlist item
+   -- enh (keith)  Add a tool to cleanup file locations ... bringing them all under the show folder
+   -- enh (keith)  Display the range of controller outputs in the model list
+2018.46 November 18, 2018
+   -- bug (dkulp)  Fix node layout crash for custom models
+   -- bug (dkulp)  Add some fallbacks for FPP upload if UI security is on
+   -- bug (keith)  Fix some old value curve warnings ... hopefully for good
+   -- enh (keith)  Warn in check sequence if videos are being rendered without render cache
+   -- enh (keith)  Update the falcon upload to recognise the new connection properties ... these are 
+                   taken from the first model on each output
+   -- enh (keith)  Add keybindings support for the effect and colour update buttons. F5 defaults for 
+                   effect update but you need to delete keybindings to have the new defaults added
 2018.45 November 15, 2018
    -- bug (dkulp)  FPP Connect - failure to unzip fseq if name contains certain special characters
    -- enh (dkulp)  FPP Connect via HTTP/FTP - option to create/append to playlist whatever is uploaded

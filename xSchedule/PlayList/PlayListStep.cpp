@@ -19,6 +19,7 @@
 #include "PlayListItemAllOff.h"
 #include "PlayListItemSetColour.h"
 #include "PlayListItemDelay.h"
+#include "PlayListItemDim.h"
 #include "PlayListItemRunProcess.h"
 #include "PlayListItemCURL.h"
 #include "PlayListItemSerial.h"
@@ -229,6 +230,10 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
         else if (n->GetName() == "PLIDelay")
         {
             _items.push_back(new PlayListItemDelay(n));
+        }
+        else if (n->GetName() == "PLIDim")
+        {
+            _items.push_back(new PlayListItemDim(outputManager, n));
         }
         else if (n->GetName() == "PLIProcess")
         {

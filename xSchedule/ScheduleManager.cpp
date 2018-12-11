@@ -1372,12 +1372,17 @@ int ScheduleManager::CheckSchedule()
     logger_base.debug("   Active scheduled playlists: %d", _activeSchedules.size());
     for (auto it = _activeSchedules.begin(); it != _activeSchedules.end(); ++it)
     {
-        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s", 
+        PlayListStep* step = (*it)->GetPlayList()->GetRunningStep();
+        logger_base.debug("        Playlist %s, Schedule %s Priority %d %s %s Step '%s' Time %s/%s", 
             (const char *)(*it)->GetPlayList()->GetName().c_str(), 
             (const char *)(*it)->GetSchedule()->GetName().c_str(), 
             (*it)->GetSchedule()->GetPriority(), 
             (*it)->IsStopped() ? "Stopped" : ((*it)->GetPlayList()->IsRunning() ? "Running" : ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : "Done")),
-            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""));
+            ((*it)->GetPlayList()->IsSuspended() ? "Suspended" : ""),
+            (step == nullptr ? wxString("").c_str() : step->GetNameNoTime().c_str()),
+            (step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetPosition())),
+            (step == nullptr ? wxString("").c_str() : FORMATTIME(step->GetLengthMS()))
+            );
     }
 
     return framems;
@@ -1454,6 +1459,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
             }
             else
             {
+                logger_base.debug("Action '%s':'%s'.",
+                    (const char *)command.c_str(), (const char *)parameters.c_str());
                 if (command == "Stop all now")
                 {
                     StopAll();
@@ -5375,7 +5382,7 @@ void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& 
     {
     case SYNC_PKT_SYNC:
         sprintf(buffer, "FPP,%d,%d,%d,%s,%d,%d\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str(), (int)(msec / 1000), (int)msec % 1000);
-        logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
+        //logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
         break;
     case SYNC_PKT_STOP:
         sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());

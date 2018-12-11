@@ -30,6 +30,8 @@ const long FPPConnectDialog::ID_TEXTCTRL_Username = wxNewId();
 const long FPPConnectDialog::ID_STATICTEXT3 = wxNewId();
 const long FPPConnectDialog::ID_TEXTCTRL_Password = wxNewId();
 const long FPPConnectDialog::ID_BUTTON_Console = wxNewId();
+const long FPPConnectDialog::ID_STATICTEXT7 = wxNewId();
+const long FPPConnectDialog::ID_CHOICE1 = wxNewId();
 const long FPPConnectDialog::ID_CHECKBOX2 = wxNewId();
 const long FPPConnectDialog::ID_COMBOBOX1 = wxNewId();
 const long FPPConnectDialog::ID_PANEL_FTP = wxNewId();
@@ -95,18 +97,25 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer2->Add(TextCtr_Username, 1, wxALL|wxEXPAND, 2);
 	StaticText3 = new wxStaticText(Panel_FTP, ID_STATICTEXT3, _("Password"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Password = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Password, _("falcon"), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL_Password"));
+	TextCtrl_Password = new wxTextCtrl(Panel_FTP, ID_TEXTCTRL_Password, _("falcon"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Password"));
 	FlexGridSizer2->Add(TextCtrl_Password, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Console = new wxButton(Panel_FTP, ID_BUTTON_Console, _("FPP Console"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_Console"));
 	FlexGridSizer2->Add(Button_Console, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText7 = new wxStaticText(Panel_FTP, ID_STATICTEXT7, _("Default Version"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
+	FlexGridSizer2->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	Choice_DefaultVersion = new wxChoice(Panel_FTP, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
+	Choice_DefaultVersion->Append(_("1.x"));
+	Choice_DefaultVersion->SetSelection( Choice_DefaultVersion->Append(_("2.x")) );
+	Choice_DefaultVersion->SetToolTip(_("We recommend you leave this at 2.x unless you have a 1.x FPP AND experience issues uploading."));
+	FlexGridSizer2->Add(Choice_DefaultVersion, 1, wxALL|wxEXPAND, 5);
 	PlayListCheckbox = new wxCheckBox(Panel_FTP, ID_CHECKBOX2, _("Append To Playlist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	PlayListCheckbox->SetValue(false);
 	FlexGridSizer2->Add(PlayListCheckbox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	PlayListName = new wxComboBox(Panel_FTP, ID_COMBOBOX1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_COMBOBOX1"));
 	PlayListName->SetSelection( PlayListName->Append(wxEmptyString) );
 	PlayListName->Disable();
-	FlexGridSizer2->Add(PlayListName, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(PlayListName, 1, wxALL|wxEXPAND, 2);
 	Panel_FTP->SetSizer(FlexGridSizer2);
 	FlexGridSizer2->Fit(Panel_FTP);
 	FlexGridSizer2->SetSizeHints(Panel_FTP);
@@ -558,7 +567,7 @@ bool FPPConnectDialog::FTPUpload()
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     bool cancelled = false;
 
-    FPP fpp(_outputManager, ComboBox_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
+    FPP fpp(_outputManager, Choice_DefaultVersion->GetStringSelection(), ComboBox_IPAddress->GetValue().ToStdString(), TextCtr_Username->GetValue().ToStdString(), TextCtrl_Password->GetValue().ToStdString());
 
     if (!fpp.IsConnected())
     {

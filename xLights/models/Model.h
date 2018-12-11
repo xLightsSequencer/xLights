@@ -207,6 +207,7 @@ public:
     bool IsControllerConnectionValid() const;
     wxXmlNode *GetControllerConnection() const;
     std::string GetControllerConnectionString() const;
+    std::string GetControllerConnectionRangeString() const;
     
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
@@ -225,7 +226,7 @@ public:
     void SetControllerPort(int port);
     std::string GetControllerName() const { return _controllerName; }
     std::string GetControllerProtocol() const;
-    int GetControllerPort() const;
+    int GetControllerPort(int string = 1) const;
     void SetModelChain(const std::string& modelChain);
     std::string GetModelChain() const { return _modelChain; }
     void ReworkStartChannel();
@@ -282,6 +283,8 @@ public:
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
     std::list<std::string> GetFaceFiles(bool all = false) const;
+    virtual bool CleanupFileLocations(xLightsFrame* frame);
+    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     void SelectHandle(int handle);
     int GetSelectedHandle();
@@ -292,7 +295,6 @@ public:
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);
-    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     std::vector<std::string> GetModelState() const;

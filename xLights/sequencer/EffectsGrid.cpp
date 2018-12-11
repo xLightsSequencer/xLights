@@ -5834,9 +5834,13 @@ void EffectsGrid::DrawEffects()
 
 void EffectsGrid::DrawTimingEffects(int row)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     Row_Information_Struct *ri = mSequenceElements->GetVisibleRowInformation(row);
     TimingElement* element = dynamic_cast<TimingElement*>(ri->element);
-    EffectLayer* effectLayer=mSequenceElements->GetVisibleEffectLayer(row);
+    EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
+
+    if (effectLayer == nullptr) logger_base.debug("EffectsGrid::DrawTimingEffects null effectLayer.");
 
     bool fixed = element->IsFixedTiming();
 
@@ -5847,17 +5851,19 @@ void EffectsGrid::DrawTimingEffects(int row)
     float factor = translateToBacking(1.0);
     float fontSize = ComputeFontSize(toffset, factor);
 
-    for(int effectIndex=0;effectIndex < effectLayer->GetEffectCount();effectIndex++)
+    for (int effectIndex = 0; effectIndex < effectLayer->GetEffectCount(); effectIndex++)
     {
+        Effect *eff = effectLayer->GetEffect(effectIndex);
+
         EFFECT_SCREEN_MODE mode = SCREEN_L_R_OFF;
 
-        int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT)+4;
-        int y2 = ((row+1)*DEFAULT_ROW_HEADING_HEIGHT)-4;
+        int y1 = (row*DEFAULT_ROW_HEADING_HEIGHT) + 4;
+        int y2 = ((row + 1)*DEFAULT_ROW_HEADING_HEIGHT) - 4;
         int y = (row*DEFAULT_ROW_HEADING_HEIGHT) + (DEFAULT_ROW_HEADING_HEIGHT / 2.0);
-        int x1,x2,x3,x4;
+        int x1, x2, x3, x4;
 
-        mTimeline->GetPositionsFromTimeRange(effectLayer->GetEffect(effectIndex)->GetStartTimeMS(),
-                                             effectLayer->GetEffect(effectIndex)->GetEndTimeMS(),mode,x1,x2,x3,x4);
+        mTimeline->GetPositionsFromTimeRange(eff->GetStartTimeMS(),
+            eff->GetEndTimeMS(), mode, x1, x2, x3, x4);
 
         DrawGLUtils::xlVertexAccumulator* linesLeft;
         DrawGLUtils::xlVertexAccumulator* linesRight;
@@ -5867,34 +5873,34 @@ void EffectsGrid::DrawTimingEffects(int row)
             linesRight = &selectedLinesFixed;
             //DrawGLUtils::xlVertexAccumulator* linesCenter = &timingEffLines;
         }
-        else if (effectLayer->GetEffect(effectIndex)->IsLocked())
+        else if (eff->IsLocked())
         {
-            linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLinesLocked;
-            linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLinesLocked;
-            //DrawGLUtils::xlVertexAccumulator* linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLinesLocked:&timingEffLines;
+            linesLeft = eff->GetSelected() == EFFECT_NOT_SELECTED ||
+                eff->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLinesLocked;
+            linesRight = eff->GetSelected() == EFFECT_NOT_SELECTED ||
+                eff->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLinesLocked;
+            //DrawGLUtils::xlVertexAccumulator* linesCenter = eff->GetSelected() == EFFECT_SELECTED?&selectedLinesLocked:&timingEffLines;
         }
         else
         {
-            linesLeft = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLines;
-            linesRight = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_NOT_SELECTED ||
-                effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLines;
-            //DrawGLUtils::xlVertexAccumulator* linesCenter = effectLayer->GetEffect(effectIndex)->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
+            linesLeft = eff->GetSelected() == EFFECT_NOT_SELECTED ||
+                eff->GetSelected() == EFFECT_RT_SELECTED ? &timingEffLines : &selectedLines;
+            linesRight = eff->GetSelected() == EFFECT_NOT_SELECTED ||
+                eff->GetSelected() == EFFECT_LT_SELECTED ? &timingEffLines : &selectedLines;
+            //DrawGLUtils::xlVertexAccumulator* linesCenter = eff->GetSelected() == EFFECT_SELECTED?&selectedLines:&timingEffLines;
         }
 
-        if(mode!=SCREEN_L_R_OFF) {
+        if (mode != SCREEN_L_R_OFF) {
             // Draw Left line
-            if(mode==SCREEN_L_R_ON || mode == SCREEN_L_ON)
+            if (mode == SCREEN_L_R_ON || mode == SCREEN_L_ON)
             {
-                if(effectIndex>0)
+                if (effectIndex > 0)
                 {
                     // Draw left line if effect has different start time then previous effect or
                     // previous effect was not selected, or only left was selected
-                    if(effectLayer->GetEffect(effectIndex)->GetStartTimeMS() != effectLayer->GetEffect(effectIndex-1)->GetEndTimeMS() ||
-                       effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_NOT_SELECTED ||
-                        effectLayer->GetEffect(effectIndex-1)->GetSelected() == EFFECT_LT_SELECTED) {
+                    if (eff->GetStartTimeMS() != effectLayer->GetEffect(effectIndex - 1)->GetEndTimeMS() ||
+                        effectLayer->GetEffect(effectIndex - 1)->GetSelected() == EFFECT_NOT_SELECTED ||
+                        effectLayer->GetEffect(effectIndex - 1)->GetSelected() == EFFECT_LT_SELECTED) {
                         linesLeft->AddVertex(x1, y1);
                         linesLeft->AddVertex(x1, y2);
                     }
@@ -5905,53 +5911,53 @@ void EffectsGrid::DrawTimingEffects(int row)
                     linesLeft->AddVertex(x1, y2);
                 }
 
-                if(element->GetActive() && ri->layerIndex == 0)
+                if (element->GetActive() && ri->layerIndex == 0)
                 {
-                    timingLines.AddVertex(x1,(row+1)*DEFAULT_ROW_HEADING_HEIGHT, c);
-                    timingLines.AddVertex(x1,GetSize().y, c);
+                    timingLines.AddVertex(x1, (row + 1)*DEFAULT_ROW_HEADING_HEIGHT, c);
+                    timingLines.AddVertex(x1, GetSize().y, c);
                 }
             }
             // Draw Right line
-            if(mode==SCREEN_L_R_ON || mode == SCREEN_R_ON)
+            if (mode == SCREEN_L_R_ON || mode == SCREEN_R_ON)
             {
                 linesRight->AddVertex(x2, y1);
                 linesRight->AddVertex(x2, y2);
-                if(element->GetActive() && ri->layerIndex == 0)
+                if (element->GetActive() && ri->layerIndex == 0)
                 {
-                    timingLines.AddVertex(x2,(row+1)*DEFAULT_ROW_HEADING_HEIGHT, c);
-                    timingLines.AddVertex(x2,GetSize().y, c);
+                    timingLines.AddVertex(x2, (row + 1)*DEFAULT_ROW_HEADING_HEIGHT, c);
+                    timingLines.AddVertex(x2, GetSize().y, c);
                 }
             }
             // Draw horizontal
-            if(mode!=SCREEN_L_R_OFF)
+            if (mode != SCREEN_L_R_OFF)
             {
-                int half_width = (x2-x1)/2;
+                int half_width = (x2 - x1) / 2;
                 linesLeft->AddVertex(x1, y);
-                linesLeft->AddVertex(x1+half_width,y);
-                linesRight->AddVertex(x1+half_width,y);
-                linesRight->AddVertex(x2,y);
-                if (effectLayer->GetEffect(effectIndex)->GetEffectName() != "" && (x2-x1) > 20 ) {
-                    int max_width = x2-x1-18;
-                    int text_width = DrawGLUtils::GetTextWidth(fontSize, effectLayer->GetEffect(effectIndex)->GetEffectName(), factor) + 8;
+                linesLeft->AddVertex(x1 + half_width, y);
+                linesRight->AddVertex(x1 + half_width, y);
+                linesRight->AddVertex(x2, y);
+                if (eff->GetEffectName() != "" && (x2 - x1) > 20) {
+                    int max_width = x2 - x1 - 18;
+                    int text_width = DrawGLUtils::GetTextWidth(fontSize, eff->GetEffectName(), factor) + 8;
                     int width = std::min(text_width, max_width);
-                    int center = x1 + (x2-x1)/2;
-                    int label_start = center - width/2;
+                    int center = x1 + (x2 - x1) / 2;
+                    int label_start = center - width / 2;
                     xlColor label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_LABELS);
-                    if( ri->layerIndex == 0 && element->GetEffectLayerCount() > 1)
+                    if (ri->layerIndex == 0 && element->GetEffectLayerCount() > 1)
                     {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_PHRASES);
                     }
-                    else if( ri->layerIndex == 1 )
+                    else if (ri->layerIndex == 1)
                     {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_WORDS);
                     }
-                    else if( ri->layerIndex == 2 )
+                    else if (ri->layerIndex == 2)
                     {
                         label_color = xlights->color_mgr.GetColor(ColorManager::COLOR_PHONEMES);
                     }
-                    textBackgrounds.AddRect(label_start,y1-2,label_start+width,y2+2, label_color);
-                    timingLines.AddLinesRect(label_start-0.4,y1-2-0.4,label_start+width+0.4,y2+2+0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
-                    texts.AddVertex(label_start + 4, y2 + toffset, effectLayer->GetEffect(effectIndex)->GetEffectName());
+                    textBackgrounds.AddRect(label_start, y1 - 2, label_start + width, y2 + 2, label_color);
+                    timingLines.AddLinesRect(label_start - 0.4, y1 - 2 - 0.4, label_start + width + 0.4, y2 + 2 + 0.4, xlights->color_mgr.GetColor(ColorManager::COLOR_LABEL_OUTLINE));
+                    texts.AddVertex(label_start + 4, y2 + toffset, eff->GetEffectName());
                 }
             }
         }

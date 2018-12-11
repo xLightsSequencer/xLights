@@ -195,6 +195,7 @@
     <ClCompile Include="..\xLights\outputs\TestPreset.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPDialog.cpp" />
     <ClCompile Include="..\xLights\outputs\ZCPPOutput.cpp" />
+    <ClCompile Include="..\xLights\Parallel.cpp" />
     <ClCompile Include="..\xLights\SequenceData.cpp" />
     <ClCompile Include="..\xLights\UtilFunctions.cpp" />
     <ClCompile Include="..\xLights\vamp-hostsdk\Files.cpp" />
@@ -275,6 +276,8 @@
     <ClCompile Include="OutputProcessSustain.cpp" />
     <ClCompile Include="OutputProcessThreeToFour.cpp" />
     <ClCompile Include="Pinger.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDim.cpp" />
+    <ClCompile Include="PlayList\PlayListItemDimPanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFade.cpp" />
     <ClCompile Include="PlayList\PlayListItemFadePanel.cpp" />
     <ClCompile Include="PlayList\PlayListItemFile.cpp" />
@@ -468,6 +471,8 @@
     <ClInclude Include="OutputProcessSustain.h" />
     <ClInclude Include="OutputProcessThreeToFour.h" />
     <ClInclude Include="Pinger.h" />
+    <ClInclude Include="PlayList\PlayListItemDim.h" />
+    <ClInclude Include="PlayList\PlayListItemDimPanel.h" />
     <ClInclude Include="PlayList\PlayListItemFade.h" />
     <ClInclude Include="PlayList\PlayListItemFadePanel.h" />
     <ClInclude Include="PlayList\PlayListItemFile.h" />

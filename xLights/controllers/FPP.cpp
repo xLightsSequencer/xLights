@@ -24,7 +24,7 @@
 
 #include <log4cpp/Category.hh>
 
-FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string& user, const std::string& password)
+FPP::FPP(OutputManager* outputManager, const std::string& defaultVersion, const std::string& ip, const std::string& user, const std::string& password)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _outputManager = outputManager;
@@ -32,6 +32,9 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
 	_password = password;
 	_ip = ip;
     _version = "";
+    _forceFTP = false;
+    std::string dv = "2.0";
+    if (defaultVersion == "1.x") dv = "1.10";
 
 	_connected = _http.Connect(_ip);
 
@@ -48,16 +51,28 @@ FPP::FPP(OutputManager* outputManager, const std::string& ip, const std::string&
             std::string version = GetURL("//");
             if (version == "") {
                 logger_base.error("FPP: Unable to retrieve FPP web page. Possible they have a password on the UI.");
-                //we'll assume a version 2.x so most things work
-                _version = "2.0";
+                //we'll assume a version 2.x so most things work, but need to use FTP at this point since
+                //the upload page will be password protected.  That said, a bunch of things are not supported with FTP
+                //FIXME - add basic auth support
+                _version = dv;
+                _forceFTP = true;
             } else {
                 //Version: <a href = 'about.php' class = 'nonULLink'>v1.6 - 25 - gd87f066
-                static wxRegEx versionregex("(Version: .*?nonULLink..v)([0-9]+\\.[0-9]+)", wxRE_ADVANCED | wxRE_NEWLINE);
+                static wxRegEx versionregex("(Version: .*?nonULLink..v)([0-9]+\\.[0-9x]+)", wxRE_ADVANCED | wxRE_NEWLINE);
                 if (versionregex.Matches(wxString(version))) {
                     _version = versionregex.GetMatch(wxString(version), 2).ToStdString();
                 }
+                if (_version == "") {
+                    logger_base.debug("FPP: Unable to determine version from HTML page: %s", version.c_str());
+
+                    //I tested 1.8/1.9/1.10 and the regex above detects the 1.x version fine
+                    //if we're getting here, figure out why the regex is not working don't change this default
+                    _version = dv;
+                    _forceFTP = true;
+                }
             }
         }
+        logger_base.debug("FPP: using version %s.", _version.c_str());
         if (!(_version[0] >= '2')) {
             //either old version or could not determine version
             wxMessageBox("FPP 1.x is no longer supported by the FPP developers.  Some things may not work.  We strongly recommend upgrading to FPP 2.x",
@@ -696,7 +711,11 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
     wxFileName fn(file);
     wxString fseq = fseqDir + wxFileName::GetPathSeparator() + fn.GetName() + ".fseq";
     if (wxFile::Exists(fseq)) {
-        cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true);
+        if (_forceFTP) {
+            cancelled = _ftp.UploadFile(fseq.ToStdString(), "/home/fpp/media/sequences", fn.GetName().ToStdString() + ".fseq", false, true, parent);
+        } else {
+            cancelled = uploadFileViaHTTP(fn.GetName().ToStdString() + ".fseq", fseq.ToStdString(), parent, true);
+        }
         sequences[fn.GetName().ToStdString() + ".fseq"] = "";
     } else {
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -709,7 +728,11 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
         wxFileName fnmedia(media);
 
         if (fnmedia.Exists()) {
-            cancelled = uploadFileViaHTTP(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), media.ToStdString(), parent);
+            if (_forceFTP) {
+                cancelled = _ftp.UploadFile(media.ToStdString(), "/home/fpp/media/music", fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), false, true, parent);
+            } else {
+                cancelled = uploadFileViaHTTP(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString(), media.ToStdString(), parent);
+            }
             sequences[fn.GetName().ToStdString() + ".fseq"] = fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString();
         } else {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -774,8 +797,10 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
     std::string fppFileName = "co-bbbStrings.json";
+    int minPorts = 1;
     if (controller == "PiHat") {
         fppFileName = "co-pixelStrings.json";
+        minPorts = 2;
     }
 
     wxFileName fnOrig;
@@ -895,7 +920,9 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             }
         }
     }
-    
+    if (maxport < minPorts) {
+        maxport = minPorts;
+    }
 
     if (controller == "PiHat") {
         stringData["type"] = wxString("RPIWS281X");

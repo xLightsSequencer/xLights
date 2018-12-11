@@ -201,6 +201,8 @@ void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding("F10", false, "SHOW_PRESETS", true));
     bindings.push_back(KeyBinding("F11", false, "SEARCH_TOGGLE", true));
     bindings.push_back(KeyBinding("F12", false, "PERSPECTIVES_TOGGLE", true));
+    bindings.push_back(KeyBinding("F5", false, "EFFECT_UPDATE"));
+    bindings.push_back(KeyBinding("", false, "COLOR_UPDATE"));
 
     bindings.push_back(KeyBinding("l", false, "LOCK_MODEL", true));
     bindings.push_back(KeyBinding("u", false, "UNLOCK_MODEL", true));

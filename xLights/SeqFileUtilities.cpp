@@ -27,7 +27,7 @@
 #include "ModelPreview.h"
 #include "sequencer/MainSequencer.h"
 
-#include "effects/SpiralsPanel.h"
+#include "effects/SpiralsEffect.h"
 #include "effects/ButterflyEffect.h"
 #include "effects/BarsEffect.h"
 #include "effects/CurtainEffect.h"
@@ -557,14 +557,14 @@ bool xLightsFrame::CloseSequence()
         LogPerspective(machinePerspective);
     }
 
-    if( mSavedChangeCount !=  mSequenceElements.GetChangeCount() && !_renderMode)
+    if (mSavedChangeCount != mSequenceElements.GetChangeCount() && !_renderMode)
     {
         SaveChangesDialog* dlg = new SaveChangesDialog(this);
-        if( dlg->ShowModal() == wxID_CANCEL )
+        if (dlg->ShowModal() == wxID_CANCEL)
         {
             return false;
         }
-        if( dlg->GetSaveChanges() )
+        if (dlg->GetSaveChanges())
         {
             SaveSequence();
             //must wait for the rendering to complete
@@ -575,24 +575,27 @@ bool xLightsFrame::CloseSequence()
         }
         else
         {
-            // We discarded the sequence so make sure the sequence file is newer than the backup
-            wxFileName fn(CurrentSeqXmlFile->GetLongPath());
-            wxFileName xx = fn;
-            xx.SetExt("xbkp");
-            wxString asfile = xx.GetLongPath();
-
-            if (wxFile::Exists(asfile))
+            if (CurrentSeqXmlFile != nullptr)
             {
-                // the autosave file exists
-                wxDateTime xmltime = fn.GetModificationTime();
-                wxFileName asfn(asfile);
-                wxDateTime xbkptime = asfn.GetModificationTime();
+                // We discarded the sequence so make sure the sequence file is newer than the backup
+                wxFileName fn(CurrentSeqXmlFile->GetLongPath());
+                wxFileName xx = fn;
+                xx.SetExt("xbkp");
+                wxString asfile = xx.GetLongPath();
 
-                if (xbkptime > xmltime)
+                if (wxFile::Exists(asfile))
                 {
-                    //set the backup to be older than the XML files to avoid re-promting
-                    xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
-                    asfn.SetTimes(&xmltime, &xmltime, &xmltime);
+                    // the autosave file exists
+                    wxDateTime xmltime = fn.GetModificationTime();
+                    wxFileName asfn(asfile);
+                    wxDateTime xbkptime = asfn.GetModificationTime();
+
+                    if (xbkptime > xmltime)
+                    {
+                        //set the backup to be older than the XML files to avoid re-promting
+                        xmltime -= wxTimeSpan(0, 0, 3, 0);  //subtract 2 seconds as FAT time resulution is 2 seconds
+                        asfn.SetTimes(&xmltime, &xmltime, &xmltime);
+                    }
                 }
             }
         }
@@ -614,7 +617,7 @@ bool xLightsFrame::CloseSequence()
     previewPlaying = false;
     playType = 0;
     selectedEffect = nullptr;
-    if( CurrentSeqXmlFile )
+    if (CurrentSeqXmlFile)
     {
         delete CurrentSeqXmlFile;
         CurrentSeqXmlFile = nullptr;
@@ -627,14 +630,14 @@ bool xLightsFrame::CloseSequence()
     SetPanelSequencerLabel("");
 
     mainSequencer->PanelWaveForm->CloseMedia();
-    SeqData.init(0,0,50);
+    SeqData.init(0, 0, 50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
     SetStatusText("");
     SetStatusText(CurrentDir, true);
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
 
-    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
+    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date);
 
     return true;
 }

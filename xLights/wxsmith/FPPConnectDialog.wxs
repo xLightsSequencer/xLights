@@ -97,7 +97,6 @@
 								<object class="sizeritem">
 									<object class="wxTextCtrl" name="ID_TEXTCTRL_Password" variable="TextCtrl_Password" member="yes">
 										<value>falcon</value>
-										<style>wxTE_PASSWORD</style>
 										<handler function="OnTextCtrl_PasswordText" entry="EVT_TEXT" />
 										<handler function="OnTextCtrl_PasswordTextEnter" entry="EVT_TEXT_ENTER" />
 									</object>
@@ -120,6 +119,27 @@
 									<option>1</option>
 								</object>
 								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+										<label>Default Version</label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxChoice" name="ID_CHOICE1" variable="Choice_DefaultVersion" member="yes">
+										<content>
+											<item>1.x</item>
+											<item>2.x</item>
+										</content>
+										<selection>1</selection>
+										<tooltip>We recommend you leave this at 2.x unless you have a 1.x FPP AND experience issues uploading.</tooltip>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
 									<object class="wxCheckBox" name="ID_CHECKBOX2" variable="PlayListCheckbox" member="yes">
 										<label>Append To Playlist</label>
 										<handler function="OnPlayListCheckboxClick" entry="EVT_CHECKBOX" />
@@ -136,8 +156,8 @@
 										<selection>0</selection>
 										<enabled>0</enabled>
 									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>2</border>
 									<option>1</option>
 								</object>
 							</object>

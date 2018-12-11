@@ -1109,21 +1109,18 @@ size_t AudioManager::GetAudioFileLength(std::string filename)
 long AudioManager::GetLoadedData()
 {
     std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
-
     return _loadedData;
 }
 
 void AudioManager::SetLoadedData(long pos)
 {
     std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
-
     _loadedData = pos;
 }
 
 bool AudioManager::IsDataLoaded(long pos)
 {
     std::unique_lock<std::shared_timed_mutex> locker(_mutexAudioLoad);
-
     if (pos < 0)
     {
         return _loadedData == _trackSize;
@@ -2069,6 +2066,7 @@ int AudioManager::OpenMediaFile()
 	if (avformat_find_stream_info(formatContext, nullptr) < 0)
 	{
 		avformat_close_input(&formatContext);
+        formatContext = nullptr;
         logger_base.error("avformat_find_stream_info Error finding the stream info %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
@@ -2080,6 +2078,7 @@ int AudioManager::OpenMediaFile()
 	if (streamIndex < 0)
 	{
 		avformat_close_input(&formatContext);
+        formatContext = nullptr;
         logger_base.error("av_find_best_stream Could not find any audio stream in the file %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;
@@ -2092,6 +2091,7 @@ int AudioManager::OpenMediaFile()
 	if (avcodec_open2(codecContext, codecContext->codec, nullptr) != 0)
 	{
 		avformat_close_input(&formatContext);
+        formatContext = nullptr;
         logger_base.error("avcodec_open2 Couldn't open the context with the decoder %s.", (const char *)_audio_file.c_str());
         _ok = false;
         return 1;

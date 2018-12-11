@@ -3,7 +3,7 @@ static const char *garlands_48[] = {
 /* width height num_colors chars_per_pixel */
 "48 48 238 2", 
 /* colors */
-"   c None",
+"   c #000000",
 ".  c #1E8400",
 "X  c #196F00",
 "o  c #000D00",

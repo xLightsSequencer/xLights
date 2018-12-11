@@ -45,7 +45,8 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
-    _city = node->GetAttribute("City");
+    _city = node->GetAttribute("City", "Sydney");
+    if (_city == "") _city = "Sydney"; // we always want to have a city and this is the best place to be :)
 
     for (auto n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {

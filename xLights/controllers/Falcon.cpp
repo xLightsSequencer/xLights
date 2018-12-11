@@ -471,6 +471,16 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 string->startChannel = port->GetUniverseStartChannel();
                 string->pixels = port->Channels() / 3;
                 string->description = SafeDescription(port->GetPortName());
+                UDControllerPortModel* m = port->GetFirstModel();
+                if (m != nullptr)
+                {
+                    string->brightness = m->GetBrightness(string->brightness);
+                    string->nullPixels = m->GetNullPixels(string->nullPixels);
+                    string->gamma = m->GetGamma(string->gamma);
+                    string->colourOrder = m->GetColourOrder(string->colourOrder);;
+                    string->direction = m->GetDirection(string->direction);
+                    string->groupCount = m->GetGroupCount(string->groupCount);
+                }
             }
             else
             {
@@ -680,7 +690,18 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
                 UDControllerPort* port = cud.GetControllerSerialPort(sp);
                 logger_base.info("Serial Port %d Protocol %s.", sp, (const char *)port->GetProtocol().c_str());
 
-                UploadSerialOutput(port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), port->GetStartChannel(), parent);
+                int dmxOffset = 1;
+                UDControllerPortModel* m = port->GetFirstModel();
+                if (m != nullptr)
+                {
+                    dmxOffset = m->GetDMXChannelOffset();
+                    if (dmxOffset < 1) dmxOffset = 1; // a value less than 1 makes no sense
+                }
+
+                int sc = port->GetStartChannel() - dmxOffset + 1;
+                logger_base.debug("    sc:%d - offset:%d -> %d", port->GetStartChannel(), dmxOffset, sc);
+
+                UploadSerialOutput(port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, parent);
             }
         }
     }
@@ -733,16 +754,37 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
 
         if (index == lastString + 1)
         {
+            //<vs y="" p="7" u="2000" us="0" s="0" c="50" g="1" t="0" d="0" o="0" n="0" z="0" b="13" bl="0" ga="0"/>
+            // y = description
+            // u = universe
+            // us = universe start channel - 1
+            // s = absolute channel I think
+            // c = pixel count
+            // g = grouping
+            // t = protocol
+            // d = direction (index 0 - forward, 1 - reversed)
+            // o = pixel order (index 0 - RGB, 1 - RBG, 2 - GRB, 3 - GBR, 4 - BRG, 5 - BGR)
+            // n = null pixels
+            // z = zig zag count - IGNORED
+            // b = brightness (index 0 - 100, 1 - 95, 2 - 90, 3 - 85, 4 - 80, 5 - 75, 6 - 70, 7 - 65, 8 - 60, 9 - 50, 10 - 40, 11 - 30, 12 - 20, 13 - 10)
+            // bl = blank (1 if checked) - IGNORED
+            // ga = gamma (index 0 - none, 1 - 2.0, 2 - 2.3, 3 - 2.5, 4 - 2.8, 5 - 3.0
             FalconString* string = new FalconString();
             string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
             if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
             string->pixels = wxAtoi(e->GetAttribute("c"));
             if (string->pixels < 0 || string->pixels > GetMaxPixels()) string->pixels = 0;
-            string->protocol = wxAtoi(e->GetAttribute("t"));
+            string->protocol = wxAtoi(e->GetAttribute("t", "0"));
             string->universe = wxAtoi(e->GetAttribute("u"));
             if (string->universe <= 1 || string->universe > 64000) string->universe = 1;
-            string->description = e->GetAttribute("y").ToStdString();
+            string->description = e->GetAttribute("y", "").ToStdString();
             string->port = wxAtoi(e->GetAttribute("p"));
+            string->brightness = DecodeBrightness(wxAtoi(e->GetAttribute("b", "0")));
+            string->nullPixels = wxAtoi(e->GetAttribute("n", "0"));
+            string->gamma = DecodeGamma(wxAtoi(e->GetAttribute("ga", "0")));
+            string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
+            string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
+            string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
             string->index = i;
             stringData[index] = string;
             logger_base.debug("   Port %d, Universe %d, Start Channel %d Pixels %d, Description '%s'",
@@ -759,6 +801,12 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
             if (string->universe <= 1 || string->universe > 64000) string->universe = 1;
             string->description = e->GetAttribute("y").ToStdString();
             string->port = wxAtoi(e->GetAttribute("p"));
+            string->brightness = DecodeBrightness(wxAtoi(e->GetAttribute("b", "0")));
+            string->nullPixels = wxAtoi(e->GetAttribute("n", "0"));
+            string->gamma = DecodeGamma(wxAtoi(e->GetAttribute("ga", "0")));
+            string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
+            string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
+            string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
             string->index = i;
             virtualStringData.push_back(string);
 
@@ -778,7 +826,114 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
     return virtualStrings;
 }
 
-int Falcon::DecodeStringPortProtocol(std::string protocol)
+int Falcon::DecodeBrightness(int brightnessCode) const
+{
+    switch(brightnessCode)
+    {
+    case 0: return 100;
+    case 1: return 95;
+    case 2: return 90;
+    case 3: return 85;
+    case 4: return 80;
+    case 5: return 75;
+    case 6: return 70;
+    case 7: return 65;
+    case 8: return 60;
+    case 9: return 50;
+    case 10: return 40;
+    case 11: return 30;
+    case 12: return 20;
+    case 13: return 10;
+    }
+
+    return 100;
+}
+
+int Falcon::EncodeBrightness(int brightness) const
+{
+    if (brightness < 15) return 13;
+    if (brightness < 25) return 12;
+    if (brightness < 35) return 11;
+    if (brightness < 45) return 10;
+    if (brightness < 55) return 9;
+    if (brightness < 62.5) return 8;
+    if (brightness < 67.5) return 7;
+    if (brightness < 72.5) return 6;
+    if (brightness < 77.5) return 5;
+    if (brightness < 82.5) return 4;
+    if (brightness < 87.5) return 3;
+    if (brightness < 92.5) return 2;
+    if (brightness < 97.5) return 1;
+    return 0;
+}
+
+float Falcon::DecodeGamma(int gammaCode) const
+{
+    switch(gammaCode)
+    {
+    case 0: return 1.0;
+    case 1: return 2.0;
+    case 2: return 2.3;
+    case 3: return 2.5;
+    case 4: return 2.8;
+    case 5: return 3.0;
+    }
+    return 1.0;
+}
+
+int Falcon::EncodeGamma(float gamma) const
+{
+    if (gamma < 1.5) return 0;
+    if (gamma < 2.15) return 1;
+    if (gamma < 2.4) return 2;
+    if (gamma < 2.65) return 3;
+    if (gamma < 2.9) return 4;
+    return 5;
+}
+
+std::string Falcon::DecodeColourOrder(int colourOrderCode) const
+{
+    switch(colourOrderCode)
+    {
+    case 0: return "RGB";
+    case 1: return "RBG";
+    case 2: return "GRB";
+    case 3: return "GBR";
+    case 4: return "BRG";
+    case 5: return "BGR";
+    }
+    return "RGB";
+}
+
+int Falcon::EncodeColourOrder(const std::string& colourOrder) const
+{
+    if (colourOrder == "RGB") return 0;
+    if (colourOrder == "RBG") return 1;
+    if (colourOrder == "GRB") return 2;
+    if (colourOrder == "GBR") return 3;
+    if (colourOrder == "BRG") return 4;
+    if (colourOrder == "BGR") return 5;
+    return 0;
+}
+
+std::string Falcon::DecodeDirection(int directionCode) const
+{
+    switch(directionCode)
+    {
+    case 0: return "Forward";
+    case 1: return "Reverse";
+    }
+    return "Forward";
+}
+
+int Falcon::EncodeDirection(const std::string& direction) const
+{
+    if (direction == "Forward") return 0;
+    if (direction == "Reverse") return 1;
+    return 0;
+}
+
+int Falcon::DecodeStringPortProtocol(std::string protocol) const
 {
     wxString p(protocol);
     p = p.Lower();
@@ -814,6 +969,12 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
         string->description = "";
         string->port = i;
         string->index = i + virtualStrings;
+        string->brightness = 100;
+        string->nullPixels = 0;
+        string->gamma = 1.0;
+        string->colourOrder = "RGB";
+        string->direction = "Forward";
+        string->groupCount = 1;
         stringsData[i] = string;
     }
 
@@ -829,6 +990,12 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
             string->universe = 1;
             string->description = "";
             string->port = i;
+            string->brightness = 100;
+            string->nullPixels = 0;
+            string->gamma = 1.0;
+            string->colourOrder = "RGB";
+            string->direction = "Forward";
+            string->groupCount = 1;
             string->index = i + virtualStrings;
             stringsData[i] = string;
         }
@@ -978,13 +1145,20 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const
 
 std::string Falcon::BuildStringPort(FalconString* string) const
 {
-    return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s", 
-        string->index, string->port, 
+    return wxString::Format("&p%i=%i&t%i=%i&u%i=%i&s%i=%i&c%i=%i&y%i=%s&b%i=%i&n%i=%i&G%i=%i&o%i=%i&d%i=%i&g%i=%i",
+        string->index, string->port,
         string->index, string->protocol,
         string->index, string->universe,
         string->index, string->startChannel,
         string->index, string->pixels,
-        string->index, string->description).ToStdString();
+        string->index, string->description,
+        string->index, EncodeBrightness(string->brightness),
+        string->index, string->nullPixels,
+        string->index, EncodeGamma(string->gamma),
+        string->index, EncodeColourOrder(string->colourOrder),
+        string->index, EncodeDirection(string->direction),
+        string->index, string->groupCount
+    ).ToStdString();
 }
 
 void Falcon::ResetStringOutputs()
@@ -992,7 +1166,7 @@ void Falcon::ResetStringOutputs()
     PutURL("/StringPorts.htm", "S=4&p0=0&p1=1&p2=2&p3=3");
 }
 
-int Falcon::DecodeSerialOutputProtocol(std::string protocol)
+int Falcon::DecodeSerialOutputProtocol(std::string protocol) const
 {
     wxString p(protocol);
     p = p.Lower();

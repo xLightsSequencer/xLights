@@ -13,20 +13,6 @@ class wxTextCtrl;
 
 #include "../BulkEditControls.h"
 
-#define SPIRALS_COUNT_MIN 1
-#define SPIRALS_COUNT_MAX 5
-
-#define SPIRALS_MOVEMENT_MIN -200
-#define SPIRALS_MOVEMENT_MAX 200
-#define SPIRALS_MOVEMENT_DIVISOR 10
-
-#define SPIRALS_ROTATION_MIN -300
-#define SPIRALS_ROTATION_MAX 300
-#define SPIRALS_ROTATION_DIVISOR 10
-
-#define SPIRALS_THICKNESS_MIN 0
-#define SPIRALS_THICKNESS_MAX 100
-
 class SpiralsPanel: public wxPanel
 {
 	public:

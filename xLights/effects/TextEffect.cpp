@@ -75,6 +75,22 @@ std::list<std::string> TextEffect::GetFileReferences(const SettingsMap &Settings
     return res;
 }
 
+bool TextEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKERCTRL_Text_File"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKERCTRL_Text_File"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()));
+            rc = true;
+        }
+    }
+
+    return rc;
+}
+
 wxPanel *TextEffect::CreatePanel(wxWindow *parent) {
     return new TextPanel(parent);
 }
@@ -1317,6 +1333,7 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
+    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop);
     if (rotate_90) {
         OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
         if (up) {
@@ -1340,7 +1357,6 @@ void TextEffect::RenderXLText(Effect *effect, const SettingsMap &settings, Rende
         OffsetTop += buffer.BufferHt / 2 - font->GetCapsHeight() / 2;
     }
 
-    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text_length, char_height, endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop);
 
     if (text != "") {
         int space_offset = 0;

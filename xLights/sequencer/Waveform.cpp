@@ -386,8 +386,11 @@ void Waveform::DrawWaveView(const WaveView &wv)
 
     if(_media != nullptr)
     {
-        //xlColor c(130,178,207,255);
-        xlColor c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
+        xlColor c(130,178,207,255);
+        if (xLightsApp::GetFrame() != nullptr)
+        {
+            c = xLightsApp::GetFrame()->color_mgr.GetColor(ColorManager::COLOR_WAVEFORM);
+        }
 
         int max = std::min(mWindowWidth, wv.MinMaxs.size());
         if (mStartPixelOffset != wv.lastRenderStart || max != wv.lastRenderSize) {

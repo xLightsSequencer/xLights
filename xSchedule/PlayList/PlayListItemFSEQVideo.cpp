@@ -118,6 +118,14 @@ void PlayListItemFSEQVideo::LoadAudio()
         if (_audioManager->FileName() == af)
         {
             // already open
+
+            // If audio file is shorter than fseq override the duration
+            if (_audioManager->LengthMS() < _durationMS)
+            {
+                logger_base.debug("FSEQ length %ld overridden by audio length %ld.", (long)_audioManager->LengthMS(), (long)_durationMS);
+                _durationMS = _audioManager->LengthMS();
+            }
+
             return;
         }
         else

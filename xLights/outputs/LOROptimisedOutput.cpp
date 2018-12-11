@@ -236,7 +236,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
             unit_id++;
         }
     }
-    logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
+    //logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
 }
 
 void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb)

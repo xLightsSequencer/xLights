@@ -152,6 +152,22 @@ std::list<std::string> VideoEffect::GetFileReferences(const SettingsMap &Setting
     return res;
 }
 
+bool VideoEffect::CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap)
+{
+    bool rc = false;
+    wxString file = SettingsMap["E_FILEPICKERCTRL_Video_Filename"];
+    if (wxFile::Exists(file))
+    {
+        if (!frame->IsInShowFolder(file))
+        {
+            SettingsMap["E_FILEPICKERCTRL_Video_Filename"] = frame->MoveToShowFolder(file, wxString(wxFileName::GetPathSeparator()) + "Videos");
+            rc = true;
+        }
+    }
+
+    return rc;
+}
+
 void VideoEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 

@@ -189,6 +189,7 @@ public:
         void OnMenuItem_MIDITimeCodeMasterSelected(wxCommandEvent& event);
         void OnMenuItem_MIDITimeCodeSlaveSelected(wxCommandEvent& event);
         void OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommandEvent& event);
+        void OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -242,6 +243,7 @@ public:
         static const long ID_STATICBITMAP1;
         static const long ID_PANEL4;
         static const long ID_MNU_SHOWFOLDER;
+        static const long ID_MNU_USEXLIGHTSFOLDER;
         static const long ID_MNU_SAVE;
         static const long idMenuQuit;
         static const long ID_MNU_MNUADDPLAYLIST;
@@ -336,6 +338,7 @@ public:
         wxMenuItem* MenuItem_Save;
         wxMenuItem* MenuItem_ShowFolder;
         wxMenuItem* MenuItem_Standalone;
+        wxMenuItem* MenuItem_UsexLightsFolder;
         wxMenuItem* MenuItem_ViewLog;
         wxMenuItem* MenuItem_VirtualMatrices;
         wxMenuItem* MenuItem_WebInterface;

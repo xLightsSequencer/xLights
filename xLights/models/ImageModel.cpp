@@ -261,10 +261,31 @@ void ImageModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccu
     }
 }
 
+bool ImageModel::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    if (wxFile::Exists(_imageFile))
+    {
+        if (!frame->IsInShowFolder(_imageFile))
+        {
+            _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
+            ModelXml->DeleteAttribute("Image");
+            ModelXml->AddAttribute("Image", _imageFile);
+            SetFromXml(ModelXml, zeroBased);
+            rc = true;
+        }
+    }
+
+    return Model::CleanupFileLocations(frame) || rc;
+}
+
 std::list<std::string> ImageModel::GetFileReferences()
 {
     std::list<std::string> res;
-    res.push_back(_imageFile);
+    if (wxFile::Exists(_imageFile))
+    {
+        res.push_back(_imageFile);
+    }
     return res;
 }
 

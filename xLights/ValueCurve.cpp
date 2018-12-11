@@ -413,7 +413,12 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
 
 void ValueCurve::Reverse()
 {
-    _timeOffset = 100 - _timeOffset;
+    // Only reverse the time offset if a non zero value was used
+    if (_timeOffset != 0)
+    {
+        _timeOffset = 100 - _timeOffset;
+    }
+
     if (_type == "Custom")
     {
         for (auto it = _values.begin(); it != _values.end(); ++it)
@@ -1169,38 +1174,46 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         if (!holdminmax)
         {
             // This converts curves from the 0-100 to the real scale
-            if (_active && !_realValues && oldmin != MINVOIDF)
+            if (_active && !_realValues)
             {
-                if (_min != 0 || _max != 100)
+                if (_min == 0 && _max == 100 && _divisor == 1)
                 {
-                    // use the scale in the file if it wasnt 0-100
-                    FixChangedScale(_min, _max, _divisor);
+                    // no rescaling needed
+                    _realValues = true;
                 }
-                else
+                else if (oldmin != MINVOIDF)
                 {
-                    if (oldmin != 0 || oldmax != 100 || _divisor != 1)
+                    if (_min != 0 || _max != 100)
                     {
-                        // otherwise use the scale of this VC ... this is not great ... if the VC range has been expanded then
-                        // it isnt going to convert correctly
-
-                        // this is actually checking for something 2018.23 or newer
-                        // this should be updated every release by 1 until we decide to change a slider range for the first time
-                        // at that point we are going to need to force people to go back to a version after 2017.24 but before the
-                        // first version with the change
-                        if (!::IsVersionOlder("2018.30", xlights_version_string.ToStdString()))
-                        {
-                            static std::string warnedfile = "";
-
-                            if (xLightsFrame::CurrentSeqXmlFile != nullptr && warnedfile != xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString())
-                            {
-                                warnedfile = xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString();
-                                wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2018.23 before proceeding.");
-                            }
-                        }
-                        FixChangedScale(oldmin, oldmax, _divisor);
+                        // use the scale in the file if it wasnt 0-100
+                        FixChangedScale(_min, _max, _divisor);
                     }
+                    else
+                    {
+                        if (oldmin != 0 || oldmax != 100 || _divisor != 1)
+                        {
+                            // otherwise use the scale of this VC ... this is not great ... if the VC range has been expanded then
+                            // it isnt going to convert correctly
+
+                            // this is actually checking for something 2018.23 or newer
+                            // this should be updated every release by 1 until we decide to change a slider range for the first time
+                            // at that point we are going to need to force people to go back to a version after 2017.24 but before the
+                            // first version with the change
+                            if (!::IsVersionOlder("2018.46", xlights_version_string.ToStdString()))
+                            {
+                                static std::string warnedfile = "";
+
+                                if (xLightsFrame::CurrentSeqXmlFile != nullptr && warnedfile != xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString())
+                                {
+                                    warnedfile = xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString();
+                                    wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2018.23 before proceeding.");
+                                }
+                            }
+                            FixChangedScale(oldmin, oldmax, _divisor);
+                        }
+                    }
+                    _realValues = true;
                 }
-                _realValues = true;
             }
 
             // This converts curves to the new scale when a parameters range has been expanded ... but only if it was already real values

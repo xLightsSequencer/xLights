@@ -18,6 +18,7 @@ class FPP
 	std::string _password;
 	std::string _ip;
     std::string _version;
+    bool _forceFTP;
     bool _connected;
     OutputManager* _outputManager;
     
@@ -33,7 +34,7 @@ public:
     std::string Version() { return _version; };
 	void RestartFFPD();
 	void E131Output(bool enable);
-    FPP(OutputManager* outputManager, const std::string& ip, const std::string& user = "", const std::string& password = "");
+    FPP(OutputManager* outputManager, const std::string& defaultVersion, const std::string& ip, const std::string& user = "", const std::string& password = "");
     FPP(OutputManager* outputManager);
     bool IsConnected() const { return _connected; };
     ~FPP();

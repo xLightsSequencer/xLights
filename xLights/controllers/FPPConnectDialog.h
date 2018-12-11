@@ -70,6 +70,7 @@ class FPPConnectDialog: public wxDialog
 		wxCheckBox* CheckBox_UploadModels;
 		wxCheckBox* PlayListCheckbox;
 		wxCheckListBox* CheckListBox_Sequences;
+		wxChoice* Choice_DefaultVersion;
 		wxChoice* Choice_Drives;
 		wxComboBox* ComboBox_IPAddress;
 		wxComboBox* PlayListName;
@@ -83,6 +84,7 @@ class FPPConnectDialog: public wxDialog
 		wxStaticText* StaticText4;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
 		wxTextCtrl* TextCtr_Username;
 		wxTextCtrl* TextCtrl_Description;
 		wxTextCtrl* TextCtrl_Password;
@@ -101,6 +103,8 @@ class FPPConnectDialog: public wxDialog
 		static const long ID_STATICTEXT3;
 		static const long ID_TEXTCTRL_Password;
 		static const long ID_BUTTON_Console;
+		static const long ID_STATICTEXT7;
+		static const long ID_CHOICE1;
 		static const long ID_CHECKBOX2;
 		static const long ID_COMBOBOX1;
 		static const long ID_PANEL_FTP;

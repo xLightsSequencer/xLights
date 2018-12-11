@@ -213,6 +213,7 @@ const long xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const long xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
 const long xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
 const long xLightsFrame::ID_MNU_CHECKSEQ = wxNewId();
+const long xLightsFrame::ID_MNU_CLEANUPFILE = wxNewId();
 const long xLightsFrame::ID_MENU_VIEW_LOG = wxNewId();
 const long xLightsFrame::ID_MENUITEM18 = wxNewId();
 const long xLightsFrame::ID_EXPORT_MODELS = wxNewId();
@@ -855,6 +856,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(MenuItem_GenerateLyrics);
     MenuItemCheckSequence = new wxMenuItem(Menu1, ID_MNU_CHECKSEQ, _("C&heck Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemCheckSequence);
+    MenuItem_CleanupFileLocations = new wxMenuItem(Menu1, ID_MNU_CLEANUPFILE, _("Cleanup File Locations"), _("Moves all files into or under the show folder."), wxITEM_NORMAL);
+    Menu1->Append(MenuItem_CleanupFileLocations);
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MENU_VIEW_LOG, _("&View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
     MenuItem38 = new wxMenuItem(Menu1, ID_MENUITEM18, _("&Package Log Files"), _("Packages up current configuration, logs and sequence for reporting a problem to development team."), wxITEM_NORMAL);
@@ -1252,6 +1255,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENUITEM_GenerateCustomModel,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(ID_MNU_GENERATELYRICS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
     Connect(ID_MNU_CHECKSEQ,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemCheckSequenceSelected);
+    Connect(ID_MNU_CLEANUPFILE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_CleanupFileLocationsSelected);
     Connect(ID_MENU_VIEW_LOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ViewLogSelected);
     Connect(ID_MENUITEM18,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemPackageDebugFiles);
     Connect(ID_EXPORT_MODELS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnmExportModelsMenuItemSelected);
@@ -4370,7 +4374,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup(),
-                model->GetControllerConnectionString(),
+                model->GetControllerConnectionRangeString(),
                 type,
                 description,
                 output,
@@ -5308,7 +5312,11 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            std::string cc = it->second->GetControllerConnectionString();
+            std::string cc = "";
+            if (it->second->IsControllerConnectionValid())
+            {
+                cc = wxString::Format("%s:%d", it->second->GetControllerProtocol(), it->second->GetControllerPort()).ToStdString();
+            }
             if (cc != "")
             {
                 long start = it->second->GetFirstChannel() + 1;
@@ -5614,7 +5622,7 @@ void xLightsFrame::CheckSequence(bool display)
                 SubModel* sm = (SubModel*)it->second->GetSubModel(i);
                 if (!sm->IsNodesAllValid())
                 {
-                    wxString msg = wxString::Format("    ERR: Submodel '%s' has invalid nodes outside the range of the parent model.", 
+                    wxString msg = wxString::Format("    ERR: Submodel '%s' has invalid nodes outside the range of the parent model.",
                         sm->GetFullName());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
@@ -5843,12 +5851,13 @@ void xLightsFrame::CheckSequence(bool display)
         LogAndWrite(f, "Effect problems");
 
         // check all effects
+        bool videoCacheWarning = false;
         for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName());
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning);
 
                 if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
@@ -5857,7 +5866,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName());
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -5865,7 +5874,7 @@ void xLightsFrame::CheckSequence(bool display)
                             for (int l = 0; l < nl->GetEffectCount(); l++)
                             {
                                 Effect* ef = nl->GetEffect(l);
-                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true);
+                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning);
                             }
                         }
                     }
@@ -5874,11 +5883,18 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName());
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning);
                         }
                     }
                 }
             }
+        }
+
+        if (videoCacheWarning)
+        {
+            wxString msg = wxString::Format("    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
         }
 
         if (errcount + warncount == errcountsave + warncountsave)
@@ -5928,10 +5944,25 @@ void xLightsFrame::CheckSequence(bool display)
     }
 }
 
-void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node)
+void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning)
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
+
+    if (ef->GetEffectName() == "Video")
+    {
+        if (_enableRenderCache == "Disabled")
+        {
+            videoCacheWarning = true;
+        }
+        else if (!ef->IsLocked() && _enableRenderCache == "Locked Only")
+        {
+            videoCacheWarning = true;
+            wxString msg = wxString::Format("    WARN: Video effect unlocked but only locked video effects are being render cached. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            LogAndWrite(f, msg.ToStdString());
+            warncount++;
+        }
+    }
 
     // check value curves not updated
     for (auto it = sm.begin(); it != sm.end(); ++it)
@@ -5939,7 +5970,10 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
         wxString value = it->second;
         if (value.Contains("|Type=") && !value.Contains("RV=TRUE"))
         {
-            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+            int start = value.Find("|Id=") + 4;
+            wxString property = value.substr(start);
+            property = property.BeforeFirst('|');
+            wxString msg = wxString::Format("    ERR: Effect contains very old value curve. Click on this effect and then save the sequence to convert it. Effect: %s, Model: %s, Start %s (%s)", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()), property);
             LogAndWrite(f, msg.ToStdString());
             errcount++;
         }
@@ -6017,7 +6051,7 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning)
 {
     for (int j = 0; j < e->GetEffectLayerCount(); j++)
     {
@@ -6071,7 +6105,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                 }
             }
 
-            CheckEffect(ef, f, errcount, warncount, name, modelName);
+            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning);
         }
 
         // This assumes effects are stored in start time order per layer
@@ -6971,6 +7005,164 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     out.Close();
 
     prog.Update(100);
+}
+
+bool xLightsFrame::IsInShowFolder(const std::string& file) const
+{
+    wxString sf(GetShowDirectory());
+    wxString f(file);
+
+#ifdef __WXMSW__
+    // windows filenames are not case sensitive
+    sf.LowerCase();
+    f.LowerCase();
+#endif
+    sf.Replace("\\", "/");
+    f.Replace("\\", "/");
+
+    return f.StartsWith(sf);
+}
+
+#define FILES_MATCH_COMPARE 8192
+bool xLightsFrame::FilesMatch(const std::string & file1, const std::string & file2) const
+{
+    // only equal if they both exist
+    if (!wxFile::Exists(file1)) return false;
+    if (!wxFile::Exists(file2)) return false;
+
+    // and they are the same size
+    wxFileName f1(file1);
+    wxFileName f2(file2);
+    if (f1.GetSize() != f2.GetSize()) return false;
+
+    // and the first 8K matches byte for byte ... we could check it all but this seems reasonable
+    wxByte buf1[FILES_MATCH_COMPARE];
+    wxByte buf2[FILES_MATCH_COMPARE];
+    memset(buf1, 0x00, sizeof(buf1));
+    memset(buf1, 0x00, sizeof(buf2));
+
+    wxFile ff1;
+    if (ff1.Open(file1))
+    {
+        ff1.Read(buf1, sizeof(buf1));
+    }
+
+    wxFile ff2;
+    if (ff2.Open(file2))
+    {
+        ff2.Read(buf2, sizeof(buf2));
+    }
+
+    return (memcmp(buf1, buf2, sizeof(buf1)) == 0);
+}
+
+std::string xLightsFrame::MoveToShowFolder(const std::string& file, const std::string& subdirectory)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxFileName fn(file);
+
+    wxString target = GetShowDirectory();
+    if (target.EndsWith("/") || target.EndsWith("\\"))
+    {
+        target = target.SubString(0, target.Length() - 2);
+    }
+    target += subdirectory;
+    wxString dir = target;
+
+    if (!wxDir::Exists(dir))
+    {
+        wxFileName d;
+        if (!d.Mkdir(dir))
+        {
+            logger_base.error("Unable to create target folder %s.", (const char*)dir.c_str());
+        }
+    }
+
+    if (target.EndsWith("/") || target.EndsWith("\\"))
+    {
+        target = target.SubString(0, target.Length() - 2);
+    }
+
+    target += wxFileName::GetPathSeparator();
+    target += fn.GetFullName();
+
+    int i = 1;
+    while (wxFile::Exists(target) && !FilesMatch(file, target))
+    {
+        target = dir + wxFileName::GetPathSeparator() + fn.GetName() + "_" + wxString::Format("%d", i++) + "." + fn.GetExt();
+    }
+
+    if (!wxFile::Exists(target))
+    {
+        logger_base.debug("Copying file %s to %s.", (const char*)file.c_str(), (const char *)target.c_str());
+        wxCopyFile(file, target, false);
+    }
+
+    return target.ToStdString();
+}
+
+void xLightsFrame::CleanupSequenceFileLocations()
+{
+    wxString media = CurrentSeqXmlFile->GetMediaFile();
+    if (wxFile::Exists(media) && !IsInShowFolder(media))
+    {
+        CurrentSeqXmlFile->SetMediaFile(GetShowDirectory(), MoveToShowFolder(media, wxString(wxFileName::GetPathSeparator()) + "Audio"), false);
+        mSequenceElements.IncrementChangeCount(nullptr);
+    }
+
+    bool changed = false;
+    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
+    {
+        Element* e = mSequenceElements.GetElement(j);
+        changed = e->CleanupFileLocations(this, effectManager) || changed;
+
+        if (dynamic_cast<ModelElement*>(e) != nullptr)
+        {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+                SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+                changed = se->CleanupFileLocations(this, effectManager) || changed;
+            }
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+                StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+                changed = se->CleanupFileLocations(this, effectManager) || changed;
+            }
+        }
+    }
+
+    if (changed)
+    {
+        mSequenceElements.IncrementChangeCount(nullptr);
+    }
+}
+
+void xLightsFrame::CleanupRGBEffectsFileLocations()
+{
+    if (wxFile::Exists(mBackgroundImage) && !IsInShowFolder(mBackgroundImage))
+    {
+        wxString bi = MoveToShowFolder(mBackgroundImage, wxString(wxFileName::GetPathSeparator()));
+        SetPreviewBackgroundImage(bi);
+        MarkEffectsFileDirty(false);
+    }
+
+    for (auto m : AllModels)
+    {
+        if (m.second->CleanupFileLocations(this))
+        {
+            MarkEffectsFileDirty(false);
+        }
+    }
+}
+
+void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Cleaning up file locations.");
+    CleanupRGBEffectsFileLocations();
+    if (CurrentSeqXmlFile != nullptr)
+    {
+        CleanupSequenceFileLocations();
+    }
+    logger_base.debug("Cleaning up file locations ... DONE.");
 }
 
 void xLightsFrame::OnMenuItem_xScheduleSelected(wxCommandEvent& event)
@@ -8016,7 +8208,6 @@ void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
                     if (lastEffect != nullptr && lastPhenome == it->first)
                     {
                         lastEffect->SetEndTimeMS(lastEffect->GetEndTimeMS() + CurrentSeqXmlFile->GetFrameMS());
-                        phenomeFound = true;
                     }
                     else
                     {
@@ -8759,7 +8950,6 @@ void xLightsFrame::OnMenuItem_RenderCache(wxCommandEvent& event)
         _enableRenderCache = "Locked Only";
     }
 
-
     _renderCache.Enable(_enableRenderCache);
     _renderCache.CleanupCache(&mSequenceElements); // purge anything the cache no longer needs
 
@@ -8918,14 +9108,12 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
             event.Skip();
         }
         return;
-        break;
     case NEWSEQUENCER:
         if (!mainSequencer->HandleSequencerKeyBinding(event))
         {
             event.Skip();
         }
         return;
-        break;
     default:
         break;
     }
@@ -8940,3 +9128,4 @@ void xLightsFrame::OnMenuItem_ZoomSelected(wxCommandEvent& event)
 {
     ::wxLaunchDefaultBrowser("https://zoom.us/j/175801909");
 }
+
