@@ -801,10 +801,10 @@ void LayoutPanel::refreshModelList() {
 
         if (model != nullptr ) {
             int end_channel = model->GetLastChannel()+1;
-            wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager(), nullptr);
+            wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
             if( model->GetDisplayAs() != "ModelGroup" ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
-                wxString startStr = model->GetStartChannelInDisplayFormat();
+                wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
                 if (cv != startStr) {
                     data->startingChannel = model->GetNumberFromChannelString(model->ModelStartChannel);
                     if ((model->CouldComputeStartChannel || model->GetDisplayAs() == "SubModel") && model->IsValidStartChannelString())
@@ -910,8 +910,8 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
                                                          GetModelTreeIcon(model, true),
                                                          new ModelTreeData(model, nativeOrder));
     if( model->GetDisplayAs() != "ModelGroup" ) {
-        wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager(), nullptr);
-        wxString startStr = model->GetStartChannelInDisplayFormat();
+        wxString endStr = model->GetLastChannelInStartChannelFormat(xlights->GetOutputManager());
+        wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
         if (model->GetDisplayAs() == "SubModel" || (model->CouldComputeStartChannel && model->IsValidStartChannelString()))
         {
             TreeListViewModels->SetItemText(item, Col_StartChan, startStr);
@@ -1073,6 +1073,7 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
         TreeListViewModels->SetItemComparator(&comparator);
         if (sorted) {
             TreeListViewModels->SetSortColumn(sortcol, ascending);
+            TreeListViewModels->GetDataView()->GetModel()->Resort();
         }
     }
     xlights->PreviewModels = models;
@@ -2046,7 +2047,7 @@ void LayoutPanel::FinalizeModel()
             float max_y = (float)(newModel->GetModelScreenLocation().GetTop()) / (float)(newModel->GetModelScreenLocation().previewH);
             bool cancelled = false;
 
-            wxProgressDialog prog("Model download", "Downloading models ...", 100, this);
+            wxProgressDialog prog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
             if (selectedButton->GetModelType() == "Download")
             {
                 prog.Show();

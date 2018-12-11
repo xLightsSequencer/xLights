@@ -7,8 +7,6 @@
  * License:
  **************************************************************/
 
-//#define TRACE_SCHEDULE_PERFORMANCE 1
-
 #define ZERO 0
 
 // When defined web status is sent every frame ... great for finding issues with connectivity to web clients.
@@ -32,6 +30,7 @@
 #include "PlayList/PlayListStep.h"
 #include <wx/bitmap.h>
 #include "../xLights/xLightsVersion.h"
+#include "../xLights/outputs/OutputManager.h"
 #include <wx/protocol/http.h>
 #include <wx/debugrpt.h>
 #include "RunningSchedule.h"
@@ -51,6 +50,7 @@
 #include "../xLights/UtilFunctions.h"
 #include "ConfigureMIDITimecodeDialog.h"
 #include "City.h"
+#include "events/ListenerManager.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -309,8 +309,11 @@ wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SYNC, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOACTION, wxCommandEvent);
+wxDEFINE_EVENT(EVT_STOP, wxCommandEvent);
+wxDEFINE_EVENT(EVT_QUIT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 
@@ -321,8 +324,11 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
     EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
+    EVT_COMMAND(wxID_ANY, EVT_SYNC, xScheduleFrame::Sync)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
     EVT_COMMAND(wxID_ANY, EVT_DOACTION, xScheduleFrame::DoAction)
+    EVT_COMMAND(wxID_ANY, EVT_STOP, xScheduleFrame::DoStop)
+    EVT_COMMAND(wxID_ANY, EVT_QUIT, xScheduleFrame::OnQuit)
     EVT_COMMAND(wxID_ANY, EVT_XYZZY, xScheduleFrame::DoXyzzy)
     EVT_COMMAND(wxID_ANY, EVT_XYZZYEVENT, xScheduleFrame::DoXyzzyEvent)
     END_EVENT_TABLE()
@@ -331,6 +337,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    OutputManager::SetInteractive(false);
     _pinger = nullptr;
     __schedule = nullptr;
     _statusSetAt = wxDateTime::Now();
@@ -340,6 +347,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _nowebicon = wxBitmap(no_web_icon_24);
     _webicon = wxBitmap(web_icon_24);
     _webIconDisplayed = false;
+
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
 
     //(*Initialize(xScheduleFrame)
     wxBoxSizer* BoxSizer1;
@@ -621,8 +631,11 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
     Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
+    Connect(wxID_ANY, EVT_SYNC, (wxObjectEventFunction)&xScheduleFrame::Sync);
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
     Connect(wxID_ANY, EVT_DOACTION, (wxObjectEventFunction)&xScheduleFrame::DoAction);
+    Connect(wxID_ANY, EVT_STOP, (wxObjectEventFunction)&xScheduleFrame::DoStop);
+    Connect(wxID_ANY, EVT_QUIT, (wxObjectEventFunction)&xScheduleFrame::OnQuit);
     Connect(wxID_ANY, EVT_XYZZY, (wxObjectEventFunction)&xScheduleFrame::DoXyzzy);
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
@@ -662,6 +675,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     SetPosition(wxPoint(x, y));
     SetSize(w, h);
 
+    logger_base.debug("xSchedule UI %d,%d %dx%d.", x, y, w, h);
+
     ListView_Running->AppendColumn("Step");
     ListView_Running->AppendColumn("Duration");
     ListView_Running->AppendColumn("");
@@ -697,6 +712,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     BitmapButton_VolumeDown->SetBitmap(_volumedown);
     BitmapButton_VolumeUp->SetBitmap(_volumeup);
 
+    logger_base.debug("Loading show folder.");
     if (showdir == "")
     {
         LoadShowDir();
@@ -706,6 +722,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         _showDir = showdir;
     }
 
+    logger_base.debug("Loading schedule.");
     LoadSchedule();
 
     if (__schedule == nullptr)
@@ -713,6 +730,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         logger_base.error("Error loading schedule.");
         Close();
     }
+
+    __schedule->GetListenerManager()->ProcessPacket("State", "Startup");
 
     // Uncomment this to run the MatrixMapper tests
     //MatrixMapper::Test(__schedule->GetOutputManager());
@@ -733,11 +752,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
         UpdateUI();
     }
 
-    _timer.Stop();
     if (rate == 0) rate = 50;
-    _timer.Start(rate/2, false);
-    _timerSchedule.Stop();
-    _timerSchedule.Start(500, true);
+    _timer.Start(rate / 2, false, "FrameTimer");
+    _timerSchedule.Start(500, false, "ScheduleTimer");
 
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
 
@@ -765,7 +782,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     RemoteWarning();
 
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -925,6 +942,8 @@ void xScheduleFrame::OnQuit(wxCommandEvent& event)
         }
     }
 
+    //__schedule->GetListenerManager()->ProcessPacket("State", "Shutdown");
+
     Close();
 }
 
@@ -1030,7 +1049,7 @@ void xScheduleFrame::OnTreeCtrlMenu(wxCommandEvent &event)
         TreeCtrl_PlayListsSchedules->EnsureVisible(newitem);
         __schedule->AddPlayList(newpl);
     }
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -1065,7 +1084,7 @@ void xScheduleFrame::DeleteSelectedItem()
 
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesSelectionChanged(wxTreeEvent& event)
 {
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -1177,7 +1196,7 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
         _timer.Stop();
         LoadSchedule();
         _timer.Start(50 / 2, false);
-        _timerSchedule.Start(50, true);
+        _timerSchedule.Start(500, false);
     }
     ValidateWindow();
 }
@@ -1295,29 +1314,28 @@ std::string xScheduleFrame::GetScheduleName(Schedule* schedule, const std::list<
 void xScheduleFrame::OnTreeCtrl_PlayListsSchedulesItemActivated(wxTreeEvent& event)
 {
     EditSelectedItem();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
 void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     static int last = -1;
 
     if (__schedule == nullptr) return;
 
     static long long lastms = 0;
     long long now = wxGetLocalTimeMillis().GetValue();
+    logger_frame.debug("Timer: Start frame %d", (int)(now - lastms));
     if (now - lastms > _timer.GetInterval() * 4)
     {
-        if (lastms != 0)
+        if (lastms != 0 && __schedule->IsOutputToLights())
         {
             logger_base.warn("Frame interval greater than 200%% of what it should have been [%d] %d", _timer.GetInterval() * 2, (int)(now - lastms));
         }
     }
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("Start frame %d", (int)(now - lastms));
-#endif
     lastms = now;
 
     wxDateTime frameStart = wxDateTime::UNow();
@@ -1329,9 +1347,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 #endif
     {
         // This code must be commented out before release!!!
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-        logger_base.debug("    Check schedule");
-#endif
+        logger_frame.debug("    Check schedule");
         last = wxDateTime::Now().GetSecond();
         wxCommandEvent event2(EVT_SCHEDULECHANGED);
         wxPostEvent(this, event2);
@@ -1346,9 +1362,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
     {
         // we took too long so next frame has to be an output frame
         _timerOutputFrame = true;
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-        logger_base.debug("Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval() / 2);
-#endif
+        logger_frame.debug("Timer: Frame took too long %ld > %d so next frame forced to be output", ms, _timer.GetInterval() / 2);
     }
     else
     {
@@ -1356,28 +1370,22 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         _timerOutputFrame = !_timerOutputFrame;
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("Frame time %ld", ms);
-#endif
+    logger_frame.debug("Timer: Frame time %ld", ms);
 }
 
 void xScheduleFrame::UpdateSchedule()
 {
     if (__schedule == nullptr) return;
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     wxStopWatch sw;
-    logger_base.debug("Updating the schedule.");
-#endif
+    logger_frame.debug("Updating the schedule.");
 
     TreeCtrl_PlayListsSchedules->Freeze();
 
     int rate = __schedule->CheckSchedule();
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("Schedule checked %ldms", sw.Time());
-#endif
+    logger_frame.debug("Schedule checked %ldms", sw.Time());
 
     // highlight the state of all schedule items in the tree
     wxTreeItemIdValue tid;
@@ -1423,44 +1431,34 @@ void xScheduleFrame::UpdateSchedule()
         }
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("    Tree updated %ldms", sw.Time());
-#endif
+    logger_frame.debug("    Tree updated %ldms", sw.Time());
 
     CorrectTimer(rate);
 
     // Ensure I am firing on the minute
     if (wxDateTime::Now().GetSecond() != 0)
     {
-        _timerSchedule.Stop();
         int time = (60 - wxDateTime::Now().GetSecond()) * 1000;
         if (time == 0) time = 1;
         _timerSchedule.Start(time, false);
     }
     else if (_timerSchedule.GetInterval() != 60000)
     {
-        _timerSchedule.Stop();
         _timerSchedule.Start(60000, false);
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("    Timers sorted %ldms", sw.Time());
-#endif
+    logger_frame.debug("    Timers sorted %ldms", sw.Time());
 
     UpdateUI();
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("    UI updated %ldms", sw.Time());
-#endif
+    logger_frame.debug("    UI updated %ldms", sw.Time());
 
     ValidateWindow();
 
     TreeCtrl_PlayListsSchedules->Thaw();
     TreeCtrl_PlayListsSchedules->Refresh();
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("    Schedule updated %ldms", sw.Time());
-#endif
+    logger_frame.debug("    Schedule updated %ldms", sw.Time());
 }
 
 void xScheduleFrame::On_timerScheduleTrigger(wxTimerEvent& event)
@@ -1518,8 +1516,6 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
 
     if (dlg.ShowModal() == wxID_OK)
     {
-        Schedule::SetCity(__schedule->GetOptions()->GetCity());
-
         if (oldport != __schedule->GetOptions()->GetWebServerPort())
         {
             delete _webServer;
@@ -1532,6 +1528,11 @@ void xScheduleFrame::OnMenuItem_OptionsSelected(wxCommandEvent& event)
             _webServer->SetPassword(__schedule->GetOptions()->GetPassword());
             _webServer->SetPasswordTimeout(__schedule->GetOptions()->GetPasswordTimeout());
         }
+
+        Schedule::SetCity(__schedule->GetOptions()->GetCity());
+        __schedule->GetOutputManager()->SetParallelTransmission(__schedule->GetOptions()->IsParallelTransmission());
+        OutputManager::SetRetryOpen(__schedule->GetOptions()->IsRetryOpen());
+        __schedule->GetOutputManager()->SetSyncEnabled(__schedule->GetOptions()->IsSync());
 
         __schedule->OptionsChanged();
 
@@ -1588,7 +1589,7 @@ void xScheduleFrame::CreateButtons()
     for (auto it = bs.begin(); it != bs.end(); ++it)
     {
         // only show not hidden buttons
-        if (!wxString((*it)->GetLabel()).StartsWith("HIDE_"))
+        if (!wxString((*it)->GetLabel()).StartsWith("HIDE_") && __schedule->GetCommand((*it)->GetCommand()) != nullptr)
         {
             CreateButton((*it)->GetLabel(), (*it)->GetColor());
         }
@@ -1779,13 +1780,11 @@ std::string FormatTime(size_t timems, bool ms = false)
     }
 }
 
-void xScheduleFrame::UpdateStatus()
+void xScheduleFrame::UpdateStatus(bool force)
 {
-#ifdef TRACE_SCHEDULE_PERFORMANCE
     wxStopWatch sw;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("            Update Status");
-#endif
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    logger_frame.debug("            Update Status");
 
     ListView_Running->Freeze();
 
@@ -1794,9 +1793,7 @@ void xScheduleFrame::UpdateStatus()
         StatusBar1->SetStatusText("");
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("            Status Text %ldms", sw.Time());
-#endif
+    logger_frame.debug("            Status Text %ldms", sw.Time());
 
     static int lastcc = -1;
     static int lastid = -1;
@@ -1813,9 +1810,7 @@ void xScheduleFrame::UpdateStatus()
         }
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("            Got selected playlist %ldms", sw.Time());
-#endif
+    logger_frame.debug("            Got selected playlist %ldms", sw.Time());
 
     if (p == nullptr)
     {
@@ -1827,7 +1822,8 @@ void xScheduleFrame::UpdateStatus()
     }
     else
     {
-        if (p->GetId() != lastid ||
+        if (force ||
+            p->GetId() != lastid ||
             p->GetChangeCount() != lastcc ||
             (int)p->IsRunning() != lastrunning ||
             p->GetSteps().size() != laststeps)
@@ -1902,9 +1898,7 @@ void xScheduleFrame::UpdateStatus()
     ListView_Running->Thaw();
     ListView_Running->Refresh();
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("            Updated running listview %ldms", sw.Time());
-#endif
+    logger_frame.debug("            Updated running listview %ldms", sw.Time());
 
     static int saved = -1;
     static int otl = -1;
@@ -2109,9 +2103,7 @@ void xScheduleFrame::UpdateStatus()
         }
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("            Updated toolbar %ldms", sw.Time());
-#endif
+    logger_frame.debug("            Updated toolbar %ldms", sw.Time());
 
     // update each button based on current status
 
@@ -2156,9 +2148,7 @@ void xScheduleFrame::UpdateStatus()
         }
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("            Updated buttons %ldms", sw.Time());
-#endif
+    logger_frame.debug("            Updated buttons %ldms", sw.Time());
 
     Custom_Volume->SetValue(__schedule->GetVolume());
 
@@ -2166,9 +2156,7 @@ void xScheduleFrame::UpdateStatus()
 
     SendStatus();
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("            Status Sent %ldms", sw.Time());
-#endif
+    logger_frame.debug("            Status Sent %ldms", sw.Time());
 }
 
 void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
@@ -2260,7 +2248,6 @@ void xScheduleFrame::SendReport(const wxString &loc, wxDebugReportCompress &repo
     memBuff.AppendData("\n", 1);
     memBuff.AppendData(ct, strlen(ct));
     memBuff.AppendData(cd.c_str(), strlen(cd.c_str()));
-
 
     wxFile f_in(report.GetCompressedFileName());
     wxFileOffset fLen = f_in.Length();
@@ -2365,10 +2352,12 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
 
 void xScheduleFrame::CorrectTimer(int rate)
 {
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     if (rate == 0) rate = 50;
     if ((rate - __schedule->GetTimerAdjustment()) / 2 != _timer.GetInterval())
     {
-        _timer.Stop();
+        logger_frame.debug("Timer corrected %d", (rate - __schedule->GetTimerAdjustment()) / 2);
+
         _timer.Start((rate - __schedule->GetTimerAdjustment()) / 2);
     }
 }
@@ -2420,7 +2409,7 @@ void xScheduleFrame::OnMenuItem_WebInterfaceSelected(wxCommandEvent& event)
 void xScheduleFrame::OnMenuItem_AddPlayListSelected(wxCommandEvent& event)
 {
     AddPlayList();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -2444,21 +2433,21 @@ void xScheduleFrame::AddPlayList(bool forceadvanced)
 void xScheduleFrame::OnButton_AddClick(wxCommandEvent& event)
 {
     AddPlayList();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_EditClick(wxCommandEvent& event)
 {
     EditSelectedItem();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_DeleteClick(wxCommandEvent& event)
 {
     DeleteSelectedItem();
-    UpdateUI();
+    UpdateUI(true);
     ValidateWindow();
 }
 
@@ -2506,8 +2495,37 @@ void xScheduleFrame::ScheduleChange(wxCommandEvent& event)
     UpdateUI();
 }
 
+void xScheduleFrame::Sync(wxCommandEvent& event)
+{
+    __schedule->DoSync(event.GetString().ToStdString(), event.GetInt());
+}
+
 void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
 {
+    UpdateSchedule();
+    UpdateUI();
+}
+
+void xScheduleFrame::DoStop(wxCommandEvent& event)
+{
+    bool end = false;
+    if (event.GetString() == "end")
+    {
+        end = true;
+    }
+
+    if (event.GetInt() == -1)
+    {
+        __schedule->StopAll();
+    }
+    else
+    {
+        PlayList* p = __schedule->GetRunningPlayList(event.GetInt());
+        if (p != nullptr)
+        {
+            __schedule->StopPlayList(p, end);
+        }
+    }
     UpdateSchedule();
     UpdateUI();
 }
@@ -2538,21 +2556,17 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
     delete amd;
 }
 
-void xScheduleFrame::UpdateUI()
+void xScheduleFrame::UpdateUI(bool force)
 {
-#ifdef TRACE_SCHEDULE_PERFORMANCE
     wxStopWatch sw;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("        Update UI");
-#endif
+    static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
+    logger_frame.debug("        Update UI");
 
     StaticText_PacketsPerSec->SetLabel(wxString::Format("Packets/Sec: %d", __schedule->GetPPS()));
 
-    UpdateStatus();
+    UpdateStatus(force);
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("        Status updated %ldms", sw.Time());
-#endif
+    logger_frame.debug("        Status updated %ldms", sw.Time());
 
     Brightness->SetValue(__schedule->GetBrightness());
 
@@ -2573,9 +2587,7 @@ void xScheduleFrame::UpdateUI()
         }
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("        Web request status updated %ldms", sw.Time());
-#endif
+    logger_frame.debug("        Web request status updated %ldms", sw.Time());
 
     if (!_suspendOTL)
     {
@@ -2612,9 +2624,7 @@ void xScheduleFrame::UpdateUI()
             __schedule->SetOutputToLights(this, false, false);
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("        Managed output to lights %ldms", sw.Time());
-#endif
+    logger_frame.debug("        Managed output to lights %ldms", sw.Time());
 
     if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
     {
@@ -2771,9 +2781,7 @@ void xScheduleFrame::UpdateUI()
         MenuItem_MIDITimeCodeMaster->Check(false);
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("        Updated mode %ldms", sw.Time());
-#endif
+    logger_frame.debug("        Updated mode %ldms", sw.Time());
 
     if (_pinger != nullptr)
     {
@@ -2845,9 +2853,7 @@ void xScheduleFrame::UpdateUI()
         }
     }
 
-#ifdef TRACE_SCHEDULE_PERFORMANCE
-    logger_base.debug("        Updated ping status %ldms", sw.Time());
-#endif
+    logger_frame.debug("        Updated ping status %ldms", sw.Time());
 
     ValidateWindow();
 
@@ -2966,18 +2972,21 @@ void xScheduleFrame::SendStatus()
 {
     if (_webServer != nullptr && __schedule != nullptr)
     {
-        std::string result;
-        if (__schedule->IsXyzzy())
+        if (_webServer->IsSomeoneListening())
         {
-            __schedule->DoXyzzy("q", "", result, "");
-        }
-        else
-        {
-            std::string msg;
-            __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
-        }
+            std::string result;
+            if (__schedule->IsXyzzy())
+            {
+                __schedule->DoXyzzy("q", "", result, "");
+            }
+            else
+            {
+                std::string msg;
+                __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
+            }
 
-        _webServer->SendMessageToAllWebSockets(result);
+            _webServer->SendMessageToAllWebSockets(result);
+        }
     }
 }
 
@@ -3176,7 +3185,7 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
     _timer.Stop();
     LoadSchedule();
     _timer.Start(50 / 2, false);
-    _timerSchedule.Start(50, true);
+    _timerSchedule.Start(500, false);
 
     ValidateWindow();
 }

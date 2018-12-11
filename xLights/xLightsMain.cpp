@@ -1739,9 +1739,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             _enableRenderCache = "Locked Only";
             MenuItem_RC_LockedOnly->Check(true);
         }
-        logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
-        _renderCache.Enable(_enableRenderCache);
     }
+    logger_base.debug("Enable Render Cache: %s.", (const char*)_enableRenderCache.c_str());
+    _renderCache.Enable(_enableRenderCache);
 
     config->Read("xLightsAutoSavePerspectives", &_autoSavePerspecive, false);
     MenuItem_PerspectiveAutosave->Check(_autoSavePerspecive);
@@ -2453,7 +2453,7 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
-        EffectSettingsTimer.Start(50);
+        EffectSettingsTimer.Start(50, wxTIMER_CONTINUOUS);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
     }
@@ -3638,6 +3638,8 @@ void xLightsFrame::UpdateSequenceLength()
 
 void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
 	// save the media playing state and stop it if it is playing
 	MEDIAPLAYINGSTATE mps = MEDIAPLAYINGSTATE::STOPPED;
 	if (CurrentSeqXmlFile != nullptr && CurrentSeqXmlFile->GetMedia() != nullptr)
@@ -3645,6 +3647,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 		mps = CurrentSeqXmlFile->GetMedia()->GetPlayingState();
 		if (mps == MEDIAPLAYINGSTATE::PLAYING)
 		{
+            logger_base.debug("Test: Suspending play.");
 			CurrentSeqXmlFile->GetMedia()->Pause();
 			SetAudioControls();
 		}
@@ -3656,6 +3659,7 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
 	bool output = CheckBoxLightOutput->IsChecked();
 	if (output)
 	{
+        logger_base.debug("Test: Turning off output to lights.");
         _outputManager.AllOff();
         CheckBoxLightOutput->SetValue(false);
         EnableOutputs();
@@ -3667,26 +3671,33 @@ void xLightsFrame::OnActionTestMenuItemSelected(wxCommandEvent& event)
     // Make sure all the models in model groups are valid
     AllModels.ResetModelGroups();
 
+    logger_base.debug("Test: Opening test dialog.");
+
 	// display the test dialog
     PixelTestDialog dialog(this, &_outputManager, networkFile, &AllModels);
     dialog.CenterOnParent();
     dialog.ShowModal();
+
+    logger_base.debug("Test: Test dialog closed.");
 
 	SetCursor(wxCURSOR_DEFAULT);
 
 	// resume output if it was set
 	if (output)
 	{
+        logger_base.debug("Test: Turning back on output to lights.");
         CheckBoxLightOutput->SetValue(true);
         EnableOutputs();
 	}
 
+    // Restart the timer without changing the interval
 	Timer1.Start();
 
 	// resume playing the media if it was playing
 	if (mps == MEDIAPLAYINGSTATE::PLAYING)
 	{
-		CurrentSeqXmlFile->GetMedia()->Play();
+        logger_base.debug("Test: Resuming play.");
+        CurrentSeqXmlFile->GetMedia()->Play();
 		SetAudioControls();
 	}
 }
@@ -3768,6 +3779,7 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
         EnableOutputs();
     }
 
+    // restarts the timer without changing the interval
     Timer1.Start();
 
     // resume playing the media if it was playing
@@ -5360,14 +5372,28 @@ void xLightsFrame::CheckSequence(bool display)
                 {
                     long sc;
                     Output* o = _outputManager.GetOutput(m1start, sc);
-                    wxString msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
-                        (*it2)->GetName(),
-                        (*it3)->GetName(),
-                        o->GetIP(),
-                        (*it2)->GetControllerConnectionString(),
-                        m2start - m1end - 1);
+                    wxString msg;
+                    if (m2start - m1end - 1 <= 30)
+                    {
+                        msg = wxString::Format("    WARN: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a small gap of %d channels between them. Maybe these are NULL Pixels?",
+                            (*it2)->GetName(),
+                            (*it3)->GetName(),
+                            o->GetIP(),
+                            (*it2)->GetControllerConnectionString(),
+                            m2start - m1end - 1);
+                        warncount++;
+                    }
+                    else
+                    {
+                        msg = wxString::Format("    ERR: Model '%s' and Model '%s' are on controller IP '%s' Output Connection '%s' but there is a gap of %d channels between them.",
+                            (*it2)->GetName(),
+                            (*it3)->GetName(),
+                            o->GetIP(),
+                            (*it2)->GetControllerConnectionString(),
+                            m2start - m1end - 1);
+                        errcount++;
+                    }
                     LogAndWrite(f, msg.ToStdString());
-                    errcount++;
                 }
 
                 ++it2;

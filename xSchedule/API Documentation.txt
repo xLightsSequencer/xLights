@@ -287,7 +287,13 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 			
 		Clear background playlist
 			Stops any existing background playlist.
+
+		Close xSchedule
+			Shuts down xSchedule
 			
+		Add n Seconds To Current Step Position			
+			Advances (forwarded or backward) the position within the current step by n seconds
+		
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 

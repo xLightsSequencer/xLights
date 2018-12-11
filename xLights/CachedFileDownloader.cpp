@@ -67,6 +67,7 @@ bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog
     }
 
     wxHTTP http;
+    http.SetTimeout(30);
     http.SetMethod("GET");
     int port = 80;
     if (wxAtoi(url.GetPort()) != 0)
@@ -103,10 +104,11 @@ bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog
             long size = 0;
             if (f.Open(filename.GetFullPath(), wxFile::write))
             {
-                wxByte buffer[65536];
+                const int bufsiz = 2097152;
+                wxByte* buffer = (wxByte*)malloc(bufsiz);
                 while (!httpStream->Eof() && httpStream->CanRead())
                 {
-                    httpStream->Read(buffer, sizeof(buffer));
+                    httpStream->Read(buffer, bufsiz);
                     f.Write(buffer, httpStream->LastRead());
                     size += httpStream->LastRead();
                     if (prog != nullptr)
@@ -116,6 +118,8 @@ bool FileCacheItem::DownloadURL(wxURI url, wxFileName filename, wxProgressDialog
                         prog->Update(upto);
                     }
                 }
+                free(buffer);
+
                 f.Close();
                 logger_base.debug("   File downloaded %.1f kbytes in %ldms.", (float)size / 1024.0, sw.Time());
             }

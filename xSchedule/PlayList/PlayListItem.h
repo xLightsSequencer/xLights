@@ -7,6 +7,7 @@
 #include <wx/notebook.h>
 
 class wxXmlNode;
+class AudioManager;
 
 class PlayListItem
 {
@@ -30,8 +31,12 @@ protected:
     void Save(wxXmlNode* node);
     void Copy(PlayListItem* to) const;
     bool IsInSlaveMode() const;
+    std::string ReplaceTags(const std::string s) const;
 
-public:
+protected:
+    static std::string GetTagHint();
+
+    public:
 
     #pragma region Constructors and Destructors
     PlayListItem(wxXmlNode* node);
@@ -83,6 +88,7 @@ public:
     virtual void Restart() {}
     virtual void Pause(bool pause) {}
     virtual void Suspend(bool suspend) {}
+    virtual bool Advance(int seconds) { return false; }
     #pragma endregion Playing
 
     #pragma region UI

@@ -117,6 +117,7 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     int max = buffer.BufferWi;
     int direction = mapDirection(Skips_Direction);
     if (direction > 1) {
+        max++;
         max /= 2;
     }
 

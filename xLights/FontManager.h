@@ -4,6 +4,8 @@
 #include <vector>
 #include "wx/wx.h"
 
+#define XL_FONT_WIDTHS 128
+
 class xlFont
 {
     public:
@@ -12,7 +14,7 @@ class xlFont
         wxBitmap* get_bitmap() { return &bitmap; }
         int GetWidth() { return char_width; }
         int GetHeight() { return char_height; }
-        int GetCharWidth(int ascii) { return widths[ascii]; }
+        int GetCharWidth(int ascii); 
         int GetCapsHeight() { return caps_height; }
         void SetCapsHeight( int height ) { caps_height = height; }
         void GatherInfo();
@@ -21,7 +23,7 @@ class xlFont
         int char_width;   // the standard character width
         int char_height;  // the standard character height
         int caps_height;  // the capital letter height
-        int widths[128];  // the trimmed width of each character
+        int widths[XL_FONT_WIDTHS];  // the trimmed width of each character
         wxBitmap& bitmap;
 };
 

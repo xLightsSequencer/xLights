@@ -412,6 +412,10 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
+    bool res = false;
+
+    logger_base.debug("Web request %s.", (const char *)request.URI().c_str());
+
     xScheduleFrame::GetScheduleManager()->WebRequestReceived();
 
     std::string wwwroot = xScheduleFrame::GetScheduleManager()->GetOptions()->GetWWWRoot();
@@ -430,7 +434,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xyzzy"))
     {
@@ -446,7 +450,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulelogin"))
     {
@@ -462,7 +466,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulestash"))
     {
@@ -487,7 +491,7 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         }
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
     else if (request.URI().Lower().StartsWith("/xschedulequery"))
     {
@@ -504,13 +508,10 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
         response.MakeFromText(result, "application/json");
         connection.SendResponse(response);
 
-        return true;
+        res = true;
     }
-    else if (!__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
+    else if (wwwroot != "" && !__apiOnly && (request.URI() == "" || request.URI() == "/" || request.URI() == "/" + wwwroot || request.URI() == "/" + wwwroot + "/"))
     {
-        if (wwwroot == "") return false;
-
-
         // Chris if you need this line to be this way on linux then use a #ifdef as the other works on windows
         //int port = connection.Server()->Context().Port;
         //wxString url = "http://" + request.Host() + ":" + wxString::Format(wxT("%i"), port) + "/" + wwwroot + "/index.html";
@@ -525,12 +526,10 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
         connection.SendResponse(response);
 
-        return true; // disable default processing
+        res = true; // disable default processing
     }
-    else
+    else if (wwwroot != "")
     {
-        if (wwwroot == "") return false;
-
         wxString uri = wxURI(request.URI()).BuildUnescapedURI();
 
         if (!__apiOnly && request.URI().StartsWith("/" + wwwroot))
@@ -571,11 +570,20 @@ bool MyRequestHandler(HttpConnection &connection, HttpRequest &request)
 
             connection.SendResponse(response);
 
-            return true; // disable default processing
+            res = true; // disable default processing
         }
     }
 
-    return false; // lets the library's default processing
+    if (res)
+    {
+        logger_base.debug("Web request handled");
+    }
+    else
+    {
+        logger_base.debug("Web request NOT handled");
+    }
+
+    return res; // lets the library's default processing
 }
 
 void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
@@ -702,6 +710,18 @@ void WebServer::SendMessageToAllWebSockets(const std::string& message)
     }
 
     reentry = false;
+}
+
+bool WebServer::IsSomeoneListening() const
+{
+    for (auto it : _connections)
+    {
+        if (it.second->IsWebSocket())
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 WebServer::WebServer(int port, bool apionly, const std::string& password, int mins)

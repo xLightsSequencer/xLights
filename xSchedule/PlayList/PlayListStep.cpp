@@ -46,6 +46,7 @@ PlayListStep::PlayListStep(OutputManager* outputManager, wxXmlNode* node)
     _excludeFromRandom = false;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
+    _everyStep = false;
     Load(outputManager, node);
 }
 
@@ -67,6 +68,7 @@ PlayListStep::PlayListStep()
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _excludeFromRandom = false;
+    _everyStep = false;
 }
 
 PlayListStep::PlayListStep(const PlayListStep& step)
@@ -81,6 +83,7 @@ PlayListStep::PlayListStep(const PlayListStep& step)
     _lastSavedChangeCount = step._lastSavedChangeCount;
     _changeCount = step._changeCount;
     _excludeFromRandom = step._excludeFromRandom;
+    _everyStep = step._everyStep;
     _id = step._id;
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -135,6 +138,10 @@ wxXmlNode* PlayListStep::Save()
     {
         res->AddAttribute("ExcludeRandom", "TRUE");
     }
+    if (_everyStep)
+    {
+        res->AddAttribute("EveryStep", "TRUE");
+    }
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -151,6 +158,7 @@ void PlayListStep::Load(OutputManager* outputManager, wxXmlNode* node)
 {
     _name = node->GetAttribute("Name", "");
     _excludeFromRandom = node->GetAttribute("ExcludeRandom", "FALSE") == "TRUE";
+    _everyStep = node->GetAttribute("EveryStep", "FALSE") == "TRUE";
 
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
     {
@@ -340,7 +348,7 @@ std::string PlayListStep::GetNameNoTime()
         return _items.front()->GetNameNoTime();
     }
 }
-
+    
 PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
 {
     ms = 9999;
@@ -389,14 +397,14 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
 
             if ((*it)->ControlsTiming())
             {
-                if (timesource == nullptr)
+                if (timesource == nullptr && (*it)->GetDurationMS() > 0)
                 {
                     timesource = *it;
                     ms = msec;
                 }
                 else
                 {
-                    if (timesource != nullptr && (*it)->GetPriority() > timesource->GetPriority())
+                    if (timesource != nullptr && (*it)->GetDurationMS() > 0 && (*it)->GetPriority() > timesource->GetPriority())
                     {
                         timesource = *it;
                         ms = msec;
@@ -423,7 +431,7 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
 
 bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
 {
-        ReentrancyCounter rec(_reentrancyCounter);
+    ReentrancyCounter rec(_reentrancyCounter);
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -487,9 +495,9 @@ void PlayListStep::Start(int loops)
     _startTime = wxGetUTCTimeMillis().GetLo();
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (auto it: _items)
         {
-            (*it)->Start(GetLengthMS());
+            it->Start(GetLengthMS());
         }
     }
 }
@@ -516,6 +524,21 @@ void PlayListStep::Pause(bool pause)
             (*it)->Pause(pause);
         }
     }
+}
+
+void PlayListStep::Advance(int seconds)
+{
+    size_t msPerFrame = 1000;
+    PlayListItem* timesource = GetTimeSource(msPerFrame);
+
+    if (timesource != nullptr)
+    {
+        if (timesource->Advance(seconds)) return;
+    }
+
+    _startTime -= seconds * 1000;
+    if (_startTime > wxGetUTCTimeMillis().GetLo()) _startTime = wxGetUTCTimeMillis().GetLo();
+    if (wxGetUTCTimeMillis().GetLo() - _startTime > GetLengthMS()) _startTime = wxGetUTCTimeMillis().GetLo() - GetLengthMS();
 }
 
 void PlayListStep::Suspend(bool suspend)
@@ -604,6 +627,9 @@ size_t PlayListStep::GetPosition()
         }
     }
 
+    wxASSERT(frameMS >= 0);
+    wxASSERT(frameMS < 100000000);
+
     return frameMS;
 }
 
@@ -624,7 +650,7 @@ size_t PlayListStep::GetLengthMS()
             for (auto it = _items.begin(); it != _items.end(); ++it)
             {
                 // duration has to look valid
-                if ((*it)->GetDurationMS() < 99999999999)
+                if ((*it)->GetDurationMS() < 999999999)
                 {
                     len = std::max(len, (*it)->GetDurationMS());
                 }
@@ -821,6 +847,8 @@ std::string PlayListStep::FormatTime(size_t timems, bool ms) const
 
 std::string PlayListStep::GetStatus(bool ms)
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     std::string fps = "Unknown";
 
     if (GetFrameMS() > 0)
@@ -828,7 +856,11 @@ std::string PlayListStep::GetStatus(bool ms)
         fps = wxString::Format(wxT("%i"), (int)(1000 / GetFrameMS())).ToStdString();
     }
     
-    return "Time: " + FormatTime(GetPosition(), ms) + " Left: " + FormatTime(GetLengthMS() - GetPosition(), ms) + " FPS: " + fps;
+    std::string res = "Time: " + FormatTime(GetPosition(), ms) + " Left: " + FormatTime(GetLengthMS() - GetPosition(), ms) + " FPS: " + fps;
+
+    //logger_base.debug(res);
+
+    return res;
 }
 
 std::list<PlayListItem*> PlayListStep::GetItems()

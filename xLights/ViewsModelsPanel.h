@@ -58,6 +58,7 @@ class ViewsModelsPanel: public wxPanel
     int _sortOrder = 0;
     std::list<std::string> _undo;
 
+    void RemoveModelFromLists(const std::string& modelName);
     void PopulateViews();
     void SortNonModels();
     void PopulateModels(const std::string& selectModels = "");

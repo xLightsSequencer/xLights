@@ -1,8 +1,8 @@
 #include "OutputManager.h"
 
 #include <wx/xml/xml.h>
-
-#include <log4cpp/Category.hh>
+#include <wx/msgdlg.h>
+#include <wx/config.h>
 #include <wx/filename.h>
 
 #include "E131Output.h"
@@ -10,19 +10,23 @@
 #include "ArtNetOutput.h"
 #include "DDPOutput.h"
 #include "TestPreset.h"
-#include <wx/msgdlg.h>
 #include "../osxMacUtils.h"
-#include <wx/config.h>
+#include "../Parallel.h"
+
+#include <log4cpp/Category.hh>
 
 int OutputManager::_lastSecond = -10;
 int OutputManager::_currentSecond = -10;
 int OutputManager::_lastSecondCount = 0;
 int OutputManager::_currentSecondCount = 0;
 bool OutputManager::__isSync = false;
+bool OutputManager::_isRetryOpen = false;
+bool OutputManager::_isInteractive = true;
 
 #pragma region Constructors and Destructors
 OutputManager::OutputManager()
 {
+    _parallelTransmission = false;
     _syncEnabled = false;
     _dirty = false;
     _syncUniverse = 0;
@@ -864,9 +868,19 @@ void OutputManager::EndFrame()
     if (!_outputting) return;
     if (!_outputCriticalSection.TryEnter()) return;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    if (_parallelTransmission)
     {
-        (*it)->EndFrame(_suppressFrames);
+        std::function<void(Output*&, int)> f = [this](Output*&o, int n) {
+            o->EndFrame(_suppressFrames);
+        };
+        parallel_for(_outputs, f);
+    }
+    else
+    {
+        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        {
+            (*it)->EndFrame(_suppressFrames);
+        }
     }
 
     if (IsSyncEnabled())
@@ -914,7 +928,10 @@ bool OutputManager::StartOutput()
         if (!ok && ok != preok)
         {
             logger_base.error("An error occured opening output %d (%s). Do you want to continue trying to start output?", started + 1, (const char *)(*it)->GetDescription().c_str());
-            if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started+1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            if (OutputManager::IsInteractive())
+            {
+                if (wxMessageBox(wxString::Format(wxT("An error occured opening output %d (%s). Do you want to continue trying to start output?"), started + 1, (*it)->GetDescription()), "Continue?", wxYES_NO) == wxNO) return _outputting;
+            }
             err = true;
         }
         if (ok) started++;
@@ -1005,11 +1022,7 @@ void OutputManager::SetManyChannels(long channel, unsigned char* data, long size
 
     while (left > 0 && o != nullptr)
     {
-#ifdef _MSC_VER
-        long send = min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
-#else
         long send = std::min(left, (o->GetChannels() * o->GetUniverses()) - stch + 1);
-#endif
         if (o->IsEnabled())
         {
             o->SetManyChannels(stch - 1, &data[size - left], send);

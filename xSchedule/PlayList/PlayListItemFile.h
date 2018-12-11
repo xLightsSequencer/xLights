@@ -16,7 +16,7 @@ protected:
     bool _started;
     #pragma endregion Member Variables
 
-    std::string ReplaceTags(const std::string s);
+    std::string FileReplaceTags(const std::string s);
 
 public:
 

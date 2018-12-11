@@ -24,6 +24,7 @@ class OutputManager
     bool _syncEnabled;
     bool _dirty;
     int _suppressFrames;
+    bool _parallelTransmission;
     bool _outputting; // true if we are currently sending out data
     wxCriticalSection _outputCriticalSection; // used to protect areas that must be single threaded
     #pragma endregion Member Variables
@@ -33,6 +34,8 @@ class OutputManager
     static int _currentSecond;
     static int _lastSecondCount;
     static int _currentSecondCount;
+    static bool _isRetryOpen;
+    static bool _isInteractive;
 
     bool SetGlobalOutputtingFlag(bool state, bool force = false);
 
@@ -47,6 +50,10 @@ public:
     static std::string GetNetworksFileName() { return NETWORKSFILE; }
     int GetPacketsPerSecond() const;
     static void RegisterSentPacket();
+    static bool IsRetryOpen() { return _isRetryOpen; }
+    static void SetRetryOpen(bool retryOpen) { _isRetryOpen = retryOpen; }
+    static bool IsInteractive() { return _isInteractive; }
+    static void SetInteractive(bool interactive) { _isInteractive = interactive; }
     #pragma endregion Static Functions
 
     #pragma region Save and Load
@@ -77,6 +84,8 @@ public:
     void SetShowDir(const std::string& showDir);
     void SuspendAll(bool suspend);
     std::list<std::string> GetControllerNames() const;
+    void SetParallelTransmission(bool parallel) { _parallelTransmission = parallel; }
+    bool GetParallelTransmission() const { return _parallelTransmission; }
     #pragma endregion Output Management
 
     void SomethingChanged() const;

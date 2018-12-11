@@ -1,7 +1,7 @@
-#include "SerialOutput.h"
-
 #include <wx/xml/xml.h>
-#include <log4cpp/Category.hh>
+#include <wx/msgdlg.h>
+
+#include "SerialOutput.h"
 #include "SerialPortWithRate.h"
 #include "LOROutput.h"
 #include "LOROptimisedOutput.h"
@@ -11,7 +11,9 @@
 #include "PixelNetOutput.h"
 #include "OpenDMXOutput.h"
 #include "OpenPixelNetOutput.h"
-#include <wx/msgdlg.h>
+#include "OutputManager.h"
+
+#include <log4cpp/Category.hh>
 
 #pragma region Constructors and Destructors
 SerialOutput::SerialOutput(wxXmlNode* node) : Output(node)
@@ -325,6 +327,9 @@ bool SerialOutput::Open()
         int errcode = _serial->Open(_commPort, _baudRate, _serialConfig);
         if (errcode < 0)
         {
+            delete _serial;
+            _serial = nullptr;
+
             logger_base.warn("Unable to open serial port %s. Error code = %d", (const char *)_commPort.c_str(), errcode);
             _ok = false;
 
@@ -336,18 +341,21 @@ bool SerialOutput::Open()
                 p += *it;
             }
 
-            wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
-                _("Things to check:\n") +
-                _("1. Are all required cables plugged in?\n") +
-                _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
-                _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
-                _("Unable to open serial port %s. Error code = %d"),
-                (const char *)GetType().c_str(),
-                (const char *)GetCommPort().c_str(),
-                (const char *)p.c_str(),
-                (const char *)_commPort.c_str(),
-                errcode);
-            wxMessageBox(msg, _("Communication Error"), wxOK);
+            if (OutputManager::IsInteractive())
+            {
+                wxString msg = wxString::Format(_("Error occurred while connecting to %s network on %s (Available Ports %s) \n\n") +
+                    _("Things to check:\n") +
+                    _("1. Are all required cables plugged in?\n") +
+                    _("2. Is there another program running that is accessing the port (like the LOR Control Panel)? If so, then you must close the other program and then restart xLights.\n") +
+                    _("3. If this is a USB dongle, are the FTDI Virtual COM Port drivers loaded?\n\n") +
+                    _("Unable to open serial port %s. Error code = %d"),
+                    (const char *)GetType().c_str(),
+                    (const char *)GetCommPort().c_str(),
+                    (const char *)p.c_str(),
+                    (const char *)_commPort.c_str(),
+                    errcode);
+                wxMessageBox(msg, _("Communication Error"), wxOK);
+            }
         }
         else
         {
@@ -377,6 +385,24 @@ void SerialOutput::Close()
         _serial = nullptr;
         logger_base.debug("    Serial port %s closed in %d milliseconds.", (const char *)_commPort.c_str(), i * 5);
     }
+}
+
+void SerialOutput::StartFrame(long msec)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!_enabled) return;
+
+    if (!_ok && OutputManager::IsRetryOpen())
+    {
+        _ok = SerialOutput::Open();
+        if (_ok)
+        {
+            logger_base.debug("SerialOutput: Open retry successful. %s.", (const char *)_commPort.c_str());
+        }
+    }
+
+    _timer_msec = msec;
 }
 #pragma endregion Start and Stop
 

@@ -15,6 +15,7 @@
 #include "PixelBuffer.h"
 #include "FanEffect.h"
 #include "SpiralsEffect.h"
+#include "PinwheelEffect.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -243,7 +244,7 @@ std::string RenderableEffect::GetEffectString() {
 }
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
-    return IsVersionOlder("2018.46", version);
+    return IsVersionOlder("2018.50", version);
 }
 
 void RenderableEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults) {
@@ -315,7 +316,7 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
         }
     }
 
-    if (IsVersionOlder("2018.46", version))
+    if (IsVersionOlder("2018.50", version))
     {
         SettingsMap& sm = effect->GetSettings();
 
@@ -361,6 +362,30 @@ void RenderableEffect::adjustSettings(const std::string &version, Effect *effect
             {
                 ValueCurve vc;
                 vc.SetLimits(FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_PinwheelXC"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(PINWHEEL_X_MIN, PINWHEEL_X_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_PinwheelYC"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(PINWHEEL_Y_MIN, PINWHEEL_Y_MAX);
+                vc.Deserialise(s.second);
+                sm[s.first] = vc.Serialise();
+                wxASSERT(vc.IsRealValue());
+            }
+            else if (v.Contains("ID_VALUECURVE_Spirals_Count"))
+            {
+                ValueCurve vc;
+                vc.SetLimits(SPIRALS_COUNT_MIN, SPIRALS_COUNT_MAX);
                 vc.Deserialise(s.second);
                 sm[s.first] = vc.Serialise();
                 wxASSERT(vc.IsRealValue());

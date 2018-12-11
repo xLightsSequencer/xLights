@@ -497,6 +497,24 @@ void PlayListItemFSEQVideo::FastSetDuration()
     }
 }
 
+bool PlayListItemFSEQVideo::Advance(int seconds)
+{
+    int adjustFrames = seconds * 1000 / (int)GetFrameMS();
+    _currentFrame += adjustFrames;
+    if (_currentFrame < 0) _currentFrame = 0;
+    if (_currentFrame > _stepLengthMS / GetFrameMS()) _currentFrame = _stepLengthMS / GetFrameMS();
+
+    if (ControlsTiming() && _audioManager != nullptr)
+    {
+        long newPos = _audioManager->Tell() + seconds * 1000;
+        if (newPos < 0) newPos = 0;
+        if (newPos > _audioManager->LengthMS()) newPos = _audioManager->LengthMS() - 5;
+        _audioManager->Seek(newPos);
+    }
+
+    return true;
+}
+
 size_t PlayListItemFSEQVideo::GetPositionMS() const
 {
     if (ControlsTiming() && _audioManager != nullptr)
@@ -646,7 +664,7 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
     // create the window
     if (_window == nullptr)
     {
-        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_HIGH, wxID_ANY, _origin, _size);
+        _window = new PlayerWindow(wxGetApp().GetTopWindow(), _topMost, wxIMAGE_QUALITY_BILINEAR /*wxIMAGE_QUALITY_HIGH*/, -1, wxID_ANY, _origin, _size);
     }
     else
     {

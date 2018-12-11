@@ -8,6 +8,7 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 #include <functional>
+#include "xLightsVersion.h"
 
 #pragma region RenderCache
 
@@ -69,7 +70,11 @@ RenderCache::~RenderCache()
 void RenderCache::LoadCache()
 {
     // the thread self deletes so we dont need to track it
-    new RenderCacheLoadThread(this);
+    if (IsEnabled())
+    {
+        wxASSERT(GetBitness() != "32bit");
+        new RenderCacheLoadThread(this);
+    }
 }
 
 void RenderCache::AddCacheItem(RenderCacheItem* rci)
@@ -94,8 +99,15 @@ void RenderCache::SetSequence(const std::string& path, const std::string& sequen
             _cacheFolder = path + wxFileName::GetPathSeparator() + "RenderCache" + wxFileName::GetPathSeparator() + sequenceFile + "_RENDER_CACHE";
             if (wxDir::Exists(_cacheFolder))
             {
-                logger_base.debug("Render cache disabled so removing folder %s.", (const char *)_cacheFolder.c_str());
-                wxDir::Remove(_cacheFolder, wxPATH_RMDIR_RECURSIVE);
+                if (GetBitness() == "32bit")
+                {
+                    logger_base.debug("Render cache disabled but NOT removing folder %s as this is the 32 bt version.", (const char *)_cacheFolder.c_str());
+                }
+                else
+                {
+                    logger_base.debug("Render cache disabled so removing folder %s.", (const char *)_cacheFolder.c_str());
+                    wxDir::Remove(_cacheFolder, wxPATH_RMDIR_RECURSIVE);
+                }
             }
         }
         return;

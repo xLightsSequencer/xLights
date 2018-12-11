@@ -392,12 +392,13 @@ public:
     RenderBuffer(xLightsFrame *frame);
     ~RenderBuffer();
     RenderBuffer(RenderBuffer& buffer);
-    void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform);
-    AudioManager* GetMedia();
+    void InitBuffer(int newBufferHt, int newBufferWi, int newModelBufferHt, int newModelBufferWi, const std::string& bufferTransform, bool nodeBuffer = false);
+    AudioManager* GetMedia() const;
     Model* GetModel() const;
     Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
     std::string GetModelName() const;
 
+    bool IsNodeBuffer() const { return _nodeBuffer; }
     void Clear();
     void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
     size_t GetColorCount();
@@ -475,6 +476,7 @@ public:
     xlColorVector pixels; // this is the calculation buffer
     xlColorVector tempbuf;
     PaletteClass palette;
+    bool _nodeBuffer;
 
     xLightsFrame *frame;
     std::string cur_model; //model currently in effect

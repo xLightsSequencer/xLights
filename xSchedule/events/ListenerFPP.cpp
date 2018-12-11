@@ -133,6 +133,8 @@ void ListenerFPP::Poll()
                         uint32_t frameNumber = sp->frameNumber;
                         long ms = frameNumber * _frameMS;
 
+                        logger_base.debug("FPP Sync type %d frame %u ms %ld %s.", (int)packetType, frameNumber, ms, (const char *)fileName.c_str());
+
                         if (packetType != -1)
                         {
                             switch (packetType)
@@ -141,7 +143,7 @@ void ListenerFPP::Poll()
                             {
                                 logger_base.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!! Remote start %s.", (const char *)fileName.c_str());
 
-                                _frameMS = _listenerManager->Sync(fileName, 0, GetType());
+                                _listenerManager->Sync(fileName, 0, GetType());
                             }
                             break;
                             case SYNC_PKT_STOP:

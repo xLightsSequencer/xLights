@@ -383,6 +383,8 @@
 		<Unit filename="EventLorPanel.h" />
 		<Unit filename="EventMIDIPanel.cpp" />
 		<Unit filename="EventMIDIPanel.h" />
+		<Unit filename="EventStatePanel.cpp" />
+		<Unit filename="EventStatePanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
 		<Unit filename="EventPingPanel.cpp" />
@@ -594,6 +596,8 @@
 		<Unit filename="events/EventLor.h" />
 		<Unit filename="events/EventMIDI.cpp" />
 		<Unit filename="events/EventMIDI.h" />
+		<Unit filename="events/EventState.cpp" />
+		<Unit filename="events/EventState.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
 		<Unit filename="events/EventPing.cpp" />
@@ -662,6 +666,7 @@
 		<Unit filename="wxsmith/EventFPPPanel.wxs" />
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
+		<Unit filename="wxsmith/EventStatePanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
 		<Unit filename="wxsmith/EventPingPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
@@ -787,6 +792,7 @@
 					<wxPanel wxs="wxsmith/EventOSCPanel.wxs" src="EventOSCPanel.cpp" hdr="EventOSCPanel.h" fwddecl="0" i18n="1" name="EventOSCPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventDataPanel.wxs" src="EventDataPanel.cpp" hdr="EventDataPanel.h" fwddecl="0" i18n="1" name="EventDataPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventFPPPanel.wxs" src="EventFPPPanel.cpp" hdr="EventFPPPanel.h" fwddecl="0" i18n="1" name="EventFPPPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/EventStatePanel.wxs" src="EventStatePanel.cpp" hdr="EventStatePanel.h" fwddecl="0" i18n="1" name="EventStatePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/EventLorPanel.wxs" src="EventLorPanel.cpp" hdr="EventLorPanel.h" fwddecl="0" i18n="1" name="EventLorPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/SustainDialog.wxs" src="SustainDialog.cpp" hdr="SustainDialog.h" fwddecl="0" i18n="1" name="SustainDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/EventPingPanel.wxs" src="EventPingPanel.cpp" hdr="EventPingPanel.h" fwddecl="0" i18n="1" name="EventPingPanel" language="CPP" />

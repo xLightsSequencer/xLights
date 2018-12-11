@@ -16,6 +16,7 @@
 #include "events/EventOSC.h"
 #include "events/EventFPP.h"
 #include "events/EventMIDI.h"
+#include "events/EventState.h"
 #include "events/EventE131.h"
 #include "events/EventData.h"
 
@@ -32,6 +33,8 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
+    _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
+    _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -89,6 +92,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
                 else if (n2->GetName() == "EventMIDI")
                 {
                     _events.push_back(new EventMIDI(n2));
+                }
+                else if (n2->GetName() == "EventState")
+                {
+                    _events.push_back(new EventState(n2));
                 }
                 else if (n2->GetName() == "EventSerial")
                 {
@@ -164,6 +171,8 @@ ScheduleOptions::ScheduleOptions()
     _lastSavedChangeCount = 0;
     _sync = false;
     _sendOffWhenNotRunning = false;
+    _parallelTransmission = false;
+    _retryOutputOpen = false;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
     _crashBehaviour = "Prompt user";
@@ -223,6 +232,16 @@ wxXmlNode* ScheduleOptions::Save()
     if (IsSendBackgroundWhenNotRunning())
     {
         res->AddAttribute("SendBackgroundWhenNotRunning", "TRUE");
+    }
+
+    if (IsParallelTransmission())
+    {
+        res->AddAttribute("ParallelTransmission", "TRUE");
+    }
+
+    if (IsRetryOpen())
+    {
+        res->AddAttribute("RetryOutputOpen", "TRUE");
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));

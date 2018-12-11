@@ -21,6 +21,7 @@ protected:
     int _reentrancyCounter;
     wxUint32 _id;
     std::list<PlayListStep*> _steps;
+    std::list<PlayListStep*> _everySteps;
     std::list<Schedule*> _schedules;
     int _lastSavedChangeCount;
     int _changeCount;
@@ -87,7 +88,7 @@ public:
     bool SetLooping(bool looping) { _looping = looping; return true; }
     bool IsStepLooping() const { return _loopStep; }
     int GetLoopsLeft() const { return _loops; }
-    void DoLoop() { --_loops; if (_loops == 0) { _loops = -1; _looping = false; } }
+    void DoLoop() { --_loops; if (_loops == 1) { _loops = -1; _looping = false; } }
     void SetStepLooping(bool loop) { _loopStep = loop; }
     PlayListStep* GetStepAtTime(long ms);
     size_t GetPosition();
@@ -139,6 +140,9 @@ public:
     bool LoopStep(const std::string step);
     PlayListItemText* GetRunningText(const std::string& name);
     #pragma endregion Getters and Setters
+
+    void ConsolidateEveryDay();
+    void SeparateEveryDay();
 
     wxXmlNode* Save();
     void Load(OutputManager* outputManager, wxXmlNode * node);

@@ -11,6 +11,70 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.55 December 10, 2018
+   -- bug (keith)  Fix scheduler crash that was way more common than I thought it would be [windows + linux only]
+2018.54 December 9, 2018
+   -- bug (keith)  Fix scheduler timer does not start correctly when xSchedule starts [windows + linux only]
+2018.53 December 8, 2018
+   -- bug (keith)  Fix test dialog hangs on exit
+   -- bug (keith)  Controller property changes dont update immediately in model list
+   -- bug (keith)  When xSchedule is a FPP remote all sequences play as if they were 50ms timing
+   -- bug (keith)  When xSchedule is FPP master it sends more sync packets than it should
+   -- bug (keith)  Fix xSchedule hang - hard to be certain i got all causes but i likely did.
+   -- bug (keith)  Fix xSchedule corrupts sequence file name leading to skipping of step - possible fix. 
+                   This may also address looping problems but it is hard to be sure as I dont have those problems.
+2018.52 December 5, 2018
+   *** CAUTION: This release on windows/linux include some changes which have a small risk of leading to xlights/xschedule hanging
+                so please test before using in your show. If you have issues it is safe to go back to a prior release.
+   -- bug (keith)  Fix some memory leaks in xlights/xschedule - this also may help with some lag
+   -- bug (keith)  Fix prevent 32bit from trying to load render cache if it is there
+   -- bug (keith)  Fix some xSchedule options not applied until restart
+   -- bug (keith)  Fix absolute model start channels off by one in model list
+   -- enh (keith)  Add "Close xSchedule" api
+   -- enh (keith)  Add "Add n Seconds To Current Step Position" api
+   -- enh (keith)  Add option in xSchedule to continue to try to connect outputs that fail to connect ... and when it fails do it silently
+   -- enh (keith)  Add a state event to xSchedule which fires when it starts, lights go on, lights go off and when an output fails to start
+   -- enh (keith)  Force LOR outputs to occasionally output a channel even if it hasnt changed
+2018.51 December 3, 2018
+   -- bug (keith)  More work on xSchedule audio load failure ... maybe a fix
+   -- bug (keith)  Reduce frequency of model property reload
+   -- bug (keith)  Keep sort in models when things are changed
+   -- bug (keith)  Speed up virtual matrices by reducing unnecessary work
+   -- bug (keith)  Default xSchedule to more efficient scaling algorithm
+   -- bug (keith)  Fix chained model start channel displayed off by 1
+   -- bug (chrisP) Fix FPP models file formatting error
+   -- bug (keith)  Fix FPP sync when xSchedule is the remote
+   -- bug (keith)  Fix face node select node saving
+   -- enh (keith)  Add render cancel to keybindings
+2018.50 December 1, 2018
+   -- bug (scott)  Fix Submodel Dialog missing buttons and scaling issues
+   -- enh (scott)  FPP Connect - save/load previous file selections on dialog open and close
+   -- bug (keith)  Fix test dialog cant multiselect to change testing state
+   -- bug (keith)  More work on xSchedule audio load failure ... maybe a fix
+   -- bug (keith)  Fix some more old value curve errors
+   -- bug (keith)  Fix xl Font move left and invalid chars not rendering correctly. This may impact some sequences if you have been working around this bug
+   -- bug (keith)  Add xSchedule performance logging which can be turned on
+   -- enh (keith)  Add optional parallel output of data in xschedule
+   -- enh (keith)  Add ability to skip media upload to FPP
+   -- bug (keith)  Fix xSchedule crash if you schedule a stop command
+   -- bug (keith)  Fixes for node effects on dmx models and some effect selection issues. Also fixes some LMS import problems
+   -- enh (keith)  Allow opt out of using gzip for FPP upload
+2018.49 November 27, 2018
+   -- bug (keith)  Maybe one fix for xSchedule crashes loading audio + lots of extra logging to try and work out why it crashes
+   -- bug (keith)  Fix model download progress dialog does not hide
+   -- bug (keith)  Fix cant delete an every step step
+2018.48 November 26, 2018
+   -- bug (keith)  Add extra logging to try to identify xSchedule audio load crash
+   -- bug (keith)  Fix bars effect expand on large model loops around
+   -- bug (keith)  Fix single strand skips renders in correctly on odd width models
+   -- bug (keith)  Fix vendor model download failing
+   -- bug (keith)  Fix playlist loops loops once more than it should
+   -- bug (keith)  Fix indiv start channels default incorrectly if using #ip:u:sc
+   -- bug (keith)  Fix make view master crashes 
+   -- bug (keith)  Fix output processor colour order not saving
+   -- bug (keith)  Fix test model channel for dis-contiguous channel model is incorrect: 
+   -- bug (keith)  Fix crash in submodel dialog
+   -- enh (keith)  Add ability to define a step in a playlist that plays as part of every step in the playlist
 2018.47 November 22, 2018
    -- bug (keith)  Fix a crash passing in an xml file to xlights which is not in the show folder
    -- bug (keith)  Ensure a city is always set

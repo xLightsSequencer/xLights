@@ -270,6 +270,44 @@ void ArtNetOutput::SendSync()
 #pragma endregion Static Functions
 
 #pragma region Start and Stop
+void ArtNetOutput::OpenDatagram()
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (_datagram != nullptr) return;
+
+    wxIPV4address localaddr;
+    if (IPOutput::__localIP == "")
+    {
+        localaddr.AnyAddress();
+    }
+    else
+    {
+        localaddr.Hostname(IPOutput::__localIP);
+    }
+
+    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
+    if (_datagram == nullptr)
+    {
+        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char *)localaddr.IPAddress().c_str());
+        _ok = false;
+    }
+    else if (!_datagram->IsOk())
+    {
+        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s OK : FALSE", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char *)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+        _ok = false;
+    }
+    else if (_datagram->Error())
+    {
+        logger_base.error("Error creating Artnet datagram => %d : %s. %s", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+        delete _datagram;
+        _datagram = nullptr;
+        _ok = false;
+    }
+}
+
 bool ArtNetOutput::Open()
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -294,39 +332,6 @@ bool ArtNetOutput::Open()
     _data[14] = (_universe & 0xFF);
     _data[15] = ((_universe & 0xFF00) >> 8);
     _data[16] = 0x02; // we are going to send all 512 bytes
-
-    wxIPV4address localaddr;
-    if (IPOutput::__localIP == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::__localIP);
-    }
-
-    _datagram = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-    if (_datagram == nullptr)
-    {
-        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char *)localaddr.IPAddress().c_str());
-        _ok = false;
-        return _ok;
-    } else if (!_datagram->IsOk())
-    {
-        logger_base.error("Error initialising Artnet datagram for %s %d:%d:%d. %s OK : FALSE", (const char *)_ip.c_str(), GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), (const char *)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-        return _ok;
-    }
-    else if (_datagram->Error())
-    {
-        logger_base.error("Error creating Artnet datagram => %d : %s. %s", _datagram->LastError(), (const char *)DecodeIPError(_datagram->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
-        delete _datagram;
-        _datagram = nullptr;
-        _ok = false;
-        return _ok;
-    }
 
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(ARTNET_PORT);
@@ -381,6 +386,24 @@ void ArtNetOutput::Close()
 #pragma endregion Start and Stop
 
 #pragma region Frame Handling
+void ArtNetOutput::StartFrame(long msec)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (!_enabled) return;
+
+    if (_datagram == nullptr && OutputManager::IsRetryOpen())
+    {
+        OpenDatagram();
+        if (_ok)
+        {
+            logger_base.debug("ArtNetOutput: Open retry successful");
+        }
+    }
+
+    _timer_msec = msec;
+}
+
 void ArtNetOutput::EndFrame(int suppressFrames)
 {
     if (!_enabled || _suspend || _datagram == nullptr) return;

@@ -521,7 +521,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             displayElementsPanel->SelectView("Master View");
         }
 
-        Timer1.Start(SeqData.FrameTime());
+        Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
 
         if( loaded_fseq )
         {
@@ -629,6 +629,7 @@ bool xLightsFrame::CloseSequence()
 
     SetPanelSequencerLabel("");
 
+    mainSequencer->PanelEffectGrid->ClearSelection();
     mainSequencer->PanelWaveForm->CloseMedia();
     SeqData.init(0, 0, 50);
     EnableSequenceControls(true);  // let it re-evaluate menu state
@@ -2465,6 +2466,12 @@ void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *
     while (be != nullptr && "effect" != be->GetName()) be = be->GetNext();
     LoadRGBData(effectManager, layer, re, ge, be);
 }
+
+std::string Scale255To100(wxString s)
+{
+    return wxString::Format("%d", wxAtoi(s) * 100 / 255).ToStdString();
+}
+
 void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
     std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
@@ -2479,10 +2486,10 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
             std::string intensity = ch->GetAttribute("intensity", "-1").ToStdString();
             std::string starti, endi;
             if (intensity == "-1") {
-                starti = ch->GetAttribute("startIntensity").ToStdString();
-                endi = ch->GetAttribute("endIntensity").ToStdString();
+                starti = Scale255To100(ch->GetAttribute("startIntensity"));
+                endi = Scale255To100(ch->GetAttribute("endIntensity"));
             } else {
-                starti = endi = intensity;
+                starti = endi = Scale255To100(intensity);
             }
             std::string settings;
             if (100 != starti) {

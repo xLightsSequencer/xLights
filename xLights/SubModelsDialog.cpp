@@ -60,8 +60,8 @@ const long SubModelsDialog::ID_PANEL2 = wxNewId();
 const long SubModelsDialog::ID_PANEL3 = wxNewId();
 const long SubModelsDialog::ID_NOTEBOOK1 = wxNewId();
 const long SubModelsDialog::ID_PANEL5 = wxNewId();
-const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
 const long SubModelsDialog::ID_PANEL1 = wxNewId();
+const long SubModelsDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
@@ -94,37 +94,34 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	FlexGridSizer2->AddGrowableCol(1);
 	FlexGridSizer2->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxSize(950,400));
-	SplitterWindow1->SetMinimumPaneSize(200);
-	SplitterWindow1->SetSashGravity(0.5);
-	Panel2 = new wxPanel(SplitterWindow1, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-	Panel2->SetMinSize(wxSize(200,-1));
-	FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer9->AddGrowableCol(0);
+	Panel2 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	FlexGridSizer9 = new wxFlexGridSizer(3, 1, 0, 0);
 	FlexGridSizer9->AddGrowableRow(1);
 	StaticText1 = new wxStaticText(Panel2, ID_STATICTEXT1, _("SubModels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer9->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
-	ListCtrl_SubModels->SetMinSize(wxSize(150,-1));
+	ListCtrl_SubModels = new wxListCtrl(Panel2, ID_LISTCTRL_SUB_MODELS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTCTRL_SUB_MODELS"));
 	FlexGridSizer9->Add(ListCtrl_SubModels, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer10 = new wxFlexGridSizer(2, 3, 0, 0);
+	FlexGridSizer10 = new wxFlexGridSizer(3, 2, 0, 0);
 	AddButton = new wxButton(Panel2, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer10->Add(AddButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(AddButton, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	DeleteButton = new wxButton(Panel2, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer10->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(DeleteButton, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonCopy = new wxButton(Panel2, ID_BUTTONCOPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONCOPY"));
-	FlexGridSizer10->Add(ButtonCopy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(ButtonCopy, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	Button_Generate = new wxButton(Panel2, ID_BUTTON5, _("Generate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-	FlexGridSizer10->Add(Button_Generate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer10->Add(Button_Generate, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	ButtonCopyModel = new wxButton(Panel2, ID_BUTTON_COPY_MODEL, _("Import from Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_COPY_MODEL"));
-	FlexGridSizer10->Add(ButtonCopyModel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_Sub_Import = new wxButton(Panel2, ID_BUTTON_SUB_IMPORT, _("Import from File"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SUB_IMPORT"));
-	FlexGridSizer10->Add(Button_Sub_Import, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxALIGN_LEFT|wxALIGN_BOTTOM, 5);
+	FlexGridSizer10->Add(ButtonCopyModel, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+	Button_Sub_Import = new wxButton(Panel2, ID_BUTTON_SUB_IMPORT, _("Import from File"), wxDefaultPosition, wxSize(95,33), 0, wxDefaultValidator, _T("ID_BUTTON_SUB_IMPORT"));
+	FlexGridSizer10->Add(Button_Sub_Import, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+	FlexGridSizer9->Add(FlexGridSizer10, 1, wxALL|wxSHAPED|wxFIXED_MINSIZE, 5);
 	Panel2->SetSizer(FlexGridSizer9);
 	FlexGridSizer9->Fit(Panel2);
 	FlexGridSizer9->SetSizeHints(Panel2);
+	FlexGridSizer2->Add(Panel2, 0, wxEXPAND, 0);
+	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D, _T("ID_SPLITTERWINDOW1"));
+	SplitterWindow1->SetMinimumPaneSize(100);
+	SplitterWindow1->SetSashGravity(0.5);
 	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
@@ -147,12 +144,12 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
 	LayoutCheckbox = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Vertical Buffer Layout"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	LayoutCheckbox->SetValue(false);
-	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	Button_ReverseNodes = new wxButton(Panel1, ID_BUTTON6, _("Reverse Nodes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
-	FlexGridSizer6->Add(Button_ReverseNodes, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer6->Add(Button_ReverseNodes, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	Button_ReverseRows = new wxButton(Panel1, ID_BUTTON8, _("Reverse Rows"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
-	FlexGridSizer6->Add(Button_ReverseRows, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6->Add(Button_ReverseRows, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
 	NodesGrid->CreateGrid(5,1);
 	NodesGrid->EnableEditing(true);
@@ -178,7 +175,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	FlexGridSizer5->Add(Button_ReverseRow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Draw_Model = new wxButton(Panel1, ID_BUTTON_DRAW_MODEL, _("Draw Model"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DRAW_MODEL"));
 	FlexGridSizer5->Add(Button_Draw_Model, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer4->Add(FlexGridSizer5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 0);
 	Panel1->SetSizer(FlexGridSizer4);
 	FlexGridSizer4->Fit(Panel1);
 	FlexGridSizer4->SetSizeHints(Panel1);
@@ -195,17 +192,16 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 	Panel3->SetSizer(FlexGridSizer3);
 	FlexGridSizer3->Fit(Panel3);
 	FlexGridSizer3->SetSizeHints(Panel3);
-	SplitterWindow1->SplitVertically(Panel2, Panel3);
-	FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
-	ModelPreviewPanelLocation = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
-	ModelPreviewPanelLocation->SetMinSize(wxDLG_UNIT(this,wxSize(100,100)));
+	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	ModelPreviewPanelLocation->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(100,100)));
 	PreviewSizer = new wxFlexGridSizer(1, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
 	PreviewSizer->AddGrowableRow(0);
 	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
 	PreviewSizer->Fit(ModelPreviewPanelLocation);
 	PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
-	FlexGridSizer2->Add(ModelPreviewPanelLocation, 1, wxALL|wxEXPAND, 5);
+	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
+	FlexGridSizer2->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 0);
 	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
 	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
@@ -256,20 +252,20 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent)
 
     _parent = parent;
 
-    SetSize(1200, 800);
-    wxPoint loc;
-    wxSize sz;
-    LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
-    if (loc.x != -1)
-    {
-        if (sz.GetWidth() < 400) sz.SetWidth(400);
-        if (sz.GetHeight() < 300) sz.SetHeight(300);
-        SetPosition(loc);
-        SetSize(sz);
-    }
+    //SetSize(1200, 800);
+    //wxPoint loc;
+    //wxSize sz;
+    //LoadWindowPosition("xLightsSubModelDialogPosition", sz, loc);
+    //if (loc.x != -1)
+    //{
+    //    if (sz.GetWidth() < 400) sz.SetWidth(400);
+     //   if (sz.GetHeight() < 300) sz.SetHeight(300);
+    //    SetPosition(loc);
+    //    SetSize(sz);
+    //}
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
-    modelPreview->SetMinSize(wxSize(150, 150));
+    modelPreview->SetMinSize(wxSize(100, 100));
     PreviewSizer->Add(modelPreview, 1, wxALL|wxEXPAND, 0);
     PreviewSizer->Fit(ModelPreviewPanelLocation);
     PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
@@ -541,7 +537,16 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
     if (sm != nullptr)
     {
-        sm->strands[sm->strands.size() - 1 - r] = NodesGrid->GetCellValue(r, 0);
+        int str = (int)sm->strands.size() - 1 - r;
+        if (str < 0)
+        {
+            logger_base.crit("SubModelsDialog::OnNodesGridCellChange submodel '%s' tried to access strand %d. This should have crashed.", (const char*)GetSelectedName().c_str(), str);
+            wxASSERT(false);
+        }
+        else
+        {
+            sm->strands[str] = NodesGrid->GetCellValue(r, 0);
+        }
     }
     else
     {

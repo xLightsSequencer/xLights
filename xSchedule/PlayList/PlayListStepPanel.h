@@ -21,6 +21,7 @@ class PlayListStepPanel: public wxPanel
 		virtual ~PlayListStepPanel();
 
 		//(*Declarations(PlayListStepPanel)
+		wxCheckBox* CheckBox_EveryStep;
 		wxCheckBox* CheckBox_ExcludeFromRandom;
 		wxStaticText* StaticText1;
 		wxTextCtrl* TextCtrl_PlayListStepName;
@@ -32,6 +33,7 @@ class PlayListStepPanel: public wxPanel
 		static const long ID_STATICTEXT1;
 		static const long ID_TEXTCTRL1;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX2;
 		//*)
 
 	private:

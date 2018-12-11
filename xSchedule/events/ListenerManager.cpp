@@ -565,17 +565,28 @@ void ListenerManager::MidiRedirect(wxWindow* notify, int deviceId)
 
 int ListenerManager::Sync(const std::string filename, long ms, const std::string& type)
 {
-    if ((_sync == 3 && type == "ARTNet") ||
-        (_sync == 4 && type == "FPP Unicast") ||
-        (_sync == 2 && type == "OSC") ||
-        (_sync == 5 && type == "MIDI") ||
+    if ((_sync == 4 && type == "FPP Unicast") ||
         (_sync == 1 && type == "FPP"))
+    {
+        return _scheduleManager->Sync(_scheduleManager->FindStepForFSEQ(filename), ms);
+    }
+    else if ((_sync == 3 && type == "ARTNet") ||
+        (_sync == 2 && type == "OSC") ||
+        (_sync == 5 && type == "MIDI"))
     {
         return _scheduleManager->Sync(filename, ms);
     }
     else
     {
         return 50;
+    }
+}
+
+void ListenerManager::SetFrameMS(int frameMS)
+{
+    for (auto it: _listeners)
+    {
+        it->SetFrameMS(frameMS);
     }
 }
 
@@ -617,6 +628,19 @@ void ListenerManager::ProcessPacket(const std::string& source, int universe, wxB
         if ((*it)->GetType() == source)
         {
             (*it)->Process(universe, buffer, buffsize, _scheduleManager);
+        }
+    }
+}
+
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& state, long buffsize)
+{
+    if (_pause || _stop) return;
+
+    for (auto it = _scheduleManager->GetOptions()->GetEvents()->begin(); it != _scheduleManager->GetOptions()->GetEvents()->end(); ++it)
+    {
+        if ((*it)->GetType() == source)
+        {
+            (*it)->Process(state, _scheduleManager);
         }
     }
 }

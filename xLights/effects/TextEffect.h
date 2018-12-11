@@ -32,7 +32,7 @@ class TextEffect : public RenderableEffect
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
         void SelectTextColor(std::string& palette, int index) const;
-        void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig);
+        void FormatCountdown(int Countdown, int state, wxString& Line, RenderBuffer &buffer, wxString& msg, wxString Line_orig) const;
 
         wxImage *RenderTextLine(RenderBuffer &buffer,
                             TextDrawingContext* dc,
@@ -41,11 +41,11 @@ class TextEffect : public RenderableEffect
                             int dir,
                             bool center, int Effect, int Countdown, int tspeed,
                             int startx, int starty, int endx, int endy,
-                            bool isPixelBased);
+                            bool isPixelBased) const;
         void RenderXLText(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer);
         void AddMotions( int& OffsetLeft, int& OffsetTop, const SettingsMap& settings,
                          RenderBuffer &buffer, int txtwidth, int txtheight, int endx, int endy, bool pixelOffset,
-                         int PreOffsetLeft, int PreOffsetTop );
+                         int PreOffsetLeft, int PreOffsetTop ) const;
         FontManager& font_mgr;
 };
 

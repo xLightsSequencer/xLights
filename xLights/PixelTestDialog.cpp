@@ -557,7 +557,7 @@ public:
                     long sc = model->NodeStartChannel(i);
                     for (int j = 0; j < model->GetChanCountPerNode(); j++)
                     {
-                        _nonContiguousChannels.push_back(sc + _absoluteStartChannel + 1 + j);
+                        _nonContiguousChannels.push_back(sc + j + 1);
                     }
                 }
                 _absoluteStartChannel = -1;
@@ -1702,14 +1702,35 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
 		for (int i = 0; i < selections.size(); i++) {
 			// dont double process the item that was passed into the event
 			if (selections[i] != item) {
-				if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
+                tc = (TestItemBase*)tree->GetItemData(selections[i]);
+                if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
 					// check the items
 					tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
-					CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.AddRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_CHECKED);
 				} else if (tree->GetCheckedState(selections[i]) == wxCHK_CHECKED) {
 					// uncheck the items
 					tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
-					CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
+                    if (tc->IsContiguous()) {
+                        _channelTracker.RemoveRange(tc->GetFirstChannel(), tc->GetLastChannel());
+                    }
+                    else {
+                        long ch = tc->GetFirstChannel();
+                        while (ch != -1) {
+                            _channelTracker.RemoveRange(ch, ch);
+                            ch = tc->GetNextChannel();
+                        }
+                    }
+                    CascadeSelected(tree, selections[i], wxCheckBoxState::wxCHK_UNCHECKED);
 				}
 			}
 		}

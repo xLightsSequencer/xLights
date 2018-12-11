@@ -419,27 +419,54 @@ void PlayListItemFSEQ::FastSetDuration()
     }
 }
 
+bool PlayListItemFSEQ::Advance(int seconds)
+{
+    int adjustFrames = seconds * 1000 / (int)GetFrameMS();
+    _currentFrame += adjustFrames;
+    if (_currentFrame < 0) _currentFrame = 0;
+    if (_currentFrame > _stepLengthMS / GetFrameMS()) _currentFrame = _stepLengthMS / GetFrameMS();
+
+    if (ControlsTiming() && _audioManager != nullptr)
+    {
+        long newPos = _audioManager->Tell() + seconds * 1000;
+        if (newPos < 0) newPos = 0;
+        if (newPos > _audioManager->LengthMS()) newPos = _audioManager->LengthMS() - 5;
+        _audioManager->Seek(newPos);
+        return true;
+    }
+    return false;
+}
+
 size_t PlayListItemFSEQ::GetPositionMS() const
 {
     if (ControlsTiming() && _audioManager != nullptr)
     {
         if (_delay != 0)
         {
-            if (_currentFrame * GetFrameMS() < _delay)
+            if (_currentFrame * _msPerFrame < _delay)
             {
-                return _currentFrame * GetFrameMS();
+                return _currentFrame * _msPerFrame;
             }
         }
         return _delay + _audioManager->Tell();
     }
     else
     {
-        return _currentFrame * GetFrameMS();
+        return _currentFrame * _msPerFrame;
     }
+}
+
+bool PlayListItemFSEQ::Done() const
+{
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //logger_base.debug("FSEQ Done %d <- %ld >= %ld - %ld", GetPositionMS() >= GetDurationMS() - _msPerFrame, GetPositionMS(), GetDurationMS(), _msPerFrame);
+    return GetPositionMS() >= GetDurationMS() - _msPerFrame;
 }
 
 void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (outputframe)
     {
         if (_fseqFile != nullptr)
@@ -469,6 +496,7 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
             }
         }
         _currentFrame++;
+        //logger_base.debug("Current Frame %d", _currentFrame);
     }
 }
 

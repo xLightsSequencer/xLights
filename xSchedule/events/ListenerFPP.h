@@ -10,7 +10,6 @@ class wxDatagramSocket;
 class ListenerFPP : public ListenerBase
 {
     wxDatagramSocket* _socket;
-    int _frameMS;
 
     bool IsValidHeader(wxByte* buffer);
 

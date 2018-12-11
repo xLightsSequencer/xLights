@@ -128,7 +128,6 @@ class ScheduleManager
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
     void StopVirtualMatrices();
-    void StartFSEQ(const std::string fseq);
     void StartStep(const std::string stepName);
     void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
@@ -184,6 +183,7 @@ class ScheduleManager
         bool IsQueuedPlaylistRunning() const;
         void RemovePlayList(PlayList* playlist);
         PlayList* GetRunningPlayList() const;
+        PlayList* GetRunningPlayList(int id) const;
         std::list<PlayList*> GetPlayLists();
         std::list<Command*> GetCommands() const { return _commandManager.GetCommands(); }
         Command* GetCommand(std::string command) const { return _commandManager.GetCommand(command); }
@@ -219,6 +219,7 @@ class ScheduleManager
         void ImportxLightsSchedule(const std::string& filename);
         bool DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
         PlayListStep* GetStepContainingPlayListItem(wxUint32 id) const;
+        std::string FindStepForFSEQ(const std::string& fseq) const;
         std::string DecodePlayList(const std::string& playlistparameter);
         std::string DecodeStep(const std::string& stepparameter);
         std::string DecodeSchedule(const std::string& scheduleparameter);
@@ -230,6 +231,7 @@ class ScheduleManager
         int GetPPS() const;
         void StartListeners();
         int Sync(const std::string& filename, long ms);
+        int DoSync(const std::string& filename, long ms);
         bool IsSlave() const;
 };
 

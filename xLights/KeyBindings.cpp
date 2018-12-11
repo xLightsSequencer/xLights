@@ -147,6 +147,7 @@ const std::map<std::string, std::string> ConvertKeys =
     {"BACKUP","+F10"},
     {"ALTERNATE_BACKUP","+F11"},
     {"SELECT_SHOW_FOLDER","+F9"},
+    {"CANCEL_RENDER","+ESCAPE"}
 };
 
 void KeyBindingMap::LoadDefaults() {
@@ -203,6 +204,7 @@ void KeyBindingMap::LoadDefaults() {
     bindings.push_back(KeyBinding("F12", false, "PERSPECTIVES_TOGGLE", true));
     bindings.push_back(KeyBinding("F5", false, "EFFECT_UPDATE"));
     bindings.push_back(KeyBinding("", false, "COLOR_UPDATE"));
+    bindings.push_back(KeyBinding("ESCAPE", false, "CANCEL_RENDER"));
 
     bindings.push_back(KeyBinding("l", false, "LOCK_MODEL", true));
     bindings.push_back(KeyBinding("u", false, "UNLOCK_MODEL", true));

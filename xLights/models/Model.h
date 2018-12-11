@@ -214,7 +214,7 @@ public:
     static bool IsProtocolValid(std::string protocol);
     static bool IsPixelProtocol(const std::string &protocol);
 
-    bool IsPixelProtocol() const { return IsPixelProtocol(GetControllerProtocol()); }
+    bool IsPixelProtocol() const;
     long GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {
             return stringStartChan[x];
@@ -265,8 +265,10 @@ public:
     void SetOffset(double xPct, double yPct);
     void AddOffset(double xPct, double yPct);
     virtual unsigned int GetLastChannel();
-    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels);
-    std::string GetStartChannelInDisplayFormat();
+    std::string GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel);
+    std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
+    std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
+    std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
     bool IsValidStartChannelString() const;
     virtual unsigned int GetFirstChannel();
     unsigned int GetNumChannels();
