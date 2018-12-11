@@ -521,7 +521,7 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             displayElementsPanel->SelectView("Master View");
         }
 
-        Timer1.Start(SeqData.FrameTime());
+        Timer1.Start(SeqData.FrameTime(), wxTIMER_CONTINUOUS);
 
         if( loaded_fseq )
         {

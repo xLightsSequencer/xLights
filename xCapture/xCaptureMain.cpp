@@ -408,7 +408,7 @@ xCaptureFrame::xCaptureFrame(wxWindow* parent, const std::string& showdir, const
 
     StaticText_IP->SetLabel(_localIP);
 
-    UITimer.Start(1000);
+    UITimer.Start(1000, wxTIMER_CONTINUOUS);
 
     if (CheckBox_ArtNET->GetValue()) CreateArtNETListener();
     if (CheckBox_E131->GetValue()) CreateE131Listener();

@@ -754,7 +754,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
 
     if (rate == 0) rate = 50;
     _timer.Start(rate / 2, false, "FrameTimer");
-    _timerSchedule.Start(500, true, "ScheduleTimer");
+    _timerSchedule.Start(500, false, "ScheduleTimer");
 
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
 
@@ -1196,7 +1196,7 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
         _timer.Stop();
         LoadSchedule();
         _timer.Start(50 / 2, false);
-        _timerSchedule.Start(50, true);
+        _timerSchedule.Start(500, false);
     }
     ValidateWindow();
 }
@@ -3185,7 +3185,7 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
     _timer.Stop();
     LoadSchedule();
     _timer.Start(50 / 2, false);
-    _timerSchedule.Start(50, true);
+    _timerSchedule.Start(500, false);
 
     ValidateWindow();
 }

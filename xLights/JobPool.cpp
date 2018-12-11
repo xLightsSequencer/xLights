@@ -55,7 +55,7 @@ public:
     void ProcessJob(Job *job);
     std::string GetStatus();
     
-    std::string GetThreadName();
+    std::string GetThreadName() const;
 };
 
 static void startFunc(JobPoolWorker *jpw) {
@@ -151,23 +151,37 @@ static void SetThreadName(const std::string &name) {
     pthread_setname_np(pthread_self(), name.c_str());
 #endif
 }
+static void RemoveThreadName() {}
 #else
 //no idea how to do this on Windows or even if there is value in doing so
 static std::map<DWORD, std::string> __threadNames;
+static std::mutex thread_name_mutex;
 static std::string OriginalThreadName()
 {
+    std::unique_lock<std::mutex> lock(thread_name_mutex);
     if (__threadNames.find(::GetCurrentThreadId()) != __threadNames.end()) {
         return __threadNames[::GetCurrentThreadId()];
     }
     return "";
 }
+
 static void SetThreadName(const std::string &name)
 {
+    std::unique_lock<std::mutex> lock(thread_name_mutex);
     __threadNames[::GetCurrentThreadId()] = name;
+}
+
+static void RemoveThreadName()
+{
+    std::unique_lock<std::mutex> lock(thread_name_mutex);
+    auto it = __threadNames.find(::GetCurrentThreadId());
+    if (it != __threadNames.end())
+        __threadNames.erase(it);
 }
 #endif
 
-std::string JobPoolWorker::GetThreadName() {
+std::string JobPoolWorker::GetThreadName() const
+{
     Job *j = currentJob;
     if (j != nullptr) {
         if (j->SetThreadName()) {
@@ -182,7 +196,6 @@ void JobPoolWorker::Entry()
     static log4cpp::Category &logger_jobpool = log4cpp::Category::getInstance(std::string("log_jobpool"));
     logger_jobpool.debug("JobPoolWorker started  %X\n", this);
 
-    // KW - extra logging to try to work out why this function crashes so often on windows ... I have tried to limit it to rare events
     try {
         SetThreadName(pool->threadNameBase);
         while ( !stopped ) {
@@ -196,7 +209,7 @@ void JobPoolWorker::Entry()
                 ProcessJob(job);
                 logger_jobpool.debug("JobPoolWorker::Entry processed job.  %X", this);
                 status = IDLE;
-                pool->inFlight--;
+                --pool->inFlight;
             } else if (pool->idleThreads > 12) {
                 break;
             }
@@ -215,17 +228,18 @@ void JobPoolWorker::Entry()
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
         logger_jobpool.warn("JobPoolWorker::Entry exiting due to unknown exception.  %X", this);
-        pool->numThreads--;
+        --pool->numThreads;
         status = STOPPED;
         pool->RemoveWorker(this);
         wxTheApp->OnUnhandledException();
         return;
     }
     logger_jobpool.debug("JobPoolWorker::Entry exiting.  %X", this);
-    pool->numThreads--;
+    --pool->numThreads;
     status = STOPPED;
     pool->RemoveWorker(this);
     logger_jobpool.debug("JobPoolWorker::Entry removed.  %X", this);
+    RemoveThreadName();
 }
 
 void JobPoolWorker::ProcessJob(Job *job)

@@ -5256,7 +5256,7 @@ void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
 void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static size_t lastmsec = 9999999999;
+    static size_t lastmsec = 999999999;
 
     if ((_mode == SYNCMODE::MIDIMASTER) && _midiMaster == nullptr)
     {
@@ -5284,7 +5284,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
         sendresync = true;
     }
 
-    if (lastmsec == 9999999999)
+    if (lastmsec == 999999999)
     {
         wxMidiShortMessage msg(0xFA, 0, 0);
         msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
@@ -5293,7 +5293,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
     }
     else if (msec == 0xFFFFFFFF)
     {
-        lastmsec = 9999999999;
+        lastmsec = 999999999;
         wxMidiShortMessage msg(0xFC, 0, 0);
         msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
         logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());

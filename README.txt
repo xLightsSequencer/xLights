@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.55 December 10, 2018
+   -- bug (keith)  Fix scheduler crash that was way more common than I thought it would be [windows + linux only]
+2018.54 December 9, 2018
+   -- bug (keith)  Fix scheduler timer does not start correctly when xSchedule starts [windows + linux only]
 2018.53 December 8, 2018
    -- bug (keith)  Fix test dialog hangs on exit
    -- bug (keith)  Controller property changes dont update immediately in model list

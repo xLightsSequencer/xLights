@@ -1579,19 +1579,19 @@ void xFadeFrame::OnButtonRClickAdvance(wxContextMenuEvent& event)
 void xFadeFrame::OnButton_MiddleClick(wxCommandEvent& event)
 {
     _direction = 0;
-    UITimer.Start(25);
+    UITimer.Start(25, wxTIMER_CONTINUOUS);
 }
 
 void xFadeFrame::OnButton_LeftClick(wxCommandEvent& event)
 {
     _direction = -1;
-    UITimer.Start(25);
+    UITimer.Start(25, wxTIMER_CONTINUOUS);
 }
 
 void xFadeFrame::OnButton_RightClick(wxCommandEvent& event)
 {
     _direction = 1;
-    UITimer.Start(25);
+    UITimer.Start(25, wxTIMER_CONTINUOUS);
 }
 
 void xFadeFrame::OnButtonClickFT(wxCommandEvent& event)
@@ -1906,7 +1906,7 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
 
         // initiate transition to right
         _direction = 1;
-        UITimer.Start(25);
+        UITimer.Start(25, wxTIMER_CONTINUOUS);
     }
     else
     {
@@ -1922,7 +1922,7 @@ void xFadeFrame::OnButton_AdvanceClick(wxCommandEvent& event)
 
         // initiate transition to left
         _direction = -1;
-        UITimer.Start(25);
+        UITimer.Start(25, wxTIMER_CONTINUOUS);
     }
 }
 

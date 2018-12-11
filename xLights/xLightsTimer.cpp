@@ -75,6 +75,10 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
     wxStopWatch sw;
 
+    // While there is support for one shot timers here ... it is not the most robust code and should
+    // be avoided if possible
+    wxASSERT(oneShot == wxTIMER_CONTINUOUS);
+
     if (name != "") _name = name;
 
     if (_t == nullptr)
@@ -139,6 +143,9 @@ xlTimerThread::xlTimerThread(const std::string& name, int interval, bool oneshot
 {
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
 
+    // shouldnt be creating the timer thread with an interval less than zero
+    wxASSERT(interval >= 0);
+
     _name = name;
     _log = log;
     _stop = false;
@@ -168,22 +175,39 @@ void xlTimerThread::Reset(int interval, bool oneshot, const std::string& name)
 
     int oldInterval = _interval;
 
-    _interval = interval;
+    if (oldInterval == -99)
+    {
+        logger_timer.debug("Timer being reset was a one shot");
+    }
+
+    // only set the interval to a new value if it is greater than or equal to zero
+    if (interval >= 0)
+    {
+        _interval = interval;
+    }
     _oneshot = oneshot;
 
     wxStopWatch sw;
 
-    // grab the wait lock so the timer thread goes back to its timing behaviour
-    logger_timer.debug("About to grab the waiter");
-    _waiter.lock();
-    logger_timer.debug("    got it");
+    // if this was not a one shot suspend
+    if (oldInterval != -99)
+    {
+        // grab the wait lock so the timer thread goes back to its timing behaviour
+        logger_timer.debug("About to grab the waiter");
+        _waiter.lock();
+        logger_timer.debug("    got it");
+    }
 
     _suspend = false;
 
-    // now release the suspend
-    logger_timer.debug("About to release the suspendLock");
-    _suspendLock.unlock();
-    logger_timer.debug("    released");
+    // if this was not a one shot suspend
+    if (oldInterval != -99)
+    {
+        // now release the suspend
+        logger_timer.debug("About to release the suspendLock");
+        _suspendLock.unlock();
+        logger_timer.debug("    released");
+    }
 
     logger_timer.debug("    Reset took %ldms", sw.Time());
 }
@@ -244,8 +268,12 @@ void xlTimerThread::Stop()
     // release this lock on the main thread which immediately stops the timer wait
     _waiter.unlock();
 
-    // also release any suspended state so the thread will exit
-    _suspendLock.unlock();
+    // if this was not a one shot suspend
+    if (oldInterval != -99)
+    {
+        // also release any suspended state so the thread will exit
+        _suspendLock.unlock();
+    }
 
     // give the timer thread a chance to use the unlocked waiter
     wxMilliSleep(1);
@@ -298,16 +326,31 @@ wxThread::ExitCode xlTimerThread::Entry()
         if (_suspend)
         {
             logger_timer.debug("THREAD: Timer %s thread suspended. Interval %d", (const char *)_name.c_str(), interval);
-            ++_suspendCount;
 
-            // we look like we are in suspend mode so try to grab the suspend lock and block until we get it
-            logger_timer.debug("THREAD: About to grab the suspend lock");
-            _suspendLock.lock();
-            logger_timer.debug("THREAD:     got it");
+            // If we were one shot we cant use the fancy locks because we were in this thread
+            // when we suspended ... and we cant change threads as the delay will cause an issue
+            if (_interval == -99)
+            {
+                // this was one shot so we cant use the locks ... do it oldschool
+                ++_suspendCount;
+                while (_suspend)
+                {
+                    wxMilliSleep(1);
+                }
+            }
+            else
+            {
+                ++_suspendCount;
 
-            // now we got it ... release it
-            _suspendLock.unlock();
-            logger_timer.debug("THREAD:     released it");
+                // we look like we are in suspend mode so try to grab the suspend lock and block until we get it
+                logger_timer.debug("THREAD: About to grab the suspend lock");
+                _suspendLock.lock();
+                logger_timer.debug("THREAD:     got it");
+
+                // now we got it ... release it
+                _suspendLock.unlock();
+                logger_timer.debug("THREAD:     released it");
+            }
 
             logger_timer.debug("THREAD: Timer %s thread unsuspended.", (const char *)_name.c_str());
             last = wxGetLocalTimeMillis().GetValue();
@@ -338,8 +381,9 @@ wxThread::ExitCode xlTimerThread::Entry()
             if (oneshot)
             {
                 logger_timer.debug("THREAD: %s ONESHOT SO AUTOMATICALLY SUSPENDING.", (const char *)_name.c_str());
-                _interval = 60000;
-                _timer->CallAfter(&xLightsTimer::Stop);
+                _suspend = true;
+                _interval = -99;
+                interval = -99;
             }
         }
     }
