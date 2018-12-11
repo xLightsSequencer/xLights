@@ -155,7 +155,8 @@ bool HttpConnection::SendResponse(HttpResponse &response)
 
 bool HttpConnection::SendMessage(WebSocketMessage &message)
 {
-    _socket->SetFlags(wxSOCKET_WAITALL);
+    // As we are just writing dont set it to wait
+    //_socket->SetFlags(wxSOCKET_WAITALL);
 	wxMemoryBuffer header;
 
 	header.AppendByte((wxUint8)0x80 | message._type); // final + type
@@ -182,13 +183,17 @@ bool HttpConnection::SendMessage(WebSocketMessage &message)
 	}
 
 	_socket->Write(header.GetData(), header.GetDataLen());
-	if (_socket->Error())
-		return false;
+    if (_socket->Error())
+    {
+        _socket->SetFlags(wxSOCKET_NOWAIT);
+        return false;
+    }
 
 	if (!message._content.IsEmpty())
 		_socket->Write(message._content.GetData(), message._content.GetDataLen());
 
-	return !_socket->Error();
+    _socket->SetFlags(wxSOCKET_NOWAIT);
+    return !_socket->Error();
 }
 
 bool HttpConnection::Close()

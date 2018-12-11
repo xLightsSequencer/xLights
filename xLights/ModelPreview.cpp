@@ -71,7 +71,9 @@ const std::vector<Model*> &ModelPreview::GetModels() {
         } else if (currentLayoutGroup == "Unassigned") {
             for (auto a : xlights->AllModels) {
                 if (a.second->GetLayoutGroup() == "Unassigned") {
-                    tmpModelList.push_back(a.second);
+                    if (a.second->GetDisplayAs() != "ModelGroup") {
+                        tmpModelList.push_back(a.second);
+                    }
                 }
             }
         } else {
@@ -122,6 +124,9 @@ void ModelPreview::render(wxPaintEvent& event)
         Model *model = xlights ? xlights->GetModel(currentModel) : nullptr;
         if (model != nullptr) {
             model->DisplayEffectOnWindow(this, 2);
+        } else {
+            if (!StartDrawing(mPointSize, true)) return;
+            EndDrawing();
         }
     }
 }

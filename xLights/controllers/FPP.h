@@ -4,6 +4,7 @@
 #include <wx/protocol/http.h>
 #include "SimpleFTP.h"
 #include <list>
+#include <map>
 #include "models/ModelManager.h"
 
 class OutputManager;
@@ -19,6 +20,8 @@ class FPP
     std::string _version;
     bool _connected;
     OutputManager* _outputManager;
+    
+    std::map<std::string, std::string> sequences;
 	
     std::string GetURL(const std::string& url, bool logresult = false);
     
@@ -37,6 +40,7 @@ public:
     bool SetInputUniversesBridge(std::list<int>& selected, wxWindow* parent);
     bool SetOutputUniversesPlayer(wxWindow* parent);
     bool SetChannelMemoryMaps(ModelManager* allmodels, wxWindow* parent);
+    bool SetPlaylist(const std::string &name, wxWindow* parent);
     std::string SaveFPPUniverses(const std::string& onlyip, const std::list<int>& selected, bool onebased, bool input = false) const;
     std::string SaveFPPUniversesV1(const std::string& onlyip, const std::list<int>& selected, bool onebased) const;
     std::string SaveFPPUniversesV2(const std::string& onlyip, const std::list<int>& selected, bool onebased, bool input) const;
@@ -49,7 +53,6 @@ public:
     bool SetOutputs(const std::string &controler, ModelManager* allmodels,
                     std::list<int>& selected, wxWindow* parent,
                     int maxstring, int maxdmx);
-
 };
 
 #endif

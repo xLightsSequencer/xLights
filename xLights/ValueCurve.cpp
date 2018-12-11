@@ -623,7 +623,7 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     float newrange = newmax - newmin;
     float oldrange = _max - _min;
 
-    if (newrange > oldrange)
+    if (newrange < oldrange)
     {
         // this is suspicious ... generally ranges increase with versions not decrease so I am going to ignore this request
         wxASSERT(false);

@@ -47,8 +47,8 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
     # Convert the disk image to read-only
     hdiutil convert xLights.dmg -format UDZO -o xLights-$VER.dmg
 
-    codesign --force --sign "Developer ID Application: Daniel Kulp" xLights-$VER.dmg
-    spctl -a -t open --context context:primary-signature -v xLights-$VER.dmg
+#    codesign --force --sign "Developer ID Application: Daniel Kulp" xLights-$VER.dmg
+#    spctl -a -t open --context context:primary-signature -v xLights-$VER.dmg
 
     xcrun altool --notarize-app -f xLights-$VER.dmg  --primary-bundle-id org.xlights -u ${NOTARIZE_EMAIL} -p @env:NOTARIZE_PWD
 

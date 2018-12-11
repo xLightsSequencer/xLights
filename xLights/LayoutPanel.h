@@ -248,6 +248,7 @@ class LayoutPanel: public wxPanel
         void resetPropertyGrid();
         void clearPropGrid();
         bool stringPropsVisible;
+        bool controllerConnectionVisible;
         bool appearanceVisible;
         bool sizeVisible;
         bool colSizesSet;

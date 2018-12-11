@@ -396,11 +396,10 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
     html+=wxString::Format("<tr><td>Height:</td><td>%d</td></tr>",BufferHt);
     if (o != nullptr)
         html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", (o->GetIP() != "" ? o->GetIP() : o->GetCommPort()), o->GetDescription());
-    if (controller_connection != "" && wxString(controller_connection).Contains(":"))
+    if ("" != GetControllerProtocol())
     {
-        wxArrayString cc = wxSplit(controller_connection, ':');
-        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", cc[0]);
-        html += wxString::Format("<tr><td>Controller Connection:</td><td>%s</td></tr>", cc[1]);
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetControllerProtocol());
+        html += wxString::Format("<tr><td>Controller Connection:</td><td>%s</td></tr>", GetControllerPort());
     }
     html+="</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
 

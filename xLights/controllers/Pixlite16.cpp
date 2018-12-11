@@ -244,14 +244,14 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                         if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
                         {
                             warnedmodels.push_back(it->second);
-                            logger_base.warn("Pixlite Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str(), (const char *)it->second->GetControllerConnection().c_str());
-                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed: '" + it->second->GetControllerConnection() + "'. Model ignored.", "Model Ignored");
+                            logger_base.warn("Pixlite Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str());
+                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed. Model ignored.", "Model Ignored");
                         }
                     }
                     else
                     {
                         // model uses channels in this universe
-                        std::string mp = wxString(it->second->GetProtocol()).Lower().ToStdString();
+                        std::string mp = wxString(it->second->GetControllerProtocol()).Lower().ToStdString();
 
                         if (mp == "dmx")
                         {
@@ -261,9 +261,9 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                                 logger_base.debug("Pixlite DMX Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
                                 dmxModels.push_back(it->second);
 
-                                if (std::find(dmxOutputs.begin(), dmxOutputs.end(), it->second->GetPort()) == dmxOutputs.end())
+                                if (std::find(dmxOutputs.begin(), dmxOutputs.end(), it->second->GetControllerPort()) == dmxOutputs.end())
                                 {
-                                    dmxOutputs.push_back(it->second->GetPort());
+                                    dmxOutputs.push_back(it->second->GetControllerPort());
                                 }
                             }
                         }
@@ -283,14 +283,14 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                                 }
                                 else
                                 {
-                                    if (protocol != it->second->GetProtocol())
+                                    if (protocol != it->second->GetControllerProtocol())
                                     {
                                         logger_base.warn("Pixlite only supports one bulb protocol.");
                                     }
                                 }
-                                if (it->second->GetPort() > maxport)
+                                if (it->second->GetControllerPort() > maxport)
                                 {
-                                    maxport = it->second->GetPort();
+                                    maxport = it->second->GetControllerPort();
                                 }
                             }
                         }
@@ -319,7 +319,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
         for (auto model = models.begin(); model != models.end(); ++model)
         {
-            if ((*model)->GetPort() == i)
+            if ((*model)->GetControllerPort() == i)
             {
                 int modelstart = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
                 int modelend = modelstart + (*model)->GetChanCount() - 1;
@@ -448,7 +448,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
             for (auto model = dmxModels.begin(); model != dmxModels.end(); ++model)
             {
-                if ((*model)->GetPort() == *it)
+                if ((*model)->GetControllerPort() == *it)
                 {
                     first = *model;
                     start = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
@@ -474,27 +474,32 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
 int Pixlite16::DecodeStringPortProtocol(std::string protocol)
 {
-    if (protocol == "tls3001") return 0;
-    if (protocol == "sm16716") return 1;
-    if (protocol == "ws2801") return 2;
-    if (protocol == "lpd6803") return 3;
-    if (protocol == "ws2811") return 4;
-    if (protocol == "mb16020") return 5;
-    if (protocol == "tm1803") return 6;
-    if (protocol == "tm1804") return 7;
-    if (protocol == "tm1809") return 8;
-    if (protocol == "my9231") return 9;
-    if (protocol == "apa102") return 10;
-    if (protocol == "my9221") return 11;
-    if (protocol == "sk6812") return 12;
-    if (protocol == "ucs1903") return 13;
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "tls3001") return 0;
+    if (p == "sm16716") return 1;
+    if (p == "ws2801") return 2;
+    if (p == "lpd6803") return 3;
+    if (p == "ws2811") return 4;
+    if (p == "mb16020") return 5;
+    if (p == "tm1803") return 6;
+    if (p == "tm1804") return 7;
+    if (p == "tm1809") return 8;
+    if (p == "my9231") return 9;
+    if (p == "apa102") return 10;
+    if (p == "my9221") return 11;
+    if (p == "sk6812") return 12;
+    if (p == "ucs1903") return 13;
 
     return -1;
 }
 
 int Pixlite16::DecodeSerialOutputProtocol(std::string protocol)
 {
-    if (protocol == "dmx") return 0;
+    wxString p(protocol);
+    p = p.Lower();
+    if (p == "dmx") return 0;
     return -1;
 }
 

@@ -780,13 +780,15 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
 
 int Falcon::DecodeStringPortProtocol(std::string protocol)
 {
-    if (protocol == "ws2811") return 0;
-    if (protocol == "tm18xx") return 1;
-    if (protocol == "lx1203") return 2;
-    if (protocol == "ws2801") return 3;
-    if (protocol == "tls3001") return 4;
-    if (protocol == "lpd6803") return 5;
-    if (protocol == "gece") return 6;
+    wxString p(protocol);
+    p = p.Lower();
+    if (p == "ws2811") return 0;
+    if (p == "tm18xx") return 1;
+    if (p == "lx1203") return 2;
+    if (p == "ws2801") return 3;
+    if (p == "tls3001") return 4;
+    if (p == "lpd6803") return 5;
+    if (p == "gece") return 6;
 
     return -1;
 }
@@ -992,9 +994,12 @@ void Falcon::ResetStringOutputs()
 
 int Falcon::DecodeSerialOutputProtocol(std::string protocol)
 {
-    if (protocol == "dmx") return 0;
-    if (protocol == "pixelnet") return 1;
-    if (protocol == "renard") return 2;
+    wxString p(protocol);
+    p = p.Lower();
+
+    if (p == "dmx") return 0;
+    if (p == "pixelnet") return 1;
+    if (p == "renard") return 2;
 
     return -1;
 }

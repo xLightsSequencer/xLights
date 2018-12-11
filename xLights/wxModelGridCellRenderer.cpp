@@ -60,7 +60,7 @@ void wxModelGridCellRenderer::CreateImage()
         {
             for (int y = 0; y < img.GetHeight(); y++)
             {
-                int temp = img.GetAlpha(x, y);
+                //int temp = img.GetAlpha(x, y);
                 img.SetAlpha(x, y, alpha);
             }
         }

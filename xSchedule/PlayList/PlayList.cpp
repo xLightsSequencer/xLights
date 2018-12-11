@@ -519,6 +519,11 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
 
         static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
         logger_base.info("******** Playlist %s starting to play.", (const char*)GetName().c_str());
+        logger_base.info("********     %s %s %s",
+            (const char*)(_looping ? ("LOOPING" + (_loops > 0 ? wxString::Format(" Loops %d", _loops).c_str() : "")).c_str() : ""),
+            (const char*)(_random ? "RANDOM" : ""),
+            (const char*)(step == "" ? step.c_str() : wxString::Format("Step: %s", step).c_str())
+        );
 
         _forceNextStep = "";
         _loopStep = false;

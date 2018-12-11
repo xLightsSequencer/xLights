@@ -50,7 +50,7 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
                     {
                         // model uses channels in this universe
 
-                        int port = it->second->GetPort();
+                        int port = it->second->GetControllerPort();
 
                         if (it->second->IsPixelProtocol())
                         {
@@ -101,7 +101,7 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
 
         if (!ok)
         {
-            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed: '%s'. Model ignored.\n", (const char *)(*it)->GetFullName().c_str(), (const char *)ip.c_str(), (const char *)(*it)->GetControllerConnection().c_str()).ToStdString();
+            check += wxString::Format("WARNING: Controller Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.\n", (const char *)(*it)->GetFullName().c_str(), (const char *)ip.c_str()).ToStdString();
         }
     }
 }
@@ -389,7 +389,7 @@ UDControllerPortModel::UDControllerPortModel(Model* m, OutputManager* om, int st
 {
     _model = m;
     _string = string;
-    _protocol = _model->GetProtocol();
+    _protocol = _model->GetControllerProtocol();
 
     if (string == -1)
     {
@@ -432,13 +432,13 @@ void UDControllerPortModel::Dump() const
     if (_string == -1)
     {
         logger_base.debug("                Model %s. Controller Connection %s. Start Channel %ld. End Channel %ld. Channels %ld. Pixels %d. Start Channel #%d:%d",
-            (const char*)_model->GetName().c_str(), (const char *)_model->GetControllerConnection().c_str(),
+            (const char*)_model->GetName().c_str(), (const char *)_model->GetControllerConnectionString().c_str(), 
             _startChannel, _endChannel, Channels(), (int)(Channels() / 3), GetUniverse(), GetUniverseStartChannel());
     }
     else
     {
         logger_base.debug("                Model %s. String %d. Controller Connection %s. Start Channel %ld. End Channel %ld.",
-            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetControllerConnection().c_str(),
+            (const char*)_model->GetName().c_str(), _string + 1, (const char *)_model->GetControllerConnectionString().c_str(),
             _startChannel, _endChannel);
     }
 }
@@ -533,7 +533,7 @@ void UDControllerPort::AddModel(Model* m, OutputManager* om, int string)
     _models.push_back(new UDControllerPortModel(m, om, string));
     if (_protocol == "")
     {
-        _protocol = m->GetProtocol();
+        _protocol = m->GetControllerProtocol();
     }
     _models.sort(compare_modelsc);
 }

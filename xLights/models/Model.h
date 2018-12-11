@@ -114,6 +114,7 @@ public:
 
     void SetProperty(wxString property, wxString value, bool apply = false);
     virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager);
+    virtual void AddControllerProperties(wxPropertyGridInterface *grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
     virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
@@ -129,6 +130,15 @@ public:
      *     0x0008  -  Rebuild the model list
      *     0x0010  -  Update all model lists
      */
+    enum {
+        GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
+        GRIDCHANGE_MARK_DIRTY = 0x0002,
+        GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
+        GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
+        GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+        
+        GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
+    };
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation &GetModelScreenLocation() = 0;
@@ -195,22 +205,27 @@ protected:
 
 public:
     bool IsControllerConnectionValid() const;
-    std::string GetProtocol() const;
+    wxXmlNode *GetControllerConnection() const;
+    std::string GetControllerConnectionString() const;
+    
     static std::list<std::string> GetProtocols();
     static std::list<std::string> GetLCProtocols();
     static bool IsProtocolValid(std::string protocol);
-    int GetPort() const;
-    bool IsPixelProtocol() const;
-    std::string GetControllerConnection() const { return controller_connection; }
+    static bool IsPixelProtocol(const std::string &protocol);
+
+    bool IsPixelProtocol() const { return IsPixelProtocol(GetControllerProtocol()); }
     long GetStringStartChan(int x) const {
         if (x < stringStartChan.size()) {
             return stringStartChan[x];
         }
         return 1;
     }
-    void SetControllerConnection(const std::string& controllerConnection);
     void SetControllerName(const std::string& controllerName);
+    void SetControllerProtocol(const std::string& protocol);
+    void SetControllerPort(int port);
     std::string GetControllerName() const { return _controllerName; }
+    std::string GetControllerProtocol() const;
+    int GetControllerPort() const;
     void SetModelChain(const std::string& modelChain);
     std::string GetModelChain() const { return _modelChain; }
     void ReworkStartChannel();

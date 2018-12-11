@@ -332,7 +332,7 @@ void ModelManager::ReworkStartChannel() const
             {
                 if (itm->second->GetControllerName() == (*it)->GetDescription())
                 {
-                    wxString cc = wxString(itm->second->GetControllerConnection()).Lower();
+                    wxString cc = wxString(itm->second->GetControllerConnectionString()).Lower();
                     if (cmodels.find(cc) == cmodels.end())
                     {
                         std::list<Model*> ml;
@@ -456,7 +456,25 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                 wxArrayString mn = wxSplit(orig, ',');
                 std::string modelsRemoved;
                 for (auto it2 = mn.begin(); it2 != mn.end(); ++it2) {
-                    auto m = models.find((*it2).ToStdString());
+
+                    wxString submodel = "";
+                    wxString name = *it2;
+                    if (name.Contains("/"))
+                    {
+                        submodel = name.After('/');
+                        name = name.Before('/');
+                    }
+
+                    auto m = models.find(name.ToStdString());
+
+                    if (m != models.end() && submodel != "")
+                    {
+                        if (m->second->GetSubModel(submodel) == nullptr)
+                        {
+                            m = models.end();
+                        }
+                    }
+
                     if (*it2 == "")
                     {
                         // This can happen if a comma is left behind in the string ... just ignore it
@@ -846,6 +864,17 @@ void ModelManager::Delete(const std::string &name) {
                     }
                 }
                 models.erase(it);
+
+                // If models are chained to us then make their start channel ... our start channel
+                std::string chainedtous = wxString::Format(">%s:1", model->GetName()).ToStdString();
+                for (auto it3: models)
+                {
+                    if (it3.second->ModelStartChannel == chainedtous)
+                    {
+                        it3.second->SetStartChannel(model->ModelStartChannel);
+                    }
+                }
+
                 delete model->GetModelXml();
                 delete model;
                 ResetModelGroups();

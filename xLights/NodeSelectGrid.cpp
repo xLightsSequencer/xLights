@@ -910,9 +910,9 @@ void NodeSelectGrid::OnGridNodesCellRightClick(wxGridEvent& event)
 {
     wxMenu mnu;
     // Copy / Paste / Delete
-    wxMenuItem* menu_cut = mnu.Append(NODESELECT_CUT, "Cut");
-    wxMenuItem* menu_copy = mnu.Append(NODESELECT_COPY, "Copy");
-    wxMenuItem* menu_paste = mnu.Append(NODESELECT_PASTE, "Paste");
+    mnu.Append(NODESELECT_CUT, "Cut");
+    mnu.Append(NODESELECT_COPY, "Copy");
+    mnu.Append(NODESELECT_PASTE, "Paste");
 
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&NodeSelectGrid::OnGridPopup, nullptr, this);
     PopupMenu(&mnu);

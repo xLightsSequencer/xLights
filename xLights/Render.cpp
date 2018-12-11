@@ -506,6 +506,8 @@ public:
         // To support canvas mix type we must render them bottom to top
         for (int layer = numLayers - 1; layer >= 0; --layer) {
             EffectLayer *elayer = el->GetEffectLayer(layer);
+            //must lock the layer so the Effect* stays valid
+            std::unique_lock<std::recursive_mutex> elayerLock(elayer->GetLock());
             Effect *ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
             if (ef != info.currentEffects[layer]) {
                 info.currentEffects[layer] = ef;
@@ -643,7 +645,10 @@ public:
             for (int layer = numLayers - 1; layer >= 0; --layer) {
                 wxString msg = wxString::Format("Finding starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
-                mainModelInfo.currentEffects[layer] = findEffectForFrame(layer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
+                
+                EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
+                std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
+                mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
                 msg = wxString::Format("Initializing starting effect for %s, layer %d and startFrame %d", name, layer, startFrame) + PrintStatusMap();
                 SetStatus(msg);
                 initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
@@ -704,7 +709,7 @@ public:
                             //deleted node
                             continue;
                         }
-
+                        std::unique_lock<std::recursive_mutex> nlayerLock(nlayer->GetLock());
                         Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
                         if (el != nodeEffects[node] || frame == startFrame) {
                             nodeEffects[node] = el;

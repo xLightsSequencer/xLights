@@ -678,6 +678,13 @@ void MyMessageHandler(HttpConnection &connection, WebSocketMessage &message)
 
 void WebServer::SendMessageToAllWebSockets(const std::string& message)
 {
+    static bool reentry = false;
+    if (reentry)
+    {
+        return;
+    }
+    reentry = true;
+
     for (auto it = _connections.begin(); it != _connections.end(); ++it)
     {
         if ((*it).second->IsWebSocket())
@@ -693,6 +700,8 @@ void WebServer::SendMessageToAllWebSockets(const std::string& message)
             }
         }
     }
+
+    reentry = false;
 }
 
 WebServer::WebServer(int port, bool apionly, const std::string& password, int mins)

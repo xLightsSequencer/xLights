@@ -65,14 +65,14 @@ void ModelChainDialog::Set(Model* m, const ModelManager &models) {
     {
         chain = chain.substr(1);
     }
-    wxString mc = wxString(m->GetControllerConnection()).Lower();
+    wxString mc = wxString(m->GetControllerConnectionString()).Lower();
 
     wxArrayString  list;
     list.push_back("Beginning");
     for (auto it = models.begin(); it != models.end(); ++it) {
         if (it->second->GetDisplayAs() != "ModelGroup" && 
             m != it->second && 
-            mc == wxString(it->second->GetControllerConnection()).Lower()) {
+            mc == wxString(it->second->GetControllerConnectionString()).Lower()) {
             list.push_back(it->first);
         }
     }

@@ -4370,7 +4370,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 model->GetLastChannel() + 1,
                 w, h,
                 model->GetLayoutGroup(),
-                model->GetControllerConnection(),
+                model->GetControllerConnectionString(),
                 type,
                 description,
                 output,
@@ -4837,7 +4837,7 @@ void xLightsFrame::CheckSequence(bool display)
                 {
                     if (!it->second->IsControllerConnectionValid())
                     {
-                        wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' has invalid controller connection '%s'.", (const char*)it->second->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)it->second->GetControllerConnection().c_str());
+                        wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' has invalid controller connection '%s'.", (const char*)it->second->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)it->second->GetControllerConnectionString().c_str());
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
@@ -4847,7 +4847,7 @@ void xLightsFrame::CheckSequence(bool display)
                         std::map<std::string, std::list<Model*>> pm;
                         modelsByPortByController[o->GetDescription()] = pm;
                     }
-                    modelsByPortByController[o->GetDescription()][wxString(it->second->GetControllerConnection()).Lower().ToStdString()].push_back(it->second);
+                    modelsByPortByController[o->GetDescription()][wxString(it->second->GetControllerConnectionString()).Lower().ToStdString()].push_back(it->second);
                 }
             }
         }
@@ -4894,7 +4894,7 @@ void xLightsFrame::CheckSequence(bool display)
                         // chain is broken ... so just put the rest in in random order
                         while (itp->second.size() > 0)
                         {
-                            wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.", (const char*)itp->second.front()->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)itp->second.front()->GetControllerConnection().c_str(), (const char*)itp->second.front()->GetModelChain().c_str());
+                            wxString msg = wxString::Format("    ERR: Model %s on ZCPP controller '%s:%s' on port '%s' has invalid Model Chain '%s'. It may be a duplicate or point to a non existent model on this controller port or there may be a loop.", (const char*)itp->second.front()->GetName().c_str(), (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char*)itp->second.front()->GetControllerConnectionString().c_str(), (const char*)itp->second.front()->GetModelChain().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                             itp->second.pop_front();
@@ -5308,7 +5308,8 @@ void xLightsFrame::CheckSequence(bool display)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            if (it->second->GetControllerConnection() != "")
+            std::string cc = it->second->GetControllerConnectionString();
+            if (cc != "")
             {
                 long start = it->second->GetFirstChannel() + 1;
                 long sc;
@@ -5316,7 +5317,7 @@ void xLightsFrame::CheckSequence(bool display)
 
                 if (o != nullptr && o->IsIpOutput() && o->GetIP() != "MULTICAST")
                 {
-                    std::string key = o->GetIP() + it->second->GetControllerConnection();
+                    std::string key = o->GetIP() + cc;
                     if (modelsByPort.find(key) == modelsByPort.end())
                     {
                         modelsByPort[key] = new std::list<Model*>();
@@ -5355,7 +5356,7 @@ void xLightsFrame::CheckSequence(bool display)
                         (*it2)->GetName(),
                         (*it3)->GetName(),
                         o->GetIP(),
-                        (*it2)->GetControllerConnection(),
+                        (*it2)->GetControllerConnectionString(),
                         m2start - m1end - 1);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;

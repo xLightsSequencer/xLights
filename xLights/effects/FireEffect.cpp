@@ -40,6 +40,33 @@ wxPanel *FireEffect::CreatePanel(wxWindow *parent) {
     return new FirePanel(parent);
 }
 
+bool FireEffect::needToAdjustSettings(const std::string &version)
+{
+    return IsVersionOlder("2018.44", version);
+}
+
+void FireEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
+{
+    SettingsMap &settings = effect->GetSettings();
+
+    wxString growthcycles = settings.Get("E_VALUECURVE_Fire_GrowthCycles", "");
+
+    if (growthcycles.Contains("Active=TRUE"))
+    {
+        ValueCurve vc(growthcycles);
+        vc.SetLimits(FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX);
+        vc.SetDivisor(FIRE_GROWTHCYCLES_DIVISOR);
+        vc.FixScale(10);
+        settings["E_VALUECURVE_Fire_GrowthCycles"] = vc.Serialise();
+    }
+
+    // also give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+}
+
 class FirePaletteClass {
 public:
     FirePaletteClass() {
@@ -130,7 +157,6 @@ public:
     std::vector<int> FireBuffer;
 };
 
-
 static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
     FireRenderCache *cache = (FireRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -163,7 +189,7 @@ void FireEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &
     float offset = buffer.GetEffectTimeIntervalPosition();
     int HeightPct = GetValueCurveInt("Fire_Height", 50, SettingsMap, offset, FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int HueShift = GetValueCurveInt("Fire_HueShift", 0, SettingsMap, offset, FIRE_HUE_MIN, FIRE_HUE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset, FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset, FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), FIRE_GROWTHCYCLES_DIVISOR);
     bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", false);
 
     int x,y;

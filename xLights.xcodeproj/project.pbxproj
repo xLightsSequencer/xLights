@@ -51,7 +51,7 @@
 		67025CA820D7EEA300BF1AC6 /* wxMidi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F33A2040F66500B847E0 /* wxMidi.cpp */; };
 		67025CA920D7EEA300BF1AC6 /* wxMidi.h in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F33B2040F66500B847E0 /* wxMidi.h */; };
 		67025CAA20D7EEA300BF1AC6 /* wxMidiDatabase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3392040F66500B847E0 /* wxMidiDatabase.cpp */; };
-		67025CAB20D7EEB900BF1AC6 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
+		67025CAB20D7EEB900BF1AC6 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; settings = {COMPILER_FLAGS = "-D__NO_AUIDO__"; }; };
 		67025CAC20D7EEF400BF1AC6 /* liblog4cpp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; };
 		67025CAE20D7EF2E00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67025CAD20D7EF2D00BF1AC6 /* libwx_osx_cocoau_qa-3.1.dylib */; };
 		67025CAF20D7EF5400BF1AC6 /* liblog4cpp.5.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 676C5EAA1C99D6D20031A033 /* liblog4cpp.5.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -68,6 +68,8 @@
 		670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EF2024C19B0002B617 /* LorOptimisedDialog.cpp */; };
 		670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670827EC2024C19A0002B617 /* LOROptimisedOutput.cpp */; };
 		670B144F1B7128AA0090F1F5 /* ModelFaceDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */; };
+		670B171821973D07004F0993 /* ExtraIPDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B171421973D06004F0993 /* ExtraIPDialog.cpp */; };
+		670B171921973D07004F0993 /* ExtraIPsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B171521973D07004F0993 /* ExtraIPsDialog.cpp */; };
 		670B31BD2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */; };
 		670C82871C45C48B000AA5D8 /* ArchesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */; };
 		670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670C827F1C45C48B000AA5D8 /* StarModel.cpp */; };
@@ -856,6 +858,10 @@
 		6708AB4B1A37F88F008313E3 /* minibasic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = minibasic.cpp; path = include/minibasic.cpp; sourceTree = SOURCE_ROOT; };
 		670B144D1B7128AA0090F1F5 /* ModelFaceDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelFaceDialog.h; sourceTree = "<group>"; };
 		670B144E1B7128AA0090F1F5 /* ModelFaceDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelFaceDialog.cpp; sourceTree = "<group>"; };
+		670B171421973D06004F0993 /* ExtraIPDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExtraIPDialog.cpp; sourceTree = "<group>"; };
+		670B171521973D07004F0993 /* ExtraIPsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExtraIPsDialog.cpp; sourceTree = "<group>"; };
+		670B171621973D07004F0993 /* ExtraIPDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExtraIPDialog.h; sourceTree = "<group>"; };
+		670B171721973D07004F0993 /* ExtraIPsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExtraIPsDialog.h; sourceTree = "<group>"; };
 		670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigureMIDITimecodeDialog.h; sourceTree = "<group>"; };
 		670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigureMIDITimecodeDialog.cpp; sourceTree = "<group>"; };
 		670C827D1C45C48B000AA5D8 /* ArchesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArchesModel.cpp; path = models/ArchesModel.cpp; sourceTree = "<group>"; };
@@ -3120,6 +3126,10 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				670B171421973D06004F0993 /* ExtraIPDialog.cpp */,
+				670B171621973D07004F0993 /* ExtraIPDialog.h */,
+				670B171521973D07004F0993 /* ExtraIPsDialog.cpp */,
+				670B171721973D07004F0993 /* ExtraIPsDialog.h */,
 				678058D4217A4ED900BFD388 /* xSchedule.entitlements */,
 				670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */,
 				670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */,
@@ -4202,6 +4212,7 @@
 				67F23F611E329AD800F8B985 /* RunningSchedule.cpp in Sources */,
 				67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */,
 				67F23FA61E329E3300F8B985 /* server.cpp in Sources */,
+				670B171921973D07004F0993 /* ExtraIPsDialog.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
 				67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
@@ -4298,6 +4309,7 @@
 				678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */,
 				674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */,
 				67F23FF51E329E7400F8B985 /* PlayListItemImagePanel.cpp in Sources */,
+				670B171821973D07004F0993 /* ExtraIPDialog.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

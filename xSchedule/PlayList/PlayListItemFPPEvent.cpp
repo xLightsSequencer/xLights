@@ -152,17 +152,17 @@ void PlayListItemFPPEvent::Frame(wxByte* buffer, size_t size, size_t ms, size_t 
             wxDatagramSocket* socket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
             if (socket == nullptr)
             {
-                logger_base.error("Error opening datagram for FPP Event send.");
+                logger_base.error("Error opening datagram for FPP Event send. %s", (const char *)localaddr.IPAddress().c_str());
             }
             else if (!socket->IsOk())
             {
-                logger_base.error("Error opening datagram for FPP Event send. OK : FALSE");
+                logger_base.error("Error opening datagram for FPP Event send. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
             }
             else if (socket->Error())
             {
-                logger_base.error("Error opening datagram for FPP Event send. %d : %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str());
+                logger_base.error("Error opening datagram for FPP Event send. %d : %s %s", socket->LastError(), (const char*)DecodeIPError(socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
                 delete socket;
                 socket = nullptr;
             }

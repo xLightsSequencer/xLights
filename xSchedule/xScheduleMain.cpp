@@ -11,6 +11,10 @@
 
 #define ZERO 0
 
+// When defined web status is sent every frame ... great for finding issues with connectivity to web clients.
+// Must be commented out in release builds
+// #define WEBOVERLOAD
+
 #include "xScheduleMain.h"
 #include <wx/msgdlg.h>
 #include "PlayList/PlayList.h"
@@ -1313,7 +1317,9 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     int rate = __schedule->Frame(_timerOutputFrame);
 
+#ifndef WEBOVERLOAD
     if (last != wxDateTime::Now().GetSecond() && _timerOutputFrame)
+#endif
     {
         // This code must be commented out before release!!!
 #ifdef TRACE_SCHEDULE_PERFORMANCE
@@ -2963,6 +2969,7 @@ void xScheduleFrame::SendStatus()
             std::string msg;
             __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
         }
+
         _webServer->SendMessageToAllWebSockets(result);
     }
 }
