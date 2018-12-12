@@ -372,7 +372,10 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
             {
                 wxCommandEvent event(EVT_STOP);
                 event.SetInt(pl->GetId());
-                event.SetString("sustain");
+                if (!GetOptions()->IsRemoteAllOff())
+                {
+                    event.SetString("sustain");
+                }
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
         }

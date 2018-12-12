@@ -22,6 +22,7 @@ const long OptionsDialog::ID_CHECKBOX5 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX6 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX7 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX8 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -92,6 +93,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_RetryOpen = new wxCheckBox(this, ID_CHECKBOX7, _("Continually try to open outputs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
 	CheckBox_RetryOpen->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_RetryOpen, 1, wxALL|wxEXPAND, 5);
+	CheckBox_RemoteAllOff = new wxCheckBox(this, ID_CHECKBOX8, _("When in remote mode turn off lights when master stops"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
+	CheckBox_RemoteAllOff->SetValue(true);
+	FlexGridSizer7->Add(CheckBox_RemoteAllOff, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -214,6 +218,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_APIOnly->SetValue(options->GetAPIOnly());
     CheckBox_SimpleMode->SetValue(options->IsAdvancedMode());
     CheckBox_RetryOpen->SetValue(options->IsRetryOpen());
+    CheckBox_RemoteAllOff->SetValue(options->IsRemoteAllOff());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -295,6 +300,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetArtNetTimeCodeFormat(Choice_ARTNetTimeCodeFormat->GetSelection());
     _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
     _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
+    _options->SetRemoteAllOff(CheckBox_RemoteAllOff->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {
