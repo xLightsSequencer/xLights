@@ -1328,7 +1328,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
 
     static long long lastms = 0;
     long long now = wxGetLocalTimeMillis().GetValue();
-    logger_frame.debug("Timer: Start frame %d", (int)(now - lastms));
+    logger_frame.info("Timer: Start frame %d", (int)(now - lastms));
     if (now - lastms > _timer.GetInterval() * 4)
     {
         if (lastms != 0 && __schedule->IsOutputToLights())
