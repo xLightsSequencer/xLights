@@ -2509,21 +2509,26 @@ void xScheduleFrame::DoCheckSchedule(wxCommandEvent& event)
 void xScheduleFrame::DoStop(wxCommandEvent& event)
 {
     bool end = false;
+	bool sustain = false;
     if (event.GetString() == "end")
     {
         end = true;
     }
+	else if (event.GetString() == "sustain")
+	{
+		sustain = true;
+	}
 
     if (event.GetInt() == -1)
     {
-        __schedule->StopAll();
+        __schedule->StopAll(sustain);
     }
     else
     {
         PlayList* p = __schedule->GetRunningPlayList(event.GetInt());
         if (p != nullptr)
         {
-            __schedule->StopPlayList(p, end);
+            __schedule->StopPlayList(p, end, sustain);
         }
     }
     UpdateSchedule();
