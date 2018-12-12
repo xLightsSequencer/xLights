@@ -672,7 +672,7 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     return running;
 }
 
-void ScheduleManager::StopAll(bool alloff)
+void ScheduleManager::StopAll(bool sustain)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Stopping all playlists.");
@@ -706,7 +706,7 @@ void ScheduleManager::StopAll(bool alloff)
         _eventPlayLists.pop_front();
     }
 
-    if (alloff)
+    if (!sustain)
     {
         AllOff();
     }
@@ -2879,7 +2879,7 @@ bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Sch
     }
 }
 
-void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
+void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain)
 {
     if (_immediatePlay != nullptr && _immediatePlay->GetId() == playlist->GetId())
     {
@@ -2916,7 +2916,10 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
         }
     }
 
-    AllOff();
+    if (!sustain)
+    {
+	    AllOff();
+	}
 }
 
 // 127.0.0.1/xScheduleStash?Command=Store&Key=<key> ... this must be posted with the data in the body of the request ... key must be filename legal
