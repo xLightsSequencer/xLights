@@ -178,7 +178,7 @@ class ScheduleManager
         std::string GetStatus() const;
 		static std::string GetScheduleFile() { return "xlights.xschedule"; }
 		void Save();
-        void StopAll(bool alloff = true);
+        void StopAll(bool sustain = false);
         void AddPlayList(PlayList* playlist);
         bool IsQueuedPlaylistRunning() const;
         void RemovePlayList(PlayList* playlist);
