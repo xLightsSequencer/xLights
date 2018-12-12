@@ -671,7 +671,7 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     return running;
 }
 
-void ScheduleManager::StopAll()
+void ScheduleManager::StopAll(bool alloff)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Stopping all playlists.");
@@ -705,7 +705,10 @@ void ScheduleManager::StopAll()
         _eventPlayLists.pop_front();
     }
 
-    AllOff();
+    if (alloff)
+    {
+        AllOff();
+    }
 }
 
 void ScheduleManager::AllOff()
