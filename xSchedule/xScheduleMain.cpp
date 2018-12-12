@@ -13,26 +13,31 @@
 // Must be commented out in release builds
 // #define WEBOVERLOAD
 
-#include "xScheduleMain.h"
+//(*InternalHeaders(xScheduleFrame)
+#include <wx/intl.h>
+#include <wx/string.h>
+//*)
+
 #include <wx/msgdlg.h>
+#include <wx/config.h>
+#include <wx/file.h>
+#include <wx/filename.h>
+#include <wx/mimetype.h>
+#include <wx/bitmap.h>
+#include <wx/protocol/http.h>
+#include <wx/debugrpt.h>
+
+#include "xScheduleMain.h"
 #include "PlayList/PlayList.h"
 #include "MyTreeItemData.h"
-#include <wx/config.h>
 #include "ScheduleManager.h"
 #include "Schedule.h"
 #include "ScheduleOptions.h"
 #include "OptionsDialog.h"
 #include "WebServer.h"
-#include <log4cpp/Category.hh>
-#include <wx/file.h>
-#include <wx/filename.h>
-#include <wx/mimetype.h>
 #include "PlayList/PlayListStep.h"
-#include <wx/bitmap.h>
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/outputs/OutputManager.h"
-#include <wx/protocol/http.h>
-#include <wx/debugrpt.h>
 #include "RunningSchedule.h"
 #include "UserButton.h"
 #include "OutputProcessingDialog.h"
@@ -51,6 +56,7 @@
 #include "ConfigureMIDITimecodeDialog.h"
 #include "City.h"
 #include "events/ListenerManager.h"
+#include "ExtraIPsDialog.h"
 
 #include "../include/xs_save.xpm"
 #include "../include/xs_otlon.xpm"
@@ -80,14 +86,11 @@
 #include "../include/xLights-64.xpm"
 #include "../include/xLights-128.xpm"
 
+#include "../include/slow.xpm"
 #include "../include/web_icon.xpm"
 #include "../include/no_web_icon.xpm"
 
-//(*InternalHeaders(xScheduleFrame)
-#include <wx/intl.h>
-#include <wx/string.h>
-#include "ExtraIPsDialog.h"
-//*)
+#include <log4cpp/Category.hh>
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
 
@@ -150,6 +153,7 @@ const long xScheduleFrame::ID_STATICTEXT6 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT4 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT5 = wxNewId();
 const long xScheduleFrame::ID_STATICTEXT2 = wxNewId();
+const long xScheduleFrame::ID_STATICBITMAP2 = wxNewId();
 const long xScheduleFrame::ID_STATICBITMAP1 = wxNewId();
 const long xScheduleFrame::ID_PANEL4 = wxNewId();
 const long xScheduleFrame::ID_MNU_SHOWFOLDER = wxNewId();
@@ -333,6 +337,9 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_XYZZYEVENT, xScheduleFrame::DoXyzzyEvent)
     END_EVENT_TABLE()
 
+// Number of MS after a slow event to show the slow icon for
+#define SLOW_FOR_MS 1500
+
 xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, const std::string& playlist, wxWindowID id)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -346,7 +353,10 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     _suspendOTL = false;
     _nowebicon = wxBitmap(no_web_icon_24);
     _webicon = wxBitmap(web_icon_24);
+    _slowicon = wxBitmap(slow_32);
     _webIconDisplayed = false;
+    _slowDisplayed = false;
+    _lastSlow = 0;
 
     static log4cpp::Category &logger_frame = log4cpp::Category::getInstance(std::string("log_frame"));
     _timer.SetLog((logger_frame.getPriority() == log4cpp::Priority::DEBUG));
@@ -459,7 +469,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer4->SetSizeHints(Panel1);
     FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 0);
     Panel4 = new wxPanel(this, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxRAISED_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL4"));
-    FlexGridSizer6 = new wxFlexGridSizer(0, 7, 0, 0);
+    FlexGridSizer6 = new wxFlexGridSizer(0, 8, 0, 0);
     FlexGridSizer6->AddGrowableCol(1);
     StaticText_ShowDir = new wxStaticText(Panel4, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     FlexGridSizer6->Add(StaticText_ShowDir, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -474,6 +484,8 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     FlexGridSizer6->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText_Time = new wxStaticText(Panel4, ID_STATICTEXT2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer6->Add(StaticText_Time, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBitmap_Slow = new wxStaticBitmap(Panel4, ID_STATICBITMAP2, wxNullBitmap, wxDefaultPosition, wxSize(24,24), 0, _T("ID_STATICBITMAP2"));
+    FlexGridSizer6->Add(StaticBitmap_Slow, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBitmap_WebIcon = new wxStaticBitmap(Panel4, ID_STATICBITMAP1, wxNullBitmap, wxDefaultPosition, wxSize(24,24), 0, _T("ID_STATICBITMAP1"));
     FlexGridSizer6->Add(StaticBitmap_WebIcon, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Panel4->SetSizer(FlexGridSizer6);
@@ -759,7 +771,9 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     StaticText_IP->SetLabel("    " + __schedule->GetOurIP() + "   ");
 
     StaticBitmap_WebIcon->SetBitmap(_nowebicon);
+    StaticBitmap_Slow->SetBitmap(_nowebicon);
     _webIconDisplayed = false;
+    _slowDisplayed = false;
 
     // This is for keith ... I like my debug version to be distinctive so I can tell it apart from the prior version
 #ifndef NDEBUG
@@ -1334,6 +1348,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         if (lastms != 0 && __schedule->IsOutputToLights())
         {
             logger_base.warn("Frame interval greater than 200%% of what it should have been [%d] %d", _timer.GetInterval() * 2, (int)(now - lastms));
+            _lastSlow = wxGetUTCTimeMillis();
         }
     }
     lastms = now;
@@ -2589,6 +2604,23 @@ void xScheduleFrame::UpdateUI(bool force)
         {
             StaticBitmap_WebIcon->SetBitmap(_nowebicon);
             _webIconDisplayed = false;
+        }
+    }
+
+    if (wxGetUTCTimeMillis() - _lastSlow < SLOW_FOR_MS)
+    {
+        if (!_slowDisplayed)
+        {
+            StaticBitmap_Slow->SetBitmap(_slowicon);
+            _slowDisplayed = true;
+        }
+    }
+    else
+    {
+        if (_slowDisplayed)
+        {
+            StaticBitmap_Slow->SetBitmap(_nowebicon);
+            _slowDisplayed = false;
         }
     }
 
