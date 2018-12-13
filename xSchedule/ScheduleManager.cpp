@@ -270,7 +270,8 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
 int ScheduleManager::DoSync(const std::string& filename, long ms)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
+logger_base.debug("DoSync Enter");
+	
     PlayList* pl = GetRunningPlayList();
     PlayListStep* pls = nullptr;
 
@@ -372,6 +373,10 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
             {
                 wxCommandEvent event(EVT_STOP);
                 event.SetInt(pl->GetId());
+                if (!GetOptions()->IsRemoteAllOff())
+                {
+                    event.SetString("sustain");
+                }
                 wxPostEvent(wxGetApp().GetTopWindow(), event);
             }
         }
@@ -400,14 +405,17 @@ int ScheduleManager::DoSync(const std::string& filename, long ms)
     if (pls != nullptr)
     {
         _listenerManager->SetFrameMS(pls->GetFrameMS());
+logger_base.debug("DoSync Leave");
         return pls->GetFrameMS();
     }
     if (pl != nullptr)
     {
         _listenerManager->SetFrameMS(pl->GetFrameMS());
+logger_base.debug("DoSync Leave");
         return pl->GetFrameMS();
     }
     _listenerManager->SetFrameMS(50);
+logger_base.debug("DoSync Leave");
     return 50;
 }
 
@@ -671,7 +679,7 @@ PlayList* ScheduleManager::GetRunningPlayList() const
     return running;
 }
 
-void ScheduleManager::StopAll()
+void ScheduleManager::StopAll(bool sustain)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Stopping all playlists.");
@@ -705,7 +713,10 @@ void ScheduleManager::StopAll()
         _eventPlayLists.pop_front();
     }
 
-    AllOff();
+    if (!sustain)
+    {
+        AllOff();
+    }
 }
 
 void ScheduleManager::AllOff()
@@ -2875,7 +2886,7 @@ bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Sch
     }
 }
 
-void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
+void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain)
 {
     if (_immediatePlay != nullptr && _immediatePlay->GetId() == playlist->GetId())
     {
@@ -2912,7 +2923,10 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep)
         }
     }
 
-    AllOff();
+    if (!sustain)
+    {
+	    AllOff();
+	}
 }
 
 // 127.0.0.1/xScheduleStash?Command=Store&Key=<key> ... this must be posted with the data in the body of the request ... key must be filename legal

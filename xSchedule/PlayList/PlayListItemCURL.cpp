@@ -136,6 +136,7 @@ void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
                 http.SetPostText("", "");
             }
             wxDELETE(httpStream);
+	    http.Close();
         }
         else
         {

@@ -36,6 +36,7 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_PASTE;
     static const long CUSTOMMODELDLGMNU_FLIPH;
     static const long CUSTOMMODELDLGMNU_FLIPV;
+    static const long CUSTOMMODELDLGMNU_ROTATE90;
     static const long CUSTOMMODELDLGMNU_REVERSE;
     static const long CUSTOMMODELDLGMNU_SHIFT;
     static const long CUSTOMMODELDLGMNU_INSERT;
@@ -148,6 +149,7 @@ class CustomModelDialog: public wxDialog
         bool CheckScale(std::list<wxPoint>& points, float scale);
         void FlipHorizontal();
         void FlipVertical();
+        void Rotate90();
         void Insert(int selRow, int selCol);
         void Shift();
         void Compress();

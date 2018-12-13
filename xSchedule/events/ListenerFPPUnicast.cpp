@@ -162,6 +162,7 @@ void ListenerFPPUnicast::Poll()
                             _listenerManager->Sync(fileName, 0, GetType());
                         }
                     }
+                    logger_base.debug("Pkt dispatched.");
                 }
             }
         }

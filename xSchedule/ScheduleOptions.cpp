@@ -34,6 +34,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
     _sendOffWhenNotRunning = node->GetAttribute("SendOffWhenNotRunning", "FALSE") == "TRUE";
     _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
+    _remoteAllOff = node->GetAttribute("RemoteSustain", "FALSE") == "FALSE";
     _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
 #ifdef __WXMSW__
@@ -172,6 +173,7 @@ ScheduleOptions::ScheduleOptions()
     _sync = false;
     _sendOffWhenNotRunning = false;
     _parallelTransmission = false;
+    _remoteAllOff = true;
     _retryOutputOpen = false;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
@@ -237,6 +239,11 @@ wxXmlNode* ScheduleOptions::Save()
     if (IsParallelTransmission())
     {
         res->AddAttribute("ParallelTransmission", "TRUE");
+    }
+
+    if (!IsRemoteAllOff())
+    {
+        res->AddAttribute("RemoteSustain", "TRUE");
     }
 
     if (IsRetryOpen())

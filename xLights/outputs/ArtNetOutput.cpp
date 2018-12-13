@@ -194,6 +194,8 @@ bool ArtNetOutput::Open()
     _data[15] = ((_universe & 0xFF00) >> 8);
     _data[16] = 0x02; // we are going to send all 512 bytes
 
+    OpenDatagram();
+    
     _remoteAddr.Hostname(_ip.c_str());
     _remoteAddr.Service(ARTNET_PORT);
 
