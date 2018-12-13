@@ -251,30 +251,6 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             // Append `default` material
             materials.push_back(tinyobj::material_t());
 
-            // Load diffuse textures
-            {
-                for (size_t m = 0; m < materials.size(); m++) {
-                    tinyobj::material_t* mp = &materials[m];
-
-                    if (mp->diffuse_texname.length() > 0) {
-                        // Only load the texture if it is not already loaded
-                        if (textures[preview->GetName().ToStdString()].find(mp->diffuse_texname) == textures[preview->GetName().ToStdString()].end()) {
-                            std::string texture_filename = mp->diffuse_texname;
-                            if (!wxFileExists(texture_filename)) {
-                                // Append base dir.
-                                wxFileName fn2(texture_filename);
-                                fn2.SetPath(fn.GetPath());
-                                texture_filename = fn2.GetFullPath();
-                                if (!wxFileExists(texture_filename)) {
-                                    logger_base.debug("Unable to find materials file: %s", (const char *)mp->diffuse_texname.c_str());
-                                    continue;
-                                }
-                            }
-                            textures[preview->GetName().ToStdString()][mp->diffuse_texname] = new Image(texture_filename, false, true);
-                        }
-                    }
-                }
-            }
 
             bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
             bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
@@ -316,6 +292,31 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             obj_loaded = true;
         }
     }
+    // Load diffuse textures
+    {
+        wxFileName fn(_objFile);
+        for (size_t m = 0; m < materials.size(); m++) {
+            tinyobj::material_t* mp = &materials[m];
+            
+            if (mp->diffuse_texname.length() > 0) {
+                // Only load the texture if it is not already loaded
+                if (textures[preview->GetName().ToStdString()].find(mp->diffuse_texname) == textures[preview->GetName().ToStdString()].end()) {
+                    std::string texture_filename = mp->diffuse_texname;
+                    if (!wxFileExists(texture_filename)) {
+                        // Append base dir.
+                        wxFileName fn2(texture_filename);
+                        fn2.SetPath(fn.GetPath());
+                        texture_filename = fn2.GetFullPath();
+                        if (!wxFileExists(texture_filename)) {
+                            logger_base.debug("Unable to find materials file: %s", (const char *)mp->diffuse_texname.c_str());
+                            continue;
+                        }
+                    }
+                    textures[preview->GetName().ToStdString()][mp->diffuse_texname] = new Image(texture_filename, false, true);
+                }
+            }
+        }
+    }
 
     GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
 
@@ -323,7 +324,6 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
         // Loop over shapes
         for (size_t s = 0; s < shapes.size(); s++) {
             // Loop over faces(polygon)
-            size_t index_offset = 0;
 
             // Check for smoothing group and compute smoothing normals
             std::map<int, vec3> smoothVertexNormals;

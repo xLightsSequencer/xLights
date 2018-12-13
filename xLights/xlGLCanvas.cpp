@@ -16,6 +16,8 @@ END_EVENT_TABLE()
 
 static const int DEPTH_BUFFER_BITS[] = {32, 16, 8};
 
+wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
+
 static wxGLAttributes GetAttributes(bool need3d) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     
@@ -553,7 +555,7 @@ void xlGLCanvas::CreateGLContext() {
             }
             atts.EndList();
             glGetError();
-            LOG_GL_ERRORV(m_context = new wxGLContext(this, nullptr, &atts));
+            LOG_GL_ERRORV(m_context = new wxGLContext(this, m_sharedContext, &atts));
             if (!m_context->IsOK()) {
                 logger_opengl.debug("Could not create a valid CoreProfile context");
                 LOG_GL_ERRORV(delete m_context);
@@ -572,7 +574,7 @@ void xlGLCanvas::CreateGLContext() {
         }
         if (m_context == nullptr) {
             glGetError();
-            LOG_GL_ERRORV(m_context = new wxGLContext(this));
+            LOG_GL_ERRORV(m_context = new wxGLContext(this, m_sharedContext));
         }
         if (!functionsLoaded) {
             LOG_GL_ERROR();
@@ -586,10 +588,14 @@ void xlGLCanvas::CreateGLContext() {
         wxLog::SetLogLevel(cur);
         wxLog::Resume();
 
-        if (m_context == nullptr)
-        {
+        if (m_context == nullptr) {
             static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             logger_opengl.error("Error creating GL context.");
+        } else if (m_sharedContext == nullptr) {
+            //use this as the shared context, then create a new one.
+            m_sharedContext = m_context;
+            m_context = nullptr;
+            CreateGLContext();
         }
     }
 }

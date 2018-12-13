@@ -47,6 +47,8 @@ class xlGLCanvas
 			  const double contentScaleFactor;
 			  unsigned char *tmpBuf;
 		  };
+    
+        static wxGLContext *GetSharedContext() { return m_sharedContext; }
     protected:
       	DECLARE_EVENT_TABLE()
 
@@ -77,6 +79,8 @@ class xlGLCanvas
     private:
         wxGLContext* m_context;
         bool m_coreProfile;
+    
+        static wxGLContext *m_sharedContext;
 };
 
 #endif // XLGLCANVAS_H
