@@ -1385,7 +1385,7 @@ void xScheduleFrame::On_timerTrigger(wxTimerEvent& event)
         _timerOutputFrame = !_timerOutputFrame;
     }
 
-    logger_frame.debug("Timer: Frame time %ld", ms);
+    logger_frame.info("Timer: Frame time %ld", ms);
 }
 
 void xScheduleFrame::UpdateSchedule()
