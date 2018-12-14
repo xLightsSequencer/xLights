@@ -1199,7 +1199,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -1673,7 +1673,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int time = 0;
     int frameTime = 50;
 
-    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true);
+    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -2467,12 +2467,15 @@ void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *
     LoadRGBData(effectManager, layer, re, ge, be);
 }
 
-std::string Scale255To100(wxString s)
+std::string Scale255To100(wxString s, bool doscale)
 {
+    if (doscale)
     return wxString::Format("%d", wxAtoi(s) * 100 / 255).ToStdString();
+
+    return s.ToStdString();
 }
 
-void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
+void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color, bool doscale) {
     std::string palette = "C_BUTTON_Palette1=#FFFFFF,C_CHECKBOX_Palette1=1";
     if (chancountpernode > 1) {
         xlColor color1(color);
@@ -2486,10 +2489,10 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
             std::string intensity = ch->GetAttribute("intensity", "-1").ToStdString();
             std::string starti, endi;
             if (intensity == "-1") {
-                starti = Scale255To100(ch->GetAttribute("startIntensity"));
-                endi = Scale255To100(ch->GetAttribute("endIntensity"));
+                starti = Scale255To100(ch->GetAttribute("startIntensity"), doscale);
+                endi = Scale255To100(ch->GetAttribute("endIntensity"), doscale);
             } else {
-                starti = endi = Scale255To100(intensity);
+                starti = endi = Scale255To100(intensity, doscale);
             }
             std::string settings;
             if (100 != starti) {
@@ -2512,7 +2515,7 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
     }
 }
 
-bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const Model &mc) {
+bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxXmlDocument &input_xml, const wxString &nm, const wxColor &color, const Model &mc, bool doscale) {
     if ("" == nm) {
         return false;
     }
@@ -2542,12 +2545,12 @@ bool MapChannelInformation(EffectManager &effectManager, EffectLayer *layer, wxX
         MapRGBEffects(effectManager, layer, rchannel, gchannel, bchannel);
     }
     else {
-        MapOnEffects(effectManager, layer, channel, mc.GetChanCountPerNode(), color);
+        MapOnEffects(effectManager, layer, channel, mc.GetChanCountPerNode(), color, doscale);
     }
     return true;
 }
 
-void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool doscale)
 {
     wxString ccrName = m->_mapping;
 
@@ -2574,13 +2577,13 @@ void MapCCRModel(int& node, const std::vector<std::string>& channelNames, ModelE
             MapChannelInformation(effectManager,
                 layer, input_xml,
                 nm, m->_color,
-                *mc);
+                *mc, doscale);
             node++;
         }
     }
 }
 
-void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* se, xLightsImportModelNode* s, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool doscale)
 {
     int node = 0;
     wxString ccrName = s->_mapping;
@@ -2603,12 +2606,12 @@ void MapCCRStrand(const std::vector<std::string>& channelNames, StrandElement* s
         MapChannelInformation(effectManager,
             layer, input_xml,
             nm, s->_color,
-            *mc);
+            *mc, doscale);
         node++;
     }
 }
 
-void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager)
+void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, xLightsImportModelNode* m, Model* mc, wxXmlDocument &input_xml, EffectManager& effectManager, bool doscale)
 {
     if (mc->GetDisplayAs() == "ModelGroup")
     {
@@ -2616,20 +2619,20 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
         int node = 0;
         for (auto it = mg->Models().begin(); it != mg->Models().end(); ++it)
         {
-            MapCCRModel(node, channelNames, model, m, *it, input_xml, effectManager);
+            MapCCRModel(node, channelNames, model, m, *it, input_xml, effectManager, doscale);
         }
     }
     else
     {
         int node = 0;
-        MapCCRModel(node, channelNames, model, m, mc, input_xml, effectManager);
+        MapCCRModel(node, channelNames, model, m, mc, input_xml, effectManager, doscale);
     }
 }
 
 bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filename)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true);
+    xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true, true);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;
@@ -2715,6 +2718,8 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
         AdjustAllTimings(input_xml.GetRoot(), offset / 10);
     }
 
+    bool doscale = dlg.CheckBox_Scale->GetValue();
+
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             std::string name = dlg.TimingTrackListBox->GetString(tt).ToStdString();
@@ -2773,14 +2778,14 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
             {
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end())
                 {
-                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager);
+                    MapCCR(dlg.channelNames, model, m, mc, input_xml, effectManager, doscale);
                 }
                 else
                 {
                     MapChannelInformation(effectManager,
                         model->GetEffectLayer(0), input_xml,
                         m->_mapping,
-                        m->_color, *mc);
+                        m->_color, *mc, doscale);
                 }
             }
         }
@@ -2803,7 +2808,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                     if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), s->_mapping) != dlg.ccrNames.end())
                     {
                         StrandElement *se = model->GetStrand(str);
-                        MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager);
+                        MapCCRStrand(dlg.channelNames, se, s, mc, input_xml, effectManager, doscale);
                     }
                     else
                     {
@@ -2812,7 +2817,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                             MapChannelInformation(effectManager,
                                 ste->GetEffectLayer(0), input_xml,
                                 s->_mapping,
-                                s->_color, *mc);
+                                s->_color, *mc, doscale);
                         }
                     }
                 }
@@ -2837,7 +2842,7 @@ bool xLightsFrame::ImportLMS(wxXmlDocument &input_xml, const wxFileName &filenam
                                 MapChannelInformation(effectManager,
                                     nl, input_xml,
                                     ns->_mapping,
-                                    ns->_color, *mc);
+                                    ns->_color, *mc, doscale);
                             }
                         }
                     }
@@ -3934,7 +3939,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         - what it was when it was converted\n\
         - what you changed it to.\n");
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;

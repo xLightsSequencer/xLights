@@ -404,6 +404,7 @@ const long xLightsImportChannelMapDialog::ID_CHOICE = wxNewId();
 //(*IdInit(xLightsImportChannelMapDialog)
 const long xLightsImportChannelMapDialog::ID_SPINCTRL1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKBOX1 = wxNewId();
+const long xLightsImportChannelMapDialog::ID_CHECKBOX2 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON3 = wxNewId();
 const long xLightsImportChannelMapDialog::ID_BUTTON4 = wxNewId();
@@ -421,7 +422,7 @@ BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id,const wxPoint& pos,const wxSize& size)
+xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowScale, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     TreeListCtrl_Mapping = nullptr;
     _dataModel = nullptr;
@@ -430,6 +431,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
     _allowTimingTrack = allowTimingTrack;
     _allowColorChoice = allowColorChoice;
     _allowCCRStrand = allowCCRStrand;
+    _allowScale = allowScale;
     _filename = filename;
     _dragItem = wxDataViewItem(nullptr);
 
@@ -456,9 +458,14 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(wxWindow* parent, c
 	TimeAdjustSpinCtrl->SetValue(_T("0"));
 	Sizer_TimeAdjust->Add(TimeAdjustSpinCtrl, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer1->Add(Sizer_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_MapCCRStrand = new wxCheckBox(Panel1, ID_CHECKBOX1, _("Map CCR/Strand"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_MapCCRStrand->SetValue(false);
-	Sizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_Scale = new wxCheckBox(Panel1, ID_CHECKBOX2, _("Scale 0-255 -> 0-100"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+	CheckBox_Scale->SetValue(false);
+	FlexGridSizer1->Add(CheckBox_Scale, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
 	TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
 	TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
@@ -584,9 +591,20 @@ bool xLightsImportChannelMapDialog::InitImport() {
         return false;
     }
 
-    if (!_allowCCRStrand)
+    if (!_allowCCRStrand && !_allowScale)
     {
-        Sizer1->Hide(CheckBox_MapCCRStrand);
+        Sizer1->Hide(FlexGridSizer1);
+    }
+    else
+    {
+        if (!_allowCCRStrand)
+        {
+            FlexGridSizer1->Hide(CheckBox_MapCCRStrand);
+        }
+        if (!_allowScale)
+        {
+            FlexGridSizer1->Hide(CheckBox_Scale);
+        }
     }
 
     if (!_allowTimingOffset)

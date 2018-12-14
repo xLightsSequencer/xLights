@@ -44,9 +44,25 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_MapCCRStrand" member="yes">
-									<label>Map CCR/Strand</label>
-									<handler function="OnCheckBox_MapCCRStrandClick" entry="EVT_CHECKBOX" />
+								<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="yes">
+									<cols>2</cols>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_MapCCRStrand" member="yes">
+											<label>Map CCR/Strand</label>
+											<handler function="OnCheckBox_MapCCRStrandClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_Scale" member="yes">
+											<label>Scale 0-255 -&gt; 0-100</label>
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
