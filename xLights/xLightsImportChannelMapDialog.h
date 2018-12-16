@@ -342,11 +342,10 @@ class xLightsImportChannelMapDialog: public wxDialog
     int _sortOrder;
     wxDataViewItem _dragItem;
     bool _allowCCRStrand;
-    bool _allowScale;
 
 	public:
    
-		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowScale, wxWindowID id=wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size=wxDefaultSize);
+		xLightsImportChannelMapDialog(wxWindow* parent, const wxFileName &filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, wxWindowID id=wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size=wxDefaultSize);
 		virtual ~xLightsImportChannelMapDialog();
         wxDataViewItem GetNextTreeItem(const wxDataViewItem item) const;
         wxDataViewItem GetPriorTreeItem(const wxDataViewItem item) const;
@@ -358,7 +357,6 @@ class xLightsImportChannelMapDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_MapCCRStrand;
-		wxCheckBox* CheckBox_Scale;
 		wxCheckListBox* TimingTrackListBox;
 		wxFlexGridSizer* FlexGridSizer1;
 		wxFlexGridSizer* OldSizer;
@@ -390,7 +388,6 @@ protected:
 		//(*Identifiers(xLightsImportChannelMapDialog)
 		static const long ID_SPINCTRL1;
 		static const long ID_CHECKBOX1;
-		static const long ID_CHECKBOX2;
 		static const long ID_CHECKLISTBOX1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON4;

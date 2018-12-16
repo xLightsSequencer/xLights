@@ -55,14 +55,6 @@
 										<border>5</border>
 										<option>1</option>
 									</object>
-									<object class="sizeritem">
-										<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_Scale" member="yes">
-											<label>Scale 0-255 -&gt; 0-100</label>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
 								</object>
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
