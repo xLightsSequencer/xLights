@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.56 December 16, 2018
+   -- bug (keith)  Fix LOR import so dmx intensity and intensity come in correctly
+   -- bug (keith)  Fix artnet not outputting
+   -- enh (keith)  Add visual indication of slowness to the xSchedule UI
+   -- enh (keith)  Add control over what happens when a remote xSchedule gets told to stop playing a sequence ... blank or not blank lights
    -- enh (scott)  Added Rotate 90 option to Custom Model Dialog
 2018.55 December 10, 2018
    -- bug (keith)  Fix scheduler crash that was way more common than I thought it would be [windows + linux only]
