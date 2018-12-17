@@ -715,7 +715,10 @@ void ScheduleManager::StopAll(bool sustain)
 
     if (!sustain)
     {
-        AllOff();
+        if (!IsSlave() || GetOptions()->IsRemoteAllOff())
+        {
+            AllOff();
+        }
     }
 }
 
@@ -2925,7 +2928,10 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, 
 
     if (!sustain)
     {
-	    AllOff();
+        if (!IsSlave() || GetOptions()->IsRemoteAllOff())
+        {
+            AllOff();
+        }
 	}
 }
 
