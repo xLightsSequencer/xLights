@@ -10,6 +10,7 @@
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 
+#include "FSEQFile.h"
 #include "FileConverter.h"
 #include "UtilFunctions.h"
 #include "outputs/OutputManager.h"
@@ -1579,35 +1580,25 @@ void FileConverter::ReadConductorFile(ConvertParameters& params)
 void FileConverter::ReadFalconFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
-    const wxUint16 fixedHeaderLength = 28;
 
-    if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN)
-    {
+    if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN) {
         params.xLightsFrm->ConversionInit();
     }
 
-    wxFile f;
-    if (!f.Open(params.inp_filename.c_str()))
-    {
+    FSEQFile *file = FSEQFile::openFSEQFile(params.inp_filename);
+    if (!file) {
         logger_conversion.debug("Unable to load sequence: %s.", (const char *)params.inp_filename.c_str());
         params.PlayerError(wxString("Unable to load sequence:\n") + params.inp_filename);
         return;
     }
-    unsigned char hdr[1024];
-    f.Read(hdr, fixedHeaderLength);
-
-    int dataOffset = hdr[4] + (hdr[5] << 8);
-    if (dataOffset < 1024) {
-        f.Seek(0);
-        f.Read(hdr, dataOffset);
-    }
-    int numChannels = hdr[10] + (hdr[11] << 8) + (hdr[12] << 16) + (hdr[13] << 24);
-    int seqStepTime = hdr[18] + (hdr[19] << 8);
+    int numChannels = file->getMaxChannel();
+    int seqStepTime = file->getStepTime();
     wxString mf = "";
-    if (dataOffset > 28 && hdr[30] == 'm' && hdr[31] == 'f') {
-        mf = (char *)&hdr[32];
+    for (auto &a : file->getVariableHeaders()) {
+        if (a.code[0] == 'm' && a.code[1] == 'f') {
+            mf = (char *)&a.data[0];
+        }
     }
-
     if (params.media_filename) {
         *params.media_filename = mf;
     }
@@ -1617,172 +1608,99 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     }
 
     int falconPeriods = 0;
-    if (numChannels > 0) falconPeriods = (f.Length() - dataOffset) / numChannels;
-    if (params.data_layer != nullptr)
-    {
+    if (numChannels > 0) falconPeriods = file->getNumFrames();
+    if (params.data_layer != nullptr) {
         params.data_layer->SetNumFrames(falconPeriods);
         params.data_layer->SetNumChannels(numChannels);
     }
 
-    if (params.read_mode == ConvertParameters::READ_MODE_HEADER_ONLY)
-    {
-        f.Close();
+    if (params.read_mode == ConvertParameters::READ_MODE_HEADER_ONLY) {
+        delete file;
         return;
     }
 
+    std::vector<std::pair<uint32_t, uint32_t>> rng;
+    rng.push_back(std::pair<uint32_t, uint32_t>(0, numChannels));
+    file->prepareRead(rng);
     if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ||
-        params.read_mode == ConvertParameters::READ_MODE_IMPORT)
-    {
+        params.read_mode == ConvertParameters::READ_MODE_IMPORT) {
         params.seq_data.init(numChannels, falconPeriods, seqStepTime);
     }
 
     int channel_offset = 0;
-    if (params.data_layer)
-    {
+    if (params.data_layer) {
         channel_offset = params.data_layer->GetChannelOffset();
     }
 
-    f.Seek(dataOffset);
-    char *tmpBuf = new char[numChannels];
+    uint8_t *tmpBuf = new uint8_t[numChannels];
     int periodsRead = 0;
-    size_t readcnt;
-    while (periodsRead < falconPeriods)
-    {
+    while (periodsRead < falconPeriods) {
+        FSEQFile::FrameData *data = file->getFrame(periodsRead);
+        
+        
         if (channel_offset == 0 && params.read_mode != ConvertParameters::READ_MODE_IGNORE_BLACK) {
-            readcnt = f.Read(&params.seq_data[periodsRead][0], numChannels);
-            if (readcnt < numChannels)
-            {
-                params.PlayerError(wxString("Unable to read all event data from:\n") + params.inp_filename);
-            }
-
-        }
-        else {
-            readcnt = f.Read(tmpBuf, numChannels);
-            if (readcnt < numChannels)
-            {
-                params.PlayerError(wxString("Unable to read all event data from:\n") + params.inp_filename);
-            }
-
-            for (int i = 0; i < numChannels; i++)
-            {
+            data->readFrame(&params.seq_data[periodsRead][0]);
+        } else {
+            data->readFrame(tmpBuf);
+            
+            for (int i = 0; i < numChannels; i++) {
                 int new_index = i + channel_offset;
                 if ((new_index < 0) || (new_index >= numChannels)) continue;
-                if (params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK)
-                {
-                    if (tmpBuf[i] != 0)
-                    {
+                if (params.read_mode == ConvertParameters::READ_MODE_IGNORE_BLACK) {
+                    if (tmpBuf[i] != 0) {
                         params.seq_data[periodsRead][new_index] = tmpBuf[i];
                     }
-                }
-                else
-                {
+                } else {
                     params.seq_data[periodsRead][new_index] = tmpBuf[i];
                 }
             }
         }
+        delete data;
         periodsRead++;
     }
     delete[]tmpBuf;
-
 #ifndef NDEBUG
     params.AppendConvertStatus(string_format(wxString("Read ISEQ File SeqData.NumFrames()=%d SeqData.NumChannels()=%d"), params.seq_data.NumFrames(), params.seq_data.NumChannels()));
 #endif
-
-    f.Close();
+    delete file;
 }
 
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.debug("Start fseq write");
-    const wxUint8 vMinor = 0;
-    const wxUint8 vMajor = 1;
-    wxUint16 fixedHeaderLength = 28;
-    size_t stepSize = roundTo4(params.seq_data.NumChannels());
-
-    wxUint16 stepTime = params.seq_data.FrameTime();
-    // Ignored by Pi Player
-    wxUint16 numUniverses = 0;
-    // Ignored by Pi Player
-    wxUint16 universeSize = 0;
-    // Gamma 0=encoded 1=linear
-    wxUint8 gamma = 1;
-    // Gamma 0=unknown 1=mono 2=RGB
-    wxUint8 colorEncoding = 2;
-
-    wxFile f;
-    // Step Size must be multiple of 4
-    //wxUint8 buf[stepSize];
-
-    if (!f.Create(params.out_filename, true))
-    {
+    
+    const wxUint8 vMajor = 1;  //SUPPORT v2
+    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor);
+    if (!file) {
         params.ConversionError(wxString("Unable to create file: ") + params.out_filename);
         return;
     }
 
-    wxUint8* buf;
-    buf = (wxUint8 *)calloc(sizeof(wxUint8), 1024);
+    size_t stepSize = roundTo4(params.seq_data.NumChannels());
+    wxUint16 stepTime = params.seq_data.FrameTime();
 
-    // Header Information
-    // Format Identifier
-    buf[0] = 'P';
-    buf[1] = 'S';
-    buf[2] = 'E';
-    buf[3] = 'Q';
-
-    buf[6] = vMinor;
-    buf[7] = vMajor;
-    // Fixed header length
-    buf[8] = (wxUint8)(fixedHeaderLength % 256);
-    buf[9] = (wxUint8)(fixedHeaderLength / 256);
-    // Step Size
-    buf[10] = (wxUint8)(stepSize & 0xFF);
-    buf[11] = (wxUint8)((stepSize >> 8) & 0xFF);
-    buf[12] = (wxUint8)((stepSize >> 16) & 0xFF);
-    buf[13] = (wxUint8)((stepSize >> 24) & 0xFF);
-    // Number of Steps
-    buf[14] = (wxUint8)(params.seq_data.NumFrames() & 0xFF);
-    buf[15] = (wxUint8)((params.seq_data.NumFrames() >> 8) & 0xFF);
-    buf[16] = (wxUint8)((params.seq_data.NumFrames() >> 16) & 0xFF);
-    buf[17] = (wxUint8)((params.seq_data.NumFrames() >> 24) & 0xFF);
-    // Step time in ms
-    buf[18] = (wxUint8)(stepTime & 0xFF);
-    buf[19] = (wxUint8)((stepTime >> 8) & 0xFF);
-    // universe count
-    buf[20] = (wxUint8)(numUniverses & 0xFF);
-    buf[21] = (wxUint8)((numUniverses >> 8) & 0xFF);
-    // universe Size
-    buf[22] = (wxUint8)(universeSize & 0xFF);
-    buf[23] = (wxUint8)((universeSize >> 8) & 0xFF);
-    // universe Size
-    buf[24] = gamma;
-    // universe Size
-    buf[25] = colorEncoding;
-    buf[26] = 0;
-    buf[27] = 0;
-
+    file->setChannelCount(stepSize);
+    file->setStepTime(stepTime);
+    file->setNumFrames(params.seq_data.NumFrames());
     if (params.media_filename) {
         if ((*params.media_filename).length() > 0) {
-            int len = strlen((*params.media_filename).c_str()) + 5;
-            buf[28] = (wxUint8)(len & 0xFF);
-            buf[29] = (wxUint8)((len >> 8) & 0xFF);
-            buf[30] = 'm';
-            buf[31] = 'f';
-            strcpy((char *)&buf[32], (*params.media_filename).c_str());
-            fixedHeaderLength += len;
-            fixedHeaderLength = roundTo4(fixedHeaderLength);
+            FSEQFile::VariableHeader header;
+            header.code[0] = 'm';
+            header.code[1] = 'f';
+            
+            int len = strlen((*params.media_filename).c_str()) + 1;
+            header.data.resize(len);
+            strcpy((char *)&header.data[0], params.media_filename->c_str());
+            file->addVariableHeader(header);
         }
     }
-    // Data offset
-    buf[4] = (wxUint8)(fixedHeaderLength % 256);
-    buf[5] = (wxUint8)(fixedHeaderLength / 256);
-    f.Write(buf, fixedHeaderLength);
-
+    file->writeHeader();
     size_t size = params.seq_data.NumFrames();
-    size *= stepSize;
-
-    f.Write(&params.seq_data[0][0], size);
-    f.Close();
-    free(buf);
+    for (int x = 0; x < size; x++) {
+        file->addFrame(x, &params.seq_data[x][0]);
+    }
+    file->finalize();
+    delete file;
     logger_conversion.debug("End fseq write");
 }

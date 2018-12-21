@@ -389,7 +389,6 @@ void E131Output::SetTransientData(int on, long startChannel, int nullnumber)
 void E131Output::StartFrame(long msec)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static int __retries = -1;
 
     if (!_enabled) return;
 
