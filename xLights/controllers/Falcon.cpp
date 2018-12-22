@@ -22,6 +22,7 @@ class FalconControllerRules : public ControllerRules
 public:
     FalconControllerRules(int type, int version) : ControllerRules()
     {
+        _expansions = 0;
         _type = type;
         _version = version;
     }
@@ -312,6 +313,25 @@ Falcon::~Falcon()
     _http.Close();
 }
 
+void FalconString::Dump() const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("    Index %02d Port %02d Prot %d Desc '%s' Uni %d StartChan %d Pixels %d Group %d Direction %s ColorOrder %s Nulls %d Brightness %d Gamma %.1f",
+        index,
+        port+1,
+        protocol,
+        (const char*)description.c_str(),
+        universe,
+        startChannel,
+        pixels,
+        groupCount,
+        (const char*)direction.c_str(),
+        (const char*)colourOrder.c_str(),
+        nullPixels,
+        brightness,
+        gamma);
+}
+
 std::string Falcon::GetURL(const std::string& url, bool logresult)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -431,17 +451,25 @@ std::string Falcon::SafeDescription(const std::string description) const
     return desc.Left(25).ToStdString();
 }
 
-int Falcon::GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port)
+int Falcon::GetPixelCount(const std::vector<FalconString*> &stringData, int port) const
 {
     int count = 0;
-    for (int i = 0; i < virtualStringData.size(); ++i)
+    for (auto sd : stringData)
     {
-        if (virtualStringData[i]->port == port)
+        if (sd->port == port)
         {
-            count += virtualStringData[i]->pixels;
+            count += sd->pixels;
         }
     }
     return count;
+}
+
+void Falcon::DumpStringData(std::vector<FalconString*> stringData) const
+{
+    for (auto sd: stringData)
+    {
+        sd->Dump();
+    }
 }
 
 bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
@@ -480,7 +508,6 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     }
 
     std::vector<FalconString*> stringData;
-    std::vector<FalconString*> virtualStringData;
 
     wxStringInputStream strm(wxString(strings.c_str()));
     wxXmlDocument stringsDoc(strm);
@@ -518,41 +545,29 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
     logger_base.info("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
 
-    ReadStringData(stringsDoc, stringData, virtualStringData);
+    ReadStringData(stringsDoc, stringData);
 
-    // remove virtual strings where we will be uploading to those outputs
-    auto vsd = virtualStringData.begin();
-    int lastPort = -1;
-    while (vsd != virtualStringData.end())
-    {
-        bool first = (lastPort + 1 == (*vsd)->port);
-        lastPort = (*vsd)->port;
-        if (!first && cud.HasPixelPort((*vsd)->port))
-        {
-            auto next = vsd;
-            ++next;
-            virtualStringData.erase(vsd);
-            vsd = next;
-        }
-        else
-        {
-            ++vsd;
-        }
-    }
+    logger_base.debug("Downloaded string data.");
+    DumpStringData(stringData);
 
     int maxPixels = GetMaxPixels();
+    int totalPixelPorts = GetDaughter1Threshold();
     if (cud.GetMaxPixelPort() > GetDaughter2Threshold() && currentStrings < GetMaxStringOutputs())
     {
         logger_base.info("Adjusting string port count to %d.", GetMaxStringOutputs());
         progress.Update(45, "Adjusting string port count.");
-        InitialiseStrings(stringData, GetMaxStringOutputs());
+        totalPixelPorts = GetMaxStringOutputs();
     }
     else if (cud.GetMaxPixelPort() > GetDaughter1Threshold() && currentStrings < GetDaughter2Threshold())
     {
         logger_base.info("Adjusting string port count to %d.", GetDaughter2Threshold());
         progress.Update(45, "Adjusting string port count.");
-        InitialiseStrings(stringData, GetDaughter2Threshold());
+        totalPixelPorts = GetDaughter2Threshold();
     }
+    InitialiseStrings(stringData, totalPixelPorts);
+
+    //logger_base.debug("Missing strings added.");
+    //DumpStringData(stringData);
 
     logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
 
@@ -562,49 +577,141 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     bool portdone[100];
     memset(&portdone, 0x00, sizeof(portdone)); // all false
 
-    for (int pp = 1; pp <= cud.GetMaxPixelPort(); pp++)
+    // break it up into virtual strings
+    std::vector<FalconString*> newStringData;
+    std::vector<FalconString*> toDelete;
+    int index = 0;
+    for (int pp = 1; pp <= totalPixelPorts; pp++)
     {
         if (cud.HasPixelPort(pp))
         {
             UDControllerPort* port = cud.GetControllerPixelPort(pp);
             logger_base.info("Pixel Port %d Protocol %s.", pp, (const char *)port->GetProtocol().c_str());
 
-            FalconString* string = FindPort(stringData, port->GetPort()-1);
-            if (string != nullptr)
+            port->CreateVirtualStrings();
+
+            FalconString* firstString = nullptr;            
+            for (auto sd: stringData)
             {
-                string->protocol = DecodeStringPortProtocol(port->GetProtocol());
-                string->universe = port->GetUniverse();
-                string->startChannel = port->GetUniverseStartChannel();
-                string->pixels = port->Channels() / 3;
-                string->description = SafeDescription(port->GetPortName());
-                UDControllerPortModel* m = port->GetFirstModel();
-                if (m != nullptr)
+                if (sd->port == pp - 1)
                 {
-                    string->brightness = m->GetBrightness(string->brightness);
-                    string->nullPixels = m->GetNullPixels(string->nullPixels);
-                    string->gamma = m->GetGamma(string->gamma);
-                    string->colourOrder = m->GetColourOrder(string->colourOrder);;
-                    string->direction = m->GetDirection(string->direction);
-                    string->groupCount = m->GetGroupCount(string->groupCount);
+                    if (firstString == nullptr)
+                    {
+                        firstString = sd;
+                    }
+                    else
+                    {
+                        toDelete.push_back(sd);
+                    }
                 }
             }
-            else
+            wxASSERT(firstString != nullptr);
+
+            // need to add virtual strings
+            bool first = true;
+            for (auto vs : port->GetVirtualStrings())
             {
-                wxASSERT(false);
-                logger_base.warn("    Skipping non existent port.");
+                FalconString* fs;
+                if (first)
+                {
+                    fs = firstString;
+                    first = false;
+                }
+                else
+                {
+                    fs = new FalconString();
+                }
+
+                // ignore index ... we will fix them up when done
+                fs->port = firstString->port;
+                fs->index = index++;
+                fs->protocol = DecodeStringPortProtocol(vs->_protocol);
+                fs->universe = vs->_universe;
+                fs->startChannel = vs->_universeStartChannel;
+                fs->pixels = vs->Channels() / 3;
+                fs->description = SafeDescription(vs->_description);
+                if (vs->_brightnessSet)
+                {
+                    fs->brightness = vs->_brightness;
+                }
+                else
+                {
+                    fs->brightness = firstString->brightness;
+                }
+                if (vs->_nullPixelsSet)
+                {
+                    fs->nullPixels = vs->_nullPixels;
+                }
+                else
+                {
+                    fs->nullPixels = firstString->nullPixels;
+                }
+                if (vs->_gammaSet)
+                {
+                    fs->gamma = vs->_gamma;
+                }
+                else
+                {
+                    fs->gamma = firstString->gamma;
+                }
+                if (vs->_colourOrderSet)
+                {
+                    fs->colourOrder = vs->_colourOrder;
+                }
+                else
+                {
+                    fs->colourOrder = firstString->colourOrder;
+                }
+                if (vs->_reverseSet)
+                {
+                    fs->direction = vs->_reverse;
+                }
+                else
+                {
+                    fs->direction = firstString->direction;
+                }
+                if (vs->_groupCountSet)
+                {
+                    fs->groupCount = vs->_groupCount;
+                }
+                else
+                {
+                    fs->groupCount = firstString->groupCount;
+                }
+                newStringData.push_back(fs);
+            }
+        }
+        else
+        {
+            for (auto sd: stringData)
+            {
+                if (sd->port == pp-1)
+                {
+                    sd->index = index++;
+                    newStringData.push_back(sd);
+                }
             }
         }
     }
+    stringData = newStringData;
+
+    // delete any read strings we didnt keep
+    for (auto d : toDelete)
+    {
+        delete d;
+    }
+
+    logger_base.debug("Virtual strings created.");
+    DumpStringData(stringData);
 
     logger_base.info("Working out required pixel splits.");
-
     int maxMain = 0;
     int maxDaughter1 = 0;
     int maxDaughter2 = 0;
 
     for (auto i = 0; i < stringData.size(); ++i)
     {
-        int pixels = stringData[i]->pixels + GetVirtualStringPixels(virtualStringData, stringData[i]->port);
+        int pixels = GetPixelCount(stringData, stringData[i]->port);
         if (i < GetBank1Threshold())
         {
             if (pixels > maxMain) maxMain = pixels;
@@ -757,19 +864,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         }
 
         logger_base.info("Uploading string ports.");
-        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2, virtualStringData);
-
-        // delete all our string data
-        while (stringData.size() > 0)
-        {
-            delete stringData[stringData.size() - 1];
-            stringData.pop_back();
-        }
-        while (virtualStringData.size() > 0)
-        {
-            delete virtualStringData[virtualStringData.size() - 1];
-            virtualStringData.pop_back();
-        }
+        UploadStringPorts(stringData, maxMain, maxDaughter1, maxDaughter2);
     }
     else
     {
@@ -778,6 +873,13 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
             wxMessageBox("Not uploaded due to errors.\n" + check);
             check = "";
         }
+    }
+
+    // delete all our string data
+    while (stringData.size() > 0)
+    {
+        delete stringData.back();
+        stringData.pop_back();
     }
 
     if (success && cud.GetMaxSerialPort() > 0)
@@ -825,25 +927,20 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     return success;
 }
 
-int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, std::vector<FalconString*>& virtualStringData)
+void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    int virtualStrings = 0;
 
-    if (stringsDoc.GetRoot() == nullptr) return 0;
+    if (stringsDoc.GetRoot() == nullptr) return;
 
-    int count = wxAtoi(stringsDoc.GetRoot()->GetAttribute("c"));
-
-    if (count == 0)
+    int count = 0;
+    for (auto n = stringsDoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext())
     {
-        for (auto n = stringsDoc.GetRoot()->GetChildren(); n != nullptr; n = n->GetNext())
-        {
-            count++;
-        }
+        count++;
     }
 
     logger_base.debug("Strings.xml had %d entries.", count);
-    if (count == 0) return 0;
+    if (count == 0) return;
 
     int oldCount = stringData.size();
     stringData.resize(count);
@@ -856,80 +953,47 @@ int Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconSt
     int lastString = -1;
     for (auto e = stringsDoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
     {
-        int index = wxAtoi(e->GetAttribute("p"));
+        int port = wxAtoi(e->GetAttribute("p"));
 
-        if (index == lastString + 1)
-        {
-            //<vs y="" p="7" u="2000" us="0" s="0" c="50" g="1" t="0" d="0" o="0" n="0" z="0" b="13" bl="0" ga="0"/>
-            // y = description
-            // u = universe
-            // us = universe start channel - 1
-            // s = absolute channel I think
-            // c = pixel count
-            // g = grouping
-            // t = protocol
-            // d = direction (index 0 - forward, 1 - reversed)
-            // o = pixel order (index 0 - RGB, 1 - RBG, 2 - GRB, 3 - GBR, 4 - BRG, 5 - BGR)
-            // n = null pixels
-            // z = zig zag count - IGNORED
-            // b = brightness (index 0 - 100, 1 - 95, 2 - 90, 3 - 85, 4 - 80, 5 - 75, 6 - 70, 7 - 65, 8 - 60, 9 - 50, 10 - 40, 11 - 30, 12 - 20, 13 - 10)
-            // bl = blank (1 if checked) - IGNORED
-            // ga = gamma (index 0 - none, 1 - 2.0, 2 - 2.3, 3 - 2.5, 4 - 2.8, 5 - 3.0
-            FalconString* string = new FalconString();
-            string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
-            if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
-            string->pixels = wxAtoi(e->GetAttribute("c"));
-            if (string->pixels < 0 || string->pixels > GetMaxPixels()) string->pixels = 0;
-            string->protocol = wxAtoi(e->GetAttribute("t", "0"));
-            string->universe = wxAtoi(e->GetAttribute("u"));
-            if (string->universe <= 1 || string->universe > 64000) string->universe = 1;
-            string->description = e->GetAttribute("y", "").ToStdString();
-            string->port = wxAtoi(e->GetAttribute("p"));
-            string->brightness = DecodeBrightness(wxAtoi(e->GetAttribute("b", "0")));
-            string->nullPixels = wxAtoi(e->GetAttribute("n", "0"));
-            string->gamma = DecodeGamma(wxAtoi(e->GetAttribute("ga", "0")));
-            string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
-            string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
-            string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
-            string->index = i;
-            stringData[index] = string;
-            logger_base.debug("   Port %d, Universe %d, Start Channel %d Pixels %d, Description '%s'",
-                string->port + 1, string->universe, string->startChannel, string->pixels, (const char*)string->description.c_str());
-        }
-        else
-        {
-            FalconString* string = new FalconString();
-            string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
-            if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
-            string->pixels = wxAtoi(e->GetAttribute("c"));
-            string->protocol = -1;
-            string->universe = wxAtoi(e->GetAttribute("u"));
-            if (string->universe <= 1 || string->universe > 64000) string->universe = 1;
-            string->description = e->GetAttribute("y").ToStdString();
-            string->port = wxAtoi(e->GetAttribute("p"));
-            string->brightness = DecodeBrightness(wxAtoi(e->GetAttribute("b", "0")));
-            string->nullPixels = wxAtoi(e->GetAttribute("n", "0"));
-            string->gamma = DecodeGamma(wxAtoi(e->GetAttribute("ga", "0")));
-            string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
-            string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
-            string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
-            string->index = i;
-            virtualStringData.push_back(string);
+        bool vs = (port == lastString);
 
-            logger_base.debug("         Virtual String: Port %d, Universe %d, Start Channel %d Pixels %d, Description '%s'",
-                string->port + 1, string->universe, string->startChannel, string->pixels, (const char*)string->description.c_str());
-            virtualStrings++;
-        }
-        lastString = index;
+        //<vs y="" p="7" u="2000" us="0" s="0" c="50" g="1" t="0" d="0" o="0" n="0" z="0" b="13" bl="0" ga="0"/>
+        // y = description
+        // u = universe
+        // us = universe start channel - 1
+        // s = absolute channel I think
+        // c = pixel count
+        // g = grouping
+        // t = protocol
+        // d = direction (index 0 - forward, 1 - reversed)
+        // o = pixel order (index 0 - RGB, 1 - RBG, 2 - GRB, 3 - GBR, 4 - BRG, 5 - BGR)
+        // n = null pixels
+        // z = zig zag count - IGNORED
+        // b = brightness (index 0 - 100, 1 - 95, 2 - 90, 3 - 85, 4 - 80, 5 - 75, 6 - 70, 7 - 65, 8 - 60, 9 - 50, 10 - 40, 11 - 30, 12 - 20, 13 - 10)
+        // bl = blank (1 if checked) - IGNORED
+        // ga = gamma (index 0 - none, 1 - 2.0, 2 - 2.3, 3 - 2.5, 4 - 2.8, 5 - 3.0
+        FalconString* string = new FalconString();
+        string->startChannel = wxAtoi(e->GetAttribute("us")) + 1;
+        if (string->startChannel < 1 || string->startChannel > 512) string->startChannel = 1;
+        string->pixels = wxAtoi(e->GetAttribute("c"));
+        if (string->pixels < 0 || string->pixels > GetMaxPixels()) string->pixels = 0;
+        string->protocol = wxAtoi(e->GetAttribute("t", "0"));
+        string->universe = wxAtoi(e->GetAttribute("u"));
+        if (string->universe <= 1 || string->universe > 64000) string->universe = 1;
+        string->description = e->GetAttribute("y", "").ToStdString();
+        string->port = wxAtoi(e->GetAttribute("p"));
+        string->brightness = DecodeBrightness(wxAtoi(e->GetAttribute("b", "0")));
+        string->nullPixels = wxAtoi(e->GetAttribute("n", "0"));
+        string->gamma = DecodeGamma(wxAtoi(e->GetAttribute("ga", "0")));
+        string->colourOrder = DecodeColourOrder(wxAtoi(e->GetAttribute("o", "0")));
+        string->direction = DecodeDirection(wxAtoi(e->GetAttribute("d", "0")));
+        string->groupCount = wxAtoi(e->GetAttribute("g", "1"));
+        string->index = i;
+        stringData[i] = string;
+
+        lastString = port;
         i++;
     }
-
-    if (virtualStrings > 0)
-    {
-        stringData.resize(count - virtualStrings);
-    }
-
-    return virtualStrings;
 }
 
 int Falcon::DecodeBrightness(int brightnessCode) const
@@ -950,6 +1014,7 @@ int Falcon::DecodeBrightness(int brightnessCode) const
     case 11: return 30;
     case 12: return 20;
     case 13: return 10;
+    default: break;
     }
 
     return 100;
@@ -983,6 +1048,7 @@ float Falcon::DecodeGamma(int gammaCode) const
     case 3: return 2.5;
     case 4: return 2.8;
     case 5: return 3.0;
+    default: break;
     }
     return 1.0;
 }
@@ -1007,6 +1073,7 @@ std::string Falcon::DecodeColourOrder(int colourOrderCode) const
     case 3: return "GBR";
     case 4: return "BRG";
     case 5: return "BGR";
+    default: break;
     }
     return "RGB";
 }
@@ -1028,6 +1095,7 @@ std::string Falcon::DecodeDirection(int directionCode) const
     {
     case 0: return "Forward";
     case 1: return "Reverse";
+    default: break;
     }
     return "Forward";
 }
@@ -1054,40 +1122,28 @@ int Falcon::DecodeStringPortProtocol(std::string protocol) const
     return -1;
 }
 
-#define MINIMUMPIXELS 50
-
-void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
+#define MINIMUMPIXELS 1
+void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("Expanding strings from %d to %d.", stringsData.size(), max);
+    logger_base.debug("Filling in missing strings.");
 
-    int oldsize = stringsData.size();
+    std::vector<FalconString*> newStringsData;
 
-    stringsData.resize(max);
-
-    for (int i = oldsize; i < max; ++i)
+    int index = 0;
+    for (int i = 0; i < max; i++)
     {
-        FalconString* string = new FalconString();
-        string->startChannel = 1;
-        string->pixels = MINIMUMPIXELS;
-        string->protocol = 0;
-        string->universe = 1;
-        string->description = "";
-        string->port = i;
-        string->index = i;
-        string->brightness = 100;
-        string->nullPixels = 0;
-        string->gamma = 1.0;
-        string->colourOrder = "RGB";
-        string->direction = "Forward";
-        string->groupCount = 1;
-        stringsData[i] = string;
-    }
-
-    // fill in any missing data
-    for (int i = 0; i < max; ++i)
-    {
-        if (stringsData[i] == nullptr)
+        bool added = false;
+        for (auto sd: stringsData)
+        {
+            if (sd->port == i)
+            {
+                sd->index = index++;
+                newStringsData.push_back(sd);
+                added = true;
+            }
+        }
+        if (!added)
         {
             FalconString* string = new FalconString();
             string->startChannel = 1;
@@ -1096,22 +1152,18 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
             string->universe = 1;
             string->description = "";
             string->port = i;
+            string->index = index++;
             string->brightness = 100;
             string->nullPixels = 0;
             string->gamma = 1.0;
             string->colourOrder = "RGB";
             string->direction = "Forward";
             string->groupCount = 1;
-            string->index = i;
-            stringsData[i] = string;
+            newStringsData.push_back(string);
+            logger_base.debug("    Added default string to port %d.", i+1);
         }
     }
-
-    int index = 0;
-    for (auto s: stringsData)
-    {
-        s->index = index++;
-    }
+    stringsData = newStringsData;
 }
 
 void Falcon::UploadStringPort(const std::string& request, bool final)
@@ -1143,16 +1195,22 @@ FalconString* Falcon::FindPort(const std::vector<FalconString*>& stringData, int
     return nullptr;
 }
 
-void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, const std::vector<FalconString*>& virtualStringData)
+void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2)
 {
-    int S = stringData.size() + virtualStringData.size();
+    int S = stringData.size();
     int m = 0;
 
-    if (stringData.size() > GetDaughter2Threshold())
+    int maxPort = 0;
+    for (auto sd : stringData)
+    {
+        maxPort = std::max(maxPort, sd->port);
+    }
+
+    if (maxPort+1 > GetDaughter2Threshold())
     {
         m = 2;
     }
-    else if (stringData.size() > GetDaughter1Threshold())
+    else if (maxPort+1 > GetDaughter1Threshold())
     {
         m = 1;
     }
@@ -1178,15 +1236,6 @@ void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int
             hasGreaterThan40 = true;
         }
     }
- 
-    for (int i = 0; i < virtualStringData.size(); ++i)
-    {
-        if (virtualStringData[i]->port < 40)
-        {
-            message += BuildStringPort(virtualStringData[i]);
-        }
-    }
-
     UploadStringPort(message, stringData.size() <= 40);
 
     if (hasGreaterThan40)
@@ -1197,14 +1246,6 @@ void Falcon::UploadStringPorts(const std::vector<FalconString*>& stringData, int
             if (stringData[i]->port >= 40)
             {
                 message += BuildStringPort(stringData[i]);
-            }
-        }
-
-        for (int i = 0; i < virtualStringData.size(); ++i)
-        {
-            if (virtualStringData[i]->port >= 40)
-            {
-                message += BuildStringPort(virtualStringData[i]);
             }
         }
 

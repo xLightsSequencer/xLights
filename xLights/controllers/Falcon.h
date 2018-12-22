@@ -25,6 +25,7 @@ public:
     std::string colourOrder;
     std::string direction;
     int brightness;
+    void Dump() const;
 };
 
 class Falcon
@@ -40,7 +41,7 @@ class Falcon
     std::string PutURL(const std::string& url, const std::string& request, bool logresult = false);
     int DecodeStringPortProtocol(std::string protocol) const;
     void UploadStringPort(const std::string& request, bool final);
-    void UploadStringPorts(const std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2, const std::vector<FalconString*>& virtualStringData);
+    void UploadStringPorts(const std::vector<FalconString*>& stringData, int maxMain, int maxDaughter1, int maxDaughter2);
     std::string BuildStringPort(FalconString* string) const;
     int DecodeSerialOutputProtocol(std::string protocol) const;
     void UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
@@ -48,9 +49,9 @@ class Falcon
     int GetMaxStringOutputs() const;
     int GetMaxSerialOutputs() const;
     int CountStrings(const wxXmlDocument& stringsDoc) const;
-    int ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, std::vector<FalconString*>& virtualStringData);
+    void ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData) const;
     int MaxPixels(const wxXmlDocument& stringsDoc, int board) const;
-    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max);
+    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max) const;
     std::string SafeDescription(const std::string description) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
     bool IsF48() const { return _model == 48; }
@@ -58,7 +59,8 @@ class Falcon
     bool IsF4() const { return _model == 4; }
     bool IsV3() const { return _version == 3; }
     bool IsV2() const { return _version == 2; }
-    int GetVirtualStringPixels(const std::vector<FalconString*> &virtualStringData, int port);
+    int GetPixelCount(const std::vector<FalconString*> &stringData, int port) const;
+    void DumpStringData(std::vector<FalconString*> stringData) const;
     int GetDaughter1Threshold() const { if (IsF16() || IsF48()) { return 16; } else { return 4; } }
     int GetBank1Threshold() const { if (IsF4()) return 6; else return GetDaughter1Threshold(); }
     int GetDaughter2Threshold() const { if (IsF16() || IsF48()) { return 32; } else { return 12; } }

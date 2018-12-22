@@ -538,6 +538,11 @@ UDControllerPort::~UDControllerPort()
         delete _models.back();
         _models.pop_back();
     }
+    while (_virtualStrings.size() > 0)
+    {
+        delete _virtualStrings.front();
+        _virtualStrings.pop_front();
+    }
 }
 
 UDControllerPortModel* UDControllerPort::GetFirstModel() const
@@ -750,5 +755,120 @@ int UDControllerPort::GetUniverseStartChannel() const
     else
     {
         return GetFirstModel()->GetUniverseStartChannel();
+    }
+}
+
+void UDControllerPort::CreateVirtualStrings()
+{
+    while (_virtualStrings.size() > 0)
+    {
+        delete _virtualStrings.front();
+        _virtualStrings.pop_front();
+    }
+
+    UDVirtualString* current = nullptr;
+    for (auto it : _models)
+    {
+        bool first = false;
+        int brightness = it->GetBrightness(-9999);
+        int nullPixels = it->GetNullPixels(-9999);
+        std::string reverse = it->GetDirection("unknown");
+        std::string colourOrder = it->GetColourOrder("unknown");
+        float gamma = it->GetGamma(-9999);
+        int groupCount = it->GetGroupCount(-9999);
+
+        if (it == _models.front())
+        {
+            // this is automatically a new virtual string
+            current = new UDVirtualString();
+            _virtualStrings.push_back(current);
+            first = true;
+        }
+        else
+        {
+            if ((brightness != -9999 && current->_brightness != brightness) ||
+                (nullPixels != -9999) ||
+                (reverse != "unknown" && current->_reverse != reverse) ||
+                (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
+                (gamma != -9999 && current->_gamma != gamma) ||
+                (groupCount != -9999 && current->_groupCount != groupCount))
+            {
+                current = new UDVirtualString();
+                _virtualStrings.push_back(current);
+                first = true;
+            }
+        }
+
+        current->_endChannel = it->GetEndChannel();
+
+        if (first)
+        {
+            current->_startChannel = it->GetStartChannel();
+            current->_description = it->GetName();
+            current->_protocol = it->GetProtocol();
+            current->_universe = it->GetUniverse();
+            current->_universeStartChannel = it->GetUniverseStartChannel();
+
+            if (gamma == -9999)
+            {
+                current->_gammaSet = false;
+                current->_gamma = 0;
+            }
+            else
+            {
+                current->_gammaSet = true;
+                current->_gamma = gamma;
+            }
+            if (nullPixels == -9999)
+            {
+                current->_nullPixelsSet = false;
+                current->_nullPixels = 0;
+            }
+            else
+            {
+                current->_nullPixelsSet = true;
+                current->_nullPixels = nullPixels;
+            }
+            if (brightness == -9999)
+            {
+                current->_brightnessSet = false;
+                current->_brightness = 0;
+            }
+            else
+            {
+                current->_brightnessSet = true;
+                current->_brightness = brightness;
+            }
+            if (groupCount == -9999)
+            {
+                current->_groupCountSet = false;
+                current->_groupCount = 0;
+            }
+            else
+            {
+                current->_groupCountSet = true;
+                current->_groupCount = groupCount;
+            }
+            if (reverse == "unknown")
+            {
+                current->_reverseSet = false;
+                current->_reverse = "";
+            }
+            else
+            {
+                current->_reverseSet = true;
+                current->_reverse = reverse;
+            }
+            if (colourOrder == "unknown")
+            {
+                current->_colourOrderSet = false;
+                current->_colourOrder = "";
+            }
+            else
+            {
+                current->_colourOrderSet = true;
+                current->_colourOrder = colourOrder;
+            }
+        }
     }
 }
