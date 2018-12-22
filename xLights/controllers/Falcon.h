@@ -50,7 +50,7 @@ class Falcon
     int CountStrings(const wxXmlDocument& stringsDoc) const;
     int ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconString*>& stringData, std::vector<FalconString*>& virtualStringData);
     int MaxPixels(const wxXmlDocument& stringsDoc, int board) const;
-    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int virtualStrings);
+    void InitialiseStrings(std::vector<FalconString*>& stringsData, int max);
     std::string SafeDescription(const std::string description) const;
     FalconString* FindPort(const std::vector<FalconString*>& stringData, int port) const;
     bool IsF48() const { return _model == 48; }

@@ -518,35 +518,40 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     logger_base.info("Current Falcon configuration split: Main = %d, Expansion1 = %d, Expansion2 = %d, Strings = %d", mainPixels, daughter1Pixels, daughter2Pixels, currentStrings);
     logger_base.info("Maximum string port configured in xLights: %d", cud.GetMaxPixelPort());
 
-    int virtualStrings = ReadStringData(stringsDoc, stringData, virtualStringData);
+    ReadStringData(stringsDoc, stringData, virtualStringData);
 
-    if (virtualStrings > 0)
+    // remove virtual strings where we will be uploading to those outputs
+    auto vsd = virtualStringData.begin();
+    int lastPort = -1;
+    while (vsd != virtualStringData.end())
     {
-        if (wxMessageBox("At least one String Port has virtual strings defined. Proceeding will overwrite the first one only and will need to be manually corrected. Are you sure you want to do this?", "Are you sure?", wxYES_NO, parent) == wxYES)
+        bool first = (lastPort + 1 == (*vsd)->port);
+        lastPort = (*vsd)->port;
+        if (!first && cud.HasPixelPort((*vsd)->port))
         {
-            // ok let it happen
-            logger_base.warn("Falcon Outputs Upload: User chose to upload string port outputs even though it had %d virtual strings defined.", virtualStrings);
+            auto next = vsd;
+            ++next;
+            virtualStringData.erase(vsd);
+            vsd = next;
         }
         else
         {
-            check += "\nAborted by user.\n";
-            success = false;
+            ++vsd;
         }
     }
 
     int maxPixels = GetMaxPixels();
-
     if (cud.GetMaxPixelPort() > GetDaughter2Threshold() && currentStrings < GetMaxStringOutputs())
     {
         logger_base.info("Adjusting string port count to %d.", GetMaxStringOutputs());
         progress.Update(45, "Adjusting string port count.");
-        InitialiseStrings(stringData, GetMaxStringOutputs(), virtualStrings);
+        InitialiseStrings(stringData, GetMaxStringOutputs());
     }
     else if (cud.GetMaxPixelPort() > GetDaughter1Threshold() && currentStrings < GetDaughter2Threshold())
     {
         logger_base.info("Adjusting string port count to %d.", GetDaughter2Threshold());
         progress.Update(45, "Adjusting string port count.");
-        InitialiseStrings(stringData, GetDaughter2Threshold(), virtualStrings);
+        InitialiseStrings(stringData, GetDaughter2Threshold());
     }
 
     logger_base.info("Falcon pixel split: Main = %d, Expansion1 = %d, Expansion2 = %d", mainPixels, daughter1Pixels, daughter2Pixels);
@@ -1051,7 +1056,7 @@ int Falcon::DecodeStringPortProtocol(std::string protocol) const
 
 #define MINIMUMPIXELS 50
 
-void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max, int virtualStrings)
+void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Expanding strings from %d to %d.", stringsData.size(), max);
@@ -1069,7 +1074,7 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
         string->universe = 1;
         string->description = "";
         string->port = i;
-        string->index = i + virtualStrings;
+        string->index = i;
         string->brightness = 100;
         string->nullPixels = 0;
         string->gamma = 1.0;
@@ -1097,9 +1102,15 @@ void Falcon::InitialiseStrings(std::vector<FalconString*>& stringsData, int max,
             string->colourOrder = "RGB";
             string->direction = "Forward";
             string->groupCount = 1;
-            string->index = i + virtualStrings;
+            string->index = i;
             stringsData[i] = string;
         }
+    }
+
+    int index = 0;
+    for (auto s: stringsData)
+    {
+        s->index = index++;
     }
 }
 
