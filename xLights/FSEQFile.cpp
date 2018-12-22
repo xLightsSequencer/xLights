@@ -2,7 +2,7 @@
 #define _FILE_OFFSET_BITS 64
 #define __STDC_FORMAT_MACROS
 
-#include <wx/wx.h>
+
 #include <vector>
 #include <cstring>
 
@@ -12,7 +12,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifdef __WXMSW__
+#ifdef _MSC_VER
+#include <wx/wx.h>
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
 {
     // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
@@ -33,6 +34,10 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
     tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
     return 0;
 }
+#define ftello _ftelli64
+#define fseeko _fseeki64
+#define NO_ZLIB
+
 #else
 #include <sys/time.h>
 #include <unistd.h>
@@ -66,9 +71,6 @@ static void LogDebug(int i, const char *fmt, ...) {
 #define VB_ALL 0
 #endif
 
-#ifdef __WXMSW__
-#define NO_ZLIB
-#endif
 
 #ifndef NO_ZSTD
 #include <zstd.h>
@@ -161,11 +163,7 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
         return nullptr;
     }
 
-#ifdef __WXMSW__
-    _fseeki64(seqFile, 0L, SEEK_SET);
-#else
     fseeko(seqFile, 0L, SEEK_SET);
-#endif
     unsigned char tmpData[48];
     int bytesRead = fread(tmpData, 1, 48, seqFile);
 #ifndef PLATFORM_UNKNOWN
@@ -199,11 +197,7 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
     // Get Channel Data Offset
     uint64_t seqChanDataOffset = read2ByteUInt(&tmpData[4]);
     std::vector<uint8_t> header(seqChanDataOffset);
-#ifdef __WXMSW__
-    _fseeki64(seqFile, 0L, SEEK_SET);
-#else
     fseeko(seqFile, 0L, SEEK_SET);
-#endif
     bytesRead = fread(&header[0], 1, seqChanDataOffset, seqFile);
     if (bytesRead != seqChanDataOffset) {
         LogErr(VB_SEQUENCE, "Error opening sequence file: %s. Could not read header.\n", fn.c_str());
@@ -291,15 +285,9 @@ FSEQFile::FSEQFile(const std::string &fn, FILE *file, const std::vector<uint8_t>
     m_memoryBuffer(),
     m_memoryBufferPos(0)
  {
-#ifdef __WXMSW__
-    _fseeki64(m_seqFile, 0L, SEEK_END);
-    m_seqFileSize = _ftelli64(m_seqFile);
-    _fseeki64(m_seqFile, 0L, SEEK_SET);
-#else
     fseeko(m_seqFile, 0L, SEEK_END);
     m_seqFileSize = ftello(m_seqFile);
     fseeko(m_seqFile, 0L, SEEK_SET);
-#endif
 
     m_seqChanDataOffset = read2ByteUInt(&header[4]);
     m_seqVersionMinor = header[6];
@@ -317,11 +305,7 @@ FSEQFile::~FSEQFile() {
 
 int FSEQFile::seek(uint64_t location, int origin) {
     if (m_seqFile) {
-#ifdef __WXMSW__
-        return _fseeki64(m_seqFile, location, origin);
-#else
         return fseeko(m_seqFile, location, origin);
-#endif
     } else if (origin == SEEK_SET) {
         m_memoryBufferPos = location;
     } else if (origin == SEEK_CUR) {
@@ -334,11 +318,7 @@ int FSEQFile::seek(uint64_t location, int origin) {
 
 uint64_t FSEQFile::tell() {
     if (m_seqFile) {
-#ifdef __WXMSW__
-        return _ftelli64(m_seqFile);
-#else
-        return ftello(m_seqFile);
-#endif
+       return ftello(m_seqFile);
     }
     return m_memoryBufferPos;
 }
