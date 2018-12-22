@@ -82,20 +82,21 @@ void CustomModel::AddTypeProperties(wxPropertyGridInterface *grid) {
                                              custom_background));
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*");
 }
+
 int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("CustomData" == event.GetPropertyName()) {
         if (grid->GetPropertyByName("CustomBkgImage")->GetValue() != custom_background)
         {
             grid->GetPropertyByName("CustomBkgImage")->SetValue(wxVariant(custom_background));
         }
-        return 3 | 0x0008;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if ("CustomBkgImage" == event.GetPropertyName()) {
         custom_background = event.GetValue().GetString();
         ModelXml->DeleteAttribute("CustomBkgImage");
         ModelXml->AddAttribute("CustomBkgImage", custom_background);
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     }
     return Model::OnPropertyGridChange(grid, event);
 }

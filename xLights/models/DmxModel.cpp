@@ -381,182 +381,182 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
         }
         ModelXml->AddAttribute("DmxStyle", dmx_style );
         SetFromXml(ModelXml, zeroBased);
-        return 7;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_PROP_GRID;
     } else if ("DmxChannelCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3 | 0x0008;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("DmxPanChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanChannel");
         ModelXml->AddAttribute("DmxPanChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxPanOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanOrient");
         ModelXml->AddAttribute("DmxPanOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxPanDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanDegOfRot");
         ModelXml->AddAttribute("DmxPanDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxPanSlewLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanSlewLimit");
         ModelXml->AddAttribute("DmxPanSlewLimit", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxPanMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanMinLimit");
         ModelXml->AddAttribute("DmxPanMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxPanMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanMaxLimit");
         ModelXml->AddAttribute("DmxPanMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxTiltChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltChannel");
         ModelXml->AddAttribute("DmxTiltChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxTiltOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltOrient");
         ModelXml->AddAttribute("DmxTiltOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxTiltDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltDegOfRot");
         ModelXml->AddAttribute("DmxTiltDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxTiltSlewLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltSlewLimit");
         ModelXml->AddAttribute("DmxTiltSlewLimit", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxTiltMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltMinLimit");
         ModelXml->AddAttribute("DmxTiltMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxTiltMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxTiltMaxLimit");
         ModelXml->AddAttribute("DmxTiltMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxNodChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodChannel");
         ModelXml->AddAttribute("DmxNodChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxNodOrient" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodOrient");
         ModelXml->AddAttribute("DmxNodOrient", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxNodDegOfRot" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodDegOfRot");
         ModelXml->AddAttribute("DmxNodDegOfRot", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxNodMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodMinLimit");
         ModelXml->AddAttribute("DmxNodMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxNodMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxNodMaxLimit");
         ModelXml->AddAttribute("DmxNodMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxJawChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawChannel");
         ModelXml->AddAttribute("DmxJawChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxJawMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawMinLimit");
         ModelXml->AddAttribute("DmxJawMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxJawMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxJawMaxLimit");
         ModelXml->AddAttribute("DmxJawMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxEyeBrtChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeBrtChannel");
         ModelXml->AddAttribute("DmxEyeBrtChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxEyeUDChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDChannel");
         ModelXml->AddAttribute("DmxEyeUDChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxEyeUDMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDMinLimit");
         ModelXml->AddAttribute("DmxEyeUDMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxEyeUDMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeUDMaxLimit");
         ModelXml->AddAttribute("DmxEyeUDMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxEyeLRChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRChannel");
         ModelXml->AddAttribute("DmxEyeLRChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxEyeLRMinLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRMinLimit");
         ModelXml->AddAttribute("DmxEyeLRMinLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxEyeLRMaxLimit" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxEyeLRMaxLimit");
         ModelXml->AddAttribute("DmxEyeLRMaxLimit", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxRedChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxRedChannel");
         ModelXml->AddAttribute("DmxRedChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxGreenChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxGreenChannel");
         ModelXml->AddAttribute("DmxGreenChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxBlueChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBlueChannel");
         ModelXml->AddAttribute("DmxBlueChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxWhiteChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxWhiteChannel");
         ModelXml->AddAttribute("DmxWhiteChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxShutterChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxShutterChannel");
         ModelXml->AddAttribute("DmxShutterChannel", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxShutterOpen" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxShutterOpen");
         ModelXml->AddAttribute("DmxShutterOpen", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     } else if ("DmxBeamLength" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxBeamLength");
         ModelXml->AddAttribute("DmxBeamLength", wxString::Format("%6.4f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
     }
 
     return Model::OnPropertyGridChange(grid, event);
