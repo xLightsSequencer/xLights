@@ -2013,7 +2013,11 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     {
         return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
-    else if (ModelStartChannel[0] == '#' || ModelStartChannel[0] == '@' || CountChar(ModelStartChannel, ':') > 0)
+    else if (ModelStartChannel[0] == '@')
+    {
+        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
+    }
+    else if (ModelStartChannel[0] == '#' || CountChar(ModelStartChannel, ':') > 0)
     {
         return GetFirstChannelInStartChannelFormat(outputManager);
     }
