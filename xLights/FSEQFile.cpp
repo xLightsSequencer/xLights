@@ -2,6 +2,7 @@
 #define _FILE_OFFSET_BITS 64
 #define __STDC_FORMAT_MACROS
 
+#include <wx/wx.h>
 #include <vector>
 #include <cstring>
 
@@ -10,8 +11,32 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifdef __WXMSW__
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+    // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+    // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+    // until 00:00:00 January 1, 1970 
+    static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
+
+    GetSystemTime(&system_time);
+    SystemTimeToFileTime(&system_time, &file_time);
+    time = ((uint64_t)file_time.dwLowDateTime);
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+    tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+    return 0;
+}
+#else
 #include <sys/time.h>
 #include <unistd.h>
+#endif
 
 #include "FSEQFile.h"
 
@@ -39,6 +64,10 @@ static void LogDebug(int i, const char *fmt, ...) {
 }
 #define VB_SEQUENCE 1
 #define VB_ALL 0
+#endif
+
+#ifdef __WXMSW__
+#define NO_ZLIB
 #endif
 
 #ifndef NO_ZSTD
@@ -132,7 +161,11 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
         return nullptr;
     }
 
+#ifdef __WXMSW__
+    _fseeki64(seqFile, 0L, SEEK_SET);
+#else
     fseeko(seqFile, 0L, SEEK_SET);
+#endif
     unsigned char tmpData[48];
     int bytesRead = fread(tmpData, 1, 48, seqFile);
 #ifndef PLATFORM_UNKNOWN
@@ -166,7 +199,11 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
     // Get Channel Data Offset
     uint64_t seqChanDataOffset = read2ByteUInt(&tmpData[4]);
     std::vector<uint8_t> header(seqChanDataOffset);
+#ifdef __WXMSW__
+    _fseeki64(seqFile, 0L, SEEK_SET);
+#else
     fseeko(seqFile, 0L, SEEK_SET);
+#endif
     bytesRead = fread(&header[0], 1, seqChanDataOffset, seqFile);
     if (bytesRead != seqChanDataOffset) {
         LogErr(VB_SEQUENCE, "Error opening sequence file: %s. Could not read header.\n", fn.c_str());
@@ -254,9 +291,15 @@ FSEQFile::FSEQFile(const std::string &fn, FILE *file, const std::vector<uint8_t>
     m_memoryBuffer(),
     m_memoryBufferPos(0)
  {
+#ifdef __WXMSW__
+    _fseeki64(m_seqFile, 0L, SEEK_END);
+    m_seqFileSize = _ftelli64(m_seqFile);
+    _fseeki64(m_seqFile, 0L, SEEK_SET);
+#else
     fseeko(m_seqFile, 0L, SEEK_END);
     m_seqFileSize = ftello(m_seqFile);
     fseeko(m_seqFile, 0L, SEEK_SET);
+#endif
 
     m_seqChanDataOffset = read2ByteUInt(&header[4]);
     m_seqVersionMinor = header[6];
@@ -274,7 +317,11 @@ FSEQFile::~FSEQFile() {
 
 int FSEQFile::seek(uint64_t location, int origin) {
     if (m_seqFile) {
+#ifdef __WXMSW__
+        return _fseeki64(m_seqFile, location, origin);
+#else
         return fseeko(m_seqFile, location, origin);
+#endif
     } else if (origin == SEEK_SET) {
         m_memoryBufferPos = location;
     } else if (origin == SEEK_CUR) {
@@ -284,12 +331,18 @@ int FSEQFile::seek(uint64_t location, int origin) {
     }
     return 0;
 }
+
 uint64_t FSEQFile::tell() {
     if (m_seqFile) {
+#ifdef __WXMSW__
+        return _ftelli64(m_seqFile);
+#else
         return ftello(m_seqFile);
+#endif
     }
     return m_memoryBufferPos;
 }
+
 uint64_t FSEQFile::write(const void * ptr, uint64_t size) {
     if (m_seqFile) {
         return fwrite(ptr, 1, size, m_seqFile);
@@ -301,15 +354,16 @@ uint64_t FSEQFile::write(const void * ptr, uint64_t size) {
     m_memoryBufferPos += size;
     return size;
 }
+
 uint64_t FSEQFile::read(void *ptr, uint64_t size) {
     return fread(ptr, 1, size, m_seqFile);
 }
+
 void FSEQFile::preload(uint64_t pos, uint64_t size) {
 #ifndef PLATFORM_UNKNOWN
     posix_fadvise(fileno(m_seqFile), pos, size, POSIX_FADV_WILLNEED);
 #endif
 }
-
 
 void FSEQFile::parseVariableHeaders(const std::vector<uint8_t> &header, int start) {
     while (start < header.size() - 5) {
@@ -496,7 +550,7 @@ uint32_t V1FSEQFile::getMaxChannel() const {
 }
 
 static const int V2FSEQ_HEADER_SIZE = 32;
-#if !defined(NO_ZLIB) && !defined(NO_ZSTD)
+#if !defined(NO_ZLIB) || !defined(NO_ZSTD)
 static const int V2FSEQ_OUT_BUFFER_SIZE = 1024*1024; //1M output buffer
 static const int V2FSEQ_OUT_BUFFER_FLUSH_SIZE = 900 * 1024; //90% full, flush it
 #endif
