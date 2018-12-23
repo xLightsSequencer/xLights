@@ -552,17 +552,19 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
     int maxPixels = GetMaxPixels();
     int totalPixelPorts = GetDaughter1Threshold();
-    if (cud.GetMaxPixelPort() > GetDaughter2Threshold() && currentStrings < GetMaxStringOutputs())
+    if (cud.GetMaxPixelPort() > GetDaughter2Threshold() || currentStrings > GetDaughter2Threshold())
     {
-        logger_base.info("Adjusting string port count to %d.", GetMaxStringOutputs());
-        progress.Update(45, "Adjusting string port count.");
+        logger_base.info("String port count needs to be %d.", GetMaxStringOutputs());
         totalPixelPorts = GetMaxStringOutputs();
     }
-    else if (cud.GetMaxPixelPort() > GetDaughter1Threshold() && currentStrings < GetDaughter2Threshold())
+    else if (cud.GetMaxPixelPort() > GetDaughter1Threshold() || currentStrings > GetDaughter1Threshold())
     {
-        logger_base.info("Adjusting string port count to %d.", GetDaughter2Threshold());
-        progress.Update(45, "Adjusting string port count.");
+        logger_base.info("String port count needs to be %d.", GetDaughter2Threshold());
         totalPixelPorts = GetDaughter2Threshold();
+    }
+    else
+    {
+        logger_base.info("String port count needs to be %d.", GetDaughter1Threshold());
     }
     InitialiseStrings(stringData, totalPixelPorts);
 
@@ -1285,12 +1287,12 @@ int Falcon::CountStrings(const wxXmlDocument& stringsDoc) const
     
     for (auto e = stringsDoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
     {
-        int index = wxAtoi(e->GetAttribute("p"));
-        if (index == last + 1)
+        int port = wxAtoi(e->GetAttribute("p"));
+        if (port > last)
         {
             count++;
         }
-        last = index;
+        last = port;
     }
 
     return count;

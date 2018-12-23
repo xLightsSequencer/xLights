@@ -100,24 +100,24 @@ int SphereModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("SphereLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("SphereStrandCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("SphereStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
         ModelXml->AddAttribute("Dir", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 2 ? "L" : "R");
         ModelXml->DeleteAttribute("StartSide");
         ModelXml->AddAttribute("StartSide", event.GetValue().GetLong() == 0 || event.GetValue().GetLong() == 1 ? "T" : "B");
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return Model::OnPropertyGridChange(grid, event);

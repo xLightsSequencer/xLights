@@ -131,25 +131,25 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         AdjustStringProperties(grid, parm1);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if ("CircleLightCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if ("CircleCenterPercent" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
         ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if ("CircleLayerSizes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("circleSizes");
         ModelXml->AddAttribute("circleSizes", event.GetValue().GetString());
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if ("CircleStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
@@ -162,7 +162,7 @@ int CircleModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->AddAttribute("InsideOut", v & 0x2 ? "1" : "0");
 
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_REFRESH_DISPLAY | GRIDCHANGE_MARK_DIRTY;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return Model::OnPropertyGridChange(grid, event);

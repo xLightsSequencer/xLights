@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add full support for model connection properties for Falcon controllers. Create virtual strings 
+                   where necessary. Virtual strings will now be deleted on ports we upload to.
+   -- bug (keith)  Fix change in model properties does not always update other models start channels in the model list
+   -- bug (keith)  Fix display of @ model start channels
 2018.56 December 16, 2018
    -- bug (keith)  Fix LOR import so dmx intensity and intensity come in correctly
    -- bug (keith)  Fix artnet not outputting

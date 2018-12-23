@@ -134,7 +134,7 @@ public:
         GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
         GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
         GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
-        
+       
         GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
     };
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
