@@ -12,6 +12,56 @@ bool KeyBinding::IsShiftedKey(wxKeyCode ch)
     return wxString("~!@#$%^&*()_+{}|\":<>?").Contains(c);
 }
 
+KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool control, bool alt, bool shift):
+    _key(k), _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), _alt(alt),
+    _shift(shift), _disabled(disabled)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    if (KeyBindingTypes.find(type) == KeyBindingTypes.end())
+    {
+        // this should never happen
+        wxASSERT(false);
+        _disabled = true;
+        _scope = KBSCOPE_INVALID;
+        logger_base.error("Keybinding type '%s' not recognised", (const char *)type.c_str());
+    }
+    else
+    {
+        _scope = KeyBindingTypes.at(type);
+    }
+    if (IsShiftedKey(_key))
+    {
+        _shift = true;
+    }
+}
+
+KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control, bool alt, bool shift):
+    _type(type), _effectName(""), _effectString(""), _effectDataVersion(""), _control(control), _alt(alt),
+    _shift(shift), _disabled(disabled)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    _key = DecodeKey(k);
+    if (_key == WXK_NONE) _disabled = true;
+    if (KeyBindingTypes.find(type) == KeyBindingTypes.end())
+    {
+        // this should never happen
+        wxASSERT(false);
+        _disabled = true;
+        _scope = KBSCOPE_INVALID;
+        logger_base.error("Keybinding type '%s' not recognised", (const char *)type.c_str());
+    }
+    else
+    {
+        _scope = KeyBindingTypes.at(type);
+    }
+    if (IsShiftedKey(_key))
+    {
+        _shift = true;
+    }
+}
+
 std::string KeyBinding::Description() const
 {
     std::string res;
@@ -539,6 +589,19 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                 }
             }
         }
+    }
+
+    std::string invalid = "";
+    for (auto kb : bindings)
+    {
+        if (kb.InScope(KBSCOPE_INVALID))
+        {
+            invalid = invalid + kb.GetType() + "\n";
+        }
+    }
+    if (invalid != "")
+    {
+        wxMessageBox("Keybindings contains invalid bindings:\n\n" + invalid, "Invalid Key Bindings");
     }
 }
 
