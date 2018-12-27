@@ -12,7 +12,7 @@ class WindowFrameModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumPhysicalStrings() const override { return 1; }
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return true; }
-        virtual int NodesPerString() override;
+        virtual int NodesPerString() const override;
 
     protected:
         virtual void InitModel() override;

@@ -71,6 +71,29 @@ public:
     int GetDMXChannelOffset();
 };
 
+struct UDVirtualString
+{
+    std::string _description;
+    long _startChannel;
+    long _endChannel;
+    int Channels() const { return _endChannel - _startChannel + 1; }
+    int _universe;
+    long _universeStartChannel;
+    std::string _protocol;
+    bool _colourOrderSet;
+    std::string _colourOrder;
+    bool _gammaSet;
+    float _gamma;
+    bool _brightnessSet;
+    int _brightness;
+    bool _nullPixelsSet;
+    int _nullPixels;
+    bool _groupCountSet;
+    int _groupCount;
+    bool _reverseSet;
+    std::string _reverse;
+};
+
 class UDControllerPort
 {
 	private:
@@ -79,6 +102,7 @@ class UDControllerPort
 		std::list<UDControllerPortModel*> _models;
         bool _valid;
         std::string _invalidReason;
+        std::list<UDVirtualString*> _virtualStrings;
 
 	public:
         UDControllerPort(int port, std::string protocol = "") { _protocol = protocol; _port = port; _valid = true; _invalidReason = ""; }
@@ -100,10 +124,13 @@ class UDControllerPort
         bool Check(const UDController* controller, bool pixel, ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const;
         int GetUniverse() const;
         int GetUniverseStartChannel() const;
+        void CreateVirtualStrings();
+        int GetVirtualStringCount() const { return _virtualStrings.size(); }
+        std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
 };
 
 class UDController
-{ 
+{
 	private:
 		std::string _ipAddress;
 		std::list<Output*> _outputs;

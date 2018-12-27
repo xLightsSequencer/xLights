@@ -77,7 +77,10 @@ class xScheduleFrame : public wxFrame
     Pinger* _pinger;
     wxBitmap _nowebicon;
     wxBitmap _webicon;
+    wxBitmap _slowicon;
     bool _webIconDisplayed;
+    bool _slowDisplayed;
+    wxLongLong _lastSlow;
 
     void AddIPs();
     void LoadShowDir();
@@ -245,6 +248,7 @@ public:
         static const long ID_STATICTEXT4;
         static const long ID_STATICTEXT5;
         static const long ID_STATICTEXT2;
+        static const long ID_STATICBITMAP2;
         static const long ID_STATICBITMAP1;
         static const long ID_PANEL4;
         static const long ID_MNU_SHOWFOLDER;
@@ -357,6 +361,7 @@ public:
         wxPanel* Panel7;
         wxSplitterWindow* SplitterWindow1;
         wxSplitterWindow* SplitterWindow2;
+        wxStaticBitmap* StaticBitmap_Slow;
         wxStaticBitmap* StaticBitmap_WebIcon;
         wxStaticText* StaticText2;
         wxStaticText* StaticText_IP;

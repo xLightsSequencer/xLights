@@ -444,7 +444,14 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
         NODE_TYPES.push_back("GRB Nodes");
         NODE_TYPES.push_back("BRG Nodes");
         NODE_TYPES.push_back("BGR Nodes");
-
+        
+        NODE_TYPES.push_back("3 Channel RGB");
+        NODE_TYPES.push_back("4 Channel RGBW");
+        NODE_TYPES.push_back("4 Channel WRGB");
+        NODE_TYPES.push_back("Strobes");
+        NODE_TYPES.push_back("Single Color");
+        NODE_TYPES.push_back("Single Color Intensity");
+        
         NODE_TYPES.push_back("WRGB Nodes");
         NODE_TYPES.push_back("WRBG Nodes");
         NODE_TYPES.push_back("WGBR Nodes");
@@ -458,13 +465,6 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
         NODE_TYPES.push_back("GRBW Nodes");
         NODE_TYPES.push_back("BRGW Nodes");
         NODE_TYPES.push_back("BGRW Nodes");
-
-        NODE_TYPES.push_back("3 Channel RGB");
-        NODE_TYPES.push_back("4 Channel RGBW");
-        NODE_TYPES.push_back("4 Channel WRGB");
-        NODE_TYPES.push_back("Strobes");
-        NODE_TYPES.push_back("Single Color");
-        NODE_TYPES.push_back("Single Color Intensity");
 
         RGBW_HANDLING.push_back("R=G=B -> W");
         RGBW_HANDLING.push_back("RGB Only");
@@ -2207,7 +2207,11 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     {
         return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
     }
-    else if (ModelStartChannel[0] == '#' || ModelStartChannel[0] == '@' || CountChar(ModelStartChannel, ':') > 0)
+    else if (ModelStartChannel[0] == '@')
+    {
+        return ModelStartChannel + wxString::Format(" (%u)", GetFirstChannel() + 1);
+    }
+    else if (ModelStartChannel[0] == '#' || CountChar(ModelStartChannel, ':') > 0)
     {
         return GetFirstChannelInStartChannelFormat(outputManager);
     }
@@ -2355,7 +2359,7 @@ unsigned int Model::GetLastChannel() {
     return LastChan;
 }
 
-unsigned int Model::GetFirstChannel() {
+unsigned int Model::GetFirstChannel() const {
     unsigned int FirstChan = 0xFFFFFFFF;
     size_t NodeCount = GetNodeCount();
     for (size_t idx = 0; idx < NodeCount; idx++) {
@@ -2430,7 +2434,7 @@ void Model::SetBufferSize(int NewHt, int NewWi) {
 }
 
 // not valid for Frame or Custom
-int Model::NodesPerString() {
+int Model::NodesPerString() const {
     return SingleNode ? 1 : parm2;
 }
 
@@ -2908,6 +2912,7 @@ int Model::GetChanCountPerNode() const {
 size_t Model::GetCoordCount(size_t nodenum) const {
     return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
 }
+
 int Model::GetNodeStringNumber(size_t nodenum) const {
     return nodenum < Nodes.size() ? Nodes[nodenum]->StringNum : 0;
 }

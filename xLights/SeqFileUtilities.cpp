@@ -1199,7 +1199,7 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     std::map<std::string, EffectLayer *> layerMap;
     std::map<std::string, Element *>elementMap;
-    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, false, true, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<EffectLayer *> mapped;
@@ -1673,7 +1673,7 @@ void xLightsFrame::ImportVix(const wxFileName &filename) {
     int time = 0;
     int frameTime = 50;
 
-    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true);
+    xLightsImportChannelMapDialog dlg(this, filename, false, false, true, true, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
 
@@ -2467,9 +2467,12 @@ void MapRGBEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *
     LoadRGBData(effectManager, layer, re, ge, be);
 }
 
-std::string Scale255To100(wxString s)
+std::string Scale255To100(wxString s, bool doscale)
 {
+    if (doscale)
     return wxString::Format("%d", wxAtoi(s) * 100 / 255).ToStdString();
+
+    return s.ToStdString();
 }
 
 void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *channel, int chancountpernode, const wxColor &color) {
@@ -2481,21 +2484,22 @@ void MapOnEffects(EffectManager &effectManager, EffectLayer *layer, wxXmlNode *c
 
     for (wxXmlNode* ch=channel->GetChildren(); ch!=nullptr; ch=ch->GetNext()) {
         if (ch->GetName() == "effect") {
+            bool doscale = ch->GetAttribute("type", "") == "DMX intensity";
             int starttime = (wxAtoi(ch->GetAttribute("startCentisecond"))) * 10;
             int endtime = (wxAtoi(ch->GetAttribute("endCentisecond"))) * 10;
             std::string intensity = ch->GetAttribute("intensity", "-1").ToStdString();
             std::string starti, endi;
             if (intensity == "-1") {
-                starti = Scale255To100(ch->GetAttribute("startIntensity"));
-                endi = Scale255To100(ch->GetAttribute("endIntensity"));
+                starti = Scale255To100(ch->GetAttribute("startIntensity"), doscale);
+                endi = Scale255To100(ch->GetAttribute("endIntensity"), doscale);
             } else {
-                starti = endi = Scale255To100(intensity);
+                starti = endi = Scale255To100(intensity, doscale);
             }
             std::string settings;
-            if (100 != starti) {
+            if ("100" != starti) {
                 settings += "E_TEXTCTRL_Eff_On_Start=" + starti;
             }
-            if (100 != endi) {
+            if ("100" != endi) {
                 if (!settings.empty()) {
                     settings += ",";
                 }
@@ -3934,7 +3938,7 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
         - what it was when it was converted\n\
         - what you changed it to.\n");
 
-    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false);
+    xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
     dlg.xlights = this;
     std::vector<std::string> timingTrackNames;

@@ -279,6 +279,8 @@
 		6791299B213423A800818B73 /* ControllerUploadData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67912999213423A800818B73 /* ControllerUploadData.cpp */; };
 		6792407A1CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679240781CF15B37000E4D91 /* xLightsImportChannelMapDialog.cpp */; };
 		6792BF371D0B253B00A5A0CC /* SpinnerModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */; };
+		6794272421CC075C00F7ED59 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6794272221CC075B00F7ED59 /* FSEQFile.cpp */; };
+		6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */; };
 		679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484AB1CD8E998001A7B4F /* VideoReader.cpp */; };
 		6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */; };
@@ -1246,6 +1248,9 @@
 		679240791CF15B37000E4D91 /* xLightsImportChannelMapDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xLightsImportChannelMapDialog.h; sourceTree = "<group>"; };
 		6792BF351D0B253B00A5A0CC /* SpinnerModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SpinnerModel.cpp; path = models/SpinnerModel.cpp; sourceTree = "<group>"; };
 		6792BF361D0B253B00A5A0CC /* SpinnerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpinnerModel.h; path = models/SpinnerModel.h; sourceTree = "<group>"; };
+		6794272221CC075B00F7ED59 /* FSEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FSEQFile.cpp; sourceTree = "<group>"; };
+		6794272321CC075B00F7ED59 /* FSEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEQFile.h; sourceTree = "<group>"; };
+		6794272521CC0E6500F7ED59 /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = lib/osx/libzstd.a; sourceTree = "<group>"; };
 		679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GenerateCustomModelDialog.cpp; sourceTree = "<group>"; };
 		679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateCustomModelDialog.h; sourceTree = "<group>"; };
 		679484AB1CD8E998001A7B4F /* VideoReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoReader.cpp; sourceTree = "<group>"; };
@@ -1991,6 +1996,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */,
 				675D404E1E896C620033C950 /* libliquidfun.a in Frameworks */,
 				676C5EAB1C99D6D20031A033 /* liblog4cpp.5.dylib in Frameworks */,
 				67EE95B51C848BF000C62C95 /* libswscale.4.dylib in Frameworks */,
@@ -2725,6 +2731,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6794272521CC0E6500F7ED59 /* libzstd.a */,
 				67A14C8520DD337E006EFCFA /* Security.framework */,
 				67A14C8320DD336E006EFCFA /* libz.tbd */,
 				67A14C8120DD3345006EFCFA /* libSystem.tbd */,
@@ -2824,6 +2831,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				6794272221CC075B00F7ED59 /* FSEQFile.cpp */,
+				6794272321CC075B00F7ED59 /* FSEQFile.h */,
 				679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */,
 				679F8FCB218C891400CAC546 /* wxModelGridCellRenderer.h */,
 				678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */,
@@ -3848,6 +3857,7 @@
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
 				67E6750A2009993D000E930E /* CachedFileDownloader.cpp in Sources */,
 				676D0F821C72BEBD009C66FC /* kfc.c in Sources */,
+				6794272421CC075C00F7ED59 /* FSEQFile.cpp in Sources */,
 				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				67B2CFE31C3A186A003C17CA /* PlasmaEffect.cpp in Sources */,
@@ -4598,6 +4608,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",
@@ -4619,6 +4633,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "xLights/xLights-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights",

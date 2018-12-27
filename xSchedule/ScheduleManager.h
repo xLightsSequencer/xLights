@@ -178,7 +178,7 @@ class ScheduleManager
         std::string GetStatus() const;
 		static std::string GetScheduleFile() { return "xlights.xschedule"; }
 		void Save();
-        void StopAll();
+        void StopAll(bool sustain = false);
         void AddPlayList(PlayList* playlist);
         bool IsQueuedPlaylistRunning() const;
         void RemovePlayList(PlayList* playlist);
@@ -203,7 +203,7 @@ class ScheduleManager
         bool Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg);
         bool Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference);
         PlayList * GetPlayList(const std::string& playlist) const;
-        void StopPlayList(PlayList* playlist, bool atendofcurrentstep);
+        void StopPlayList(PlayList* playlist, bool atendofcurrentstep, bool sustain = false);
         bool StoreData(const std::string& key, const std::string& data, std::string& msg) const;
         bool RetrieveData(const std::string& key, std::string& data, std::string& msg) const;
         bool ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive);

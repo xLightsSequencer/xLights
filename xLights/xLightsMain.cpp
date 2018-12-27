@@ -4419,7 +4419,7 @@ void xLightsFrame::ExportModels(wxString filename)
         int* chused = (int*)malloc((maxchannel - minchannel + 1) * sizeof(int));
         memset(chused, 0x00, (maxchannel - minchannel + 1) * sizeof(int));
 
-        for (auto m = AllModels.begin(); m != AllModels.end(); m++)
+        for (auto m = AllModels.begin(); m != AllModels.end(); ++m)
         {
             Model* model = m->second;
             if (model->GetDisplayAs() != "ModelGroup")

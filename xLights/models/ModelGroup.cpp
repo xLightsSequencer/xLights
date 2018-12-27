@@ -401,7 +401,7 @@ void ModelGroup::ResetModels()
 
 ModelGroup::~ModelGroup() {}
 
-unsigned ModelGroup::GetFirstChannel()
+unsigned ModelGroup::GetFirstChannel() const
 {
     unsigned first = 999999999;
     for (auto it = ModelNames().begin(); it != ModelNames().end(); ++it)

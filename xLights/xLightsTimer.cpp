@@ -246,7 +246,7 @@ void xlTimerThread::Suspend()
     }
     if (i == 3)
     {
-        logger_timer.debug("    Waited 3 seconds for thread to lock and didnt see it ... maybe because it grabbed it early.");
+        logger_timer.warn("    Waited 3 seconds for thread to lock and didnt see it ... maybe because it grabbed it early.");
     }
 
     logger_timer.debug("    Suspend took %ldms", sw.Time());

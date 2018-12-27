@@ -136,7 +136,7 @@ public:
         GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
         GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
         GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
-        
+       
         GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
     };
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
@@ -270,7 +270,7 @@ public:
     std::string GetFirstChannelInStartChannelFormat(OutputManager* outputManager);
     std::string GetStartChannelInDisplayFormat(OutputManager* outputManager);
     bool IsValidStartChannelString() const;
-    virtual unsigned int GetFirstChannel();
+    virtual unsigned int GetFirstChannel() const;
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
     wxXmlNode* GetModelXml() const;
@@ -309,7 +309,9 @@ public:
     void SetMinMaxModelScreenCoordinates(int w, int y);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
-    virtual int NodesPerString();
+    virtual int NodesPerString() const;
+    virtual int NodesPerString(int string) const { return NodesPerString(); }
+    virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
     wxCursor CheckIfOverHandles(int &handle, wxCoord x,wxCoord y);
     wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y);

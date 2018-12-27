@@ -51,6 +51,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
@@ -66,6 +67,7 @@
 					<Add library="../lib/windows/libliquidfund.a" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
+					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -115,6 +117,7 @@
 					<Add option="-m32" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
+					<Add option="-lz" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add library="../lib/windows/libwxmsw31u.a" />
@@ -131,6 +134,7 @@
 					<Add library="../lib/windows/libliquidfun.a" />
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/WS2_32.Lib" />
+					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add directory="lib/windows" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -177,6 +181,8 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
+					<Add option="-lz" />
+					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
@@ -220,6 +226,8 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
+					<Add option="-lz" />
+					<Add option="-lzstd" />
 					<Add library="../lib/linux/libliquidfun.a" />
 				</Linker>
 			</Target>
@@ -268,6 +276,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
+					<Add option="-lz" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/libDbgHelp.a" />
@@ -282,6 +291,7 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
+					<Add library="../lib/windows64/libzstd_static.lib" />
 				</Linker>
 			</Target>
 			<Target title="64bit MinGW_Debug">
@@ -329,6 +339,7 @@
 					<Add option="-mthreads" />
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin64/xLights.map" />
+					<Add option="-lz" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
 					<Add library="../lib/windows64/libdbghelp.a" />
@@ -343,6 +354,7 @@
 					<Add library="../lib/windows64/libliquidfun.a" />
 					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/WS2_32.Lib" />
+					<Add library="../lib/windows64/libzstd_static.lib" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
 			</Target>
@@ -426,6 +438,8 @@
 		<Unit filename="EffectsPanel.h" />
 		<Unit filename="ExportModelSelect.cpp" />
 		<Unit filename="ExportModelSelect.h" />
+		<Unit filename="FSEQFile.cpp" />
+		<Unit filename="FSEQFile.h" />
 		<Unit filename="FileConverter.cpp" />
 		<Unit filename="FileConverter.h" />
 		<Unit filename="FlickerFreeBitmapButton.cpp" />
@@ -614,8 +628,6 @@
 		<Unit filename="WiringDialog.h" />
 		<Unit filename="XlightsDrawable.cpp" />
 		<Unit filename="XlightsDrawable.h" />
-		<Unit filename="wxModelGridCellRenderer.cpp" />
-		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="controllers/ControllerUploadData.cpp" />
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
@@ -1043,6 +1055,8 @@
 		<Unit filename="vamp-hostsdk/vamp.h" />
 		<Unit filename="wxCheckedListCtrl.cpp" />
 		<Unit filename="wxCheckedListCtrl.h" />
+		<Unit filename="wxModelGridCellRenderer.cpp" />
+		<Unit filename="wxModelGridCellRenderer.h" />
 		<Unit filename="wx_pch.h" />
 		<Unit filename="wxsmith/ArtNetDialog.wxs" />
 		<Unit filename="wxsmith/AssistPanel.wxs" />

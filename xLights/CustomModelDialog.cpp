@@ -53,6 +53,7 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_COPY = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_PASTE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPH = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_FLIPV = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_ROTATE90 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_REVERSE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHIFT = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_INSERT = wxNewId();
@@ -754,6 +755,37 @@ void CustomModelDialog::FlipVertical()
     ValidateWindow();
 }
 
+void CustomModelDialog::Rotate90()
+{
+    if(GridCustom->GetNumberCols() > GridCustom->GetNumberRows())
+    {
+        GridCustom->AppendRows(GridCustom->GetNumberCols() - GridCustom->GetNumberRows());
+    }
+    else if(GridCustom->GetNumberCols() < GridCustom->GetNumberRows())
+    {
+        GridCustom->AppendCols(GridCustom->GetNumberRows() - GridCustom->GetNumberCols());
+    }
+
+    WidthSpin->SetValue(GridCustom->GetNumberCols());
+    HeightSpin->SetValue(GridCustom->GetNumberRows());
+    ResizeCustomGrid();
+
+    const int n = GridCustom->GetNumberCols();
+    for (int i = 0; i < n / 2; i++) {
+        for (int j = i; j < n - i - 1; j++) {
+            const wxString tmp = GridCustom->GetCellValue(i,j);
+            GridCustom->SetCellValue(i, j, GridCustom->GetCellValue(n - j - 1,i));
+            GridCustom->SetCellValue(n - j - 1, i, GridCustom->GetCellValue(n - i - 1, n - j - 1));
+            GridCustom->SetCellValue(n - i - 1, n - j - 1, GridCustom->GetCellValue(j, n - i - 1));
+            GridCustom->SetCellValue(j, n - i - 1, tmp);
+        }
+    }
+
+    UpdateBackground();
+
+    ValidateWindow();
+}
+
 void CustomModelDialog::Insert(int selRow, int selCol)
 {
     long val;
@@ -1123,6 +1155,10 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     {
         FlipVertical();
     }
+    else if (id == CUSTOMMODELDLGMNU_ROTATE90)
+    {
+        Rotate90();
+    }
     else if (id == CUSTOMMODELDLGMNU_REVERSE)
     {
         Reverse();
@@ -1215,6 +1251,7 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
 
     mnu.Append(CUSTOMMODELDLGMNU_FLIPH, "Horizontal Flip");
     mnu.Append(CUSTOMMODELDLGMNU_FLIPV, "Vertical Flip");
+    mnu.Append(CUSTOMMODELDLGMNU_ROTATE90, "Rotate 90");
     mnu.Append(CUSTOMMODELDLGMNU_REVERSE, "Reverse");
     mnu.Append(CUSTOMMODELDLGMNU_SHIFT, "Shift");
     wxMenuItem* menu_insert = mnu.Append(CUSTOMMODELDLGMNU_INSERT, "Insert Prior");
