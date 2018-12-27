@@ -999,6 +999,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     filters.push_back("LOR Music Sequences (*.lms)|*.lms");
     filters.push_back("LOR Pixel Editor Sequences (*.lpe)|*.lpe");
     filters.push_back("LOR Animation Sequences (*.las)|*.las");
+    filters.push_back("LOR S5(*.loredit)|*.loredit");
     filters.push_back("xLights Sequence (*.xml)|*.xml");
     filters.push_back("HLS hlsIdata Sequences(*.hlsIdata)|*.hlsIdata");
     filters.push_back("Vixen 2.x Sequence(*.vix)|*.vix");
@@ -1057,7 +1058,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
         if (ext == "lms" || ext == "las") {
             ImportLMS(fn);
         }
-        else if (ext == "lpe") {
+        else if (ext == "lpe" || ext == "loredit") {
             ImportLPE(fn);
         }
         else if (ext == "hlsidata") {
