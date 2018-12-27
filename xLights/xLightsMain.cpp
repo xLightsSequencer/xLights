@@ -69,6 +69,7 @@
 #include "controllers/ControllerUploadData.h"
 #include "controllers/Falcon.h"
 #include "outputs/ZCPPOutput.h"
+#include "models/ViewObject.h"
 #include "models/SubModel.h"
 
 // image files
@@ -508,7 +509,7 @@ void AddEffectToolbarButtons(EffectManager &manager, xlAuiToolBar *EffectsToolBa
     EffectsToolBar->Realize();
 }
 
-xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this),
+xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(this), AllModels(&_outputManager, this), AllObjects(this),
     layoutPanel(nullptr), color_mgr(this), _xFadeSocket(nullptr), jobPool("RenderPool")
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -1967,7 +1968,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
 
     EffectTreeDlg = nullptr;  // must be before any call to SetDir
 
-    SetPlayMode(play_off);
+    starttime = wxDateTime::UNow();
     ResetEffectsXml();
     EnableSequenceControls(true);
     if (ok && !dir.IsEmpty())
@@ -2246,21 +2247,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
-void xLightsFrame::SetPlayMode(play_modes newmode)
-{
-    switch (newmode)
-    {
-    case play_off:
-        SetStatusText(_("Playback: off"));
-        break;
-    default:
-        break;
-    }
-
-    play_mode = newmode;
-    starttime = wxDateTime::UNow();
-}
-
 void xLightsFrame::OnTimer1Trigger(wxTimerEvent& event)
 {
     wxTimeSpan ts = wxDateTime::UNow() - starttime;
@@ -2441,9 +2427,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     int pagenum=event.GetSelection(); //Notebook1->GetSelection();
 	if (pagenum == LAYOUTTAB)
     {
-        // these commented out lines were already setup when rgbeffects file was loaded and it messes up multiple preview loading.
-        //modelPreview->InitializePreview(mBackgroundImage,mBackgroundBrightness);
-        //modelPreview->SetScaleBackgroundImage(mScaleBackgroundImage);
         UpdatePreview();
         SetStatusText(_(""));
         MenuItem_File_Save->Enable(true);
@@ -2546,7 +2529,7 @@ void xLightsFrame::StopNow(void)
 		CurrentSeqXmlFile->GetMedia()->Stop();
 	}
     heartbeat("playback end", true); //tell fido to stop watching -DJ
-    SetPlayMode(play_off);
+    starttime = wxDateTime::UNow();
     switch (actTab)
     {
     case NEWSEQUENCER:
@@ -3803,9 +3786,15 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
 
     wxDateTime now = wxDateTime::Now();
     int millis = wxGetUTCTimeMillis().GetLo() % 1000;
+    
+    wxString ver = xlights_version_string + xlights_qualifier;
+    for (int x = 0; x < ver.length(); x++) {
+        if (ver[x] == ' ') ver[x] = '-';
+    }
+    
     wxString ts = wxString::Format("%04d-%02d-%02d_%02d-%02d-%02d-%03d", now.GetYear(), now.GetMonth()+1, now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond(), millis);
 
-    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), xlights_version_string, GetBitness(), ts);
+    wxString fn = wxString::Format("xlights-%s_%s_%s_%s.zip",  wxPlatformInfo::Get().GetOperatingSystemFamilyName().c_str(), ver, GetBitness(), ts);
     const char *ct = "Content-Type: application/octet-stream\n";
     std::string cd = "Content-Disposition: form-data; name=\"userfile\"; filename=\"" + fn.ToStdString() + "\"\n\n";
 
@@ -4053,6 +4042,10 @@ void xLightsFrame::SaveWorkingLayout()
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         modelPreview->GetModels()[i]->UpdateXmlWithScale();
+    }
+    for (auto it = AllObjects.begin(); it != AllObjects.end(); ++it) {
+        ViewObject *view_object = it->second;
+        view_object->UpdateXmlWithScale();
     }
     SaveEffectsFile(true);
 }
@@ -4324,7 +4317,7 @@ void xLightsFrame::ExportModels(wxString filename)
                 }
             }
             int w, h;
-            model->GetBufferSize("Default", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h);
             f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",,,,,,,%d,,%ld,%ld,%d x %d,%s,,,,,,,,\n",
                 model->name,
                 models.c_str(), // No description ... use list of models
@@ -4368,7 +4361,7 @@ void xLightsFrame::ExportModels(wxString filename)
             }
 
             int w, h;
-            model->GetBufferSize("Default", "None", w, h);
+            model->GetBufferSize("Default", "2D", "None", w, h);
 
             f.Write(wxString::Format("\"%s\",\"%s\",\"%s\",\"%s\",%li,%li,%li,%s,%i,%li,%s,%i,%i,%d x %d,%s,%s,%s,\"%s\",%i,%s,%s,%s,%li,%s\n",
                 model->name,
@@ -8136,6 +8129,11 @@ bool xLightsFrame::IsPaneDocked(wxWindow* window) const
     if (m_mgr == nullptr) return true;
 
     return m_mgr->GetPane(window).IsDocked();
+}
+
+ModelPreview* xLightsFrame::GetHousePreview() const
+{
+    return _housePreviewPanel->GetModelPreview();
 }
 
 void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)

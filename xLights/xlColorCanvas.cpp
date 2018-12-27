@@ -17,7 +17,7 @@ END_EVENT_TABLE()
 #define CORNER_2B_SELECTED      4
 
 xlColorCanvas::xlColorCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : xlGLCanvas(parent, id, pos, size, style, name, true),
+    : xlGLCanvas(parent, id, pos, size, style, name),
       mDisplayType(TYPE_PALETTE),
       mDisplayMode(MODE_SATURATION),
       mDragging(false),

@@ -40,6 +40,7 @@ public:
 		BulkEditChoice* BufferStyleChoice;
 		BulkEditChoice* BufferTransform;
 		BulkEditChoice* ChoiceRotateOrder;
+		BulkEditChoice* Choice_PerPreviewCamera;
 		BulkEditSlider* Slider_EffectBlur;
 		BulkEditSlider* Slider_PivotPointX;
 		BulkEditSlider* Slider_PivotPointY;
@@ -86,6 +87,7 @@ public:
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
 		wxStaticText* StaticText15;
+		wxStaticText* StaticText16;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -113,6 +115,8 @@ public:
 		static const long ID_STATICTEXT_BufferStyle;
 		static const long ID_CHOICE_BufferStyle;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferStyle;
+		static const long ID_STATICTEXT2;
+		static const long ID_CHOICE_PerPreviewCamera;
 		static const long ID_STATICTEXT_BufferTransform;
 		static const long ID_CHOICE_BufferTransform;
 		static const long ID_BITMAPBUTTON_CHOICE_BufferTransform;
@@ -187,6 +191,7 @@ public:
 		void OnVCButtonClick(wxCommandEvent& event);
 		void OnButton_ResetClick(wxCommandEvent& event);
 		void OnCheckBox_ResetBufferPanelClick(wxCommandEvent& event);
+		void OnBufferStyleChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

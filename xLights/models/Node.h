@@ -34,8 +34,8 @@ public:
     // buffer and screen coordinates for displayed nodes
     struct CoordStruct
     {
-        unsigned short bufX, bufY;
-        float screenX, screenY;
+        int bufX, bufY, bufZ;
+        float screenX, screenY, screenZ;
     };
 
     unsigned int ActChan = 0;   // 0 is the first channel
@@ -99,6 +99,8 @@ public:
         CoordStruct c;
         c.bufX=x;
         c.bufY=y;
+        c.bufZ=0;
+        c.screenZ = 0;
         Coords.push_back(c);
     }
 

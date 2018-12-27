@@ -119,6 +119,7 @@ void MatrixModel::InitModel() {
         CopyBufCoord2ScreenCoord();
     }
     DisplayAs = "Matrix";
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 // initialize buffer coordinates
@@ -136,7 +137,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(PixelsPerStrand,NumStrands);
     SetNodeCount(parm1,PixelsPerString, rgbOrder);
-    screenLocation.SetRenderSize(NumStrands, PixelsPerStrand);
+    screenLocation.SetRenderSize(NumStrands, PixelsPerStrand, 2.0f);
     int chanPerNode = GetNodeChannelCount(StringType);
 
     // create output mapping
@@ -206,7 +207,7 @@ void MatrixModel::InitHMatrix() {
     int PixelsPerString=PixelsPerStrand*parm3;
     SetBufferSize(NumStrands,PixelsPerStrand);
     SetNodeCount(parm1,PixelsPerString,rgbOrder);
-    screenLocation.SetRenderSize(PixelsPerStrand, NumStrands);
+    screenLocation.SetRenderSize(PixelsPerStrand, NumStrands, 2.0f);
     
     int chanPerNode = GetNodeChannelCount(StringType);
 

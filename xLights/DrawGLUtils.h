@@ -8,6 +8,8 @@
 #include <map>
 #include "wx/glcanvas.h"
 #include "Color.h"
+#include <glm/mat4x4.hpp>
+#include <glm/mat3x3.hpp>
 
 class xlGLCanvas;
 
@@ -16,9 +18,9 @@ namespace DrawGLUtils
     #define LOG_GL_ERROR() DrawGLUtils::LogGLError(__FILE__, __LINE__)
     #define LOG_GL_ERRORV(a) a; DrawGLUtils::LogGLError(__FILE__, __LINE__, #a)
     #define IGNORE_GL_ERRORV(a) a; glGetError()
-    
+
     bool LoadGLFunctions();
-    
+
     class xlVertexAccumulatorBase {
     public:
         virtual void Reset() {count = 0;}
@@ -28,29 +30,32 @@ namespace DrawGLUtils
                 max = count + i;
             }
         };
-        
+
         float *vertices;
         unsigned int count;
         unsigned int max;
+        unsigned int coordsPerVertex;
         
     protected:
         virtual void DoRealloc(int newMax) {
-            vertices = (float*)realloc(vertices, sizeof(float)*newMax*2);
+            vertices = (float*)realloc(vertices, sizeof(float)*newMax*coordsPerVertex);
         }
-        xlVertexAccumulatorBase() : count(0), max(64) {
-            vertices = (float*)malloc(sizeof(float)*max*2);
+        xlVertexAccumulatorBase() : count(0), max(64), coordsPerVertex(2) {
+            vertices = (float*)malloc(sizeof(float)*max*coordsPerVertex);
         }
-        xlVertexAccumulatorBase(unsigned int m) : count(0), max(m) {
-            vertices = (float*)malloc(sizeof(float)*max*2);
+        xlVertexAccumulatorBase(unsigned int m) : count(0), max(m), coordsPerVertex(2) {
+            vertices = (float*)malloc(sizeof(float)*max*coordsPerVertex);
         }
 
         xlVertexAccumulatorBase(const xlVertexAccumulatorBase &mv) {
+            coordsPerVertex = mv.coordsPerVertex;
             count = mv.count;
             max = mv.max;
-            vertices = (float*)malloc(sizeof(float)*max*2);
-            memcpy(vertices, mv.vertices, count * sizeof(float) * 2);
+            vertices = (float*)malloc(sizeof(float)*max*coordsPerVertex);
+            memcpy(vertices, mv.vertices, count * sizeof(float) * coordsPerVertex);
         }
         xlVertexAccumulatorBase(xlVertexAccumulatorBase &&mv) {
+            coordsPerVertex = mv.coordsPerVertex;
             vertices = mv.vertices;
             mv.vertices = nullptr;
             count = mv.count;
@@ -59,17 +64,28 @@ namespace DrawGLUtils
         virtual ~xlVertexAccumulatorBase() {
             if (vertices != nullptr) free(vertices);
         }
-
+        
+        void SetCoordsPerVertex(unsigned int c) {
+            coordsPerVertex = c;
+            DoRealloc(max);
+        }
     };
+
     class xlVertexAccumulator : public xlVertexAccumulatorBase {
     public:
         xlVertexAccumulator() : xlVertexAccumulatorBase() {}
-        
+
         void AddVertex(float x, float y) {
+            AddVertex(x, y, 0);
+        }
+        void AddVertex(float x, float y, float z) {
             PreAlloc(1);
-            int i = count*2;
+            int i = count * coordsPerVertex;
             vertices[i++] = x;
-            vertices[i] = y;
+            vertices[i++] = y;
+            if (coordsPerVertex == 3) {
+                vertices[i] = z;
+            }
             count++;
         }
         void AddLinesRect(float x1, float y1, float x2, float y2) {
@@ -113,12 +129,18 @@ namespace DrawGLUtils
         virtual ~xlVertexColorAccumulator() {
             free(colors);
         }
-    
+
         void AddVertex(float x, float y, const xlColor &c) {
+            AddVertex(x, y, 0, c);
+        }
+        void AddVertex(float x, float y, float z, const xlColor &c) {
             PreAlloc(1);
-            int i = count*2;
+            int i = count*coordsPerVertex;
             vertices[i++] = x;
-            vertices[i] = y;
+            vertices[i++] = y;
+            if (coordsPerVertex == 3) {
+                vertices[i] = z;
+            }
             i = count*4;
             colors[i++] = c.Red();
             colors[i++] = c.Green();
@@ -126,14 +148,10 @@ namespace DrawGLUtils
             colors[i] = c.Alpha();
             count++;
         }
+
+        
         void AddRect(float x1, float y1, float x2, float y2, const xlColor &c) {
-            PreAlloc(6);
-            AddVertex(x1, y1, c);
-            AddVertex(x1, y2, c);
-            AddVertex(x2, y2, c);
-            AddVertex(x2, y2, c);
-            AddVertex(x2, y1, c);
-            AddVertex(x1, y1, c);
+            AddRect(x1, y1, x2, y2, 0, c);
         }
         void AddLinesRect(float x1, float y1, float x2, float y2, const xlColor &c) {
             PreAlloc(8);
@@ -141,7 +159,7 @@ namespace DrawGLUtils
             AddVertex(x1, y2, c);
             AddVertex(x2, y2, c);
             AddVertex(x2, y1, c);
-            
+
             AddVertex(x1, y2, c);
             AddVertex(x2, y2, c);
             AddVertex(x2, y1, c);
@@ -153,6 +171,26 @@ namespace DrawGLUtils
         void AddTrianglesCircle(float x, float y, float radius, const xlColor &color);
         void AddTrianglesCircle(float x, float y, float radius, const xlColor &center, const xlColor &edge);
         
+        
+        void AddRect(float x1, float y1, float x2, float y2, float z1, const xlColor &c) {
+            PreAlloc(6);
+            AddVertex(x1, y1, z1, c);
+            AddVertex(x1, y2, z1, c);
+            AddVertex(x2, y2, z1, c);
+            AddVertex(x2, y2, z1, c);
+            AddVertex(x2, y1, z1, c);
+            AddVertex(x1, y1, z1, c);
+        }
+        void AddDottedLinesRect(float x1, float y1, float z1, float x2, float y2, float z2, const xlColor &c);
+        void AddTrianglesRotatedCircle(float x, float y, float z, glm::vec3 rotation, float radius, const xlColor &center, const xlColor &edge);
+        
+        void AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &color);
+        void AddTrianglesCircle(float x, float y, float z, float radius, const xlColor &center, const xlColor &edge);
+        void AddTrianglesCircle(float ox, float oy, float oz, float radius,
+                                const xlColor &center, const xlColor &edge,
+                                std::function<void(float &x, float &y, float &z)> &&translateFunction);
+
+
         uint8_t *colors;
     protected:
         virtual void DoRealloc(int newMax) {
@@ -160,16 +198,16 @@ namespace DrawGLUtils
             colors = (uint8_t*)realloc(colors, newMax*4);
         }
     };
-    
+
     class xlVertexTextureAccumulator : public xlVertexAccumulatorBase {
     public:
-        xlVertexTextureAccumulator() : xlVertexAccumulatorBase(), id(0), alpha(255), forceColor(false) {
+        xlVertexTextureAccumulator() : xlVertexAccumulatorBase(), id(0), alpha(255), forceColor(false), brightness(100.0) {
             tvertices = (float*)malloc(sizeof(float)*max*2);
         }
-        xlVertexTextureAccumulator(GLuint i) : xlVertexAccumulatorBase(), id(i), alpha(255), forceColor(false) {
+        xlVertexTextureAccumulator(GLuint i) : xlVertexAccumulatorBase(), id(i), alpha(255), forceColor(false), brightness(100.0) {
             tvertices = (float*)malloc(sizeof(float)*max*2);
         }
-        xlVertexTextureAccumulator(GLuint i, uint8_t a) : xlVertexAccumulatorBase(), id(i), alpha(a), forceColor(false) {
+        xlVertexTextureAccumulator(GLuint i, uint8_t a) : xlVertexAccumulatorBase(), id(i), alpha(a), forceColor(false), brightness(100.0) {
             tvertices = (float*)malloc(sizeof(float)*max*2);
         }
         xlVertexTextureAccumulator(xlVertexTextureAccumulator &&mv) : xlVertexAccumulatorBase(mv) {
@@ -179,6 +217,7 @@ namespace DrawGLUtils
             alpha = mv.alpha;
             forceColor = mv.forceColor;
             color = mv.color;
+            brightness = mv.brightness;
         }
         xlVertexTextureAccumulator(const xlVertexTextureAccumulator &mv) : xlVertexAccumulatorBase(mv) {
             id = mv.id;
@@ -187,15 +226,16 @@ namespace DrawGLUtils
             color = mv.color;
             tvertices = (float*)malloc(sizeof(float)*max*2);
             memcpy(tvertices, mv.tvertices, count * sizeof(float) * 2);
+            brightness = mv.brightness;
         }
 
         virtual ~xlVertexTextureAccumulator() {
             free(tvertices);
         }
-        
+
         void AddVertex(float x, float y, float tx, float ty) {
             PreAlloc(1);
-            int i = count*2;
+            int i = count*coordsPerVertex;
             vertices[i] = x;
             tvertices[i] = tx;
             i++;
@@ -214,6 +254,7 @@ namespace DrawGLUtils
         }
         GLuint id;
         uint8_t alpha;
+        float brightness;
         bool forceColor;
         xlColor color;
         float *tvertices;
@@ -228,7 +269,7 @@ namespace DrawGLUtils
         xlVertexTextAccumulator() : count(0), color(xlBLACK) {}
         xlVertexTextAccumulator(const xlColor &c) : count(0), color(c) {}
         ~xlVertexTextAccumulator() {}
-        
+
         void PreAlloc(unsigned int i) {
             vertices.reserve(vertices.size() + i*2);
             text.reserve(text.size() + i);
@@ -244,7 +285,7 @@ namespace DrawGLUtils
         xlColor color;
         unsigned int count;
     };
-    
+
     class xlAccumulator : public xlVertexColorAccumulator {
     public:
         xlAccumulator() : xlVertexColorAccumulator(), tvertices(nullptr) { start = 0;}
@@ -264,22 +305,26 @@ namespace DrawGLUtils
                 tvertices = nullptr;
             }
         }
-        
+
         virtual void DoRealloc(int newMax) override;
 
         bool HasMoreVertices() { return count != start; }
         void Finish(int type, int enableCapability = 0, float extra = 1);
-        
-        
+
+
         void PreAllocTexture(int i);
-        void AddTextureVertex(float x, float y, float tx, float ty);
-        void FinishTextures(int type, GLuint textureId, uint8_t alpha, int enableCapability = 0);
+        void AddTextureVertex(float x, float y, float tx, float ty) {
+            AddTextureVertex(x, y , 0, tx, ty);
+        }
+        void AddTextureVertex(float x, float y, float z, float tx, float ty);
+
+        void FinishTextures(int type, GLuint textureId, uint8_t alpha, float brightness, int enableCapability = 0);
         void FinishTextures(int type, GLuint textureId, const xlColor &color, int enableCapability = 0);
 
         void Load(const xlVertexColorAccumulator &ca);
         void Load(const xlVertexAccumulator &ca, const xlColor &c);
         void Load(const xlVertexTextureAccumulator &ca, int type, int enableCapability = 0);
-        
+
         class BufferRangeType {
         public:
             BufferRangeType(int s, int c, int t, int ec, float ex) {
@@ -289,9 +334,10 @@ namespace DrawGLUtils
                 enableCapability = ec;
                 extra = ex;
                 textureId = -1;
+                textureBrightness = 1.0f;
                 useTexturePixelColor = false;
             }
-            BufferRangeType(int s, int c, int t, int ec, GLuint tid, uint8_t alpha) {
+            BufferRangeType(int s, int c, int t, int ec, GLuint tid, uint8_t alpha, float brightness) {
                 start = s;
                 count = c;
                 type = t;
@@ -299,6 +345,7 @@ namespace DrawGLUtils
                 extra = 0.0f;
                 textureId = tid;
                 textureAlpha = alpha;
+                textureBrightness = brightness;
                 useTexturePixelColor = false;
             }
             BufferRangeType(int s, int c, int t, int ec, GLuint tid, const xlColor &color) {
@@ -309,6 +356,7 @@ namespace DrawGLUtils
                 extra = 0.0f;
                 textureId = tid;
                 textureAlpha = 255;
+                textureBrightness = 1.0f;
                 useTexturePixelColor = true;
                 texturePixelColor = color;
             }
@@ -319,6 +367,7 @@ namespace DrawGLUtils
             float extra;
             GLuint textureId;
             uint8_t textureAlpha;
+            float textureBrightness;
             bool useTexturePixelColor;
             xlColor texturePixelColor;
         };
@@ -328,24 +377,61 @@ namespace DrawGLUtils
         int start;
     };
 
+
+	class xlVertex3Accumulator : public xlVertexAccumulator {
+	public:
+        xlVertex3Accumulator() : xlVertexAccumulator() { SetCoordsPerVertex(3);}
+		
+	};
+
+    class xlVertex3ColorAccumulator : public xlVertexColorAccumulator {
+    public:
+        xlVertex3ColorAccumulator() : xlVertexColorAccumulator() {
+            SetCoordsPerVertex(3);
+        }
+        xlVertex3ColorAccumulator(unsigned int m) : xlVertexColorAccumulator(m) {
+            SetCoordsPerVertex(3);
+        }
+        xlVertex3ColorAccumulator(xlVertex3ColorAccumulator &&mv) : xlVertexColorAccumulator(mv) {
+        }
+        xlVertex3ColorAccumulator(const xlVertex3ColorAccumulator &mv) : xlVertexColorAccumulator(mv) {
+        }
+
+        virtual ~xlVertex3ColorAccumulator() {
+        }
+
+    protected:
+    };
+
+    class xl3Accumulator : public xlAccumulator {
+    public:
+        xl3Accumulator() : xlAccumulator() { SetCoordsPerVertex(3);}
+        xl3Accumulator(unsigned int max) : xlAccumulator(max) { SetCoordsPerVertex(3);}
+        virtual ~xl3Accumulator() {}
+
+    private:
+    };
+
     class xlGLCacheInfo {
     public:
         xlGLCacheInfo();
         virtual ~xlGLCacheInfo();
-        
+
         virtual bool IsCoreProfile() { return false;}
         virtual void SetCurrent();
-        virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
-        virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
+		virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
+		virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlAccumulator &va) = 0;
-        
+
         virtual void addVertex(float x, float y, const xlColor &c) = 0;
         virtual unsigned int vertexCount() = 0;
         virtual void flush(int type, int enableCapability = 0) = 0;
         virtual void ensureSize(unsigned int i) = 0;
-        
+
         virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
+        virtual void Perspective(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) = 0;
+        virtual void SetCamera(glm::mat4& view_matrix) = 0;
         virtual void PushMatrix() = 0;
         virtual void PopMatrix() = 0;
         virtual void Translate(float x, float y, float z) = 0;
@@ -363,21 +449,23 @@ namespace DrawGLUtils
             std::vector<GLuint> deleteTextures;
             std::map<int, GLuint> textures;
     };
-    
+
     xlGLCacheInfo *CreateCache();
     void SetCurrentCache(xlGLCacheInfo *cache);
     void DestroyCache(xlGLCacheInfo *cache);
-    
+
     void SetViewport(xlGLCanvas &win, int x1, int y1, int x2, int y2);
-    void PushMatrix();
+    void SetViewport3D(xlGLCanvas &win, int x1, int y1, int x2, int y2);
+    void SetCamera(glm::mat4& view_matrix);
+	void PushMatrix();
     void PopMatrix();
     void Translate(float x, float y, float z);
     void Rotate(float angle, float x, float y, float z);
     void Scale(float w, float h, float z);
-    
+
     void LogGLError(const char *file, int line, const char *msg = nullptr);
 
-    
+
     class DisplayListItem {
     public:
         DisplayListItem() : x(0.0), y(0.0) {};
@@ -389,29 +477,31 @@ namespace DrawGLUtils
         xlDisplayList() : iconSize(2) {};
         int iconSize;
         mutable std::recursive_mutex lock;
-        
+
         void LockedClear() {
             std::unique_lock<std::recursive_mutex> locker(lock);
             clear();
         }
     };
-   
-    
+
+
     bool IsCoreProfile();
     int NextTextureIdx();
-    
+
     void Draw(xlAccumulator &va);
+    void Draw(xl3Accumulator &va);
     void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0);
     void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0);
     void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0);
     void Draw(xlVertexTextAccumulator &va, int size, float factor);
+	void Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability = 0);
 
-    
+
     void DrawText(double x, double y, double size, const wxString &text, double factor = 1.0);
     int GetTextWidth(double size, const wxString &text, double factor = 1.0);
-    
+
     void SetLineWidth(float i);
-    
+
     void DrawCircle(const xlColor &color, double x, double y, double r, int ctransparency = 0, int etransparency = 0);
     void DrawCircleUnfilled(const xlColor &color, double cx, double cy, double r, float width);
 
@@ -440,7 +530,7 @@ namespace DrawGLUtils
     void DrawTexture(GLuint texture,
                      float x, float y, float x2, float y2,
                      float tx = 0.0, float ty = 0.0, float tx2 = 1.0, float ty2 = 1.0);
-    
+
     void UpdateTexturePixel(GLuint texture,double x, double y, xlColor& color, bool hasAlpha);
 
 
@@ -448,6 +538,12 @@ namespace DrawGLUtils
                          float width, float height,
                          const xlDisplayList & dl,
                          xlVertexColorAccumulator &bg);
+
+    void DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va);
+    void DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va);
+    void DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va);
+    // 2D version is mainly useful for debugging hit testing
+    void DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va);
 }
 
 #endif

@@ -6,7 +6,7 @@ BEGIN_EVENT_TABLE(xlGridCanvas, xlGLCanvas)
 END_EVENT_TABLE()
 
 xlGridCanvas::xlGridCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
-    : xlGLCanvas(parent, id, pos, size, style, name, true),
+    : xlGLCanvas(parent, id, pos, size, style, name),
       mEffect(nullptr),
       mModel(nullptr),
       mGridlineColor(new xlColor(0,153,153)),

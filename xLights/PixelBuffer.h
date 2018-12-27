@@ -135,6 +135,7 @@ private:
         }
         RenderBuffer buffer;
         std::string bufferType;
+        std::string camera;
         std::string bufferTransform;
         std::string subBuffer;
         std::string blurValueCurve;
@@ -250,6 +251,7 @@ private:
 
     std::string modelName;
     std::string lastBufferType;
+    std::string lastCamera;
     std::string lastBufferTransform;
     const Model *model;
     Model *zbModel;

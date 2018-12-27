@@ -41,6 +41,8 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -107,6 +109,8 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -171,6 +175,8 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -216,6 +222,8 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
@@ -265,6 +273,8 @@
 					<Add directory="models/" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -329,6 +339,8 @@
 					<Add directory="../include" />
 					<Add directory="support" />
 					<Add directory="outputs" />
+					<Add directory="xLights" />
+					<Add directory="xLights/models" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(#wx)/include" />
@@ -620,6 +632,12 @@
 		<Unit filename="VideoExporter.h" />
 		<Unit filename="VideoReader.cpp" />
 		<Unit filename="VideoReader.h" />
+		<Unit filename="ViewObjectPanel.cpp" />
+		<Unit filename="ViewObjectPanel.h" />
+		<Unit filename="ViewpointDialog.cpp" />
+		<Unit filename="ViewpointDialog.h" />
+		<Unit filename="ViewpointMgr.cpp" />
+		<Unit filename="ViewpointMgr.h" />
 		<Unit filename="ViewsModelsPanel.cpp" />
 		<Unit filename="ViewsModelsPanel.h" />
 		<Unit filename="VsaImportDialog.cpp" />
@@ -870,6 +888,8 @@
 		</Unit>
 		<Unit filename="models/ArchesModel.cpp" />
 		<Unit filename="models/ArchesModel.h" />
+		<Unit filename="models/BaseObject.cpp" />
+		<Unit filename="models/BaseObject.h" />
 		<Unit filename="models/CandyCaneModel.cpp" />
 		<Unit filename="models/CandyCaneModel.h" />
 		<Unit filename="models/ChannelBlockModel.cpp" />
@@ -880,12 +900,18 @@
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DmxModel.cpp" />
 		<Unit filename="models/DmxModel.h" />
+		<Unit filename="models/GridlinesObject.cpp" />
+		<Unit filename="models/GridlinesObject.h" />
 		<Unit filename="models/IciclesModel.cpp" />
 		<Unit filename="models/IciclesModel.h" />
 		<Unit filename="models/ImageModel.cpp" />
 		<Unit filename="models/ImageModel.h" />
+		<Unit filename="models/ImageObject.cpp" />
+		<Unit filename="models/ImageObject.h" />
 		<Unit filename="models/MatrixModel.cpp" />
 		<Unit filename="models/MatrixModel.h" />
+		<Unit filename="models/MeshObject.cpp" />
+		<Unit filename="models/MeshObject.h" />
 		<Unit filename="models/Model.cpp" />
 		<Unit filename="models/Model.h" />
 		<Unit filename="models/ModelGroup.cpp" />
@@ -896,6 +922,8 @@
 		<Unit filename="models/ModelScreenLocation.h" />
 		<Unit filename="models/Node.cpp" />
 		<Unit filename="models/Node.h" />
+		<Unit filename="models/ObjectManager.cpp" />
+		<Unit filename="models/ObjectManager.h" />
 		<Unit filename="models/PolyLineModel.cpp" />
 		<Unit filename="models/PolyLineModel.h" />
 		<Unit filename="models/Shapes.cpp" />
@@ -912,6 +940,10 @@
 		<Unit filename="models/SubModel.h" />
 		<Unit filename="models/TreeModel.cpp" />
 		<Unit filename="models/TreeModel.h" />
+		<Unit filename="models/ViewObject.cpp" />
+		<Unit filename="models/ViewObject.h" />
+		<Unit filename="models/ViewObjectManager.cpp" />
+		<Unit filename="models/ViewObjectManager.h" />
 		<Unit filename="models/WholeHouseModel.cpp" />
 		<Unit filename="models/WholeHouseModel.h" />
 		<Unit filename="models/WindowFrameModel.cpp" />
@@ -1018,6 +1050,8 @@
 		<Unit filename="support/FastComboEditor.h" />
 		<Unit filename="support/GridCellChoiceRenderer.cpp" />
 		<Unit filename="support/GridCellChoiceRenderer.h" />
+		<Unit filename="support/VectorMath.cpp" />
+		<Unit filename="support/VectorMath.h" />
 		<Unit filename="tmGridCell.cpp" />
 		<Unit filename="tmGridCell.h" />
 		<Unit filename="vamp-hostsdk/Files.cpp" />
@@ -1183,6 +1217,8 @@
 		<Unit filename="wxsmith/VendorModelDialog.wxs" />
 		<Unit filename="wxsmith/VendorMusicDialog.wxs" />
 		<Unit filename="wxsmith/VideoPanel.wxs" />
+		<Unit filename="wxsmith/ViewObjectPanel.wxs" />
+		<Unit filename="wxsmith/ViewpointDialog.wxs" />
 		<Unit filename="wxsmith/ViewsDialog.wxs" />
 		<Unit filename="wxsmith/ViewsModelsPanel.wxs" />
 		<Unit filename="wxsmith/VsaImportDialog.wxs" />
@@ -1362,6 +1398,8 @@
 					<wxDialog wxs="wxsmith/LinkJukeboxButtonDialog.wxs" src="LinkJukeboxButtonDialog.cpp" hdr="LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
 					<wxPanel wxs="wxsmith/WarpPanel.wxs" src="effects/WarpPanel.cpp" hdr="effects/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxDialog wxs="wxsmith/LyricUserDictDialog.wxs" src="LyricUserDictDialog.cpp" hdr="LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
+					<wxPanel wxs="wxsmith/ViewObjectPanel.wxs" src="ViewObjectPanel.cpp" hdr="ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
+					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 				</resources>

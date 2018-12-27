@@ -78,7 +78,7 @@ class TimeDisplayControl : public xlGLCanvas
 public:
     TimeDisplayControl(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                        const wxSize &size=wxDefaultSize, long style=0)
-    : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay", true) {
+    : xlGLCanvas(parent, id, pos, size, style, "TimeDisplay") {
     // ReSharper disable once CppVirtualFunctionCallInsideCtor
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         _time = "Time: 00:00:00";

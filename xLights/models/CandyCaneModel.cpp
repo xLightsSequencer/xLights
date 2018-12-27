@@ -49,7 +49,7 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
     p->SetAttribute("Precision", 2);
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
-    
+
     p = grid->Append(new wxIntProperty("Cane Rotation", "CandyCaneSkew", screenLocation.GetAngle()));
     p->SetAttribute("Min", -180 );
     p->SetAttribute("Max", 180);
@@ -61,9 +61,9 @@ void CandyCaneModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 	p = grid->Append(new wxBoolProperty("Sticks", "CandyCaneSticks", _sticks));
 	p->SetEditor("CheckBox");
-    
+
     grid->Append(new wxEnumProperty("Starting Location", "CandyCaneStart", LEFT_RIGHT, IsLtoR ? 0 : 1));
-    
+
 }
 
 int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -124,22 +124,22 @@ int CandyCaneModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProper
     return Model::OnPropertyGridChange(grid, event);
 }
 
-void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const {
+void CandyCaneModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = this->BufferWi * this->BufferHt;
         AdjustForTransform(transform, BufferWi, BufferHi);
     } else {
-        Model::GetBufferSize(type, transform, BufferWi, BufferHi);
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
     }
 }
 
-void CandyCaneModel::InitRenderBufferNodes(const std::string &type,  const std::string &transform,
+void CandyCaneModel::InitRenderBufferNodes(const std::string &type, const std::string &camera,  const std::string &transform,
                                         std::vector<NodeBaseClassPtr> &newNodes, int &BufferWi, int &BufferHi) const {
     if (type == "Single Line") {
         BufferHi = 1;
         BufferWi = GetNodeCount();
-        
+
         int NumCanes=parm1;
         int SegmentsPerCane=parm2;
         int cur = 0;
@@ -156,7 +156,7 @@ void CandyCaneModel::InitRenderBufferNodes(const std::string &type,  const std::
         }
         ApplyTransform(transform, newNodes, BufferWi, BufferHi);
     } else {
-        Model::InitRenderBufferNodes(type, transform, newNodes, BufferWi, BufferHi);
+        Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
 
@@ -171,7 +171,7 @@ void CandyCaneModel::InitModel() {
         screenLocation.SetAngle(skew);
     }
     caneheight = wxAtof(ModelXml->GetAttribute("CandyCaneHeight", "1.0"));
-    
+
     SetNodeCount(NumCanes, SegmentsPerCane, rgbOrder);
     if (SingleNode) {
         SegmentsPerCane = 1;
@@ -180,14 +180,14 @@ void CandyCaneModel::InitModel() {
     } else {
         if (parm3 > 1)
 		{
-            for (size_t x = 0; x < Nodes.size(); x++) 
+            for (size_t x = 0; x < Nodes.size(); x++)
 			{
                 Nodes[x]->Coords.resize(parm3);
             }
         }
     }
     SetBufferSize(SegmentsPerCane, NumCanes);
-    
+
     if (!IsLtoR) {
         for (int y = 0; y < (NumCanes / 2); y++) {
             int i = stringStartChan[y];
@@ -195,7 +195,7 @@ void CandyCaneModel::InitModel() {
             stringStartChan[NumCanes - 1 - y] = i;
         }
     }
-    
+
     for (int y=0; y < NumCanes; y++) {
         for(int x=0; x<SegmentsPerCane; x++) {
             int idx = y * SegmentsPerCane + x;
@@ -230,15 +230,15 @@ static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 {
     float s = sin(angle);
     float c = cos(angle);
-    
+
     // translate point back to origin:
     x -= cx;
     y -= cy;
-    
+
     // rotate point
     float xnew = x * c - y * s;
     float ynew = x * s + y * c;
-    
+
     // translate point back:
     x = xnew + cx;
     y = ynew + cy;
@@ -248,14 +248,14 @@ void CandyCaneModel::SetCaneCoord() {
     int NumCanes = parm1;
     size_t SegmentsPerCane = parm2;
     int LightsPerNode = parm3;
-    
+
     int lightspercane = SegmentsPerCane * LightsPerNode;
     float angle = toRadians(screenLocation.GetAngle());
-    
+
     double height;
     double width;
-    
-    
+
+
     double caneGap = 2.0;
     int upright = SegmentsPerCane * 6.0 / 9.0;
     upright *= parm3;
@@ -265,7 +265,7 @@ void CandyCaneModel::SetCaneCoord() {
     double widthPerCane = double(lightspercane)*3.0/9.0;
     width = (double)NumCanes*widthPerCane + (NumCanes - 1) * caneGap;
     height = lightspercane - widthPerCane/2.0;
-    
+
     if (_sticks) {
         height = lightspercane * caneheight;
         for (int i = 0; i < NumCanes; i++){
@@ -359,11 +359,6 @@ void CandyCaneModel::SetCaneCoord() {
             max = std::max(max, it2->screenY);
         }
     }
-    if (_sticks) {
-        screenLocation.SetRenderSize(width, height);
-    } else {
-        screenLocation.SetRenderSize(width, max - min + 1);
-    }
-    screenLocation.SetYMinMax(min, max);
-    
+
+    screenLocation.SetRenderSize(width, height);
 }

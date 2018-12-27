@@ -14,8 +14,54 @@ END_EVENT_TABLE()
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
 
-static wxGLAttributes GetAttributes() {
+static const int DEPTH_BUFFER_BITS[] = {32, 16, 8};
+
+wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
+
+static wxGLAttributes GetAttributes(bool need3d) {
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
+    
     wxGLAttributes atts;
+    if (need3d) {
+        for (int x = 0; x < 3; x++) {
+            atts.Reset();
+            atts.PlatformDefaults()
+                .RGBA()
+                .MinRGBA(8, 8, 8, 8)
+                .DoubleBuffer()
+                .Depth(DEPTH_BUFFER_BITS[x])
+                .EndList();
+            if (wxGLCanvas::IsDisplaySupported(atts)) {
+                logger_opengl.debug("Depth of %d supported, using it", DEPTH_BUFFER_BITS[x]);
+                return atts;
+            }
+            logger_opengl.debug("Depth of %d not supported", DEPTH_BUFFER_BITS[x]);
+        }
+        logger_opengl.debug("Could not find an attribs thats working with MnRGBA\n");
+        // didn't find a display, try without MinRGBA
+        for (int x = 0; x < 3; x++) {
+            atts.Reset();
+            atts.PlatformDefaults()
+                .RGBA()
+                .DoubleBuffer()
+                .Depth(DEPTH_BUFFER_BITS[x])
+                .EndList();
+            if (wxGLCanvas::IsDisplaySupported(atts)) {
+                logger_opengl.debug("Depth of %d supported without MinRGBA, using it", DEPTH_BUFFER_BITS[x]);
+                return atts;
+            }
+            logger_opengl.debug("Depth of %d not supported without MinRGBA", DEPTH_BUFFER_BITS[x]);
+        }
+        logger_opengl.debug("Could not find an attribs thats working");
+        atts.Reset();
+        atts.PlatformDefaults()
+            .RGBA()
+            .DoubleBuffer()
+            .Depth(8)
+            .EndList();
+        return atts;
+    }
+               
     atts.PlatformDefaults()
         .RGBA()
         .MinRGBA(8, 8, 8, 8)
@@ -125,14 +171,14 @@ bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, 
 
 xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                        const wxSize &size, long style, const wxString &name,
-                       bool coreProfile)
-    :   wxGLCanvas(parent, GetAttributes(), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
+                       bool only2d)
+    :   wxGLCanvas(parent, GetAttributes(!only2d), id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name),
         mWindowWidth(0),
         mWindowHeight(0),
         mWindowResized(false),
         mIsInitialized(false),
         m_context(nullptr),
-        m_coreProfile(coreProfile),
+        m_coreProfile(true),
         cache(nullptr)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -158,9 +204,9 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         ::DestroyWindow(m_hWnd);
         m_hWnd = nullptr;
         m_hDC = nullptr;
-        
+
         int r = CreateWindow(parent, id, pos, size, wxFULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN | wxCLIP_SIBLINGS | style, name);
-        
+
         PIXELFORMATDESCRIPTOR pfd = {
             sizeof(PIXELFORMATDESCRIPTOR),  //  size of this pfd
             1,                     // version number
@@ -175,7 +221,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
             0,                     // shift bit ignored
             0,                     // no accumulation buffer
             0, 0, 0, 0,            // accum bits ignored
-            16,                    // 16-bit z-buffer
+            only2d ? (uint8_t)0 : (uint8_t)16,       // 16-bit z-buffer
             0,                     // no stencil buffer
             0,                     // no auxiliary buffer
             PFD_MAIN_PLANE,        // main layer
@@ -318,7 +364,7 @@ void AddDebugLog(xlGLCanvas *c) {
 #endif
 
 
-DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool);
+DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
 DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
@@ -464,7 +510,10 @@ void xlGLCanvas::SetCurrentGLContext() {
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                                   UsesVertexColorAccumulator(),
                                   UsesVertexAccumulator(),
-                                  UsesAddVertex()));
+                                  UsesAddVertex(),
+								  UsesVertex3Accumulator(),
+                                  UsesVertex3TextureAccumulator(),
+                                  UsesVertex3ColorAccumulator()));
         }
         if (cache == nullptr && ver >=2
             && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {
@@ -506,7 +555,7 @@ void xlGLCanvas::CreateGLContext() {
             }
             atts.EndList();
             glGetError();
-            LOG_GL_ERRORV(m_context = new wxGLContext(this, nullptr, &atts));
+            LOG_GL_ERRORV(m_context = new wxGLContext(this, m_sharedContext, &atts));
             if (!m_context->IsOK()) {
                 logger_opengl.debug("Could not create a valid CoreProfile context");
                 LOG_GL_ERRORV(delete m_context);
@@ -525,7 +574,7 @@ void xlGLCanvas::CreateGLContext() {
         }
         if (m_context == nullptr) {
             glGetError();
-            LOG_GL_ERRORV(m_context = new wxGLContext(this));
+            LOG_GL_ERRORV(m_context = new wxGLContext(this, m_sharedContext));
         }
         if (!functionsLoaded) {
             LOG_GL_ERROR();
@@ -539,10 +588,14 @@ void xlGLCanvas::CreateGLContext() {
         wxLog::SetLogLevel(cur);
         wxLog::Resume();
 
-        if (m_context == nullptr)
-        {
+        if (m_context == nullptr) {
             static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
             logger_opengl.error("Error creating GL context.");
+        } else if (m_sharedContext == nullptr) {
+            //use this as the shared context, then create a new one.
+            m_sharedContext = m_context;
+            m_context = nullptr;
+            CreateGLContext();
         }
     }
 }
@@ -566,4 +619,9 @@ void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomright
     mWindowResized = false;
 }
 
+void xlGLCanvas::prepare3DViewport(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y)
+{
+    DrawGLUtils::SetViewport3D(*this, topleft_x, topleft_y, bottomright_x, bottomright_y);
+    mWindowResized = false;
+}
 

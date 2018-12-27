@@ -7,12 +7,15 @@ class SubModel : public Model {
 public:
     SubModel(Model *p, wxXmlNode *n);
     virtual ~SubModel() {}
-    
+
     virtual std::string GetFullName() const override { return parent->GetFullName() + "/" + name;}
-    
+
     virtual const ModelScreenLocation &GetModelScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetModelScreenLocation() override { return parent->GetModelScreenLocation(); };
-    
+
+    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return parent->GetModelScreenLocation(); }
+    virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return parent->GetModelScreenLocation(); };
+
     virtual const std::string &GetLayoutGroup() const override { return parent->GetLayoutGroup(); }
 
     virtual void AddProperties(wxPropertyGridInterface *grid, OutputManager* outputManager) override {}

@@ -432,6 +432,9 @@ void CustomModel::InitCustomMatrix(const std::string& customModel) {
     }
 
     SetBufferSize(height,width);
+    if (screenLocation.RenderDp < 10.0f) {
+        screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
+    }
 }
 
 std::string CustomModel::ComputeStringStartNode(int x) const
@@ -707,6 +710,9 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
                     AddSubmodel(n);
                 }
             }
+
+            GetModelScreenLocation().SetMWidth(max_x - min_x);
+            GetModelScreenLocation().SetMHeight(max_y - min_y);
 
             xlights->MarkEffectsFileDirty(true);
         }

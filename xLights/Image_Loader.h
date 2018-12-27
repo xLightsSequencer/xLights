@@ -14,8 +14,8 @@
 //#endif
 #endif
 
-GLuint loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight, bool &scaledW, bool &scaledH, bool &hasAlpha);
+GLuint loadImage(wxImage *img, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight, bool &scaledW, bool &scaledH, bool &hasAlpha, bool useForcePowerOfTwo);
 
-GLuint loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight, bool &scaledW, bool &scaledH, bool &hasAlpha);
+GLuint loadImage(wxString path, int &imageWidth, int &imageHeight, int &textureWidth, int &textureHeight, bool &scaledW, bool &scaledH, bool &hasAlpha, bool useForcePowerOfTwo);
 
 #endif
