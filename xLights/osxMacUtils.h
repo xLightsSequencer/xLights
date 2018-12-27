@@ -22,6 +22,7 @@ void DisableSleepModes();
 
 void ModalPopup(wxWindow *p, wxMenu &menu);
 
+bool IsMouseEventFromTouchpad();
 class AudioManager;
 void AddAudioDeviceChangeListener(AudioManager *am);
 void RemoveAudioDeviceChangeListener(AudioManager *am);

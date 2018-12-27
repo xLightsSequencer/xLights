@@ -226,6 +226,7 @@ static const xlColor xlGREEN(0, 255, 0);
 static const xlColor xlBLACK(0, 0, 0);
 static const xlColor xlWHITE(255, 255, 255);
 static const xlColor xlYELLOW(255, 255, 0);
+static const xlColor xlORANGE(255, 128, 0);
 static const xlColor xlLIGHT_GREY(211, 211, 211);
 static const xlColor xlDARK_GREY(96, 96, 96);
 static const xlColor xlCYAN(0, 255, 255);

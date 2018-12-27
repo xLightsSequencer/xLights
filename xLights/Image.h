@@ -40,12 +40,12 @@ public:
     void setID(GLuint i) { ID = i; }
     bool hasAlpha() const { return mAlpha; }
     Image();
-    Image(wxString path, bool whiteIsAlphaIfNoAlpha = false);
-    Image(wxImage &img, bool whiteIsAlphaIfNoAlpha = false);
+    Image(wxString path, bool whiteIsAlphaIfNoAlpha = false, bool useForcePowerOfTwo = false);
+    Image(wxImage &img, bool whiteIsAlphaIfNoAlpha = false, bool useForcePowerOfTwo = false);
 
     ~Image();
-    void load(wxImage &path, bool whiteIsAlphaIfNoAlpha);
-    void load(wxString path, bool whiteIsAlphaIfNoAlpha);
+    void load(wxImage &path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo);
+    void load(wxString path, bool whiteIsAlphaIfNoAlpha, bool useForcePowerOfTwo);
 };
 
 

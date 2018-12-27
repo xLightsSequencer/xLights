@@ -17,6 +17,7 @@ WreathModel::~WreathModel()
 void WreathModel::InitModel() {
     InitWreath();
     CopyBufCoord2ScreenCoord();
+    screenLocation.RenderDp = 10.0f;  // give the bounding box a little depth
 }
 
 

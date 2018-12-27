@@ -6,6 +6,7 @@
 SphereModel::SphereModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     SetFromXml(node, zeroBased);
+    screenLocation.SetSupportsZScaling(true);
 }
 
 SphereModel::~SphereModel()

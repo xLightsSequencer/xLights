@@ -8,7 +8,7 @@
 
 #include "ModelScreenLocation.h"
 #include "../Color.h"
-
+#include "BaseObject.h"
 #include <wx/gdicmn.h>
 
 class wxProgressDialog;
@@ -28,15 +28,16 @@ typedef std::unique_ptr<NodeBaseClass> NodeBaseClassPtr;
 
 namespace DrawGLUtils {
     class xlAccumulator;
+    class xl3Accumulator;
 }
 
-class Model
+class Model : public BaseObject
 {
     friend class LayoutPanel;
     friend class SubModel;
 
 public:
-    Model(const ModelManager &manger);
+    Model(const ModelManager &manager);
     virtual ~Model();
     static wxArrayString GetLayoutGroups(const ModelManager& mm);
     static std::string SafeModelName(const std::string& name)
@@ -62,14 +63,11 @@ public:
         return n.ToStdString();
     }
 
-    const std::string &Name() const { return name;}
-    const std::string &GetName() const { return name;}
     virtual std::string GetFullName() const { return name;}
     void Rename(std::string newName);
     int GetNumStrings() const { return parm1; }
     virtual int GetNumPhysicalStrings() const { return parm1; }
 
-    std::string name;
     std::string description;
     xlColor customColor;
     DimmingCurve *modelDimmingCurve;
@@ -91,8 +89,8 @@ public:
     wxString SerialiseSubmodel() const;
 
     virtual const std::vector<std::string> &GetBufferStyles() const { return DEFAULT_BUFFER_STYLES; };
-    virtual void GetBufferSize(const std::string &type, const std::string &transform, int &BufferWi, int &BufferHi) const;
-    virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+    virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const;
+    virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                        std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const;
     const ModelManager &GetModelManager() const {
         return modelManager;
@@ -111,11 +109,11 @@ public:
     int GetDefaultBufferHt() const {return BufferHt;}
 
     void SetProperty(wxString property, wxString value, bool apply = false);
-    virtual void AddProperties(wxPropertyGridInterface *grid);
+    virtual void AddProperties(wxPropertyGridInterface *grid) override;
     virtual void AddControllerProperties(wxPropertyGridInterface *grid);
     virtual void DisableUnusedProperties(wxPropertyGridInterface *grid) {};
-    virtual void AddTypeProperties(wxPropertyGridInterface *grid) {};
-    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid);
+    virtual void AddTypeProperties(wxPropertyGridInterface *grid) override {};
+    virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) override;
     virtual void OnPropertyGridChanging(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
     virtual int OnPropertyGridSelection(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) { return 0; };
     virtual void OnPropertyGridItemCollapsed(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {};
@@ -151,8 +149,9 @@ protected:
     void AdjustForTransform(const std::string &transform,
                             int &bufferWi, int &bufferHi) const;
     void ApplyTransparency(xlColor &color, int transparency) const;
+    void DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes, int bufferWi, int bufferHi) const;
 
-    int BufferHt,BufferWi;  // size of the default buffer
+    int BufferHt,BufferWi,BufferDp;  // size of the default buffer
     std::vector<NodeBaseClassPtr> Nodes;
 
     const ModelManager &modelManager;
@@ -177,7 +176,6 @@ protected:
 
     int StrobeRate;      // 0=no strobing
     bool zeroBased;
-    wxXmlNode* ModelXml;
 
     std::vector<std::string> strandNames;
     std::vector<std::string> nodeNames;
@@ -188,11 +186,7 @@ protected:
     std::vector<long> stringStartChan;
     bool isBotToTop;
     std::string StringType; // RGB Nodes, 3 Channel RGB, Single Color Red, Single Color Green, Single Color Blue, Single Color White
-    std::string DisplayAs;  // Tree 360, Tree 270, Tree 180, Tree 90, Vert Matrix, Horiz Matrix, Single Line, Arches, Window Frame, Candy Cane
-    std::string layout_group;
     int rgbwHandlingType;
-
-    unsigned long changeCount;
 
     std::vector<Model *> subModels;
     void ParseSubModel(wxXmlNode *subModelNode);
@@ -226,15 +220,12 @@ public:
     void RemoveSubModel(const std::string &name);
     std::list<int> ParseFaceNodes(std::string channels);
 
-    void IncrementChangeCount() { ++changeCount;};
     unsigned long GetChangeCount() const { return changeCount; }
 
     std::string rgbOrder;
     bool SingleNode;     // true for dumb strings and single channel strings
     bool SingleChannel;  // true for traditional single-color strings
 
-    bool Selected=false;
-    bool GroupSelected=false;
     std::string ModelStartChannel;
     bool CouldComputeStartChannel;
     bool Overlapping=false;
@@ -242,7 +233,7 @@ public:
     std::string _pixelType = "";
     std::string _pixelSpacing = "";
 
-    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false);
+    void SetFromXml(wxXmlNode* ModelNode, bool zeroBased=false) override;
     virtual bool ModelRenamed(const std::string &oldName, const std::string &newName);
     size_t GetNodeCount() const;
     int GetChanCount() const;
@@ -251,8 +242,8 @@ public:
     size_t GetCoordCount(size_t nodenum) const;
     int GetNodeStringNumber(size_t nodenum) const;
     void UpdateXmlWithScale();
-    void SetOffset(double xPct, double yPct);
-    void AddOffset(double xPct, double yPct);
+    void SetPosition(double posx, double posy);
+    void AddOffset(double deltax, double deltay, double deltaz);
     virtual unsigned int GetLastChannel();
     std::string GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel);
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
@@ -262,22 +253,19 @@ public:
     virtual unsigned int GetFirstChannel() const;
     unsigned int GetNumChannels();
     int GetNodeNumber(size_t nodenum);
-    wxXmlNode* GetModelXml() const;
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *color =  NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
 
-    virtual const std::string &GetLayoutGroup() const {return layout_group;}
-    void SetLayoutGroup(const std::string &grp);
     std::list<std::string> GetFaceFiles(bool all = false) const;
     virtual bool CleanupFileLocations(xLightsFrame* frame);
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
-    void SelectHandle(int handle);
     int GetSelectedHandle();
     int GetNumHandles();
     int GetSelectedSegment();
@@ -291,19 +279,15 @@ public:
     std::vector<std::string> GetModelState() const;
     void SaveModelState( std::vector<std::string>& state );
 
-    bool HitTest(ModelPreview* preview,int x,int y);
-    void Lock(bool lock);
+    bool HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction);
     bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2);
-    void SetMinMaxModelScreenCoordinates(ModelPreview* preview);
-    void SetMinMaxModelScreenCoordinates(int w, int y);
     const std::string& GetStringType(void) const { return StringType; }
     const std::string& GetDisplayAs(void) const { return DisplayAs; }
     virtual int NodesPerString() const;
     virtual int NodesPerString(int string) const { return NodesPerString(); }
     virtual int MapPhysicalStringToLogicalString(int string) const { return string; }
     virtual int GetLightsPerNode() const { return 1; } // default to one unless a model supports this
-    wxCursor CheckIfOverHandles(int &handle, wxCoord x,wxCoord y);
-    wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y);
+    wxCursor InitializeLocation(int &handle, wxCoord x,wxCoord y, ModelPreview* preview);
 
     int NodeStartChannel(size_t nodenum) const;
     const std::string &NodeType(size_t nodenum) const;
@@ -332,27 +316,8 @@ public:
 
     void GetNodeCoords(int nodeidx, std::vector<wxPoint> &pts);
 
-    void SetTop(ModelPreview* preview,int y);
-    void SetBottom(ModelPreview* preview,int y);
-    void SetLeft(ModelPreview* preview,int x);
-    void SetRight(ModelPreview* preview,int x);
-    void SetHcenterOffset(float offset);
-    void SetVcenterOffset(float offset);
-    void SetWidth(ModelPreview* preview, int w);
-    void SetHeight(ModelPreview* preview, int h);
-
-    int GetTop(ModelPreview* preview);
-    int GetBottom(ModelPreview* preview);
-    int GetLeft(ModelPreview* preview);
-    int GetRight(ModelPreview* preview);
-    float GetHcenterOffset();
-    float GetVcenterOffset();
-    int GetWidth(ModelPreview* preview);
-    int GetHeight(ModelPreview* preview);
-
     bool GetIsLtoR() const {return IsLtoR;}
     bool GetIsBtoT() const {return isBotToTop;}
-
     virtual int GetStrandLength(int strand) const;
 
     virtual int GetNumStrands() const;
@@ -409,6 +374,12 @@ public:
         return screenLocation;
     }
     virtual ModelScreenLocation &GetModelScreenLocation() {
+        return screenLocation;
+    }
+    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const {
+        return screenLocation;
+    }
+    virtual ModelScreenLocation &GetBaseObjectScreenLocation() {
         return screenLocation;
     }
 protected:

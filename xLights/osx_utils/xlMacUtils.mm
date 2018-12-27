@@ -94,13 +94,13 @@ void xlSetRetinaCanvasViewport(xlGLCanvas &win, int &x, int &y, int &x2, int&y2)
     pt.y = y;
     NSPoint pt2 = [glView convertPointToBacking: pt];
     x = pt2.x;
-    y = -pt2.y;
+    y = pt2.y;
     
     pt.x = x2;
     pt.y = y2;
     pt2 = [glView convertPointToBacking: pt];
     x2 = pt2.x;
-    y2 = -pt2.y;
+    y2 = pt2.y;
 }
 
 double xlTranslateToRetina(xlGLCanvas &win, double x) {
@@ -112,6 +112,11 @@ double xlTranslateToRetina(xlGLCanvas &win, double x) {
     return pt2.width;
 }
 
+bool IsMouseEventFromTouchpad() {
+    NSEvent *theEvent = (NSEvent*)wxTheApp->MacGetCurrentEvent();
+    
+    return (([theEvent momentumPhase] != NSEventPhaseNone) || ([theEvent phase] != NSEventPhaseNone));
+}
 
 
 class AppNapSuspenderPrivate

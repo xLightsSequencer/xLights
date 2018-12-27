@@ -134,18 +134,14 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     }
     PreviewWindows.clear();
 
+    // remove any 3d viewpoints
+    viewpoint_mgr.Clear();
+
     if (newdir != CurrentDir && "" != CurrentDir) {
         wxFileName kbf;
         kbf.AssignDir(CurrentDir);
         kbf.SetFullName("xlights_keybindings.xml");
         mainSequencer->keyBindings.Save(kbf);
-    }
-
-    // reject change if something is playing
-    if (play_mode == play_list || play_mode == play_single)
-    {
-        wxMessageBox(_("Cannot change directories during playback"), _("Error"));
-        return false;
     }
 
     // Check to see if any show directory files need to be saved

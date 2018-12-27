@@ -7,6 +7,8 @@
 
 #include "Model.h"
 #include "ModelManager.h"
+#include "ModelGroup.h"
+#include "../xLightsApp.h"
 #include "../xLightsMain.h" //for Preview and Other model collections
 #include "../xLightsXmlFile.h"
 #include "../Color.h"
@@ -47,9 +49,9 @@ return; \
 
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE, AS_PIXEL};
 
-Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr), ModelXml(nullptr),
+Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
     parm1(0), parm2(0), parm3(0), pixelStyle(1), pixelSize(2), transparency(0), blackTransparency(0),
-    StrobeRate(0), changeCount(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
+    StrobeRate(0), modelManager(manager), CouldComputeStartChannel(false), maxVertexCount(0),
     splitRGB(false), rgbwHandlingType(0)
 {
     // These member vars were not initialised so give them some defaults.
@@ -430,10 +432,9 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
 
     LAYOUT_GROUPS = Model::GetLayoutGroups(modelManager);
 
-    wxPGProperty *p;
     wxPGProperty *sp;
 
-    p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
+    wxPGProperty *p = grid->Append(new wxPropertyCategory(DisplayAs, "ModelType"));
 
     AddTypeProperties(grid);
 
@@ -530,7 +531,7 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     if (HasSingleChannel(StringType) || GetNodeChannelCount(StringType) != 4) {
         sp->Enable(false);
     }
-    
+
     p = grid->Append(new wxPropertyCategory("Appearance", "ModelAppearance"));
     sp = grid->AppendIn(p, new wxUIntProperty("Pixel Size", "ModelPixelSize", pixelSize));
     sp->SetAttribute("Min", 1);
@@ -1339,10 +1340,6 @@ std::string Model::ComputeStringStartChannel(int i) {
 
 int Model::GetNumStrands() const {
     return 1;
-}
-
-wxXmlNode* Model::GetModelXml() const {
-    return this->ModelXml;
 }
 
 bool Model::ModelRenamed(const std::string &oldName, const std::string &newName) {
@@ -2164,30 +2161,20 @@ unsigned int Model::GetNumChannels() {
     return GetLastChannel() - GetFirstChannel() + 1;
 }
 
-void Model::SetOffset(double xPct, double yPct) {
+void Model::SetPosition(double posx, double posy) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().SetOffset(xPct, yPct);
+    GetModelScreenLocation().SetPosition(posx, posy);
     IncrementChangeCount();
 }
 
-void Model::Lock(bool lock)
-{
-    GetModelScreenLocation().Lock(lock);
-    GetModelXml()->DeleteAttribute("Locked");
-    if (lock)
-    {
-        GetModelXml()->AddAttribute("Locked", "1");
-    }
-    IncrementChangeCount();
-}
-
-void Model::AddOffset(double xPct, double yPct) {
+void Model::AddOffset(double deltax, double deltay, double deltaz) {
 
     if (GetModelScreenLocation().IsLocked()) return;
 
-    GetModelScreenLocation().AddOffset(xPct, yPct);
+    GetModelScreenLocation().AddOffset(deltax, deltay, deltaz);
+    GetModelScreenLocation().Write(ModelXml);
     IncrementChangeCount();
 }
 
@@ -2234,7 +2221,7 @@ const std::string &Model::NodeType(size_t nodenum) const {
     return Nodes.size() && nodenum < Nodes.size() ? Nodes[nodenum]->GetNodeType(): NodeBaseClass::RGB; //avoid memory access error if no nods -DJ
 }
 
-void Model::GetBufferSize(const std::string &type, const std::string &transform, int &bufferWi, int &bufferHi) const {
+void Model::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &bufferWi, int &bufferHi) const {
     if (type == DEFAULT) {
         bufferHi = this->BufferHt;
         bufferWi = this->BufferWi;
@@ -2260,7 +2247,7 @@ void Model::GetBufferSize(const std::string &type, const std::string &transform,
         //if (type == PER_PREVIEW) {
         //default is to go ahead and build the full node buffer
         std::vector<NodeBaseClassPtr> newNodes;
-        InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
+        InitRenderBufferNodes(type, camera, "None", newNodes, bufferWi, bufferHi);
     }
     AdjustForTransform(transform, bufferWi, bufferHi);
 }
@@ -2290,6 +2277,40 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int 
     }
     it2.bufX = x;
     it2.bufY = y;
+}
+
+// this is really slow
+char GetPixelDump(int x, int y, std::vector<NodeBaseClassPtr> &newNodes)
+{
+    for (auto n = newNodes.begin(); n != newNodes.end(); ++n)
+    {
+        for (auto c = (*n)->Coords.begin(); c != (*n)->Coords.end(); ++c)
+        {
+            if (c->bufX == x && c->bufY == y)
+            {
+                return '*';
+            }
+        }
+    }
+
+    return '-';
+}
+
+void Model::DumpBuffer(std::vector<NodeBaseClassPtr> &newNodes,
+    int bufferWi, int bufferHt) const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Dumping render buffer for '%s':", (const char*)GetFullName().c_str());
+    for (int y = bufferHt - 1; y >= 0; y--)
+    {
+        std::string line = "";
+        for (int x = 0; x < bufferWi; x++)
+        {
+            line += GetPixelDump(x, y, newNodes);
+        }
+        logger_base.debug(">    %s", (const char*)line.c_str());
+    }
 }
 
 void Model::ApplyTransform(const std::string &type,
@@ -2337,7 +2358,7 @@ void Model::ApplyTransform(const std::string &type,
     }
 }
 
-void Model::InitRenderBufferNodes(const std::string &type,
+void Model::InitRenderBufferNodes(const std::string &type, const std::string &camera,
     const std::string &transform,
     std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHt) const {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -2445,12 +2466,49 @@ void Model::InitRenderBufferNodes(const std::string &type,
         }
     }
     else if (type == PER_PREVIEW || type == PER_PREVIEW_NO_OFFSET) {
-        float maxX = -1000000;
-        float minX = 1000000;
-        float maxY = -1000000;
-        float minY = 1000000;
-        float sx, sy;
-        GetModelScreenLocation().PrepareToDraw();
+        float maxX = -1000000.0;
+        float minX = 1000000.0;
+        float maxY = -1000000.0;
+        float minY = 1000000.0;
+        GetModelScreenLocation().PrepareToDraw(false, false);
+
+        ModelPreview* modelPreview = nullptr;
+        PreviewCamera* pcamera = nullptr;
+        if (xLightsApp::GetFrame() != nullptr)
+        {
+            modelPreview = xLightsApp::GetFrame()->GetHousePreview();
+            pcamera = xLightsApp::GetFrame()->viewpoint_mgr.GetNamedCamera3D(camera);
+        }
+
+        // We save the transformed coordinates here so we dont have to calculate them all twice
+        std::list<float> outx;
+        std::list<float> outy;
+
+        if (GetDisplayAs() == "ModelGroup" && camera != "2D" )
+        {
+            std::vector<Model *> models;
+            wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
+            int nc = 0;
+            for (int x = 0; x < mn.size(); x++) {
+                Model *c = modelManager.GetModel(mn[x].ToStdString());
+                if (c != nullptr) {
+                    models.push_back(c);
+                    nc += c->GetNodeCount();
+                }
+                else if (mn[x] == "")
+                {
+                    // silently ignore blank models
+                }
+            }
+
+            if (nc) {
+                newNodes.reserve(nc);
+            }
+            for (Model *c : models) {
+                int bw, bh;
+                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh);
+            }
+        }
 
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
@@ -2458,10 +2516,33 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                sx = it2->screenX;
-                sy = it2->screenY;
+                float sx = it2->screenX;
+                float sy = it2->screenY;
 
-                GetModelScreenLocation().TranslatePoint(sx, sy);
+                if (pcamera == nullptr || camera == "2D")
+                {
+                    // Handle all of the 2D classic transformations
+                    float sz = 0;
+                    GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                }
+                else
+                {
+                    // Handle 3D from an arbitrary camera position
+                    float sz = it2->screenZ;
+                    if (GetDisplayAs() != "ModelGroup")  // ignore for groups since they will have already calculated their node positions from recursion call above
+                    {
+                        GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                        // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
+                        glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
+                        loc.y *= -1.0f;
+                        sx = loc.x;
+                        sy = loc.y;
+                    }
+                }
+
+                // save the transformed value
+                outx.push_back(sx);
+                outy.push_back(sy);
 
                 if (sx > maxX) {
                     maxX = sx;
@@ -2477,24 +2558,52 @@ void Model::InitRenderBufferNodes(const std::string &type,
                 }
             }
         }
+
+        // Work out scaling factor for per preview camera views as these can build some
+        // exteme locations which translate into crazy sized render buffers
+        // this allows us to scale it back to the desired grid size
+        float factor = 1.0;
+        if (pcamera != nullptr && camera != "2D" && GetDisplayAs() == "ModelGroup" && type == PER_PREVIEW)
+        {
+            int maxDimension = ((ModelGroup*)this)->GetGridSize();
+            if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension))
+            {
+                // we need to resize all the points by this amount
+                factor = std::max(((float)(maxX - minX)) / (float)maxDimension, ((float)(maxY - minY)) / (float)maxDimension);
+                // But if it is already smaller we dont want to make it bigger
+                if (factor < 1.0)
+                {
+                    factor = 1.0;
+                }
+            }
+        }
+
+        minX /= factor;
+        maxX /= factor;
+        minY /= factor;
+        maxY /= factor;
+
         int offx = minX;
         int offy = minY;
         bool noOff = type == PER_PREVIEW_NO_OFFSET;
+
         if (noOff) {
             offx = 0;
             offy = 0;
         }
         bufferHt = bufferWi = -1;
+        auto itx = outx.begin();
+        auto ity = outy.begin();
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
-                sx = it2->screenX;
-                sy = it2->screenY;
 
-                GetModelScreenLocation().TranslatePoint(sx, sy);
+                // grab the previously transformed coordinate
+                float sx = *itx / factor;
+                float sy = *ity / factor;
 
                 SetCoords(*it2, std::round(sx - offx), std::round(sy - offy));
                 if (it2->bufX > bufferWi) {
@@ -2508,6 +2617,9 @@ void Model::InitRenderBufferNodes(const std::string &type,
                     it2->screenX = sx;
                     it2->screenY = sy;
                 }
+
+                ++itx;
+                ++ity;
             }
         }
         if (!noOff) {
@@ -2518,6 +2630,7 @@ void Model::InitRenderBufferNodes(const std::string &type,
             bufferHt = std::round(maxY - minY + 1.0f);
             bufferWi = std::round(maxX - minX + 1.0f);
         }
+        //DumpBuffer(newNodes, bufferWi, bufferHt);
     }
     else {
         bufferHt = this->BufferHt;
@@ -2763,10 +2876,9 @@ size_t Model::GetChannelCoords(wxArrayString& choices) { //wxChoice* choices1, w
 
 //get parsed node info:
 std::string Model::GetNodeXY(const std::string& nodenumstr) {
-    long nodenum;
     size_t NodeCount = GetNodeCount();
     try {
-        nodenum = std::stod(nodenumstr);
+        long nodenum = std::stod(nodenumstr);
         for (size_t inx = 0; inx < NodeCount; inx++) {
             if (Nodes[inx]->Coords.empty()) continue;
             if (GetNodeNumber(inx) == nodenum) return GetNodeXY(inx);
@@ -3107,7 +3219,7 @@ void Model::CopyBufCoord2ScreenCoord() {
             Nodes[n]->Coords[c].screenY = Nodes[n]->Coords[c].bufY - yoffset;
         }
     }
-    GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt);
+    GetModelScreenLocation().SetRenderSize(BufferWi, BufferHt, GetModelScreenLocation().GetRenderDp());
 }
 
 void Model::UpdateXmlWithScale() {
@@ -3115,27 +3227,20 @@ void Model::UpdateXmlWithScale() {
     ModelXml->DeleteAttribute("StartChannel");
     if (ModelXml->HasAttribute("versionNumber"))
         ModelXml->DeleteAttribute("versionNumber");
-    ModelXml->AddAttribute("versionNumber", "1");
+    ModelXml->AddAttribute("versionNumber", "3");
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
 }
 
 bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().IsContained(x1, y1, x2, y2);
+    return GetModelScreenLocation().IsContained(preview, x1, y1, x2, y2);
 }
 
-bool Model::HitTest(ModelPreview* preview, int x, int y) {
-    int y1 = preview->GetVirtualCanvasHeight() - y;
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().HitTest(x, y1);
+bool Model::HitTest(ModelPreview* preview, glm::vec3& ray_origin, glm::vec3& ray_direction) {
+    return GetModelScreenLocation().HitTest(ray_origin, ray_direction);
 }
 
-wxCursor Model::CheckIfOverHandles(int &handle, wxCoord x, wxCoord y) {
-    return GetModelScreenLocation().CheckIfOverHandles(handle, x, y);
-}
-
-wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y) {
-    return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes);
+wxCursor Model::InitializeLocation(int &handle, wxCoord x, wxCoord y, ModelPreview* preview) {
+    return GetModelScreenLocation().InitializeLocation(handle, x, y, Nodes, preview);
 }
 
 void Model::ApplyTransparency(xlColor &color, int transparency) const
@@ -3150,7 +3255,7 @@ void Model::ApplyTransparency(xlColor &color, int transparency) const
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -3161,9 +3266,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     preview->GetVirtualCanvasSize(w, h);
 
     ModelScreenLocation& screenLocation = GetModelScreenLocation();
-	screenLocation.SetPreviewSize(w, h, std::vector<NodeBaseClassPtr>());
 
-    screenLocation.PrepareToDraw();
+    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
 
     int vcount = 0;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -3227,7 +3332,8 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
             // draw node on screen
             float sx = Nodes[n]->Coords[c2].screenX;;
             float sy = Nodes[n]->Coords[c2].screenY;
-            GetModelScreenLocation().TranslatePoint(sx, sy);
+            float sz = Nodes[n]->Coords[c2].screenZ;
+            GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
             if (pixelStyle < 2) {
                 if (splitRGB) {
@@ -3272,7 +3378,140 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     } else {
         va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
     }
-    if (Selected && c != nullptr && allowSelected) {
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
+        GetModelScreenLocation().DrawHandles(va);
+    }
+}
+
+// display model using colors stored in each node
+// used when preview is running
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+    size_t NodeCount = Nodes.size();
+    xlColor color;
+    if (c != nullptr) {
+        color = *c;
+    }
+
+    int w, h;
+    preview->GetVirtualCanvasSize(w, h);
+
+	 ModelScreenLocation& screenLocation = GetModelScreenLocation();
+
+    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
+    screenLocation.PrepareToDraw(is_3d, allowSelected);
+
+    int vcount = 0;
+    for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
+        vcount += it->get()->Coords.size();
+    }
+    if (pixelStyle > 1) {
+        int f = pixelSize;
+        if (pixelSize < 16) {
+            f = 16;
+        }
+        vcount = vcount * f * 3;
+    }
+    if (vcount > maxVertexCount) {
+        maxVertexCount = vcount;
+    }
+    va.PreAlloc(maxVertexCount);
+
+    int first = 0;
+    int last = NodeCount;
+    int buffFirst = -1;
+    int buffLast = -1;
+    bool left = true;
+
+    while (first < last) {
+        int n;
+        if (left) {
+            n = first;
+            first++;
+            if (NodeRenderOrder() == 1) {
+                if (buffFirst == -1) {
+                    buffFirst = Nodes[n]->Coords[0].bufX;
+                }
+                if (first < NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                    left = false;
+                }
+            }
+        } else {
+            last--;
+            n = last;
+            if (buffLast == -1) {
+                buffLast = Nodes[n]->Coords[0].bufX;
+            }
+            if (last > 0 && buffFirst != Nodes[last - 1]->Coords[0].bufX) {
+                left = true;
+            }
+        }
+        if (c == nullptr) {
+            Nodes[n]->GetColor(color);
+            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
+                Nodes[n]->model->modelDimmingCurve->reverse(color);
+            }
+            if (Nodes[n]->model->StrobeRate) {
+                int r = rand() % 5;
+                if (r != 0) {
+                    color = xlBLACK;
+                }
+            }
+        }
+        size_t CoordCount=GetCoordCount(n);
+        for(size_t c2=0; c2 < CoordCount; c2++) {
+            // draw node on screen
+            float sx = Nodes[n]->Coords[c2].screenX;;
+            float sy = Nodes[n]->Coords[c2].screenY;
+            float sz = Nodes[n]->Coords[c2].screenZ;
+
+            if (pixelStyle < 2) {
+                GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                if (splitRGB) {
+                    if ((color.Red() == color.Blue()) && (color.Blue() == color.Green())) {
+                        xlColor c3(color);
+                        ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
+                        va.AddVertex(sx, sy, sz, c3);
+                    } else {
+                        xlColor c3(color.Red(), 0 , 0);
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx-pixelSize, sy+pixelSize/2.0f, sz, c3);
+                        }
+                        c3.Set(0, color.Green(), 0);
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx, sy-pixelSize, sz, c3);
+                        }
+                        c3.Set(0, 0, color.Blue());
+                        if (c3 != xlBLACK) {
+                            ApplyTransparency(c3, transparency);
+                            va.AddVertex(sx+pixelSize, sy+pixelSize/2.0f, sz, c3);
+                        }
+                    }
+                } else {
+                    xlColor c3(color);
+                    ApplyTransparency(c3, color == xlBLACK ? blackTransparency : transparency);
+                    va.AddVertex(sx, sy, sz, c3);
+                }
+            } else {
+                xlColor ccolor(color);
+                xlColor ecolor(color);
+                int trans = color == xlBLACK ? blackTransparency : transparency;
+                ApplyTransparency(ccolor, trans);
+                ApplyTransparency(ecolor, pixelStyle == 2 ? trans : 100);
+                va.AddTrianglesCircle(sx, sy, sz, ((float)pixelSize) / 2.0f, ccolor, ecolor,
+                                      [this](float &x, float &y, float &z) {
+                                          GetModelScreenLocation().TranslatePoint(x, y, z);
+                                      });;
+            }
+        }
+    }
+    if (pixelStyle > 1) {
+        va.Finish(GL_TRIANGLES);
+    } else {
+        va.Finish(GL_POINTS, pixelStyle == 1 ? GL_POINT_SMOOTH : 0, preview->calcPixelSize(pixelSize));
+    }
+    if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
         GetModelScreenLocation().DrawHandles(va);
     }
 }
@@ -3498,16 +3737,6 @@ void Model::DisplayEffectOnWindow(ModelPreview* preview, double pointSize) {
     }
 }
 
-void Model::SetMinMaxModelScreenCoordinates(ModelPreview* preview) {
-    int w, h;
-    preview->GetVirtualCanvasSize(w, h);
-    SetMinMaxModelScreenCoordinates(w, h);
-}
-
-void Model::SetMinMaxModelScreenCoordinates(int w, int h) {
-    GetModelScreenLocation().SetPreviewSize(w, h, Nodes);
-}
-
 void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX,int mouseY) {
 
     if (GetModelScreenLocation().IsLocked()) return;
@@ -3518,10 +3747,6 @@ void Model::MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, 
         SetFromXml(ModelXml);
     }
     IncrementChangeCount();
-}
-
-void Model::SelectHandle(int handle) {
-    GetModelScreenLocation().SelectHandle(handle);
 }
 
 int Model::GetSelectedHandle() {
@@ -3562,136 +3787,6 @@ void Model::DeleteHandle(int handle) {
     GetModelScreenLocation().DeleteHandle(handle);
 }
 
-void Model::SetTop(ModelPreview* preview,int y) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    SetMinMaxModelScreenCoordinates(preview);
-    GetModelScreenLocation().SetTop(y);
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-    IncrementChangeCount();
-}
-
-void Model::SetBottom(ModelPreview* preview,int y) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    SetMinMaxModelScreenCoordinates(preview);
-    GetModelScreenLocation().SetBottom(y);
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-    IncrementChangeCount();
-}
-
-void Model::SetLeft(ModelPreview* preview,int x) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    SetMinMaxModelScreenCoordinates(preview);
-    GetModelScreenLocation().SetLeft(x);
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-    IncrementChangeCount();
-}
-
-void Model::SetRight(ModelPreview* preview,int x) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    SetMinMaxModelScreenCoordinates(preview);
-    GetModelScreenLocation().SetRight(x);
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-    IncrementChangeCount();
-}
-
-int Model::GetTop(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().GetTop();
-}
-
-int Model::GetWidth(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().GetMWidth();
-}
-
-int Model::GetHeight(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().GetMHeight();
-}
-
-void Model::SetWidth(ModelPreview* preview, int w) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    SetMinMaxModelScreenCoordinates(preview);
-    GetModelScreenLocation().SetMWidth(w);
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-    IncrementChangeCount();
-}
-
-void Model::SetHeight(ModelPreview* preview, int h) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    SetMinMaxModelScreenCoordinates(preview);
-    GetModelScreenLocation().SetMHeight(h);
-
-    // this is necessary for three point models
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-
-    IncrementChangeCount();
-}
-
-int Model::GetBottom(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().GetBottom();
-}
-
-int Model::GetLeft(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().GetLeft();
-}
-
-int Model::GetRight(ModelPreview* preview) {
-    SetMinMaxModelScreenCoordinates(preview);
-    return GetModelScreenLocation().GetRight();
-}
-
-float Model::GetHcenterOffset() {
-    return GetModelScreenLocation().GetHcenterOffset();
-}
-
-float Model::GetVcenterOffset() {
-    return GetModelScreenLocation().GetVcenterOffset();
-}
-void Model::SetHcenterOffset(float offset) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    GetModelScreenLocation().SetHcenterOffset(offset);
-
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-
-    IncrementChangeCount();
-}
-
-void Model::SetVcenterOffset(float offset) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    GetModelScreenLocation().SetVcenterOffset(offset);
-
-    GetModelScreenLocation().Write(ModelXml);
-    SetFromXml(ModelXml);
-
-    IncrementChangeCount();
-}
-
 int Model::GetStrandLength(int strand) const {
     return GetNodeCount() / GetNumStrands();
 }
@@ -3717,13 +3812,6 @@ void Model::RecalcStartChannels()
 
 void Model::AddSizeLocationProperties(wxPropertyGridInterface *grid) {
     GetModelScreenLocation().AddSizeLocationProperties(grid);
-}
-
-void Model::SetLayoutGroup(const std::string &grp) {
-    layout_group = grp;
-    ModelXml->DeleteAttribute("LayoutGroup");
-    ModelXml->AddAttribute("LayoutGroup", grp);
-    IncrementChangeCount();
 }
 
 bool Model::SupportsXlightsModel()
@@ -3820,8 +3908,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3830,8 +3918,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Matrix", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;
@@ -3853,7 +3941,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
             model = xlights->AllModels.CreateDefaultModel("Arches", startChannel);
 
             int h1 = 1;
-            model->InitializeLocation(h1, l, b);
+            model->InitializeLocation(h1, l, b, nullptr);
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetMWidth(std::abs(r-l));
             ((ThreePointScreenLocation&)model->GetModelScreenLocation()).SetHeight(2 * (float)std::abs(t-b) / (float)std::abs(r-l));
             model->SetLayoutGroup(model->GetLayoutGroup());
@@ -3864,8 +3952,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3874,8 +3962,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Star", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;
@@ -3885,8 +3973,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3895,8 +3983,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("Tree", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;
@@ -3906,8 +3994,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
             // grab the attributes I want to keep
             std::string startChannel = model->GetModelXml()->GetAttribute("StartChannel", "1").ToStdString();
-            auto x = model->GetHcenterOffset();
-            auto y = model->GetVcenterOffset();
+            auto x = model->GetHcenterPos();
+            auto y = model->GetVcenterPos();
             auto w = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleX();
             auto h = ((BoxedScreenLocation&)model->GetModelScreenLocation()).GetScaleY();
 
@@ -3916,8 +4004,8 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
                 delete model;
             }
             model = xlights->AllModels.CreateDefaultModel("DMX", startChannel);
-            model->SetHcenterOffset(x);
-            model->SetVcenterOffset(y);
+            model->SetHcenterPos(x);
+            model->SetVcenterPos(y);
             ((BoxedScreenLocation&)model->GetModelScreenLocation()).SetScale(w, h);
             model->SetLayoutGroup(model->GetLayoutGroup());
             model->Selected = true;

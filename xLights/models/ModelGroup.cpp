@@ -194,7 +194,7 @@ ModelGroup::ModelGroup(wxXmlNode *node, const ModelManager &m, int w, int h) : M
     Reset();
 }
 
-void LoadRenderBufferNodes(Model *m, const std::string &type, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
+void LoadRenderBufferNodes(Model *m, const std::string &type, const std::string &camera, std::vector<NodeBaseClassPtr> &newNodes, int &bufferWi, int &bufferHi) {
 
     if (m == nullptr) return;
 
@@ -203,17 +203,22 @@ void LoadRenderBufferNodes(Model *m, const std::string &type, std::vector<NodeBa
         ModelGroup *g = dynamic_cast<ModelGroup*>(m);
         if (g != nullptr) {
             for (auto it = g->Models().begin(); it != g->Models().end(); ++it) {
-                LoadRenderBufferNodes(*it, type, newNodes, bufferWi, bufferHi);
+                LoadRenderBufferNodes(*it, type, camera, newNodes, bufferWi, bufferHi);
             }
         }
         else {
-            m->InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
+            m->InitRenderBufferNodes(type, camera, "None", newNodes, bufferWi, bufferHi);
         }
     }
     else
     {
-        m->InitRenderBufferNodes(type, "None", newNodes, bufferWi, bufferHi);
+        m->InitRenderBufferNodes(type, camera, "None", newNodes, bufferWi, bufferHi);
     }
+}
+
+int ModelGroup::GetGridSize() const
+{
+    return wxAtoi(ModelXml->GetAttribute("GridSize", "400"));
 }
 
 bool ModelGroup::Reset(bool zeroBased) {
@@ -269,7 +274,7 @@ bool ModelGroup::Reset(bool zeroBased) {
 
     for (Model *c : models) {
         int bw, bh;
-        LoadRenderBufferNodes(c, "Per Preview No Offset", Nodes, bw, bh);
+        LoadRenderBufferNodes(c, "Per Preview No Offset", "2D", Nodes, bw, bh);
     }
 
     //now have all the nodes for all the models
@@ -277,7 +282,7 @@ bool ModelGroup::Reset(bool zeroBased) {
     float maxx = -1;
     float miny = 99999;
     float maxy = -1;
-    
+
     int minChan = 9999999;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
         for (auto coord = (*it)->Coords.begin(); coord != (*it)->Coords.end(); ++coord) {
@@ -381,9 +386,8 @@ bool ModelGroup::Reset(bool zeroBased) {
     }
 
     screenLocation.SetRenderSize(maxx - nminx + 1, maxy - nminy + 1);
-    screenLocation.SetOffset(0.5, 0.5);
+    screenLocation.SetPosition(BufferWi / 2.0f, BufferHt / 2.0f);
 
-    SetMinMaxModelScreenCoordinates(screenLocation.previewW, screenLocation.previewH);
     return true;
 }
 
@@ -538,7 +542,7 @@ void ModelGroup::CheckForChanges() const {
     }
 }
 
-void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transform, int &BufferWi, int &BufferHt) const {
+void ModelGroup::GetBufferSize(const std::string &tp, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHt) const {
     CheckForChanges();
     std::string type = tp;
     if (type.compare(0, 9, "Per Model") == 0) {
@@ -564,7 +568,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
             int bw, bh;
             bw = bh = 0;
             models++;
-            grp->GetBufferSize(HORIZ_PER_MODELSTRAND, "None", bw, bh);
+            grp->GetBufferSize(HORIZ_PER_MODELSTRAND, "2D", "None", bw, bh);
             strands += bw;
             total += m->GetNodeCount();
             if (m->GetNodeCount() > maxNodes) {
@@ -610,7 +614,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
         BufferHt = 1;
         BufferWi = models;
     } else if (type == DEFAULT_AS_PIXEL) {
-        Model::GetBufferSize("Per Preview", "None", BufferWi, BufferHt);
+        Model::GetBufferSize("Per Preview", camera, "None", BufferWi, BufferHt);
     } else if (type == HORIZ_PER_MODELSTRAND) {
         BufferWi = strands;
         BufferHt = maxStrandLen;
@@ -624,7 +628,7 @@ void ModelGroup::GetBufferSize(const std::string &tp, const std::string &transfo
         BufferHt = maxHi;
         BufferWi = maxWid;
     } else {
-        Model::GetBufferSize(type, "None", BufferWi, BufferHt);
+        Model::GetBufferSize(type, camera, "None", BufferWi, BufferHt);
     }
     AdjustForTransform(transform, BufferWi, BufferHt);
 
@@ -646,6 +650,7 @@ static inline void SetCoords(NodeBaseClass::CoordStruct &it2, int x, int y, int 
 }
 
 void ModelGroup::InitRenderBufferNodes(const std::string &tp,
+                                       const std::string& camera,
                                        const std::string &transform,
                                        std::vector<NodeBaseClassPtr> &Nodes,
                                        int &BufferWi, int &BufferHt) const {
@@ -666,7 +671,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
+                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
                 y = 0;
                 while (start < Nodes.size()) {
                     for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
@@ -690,7 +695,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
+                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
                 while (start < Nodes.size()) {
                     for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
                         it2->bufX = it2->bufX + modelX;
@@ -712,7 +717,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
+                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
                 while (start < Nodes.size()) {
                     for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
                         it2->bufY = it2->bufY + modelY;
@@ -733,7 +738,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Default", "None", Nodes, x, y);
+                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, x, y);
                 y = 0;
                 while (start < Nodes.size()) {
                     for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
@@ -759,7 +764,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                 int start = Nodes.size();
                 int x = 0;
                 int y = 0;
-                m->InitRenderBufferNodes("As Pixel", "None", Nodes, x, y);
+                m->InitRenderBufferNodes("As Pixel", "2D", "None", Nodes, x, y);
                 while (start < Nodes.size()) {
                     for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
                         it2->bufY = 0;
@@ -774,7 +779,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
     } else if (type == DEFAULT_AS_PIXEL) {
         int start = Nodes.size();
-        Model::InitRenderBufferNodes("Per Preview", "None", Nodes, BufferWi, BufferHt);
+        Model::InitRenderBufferNodes("Per Preview", "2D", "None", Nodes, BufferWi, BufferHt);
         for (auto modelName : modelNames) {
             Model *c = modelManager.GetModel(modelName);
             if (c != nullptr) {
@@ -804,7 +809,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
     } else if (type == HORIZ_PER_MODELSTRAND || type == VERT_PER_MODELSTRAND) {
-        GetBufferSize(type, "None", BufferWi, BufferHt);
+        GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
         bool horiz = type == HORIZ_PER_MODELSTRAND;
         int curS = 0;
         double maxSL = BufferWi;
@@ -818,7 +823,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             if (grp != nullptr) {
                 int bw, bh;
                 bw = bh = 0;
-                grp->InitRenderBufferNodes(type, "None", Nodes, bw, bh);
+                grp->InitRenderBufferNodes(type, "2D", "None", Nodes, bw, bh);
                 for (int x = startBM; x < Nodes.size(); x++) {
                     for (auto it2 = Nodes[x]->Coords.begin(); it2 != Nodes[x]->Coords.end(); ++it2) {
                         if (horiz) {
@@ -836,7 +841,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             } else if (m != nullptr) {
                 int bw, bh;
                 bw = bh = 0;
-                m->InitRenderBufferNodes(horiz ? "Horizontal Per Strand" : "Vertical Per Strand", "None", Nodes, bw, bh);
+                m->InitRenderBufferNodes(horiz ? "Horizontal Per Strand" : "Vertical Per Strand", "2D", "None", Nodes, bw, bh);
                 for (int x = startBM; x < Nodes.size(); x++) {
                     for (auto it2 = Nodes[x]->Coords.begin(); it2 != Nodes[x]->Coords.end(); ++it2) {
                         if (horiz) {
@@ -871,7 +876,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             if (m != nullptr) {
                 int start = Nodes.size();
                 int x, y;
-                m->InitRenderBufferNodes("Single Line", "None", Nodes, x, y);
+                m->InitRenderBufferNodes("Single Line", "2D", "None", Nodes, x, y);
                 while (start < Nodes.size()) {
                     for (auto it2 = Nodes[start]->Coords.begin(); it2 != Nodes[start]->Coords.end(); ++it2) {
                         it2->bufX = BufferWi;
@@ -889,13 +894,13 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
     } else if (type == OVERLAY_CENTER || type == OVERLAY_SCALED) {
         bool scale = type == OVERLAY_SCALED;
-        GetBufferSize(type, "None", BufferWi, BufferHt);
+        GetBufferSize(type, "2D", "None", BufferWi, BufferHt);
         for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];
             if (m != nullptr) {
                 int start = Nodes.size();
                 int bw, bh;
-                m->InitRenderBufferNodes("Default", "None", Nodes, bw, bh);
+                m->InitRenderBufferNodes("Default", "2D", "None", Nodes, bw, bh);
                 if (bw != BufferWi || bh != BufferHt) {
                     //need to either scale or center
                     int offx = (BufferWi - bw)/2;
@@ -916,7 +921,10 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             }
         }
     } else {
-        Model::InitRenderBufferNodes(type, transform, Nodes, BufferWi, BufferHt);
+        if( camera == "2D" && type == "Per Preview" ) {
+            Nodes.clear();
+        }
+        Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHt);
     }
 
     //wxASSERT(BufferWi != 0);

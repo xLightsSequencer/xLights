@@ -10,9 +10,9 @@ class ChannelBlockModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         ChannelBlockModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~ChannelBlockModel();
     
-        virtual void GetBufferSize(const std::string &type, const std::string &transform,
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                                    int &BufferWi, int &BufferHi) const override;
-        virtual void InitRenderBufferNodes(const std::string &type, const std::string &transform,
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
                                            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;

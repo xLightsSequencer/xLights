@@ -2223,7 +2223,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
         bool average_colors = dlg.CheckBox_AverageColors->GetValue();
         Model *cls = GetModel(model->GetFullName());
         int bw, bh;
-        cls->GetBufferSize("Default", "None", bw, bh);
+        cls->GetBufferSize("Default", "2D", "None", bw, bh);
         wxSize modelSize(bw, bh);
         ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, average_colors, dlg.ImageResizeChoice->GetSelection(), modelSize);
     }
