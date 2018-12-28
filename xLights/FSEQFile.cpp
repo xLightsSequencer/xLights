@@ -269,7 +269,7 @@ FSEQFile::FSEQFile(const std::string &fn)
         m_seqFile = nullptr;
         m_memoryBuffer.reserve(1024*1024);
     } else {
-        m_seqFile = fopen((const char *)fn.c_str(), "w");
+        m_seqFile = fopen((const char *)fn.c_str(), "wb");
     }
 }
 void FSEQFile::dumpInfo(bool indent) {
@@ -388,6 +388,7 @@ V1FSEQFile::V1FSEQFile(const std::string &fn)
   : FSEQFile(fn)
 {
 }
+
 void V1FSEQFile::writeHeader() {
     static int fixedHeaderLength = 28;
     uint8_t header[28];
@@ -461,9 +462,11 @@ V1FSEQFile::V1FSEQFile(const std::string &fn, FILE *file, const std::vector<uint
     fstat(fileno(file), &stats);
     m_uniqueId = stats.st_mtime;
 }
+
 V1FSEQFile::~V1FSEQFile() {
 
 }
+
 class UncompressedFrameData : public FSEQFile::FrameData {
 public:
     UncompressedFrameData(uint32_t frame,
@@ -539,6 +542,7 @@ void V1FSEQFile::addFrame(uint32_t frame,
                           uint8_t *data) {
     write(data, m_seqChannelCount);
 }
+
 void V1FSEQFile::finalize() {
     FSEQFile::finalize();
 }
