@@ -439,12 +439,12 @@ void V1FSEQFile::writeHeader() {
         write(&a.data[0], a.data.size());
     }
     uint64_t pos = tell();
-#ifdef __WXMSW__
+#ifdef _MSC_VER
     wxASSERT(pos <= dataOffset); // i dont see how this could be wrong but seeing some crashes
 #endif
     if (pos != dataOffset) {
         char buf[4] = {0,0,0,0};
-#ifdef __WXMSW__
+#ifdef _MSC_VER
         wxASSERT(dataOffset - pos <= 4); // i dont see how this could be wrong but seeing some crashes
 #endif
         write(buf, dataOffset - pos);
