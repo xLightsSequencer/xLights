@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2018.59 December 30, 2018
+   -- bug (keith)  Fix Single colour models not working correctly
 2018.58 December 28, 2018
    -- bug (keith)  Fix FSEQ files not being saved with correct format
 2018.57 December 27, 2018
