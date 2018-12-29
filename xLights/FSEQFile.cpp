@@ -385,7 +385,7 @@ void FSEQFile::finalize() {
 
 
 V1FSEQFile::V1FSEQFile(const std::string &fn)
-  : FSEQFile(fn)
+  : FSEQFile(fn), m_dataBlockSize(0)
 {
 }
 
@@ -439,8 +439,14 @@ void V1FSEQFile::writeHeader() {
         write(&a.data[0], a.data.size());
     }
     uint64_t pos = tell();
+#ifdef __WXMSW__
+    wxASSERT(pos <= dataOffset); // i dont see how this could be wrong but seeing some crashes
+#endif
     if (pos != dataOffset) {
         char buf[4] = {0,0,0,0};
+#ifdef __WXMSW__
+        wxASSERT(dataOffset - pos <= 4); // i dont see how this could be wrong but seeing some crashes
+#endif
         write(buf, dataOffset - pos);
     }
 }
@@ -778,9 +784,9 @@ public:
 
             if (m_curBlock < m_file->m_frameOffsets.size() - 2) {
                 //let the kernel know that we'll likely need the next block in the near future
-                uint64_t len = m_file->m_frameOffsets[m_curBlock + 2].second;
-                len -= m_file->m_frameOffsets[m_curBlock+1].second;
-                preload(tell(), len);
+                uint64_t len2 = m_file->m_frameOffsets[m_curBlock + 2].second;
+                len2 -= m_file->m_frameOffsets[m_curBlock+1].second;
+                preload(tell(), len2);
             }
 
             free(m_outBuffer.dst);
