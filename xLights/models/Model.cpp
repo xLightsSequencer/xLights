@@ -965,7 +965,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         int i = p2->GetValue().GetLong();
         ModelXml->DeleteAttribute("StringType");
         ModelXml->DeleteAttribute("RGBWHandling");
-        if (i == NODE_TYPES.size() - 1 || i == NODE_TYPES.size() - 2) {
+        if (NODE_TYPES[i] == "Single Color"|| NODE_TYPES[i] == "Single Color Intensity") {
             wxPGProperty *p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
             wxString tp = GetColorString(p, c);
