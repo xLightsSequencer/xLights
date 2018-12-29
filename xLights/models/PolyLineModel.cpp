@@ -416,9 +416,12 @@ void PolyLineModel::InitModel() {
         Nodes[curNode]->Coords[curCoord].bufY = maxH - y - 1;
         Nodes[curNode]->Coords[curCoord].screenX = width;
         Nodes[curNode]->Coords[curCoord].screenY = maxH - y - 1;
-        chan+=ChanIncr;
-        lights--;
+        if (!SingleNode)
+        {
+            chan += ChanIncr;
+        }
         y++;
+        lights--;
         curCoord++;
     }
     SetBufferSize(maxH, SingleNode?1:width+1);
@@ -462,7 +465,10 @@ void PolyLineModel::InitModel() {
                     Nodes[idx]->Coords[c].screenX = v.x;
                     Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
                     Nodes[idx]->Coords[c].screenZ = v.z;
-                    IsLtoR ? idx++ : idx--;
+                    if (!SingleNode)
+                    {
+                        IsLtoR ? idx++ : idx--;
+                    }
                 }
                 drop_index %= dropSizes.size();
                 seg_idx++;
@@ -520,7 +526,10 @@ void PolyLineModel::InitModel() {
                                 Nodes[idx]->Coords[c].screenX = v.x;
                                 Nodes[idx]->Coords[c].screenY = v.y - z * mheight;
                                 Nodes[idx]->Coords[c].screenZ = v.z;
-                                IsLtoR ? idx++ : idx--;
+                                if (!SingleNode)
+                                {
+                                    IsLtoR ? idx++ : idx--;
+                                }
                             }
                             drop_index %= dropSizes.size();
                         }
@@ -584,7 +593,10 @@ void PolyLineModel::InitModel() {
                     c++;
                 } else {
                     c = 0;
-                    IsLtoR ? idx++ : idx--;
+                    if (!SingleNode)
+                    {
+                        IsLtoR ? idx++ : idx--;
+                    }
                 }
             }
             drop_index %= dropSizes.size();
