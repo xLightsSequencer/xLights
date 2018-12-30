@@ -4283,6 +4283,11 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
     va.AddRect(x1, y2, x1 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, handleColor);
     va.AddRect(x2, y1, x2 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, handleColor);
     va.AddRect(x2, y2, x2 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, handleColor);
+    while (mHandlePosition.size() < num_points + 5) // not sure this is the best way to do this but it stops a crash
+    {
+        xlPoint pt;
+        mHandlePosition.push_back(pt);
+    }
     mHandlePosition[num_points+1].x = x1;
     mHandlePosition[num_points+1].y = y1;
     mHandlePosition[num_points+1].z = z1;
