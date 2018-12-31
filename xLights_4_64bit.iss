@@ -15,10 +15,10 @@
 
 
 #define MyTitleName "xLights" 
-#define Year 2018
-#define Version 58
+#define Year 2019
+#define Version 1
 #define Bits 64
-#define Other "_3D_BETA"
+#define Other ""
 
 [Setup]
 ;; (not yet implemented) SignTool=mystandard

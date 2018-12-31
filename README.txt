@@ -11,8 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.01 January 1, 2019
    -- enh (gil)    Add 3d
    -- enh (keith)  Test for out of order universes on a controller in check sequence
+   -- bug (dan)    Fix more issues with FSEQ saving and loading
 2018.59 December 30, 2018
    -- bug (keith)  Fix Single colour models not working correctly
 2018.58 December 28, 2018
