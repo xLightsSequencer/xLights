@@ -4791,6 +4791,43 @@ void xLightsFrame::CheckSequence(bool display)
     errcountsave = errcount;
     warncountsave = warncount;
 
+    // Controller universes out of order
+    LogAndWrite(f, "");
+    LogAndWrite(f, "Controller universes out of order - because some controllers care");
+
+    std::map<std::string, int> lastuniverse;
+    for (auto n: _outputManager.GetAllOutputs())
+    {
+        if (n->IsIpOutput())
+        {
+            if (lastuniverse.find(n->GetIP()) == lastuniverse.end())
+            {
+                lastuniverse[n->GetIP()] = n->GetUniverse();
+            }
+            else
+            {
+                if (lastuniverse[n->GetIP()] > n->GetUniverse())
+                {
+                    wxString msg = wxString::Format("    WARN: Controller %s %s Universe %d occurs after universe %d. Some controllers do not like out of order universes.", 
+                                                    n->GetIP(), n->GetDescription(), n->GetUniverse(), lastuniverse[n->GetIP()]);
+                    LogAndWrite(f, msg.ToStdString());
+                    warncount++;
+                }
+                else
+                {
+                    lastuniverse[n->GetIP()] = n->GetUniverse();
+                }
+            }
+        }
+    }
+
+    if (errcount + warncount == errcountsave + warncountsave)
+    {
+        LogAndWrite(f, "    No problems found");
+    }
+    errcountsave = errcount;
+    warncountsave = warncount;
+
     // controllers sending to routable IP addresses
     LogAndWrite(f, "");
     LogAndWrite(f, "Invalid controller IP addresses");
