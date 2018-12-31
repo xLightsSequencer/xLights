@@ -15,6 +15,7 @@
 #include "VAMPPluginDialog.h"
 
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 #define ICON_SPACE 25
 
@@ -569,8 +570,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
 
                         if (ms != dlg.GetValue())
                         {
-                            wxString msg = wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms);
-                            wxMessageBox(msg);
+                            DisplayWarning(wxString::Format("Timing adjusted to match sequence timing %dms -> %dms", dlg.GetValue(), ms).ToStdString());
                         }
                         wxString ttn = wxString::Format("%dms Metronome", ms);
                         if (!xml_file->TimingAlreadyExists(ttn.ToStdString(), mSequenceElements->GetXLightsFrame()))
@@ -588,7 +588,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             }
             else
             {
-                wxMessageBox(wxString::Format("Fixed Timing section %s already exists!", selected_timing), "Error", wxICON_ERROR | wxOK);
+                DisplayError(wxString::Format("Fixed Timing section %s already exists!", selected_timing).ToStdString());
             }
         }
         dialog.Destroy();
@@ -604,7 +604,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         std::string name = wxGetTextFromUser("What is the new name of the timing track?", "Timing Track Name").ToStdString();
         if (mSequenceElements->ElementExists(name))
         {
-            wxMessageBox("Timing name already exists in sequence as a model or another timing.", "ERROR");
+            DisplayError("Timing name already exists in sequence as a model or another timing.");
         }
         else if (name.size()>0)
         {
@@ -670,8 +670,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                     logger_base.info("Saving to xtiming file %s.", (const char *)filename.c_str());
                     if (!f.Create(filename, true) || !f.IsOpened())
                     {
-                        logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-                        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+                        DisplayError(wxString::Format("Unable to create file %s. Error %d", filename, f.GetLastError()).ToStdString());
                         return;
                     }
                     wxString v = xlights_version_string;
@@ -708,8 +707,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             logger_base.info("Saving to papagayo file %s.", (const char *)filename.c_str());
             if (!f.Create(filename, true) || !f.IsOpened())
             {
-                logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-                wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+                DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
                 return;
             }
             wxString td = wxString(te->GetPapagayoExport(mSequenceElements->GetFrequency()).c_str());

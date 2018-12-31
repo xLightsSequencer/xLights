@@ -16,6 +16,9 @@
 #include "../support/VectorMath.h"
 #include "../xLightsMain.h"
 #include "../xLightsVersion.h"
+#include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocation(manager) {
     parm1 = parm2 = parm3 = 0;
@@ -24,12 +27,13 @@ PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocat
     total_length = 0.0f;
     height = 1.0f;
     hasIndivSeg = false;
+    numDropPoints = 0;
 }
 
 PolyLineModel::PolyLineModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
     segs_collapsed = true;
-    SetFromXml(node, zeroBased);
+    PolyLineModel::SetFromXml(node, zeroBased);
 }
 
 PolyLineModel::~PolyLineModel()
@@ -169,16 +173,16 @@ void PolyLineModel::InitModel() {
 
     // parse drop sizes
     std::vector<unsigned int> dropSizes;
-    unsigned int dropset_size = 0;
+    //unsigned int dropset_size = 0;
     unsigned int maxH = 0;
     for (int x = 0; x < pat.size(); x++) {
         dropSizes.push_back(wxAtoi(pat[x]));
         maxH = std::max(maxH, dropSizes[x]);
-        dropset_size += dropSizes[x];
+        //dropset_size += dropSizes[x];
     }
     if (dropSizes.size() == 0) {
         dropSizes.push_back(5);
-        dropset_size = 5;
+        //dropset_size = 5;
     }
 
     // establish light and segment counts
@@ -857,6 +861,8 @@ void PolyLineModel::OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wx
 
 void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())
@@ -1028,19 +1034,13 @@ void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xligh
         }
         else
         {
-            wxMessageBox("Failure loading PolyLine model file.");
+            DisplayError("Failure loading PolyLine model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading PolyLine model file.");
+        DisplayError("Failure loading PolyLine model file.");
     }
-}
-
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
 }
 
 void PolyLineModel::ExportXlightsModel()
@@ -1051,7 +1051,7 @@ void PolyLineModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");

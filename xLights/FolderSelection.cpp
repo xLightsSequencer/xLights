@@ -13,6 +13,7 @@
 #include "osxMacUtils.h"
 
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 //(*IdInit(FolderSelection)
 const long FolderSelection::ID_CHECKBOX_MEDIA_USE_SHOW = wxNewId();
@@ -201,13 +202,13 @@ void FolderSelection::OnButtonFolderSelectOkClick(wxCommandEvent& event)
 
     if (!wxDir::Exists(MediaDirectory)) {
         logger_base.error("Media Directory is non-existent '%s'", (const char *)MediaDirectory.c_str());
-        wxMessageBox("Media Directory is non-existent!", "Error", wxICON_ERROR | wxOK);
+        DisplayError("Media Directory is non-existent!");
         return;
     }
     if (wxFileName(FseqDirectory) != wxFileName(ShowDirectory)) {
         if (!wxDir::Exists(FseqDirectory)) {
             logger_base.error("FSEQ Directory is non-existent '%s'", (const char *)FseqDirectory.c_str());
-            wxMessageBox("FSEQ Directory is non-existent!", "Error", wxICON_ERROR | wxOK);
+            DisplayError("FSEQ Directory is non-existent!");
             return;
         }
     }
@@ -215,7 +216,7 @@ void FolderSelection::OnButtonFolderSelectOkClick(wxCommandEvent& event)
     if (wxFileName(BackupDirectory) != wxFileName(ShowDirectory)) {
         if (!wxDir::Exists(BackupDirectory)) {
             logger_base.error("Backup Directory is non-existent '%s'", (const char *)BackupDirectory.c_str());
-            wxMessageBox("Backup Directory is non-existent!", "Error", wxICON_ERROR | wxOK);
+            DisplayError("Backup Directory is non-existent!");
             return;
         }
     }
@@ -223,7 +224,7 @@ void FolderSelection::OnButtonFolderSelectOkClick(wxCommandEvent& event)
     if (CheckBoxEnableAltBackup->IsChecked()) {
         if (!wxDir::Exists(AltBackupDirectory)) {
             logger_base.error("Alt Backup Directory is non-existent '%s'", (const char *)AltBackupDirectory.c_str());
-            wxMessageBox("Alt Backup Directory is non-existent!", "Error", wxICON_ERROR | wxOK);
+            DisplayError("Alt Backup Directory is non-existent!");
             return;
         }
     } else {

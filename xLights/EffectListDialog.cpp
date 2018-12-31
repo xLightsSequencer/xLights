@@ -6,6 +6,7 @@
 //(*InternalHeaders(EffectListDialog)
 #include <wx/string.h>
 #include <wx/intl.h>
+#include "UtilFunctions.h"
 //*)
 
 //(*IdInit(EffectListDialog)
@@ -67,7 +68,7 @@ void EffectListDialog::OnButton_RenameClick(wxCommandEvent& event)
     int sel=ListBox1->GetSelection();
     if (sel == wxNOT_FOUND)
     {
-        wxMessageBox(_("Select an item before clicking the Rename button"));
+        DisplayError(_("Select an item before clicking the Rename button"), this);
         return;
     }
     wxTextEntryDialog dialog(this,_("Enter new name"),_("Rename Preset"),ListBox1->GetString(sel));
@@ -86,7 +87,7 @@ void EffectListDialog::OnButton_RenameClick(wxCommandEvent& event)
             if (NewName.IsEmpty())
             {
                 ok=false;
-                wxMessageBox(_("A preset name cannot be empty"), _("ERROR"));
+                DisplayError(_("A preset name cannot be empty"), this);
             }
             else
             {
@@ -94,7 +95,7 @@ void EffectListDialog::OnButton_RenameClick(wxCommandEvent& event)
                 if (FindIdx != wxNOT_FOUND && FindIdx != sel)
                 {
                     ok=false;
-                    wxMessageBox(_("That name is already in use"), _("ERROR"));
+                    DisplayError(_("That name is already in use"), this);
                 }
             }
         }
@@ -113,7 +114,7 @@ void EffectListDialog::OnButton_DeleteClick(wxCommandEvent& event)
     int sel=ListBox1->GetSelection();
     if (sel == wxNOT_FOUND)
     {
-        wxMessageBox(_("Select an item before clicking the Delete button"));
+        DisplayError(_("Select an item before clicking the Delete button"), this);
         return;
     }
     wxXmlNode* e=(wxXmlNode*)ListBox1->GetClientData(sel);

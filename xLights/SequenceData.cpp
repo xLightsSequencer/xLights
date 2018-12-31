@@ -66,7 +66,7 @@ void SequenceData::init(unsigned int numChannels, unsigned int numFrames, unsign
             logger_base.crit("Error allocating memory for frame data. Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
             logger_base.crit("***** THIS IS GOING TO CRASH *****");
             wxString settings = wxString::Format("Frames=%d, Channels=%d, Memory=%ld.", _numFrames, _numChannels, sz);
-            wxMessageBox("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings, "xLights is about to crash");
+            DisplayError("Bad news ... xLights is about to crash because it could not get memory it needed. If you are running 32 bit xLights then moving to 64 bit will probably fix this. Alternatively look to reduce memory usage by shortening sequences and/or reducing channels.\n" + settings);
         }
         else
         {

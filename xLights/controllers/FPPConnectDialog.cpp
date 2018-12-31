@@ -583,8 +583,7 @@ bool FPPConnectDialog::FTPUpload()
 
     if (!fpp.IsConnected())
     {
-        logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)ComboBox_IPAddress->GetValue().c_str());
-        wxMessageBox("Could not connect to FPP using address '" + ComboBox_IPAddress->GetValue() + "'.");
+        DisplayError("Could not connect to FPP using address '" + ComboBox_IPAddress->GetValue() + "'.");
         return true;
     }
 
@@ -636,7 +635,7 @@ bool FPPConnectDialog::USBUpload()
 
     if (!wxDir::Exists(tgtdir))
     {
-        wxMessageBox("USB Drive " + tgtdir + " does not have the expected media folder.", "Error", 4 | wxCENTRE, this);
+        DisplayError("USB Drive " + tgtdir + " does not have the expected media folder.", this);
         return true;
     }
     wxProgressDialog progress("File Copy", "", 1000, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);

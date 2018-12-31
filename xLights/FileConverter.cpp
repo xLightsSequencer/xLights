@@ -428,8 +428,7 @@ void FileConverter::ReadLorFile(ConvertParameters& params)
 
     if (totalChannels < channelCount)
     {
-        wxMessageBox(wxString::Format("LOR file has %d channels but xLights has only %d channels defined.", channelCount, totalChannels), "WARNING");
-        logger_base.warn("ReadLorFile - Channels in LOR file %d. Channels defined in xLights %d. Not all data will import.", channelCount, totalChannels);
+        DisplayWarning(wxString::Format("LOR file has %d channels but xLights has only %d channels defined.", channelCount, totalChannels).ToStdString());
     }
 
     cnt = 0;

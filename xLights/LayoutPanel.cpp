@@ -3531,12 +3531,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
 }
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 void LayoutPanel::PreviewModelAlignWithGround()
 {
     int selectedindex = GetSelectedModelIndex();
@@ -4356,7 +4350,7 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
 
         if (copyData.IsOk() && wxTheClipboard->Open()) {
             if (!wxTheClipboard->SetData(new wxTextDataObject(copyData.Serialise()))) {
-                wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+                DisplayError("Unable to copy data to clipboard.", this);
             }
             wxTheClipboard->Close();
         }
@@ -5082,8 +5076,7 @@ void LayoutPanel::PreviewPrintImage()
 	{
 		if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
 		{
-			logger_base.error("Problem printing. %d", wxPrinter::GetLastError());
-			wxMessageBox("Problem printing.");
+			DisplayError(wxString::Format("Problem printing. %d", wxPrinter::GetLastError()).ToStdString());
 		}
     }
 	else
@@ -5091,10 +5084,7 @@ void LayoutPanel::PreviewPrintImage()
 		printDialogData = printer.GetPrintDialogData();
         if (!printout.grabbedImage())
         {
-            logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
-
-            wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
-            msgDlg.ShowModal();
+            DisplayError("Problem grabbing ModelPreview image for printing", this);
         }
     }
 }
@@ -5660,12 +5650,8 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         event.StopPropagation();
         return true;
     }
-    else
-    {
-        return xlights->HandleAllKeyBinding(event);
-    }
 
-    return false;
+    return xlights->HandleAllKeyBinding(event);
 }
 
 void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)

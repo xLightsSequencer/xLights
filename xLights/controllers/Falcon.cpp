@@ -12,6 +12,7 @@
 #include "ControllerUploadData.h"
 
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 class FalconControllerRules : public ControllerRules
 {
@@ -352,8 +353,7 @@ std::string Falcon::GetURL(const std::string& url, bool logresult)
     }
     else
     {
-        logger_base.error("Unable to connect to falcon '%s' : %d.", (const char *)url.c_str(), _http.GetError());
-        wxMessageBox(_T("Unable to connect!"));
+        DisplayError(wxString::Format("Unable to connect to falcon '%s' : %d.", url, _http.GetError()).ToStdString());
         res = "";
     }
 
@@ -383,8 +383,7 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
     }
     else
     {
-        logger_base.error("Unable to connect to falcon '%s' : %d.", (const char *)url.c_str(), _http.GetError());
-        wxMessageBox(_T("Unable to connect!"));
+        DisplayError(wxString::Format("Unable to connect to falcon '%s' : %d.", url, _http.GetError()).ToStdString());
     }
     _http.SetPostText("", "");
 
@@ -403,8 +402,7 @@ bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& sel
 
     if (outputs.size() > 96)
     {
-        logger_base.error("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size());
-        wxMessageBox("Attempt to upload more than 96 universes to falcon controller. This is not supported.");
+        DisplayError(wxString::Format("Attempt to upload %d universes to falcon controller but only 96 are supported.", outputs.size()).ToStdString());
         return false;
     }
 
@@ -501,9 +499,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     std::string strings = GetURL("/strings.xml");
     if (strings == "")
     {
+        DisplayError("Error occured trying to upload to Falcon. strings.xml could not be retrieved.", parent);
         progress.Update(100, "Aborting.");
-        logger_base.error("Falcon Outputs Upload: Falcon would not return strings.xml.");
-        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
         return false;
     }
 
@@ -514,9 +511,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
     if (!stringsDoc.IsOk())
     {
+        DisplayError("Falcon Outputs Upload: Could not parse Falcon strings.xml.", parent);
         progress.Update(100, "Aborting.");
-        logger_base.error("Falcon Outputs Upload: Could not parse Falcon strings.xml.");
-        wxMessageBox("Error occured trying to upload to Falcon.", "Error", wxOK, parent);
         return false;
     }
 
@@ -740,10 +736,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
         {
             if (maxMain > maxPixels / 2 || maxDaughter1 > maxPixels / 2)
             {
-                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
-                    (const char *)_ip.c_str(), maxMain, maxDaughter1);
-                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
-                    _ip, maxMain, maxDaughter1));
+                DisplayError(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports 340/340 pixel split with expansion board. (%d/%d)",
+                    _ip, maxMain, maxDaughter1).ToStdString());
                 success = false;
             }
 
@@ -752,10 +746,8 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
             if (maxDaughter2 > 0)
             {
-                logger_base.warn("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
-                    (const char *)_ip.c_str());
-                wxMessageBox(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
-                    _ip));
+                DisplayError(wxString::Format("Falcon Outputs Upload: %s V2 Controller only supports one expansion board.",
+                    _ip).ToStdString());
                 success = false;
                 maxDaughter2 = 0;
             }
@@ -861,7 +853,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
         if (check != "")
         {
-            wxMessageBox("Upload warnings:\n" + check);
+            DisplayWarning("Upload warnings:\n" + check);
             check = ""; // to suppress double display
         }
 
@@ -872,7 +864,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     {
         if (GetMaxStringOutputs() > 0)
         {
-            wxMessageBox("Not uploaded due to errors.\n" + check);
+            DisplayError("Not uploaded due to errors.\n" + check);
             check = "";
         }
     }
@@ -890,7 +882,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
 
         if (check != "")
         {
-            wxMessageBox("Upload warnings:\n" + check);
+            DisplayWarning("Upload warnings:\n" + check);
         }
 
         for (int sp = 1; sp <= cud.GetMaxSerialPort(); sp++)
@@ -919,7 +911,7 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     {
         if (GetMaxSerialOutputs() > 0 && check != "")
         {
-            wxMessageBox("Not uploaded due to errors.\n" + check);
+            DisplayError("Not uploaded due to errors.\n" + check);
         }
     }
 
@@ -1338,8 +1330,7 @@ void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int pr
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output > GetMaxSerialOutputs())
     {
-        logger_base.warn("Falcon Outputs Upload: Falcon %s only supports %d serial outputs. Attempt to upload to serail output %d.", (const char *)_modelString.c_str(), GetMaxStringOutputs(), output);
-        wxMessageBox("Falcon " + wxString(_modelString.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", "Invalid Serial Output", wxOK, parent);
+        DisplayError("Falcon " + wxString(_modelString.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", parent);
         return;
     }
 
@@ -1356,7 +1347,6 @@ void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int pr
     }
     else
     {
-        logger_base.warn("Error uploading serial output to falcon. %d does not map to a universe.", portstart);
-        wxMessageBox("Error uploading serial output to falcon. "+ wxString::Format("%i", portstart) +" does not map to a universe.");
+        DisplayError("Error uploading serial output to falcon. "+ wxString::Format("%i", portstart) +" does not map to a universe.");
     }
 }

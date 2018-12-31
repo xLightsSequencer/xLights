@@ -193,12 +193,12 @@ ConvertDialog::~ConvertDialog()
 
 void ConvertDialog::PlayerError(const wxString& msg)
 {
-    wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
+    DisplayError(msg);
 }
 
 void ConvertDialog::ConversionError(const wxString& msg)
 {
-    wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
+    DisplayError(msg);
 }
 
 void ConvertDialog::OnButtonChooseFileClick(wxCommandEvent& event)
@@ -234,11 +234,11 @@ void ConvertDialog::OnButtonStartConversionClick(wxCommandEvent& event)
     // check inputs
     if (FileNames.size() == 0)
     {
-        wxMessageBox(wxString("Please select one or more sequence files"), wxString("Error"));
+        DisplayError("Please select one or more sequence files");
     }
     else if (OutputFormat.IsEmpty())
     {
-        wxMessageBox(wxString("Please select an output format"), wxString("Error"));
+        DisplayError("Please select an output format");
     }
     else
     {

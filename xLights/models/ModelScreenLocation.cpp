@@ -4,13 +4,16 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
+#include <glm/glm.hpp>
+
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
 #include "Shapes.h"
 #include "../ViewpointMgr.h"
 #include "../support/VectorMath.h"
+#include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
-#include <glm/glm.hpp>
 
 #define SNAP_RANGE                  5
 #define RECT_HANDLE_WIDTH           6
@@ -805,6 +808,8 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
 
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     if (preview != nullptr) {
@@ -845,7 +850,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
         }
     }
     else {
-        wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
+        DisplayError("InitializeLocation: called with no preview....investigate!");
     }
     return wxCURSOR_SIZING;
 }
@@ -906,7 +911,6 @@ void BoxedScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> 
             aabb_min.z -= 5;
         }
     }
-
 }
 
 void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
@@ -2267,6 +2271,8 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
 
 wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (preview != nullptr) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         active_axis = X_AXIS;
@@ -2282,7 +2288,7 @@ wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, c
         }
     }
     else {
-        wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
+        DisplayError("InitializeLocation: called with no preview....investigate!");
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
@@ -2464,6 +2470,7 @@ glm::vec2 TwoPointScreenLocation::GetScreenOffset(ModelPreview* preview)
 float TwoPointScreenLocation::GetHcenterPos() const {
     return worldPos_x + (x2 / 2.0f);
 }
+
 float TwoPointScreenLocation::GetVcenterPos() const {
     return worldPos_y + (y2 / 2.0f);
 }
@@ -2471,6 +2478,7 @@ float TwoPointScreenLocation::GetVcenterPos() const {
 void TwoPointScreenLocation::SetHcenterPos(float f) {
     worldPos_x = f - (x2 / 2.0f);
 }
+
 void TwoPointScreenLocation::SetVcenterPos(float f) {
     worldPos_y = f - (y2 / 2.0f);
 }
@@ -2615,6 +2623,8 @@ ThreePointScreenLocation::~ThreePointScreenLocation() {
 
 wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (preview != nullptr) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         if (mSelectableHandles > 3 && supportsAngle && preview->Is3D()) {
@@ -2642,7 +2652,7 @@ wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y,
         }
     }
     else {
-        wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
+        DisplayError("InitializeLocation: called with no preview....investigate!");
     }
     x2 = y2 = z2 = 0.0f;
     handle = END_HANDLE;
@@ -4913,6 +4923,8 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
 
 wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
 
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (preview != nullptr) {
         active_axis = X_AXIS;
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
@@ -4927,7 +4939,7 @@ wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, 
         }
     }
     else {
-        wxMessageBox("InitializeLocation: called with no preview....investigate!", "Error", wxICON_ERROR | wxOK);
+        DisplayError("InitializeLocation: called with no preview....investigate!");
     }
 
     mPos[0].x = 0.0f;

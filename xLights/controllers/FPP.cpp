@@ -75,8 +75,7 @@ FPP::FPP(OutputManager* outputManager, const std::string& defaultVersion, const 
         logger_base.debug("FPP: using version %s.", _version.c_str());
         if (!(_version[0] >= '2')) {
             //either old version or could not determine version
-            wxMessageBox("FPP 1.x is no longer supported by the FPP developers.  Some things may not work.  We strongly recommend upgrading to FPP 2.x",
-                         "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
+            DisplayWarning("Unsupported FPP version: FPP 1.x is no longer supported by the FPP developers.  Some things may not work.  We strongly recommend upgrading to FPP 2.x");
         }
         _http.SetTimeout(oldTimeout);
         if (!_ftp.Connect(ip, user, password)) {
@@ -135,8 +134,7 @@ std::string FPP::GetURL(const std::string& url, bool logresult)
             logger_base.debug("Response from fpp '%s' : %d.", (const char *)res.c_str(), _http.GetError());
         }
     } else {
-        logger_base.error("Unable to connect to fpp '%s'.", (const char *)url.c_str());
-        wxMessageBox(_T("Unable to connect!"));
+        DisplayError(wxString::Format("Unable to connect to fpp '%s'.", url).ToStdString());
     }
 
     wxDELETE(httpStream);
@@ -725,9 +723,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
         }
         sequences[fn.GetName().ToStdString() + ".fseq"] = "";
     } else {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Unable to upload fseq file %s as it does not exist.", (const char *)fseq.c_str());
-        wxMessageBox("Unable to upload fseq file " + fseq + " as it does not exist.", "Error", 4, parent);
+        DisplayError("Unable to upload fseq file " + fseq + " as it does not exist.", parent);
     }
 
     if (!cancelled && media != "" && uploadMedia) {
@@ -742,9 +738,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
             }
             sequences[fn.GetName().ToStdString() + ".fseq"] = fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString();
         } else {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Unable to upload media file %s as it does not exist.", (const char *)(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString()).c_str());
-            wxMessageBox("Unable to upload media file "+ fnmedia.GetName() + "." + fnmedia.GetExt() +" as it does not exist.", "Error", 4, parent);
+            DisplayError("Unable to upload media file "+ fnmedia.GetName() + "." + fnmedia.GetExt() +" as it does not exist.", parent);
         }
     }
 

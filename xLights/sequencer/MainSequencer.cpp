@@ -1218,7 +1218,7 @@ bool MainSequencer::CopySelectedEffects() {
     }
     if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
-            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+            DisplayError("Unable to copy data to clipboard.", this);
         }
         wxTheClipboard->Close();
         return true;
@@ -1378,7 +1378,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             }
             else
             {
-                wxMessageBox("Timing exist already in the selected region", "Timing placement error");
+                DisplayError("Timing placement error: Timing exists already in the selected region", this);
             }
         }
         else
@@ -1496,7 +1496,7 @@ void MainSequencer::SplitTimingMark()
             }
             else
             {
-                wxMessageBox("Timing cannot be split across timing marks.", "Timing placement error");
+                DisplayError("Timing placement error: Timing cannot be split across timing marks.");
             }
         }
     }

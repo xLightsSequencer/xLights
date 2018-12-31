@@ -185,7 +185,7 @@ void EffectTreeDialog::ApplyEffect(bool dblClick)
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
     if (!itemID.IsOk())
     {
-         wxMessageBox(_("No effect selected."), _("ERROR"));
+         DisplayError(_("No effect selected."), this);
     }
     else if (TreeCtrl1->HasChildren(itemID))
     {
@@ -195,16 +195,15 @@ void EffectTreeDialog::ApplyEffect(bool dblClick)
         }
         else
         {
-            wxMessageBox(_("An effect group can not be applied."), _("ERROR"));
+            DisplayError(_("An effect group can not be applied."), this);
         }
     }
     else
     {
         MyTreeItemData *item = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
-        wxXmlNode *ele;
         if ( item != nullptr )
         {
-            ele = item->GetElement();
+            wxXmlNode *ele = item->GetElement();
             wxString settings = ele->GetAttribute("settings");
             if (!settings.IsEmpty())
             {
@@ -244,7 +243,7 @@ bool EffectTreeDialog::PromptForName(wxWindow* parent, wxString *name, wxString 
             if ((name->IsEmpty() && !errorMsg.IsEmpty()) || name->Contains('&') || name->Contains('<') || name->Contains('>')) // !errorMsg => empty is allowed -DJ
             {
                 ok=false;
-                wxMessageBox(errorMsg, _("ERROR"));
+                DisplayError(errorMsg);
             }
         }
     }
@@ -255,11 +254,11 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
 {
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
     wxTreeItemId parentID;
-    MyTreeItemData *parentData, *itemData;
+    MyTreeItemData *parentData;
 
     if (!itemID.IsOk())
     {
-        wxMessageBox(_("A preset cannot be added at the currently selected location"), _("ERROR"));
+        DisplayError(_("A preset cannot be added at the currently selected location"), this);
         ValidateWindow();
         return;
     }
@@ -268,7 +267,7 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     wxString name;
     if (!PromptForName(this, &name, prompt, errMsg)) return;
 
-    itemData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
+    MyTreeItemData *itemData = (MyTreeItemData *)TreeCtrl1->GetItemData(itemID);
     if (itemData->IsGroup())
     {
         parentID = itemID;
@@ -423,7 +422,7 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
     if (!itemID.IsOk())
     {
-        wxMessageBox(_("You Cannot rename this item"), _("ERROR"));
+        DisplayError(_("You Cannot rename this item"), this);
         ValidateWindow();
         return;
     }
@@ -456,7 +455,7 @@ void EffectTreeDialog::OnbtDeleteClick(wxCommandEvent& event)
 
     if( !itemID.IsOk() || itemID == treeRootID )
     {
-        wxMessageBox(_("You cannot delete this item"), _("ERROR"));
+        DisplayError(_("You cannot delete this item"), this);
         ValidateWindow();
         return;
     }
@@ -755,7 +754,7 @@ void EffectTreeDialog::OnbtExportClick(wxCommandEvent& event)
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("ERROR"));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString(), this);
         ValidateWindow();
         return;
     }
@@ -939,7 +938,7 @@ void EffectTreeDialog::SearchForText()
     //none found anywhere
     if (!item.IsOk())
     {
-        wxMessageBox(_("Search Found No Results."), _("None Found"));
+        DisplayInfo(_("Search Found No Results."), this);
         return;
     }
 

@@ -6,6 +6,8 @@
 #include <wx/font.h>
 //*)
 
+#include "UtilFunctions.h"
+
 //(*IdInit(PaletteMgmtDialog)
 const long PaletteMgmtDialog::ID_STATICTEXT14 = wxNewId();
 const long PaletteMgmtDialog::ID_STATICTEXT1 = wxNewId();
@@ -127,7 +129,7 @@ int PaletteMgmtDialog::GetSelectedIndex()
     int NameIdx=ListBox1->GetSelection();
     if (NameIdx == wxNOT_FOUND)
     {
-        wxMessageBox(_("You must select a saved palette first!"));
+        DisplayError(_("You must select a saved palette first!"), this);
     }
     return NameIdx;
 }

@@ -25,6 +25,7 @@
 #include "CustomTimingDialog.h"
 #include "VendorMusicDialog.h"
 #include "xLightsMain.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(SeqSettingsDialog)
 const long SeqSettingsDialog::ID_STATICTEXT_File = wxNewId();
@@ -891,7 +892,7 @@ void SeqSettingsDialog::OnButton_Xml_New_TimingClick(wxCommandEvent& event)
         }
         else
         {
-            wxMessageBox(string_format("Fixed Timing section %s already exists!", selected_timing), "Error", wxICON_ERROR | wxOK);
+            DisplayError(string_format("Fixed Timing section %s already exists!", selected_timing), this);
         }
     }
     dialog.Destroy();
@@ -913,7 +914,7 @@ void SeqSettingsDialog::OnButton_Xml_Rename_TimingClick(wxCommandEvent& event)
     std::string new_name = Grid_Timing->GetCellValue(selection, 0).ToStdString();
     if( xml_file->TimingAlreadyExists(new_name, xLightsParent) )
     {
-        wxMessageBox(string_format("Timing section %s already exists!", new_name), "Error", wxICON_ERROR | wxOK);
+        DisplayError(string_format("Timing section %s already exists!", new_name), this);
         new_name += "_1";
         Grid_Timing->SetCellValue(selection, 0, new_name);
     }
@@ -1567,6 +1568,6 @@ void SeqSettingsDialog::OnButton_DownloadClick(wxCommandEvent& event)
     }
     else
     {
-        wxMessageBox("Nothing available for this song.");
+        DisplayError("Nothing available for this song.", this);
     }
 }

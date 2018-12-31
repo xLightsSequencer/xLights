@@ -685,8 +685,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
             musicLength = mainSequencer->PanelWaveForm->OpenfileMedia(xml_file.GetMedia(), error);
             if (musicLength <= 0)
             {
-                logger_base.warn("Media File Missing or Corrupted %s. Details: %s", (const char*) mediaFilename.c_str(), (const char *)error.c_str());
-                wxMessageBox(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error));
+                DisplayWarning(wxString::Format("Media File Missing or Corrupted %s.\n\nDetails: %s", mediaFilename, error).ToStdString());
             }
             else
             {
@@ -695,8 +694,7 @@ void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
         }
         else if (xml_file.GetSequenceType() == "Media")
         {
-            logger_base.warn("Media File must be specified");
-            wxMessageBox("Media File must be specified");
+            DisplayWarning("Media File must be specified");
         }
 
         if (mMediaLengthMS == 0) {
@@ -2370,8 +2368,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
         }
         else
 		{
-			wxMessageBox("Unknown type: " + name, "Internal Error");
-            logger_base.warn("Unknown type: " + name);
+			DisplayError("Unknown type: " + name);
         }
 	}
 	else
@@ -2382,8 +2379,7 @@ void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 			CtrlWin = wxWindow::FindWindowByName(nn, ContextWin);
 		}
 		if (CtrlWin == nullptr) {
-			wxMessageBox("Unable to find: " + name, "Internal Error");
-            logger_base.warn("Unable to find : " + name);
+            DisplayError("Unable to find : " + name);
         }
 	}
 }

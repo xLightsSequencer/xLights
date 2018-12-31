@@ -1190,12 +1190,12 @@ PixelTestDialog::PixelTestDialog(wxWindow* parent, OutputManager* outputManager,
 
     if (_outputManager->IsOutputOpenInAnotherProcess())
     {
-        wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
     }
 
     if (!_outputManager->StartOutput())
     {
-        wxMessageBox("At least one output could not be started. See log file for details.", "Warning");
+        DisplayWarning("At least one output could not be started. See log file for details.", this);
     }
     Timer1.Start(50, wxTIMER_CONTINUOUS);
 }
@@ -1770,7 +1770,7 @@ void PixelTestDialog::OnButton_LoadClick(wxCommandEvent& event)
 
 	if (presets.size() == 0)
 	{
-		wxMessageBox(_("No test configurations found"), _("Error"));
+		DisplayError("No test configurations found", this);
 		return;
 	}
 
@@ -1816,12 +1816,12 @@ void PixelTestDialog::OnButton_SaveClick(wxCommandEvent& event)
 
     if (name.IsEmpty())
     {
-        wxMessageBox(_("Name cannot be empty"), _("Error"));
+        DisplayError("Name cannot be empty", this);
         return;
     }
     else if (name.Len() > 240)
     {
-        wxMessageBox(_("Name is too long"), _("Error"));
+        DisplayError("Name is too long", this);
         return;
     }
     else if (_outputManager->GetTestPreset(name.ToStdString()) != nullptr)
@@ -2499,12 +2499,12 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 	{
         if (_outputManager->IsOutputOpenInAnotherProcess())
         {
-            wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+            DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
         }
 
         if (!_outputManager->StartOutput())
         {
-            wxMessageBox("At least one output could not be started. See log file for details.", "Warning");
+            DisplayWarning("At least one output could not be started. See log file for details.", this);
         }
         Timer1.Start(50, wxTIMER_CONTINUOUS);
     }

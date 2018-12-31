@@ -13,12 +13,6 @@
 
 #include <log4cpp/Category.hh>
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
     _strings = 1;
@@ -718,12 +712,12 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
         }
         else
         {
-            wxMessageBox("Failure loading custom model file.");
+            DisplayError("Failure loading custom model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading custom model file.");
+        DisplayError("Failure loading custom model file.");
     }
 }
 
@@ -919,8 +913,7 @@ void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, fl
         float divisor = 0.1f;
         if (HasDuplicates(1.0, chs))
         {
-            logger_base.warn("This model is not going to import correctly as some pixels overlap.");
-            wxMessageBox("WARNING: This model is not going to import correctly as one or more pixels overlap.");
+            DisplayWarning("This model is not going to import correctly as one or more pixels overlap.");
 
             RemoveDuplicatePixels(chs);
         }
@@ -990,7 +983,7 @@ void CustomModel::ImportLORModel(std::string filename, xLightsFrame* xlights, fl
     }
     else
     {
-        wxMessageBox("Failure loading LOR model file.");
+        DisplayError("Failure loading LOR model file.");
     }
 }
 
@@ -1002,7 +995,7 @@ void CustomModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");

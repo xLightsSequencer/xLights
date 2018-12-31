@@ -10,6 +10,7 @@
 #include "CachedFileDownloader.h"
 #include <wx/log.h>
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 CachedFileDownloader& MatrixFaceDownloadDialog::GetCache() {
     return CachedFileDownloader::GetDefaultCache();
@@ -483,7 +484,7 @@ bool MatrixFaceDownloadDialog::LoadTree()
 
     if (_faces.size() == 0)
     {
-        wxMessageBox("Unable to retrieve any faces", "Error");
+        DisplayError("Unable to retrieve any faces", this);
         return false;
     }
 

@@ -41,12 +41,6 @@ static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
 
 static const std::string PER_PREVIEW_NO_OFFSET("Per Preview No Offset");
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE, AS_PIXEL};
 
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
@@ -2997,7 +2991,7 @@ void Model::ExportAsCustomXModel() const {
 
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     wxString cm = "";
 
@@ -3850,7 +3844,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
                     if (last_model == "")
                     {
-                        wxMessageBox("Failed to download model file.");
+                        DisplayError("Failed to download model file.");
 
                         cancelled = true;
                         return model;

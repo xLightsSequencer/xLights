@@ -17,6 +17,7 @@
 #include "NodeSelectGrid.h"
 #include "models/Model.h"
 #include "models/CustomModel.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(NodeSelectGrid)
 const long NodeSelectGrid::ID_BUTTON_SELECT = wxNewId();
@@ -841,7 +842,7 @@ void NodeSelectGrid::ImportModel(const std::string &filename)
     }
     else
     {
-        wxMessageBox("Failure loading xModel file.");
+        DisplayError("Failure loading xModel file.");
     }
 }
 
@@ -850,7 +851,7 @@ void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
 {
     if (xmlData->GetName() != "custommodel")
     {
-        wxMessageBox("xModel file not a Custom Model.");
+        DisplayError("xModel file not a Custom Model.");
         return;
     }
 
@@ -859,7 +860,7 @@ void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
 
     if (GridNodes->GetNumberRows() < rows.size())
     {
-        wxMessageBox("xModel file dimensions are too big.");
+        DisplayError("xModel file dimensions are too big.");
         return;
     }
 
@@ -874,7 +875,7 @@ void NodeSelectGrid::ImportModelXML(wxXmlNode* xmlData)
         const wxArrayString cols = wxSplit(rv, ',');
         if (cols.size() > GridNodes->GetNumberCols())
         {
-            wxMessageBox("xModel file dimensions are too big.");
+            DisplayError("xModel file dimensions are too big.");
             return;
         }
         const int width = cols.size();
@@ -990,13 +991,13 @@ void NodeSelectGrid::CutOrCopyToClipboard(bool isCut)
     {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data)))
         {
-            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+            DisplayError(_("Unable to copy data to clipboard."));
         }
         wxTheClipboard->Close();
     }
     else
     {
-        wxMessageBox(_("Error opening clipboard."), _("Error"));
+        DisplayError(_("Error opening clipboard."));
     }
 }
 
@@ -1028,18 +1029,18 @@ void NodeSelectGrid::Paste()
                 }
                 else
                 {
-                    wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
+                    DisplayError(_("Unable to copy data from clipboard."));
                 }
             }
             else
             {
-                wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
+                DisplayError(_("Non-Text data in clipboard."));
             }
             wxTheClipboard->Close();
         }
         else
         {
-            wxMessageBox(_("Error opening clipboard."), _("Error"));
+            DisplayError(_("Error opening clipboard."));
             return;
         }
     }

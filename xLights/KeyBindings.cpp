@@ -4,6 +4,7 @@
 #include "xLightsVersion.h"
 
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 bool KeyBinding::IsShiftedKey(wxKeyCode ch)
 {
@@ -601,7 +602,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
     }
     if (invalid != "")
     {
-        wxMessageBox("Keybindings contains invalid bindings:\n\n" + invalid, "Invalid Key Bindings");
+        DisplayError("Keybindings contains invalid bindings:\n\n" + invalid);
     }
 }
 

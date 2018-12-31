@@ -148,9 +148,9 @@ void xLightsFrame::NewSequence()
         m /= 1024; // ->kb
         m /= 1024; // ->mb
 
-        wxMessageBox(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                      " a very large amount of memory used (%lu MB).", max, m), "Warning",
-                     wxICON_WARNING | wxOK | wxCENTRE, this);
+        DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
+                                      " a very large amount of memory used (%lu MB).", max, m).ToStdString(),
+                     this);
     }
     if ((max > SeqData.NumChannels()) ||
         (CurrentSeqXmlFile->GetSequenceDurationMS() / ms) > (long)SeqData.NumFrames())
@@ -478,9 +478,9 @@ void xLightsFrame::OpenSequence(const wxString passed_filename, ConvertLogDialog
             m /= 1024; // ->kb
             m /= 1024; // ->mb
 
-            wxMessageBox(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
-                                          " a very large amount of memory used (%lu MB).", numChan, m), "Warning",
-                         wxICON_WARNING | wxOK | wxCENTRE, this);
+            DisplayWarning(wxString::Format("The setup requires a VERY large number of channels (%u) which will result in"
+                                          " a very large amount of memory used (%lu MB).", numChan, m), 
+                         this);
         }
 
         if ((numChan > SeqData.NumChannels()) ||
@@ -2171,7 +2171,7 @@ void xLightsFrame::ImportSuperStar(const wxFileName &filename)
     wxString model_name = dlg.ChoiceSuperStarImportModel->GetStringSelection();
     if( model_name == "" )
     {
-        wxMessageBox("Please select the target model!");
+        DisplayError("Please select the target model!");
         return;
     }
 
@@ -3932,12 +3932,12 @@ bool xLightsFrame::ImportLPE(wxXmlDocument &input_xml, const wxFileName &filenam
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    wxMessageBox(
+    DisplayWarning(
 "WARNING: As at this release PixelEditor import is experimental and its improvement relies on your feedback.\nIf it doesnt do a good job let us know by telling us:\n\
         - which effect\n\
         - which setting you had to fine tune\n\
         - what it was when it was converted\n\
-        - what you changed it to.\n");
+        - what you changed it to.\n", this);
 
     xLightsImportChannelMapDialog dlg(this, filename, true, false, false, false, false);
     dlg.mSequenceElements = &mSequenceElements;
@@ -4318,7 +4318,7 @@ bool xLightsFrame::ImportSuperStar(Element *model, wxXmlDocument &input_xml, int
         {
             if( !layout_defined )
             {
-                wxMessageBox("The layouts section was not found in the SuperStar file!");
+                DisplayError("The layouts section was not found in the SuperStar file!", this);
                 return false;
             }
             for(wxXmlNode* element=e->GetChildren(); element!=nullptr; element=element->GetNext() )
@@ -5285,14 +5285,14 @@ static void ImportServoData(int min_limit, int max_limit, EffectLayer* layer, st
         float end_pos = (events[i].end_pos - min_limit) / (float)(max_limit - min_limit) * 100.0;
         if (start_pos < 0.0) {
             if (warn) {
-                wxMessageBox(wxString::Format("%s: Servo Limit Exceeded", name));
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded", name).ToStdString());
                 warn = false;
             }
             start_pos = 0.0;
         }
         if (end_pos > 100.0) {
             if (warn) {
-                wxMessageBox(wxString::Format("%s: Servo Limit Exceeded", name));
+                DisplayWarning(wxString::Format("%s: Servo Limit Exceeded", name).ToStdString());
                 warn = false;
             }
             end_pos = 100.0;

@@ -781,8 +781,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 }
                 if (ElementExists(name))
                 {
-                    logger_base.warn("Duplicate " + type + ": '" + name + "'. Second instance ignored.");
-                    wxMessageBox("Duplicate " + type + ": '" + name + "'. Second instance ignored.", _("ERROR"));
+                    DisplayError("Duplicate " + type + ": '" + name + "'. Second instance ignored.");
                 }
                 else
                 {
@@ -1877,7 +1876,7 @@ void SequenceElements::ImportLyrics(TimingElement* element, wxWindow* parent)
 
         if (num_phrases == 0)
         {
-            wxMessageBox("No phrases found.");
+            DisplayError("No phrases found.");
             return;
         }
 

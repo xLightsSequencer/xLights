@@ -1100,7 +1100,7 @@ void ModelFaceDialog::OnButton_DownloadImagesClick(wxCommandEvent& event)
 
             if (error)
             {
-                wxMessageBox("One or more images could not be mapped to the model due to issues with the names of files within the zip file. See log for details.");
+                DisplayError("One or more images could not be mapped to the model due to issues with the names of files within the zip file. See log for details.");
             }
         }
     }

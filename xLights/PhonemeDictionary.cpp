@@ -7,6 +7,7 @@
 #include "PhonemeDictionary.h"
 
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 void PhonemeDictionary::LoadDictionaries(const wxString &showDir)
 {
@@ -23,7 +24,7 @@ void PhonemeDictionary::LoadDictionaries(const wxString &showDir)
         phonemeFile = wxFileName(wxStandardPaths::Get().GetResourcesDir(), "phoneme_mapping");
     }
     if (!wxFile::Exists(phonemeFile.GetFullPath())) {
-        wxMessageBox("Failed to open Phoneme Mapping file!");
+        DisplayError("Failed to open Phoneme Mapping file!");
         return;
     }
 
@@ -67,7 +68,7 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
 
     if (!wxFile::Exists(phonemeFile.GetFullPath())) {
         logger_base.warn("Failed to open phoneme dictionary. '%s'", (const char *)filename.c_str());
-        wxMessageBox("Failed to open Phoneme dictionary!");
+        DisplayError("Failed to open Phoneme dictionary!");
         return;
     }
 
