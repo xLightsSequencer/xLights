@@ -2,8 +2,8 @@
 #define PLAYLISTITEMTEXT_H
 
 #include "PlayListItem.h"
+#include "Blend.h"
 #include <string>
-#include "../FSEQFile.h"
 
 class wxXmlNode;
 class MatrixMapper;

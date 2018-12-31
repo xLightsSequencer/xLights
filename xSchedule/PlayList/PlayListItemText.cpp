@@ -6,7 +6,6 @@
 #include "PlayListItemTextPanel.h"
 #include <log4cpp/Category.hh>
 #include <wx/font.h>
-#include "../FSEQFile.h"
 #include "../MatrixMapper.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
