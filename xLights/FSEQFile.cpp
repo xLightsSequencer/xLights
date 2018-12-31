@@ -56,7 +56,8 @@ static void LogErr(int i, const char *fmt, ...) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     va_list args;
 #ifdef __WXMSW__
-    va_start(args, 0); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
+    int count = 0;
+    va_start(args, count); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
 #endif
     fseq_logger_base.error(fmt, args);
 #ifdef __WXMSW__
@@ -67,7 +68,8 @@ static void LogInfo(int i, const char *fmt, ...) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     va_list args;
 #ifdef __WXMSW__
-    va_start(args, 0); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
+    int count = 0;
+    va_start(args, count); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
 #endif
     fseq_logger_base.info(fmt, args);
 #ifdef __WXMSW__
@@ -78,7 +80,8 @@ static void LogDebug(int i, const char *fmt, ...) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     va_list args;
 #ifdef __WXMSW__
-    va_start(args, 0); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
+    int count = 0;
+    va_start(args, count); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
 #endif
     fseq_logger_base.debug(fmt, args);
 #ifdef __WXMSW__
