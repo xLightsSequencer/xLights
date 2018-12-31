@@ -12,9 +12,9 @@
 #include "OpenDMXOutput.h"
 #include "OpenPixelNetOutput.h"
 #include "OutputManager.h"
+#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
-#include "UtilFunctions.h"
 
 #pragma region Constructors and Destructors
 SerialOutput::SerialOutput(wxXmlNode* node) : Output(node)
