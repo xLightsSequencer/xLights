@@ -601,7 +601,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     }
     else if (id == ID_ROW_MNU_RENAME_TIMING_TRACK)
     {
-        std::string name = wxGetTextFromUser("What is the new name of the timing track?", "Timing Track Name").ToStdString();
+        std::string name = wxGetTextFromUser("What is the new name of the timing track?", "Timing Track Name", element->GetName()).ToStdString();
         if (mSequenceElements->ElementExists(name))
         {
             DisplayError("Timing name already exists in sequence as a model or another timing.");
