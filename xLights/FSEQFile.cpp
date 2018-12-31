@@ -52,41 +52,17 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 //compiling within xLights, use log4cpp
 #define PLATFORM_UNKNOWN
 #include <log4cpp/Category.hh>
-static void LogErr(int i, const char *fmt, ...) {
+template<typename... Args> static void LogErr(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    va_list args;
-#ifdef __WXMSW__
-    int count = 0;
-    va_start(args, count); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
-#endif
-    fseq_logger_base.error(fmt, args);
-#ifdef __WXMSW__
-    va_end(args);
-#endif
+    fseq_logger_base.error(fmt, args...);
 }
-static void LogInfo(int i, const char *fmt, ...) {
+template<typename... Args> static void LogInfo(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    va_list args;
-#ifdef __WXMSW__
-    int count = 0;
-    va_start(args, count); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
-#endif
-    fseq_logger_base.info(fmt, args);
-#ifdef __WXMSW__
-    va_end(args);
-#endif
+    fseq_logger_base.info(fmt, args...);
 }
-static void LogDebug(int i, const char *fmt, ...) {
+template<typename... Args> static void LogDebug(int i, const char *fmt, Args... args) {
     static log4cpp::Category &fseq_logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    va_list args;
-#ifdef __WXMSW__
-    int count = 0;
-    va_start(args, count); // I am not sure 0 is the right thing to pass but if i dont call this it crashes on windows
-#endif
-    fseq_logger_base.debug(fmt, args);
-#ifdef __WXMSW__
-    va_end(args);
-#endif
+    fseq_logger_base.debug(fmt, args...);
 }
 #define VB_SEQUENCE 1
 #define VB_ALL 0
