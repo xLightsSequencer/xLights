@@ -2509,9 +2509,9 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m_creating_bound_rect = false;
         const std::string& model_type = selectedButton->GetModelType();
         newModel = CreateNewModel(model_type);
-        newModel->SetLayoutGroup(currentLayoutGroup);
 
         if (newModel != nullptr) {
+            newModel->SetLayoutGroup(currentLayoutGroup);
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }

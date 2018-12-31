@@ -731,12 +731,9 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
             && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
             currentPixelScaleFactor = scale2d;
             LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
-            accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-            accumulator.Finish(GL_TRIANGLES);
-        } else {
-            accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-            accumulator.Finish(GL_TRIANGLES);
         }
+        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+        accumulator.Finish(GL_TRIANGLES);
     } else {
         /*****************************   3D   ********************************/
         glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), 1.0f, camera3d->GetPosY() + camera3d->GetPanY()));
@@ -799,6 +796,13 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         a /= 100;
         accumulator.FinishTextures(GL_TRIANGLES, image->getID(), (uint8_t)a, i);
     }
+
+    // Draw a box around the default area in 2D
+    if (!is_3d) {
+        accumulator.AddLinesRect(0, 0, virtualWidth, virtualHeight, xlGREEN);
+        accumulator.Finish(GL_LINES);
+    }
+
     return true;
 }
 
