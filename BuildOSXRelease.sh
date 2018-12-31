@@ -15,9 +15,18 @@ fi
 
 # if using a development team, sign the release build, otherwise, just regular build
 if [ "${DEVELOPMENT_TEAM}x" == "x" ]; then
-xcodebuild -alltargets -jobs=10
+    xcodebuild -alltargets -jobs=10
 else
-xcodebuild -alltargets -jobs=10 CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
+    xcodebuild -target xLights -jobs=10 CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
+    if [[ $? != 0 ]]; then
+       exit 1
+    fi
+    xcodebuild -alltargets -jobs=10 CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
+    if [[ $? == 0 ]]; then
+        ALLTARGETS=0
+    else
+        ALLTARGETS=1
+    fi
 fi
 
 cd build/Release
@@ -33,9 +42,11 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
     hdiutil attach xLights.dmg
 
     cp -a xLights.app /Volumes/xLights-$VER
-    cp -a xSchedule.app /Volumes/xLights-$VER
-    cp -a xCapture.app /Volumes/xLights-$VER
-    cp -a xFade.app /Volumes/xLights-$VER
+    if [ "$ALLTARGETS}" == "1" ]; then
+        cp -a xSchedule.app /Volumes/xLights-$VER
+        cp -a xCapture.app /Volumes/xLights-$VER
+        cp -a xFade.app /Volumes/xLights-$VER
+    fi
     ln -s /Applications /Volumes/xLights-$VER/Applications
 
     DEVS=$(hdiutil attach xLights.dmg | cut -f 1)
@@ -59,16 +70,18 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
 
     # attache the notarization stamps to the apps
     xcrun stapler staple -v xLights.app
-    xcrun stapler staple -v xSchedule.app
-    xcrun stapler staple -v xFade.app
-    xcrun stapler staple -v xCapture.app
+    if [ "$ALLTARGETS}" == "1" ]; then
+        xcrun stapler staple -v xSchedule.app
+        xcrun stapler staple -v xFade.app
+        xcrun stapler staple -v xCapture.app
+    fi
 
     rm -f xLights.dmg
 fi
 
 #build the tar.gz
-rm -f xLights-MAC-$VER.tar.gz
-tar -czf  xLights-MAC-$VER.tar.gz xLights.app xSchedule.app xCapture.app xFade.app
+# rm -f xLights-MAC-$VER.tar.gz
+# tar -czf  xLights-MAC-$VER.tar.gz xLights.app xSchedule.app xCapture.app xFade.app
 
 rm -f xLights-$VER.dmg
 rm -f xLights.dmg
@@ -78,9 +91,11 @@ hdiutil create -size 192m -fs HFS+ -volname "xLights-$VER" xLights.dmg
 hdiutil attach xLights.dmg
 
 cp -a xLights.app /Volumes/xLights-$VER
-cp -a xSchedule.app /Volumes/xLights-$VER
-cp -a xCapture.app /Volumes/xLights-$VER
-cp -a xFade.app /Volumes/xLights-$VER
+if [ "$ALLTARGETS}" == "1" ]; then
+    cp -a xSchedule.app /Volumes/xLights-$VER
+    cp -a xCapture.app /Volumes/xLights-$VER
+    cp -a xFade.app /Volumes/xLights-$VER
+fi
 ln -s /Applications /Volumes/xLights-$VER/Applications
 
 DEVS=$(hdiutil attach xLights.dmg | cut -f 1)
