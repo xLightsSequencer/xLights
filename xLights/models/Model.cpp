@@ -497,10 +497,10 @@ void Model::AddProperties(wxPropertyGridInterface *grid) {
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
-        i = NODE_TYPES.size() - 2;
+        i = NODE_TYPES.Index("Single Color");
     }
     grid->AppendIn(p, new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
-    if (i == NODE_TYPES.size() - 1 || i == NODE_TYPES.size() - 2)  {
+    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity") {
         //get the color
         wxColor v;
         if (StringType=="Single Color Red") {
