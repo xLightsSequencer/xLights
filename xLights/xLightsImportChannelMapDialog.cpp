@@ -581,8 +581,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     if (channelNames.size() == 0)
     {
-        wxMessageBox("No models to import from. Source sequence had no data.");
-        logger_base.warn("Import Dialog: No models to import from. Source sequence had no data.");
+        DisplayError("No models to import from. Source sequence had no data.");
         return false;
     }
 
@@ -659,8 +658,7 @@ bool xLightsImportChannelMapDialog::InitImport() {
 
     if (_dataModel->GetChildCount() == 0)
     {
-        wxMessageBox("No models to import to. Add some models to the rows of the effects grid.");
-        logger_base.warn("Import Dialog: No models to import to. Add some models to the rows of the effects grid.");
+        DisplayError("No models to import to. Add some models to the rows of the effects grid.");
         return false;
     }
     else

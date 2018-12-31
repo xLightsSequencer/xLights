@@ -1,10 +1,11 @@
 #include <wx/file.h>
 #include <wx/image.h>
 #include "xlGLCanvas.h"
+#include "UtilFunctions.h"
 
 BEGIN_EVENT_TABLE(xlGLCanvas, wxGLCanvas)
-EVT_SIZE(xlGLCanvas::Resized)
-EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
+    EVT_SIZE(xlGLCanvas::Resized)
+    EVT_ERASE_BACKGROUND(xlGLCanvas::OnEraseBackGround)  // Override to do nothing on this event
 END_EVENT_TABLE()
 
 #include "osxMacUtils.h"
@@ -81,7 +82,7 @@ static bool functionsLoaded = false;
 
 #ifndef __WXMAC__
 #ifdef _MSC_VER
-    #include "GL\glext.h"
+#include "GL\glext.h"
 #else
     #include <GL/glext.h>
 #endif
@@ -97,14 +98,14 @@ extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
 
 static bool hasOpenGL3FramebufferObjects()
 {
-	return glGenFramebuffers != nullptr
-		&& glBindFramebuffer != nullptr
-		&& glDeleteFramebuffers != nullptr
-		&& glGenRenderbuffers != nullptr
-		&& glDeleteRenderbuffers != nullptr
-		&& glBindRenderbuffer != nullptr
-		&& glRenderbufferStorage != nullptr
-		&& glFramebufferRenderbuffer != nullptr;
+    return glGenFramebuffers != nullptr
+        && glBindFramebuffer != nullptr
+        && glDeleteFramebuffers != nullptr
+        && glGenRenderbuffers != nullptr
+        && glDeleteRenderbuffers != nullptr
+        && glBindRenderbuffer != nullptr
+        && glRenderbufferStorage != nullptr
+        && glFramebufferRenderbuffer != nullptr;
 }
 #else
 static bool hasOpenGL3FramebufferObjects()
@@ -115,57 +116,57 @@ static bool hasOpenGL3FramebufferObjects()
 
 xlGLCanvas::CaptureHelper::~CaptureHelper()
 {
-	if (tmpBuf != nullptr)
-	{
-		delete[] tmpBuf;
-		tmpBuf = nullptr;
-	}
+    if (tmpBuf != nullptr)
+    {
+        delete[] tmpBuf;
+        tmpBuf = nullptr;
+    }
 }
 
 bool xlGLCanvas::CaptureHelper::ToRGB(unsigned char *buf, unsigned int bufSize, bool padToEvenDims/*=false*/)
 {
-	int w = width * contentScaleFactor;
-	int h = height * contentScaleFactor;
+    int w = width * contentScaleFactor;
+    int h = height * contentScaleFactor;
 
-	bool padWidth = padToEvenDims && (w % 2);
-	bool padHeight = padToEvenDims && (h % 2);
-	int widthWithPadding = padWidth ? (w + 1) : w;
-	int heightWithPadding = padHeight ? (h + 1) : h;
-	unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
-	if (bufSize < reqSize)
-		return false;
+    bool padWidth = padToEvenDims && (w % 2);
+    bool padHeight = padToEvenDims && (h % 2);
+    int widthWithPadding = padWidth ? (w + 1) : w;
+    int heightWithPadding = padHeight ? (h + 1) : h;
+    unsigned int reqSize = widthWithPadding * 3 * heightWithPadding;
+    if (bufSize < reqSize)
+        return false;
 
-	if (tmpBuf == nullptr)
-	{
-		typedef unsigned char uchar;
-		tmpBuf = new uchar[w * 4 * h];
-	}
+    if (tmpBuf == nullptr)
+    {
+        typedef unsigned char uchar;
+        tmpBuf = new uchar[w * 4 * h];
+    }
 
-	glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
-	unsigned char *dst = buf;
-	if (padHeight)
-	{
-		memset(dst, 0, widthWithPadding * 3);
-		dst += widthWithPadding * 3;
-	}
-	for (int y = h - 1; y >= 0; --y)
-	{
-		const unsigned char *src = tmpBuf + 4 * w * y;
-		for (int x = 0; x < w; ++x, src += 4, dst += 3)
-		{
-			dst[0] = src[0];
-			dst[1] = src[1];
-			dst[2] = src[2];
-		}
-		if (padWidth)
-		{
-			dst[0] = dst[1] = dst[2] = 0x00;
-			dst += 3;
-		}
-	}
+    unsigned char *dst = buf;
+    if (padHeight)
+    {
+        memset(dst, 0, widthWithPadding * 3);
+        dst += widthWithPadding * 3;
+    }
+    for (int y = h - 1; y >= 0; --y)
+    {
+        const unsigned char *src = tmpBuf + 4 * w * y;
+        for (int x = 0; x < w; ++x, src += 4, dst += 3)
+        {
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+        }
+        if (padWidth)
+        {
+            dst[0] = dst[1] = dst[2] = 0x00;
+            dst += 3;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 
@@ -194,7 +195,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                         origPixelFormat,
                         sizeof(PIXELFORMATDESCRIPTOR),
                         &pfdOrig
-                        );
+    );
     if ((pfdOrig.dwFlags & PFD_DOUBLEBUFFER) == 0) {
         //For some reason, it didn't honor the DOUBLEBUFFER flag, we'll try and recreate the
         //context and try again using raw Windows OpenGL code.
@@ -235,7 +236,7 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
                             iPixelFormat,
                             sizeof(PIXELFORMATDESCRIPTOR),
                             &pfd
-                            );
+        );
         int ret = SetPixelFormat(m_hDC, iPixelFormat, &pfd);
     }
 #endif
@@ -257,20 +258,20 @@ xlGLCanvas::~xlGLCanvas()
 static const char * getStringForSource(GLenum source) {
 
     switch(source) {
-        case GL_DEBUG_SOURCE_API_ARB:
-            return("API");
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:
-            return("Window System");
-        case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB:
-            return("Shader Compiler");
-        case GL_DEBUG_SOURCE_THIRD_PARTY_ARB:
-            return("Third Party");
-        case GL_DEBUG_SOURCE_APPLICATION_ARB:
-            return("Application");
-        case GL_DEBUG_SOURCE_OTHER_ARB:
-            return("Other");
-        default:
-            return("");
+    case GL_DEBUG_SOURCE_API_ARB:
+        return("API");
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:
+        return("Window System");
+    case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB:
+        return("Shader Compiler");
+    case GL_DEBUG_SOURCE_THIRD_PARTY_ARB:
+        return("Third Party");
+    case GL_DEBUG_SOURCE_APPLICATION_ARB:
+        return("Application");
+    case GL_DEBUG_SOURCE_OTHER_ARB:
+        return("Other");
+    default:
+        return("");
     }
 }
 
@@ -278,14 +279,14 @@ static const char * getStringForSource(GLenum source) {
 static const char *getStringForSeverity(GLenum severity) {
 
     switch(severity) {
-        case GL_DEBUG_SEVERITY_HIGH_ARB:
-            return("High");
-        case GL_DEBUG_SEVERITY_MEDIUM_ARB:
-            return("Medium");
-        case GL_DEBUG_SEVERITY_LOW_ARB:
-            return("Low");
-        default:
-            return("");
+    case GL_DEBUG_SEVERITY_HIGH_ARB:
+        return("High");
+    case GL_DEBUG_SEVERITY_MEDIUM_ARB:
+        return("Medium");
+    case GL_DEBUG_SEVERITY_LOW_ARB:
+        return("Low");
+    default:
+        return("");
     }
 }
 
@@ -293,20 +294,20 @@ static const char *getStringForSeverity(GLenum severity) {
 static const char * getStringForType(GLenum type) {
 
     switch(type) {
-        case GL_DEBUG_TYPE_ERROR_ARB:
-            return("Error");
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
-            return("Deprecated Behaviour");
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
-            return("Undefined Behaviour");
-        case GL_DEBUG_TYPE_PORTABILITY_ARB:
-            return("Portability Issue");
-        case GL_DEBUG_TYPE_PERFORMANCE_ARB:
-            return("Performance Issue");
-        case GL_DEBUG_TYPE_OTHER_ARB:
-            return("Other");
-        default:
-            return("");
+    case GL_DEBUG_TYPE_ERROR_ARB:
+        return("Error");
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
+        return("Deprecated Behaviour");
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
+        return("Undefined Behaviour");
+    case GL_DEBUG_TYPE_PORTABILITY_ARB:
+        return("Portability Issue");
+    case GL_DEBUG_TYPE_PERFORMANCE_ARB:
+        return("Performance Issue");
+    case GL_DEBUG_TYPE_OTHER_ARB:
+        return("Other");
+    default:
+        return("");
     }
 }
 
@@ -316,20 +317,20 @@ void CALLBACK DebugLog(GLenum source , GLenum type , GLuint id , GLenum severity
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
 
     logger_opengl.info("Type : %s; Source : %s; ID : %d; Severity : % s\n Message: %s",
-                        getStringForType( type ),
-                        getStringForSource( source ),
-                        id,
-                        getStringForSeverity( severity ),
-                        message);
+                       getStringForType( type ),
+                       getStringForSource( source ),
+                       id,
+                       getStringForSeverity( severity ),
+                       message);
 }
 void CALLBACK DebugLogAMD(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,void *userParam) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
 
     logger_opengl.info("%s; ID : %d; Severity : % s\n Message: %s",
-                        getStringForType( category ),
-                        id,
-                        getStringForSeverity( severity ),
-                        message);
+                       getStringForType( category ),
+                       id,
+                       getStringForSeverity( severity ),
+                       message);
 }
 
 
@@ -369,93 +370,93 @@ DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
 void xlGLCanvas::DisplayWarning(const wxString &msg) {
-    wxMessageBox(msg, "Graphics Driver Problem", wxOK|wxCENTRE|wxICON_WARNING, this);
+    ::DisplayWarning("Graphics Driver Problem: " + msg, this);
 }
 
 wxImage * xlGLCanvas::GrabImage(wxSize size /*=wxSize(0,0)*/)
 {
-	if (m_context == nullptr)
-		return nullptr;
+    if (m_context == nullptr)
+        return nullptr;
 
-	if (!m_context->SetCurrent(*this))
-		return nullptr;
+    if (!m_context->SetCurrent(*this))
+        return nullptr;
 
     int width = mWindowWidth * GetContentScaleFactor();
     int height = mWindowHeight * GetContentScaleFactor();
-	bool canScale = hasOpenGL3FramebufferObjects() && DrawGLUtils::IsCoreProfile();
-	if (canScale && size != wxSize(0, 0))
-	{
-		width = size.GetWidth();
-		height = size.GetHeight();
-	}
+    bool canScale = hasOpenGL3FramebufferObjects() && DrawGLUtils::IsCoreProfile();
+    if (canScale && size != wxSize(0, 0))
+    {
+        width = size.GetWidth();
+        height = size.GetHeight();
+    }
 
-	// We'll grab the image as 4-byte-aligned RGBA and then convert to the
-	// RGB format that wxImage uses; also doing a vertical flip along the way.
-	width += width % 4;
+    // We'll grab the image as 4-byte-aligned RGBA and then convert to the
+    // RGB format that wxImage uses; also doing a vertical flip along the way.
+    width += width % 4;
 
-	GLubyte *tmpBuf = new GLubyte[width * 4 * height];
+    GLubyte *tmpBuf = new GLubyte[width * 4 * height];
 
-	GLint currentUnpackAlignment = 1;
-	glGetIntegerv(GL_UNPACK_ALIGNMENT, &currentUnpackAlignment);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    GLint currentUnpackAlignment = 1;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &currentUnpackAlignment);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-	if (canScale)
-	{
-		GLuint fbID = 0, rbID = 0;
+    if (canScale)
+    {
+        GLuint fbID = 0, rbID = 0;
 
-		glGenRenderbuffers(1, &rbID);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbID);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
+        glGenRenderbuffers(1, &rbID);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbID);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
 
-		glGenFramebuffers(1, &fbID);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbID);
-		glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
+        glGenFramebuffers(1, &fbID);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbID);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbID);
 
-		render(wxSize(width,height));
+        render(wxSize(width,height));
 
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
-		glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDeleteFramebuffers(1, &fbID);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &fbID);
 
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glDeleteRenderbuffers(1, &rbID);
-	}
-	else
-	{
-		GLint currentReadBuffer = GL_NONE;
-		glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glDeleteRenderbuffers(1, &rbID);
+    }
+    else
+    {
+        GLint currentReadBuffer = GL_NONE;
+        glGetIntegerv(GL_READ_BUFFER, &currentReadBuffer);
 
-		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
+        glReadBuffer(GL_FRONT);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
-		glReadBuffer(currentReadBuffer);
-	}
+        glReadBuffer(currentReadBuffer);
+    }
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, currentUnpackAlignment);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, currentUnpackAlignment);
 
-	// copying to wxImage
-	wxSize dstSize = (canScale && size != wxSize(0, 0))
-        ? wxSize(width, height)
-        : wxSize(mWindowWidth * GetContentScaleFactor(),
-                 mWindowHeight * GetContentScaleFactor());
-	unsigned char *buf = (unsigned char *)malloc(dstSize.GetWidth() * 3 * dstSize.GetHeight());
-	unsigned char *dst = buf;
-	for (int y = dstSize.GetHeight() - 1; y >= 0; --y)
-	{
-		const unsigned char *src = tmpBuf + 4 * width * y;
-		for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3)
-		{
-			dst[0] = src[0];
-			dst[1] = src[1];
-			dst[2] = src[2];
-		}
-	}
+    // copying to wxImage
+    wxSize dstSize = (canScale && size != wxSize(0, 0))
+                         ? wxSize(width, height)
+                         : wxSize(mWindowWidth * GetContentScaleFactor(),
+                                  mWindowHeight * GetContentScaleFactor());
+    unsigned char *buf = (unsigned char *)malloc(dstSize.GetWidth() * 3 * dstSize.GetHeight());
+    unsigned char *dst = buf;
+    for (int y = dstSize.GetHeight() - 1; y >= 0; --y)
+    {
+        const unsigned char *src = tmpBuf + 4 * width * y;
+        for (int x = 0; x < dstSize.GetWidth(); ++x, src += 4, dst += 3)
+        {
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+        }
+    }
 
-	delete[] tmpBuf;
+    delete[] tmpBuf;
 
-	return new wxImage(dstSize.GetWidth(), dstSize.GetHeight(), buf, false);
+    return new wxImage(dstSize.GetWidth(), dstSize.GetHeight(), buf, false);
 }
 
 
@@ -479,10 +480,10 @@ void xlGLCanvas::SetCurrentGLContext() {
         const GLubyte* rend = glGetString(GL_RENDERER);
         const GLubyte* vend = glGetString(GL_VENDOR);
         wxString configs = wxString::Format("%s - glVer:  %s  (%s)(%s)",
-                                           (const char *)GetName().c_str(),
-                                           (const char *)str,
-                                           (const char *)rend,
-                                           (const char *)vend);
+                                            (const char *)GetName().c_str(),
+                                            (const char *)str,
+                                            (const char *)rend,
+                                            (const char *)vend);
 
         if (wxString(rend) == "GDI Generic"
             || wxString(vend).Contains("Microsoft")) {
@@ -492,8 +493,8 @@ void xlGLCanvas::SetCurrentGLContext() {
             if (!warned) {
                 config->Write("GDI-Warned", true);
                 wxString msg = wxString::Format("Generic non-accelerated graphics driver detected (%s - %s). Performance will be poor.  "
-                                               "Please install updated video drivers for your video card.",
-                                               vend, rend);
+                                                "Please install updated video drivers for your video card.",
+                                                vend, rend);
                 CallAfter(&xlGLCanvas::DisplayWarning, msg);
             }
             //need to use 1.x
@@ -508,12 +509,12 @@ void xlGLCanvas::SetCurrentGLContext() {
             }
             logger_opengl.info("Try creating 3.3 Cache");
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
-                                  UsesVertexColorAccumulator(),
-                                  UsesVertexAccumulator(),
-                                  UsesAddVertex(),
-								  UsesVertex3Accumulator(),
-                                  UsesVertex3TextureAccumulator(),
-                                  UsesVertex3ColorAccumulator()));
+                UsesVertexColorAccumulator(),
+                UsesVertexAccumulator(),
+                UsesAddVertex(),
+                UsesVertex3Accumulator(),
+                UsesVertex3TextureAccumulator(),
+                UsesVertex3ColorAccumulator()));
         }
         if (cache == nullptr && ver >=2
             && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {

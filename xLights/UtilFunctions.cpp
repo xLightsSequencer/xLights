@@ -5,6 +5,42 @@
 #include <wx/dir.h>
 #include <wx/socket.h>
 
+#include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
+
+void DisplayError(const std::string& err, wxWindow* win)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.error("DisplayError: " + err);
+    wxMessageBox(err, "Error", wxICON_ERROR | wxOK, win);
+}
+
+void DisplayWarning(const std::string& warn, wxWindow* win)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.warn("DisplayWarning: " + warn);
+    wxMessageBox(warn, "Warning", wxICON_WARNING | wxOK, win);
+}
+
+void DisplayInfo(const std::string& info, wxWindow* win)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.info("DisplayInfo: " + info);
+    wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK, win);
+}
+
+void DisplayCrit(const std::string& crit, wxWindow* win)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.crit("DisplayCrit: " + crit);
+    wxMessageBox(crit, "CRITICAL", wxICON_ERROR | wxOK, win);
+}
+
 std::string DecodeIPError(wxSocketError err)
 {
     switch (err)
@@ -35,10 +71,6 @@ std::string DecodeIPError(wxSocketError err)
         return "God knows what happened";
     }
 }
-
-#include "UtilFunctions.h"
-
-#include <log4cpp/Category.hh>
 
 std::string DecodeMidi(int midi)
 {

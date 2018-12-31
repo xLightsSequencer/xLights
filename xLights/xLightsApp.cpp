@@ -23,6 +23,7 @@
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "Parallel.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 #include <log4cpp/PropertyConfigurator.hh>
@@ -592,12 +593,11 @@ bool xLightsApp::OnInit()
         }
         if (!parser.Found("r") && !parser.Found("o") && !info.empty())
         {
-            wxMessageBox(info, _("Command Line Options")); //give positive feedback*/
+            DisplayInfo(info); //give positive feedback*/
         }
         break;
     default:
-        logger_base.info("Unrecognised command line parameter found.");
-        wxMessageBox(_("Unrecognized command line parameters"),_("Command Line Error"));
+        DisplayError(_("Unrecognized command line parameters"));
         return false;
     }
 

@@ -40,7 +40,7 @@ extern "C"
 
 void xLightsFrame::ConversionError(const wxString& msg)
 {
-    wxMessageBox(msg, wxString("Error"), wxOK | wxICON_EXCLAMATION);
+    DisplayError(msg.ToStdString());
 }
 
 void xLightsFrame::SetStatusText(const wxString &msg, int filename) {
@@ -439,7 +439,7 @@ void xLightsFrame:: WriteLcbFile(const wxString& filename, long numChans, long n
 
     int interval = SeqData.FrameTime() / 10;  // in centiseconds
     if( interval * 10 != SeqData.FrameTime() ) {
-        wxMessageBox("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
+        DisplayError("Cannot export to LOR unless the sequence timing is evenly divisible by 10ms");
         return;
     }
 

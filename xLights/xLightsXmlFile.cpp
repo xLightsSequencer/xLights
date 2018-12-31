@@ -1635,7 +1635,6 @@ void xLightsXmlFile::ProcessAudacityTimingFiles(const wxString& dir, const wxArr
 
 void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& filenames, xLightsFrame* xLightsParent)
 {
-    static  log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString line;
 
     for (size_t i = 0; i < filenames.Count(); ++i )
@@ -1646,8 +1645,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
         wxFile f;
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            logger_base.warn("ProcessLorTiming: Failed to open file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to open file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("LOR Timing: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
         f.Close();
@@ -1660,8 +1658,7 @@ void xLightsXmlFile::ProcessLorTiming(const wxString& dir, const wxArrayString& 
         wxXmlDocument input_xml;
         if( !input_xml.Load(next_file.GetFullPath()) )
         {
-            logger_base.warn("ProcessLorTiming: Failed to load XML file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("LOR Timing: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
 
@@ -1873,7 +1870,6 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 {
     wxTextFile f;
     wxString line;
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
     for (size_t i = 0; i < filenames.Count(); ++i)
     {
@@ -1882,8 +1878,7 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            logger_base.warn("ProcessXTiming: Failed to open file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to open file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("xTiming: Failed to open file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
 
@@ -1892,8 +1887,7 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
         wxXmlDocument input_xml;
         if (!input_xml.Load(next_file.GetFullPath()))
         {
-            logger_base.warn("ProcessXTiming: Failed to load XML file: %s", (const char *)next_file.GetFullPath().c_str());
-            wxMessageBox("Failed to load XML file: " + next_file.GetFullPath());
+            DisplayError(wxString::Format("xTiming: Failed to load XML file: '%s'", next_file.GetFullPath()).ToStdString());
             return;
         }
 
@@ -1914,13 +1908,6 @@ void xLightsXmlFile::ProcessXTiming(const wxString& dir, const wxArrayString& fi
             }
         }
     }
-}
-
-void xLightsXmlFile::ProcessError(const wxString& s)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.error(std::string(s.c_str()));
-    wxMessageBox(s);
 }
 
 wxString RemoveTabs(const wxString& s, size_t tabs)
@@ -1952,14 +1939,14 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
 
         if (!f.Open(next_file.GetFullPath().c_str()))
         {
-            ProcessError("Failed to open file: " + next_file.GetFullPath());
+            DisplayError("Failed to open file: " + next_file.GetFullPath());
             return;
         }
 
         wxString line = f.GetFirstLine();
         if (line.CmpNoCase("lipsync version 1"))
         {
-            ProcessError(wxString::Format(_("Invalid papagayo file @line %d (header '%s')"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid papagayo file @line %d (header '%s')"), linenum, line.c_str()).ToStdString());
             return;
         }
 
@@ -1971,7 +1958,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
         linenum++;
         if (samppersec < 1)
         {
-            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' samples per sec)"), linenum, line.c_str()).ToStdString());
         }
         int ms = 1000 / samppersec;
 
@@ -1986,14 +1973,14 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
         linenum++;
         if (numsamp < 1)
         {
-            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' song samples)"), linenum, line.c_str()).ToStdString());
         }
 
         int numvoices = number.Matches(line = f.GetNextLine()) ? wxAtoi(line) : -1;
         linenum++;
         if (numvoices < 1)
         {
-            ProcessError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()));
+            DisplayError(wxString::Format(_("Invalid file @line %d ('%s' voices)"), linenum, line.c_str()).ToStdString());
         }
         logger_base.info("    Voices %d", numvoices);
 
@@ -2007,7 +1994,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
             linenum++;
             if (voicename.empty())
             {
-                ProcessError(wxString::Format(_("Missing voice# %d of %d"), v, numvoices));
+                DisplayError(wxString::Format(_("Missing voice# %d of %d"), v, numvoices).ToStdString());
                 return;
             }
 
@@ -2019,7 +2006,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
             linenum++;
             if (numphrases < 0)
             {
-                ProcessError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()));
+                DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phrases for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
             }
 
             Element* element = nullptr;
@@ -2055,7 +2042,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                 linenum++;
                 if (label == "")
                 {
-                    ProcessError(wxString::Format(_("Missing phrase# %d of %d for %s"), p, numphrases, desc.c_str()));
+                    DisplayError(wxString::Format(_("Missing phrase# %d of %d for %s"), p, numphrases, desc.c_str()).ToStdString());
                     return;
                 }
 
@@ -2081,7 +2068,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                 linenum++;
                 if (numwords < 0)
                 {
-                    ProcessError(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), linenum, line.c_str(), desc.c_str()));
+                    DisplayError(wxString::Format(_("Invalid file @line %d ('%s' words for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
                 }
 
                 for (int w = 1; w <= numwords; ++w)
@@ -2092,7 +2079,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                     label = line.SubString(0, space1-1);
                     if (label == "")
                     {
-                        ProcessError(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()));
+                        DisplayError(wxString::Format(_("Missing word# %d of %d for %s"), w, numwords, desc.c_str()).ToStdString());
                         return;
                     }
 
@@ -2123,7 +2110,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                     linenum++;
                     if (numphonemes < 0)
                     {
-                        ProcessError(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), linenum, line.c_str(), desc.c_str()));
+                        DisplayError(wxString::Format(_("Invalid file @line %d ('%s' phonemes for %s)"), linenum, line.c_str(), desc.c_str()).ToStdString());
                     }
 
                     int outerend = end;
@@ -2156,7 +2143,7 @@ void xLightsXmlFile::ProcessPapagayo(const wxString& dir, const wxArrayString& f
                         label = line.SubString(space4 + 1, line.Length());
                         if (label == "")
                         {
-                            ProcessError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()));
+                            DisplayError(wxString::Format(_("Missing phoneme# %d of %d for %s"), ph, numphonemes, desc.c_str()).ToStdString());
                             return;
                         }
                         start = end;

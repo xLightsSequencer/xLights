@@ -2463,7 +2463,7 @@ bool xLightsFrame::EnableOutputs(bool ignoreCheck)
     {
         if (!ignoreCheck && _outputManager.IsOutputOpenInAnotherProcess())
         {
-            wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+            DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
         }
 
         ok = _outputManager.StartOutput();
@@ -2636,8 +2636,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
-        logger_base.error("Unable to create backup directory '%s'", (const char *)newDirBackup.c_str());
-        wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create backup directory '%s'!", newDirBackup).ToStdString());
         return;
     }
 
@@ -2667,8 +2666,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (tries == 11)
     {
-        logger_base.error("Unable to find a unique name for backup directory");
-        wxMessageBox("Unable to find a unique name for backup directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
+        DisplayError("Unable to find a unique name for backup directory! Backup failed.");
         return;
     }
 
@@ -2683,8 +2681,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (!newDirH.Mkdir(newDir))
     {
-        logger_base.error("Unable to create backup directory '%s'", (const char *)newDir.c_str());
-        wxMessageBox("Unable to create directory! Backup failed.", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create directory '%s'! Backup failed.", newDir).ToStdString());
         return;
     }
     else
@@ -2697,7 +2694,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
 
     if (errors != "")
     {
-        wxMessageBox(errors, "Backup errors", 4 | wxCENTRE, this);
+        DisplayError(errors, this);
     }
 }
 
@@ -3211,8 +3208,7 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
     }
     else
     {
-        logger_base.error("Exporting house-preview video failed!");
-        wxMessageBox(_("Exporting house preview video failed"), _("Export failure"), wxOK | wxCENTRE, this);
+        DisplayError("Exporting house preview video failed", this);
     }
 }
 
@@ -3275,7 +3271,7 @@ void xLightsFrame::SetIconSize(wxCommandEvent& event)
 
 void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
 {
-    wxMessageBox("Toolbar locations will reset to defaults upon restart.");
+    DisplayInfo("Toolbar locations will reset to defaults upon restart.", this);
     mResetToolbars = true;
 }
 
@@ -3456,7 +3452,7 @@ void xLightsFrame::OnmSaveFseqOnSaveMenuItemSelected(wxCommandEvent& event)
         mRenderOnSaveMenuItem->Check(false);
         mRenderOnSaveMenuItem->Enable(false);
         mRenderOnSave = false;
-        wxMessageBox("Turning off save of the FSEQ is really not recommended. This will often require you to re-render a sequence every time you load it ... all to save yourself a couple of seconds save time.");
+        DisplayWarning("Turning off save of the FSEQ is really not recommended. This will often require you to re-render a sequence every time you load it ... all to save yourself a couple of seconds save time.", this);
     }
 }
 
@@ -4020,7 +4016,7 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
         config->Write("ForceOpenGLVer", 1);
     }
     OpenGLMenu->Check(event.GetId(), true);
-    wxMessageBox("OpenGL changes require a restart\n");
+    DisplayInfo("OpenGL changes require a restart", this);
 }
 
 void xLightsFrame::SaveWorkingLayout()
@@ -4210,7 +4206,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
     wxString newDirBackup = mAltBackupDir + wxFileName::GetPathSeparator() + "Backup";
     if (!wxDirExists(newDirBackup) && !newDirH.Mkdir(newDirBackup))
     {
-        wxMessageBox("Unable to create directory Backup!", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create backup directory '%s'!", newDirBackup).ToStdString());
         return;
     }
 
@@ -4229,7 +4225,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 
     if (!newDirH.Mkdir(newDir))
     {
-        wxMessageBox("Unable to create directory!", "Error", wxICON_ERROR | wxOK);
+        DisplayError(wxString::Format("Unable to create directory '%s'!", newDir).ToStdString());
         return;
     }
 
@@ -4238,7 +4234,7 @@ void xLightsFrame::DoAltBackup(bool prompt)
 
     if (errors != "")
     {
-        wxMessageBox(errors, "Backup errors", 4 | wxCENTRE, this);
+        DisplayError(errors, this);
     }
 }
 
@@ -4271,7 +4267,7 @@ void xLightsFrame::ExportModels(wxString filename)
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("Export Error"));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
 
@@ -4526,8 +4522,7 @@ void xLightsFrame::OnMenuItem_ViewLogSelected(wxCommandEvent& event)
     }
     else
     {
-        logger_base.warn("Unable to view log file %s.", (const char *)fn.c_str());
-        wxMessageBox(_("Unable to show log file."), _("Error"));
+        DisplayError(wxString::Format("Unable to show log file '%s'.", fn).ToStdString(), this);
     }
 }
 
@@ -4613,8 +4608,7 @@ void xLightsFrame::CheckSequence(bool display)
         f.Open(filename, wxFile::write);
         if (!f.IsOpened())
         {
-            logger_base.warn("Unable to create results file for Check Sequence. Aborted.");
-            wxMessageBox(_("Unable to create results file for Check Sequence. Aborted."), _("Error"));
+            DisplayError("Unable to create results file for Check Sequence. Aborted.", this);
             return;
         }
     }
@@ -5743,8 +5737,7 @@ void xLightsFrame::CheckSequence(bool display)
 
             if (command == "")
             {
-                logger_base.error("Unable to view check sequence results due to no open command. %s", (const char *)filename.c_str());
-                wxMessageBox(_("Unable to show xLights Check Sequence results. See your log for the content."), _("Error"));
+                DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
             }
             else
             {
@@ -5756,8 +5749,7 @@ void xLightsFrame::CheckSequence(bool display)
         }
         else
         {
-            logger_base.warn("Unable to view xLights Check Sequence results %s.", (const char *)filename.c_str());
-            wxMessageBox(_("Unable to show xLights Check Sequence results. See your log for the content."), _("Error"));
+            DisplayError(wxString::Format("Unable to show xLights Check Sequence results '%s'. See your log for the content.", filename).ToStdString(), this);
         }
     }
 }
@@ -6182,7 +6174,7 @@ void xLightsFrame::OnMenuItem_ExportEffectsSelected(wxCommandEvent& event)
 {
     if (CurrentSeqXmlFile == nullptr)
     {
-        wxMessageBox("No sequence open", "Error", wxOK|wxCENTRE, this);
+        DisplayError("No sequence open", this);
         return;
     }
 
@@ -6200,7 +6192,7 @@ void xLightsFrame::ExportEffects(wxString filename)
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()), _("Export Error"));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString(), this);
         return;
     }
 
@@ -6639,7 +6631,7 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     if (mSavedChangeCount != mSequenceElements.GetChangeCount())
     {
-        wxMessageBox("Your sequence has unsaved changes. These changes will not be packaged but any new referenced files will be. We suggest you consider saving and trying this again.", "Warning");
+        DisplayWarning("Your sequence has unsaved changes. These changes will not be packaged but any new referenced files will be. We suggest you consider saving and trying this again.", this);
     }
 
     wxFileName fn(CurrentSeqXmlFile->GetFullPath());
@@ -7012,13 +7004,7 @@ void xLightsFrame::TimerOutput(int period)
 
 void xLightsFrame::PlayerError(const wxString& msg)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxString m = msg;
-    m.Replace("\n", " ", true);
-    m.Replace("%", "%%", true);
-
-    logger_base.warn(m);
-    wxMessageBox(msg, _("Error"), wxOK | wxICON_EXCLAMATION);
+    DisplayError(msg);
 }
 
 #pragma region Settings Menu
@@ -8094,7 +8080,7 @@ void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 {
     bool update_found = CheckForUpdate(true);
     if (!update_found) {
-        wxMessageBox("No update found", "Update check complete");
+        DisplayInfo("Update check complete: No update found", this);
     }
 }
 
@@ -8232,7 +8218,7 @@ void xLightsFrame::check32AppOn64Machine()
     if (!alreadyRun && wxIsPlatform64Bit() && sizeof(size_t) == 4)
     {
         config->Write("xLights32bitCheck", true);
-        wxMessageBox("You are running the 32 bit version of xLights on a 64 bit Computer\nPlease Update to the 64 bit version of xLights", "Update to 64bit");
+        DisplayWarning("You are running the 32 bit version of xLights on a 64 bit Computer\nPlease Update to the 64 bit version of xLights");
     }
 }
 
@@ -8515,7 +8501,7 @@ void xLightsFrame::OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event)
     }
     else
     {
-        wxMessageBox("Unable to access online repositories.");
+        DisplayError("Unable to access online repositories.", this);
     }
 }
 
@@ -8912,7 +8898,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
 
 void xLightsFrame::OnMenuItem_ShowKeyBindingsSelected(wxCommandEvent& event)
 {
-    wxMessageBox(mainSequencer->keyBindings.Dump(), "Key bindings");
+    DisplayInfo(mainSequencer->keyBindings.Dump(), this);
 }
 
 void xLightsFrame::OnChar(wxKeyEvent& event)

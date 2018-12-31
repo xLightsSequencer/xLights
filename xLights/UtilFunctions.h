@@ -8,6 +8,10 @@
 #define FORMATTIME(ms) (const char *)wxString::Format("%d:%02d.%03d", ((uint32_t)ms) / 60000, (((uint32_t)ms) % 60000) / 1000, ((uint32_t)ms) % 1000).c_str()
 
 // Consolidated set of utility functions
+void DisplayError(const std::string& err, wxWindow* win = nullptr);
+void DisplayWarning(const std::string& warn, wxWindow* win = nullptr);
+void DisplayInfo(const std::string& info, wxWindow* win = nullptr);
+void DisplayCrit(const std::string& crit, wxWindow* win = nullptr);
 std::string DecodeIPError(wxSocketError err);
 std::string Ordinal(int i);
 std::string DecodeMidi(int midi);

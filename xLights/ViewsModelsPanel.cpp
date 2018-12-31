@@ -2429,7 +2429,7 @@ void ViewsModelsPanel::OnButton_MakeMasterClick(wxCommandEvent& event)
 
         if (hadEffects)
         {
-            wxMessageBox("One or more models had effects on them so they were not removed.");
+            DisplayWarning("One or more models had effects on them so they were not removed.");
         }
 
         // While all models might already be there they are likely not in the right order
