@@ -2,7 +2,7 @@
 #define PLAYLISTITEMFSEQVIDEO_H
 
 #include "PlayListItem.h"
-#include "Blend.h"
+#include "../FSEQFile.h"
 #include <string>
 
 class wxXmlNode;
@@ -12,7 +12,6 @@ class PlayerWindow;
 class VideoReader;
 class CachedVideoReader;
 class OutputManager;
-class FSEQFile;
 
 class PlayListItemFSEQVideo : public PlayListItem
 {

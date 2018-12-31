@@ -2,7 +2,7 @@
 #define PLAYLISTITEMALLOFF_H
 
 #include "PlayListItem.h"
-#include "Blend.h"
+#include "../FSEQFile.h"
 
 class wxXmlNode;
 class wxWindow;

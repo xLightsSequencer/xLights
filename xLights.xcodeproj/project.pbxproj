@@ -507,10 +507,10 @@
 		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
 		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
 		67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C78D091FBA2A4900B82E48 /* VideoCache.cpp */; };
-		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67C9E660211FC07E00379E2A /* ViewpointDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65C211FC07E00379E2A /* ViewpointDialog.cpp */; };
 		67C9E661211FC07E00379E2A /* ViewpointMgr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */; };
 		67C9E664211FC08C00379E2A /* VectorMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E662211FC08C00379E2A /* VectorMath.cpp */; };
+		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -621,6 +621,7 @@
 		67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4C1E329AD800F8B985 /* WebServer.cpp */; };
 		67F23F661E329AD800F8B985 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4F1E329AD800F8B985 /* md5.cpp */; };
 		67F23F681E329AD800F8B985 /* ESEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F541E329AD800F8B985 /* ESEQFile.cpp */; };
+		67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F561E329AD800F8B985 /* FSEQFile.cpp */; };
 		67F23F7A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib */; };
 		67F23F7B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib */; };
 		67F23F7C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib */; };
@@ -1860,6 +1861,8 @@
 		67F23F531E329AD800F8B985 /* WebServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebServer.h; sourceTree = "<group>"; };
 		67F23F541E329AD800F8B985 /* ESEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ESEQFile.cpp; sourceTree = "<group>"; };
 		67F23F551E329AD800F8B985 /* ESEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ESEQFile.h; sourceTree = "<group>"; };
+		67F23F561E329AD800F8B985 /* FSEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FSEQFile.cpp; sourceTree = "<group>"; };
+		67F23F571E329AD800F8B985 /* FSEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEQFile.h; sourceTree = "<group>"; };
 		67F23F581E329AD800F8B985 /* MyTreeItemData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyTreeItemData.h; sourceTree = "<group>"; };
 		67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_net-3.1.dylib"; sourceTree = "<group>"; };
 		67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_xml-3.1.dylib"; sourceTree = "<group>"; };
@@ -3259,6 +3262,8 @@
 				67D75E252020ED19005BAC6E /* EventSerialPanel.h */,
 				6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */,
 				6725FAE71F943AD8007F2D7C /* FPPRemotesDialog.h */,
+				67F23F561E329AD800F8B985 /* FSEQFile.cpp */,
+				67F23F571E329AD800F8B985 /* FSEQFile.h */,
 				6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */,
 				6725FAE41F943AD7007F2D7C /* GammaDialog.h */,
 				67F23F2E1E32994400F8B985 /* Info.plist */,
@@ -4350,6 +4355,7 @@
 				67F23FEA1E329E7400F8B985 /* PlayListItemAllOff.cpp in Sources */,
 				67D640F01E41169F00381DDA /* PlayListSimpleDialog.cpp in Sources */,
 				67F23FF31E329E7400F8B985 /* PlayListItemFSEQPanel.cpp in Sources */,
+				67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */,
 				67BAE10E203F1D68000EA088 /* EventLorPanel.cpp in Sources */,
 				67BCD14F1E6DADFC00F99935 /* Blend.cpp in Sources */,
 				67F23FA71E329E3300F8B985 /* sha1.cpp in Sources */,

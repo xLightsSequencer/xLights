@@ -2,6 +2,7 @@
 #define PLAYLISTITEMFSEQ_H
 
 #include "PlayListItem.h"
+#include "../FSEQFile.h"
 #include "../Blend.h"
 #include <string>
 
@@ -9,7 +10,6 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 class OutputManager;
-class FSEQFile;
 
 #define FSEQFILES "FSEQ files|*.fseq|All files (*.*)|*.*"
 

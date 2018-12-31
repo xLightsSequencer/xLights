@@ -10,7 +10,6 @@
 #include <wx/socket.h>
 #include <wx/thread.h>
 #include "wxMIDI/src/wxMidi.h"
-#include "Blend.h"
 
 class PlayListItemText;
 class ScheduleOptions;

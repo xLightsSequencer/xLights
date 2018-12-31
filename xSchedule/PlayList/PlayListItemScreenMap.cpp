@@ -3,6 +3,7 @@
 #include <wx/notebook.h>
 #include "PlayListItemScreenMapPanel.h"
 #include <log4cpp/Category.hh>
+#include "../FSEQFile.h"
 #include "../MatrixMapper.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
