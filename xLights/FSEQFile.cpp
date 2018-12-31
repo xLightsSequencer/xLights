@@ -242,6 +242,8 @@ FSEQFile::FSEQFile(const std::string &fn)
     m_seqVersionMajor(1),
     m_seqVersionMinor(1),
     m_memoryBuffer(),
+    m_seqVersion(0),
+    m_seqChanDataOffset(0),
     m_memoryBufferPos(0)
 {
     if (fn == "-memory-") {
@@ -251,6 +253,7 @@ FSEQFile::FSEQFile(const std::string &fn)
         m_seqFile = fopen((const char *)fn.c_str(), "wb");
     }
 }
+
 void FSEQFile::dumpInfo(bool indent) {
     char ind[5] = "    ";
     if (!indent) {
@@ -387,6 +390,8 @@ void V1FSEQFile::writeHeader() {
 
     header[6] = 0; //minor
     header[7] = 1; //major
+    m_seqVersionMinor = header[6];
+    m_seqVersionMajor = header[7];
     // Fixed header length
     write2ByteUInt(&header[8], fixedHeaderLength);
     // Step Size
@@ -428,6 +433,8 @@ void V1FSEQFile::writeHeader() {
 #endif
         write(buf, dataOffset - pos);
     }
+    m_seqChanDataOffset = dataOffset;
+    dumpInfo(false);
 }
 
 V1FSEQFile::V1FSEQFile(const std::string &fn, FILE *file, const std::vector<uint8_t> &header)
@@ -635,7 +642,7 @@ public:
 };
 class V2CompressedHandler : public V2Handler {
 public:
-    V2CompressedHandler(V2FSEQFile *f) : V2Handler(f), m_maxBlocks(0), m_curBlock(99999) {
+    V2CompressedHandler(V2FSEQFile *f) : V2Handler(f), m_maxBlocks(0), m_curBlock(99999), m_framesPerBlock(0), m_curFrameInBlock(0) {
         if (!m_file->m_frameOffsets.empty()) {
             m_maxBlocks = m_file->m_frameOffsets.size() - 1;
         }
