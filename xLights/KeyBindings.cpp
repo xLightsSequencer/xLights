@@ -368,6 +368,8 @@ wxString KeyBinding::EncodeKey(wxKeyCode key, bool shift)
 
 wxKeyCode KeyBinding::DecodeKey(wxString key)
 {
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     wxString k = key.Upper();
     if (k == "")
     {
@@ -486,7 +488,10 @@ wxKeyCode KeyBinding::DecodeKey(wxString key)
         return WXK_F12;
     }
 
-    wxASSERT(k.length() == 1);
+    if (k.length() != 1)
+    {
+        logger_base.error("KeyBinding decode key failed to decode '%s'. Taking the first character.", (const char *)k.c_str());
+    }
 
     return (wxKeyCode)(int)k[0];
 }
@@ -521,6 +526,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                         k = oldk;
                         if (k >= 'A' && k <= 'Z') shift = true; else shift = false;
                     }
+                    if (k == "") disabled = true;
                     if (type == "EFFECT")
                     {
                         std::string effect = child->GetAttribute("effect").ToStdString();
@@ -585,7 +591,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                     }
                     if (!found)
                     {
-                        bindings.push_back(KeyBinding(WXK_F1, true, it->first, false, false, false));
+                        bindings.push_back(KeyBinding(WXK_NONE, true, it->first, false, false, false));
                     }
                 }
             }
@@ -615,9 +621,19 @@ void KeyBindingMap::Save(wxFileName &fileName) {
 
         const KeyBinding &binding = *it;
 
+        wxKeyCode key = binding.GetKey();
+
+// FIXME ... once I work out why this happens this can be removed
+        if (binding.GetType() == "TIMING_ADD" && (key == WXK_NONE || KeyBinding::EncodeKey(key, binding.RequiresShift()) == ""))
+        {
+            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            logger_base.debug("TIMING_ADD: " + binding.Description());
+            DisplayError("Your keybindings appear corrupt. Can you please use the tools menu Package Logs option and send us the file so we can work out why.");
+        }
+// END FIXME
+
         wxXmlNode *child = new wxXmlNode(wxXML_ELEMENT_NODE, "keybinding");
 
-        wxKeyCode key = binding.GetKey();
         if (binding.IsDisabled())
         {
             child->AddAttribute("keycode", "");
