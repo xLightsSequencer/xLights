@@ -36,7 +36,8 @@ typedef enum
     FPPOSCMASTER,
     OSCSLAVE,
     MIDIMASTER,
-    MIDISLAVE
+    MIDISLAVE,
+    TEST
 } SYNCMODE;
 
 class PixelData
@@ -76,6 +77,7 @@ public:
 class ScheduleManager
 {
     SYNCMODE _mode;
+    SYNCMODE _stashMode;
     int _manualOTL;
     std::string _showDir;
     int _lastSavedChangeCount;
@@ -233,6 +235,8 @@ class ScheduleManager
         int Sync(const std::string& filename, long ms);
         int DoSync(const std::string& filename, long ms);
         bool IsSlave() const;
+        bool IsTest() const;
+        void TestFrame(wxByte* buffer, long totalChannels, long msec);
 };
 
 #endif

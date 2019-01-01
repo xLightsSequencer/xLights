@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)  Add xSchedule test mode
 2019.01 January 1, 2019
    -- enh (gil)    Add 3d
    -- enh (keith)  Test for out of order universes on a controller in check sequence

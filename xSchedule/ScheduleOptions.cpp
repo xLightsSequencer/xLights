@@ -24,6 +24,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _oscOptions = nullptr;
+    _testOptions = nullptr;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _MIDITimecodeDevice = node->GetAttribute("MIDITimecodeDevice", "").ToStdString();
@@ -128,9 +129,14 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
         {
             _oscOptions = new OSCOptions(n);
         }
+        else if (n->GetName() == "Test")
+        {
+            _testOptions = new TestOptions(n);
+        }
     }
 
     if (_oscOptions == nullptr) _oscOptions = new OSCOptions();
+    if (_testOptions == nullptr) _testOptions = new TestOptions();
 }
 
 void ScheduleOptions::SetAudioDevice(const std::string& audioDevice)
@@ -157,6 +163,7 @@ ScheduleOptions::ScheduleOptions()
 {
     _artNetTimeCodeFormat = 1;
     _oscOptions = new OSCOptions();
+    _testOptions = new TestOptions();
     _password = "";
     _city = "Sydney";
     _passwordTimeout = 30;
@@ -197,6 +204,7 @@ ScheduleOptions::~ScheduleOptions()
     }
     _buttons.clear();
     if (_oscOptions != nullptr) delete _oscOptions;
+    if (_testOptions != nullptr) delete _testOptions;
 }
 
 wxXmlNode* ScheduleOptions::Save()
@@ -290,6 +298,7 @@ wxXmlNode* ScheduleOptions::Save()
     }
 
     if (_oscOptions != nullptr) res->AddChild(_oscOptions->Save());
+    if (_testOptions != nullptr) res->AddChild(_testOptions->Save());
 
     return res;
 }
@@ -371,6 +380,7 @@ bool ScheduleOptions::IsDirty() const
     }
 
     if (_oscOptions != nullptr) res = res || _oscOptions->IsDirty();
+    if (_testOptions != nullptr) res = res || _testOptions->IsDirty();
 
     return res;
 }
@@ -405,6 +415,7 @@ void ScheduleOptions::ClearDirty()
     }
 
     if (_oscOptions != nullptr) _oscOptions->ClearDirty();
+    if (_testOptions != nullptr) _testOptions->ClearDirty();
 }
 
 UserButton* ScheduleOptions::GetButton(const std::string& label) const
@@ -464,6 +475,17 @@ wxXmlNode* OSCOptions::Save()
     return res;
 }
 
+wxXmlNode* TestOptions::Save()
+{
+    wxXmlNode* res = new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Test");
+
+    res->AddAttribute("Mode", DecodeMode(_mode));
+    res->AddAttribute("Level1", wxString::Format("%d", _level1));
+    res->AddAttribute("Level2", wxString::Format("%d", _level2));
+    res->AddAttribute("Interval", wxString::Format("%d", _interval));
+    return res;
+}
+
 OSCFRAME OSCOptions::EncodeFrame(std::string frame) const
 {
     if (frame == "Default (int)") return OSCFRAME::FRAME_DEFAULT;
@@ -476,6 +498,18 @@ OSCFRAME OSCOptions::EncodeFrame(std::string frame) const
 
     wxASSERT(false);
     return OSCFRAME::FRAME_DEFAULT;
+}
+
+TESTMODE TestOptions::EncodeMode(std::string mode) const
+{
+    if (mode == "Alternate") return TESTMODE::TEST_ALTERNATE;
+    if (mode == "Foreground") return TESTMODE::TEST_LEVEL1;
+    if (mode == "A-B-C") return TESTMODE::TEST_A_B_C;
+    if (mode == "A-B-C-All") return TESTMODE::TEST_A_B_C_ALL;
+    if (mode == "A-B-C-All-None") return TESTMODE::TEST_A_B_C_ALL_NONE;
+
+    wxASSERT(false);
+    return TESTMODE::TEST_ALTERNATE;
 }
 
 std::string OSCOptions::DecodeFrame(OSCFRAME frame)
@@ -499,6 +533,25 @@ std::string OSCOptions::DecodeFrame(OSCFRAME frame)
     }
     wxASSERT(false);
     return "Default (int)";
+}
+
+std::string TestOptions::DecodeMode(TESTMODE mode)
+{
+    switch (mode)
+    {
+    case TESTMODE::TEST_ALTERNATE:
+        return "Alternate";
+    case TESTMODE::TEST_A_B_C:
+        return "A-B-C";
+    case TESTMODE::TEST_A_B_C_ALL:
+        return "A-B-C-All";
+    case TESTMODE::TEST_A_B_C_ALL_NONE:
+        return "A-B-C-All-None";
+    case TESTMODE::TEST_LEVEL1:
+        return "Foreground";
+    }
+    wxASSERT(false);
+    return "Alternate";
 }
 
 OSCTIME OSCOptions::EncodeTime(std::string time) const
@@ -536,7 +589,22 @@ void OSCOptions::Load(wxXmlNode* node)
     _lastSavedChangeCount = 0;
 }
 
+void TestOptions::Load(wxXmlNode* node)
+{
+    _mode = EncodeMode(node->GetAttribute("Mode", "Alternate").ToStdString());
+    _level1 = wxAtoi(node->GetAttribute("Level1", "255"));
+    _level2 = wxAtoi(node->GetAttribute("Level2", "0"));
+    _interval = wxAtoi(node->GetAttribute("Interval", "500"));
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+}
+
 OSCOptions::OSCOptions(wxXmlNode* node)
+{
+    Load(node);
+}
+
+TestOptions::TestOptions(wxXmlNode* node)
 {
     Load(node);
 }
@@ -551,6 +619,16 @@ OSCOptions::OSCOptions()
     _serverport = 9000;
     _clientport = 9000;
     _time_not_frames = true;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
+}
+
+TestOptions::TestOptions()
+{
+    _mode = EncodeMode("Alternate");
+    _interval = 500;
+    _level1 = 255;
+    _level2 = 0;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
 }

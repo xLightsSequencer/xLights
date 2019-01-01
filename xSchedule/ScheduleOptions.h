@@ -102,6 +102,46 @@ public:
     void SetBroadcast() { SetIPAddress("255.255.255.255"); }
 };
 
+typedef enum
+{
+    TEST_ALTERNATE,
+    TEST_LEVEL1,
+    TEST_A_B_C,
+    TEST_A_B_C_ALL,
+    TEST_A_B_C_ALL_NONE
+} TESTMODE;
+
+class TestOptions
+{
+    TESTMODE _mode;
+    byte _level1;
+    byte _level2;
+    int _interval;
+    int _changeCount;
+    int _lastSavedChangeCount;
+
+    static std::string DecodeMode(TESTMODE mode);
+    TESTMODE EncodeMode(std::string mode) const;
+    void Load(wxXmlNode* node);
+
+public:
+    TestOptions();
+    TestOptions(wxXmlNode* node);
+    virtual ~TestOptions() {}
+    void SetMode(std::string mode) { if (EncodeMode(mode) != _mode) { _mode = EncodeMode(mode); _changeCount++; } }
+    void SetLevel1(byte level1) { if (level1 != _level1) { _level1 = level1; _changeCount++; } }
+    void SetLevel2(byte level2) { if (level2 != _level2) { _level2 = level2; _changeCount++; } }
+    void SetInterval(int interval) { if (interval != _interval) { _interval = interval; _changeCount++; } }
+    std::string GetMode() const { return DecodeMode(_mode); }
+    TESTMODE GetModeCode() const { return _mode; }
+    byte GetLevel1() const { return _level1; }
+    byte GetLevel2() const { return _level2; }
+    int GetInterval() const { return _interval; }
+    bool IsDirty() const { return _changeCount != _lastSavedChangeCount; }
+    void ClearDirty() { _lastSavedChangeCount = _changeCount; }
+    wxXmlNode* Save();
+};
+
 class ScheduleOptions
 {
     bool _advancedMode;
@@ -122,6 +162,7 @@ class ScheduleOptions
     std::list<std::string> _fppRemotes;
     std::string _audioDevice;
     OSCOptions* _oscOptions;
+    TestOptions* _testOptions;
     std::list<EventBase*> _events;
     int _artNetTimeCodeFormat;
     std::string _city;
@@ -194,6 +235,7 @@ class ScheduleOptions
         void SetPassword(const std::string& password) { if (_password != password) { _password = password; _changeCount++; } }
         void SetCity(const std::string& city) { if (_city != city) { _city = city; _changeCount++; } }
         OSCOptions* GetOSCOptions() const { return _oscOptions; }
+        TestOptions* GetTestOptions() const { return _testOptions; }
 };
 
 #endif

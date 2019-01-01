@@ -293,7 +293,13 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 			
 		Add n Seconds To Current Step Position			
 			Advances (forwarded or backward) the position within the current step by n seconds
-		
+
+		Start test mode <testmode>|<interval>|<foreground>|<background>
+			Puts xSchedule in test mode. Parameters are all optional
+			
+		Stop test mode	
+			Stops test mode and restores xSchedule to its previous mode
+			
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 
 

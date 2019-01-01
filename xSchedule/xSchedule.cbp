@@ -360,6 +360,8 @@
 		<Unit filename="ConfigureMIDITimecodeDialog.h" />
 		<Unit filename="ConfigureOSC.cpp" />
 		<Unit filename="ConfigureOSC.h" />
+		<Unit filename="ConfigureTest.cpp" />
+		<Unit filename="ConfigureTest.h" />
 		<Unit filename="Control.h" />
 		<Unit filename="DeadChannelDialog.cpp" />
 		<Unit filename="DeadChannelDialog.h" />
@@ -654,6 +656,7 @@
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
 		<Unit filename="wxsmith/ConfigureMIDITimecodeDialog.wxs" />
 		<Unit filename="wxsmith/ConfigureOSC.wxs" />
+		<Unit filename="wxsmith/ConfigureTest.wxs" />
 		<Unit filename="wxsmith/DeadChannelDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
@@ -797,6 +800,7 @@
 					<wxDialog wxs="wxsmith/ConfigureMIDITimecodeDialog.wxs" src="ConfigureMIDITimecodeDialog.cpp" hdr="ConfigureMIDITimecodeDialog.h" fwddecl="0" i18n="1" name="ConfigureMIDITimecodeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ExtraIPsDialog.wxs" src="ExtraIPsDialog.cpp" hdr="ExtraIPsDialog.h" fwddecl="0" i18n="1" name="ExtraIPsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ExtraIPDialog.wxs" src="ExtraIPDialog.cpp" hdr="ExtraIPDialog.h" fwddecl="0" i18n="1" name="ExtraIPDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ConfigureTest.wxs" src="ConfigureTest.cpp" hdr="ConfigureTest.h" fwddecl="0" i18n="1" name="ConfigureTest" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>
