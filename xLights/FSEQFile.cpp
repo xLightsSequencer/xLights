@@ -1333,6 +1333,11 @@ void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &r
     }
 }
 FrameData *V2FSEQFile::getFrame(uint32_t frame) {
+    if (m_rangesToRead.empty()) {
+        std::vector<std::pair<uint32_t, uint32_t>> range;
+        range.push_back(std::pair<uint32_t, uint32_t>(0, getMaxChannel()));
+        prepareRead(range);
+    }
     if (frame >= m_seqNumFrames) {
         return nullptr;
     }
