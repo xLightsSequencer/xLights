@@ -77,6 +77,10 @@ ConfigureTest::ConfigureTest(wxWindow* parent, TestOptions* testOptions, wxWindo
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ConfigureTest::OnButton_CancelClick);
 	//*)
 
+    Choice1->Append(_("A"));
+    Choice1->Append(_("B"));
+    Choice1->Append(_("C"));
+
     Choice1->SetStringSelection(_testOptions->GetMode());
     SpinCtrl1->SetValue(_testOptions->GetLevel1());
     SpinCtrl2->SetValue(_testOptions->GetLevel2());

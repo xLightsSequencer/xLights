@@ -36,8 +36,7 @@ typedef enum
     FPPOSCMASTER,
     OSCSLAVE,
     MIDIMASTER,
-    MIDISLAVE,
-    TEST
+    MIDISLAVE
 } SYNCMODE;
 
 class PixelData
@@ -77,7 +76,7 @@ public:
 class ScheduleManager
 {
     SYNCMODE _mode;
-    SYNCMODE _stashMode;
+    bool _testMode;
     int _manualOTL;
     std::string _showDir;
     int _lastSavedChangeCount;
@@ -133,6 +132,7 @@ class ScheduleManager
     void StartStep(const std::string stepName);
     void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
+    void TestFrame(wxByte* buffer, long totalChannels, long msec);
 
     public:
 
@@ -236,7 +236,7 @@ class ScheduleManager
         int DoSync(const std::string& filename, long ms);
         bool IsSlave() const;
         bool IsTest() const;
-        void TestFrame(wxByte* buffer, long totalChannels, long msec);
+        void SetTestMode(bool test) { _testMode = test; }
 };
 
 #endif

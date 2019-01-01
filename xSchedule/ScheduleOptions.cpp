@@ -507,6 +507,9 @@ TESTMODE TestOptions::EncodeMode(std::string mode) const
     if (mode == "A-B-C") return TESTMODE::TEST_A_B_C;
     if (mode == "A-B-C-All") return TESTMODE::TEST_A_B_C_ALL;
     if (mode == "A-B-C-All-None") return TESTMODE::TEST_A_B_C_ALL_NONE;
+    if (mode == "A") return TESTMODE::TEST_A;
+    if (mode == "B") return TESTMODE::TEST_B;
+    if (mode == "C") return TESTMODE::TEST_C;
 
     wxASSERT(false);
     return TESTMODE::TEST_ALTERNATE;
@@ -543,6 +546,12 @@ std::string TestOptions::DecodeMode(TESTMODE mode)
         return "Alternate";
     case TESTMODE::TEST_A_B_C:
         return "A-B-C";
+    case TESTMODE::TEST_A:
+        return "A";
+    case TESTMODE::TEST_B:
+        return "B";
+    case TESTMODE::TEST_C:
+        return "C";
     case TESTMODE::TEST_A_B_C_ALL:
         return "A-B-C-All";
     case TESTMODE::TEST_A_B_C_ALL_NONE:

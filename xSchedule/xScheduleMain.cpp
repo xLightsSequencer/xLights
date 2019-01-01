@@ -2406,6 +2406,7 @@ void xScheduleFrame::OnCustom_VolumeLeftDown(wxMouseEvent& event)
 
 void xScheduleFrame::OnMenuItem_StandaloneSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::STANDALONE);
     RemoteWarning();
     UpdateUI();
@@ -2413,6 +2414,7 @@ void xScheduleFrame::OnMenuItem_StandaloneSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::FPPMASTER);
     RemoteWarning();
     UpdateUI();
@@ -2420,6 +2422,7 @@ void xScheduleFrame::OnMenuItem_FPPMasterSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_FPPRemoteSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::FPPSLAVE);
     RemoteWarning();
     UpdateUI();
@@ -2672,7 +2675,22 @@ void xScheduleFrame::UpdateUI(bool force)
 
     logger_frame.debug("        Managed output to lights %ldms", sw.Time());
 
-    if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
+    if (__schedule->IsTest())
+    {
+        MenuItem_FPPMaster->Check(false);
+        MenuItem_FPPRemote->Check(false);
+        MenuItem_Standalone->Check(false);
+        MenuItem_FPPUnicastRemote->Check(false);
+        MenuItem_OSCMaster->Check(false);
+        MenuItem_FPPOSCMaster->Check(false);
+        MenuItem_OSCRemote->Check(false);
+        MenuItem_ARTNetTimeCodeMaster->Check(false);
+        MenuItem_ARTNetTimeCodeSlave->Check(false);
+        MenuItem_MIDITimeCodeSlave->Check(false);
+        MenuItem_MIDITimeCodeMaster->Check(false);
+        MenuItem_Test->Check(true);
+    }
+    else if (__schedule->GetMode() == SYNCMODE::FPPMASTER)
     {
         MenuItem_FPPMaster->Check(true);
         MenuItem_FPPRemote->Check(false);
@@ -2821,21 +2839,6 @@ void xScheduleFrame::UpdateUI(bool force)
         MenuItem_MIDITimeCodeSlave->Check(false);
         MenuItem_MIDITimeCodeMaster->Check(false);
         MenuItem_Test->Check(false);
-    }
-    else if (__schedule->GetMode() == SYNCMODE::TEST)
-    {
-        MenuItem_FPPMaster->Check(false);
-        MenuItem_FPPRemote->Check(false);
-        MenuItem_Standalone->Check(false);
-        MenuItem_FPPUnicastRemote->Check(false);
-        MenuItem_OSCMaster->Check(false);
-        MenuItem_FPPOSCMaster->Check(false);
-        MenuItem_OSCRemote->Check(false);
-        MenuItem_ARTNetTimeCodeMaster->Check(false);
-        MenuItem_ARTNetTimeCodeSlave->Check(false);
-        MenuItem_MIDITimeCodeSlave->Check(false);
-        MenuItem_MIDITimeCodeMaster->Check(false);
-        MenuItem_Test->Check(true);
     }
     else 
     {
@@ -3097,6 +3100,7 @@ void xScheduleFrame::OnMenuItem_EditFPPRemotesSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_FPPUnicastRemoteSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::FPPUNICASTSLAVE);
     RemoteWarning();
     UpdateUI();
@@ -3121,6 +3125,7 @@ void xScheduleFrame::OnMenuItem_ConfigureOSCSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_FPPOSCMasterSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::FPPOSCMASTER);
     RemoteWarning();
     UpdateUI();
@@ -3145,6 +3150,7 @@ void xScheduleFrame::RemoteWarning()
 
 void xScheduleFrame::OnMenuItem_OSCMasterSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::OSCMASTER);
     RemoteWarning();
     UpdateUI();
@@ -3152,6 +3158,7 @@ void xScheduleFrame::OnMenuItem_OSCMasterSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_OSCRemoteSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::OSCSLAVE);
     RemoteWarning();
     UpdateUI();
@@ -3198,6 +3205,7 @@ void xScheduleFrame::OnMenuItem_EditEventsSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::ARTNETSLAVE);
     RemoteWarning();
     UpdateUI();
@@ -3205,6 +3213,7 @@ void xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected(wxCommandEvent& even
 
 void xScheduleFrame::OnMenuItem_ARTNetTimeCodeMasterSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::ARTNETMASTER);
     RemoteWarning();
     UpdateUI();
@@ -3220,6 +3229,7 @@ void xScheduleFrame::OnMenuItem_CrashSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_MIDITimeCodeMasterSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::MIDIMASTER);
     RemoteWarning();
     UpdateUI();
@@ -3227,6 +3237,7 @@ void xScheduleFrame::OnMenuItem_MIDITimeCodeMasterSelected(wxCommandEvent& event
 
 void xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected(wxCommandEvent& event)
 {
+    __schedule->SetTestMode(false);
     __schedule->SetMode(SYNCMODE::MIDISLAVE);
     RemoteWarning();
     UpdateUI();
@@ -3269,7 +3280,7 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_TestSelected(wxCommandEvent& event)
 {
-    __schedule->SetMode(SYNCMODE::TEST);
+    __schedule->SetTestMode(true);
     RemoteWarning();
     UpdateUI();
 }
@@ -3279,12 +3290,5 @@ void xScheduleFrame::OnMenuItem_ConfigureTestSelected(wxCommandEvent& event)
     if (__schedule->GetOptions()->GetTestOptions() != nullptr)
     {
         ConfigureTest dlg(this, __schedule->GetOptions()->GetTestOptions());
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            auto m = __schedule->GetMode();
-            __schedule->SetMode(SYNCMODE::STANDALONE);
-            __schedule->SetMode(m);
-            RemoteWarning();
-        }
     }
 }

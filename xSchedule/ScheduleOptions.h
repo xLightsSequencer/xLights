@@ -108,7 +108,10 @@ typedef enum
     TEST_LEVEL1,
     TEST_A_B_C,
     TEST_A_B_C_ALL,
-    TEST_A_B_C_ALL_NONE
+    TEST_A_B_C_ALL_NONE,
+    TEST_A,
+    TEST_B,
+    TEST_C
 } TESTMODE;
 
 class TestOptions

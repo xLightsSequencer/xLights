@@ -45,6 +45,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
+    _testMode = false;
     _mainThread = wxThread::GetCurrentId();
     _listenerManager = nullptr;
     _pinger = nullptr;
@@ -78,9 +79,6 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     {
         _mode = (SYNCMODE)config->ReadLong(_("SyncMode"), SYNCMODE::STANDALONE);
     }
-
-    if (_mode == SYNCMODE::TEST) _mode = SYNCMODE::STANDALONE;
-    _stashMode = _mode;
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     _lastSavedChangeCount = 0;
@@ -2428,11 +2426,6 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                 }
                 else if (command == "Start test mode")
                 {
-                    if (!IsTest())
-                    {
-                        _stashMode = GetMode();
-                    }
-
                     wxArrayString pp = wxSplit(parameters, '|');
                     if (pp.size() > 0)
                     {
@@ -2454,14 +2447,11 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     {
                             GetOptions()->GetTestOptions()->SetLevel2(wxAtoi(pp[3]));
                     }
-                    SetMode(SYNCMODE::TEST);
+                    SetTestMode(true);
                 }
                 else if (command == "Stop test mode")
                 {
-                    if (IsTest())
-                    {
-                        SetMode(_stashMode);
-                    }
+                    SetTestMode(false);
                 }
                 else if (command == "Add to the current schedule n minutes")
                 {
@@ -6114,7 +6104,7 @@ std::string ScheduleManager::xScheduleShowDir()
 
 bool ScheduleManager::IsTest() const
 {
-    return _mode == SYNCMODE::TEST;
+    return _testMode;
 }
 
 void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
@@ -6152,23 +6142,23 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
     }
     else
     {
-        byte a = 0;
-        byte b = 0;
-        byte c = 0;
+        byte a = level2;
+        byte b = level2;
+        byte c = level2;
         if (mode == TESTMODE::TEST_A_B_C)
         {
             int pos = msec % (3 * interval);
             if (pos < interval)
             {
-                a = 255;
+                a = level1;
             }
             else if (pos < 2 * interval)
             {
-                b = 255;
+                b = level1;
             }
             else
             {
-                c = 255;
+                c = level1;
             }
         }
         else if (mode == TESTMODE::TEST_A_B_C_ALL)
@@ -6176,21 +6166,21 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
             int pos = msec % (4 * interval);
             if (pos < interval)
             {
-                a = 255;
+                a = level1;
             }
             else if (pos < 2 * interval)
             {
-                b = 255;
+                b = level1;
             }
             else if (pos < 3 * interval)
             {
-                c = 255;
+                c = level1;
             }
             else
             {
-                a = 255;
-                b = 255;
-                c = 255;
+                a = level1;
+                b = level1;
+                c = level1;
             }
         }
         else if (mode == TESTMODE::TEST_A_B_C_ALL_NONE)
@@ -6198,22 +6188,34 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
             int pos = msec % (5 * interval);
             if (pos < interval)
             {
-                a = 255;
+                a = level1;
             }
             else if (pos < 2 * interval)
             {
-                b = 255;
+                b = level1;
             }
             else if (pos < 3 * interval)
             {
-                c = 255;
+                c = level1;
             }
             else if (pos < 4 * interval)
             {
-                a = 255;
-                b = 255;
-                c = 255;
+                a = level1;
+                b = level1;
+                c = level1;
             }
+        }
+        else if (mode == TESTMODE::TEST_A)
+        {
+            a = level1;
+        }
+        else if (mode == TESTMODE::TEST_B)
+        {
+            b = level1;
+        }
+        else if (mode == TESTMODE::TEST_C)
+        {
+            c = level1;
         }
         long tc = (totalChannels / 3) * 3;
         for (size_t i = 0; i < tc; i += 3)
