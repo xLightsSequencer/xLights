@@ -10,6 +10,7 @@
 #include "../xScheduleApp.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../../xLights/FSEQFile.h"
 #include "../../xLights/UtilFunctions.h"
 #include "../../xLights/outputs/OutputManager.h"
 
@@ -87,7 +88,7 @@ std::string PlayListItemFSEQVideo::GetAudioFilename()
     {
         if (_fseqFile != nullptr)
         {
-            return _fseqFile->GetAudioFileName();
+            return _fseqFile->getMediaFilename();
         }
         else
         {
@@ -96,11 +97,11 @@ std::string PlayListItemFSEQVideo::GetAudioFilename()
                 return _cachedAudioFilename;
             }
 
-            FSEQFile f(_fseqFileName);
-            if (f.IsOk())
+            std::unique_ptr<FSEQFile> f(FSEQFile::openFSEQFile(_fseqFileName));
+            if (f)
             {
-                _cachedAudioFilename = f.GetAudioFileName();
-                return f.GetAudioFileName();
+                _cachedAudioFilename = f->getMediaFilename();
+                return f->getMediaFilename();
             }
         }
     }
@@ -147,7 +148,7 @@ void PlayListItemFSEQVideo::LoadAudio()
         {
             logger_base.error("FSEQ Video: Audio file '%s' has a problem opening.", (const char *)af.c_str());
             if (_fseqFile != nullptr)
-                _durationMS = _fseqFile->GetLengthMS();
+                _durationMS = _fseqFile->getTotalTimeMS();
             delete _audioManager;
             _audioManager = nullptr;
         }
@@ -162,8 +163,11 @@ void PlayListItemFSEQVideo::LoadAudio()
         _controlsTimingCache = true;
 
         // If the FSEQ is shorter than the audio ... then override the length
-        FSEQFile fseq(_fseqFileName);
-        size_t durationFSEQ = fseq.GetLengthMS();
+        std::unique_ptr<FSEQFile> fseq(FSEQFile::openFSEQFile(_fseqFileName));
+        size_t durationFSEQ = 0;
+        if (fseq) {
+             durationFSEQ = fseq->getTotalTimeMS();
+        }
         if (durationFSEQ < _durationMS)
         {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
@@ -186,10 +190,9 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
 
     if (wxFile::Exists(_fseqFileName))
     {
-        _fseqFile = new FSEQFile();
-        _fseqFile->Load(_fseqFileName);
-        _msPerFrame = _fseqFile->GetFrameMS();
-        _durationMS = _fseqFile->GetLengthMS();
+        _fseqFile = FSEQFile::openFSEQFile(_fseqFileName);
+        _msPerFrame = _fseqFile->getStepTime();
+        _durationMS = _fseqFile->getTotalTimeMS();
     }
     else
     {
@@ -449,31 +452,32 @@ void PlayListItemFSEQVideo::FastSetDuration()
     std::string af = GetAudioFile();
     if (af == "")
     {
-        FSEQFile fseq(_fseqFileName);
+        std::unique_ptr<FSEQFile> fseq(FSEQFile::openFSEQFile(_fseqFileName));
+        if (fseq) {
+            af = fseq->getMediaFilename();
 
-        af = fseq.GetAudioFileName();
-
-        if (!_overrideAudio && af != "" && wxFile::Exists(af))
-        {
-            _durationMS = AudioManager::GetAudioFileLength(fseq.GetAudioFileName());
-            _controlsTimingCache = true;
-
-            // If the FSEQ is shorter than the audio ... then override the length
-            size_t durationFSEQ = fseq.GetLengthMS();
-            if (_durationMS == 0)
+            if (!_overrideAudio && af != "" && wxFile::Exists(af))
             {
-                logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
-                _durationMS = durationFSEQ;
+                _durationMS = AudioManager::GetAudioFileLength(fseq->getMediaFilename());
+                _controlsTimingCache = true;
+
+                // If the FSEQ is shorter than the audio ... then override the length
+                size_t durationFSEQ = fseq->getTotalTimeMS();
+                if (_durationMS == 0)
+                {
+                    logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
+                    _durationMS = durationFSEQ;
+                }
+                else if (durationFSEQ < _durationMS)
+                {
+                    logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
+                    _durationMS = durationFSEQ;
+                }
             }
-            else if (durationFSEQ < _durationMS)
+            else
             {
-                logger_base.debug("Audio length %ld overridden by FSEQ length %ld.", (long)_durationMS, (long)durationFSEQ);
-                _durationMS = durationFSEQ;
+                _durationMS = fseq->getTotalTimeMS();
             }
-        }
-        else
-        {
-            _durationMS = fseq.GetLengthMS();
         }
     }
     else
@@ -482,8 +486,11 @@ void PlayListItemFSEQVideo::FastSetDuration()
         _controlsTimingCache = true;
 
         // If the FSEQ is shorter than the audio ... then override the length
-        FSEQFile fseq(_fseqFileName);
-        size_t durationFSEQ = fseq.GetLengthMS();
+        std::unique_ptr<FSEQFile> fseq(FSEQFile::openFSEQFile(_fseqFileName));
+        size_t durationFSEQ = 0;
+        if (fseq) {
+            durationFSEQ = fseq->getTotalTimeMS();
+        }
         if (_durationMS == 0)
         {
             logger_base.debug("Audio length %ld overridden by FSEQ length %ld as zero just cant be right ... likely audio file load failed.", (long)_durationMS, (long)durationFSEQ);
@@ -553,18 +560,19 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
                 _audioManager->Play(0, _audioManager->LengthMS());
             }
 
-            if (_fseqFile != nullptr)
-            {
-                if (_channels > 0)
-                {
-                    long sc = GetStartChannelAsNumber();
-                    wxASSERT(sc > 0);
-                    _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, sc - 1, _channels);
+            if (_fseqFile != nullptr) {
+                int frame =  adjustedMS / framems;
+                FSEQFile::FrameData *data = _fseqFile->getFrame(frame);
+                std::vector<wxByte> buf(_fseqFile->getMaxChannel() + 1);
+                data->readFrame(&buf[0]);
+                uint32_t channelsPerFrame = _fseqFile->getMaxChannel() + 1;
+                if (_channels > 0) {
+                    long offset = GetStartChannelAsNumber() - 1;
+                    Blend(buffer, size, &buf[offset], channelsPerFrame, _applyMethod, offset);
+                } else {
+                    Blend(buffer, size, &buf[0], channelsPerFrame, _applyMethod, 0);
                 }
-                else
-                {
-                    _fseqFile->ReadData(buffer, size, adjustedMS / framems, _applyMethod, 0, 0);
-                }
+                delete data;
             }
         }
         _currentFrame++;
@@ -729,7 +737,6 @@ void PlayListItemFSEQVideo::CloseFiles()
 {
     if (_fseqFile != nullptr)
     {
-        _fseqFile->Close();
         delete _fseqFile;
         _fseqFile = nullptr;
     }
@@ -815,17 +822,14 @@ long PlayListItemFSEQVideo::GetFSEQChannels() const
 {
     if (_fseqFile != nullptr)
     {
-        return _fseqFile->GetChannels();
+        return _fseqFile->getMaxChannel() + 1;
     }
     else
     {
         if (wxFile::Exists(_fseqFileName))
         {
-            auto fseqFile = new FSEQFile();
-            fseqFile->Load(_fseqFileName);
-            long ch = fseqFile->GetChannels();
-            fseqFile->Close();
-            delete fseqFile;
+            std::unique_ptr<FSEQFile> fseqFile(FSEQFile::openFSEQFile(_fseqFileName));
+            long ch = fseqFile->getMaxChannel() + 1;
             return ch;
         }
         else

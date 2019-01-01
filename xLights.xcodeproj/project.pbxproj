@@ -284,6 +284,8 @@
 		6794272621CC0E6500F7ED59 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */; };
 		679484AE1CD8E998001A7B4F /* VideoReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679484AB1CD8E998001A7B4F /* VideoReader.cpp */; };
+		6796BAE421DAF37C00F18EF7 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6796BAE321DAF35900F18EF7 /* FSEQFile.cpp */; };
+		6796BAE521DAF44600F18EF7 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6794272521CC0E6500F7ED59 /* libzstd.a */; };
 		6797A1361F427205007CF7A0 /* EffectTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */; };
 		679B1E371AD6C73200927259 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 679B1E361AD6C73200927259 /* Images.xcassets */; };
 		679BD3351C37555C000539FE /* OnPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 679BD3291C37555C000539FE /* OnPanel.cpp */; };
@@ -507,10 +509,10 @@
 		67C5815A1E4B95CA00932DFA /* PlayListItemText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581561E4B95CA00932DFA /* PlayListItemText.cpp */; };
 		67C5815B1E4B95CA00932DFA /* PlayListItemTextPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C581581E4B95CA00932DFA /* PlayListItemTextPanel.cpp */; };
 		67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C78D091FBA2A4900B82E48 /* VideoCache.cpp */; };
+		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67C9E660211FC07E00379E2A /* ViewpointDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65C211FC07E00379E2A /* ViewpointDialog.cpp */; };
 		67C9E661211FC07E00379E2A /* ViewpointMgr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */; };
 		67C9E664211FC08C00379E2A /* VectorMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67C9E662211FC08C00379E2A /* VectorMath.cpp */; };
-		67C7E283215E596000AE0775 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67B6F3422040FBB600B847E0 /* CoreAudio.framework */; };
 		67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CA857E18BE86B800A6268C /* heartbeat.cpp */; };
 		67CB9F2B1C6E1FF400390753 /* VUMeterPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F281C6E1FF400390753 /* VUMeterPanel.cpp */; };
 		67CB9F2C1C6E1FF400390753 /* VUMeterEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67CB9F2A1C6E1FF400390753 /* VUMeterEffect.cpp */; };
@@ -621,7 +623,6 @@
 		67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4C1E329AD800F8B985 /* WebServer.cpp */; };
 		67F23F661E329AD800F8B985 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F4F1E329AD800F8B985 /* md5.cpp */; };
 		67F23F681E329AD800F8B985 /* ESEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F541E329AD800F8B985 /* ESEQFile.cpp */; };
-		67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67F23F561E329AD800F8B985 /* FSEQFile.cpp */; };
 		67F23F7A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib */; };
 		67F23F7B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib */; };
 		67F23F7C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 67F23F6C1E329DDC00F8B985 /* libwx_baseu-3.1.dylib */; };
@@ -1268,6 +1269,7 @@
 		679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenerateCustomModelDialog.h; sourceTree = "<group>"; };
 		679484AB1CD8E998001A7B4F /* VideoReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoReader.cpp; sourceTree = "<group>"; };
 		679484AC1CD8E998001A7B4F /* VideoReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoReader.h; sourceTree = "<group>"; };
+		6796BAE321DAF35900F18EF7 /* FSEQFile.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FSEQFile.cpp; path = xLights/FSEQFile.cpp; sourceTree = "<group>"; };
 		6797A1341F427205007CF7A0 /* EffectTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectTimingDialog.cpp; sourceTree = "<group>"; };
 		6797A1351F427205007CF7A0 /* EffectTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffectTimingDialog.h; sourceTree = "<group>"; };
 		679B1E361AD6C73200927259 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = xLights/Images.xcassets; sourceTree = "<group>"; };
@@ -1861,8 +1863,6 @@
 		67F23F531E329AD800F8B985 /* WebServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebServer.h; sourceTree = "<group>"; };
 		67F23F541E329AD800F8B985 /* ESEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ESEQFile.cpp; sourceTree = "<group>"; };
 		67F23F551E329AD800F8B985 /* ESEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ESEQFile.h; sourceTree = "<group>"; };
-		67F23F561E329AD800F8B985 /* FSEQFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FSEQFile.cpp; sourceTree = "<group>"; };
-		67F23F571E329AD800F8B985 /* FSEQFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEQFile.h; sourceTree = "<group>"; };
 		67F23F581E329AD800F8B985 /* MyTreeItemData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyTreeItemData.h; sourceTree = "<group>"; };
 		67F23F6A1E329DDC00F8B985 /* libwx_baseu_net-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_net-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_net-3.1.dylib"; sourceTree = "<group>"; };
 		67F23F6B1E329DDC00F8B985 /* libwx_baseu_xml-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_baseu_xml-3.1.dylib"; path = "../../../../opt/local/libdbg/libwx_baseu_xml-3.1.dylib"; sourceTree = "<group>"; };
@@ -2071,6 +2071,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6796BAE521DAF44600F18EF7 /* libzstd.a in Frameworks */,
 				67B6F33F2040FB5200B847E0 /* libportmidi.a in Frameworks */,
 				67F23F8A1E329DF500F8B985 /* libavcodec.57.dylib in Frameworks */,
 				67F23F8B1E329DF500F8B985 /* libavformat.57.dylib in Frameworks */,
@@ -2746,6 +2747,7 @@
 		67E7086417B51AB400A22034 = {
 			isa = PBXGroup;
 			children = (
+				6796BAE321DAF35900F18EF7 /* FSEQFile.cpp */,
 				676CFAEB207D2BBD002EB5E7 /* wxJSON */,
 				677989A01F321BC200A26FA9 /* valuecurves */,
 				6733CF041E60659E00B97F60 /* xschedule.mac.properties */,
@@ -3262,8 +3264,6 @@
 				67D75E252020ED19005BAC6E /* EventSerialPanel.h */,
 				6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */,
 				6725FAE71F943AD8007F2D7C /* FPPRemotesDialog.h */,
-				67F23F561E329AD800F8B985 /* FSEQFile.cpp */,
-				67F23F571E329AD800F8B985 /* FSEQFile.h */,
 				6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */,
 				6725FAE41F943AD7007F2D7C /* GammaDialog.h */,
 				67F23F2E1E32994400F8B985 /* Info.plist */,
@@ -3824,6 +3824,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6794272421CC075C00F7ED59 /* FSEQFile.cpp in Sources */,
 				673C925B20A47CEF00E59F5D /* md5.cpp in Sources */,
 				3D585F311E7E541400A3F84F /* UtilFunctions.cpp in Sources */,
 				670C82881C45C48B000AA5D8 /* StarModel.cpp in Sources */,
@@ -3915,7 +3916,6 @@
 				67B2CFEF1C3A186A003C17CA /* FireworksEffect.cpp in Sources */,
 				67E6750A2009993D000E930E /* CachedFileDownloader.cpp in Sources */,
 				676D0F821C72BEBD009C66FC /* kfc.c in Sources */,
-				6794272421CC075C00F7ED59 /* FSEQFile.cpp in Sources */,
 				6761F5F51C4EA041009780DA /* AssistPanel.cpp in Sources */,
 				677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */,
 				67B2CFE31C3A186A003C17CA /* PlasmaEffect.cpp in Sources */,
@@ -4198,6 +4198,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6796BAE421DAF37C00F18EF7 /* FSEQFile.cpp in Sources */,
 				67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */,
 				672F88C920E10BD1005BE1F4 /* PlayListItemMicrophone.cpp in Sources */,
 				670827FE2024C39C0002B617 /* LorController.cpp in Sources */,
@@ -4355,7 +4356,6 @@
 				67F23FEA1E329E7400F8B985 /* PlayListItemAllOff.cpp in Sources */,
 				67D640F01E41169F00381DDA /* PlayListSimpleDialog.cpp in Sources */,
 				67F23FF31E329E7400F8B985 /* PlayListItemFSEQPanel.cpp in Sources */,
-				67F23F691E329AD800F8B985 /* FSEQFile.cpp in Sources */,
 				67BAE10E203F1D68000EA088 /* EventLorPanel.cpp in Sources */,
 				67BCD14F1E6DADFC00F99935 /* Blend.cpp in Sources */,
 				67F23FA71E329E3300F8B985 /* sha1.cpp in Sources */,
@@ -4723,6 +4723,10 @@
 				CODE_SIGN_ENTITLEMENTS = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",
@@ -4740,6 +4744,10 @@
 				CODE_SIGN_ENTITLEMENTS = xSchedule/xSchedule.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = xSchedule/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/lib/osx",
+				);
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-IxLights/ffmpeg-dev/include/",

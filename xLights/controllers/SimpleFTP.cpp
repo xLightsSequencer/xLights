@@ -27,7 +27,6 @@ std::string SimpleFTP::Pwd() {
 
 bool SimpleFTP::Connect(std::string ip, std::string user, std::string password)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ip = ip;
     _ftp.SetUser(user);
     _ftp.SetPassword(password);
@@ -43,7 +42,6 @@ bool SimpleFTP::Connect(std::string ip, std::string user, std::string password)
 
 SimpleFTP::SimpleFTP(std::string ip, std::string user, std::string password)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ip = ip;
     _ftp.SetFlags(wxSOCKET_NOWAIT_WRITE);
     _ftp.SetUser(user);

@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <cstring>
+#include <memory>
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -228,8 +229,22 @@ FSEQFile* FSEQFile::createFSEQFile(const std::string &fn,
     }
     return new V2FSEQFile(fn, ct, level);
 }
-
-
+std::string FSEQFile::getMediaFilename(const std::string &fn) {
+    std::unique_ptr<FSEQFile> file(FSEQFile::openFSEQFile(fn));
+    if (file) {
+        return file->getMediaFilename();
+    }
+    return "";
+}
+std::string FSEQFile::getMediaFilename() const {
+    for (auto &a : m_variableHeaders) {
+        if (a.code[0] == 'm' && a.code[1] == 'f') {
+            const char *d = (const char *)&a.data[0];
+            return d;
+        }
+    }
+    return "";
+}
 
 FSEQFile::FSEQFile(const std::string &fn)
     : m_filename(fn),
@@ -240,9 +255,8 @@ FSEQFile::FSEQFile(const std::string &fn)
     m_uniqueId(0),
     m_seqFileSize(0),
     m_seqVersionMajor(1),
-    m_seqVersionMinor(1),
+    m_seqVersionMinor(0),
     m_memoryBuffer(),
-    m_seqVersion(0),
     m_seqChanDataOffset(0),
     m_memoryBufferPos(0)
 {
@@ -292,7 +306,6 @@ FSEQFile::FSEQFile(const std::string &fn, FILE *file, const std::vector<uint8_t>
     m_seqChanDataOffset = read2ByteUInt(&header[4]);
     m_seqVersionMinor = header[6];
     m_seqVersionMajor = header[7];
-    m_seqVersion      = (m_seqVersionMajor * 256) + m_seqVersionMinor;
     m_seqChannelCount = read4ByteUInt(&header[10]);
     m_seqNumFrames = read4ByteUInt(&header[14]);
     m_seqStepTime = header[18];

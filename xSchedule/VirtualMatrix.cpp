@@ -76,7 +76,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
 {
     _suppress = false;
-    _outputManager = outputManager,
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
     _name = n->GetAttribute("Name", "");
