@@ -21,7 +21,6 @@
     <ClCompile Include="ButtonDetailsDialog.cpp" />
     <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="ESEQFile.cpp" />
-    <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="MatricesDialog.cpp" />
     <ClCompile Include="MatrixMapper.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -479,6 +478,7 @@
       <Filter>Events</Filter>
     </ClCompile>
     <ClCompile Include="EventStatePanel.cpp" />
+    <ClCompile Include="..\xLights\FSEQFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -490,7 +490,6 @@
     <ClInclude Include="ButtonDetailsDialog.h" />
     <ClInclude Include="CommandManager.h" />
     <ClInclude Include="ESEQFile.h" />
-    <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="MatricesDialog.h" />
     <ClInclude Include="MatrixMapper.h" />
     <ClInclude Include="md5.h" />
@@ -935,6 +934,7 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="EventStatePanel.h" />
+    <ClInclude Include="..\xLights\FSEQFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

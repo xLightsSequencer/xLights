@@ -2,7 +2,7 @@
 #define PLAYLISTITEMTEXT_H
 
 #include "PlayListItem.h"
-#include "Blend.h"
+#include "../Blend.h"
 #include <string>
 
 class wxXmlNode;
