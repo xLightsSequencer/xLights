@@ -122,6 +122,8 @@ class TestOptions
     int _interval;
     int _changeCount;
     int _lastSavedChangeCount;
+    long _start;
+    long _end;
 
     static std::string DecodeMode(TESTMODE mode);
     TESTMODE EncodeMode(std::string mode) const;
@@ -135,10 +137,14 @@ public:
     void SetLevel1(byte level1) { if (level1 != _level1) { _level1 = level1; _changeCount++; } }
     void SetLevel2(byte level2) { if (level2 != _level2) { _level2 = level2; _changeCount++; } }
     void SetInterval(int interval) { if (interval != _interval) { _interval = interval; _changeCount++; } }
+    void SetBounds(long start, long end) { _start = start; _end = end; }
+    void ClearBounds() { _start = -1; _end = -1; }
     std::string GetMode() const { return DecodeMode(_mode); }
     TESTMODE GetModeCode() const { return _mode; }
     byte GetLevel1() const { return _level1; }
     byte GetLevel2() const { return _level2; }
+    void GetBounds(long& start, long& end) const { start = _start; end = _end; }
+    bool HasBounds() const { return _start != -1 && _end != -1; }
     int GetInterval() const { return _interval; }
     bool IsDirty() const { return _changeCount != _lastSavedChangeCount; }
     void ClearDirty() { _lastSavedChangeCount = _changeCount; }

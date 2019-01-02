@@ -36,6 +36,7 @@
 #include "Pinger.h"
 #include "events/ListenerManager.h"
 #include "wxMIDI/src/wxMidi.h"
+#include "wxJSON/jsonreader.h"
 
 ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir)
 {
@@ -2433,24 +2434,62 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     if (pp.size() > 1)
                     {
-                        int interval = wxAtoi(pp[1]);
+                        long start = -1;
+                        long end = -1;
+                        std::string data1;
+                        std::string msg1;
+                        RetrieveData("GetModels", data1, msg1);
+                        wxJSONValue  root;
+                        wxJSONReader reader;
+                        int numErrors = reader.Parse(data1, &root);
+                        if (numErrors == 0)
+                        {
+                            auto models = root["models"].AsArray();
+                            if (models != nullptr)
+                            {
+                                auto size = models->size();
+                                for (int i = 0; i < size && start == -1; i++)
+                                {
+                                    auto m = (*models)[i];
+                                    if (m["name"].AsString() == pp[1])
+                                    {
+                                        start = wxAtoi(m["startchannel"].AsString()) - 1;
+                                        end = start + wxAtoi(m["channels"].AsString()) - 1;
+                                    }
+                                }
+                            }
+                            if (start == -1)
+                            {
+                                logger_base.error("Unable to find model '%s' in models JSON", (const char*)pp[1].c_str());
+                            }
+                        }
+                        else
+                        {
+                            logger_base.error("Unable to load models JSON");
+                        }
+                        GetOptions()->GetTestOptions()->SetBounds(start, end);
+                    }
+                    if (pp.size() > 2)
+                    {
+                        int interval = wxAtoi(pp[2]);
                         if (interval > 0)
                         {
                             GetOptions()->GetTestOptions()->SetInterval(interval);
                         }
                     }
-                    if (pp.size() > 2)
-                    {
-                            GetOptions()->GetTestOptions()->SetLevel1(wxAtoi(pp[2]));
-                    }
                     if (pp.size() > 3)
                     {
-                            GetOptions()->GetTestOptions()->SetLevel2(wxAtoi(pp[3]));
+                            GetOptions()->GetTestOptions()->SetLevel1(wxAtoi(pp[3]));
+                    }
+                    if (pp.size() > 4)
+                    {
+                            GetOptions()->GetTestOptions()->SetLevel2(wxAtoi(pp[4]));
                     }
                     SetTestMode(true);
                 }
                 else if (command == "Stop test mode")
                 {
+                    GetOptions()->GetTestOptions()->ClearBounds();
                     SetTestMode(false);
                 }
                 else if (command == "Add to the current schedule n minutes")
@@ -6113,6 +6152,12 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
     auto interval = GetOptions()->GetTestOptions()->GetInterval();
     auto level1 = GetOptions()->GetTestOptions()->GetLevel1();
     auto level2 = GetOptions()->GetTestOptions()->GetLevel2();
+    long start = 0;
+    long end = totalChannels - 1;
+    if (GetOptions()->GetTestOptions()->HasBounds())
+    {
+        GetOptions()->GetTestOptions()->GetBounds(start, end);
+    }
 
     if (mode == TESTMODE::TEST_ALTERNATE)
     {
@@ -6124,7 +6169,7 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
             v1 = level2;
             v2 = level1;
         }
-        for (size_t i = 0; i < totalChannels; i++)
+        for (size_t i = start; i <= end; i++)
         {
             if (i % 2 == 0)
             {
@@ -6138,7 +6183,7 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
     }
     else if (mode == TESTMODE::TEST_LEVEL1)
     {
-        memset(buffer, level1, totalChannels);
+        memset(&buffer[start], level1, end -  start + 1);
     }
     else
     {
@@ -6217,21 +6262,21 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
         {
             c = level1;
         }
-        long tc = (totalChannels / 3) * 3;
-        for (size_t i = 0; i < tc; i += 3)
+        long tc = (end / 3) * 3;
+        for (size_t i = start; i <= tc; i += 3)
         {
             buffer[i] = a;
             buffer[i + 1] = b;
             buffer[i + 2] = c;
         }
 
-        if (tc == totalChannels - 1)
+        if (tc == end - 1)
         {
             buffer[tc] = a;
         }
-        else if (tc == totalChannels - 2)
+        else if (tc == end - 2)
         {
-            buffer[tc] = b;
+            buffer[tc+1] = b;
         }
     }
 }

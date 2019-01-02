@@ -483,6 +483,7 @@ wxXmlNode* TestOptions::Save()
     res->AddAttribute("Level1", wxString::Format("%d", _level1));
     res->AddAttribute("Level2", wxString::Format("%d", _level2));
     res->AddAttribute("Interval", wxString::Format("%d", _interval));
+    // _start and _end deliberately not saved
     return res;
 }
 
@@ -610,11 +611,17 @@ void TestOptions::Load(wxXmlNode* node)
 
 OSCOptions::OSCOptions(wxXmlNode* node)
 {
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
     Load(node);
 }
 
 TestOptions::TestOptions(wxXmlNode* node)
 {
+    _start = -1;
+    _end = -1;
+    _changeCount = 0;
+    _lastSavedChangeCount = 0;
     Load(node);
 }
 
@@ -640,6 +647,8 @@ TestOptions::TestOptions()
     _level2 = 0;
     _changeCount = 0;
     _lastSavedChangeCount = 0;
+    _start = -1;
+    _end = -1;
 }
 
 ExtraIP::ExtraIP(const std::string& ip, const std::string& description)

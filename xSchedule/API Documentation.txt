@@ -294,8 +294,9 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 		Add n Seconds To Current Step Position			
 			Advances (forwarded or backward) the position within the current step by n seconds
 
-		Start test mode <testmode>|<interval>|<foreground>|<background>
+		Start test mode <testmode>|<model>|<interval>|<foreground>|<background>
 			Puts xSchedule in test mode. Parameters are all optional
+			If model is blank all channels are tested. If model is specified only that model is tested
 			
 		Stop test mode	
 			Stops test mode and restores xSchedule to its previous mode
@@ -311,6 +312,9 @@ http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 		retrieve <key>
 			Retrieves the data from the key value. If the key does not exist a failure result is returned.
 
+	By default there is a key created which contains a JSON description of all available models
+			http://<host:port>/xScheduleStash?Command=retrieve&Key=GetModels
+			
 http://<host:port>/<wwwroot>/<file>
 
 	This type of request is a simple web request which will download the specified file from the web folder the user has specified in options. images, html, css, javascript files can all be stored here.
