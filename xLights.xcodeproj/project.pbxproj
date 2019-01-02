@@ -322,6 +322,7 @@
 		67A260EE1AB71EE3006B140D /* DrawGLUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */; };
 		67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */; };
 		67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */; };
+		67A54DB421DCF8030021B17B /* ConfigureTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A54DB221DCF8030021B17B /* ConfigureTest.cpp */; };
 		67A61A2717B51C0F008E95BB /* ChannelLayoutDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */; };
 		67A61A2C17B51C0F008E95BB /* EffectListDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619C817B51C0F008E95BB /* EffectListDialog.cpp */; };
 		67A61A2D17B51C0F008E95BB /* EffectsPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67A619CA17B51C0F008E95BB /* EffectsPanel.cpp */; };
@@ -1311,6 +1312,8 @@
 		67A327021836A04A00EABDF4 /* ExportModelSelect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExportModelSelect.cpp; sourceTree = "<group>"; };
 		67A4E02A1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CustomTimingDialog.cpp; sourceTree = "<group>"; };
 		67A4E02B1E85AF1E00EBFAD9 /* CustomTimingDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomTimingDialog.h; sourceTree = "<group>"; };
+		67A54DB221DCF8030021B17B /* ConfigureTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigureTest.cpp; sourceTree = "<group>"; };
+		67A54DB321DCF8030021B17B /* ConfigureTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigureTest.h; sourceTree = "<group>"; };
 		67A619BE17B51C0F008E95BB /* ChannelLayoutDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ChannelLayoutDialog.cpp; sourceTree = "<group>"; };
 		67A619BF17B51C0F008E95BB /* ChannelLayoutDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelLayoutDialog.h; sourceTree = "<group>"; };
 		67A619C817B51C0F008E95BB /* EffectListDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectListDialog.cpp; sourceTree = "<group>"; };
@@ -3207,6 +3210,8 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				67A54DB221DCF8030021B17B /* ConfigureTest.cpp */,
+				67A54DB321DCF8030021B17B /* ConfigureTest.h */,
 				675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */,
 				675081EE21B80F0400A48CD1 /* EventStatePanel.h */,
 				670B171421973D06004F0993 /* ExtraIPDialog.cpp */,
@@ -4339,6 +4344,7 @@
 				67F23F5D1E329AD800F8B985 /* xScheduleMain.cpp in Sources */,
 				67480D542072773F00B3ED60 /* EventPing.cpp in Sources */,
 				67F23FF01E329E7400F8B985 /* PlayListItemESEQ.cpp in Sources */,
+				67A54DB421DCF8030021B17B /* ConfigureTest.cpp in Sources */,
 				67F23F5B1E329AD800F8B985 /* ScheduleManager.cpp in Sources */,
 				1ECB4F7C1FF635EE006D57AA /* PlayListItemOSCPanel.cpp in Sources */,
 				67D75E5D2020ED60005BAC6E /* EventE131.cpp in Sources */,
