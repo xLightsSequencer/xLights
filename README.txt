@@ -11,7 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.02 January 2, 2019
    -- enh (keith)  Add xSchedule test mode
+   -- bug (keith)  Fix 3D undo crash and loss of objects
+   -- bug (keith)  More keybindings work to try to isolate the problem
+   -- bug (keith)  Fix cant change model to single channel
+   -- bug (scott)  Timing track rename does not show you current name
 2019.01 January 1, 2019
    -- enh (gil)    Add 3d
    -- enh (keith)  Test for out of order universes on a controller in check sequence
