@@ -202,6 +202,10 @@ const std::map<std::string, std::string> ConvertKeys =
 };
 
 void KeyBindingMap::LoadDefaults() {
+
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.debug("Loading default keybindings.");
+
     bindings.push_back(KeyBinding("F10", false, "BACKUP"));
     bindings.push_back(KeyBinding("F11", false, "ALTERNATE_BACKUP"));
     bindings.push_back(KeyBinding("F9", false, "SELECT_SHOW_FOLDER"));
@@ -505,7 +509,11 @@ wxString KeyBindingMap::ParseKey(wxString key, bool& ctrl, bool& alt, bool& shif
 }
 
 void KeyBindingMap::Load(wxFileName &fileName) {
+
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (fileName.Exists()) {
+        logger_base.debug("Loading keybindings.");
         wxXmlDocument doc;
         if (doc.Load(fileName.GetFullPath())) {
             bindings.clear();
@@ -570,6 +578,7 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                     bool ctrl = false;
                     bool alt = false;
                     bool shift = false;
+                    logger_base.debug("Adding essential keybinding %s.", (const char *)it->first.c_str());
                     wxString key = ParseKey(it->second, ctrl, alt, shift);
                     bindings.push_back(KeyBinding(key, false, it->first, ctrl, alt, shift));
                 }
@@ -591,11 +600,13 @@ void KeyBindingMap::Load(wxFileName &fileName) {
                     }
                     if (!found)
                     {
+                        logger_base.debug("Adding missing keybinding %s.", (const char *)it->first.c_str());
                         bindings.push_back(KeyBinding(WXK_NONE, true, it->first, false, false, false));
                     }
                 }
             }
         }
+        logger_base.debug("Keybindings loaded.");
     }
 
     std::string invalid = "";
@@ -610,9 +621,22 @@ void KeyBindingMap::Load(wxFileName &fileName) {
     {
         DisplayError("Keybindings contains invalid bindings:\n\n" + invalid);
     }
+
+    for (auto b: bindings)
+    {
+        if (b.GetType() == "TIMING_ADD")
+        {
+            logger_base.debug("On load - TIMING_ADD: " + b.Description());
+        }
+    }
 }
 
 void KeyBindingMap::Save(wxFileName &fileName) {
+
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Saving keybindings.");
+
     wxXmlDocument doc;
     wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, "keybindings");
     doc.SetRoot(root);
@@ -626,7 +650,6 @@ void KeyBindingMap::Save(wxFileName &fileName) {
 // FIXME ... once I work out why this happens this can be removed
         if (binding.GetType() == "TIMING_ADD" && (key == WXK_NONE || KeyBinding::EncodeKey(key, binding.RequiresShift()) == ""))
         {
-            log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
             logger_base.debug("TIMING_ADD: " + binding.Description());
             DisplayError("Your keybindings appear corrupt. Can you please use the tools menu Package Logs option and send us the file so we can work out why.");
         }
@@ -659,6 +682,8 @@ void KeyBindingMap::Save(wxFileName &fileName) {
         root->AddChild(child);
     }
     doc.Save(fileName.GetFullPath());
+
+    logger_base.debug("Keybindings saved.");
 }
 
 std::string KeyBindingMap::Dump()
