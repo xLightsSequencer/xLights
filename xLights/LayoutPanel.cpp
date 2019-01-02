@@ -4505,7 +4505,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             gdoc.Load(gin);
             wxStringInputStream min(undoBuffer[sz].models);
             wxXmlDocument mdoc(min);
-            wxStringInputStream oin(undoBuffer[sz].models);
+            wxStringInputStream oin(undoBuffer[sz].objects);
             wxXmlDocument odoc(oin);
 
             wxXmlNode *m = xlights->ModelsNode->GetChildren();
@@ -4571,6 +4571,10 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->MarkEffectsFileDirty(true);
             ViewObject *vobj = xlights->AllObjects[origName];
             SelectViewObject(vobj);
+        }
+        else
+        {
+            wxASSERT(false);
         }
         modelPreview->SetFocus();
 
