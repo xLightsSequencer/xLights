@@ -797,7 +797,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     if (i & Model::GRIDCHANGE_REBUILD_PROP_GRID) {
                         CallAfter(&LayoutPanel::resetPropertyGrid);
                     }
-                    if (i & Model::GRIDCHANGE_REBUILD_MODEL_LIST | Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS)
+                    if (i & (Model::GRIDCHANGE_REBUILD_MODEL_LIST | Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS))
                     {
                         // if these values were returned then some absolute start channels may have changed
                         xlights->RecalcModels(true);

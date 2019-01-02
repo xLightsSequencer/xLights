@@ -3391,7 +3391,8 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode *node)
     }
     else if (version == 2) {
         if (node->HasAttribute("NumPoints")) {
-            float worldPos_x, worldPos_y;
+            float worldPos_x = 0.0;
+            float worldPos_y = 0.0;
             int num_points = wxAtoi(node->GetAttribute("NumPoints", "2"));
             wxString point_data = node->GetAttribute("PointData", "0.0, 0.0, 0.0, 0.0, 0.0, 0.0");
             wxArrayString point_array = wxSplit(point_data, ',');
