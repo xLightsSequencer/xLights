@@ -1,13 +1,14 @@
 #include "ScheduleOptions.h"
+
 #include <wx/xml/xml.h>
 #include <wx/wxcrt.h>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <wx/dir.h> // Linux needs this
+
+#include "../xLights/AudioManager.h"
 #include "UserButton.h"
 #include "CommandManager.h"
-#include "../xLights/AudioManager.h"
-#include <log4cpp/Category.hh>
 #include "events/EventBase.h"
 #include "events/EventARTNet.h"
 #include "events/EventSerial.h"
@@ -19,6 +20,8 @@
 #include "events/EventState.h"
 #include "events/EventE131.h"
 #include "events/EventData.h"
+
+#include <log4cpp/Category.hh>
 
 ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, CommandManager* commandManager)
 {

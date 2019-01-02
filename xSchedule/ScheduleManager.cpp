@@ -230,7 +230,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 
     // This is out frame data buffer ... it cannot be resized
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
-    _buffer = (wxByte*)malloc(_outputManager->GetTotalChannels());
+    _buffer = (uint8_t*)malloc(_outputManager->GetTotalChannels());
     memset(_buffer, 0x00, _outputManager->GetTotalChannels());
 }
 
@@ -789,7 +789,7 @@ void ScheduleManager::AllOff()
             CreateBrightnessArray();
         }
 
-        wxByte* pb = _buffer;
+        uint8_t* pb = _buffer;
         for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
         {
             *pb = _brightnessArray[*pb];
@@ -857,7 +857,7 @@ int ScheduleManager::Frame(bool outputframe)
                 CreateBrightnessArray();
             }
 
-            wxByte* pb = _buffer;
+            uint8_t* pb = _buffer;
             for (int i = 0; i < totalChannels; ++i)
             {
                 *pb = _brightnessArray[*pb];
@@ -1010,7 +1010,7 @@ int ScheduleManager::Frame(bool outputframe)
                         CreateBrightnessArray();
                     }
 
-                    wxByte* pb = _buffer;
+                    uint8_t* pb = _buffer;
                     for (int i = 0; i < totalChannels; ++i)
                     {
                         *pb = _brightnessArray[*pb];
@@ -1126,7 +1126,7 @@ int ScheduleManager::Frame(bool outputframe)
                         CreateBrightnessArray();
                     }
 
-                    wxByte* pb = _buffer;
+                    uint8_t* pb = _buffer;
                     for (int i = 0; i < totalChannels; ++i)
                     {
                         *pb = _brightnessArray[*pb];
@@ -1189,7 +1189,7 @@ int ScheduleManager::Frame(bool outputframe)
                             CreateBrightnessArray();
                         }
 
-                        wxByte* pb = _buffer;
+                        uint8_t* pb = _buffer;
                         for (int i = 0; i < totalChannels; ++i)
                         {
                             *pb = _brightnessArray[*pb];
@@ -1233,7 +1233,7 @@ void ScheduleManager::CreateBrightnessArray()
     for (size_t i = 0; i < 256; i++)
     {
         int b = (i * _brightness) / 100;
-        _brightnessArray[i] = (wxByte)(b & 0xFF);
+        _brightnessArray[i] = (uint8_t)(b & 0xFF);
     }
 }
 
@@ -4954,7 +4954,7 @@ PixelData::PixelData(size_t startChannel, size_t channels, const wxColor& c, APP
     _startChannel = startChannel;
     _blendMode = blendMode;
     _size = channels;
-    _data = (wxByte*)malloc(_size);
+    _data = (uint8_t*)malloc(_size);
 
     SetColor(c, blendMode);
 }
@@ -4990,7 +4990,7 @@ PixelData::~PixelData()
     }
 }
 
-void PixelData::Set(wxByte* buffer, size_t size)
+void PixelData::Set(uint8_t* buffer, size_t size)
 {
     if (_data != nullptr)
     {
@@ -5008,7 +5008,7 @@ void PixelData::ExtractData(const std::string& data)
     {
         delete _data;
     }
-    _data = (wxByte*)malloc(_size);
+    _data = (uint8_t*)malloc(_size);
     if (_data != nullptr)
     {
         for (size_t i = 0; i < _size; ++i)
@@ -5444,7 +5444,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
 
     if (sendresync)
     {
-        wxByte buffer[10];
+        uint8_t buffer[10];
         size_t ms = msec;
 
         ms += GetOptions()->GetMIDITimecodeOffset();
@@ -6146,7 +6146,7 @@ bool ScheduleManager::IsTest() const
     return _testMode;
 }
 
-void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
+void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
 {
     auto mode = GetOptions()->GetTestOptions()->GetModeCode();
     auto interval = GetOptions()->GetTestOptions()->GetInterval();
@@ -6187,9 +6187,9 @@ void ScheduleManager::TestFrame(wxByte* buffer, long totalChannels, long msec)
     }
     else
     {
-        byte a = level2;
-        byte b = level2;
-        byte c = level2;
+        uint8_t a = level2;
+        uint8_t b = level2;
+        uint8_t c = level2;
         if (mode == TESTMODE::TEST_A_B_C)
         {
             int pos = msec % (3 * interval);

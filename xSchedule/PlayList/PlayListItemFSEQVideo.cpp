@@ -541,7 +541,7 @@ size_t PlayListItemFSEQVideo::GetPositionMS() const
     }
 }
 
-void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     size_t adjustedMS = ms - _delay;
@@ -563,7 +563,7 @@ void PlayListItemFSEQVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t
             if (_fseqFile != nullptr) {
                 int frame =  adjustedMS / framems;
                 FSEQFile::FrameData *data = _fseqFile->getFrame(frame);
-                std::vector<wxByte> buf(_fseqFile->getMaxChannel() + 1);
+                std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
                 data->readFrame(&buf[0]);
                 uint32_t channelsPerFrame = _fseqFile->getMaxChannel() + 1;
                 if (_channels > 0) {

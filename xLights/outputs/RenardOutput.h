@@ -13,7 +13,7 @@ class RenardOutput : public SerialOutput
 {
     #pragma region Member Variables
     int _datalen;
-    std::vector<wxByte> _data;
+    std::vector<uint8_t> _data;
     #pragma endregion Member Variables
 
 public:

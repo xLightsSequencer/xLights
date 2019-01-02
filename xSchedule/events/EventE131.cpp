@@ -23,13 +23,13 @@ wxXmlNode* EventE131::Save()
     return en;
 }
 
-void EventE131::Process(int universe, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager)
+void EventE131::Process(int universe, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager)
 {
     if (universe != _universe) return;
 
     if (_channel >= 1 && _channel <= buffersize)
     {
-        wxByte value = *(buffer + _channel - 1);
+        uint8_t value = *(buffer + _channel - 1);
 
         if (EvaluateCondition(value))
         {

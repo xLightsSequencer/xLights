@@ -6,7 +6,7 @@
 #include "../Control.h"
 #include "../../xLights/UtilFunctions.h"
 
-bool ListenerFPPUnicast::IsValidHeader(wxByte* buffer)
+bool ListenerFPPUnicast::IsValidHeader(uint8_t* buffer)
 {
     return  buffer[0] == 'F' &&
             buffer[1] == 'P' &&

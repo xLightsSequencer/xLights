@@ -342,7 +342,7 @@ bool SDL::CloseInputAudioDevice()
 
 void SDL::PurgeAllButInputAudio(int ms)
 {
-    wxByte buffer[8192];
+    uint8_t buffer[8192];
     int bytesNeeded = DEFAULT_RATE * ms / 1000 * 2;
 
     while (SDL_GetQueuedAudioSize(_inputdev) > bytesNeeded)

@@ -54,7 +54,7 @@ void OutputProcessDimWhite::BuildDimTable()
     }
 }
 
-void OutputProcessDimWhite::Frame(wxByte* buffer, size_t size)
+void OutputProcessDimWhite::Frame(uint8_t* buffer, size_t size)
 {
     if (!_enabled) return;
     if (_dim == 100) return;
@@ -65,7 +65,7 @@ void OutputProcessDimWhite::Frame(wxByte* buffer, size_t size)
 
     for (int i = 0; i < nodes; i++)
     {
-        wxByte* p = buffer + (sc - 1) + (i * 3);
+        uint8_t* p = buffer + (sc - 1) + (i * 3);
 
         if (*p == *(p+1) && *p == *(p+2))
         {

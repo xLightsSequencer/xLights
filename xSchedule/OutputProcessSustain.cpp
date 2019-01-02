@@ -41,14 +41,14 @@ wxXmlNode* OutputProcessSustain::Save()
     return res;
 }
 
-void OutputProcessSustain::Frame(wxByte* buffer, size_t size)
+void OutputProcessSustain::Frame(uint8_t* buffer, size_t size)
 {
     size_t sc = GetStartChannelAsNumber();
     size_t chs = std::min(_channels, size - (sc - 1));
 
     if (_save == nullptr)
     {
-        _save = (wxByte*)malloc(chs);
+        _save = (uint8_t*)malloc(chs);
         memset(_save, 0x00, chs);
     }
 

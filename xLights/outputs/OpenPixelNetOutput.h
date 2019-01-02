@@ -13,8 +13,8 @@ class OpenPixelNetOutput : public SerialOutput
 {
     #pragma region Member Variables
     int _datalen;
-    wxByte _data[OPENPIXELNET_MAX_CHANNELS];
-    wxByte _serialBuffer[OPENPIXELNET_MAX_CHANNELS + 8];
+    uint8_t _data[OPENPIXELNET_MAX_CHANNELS];
+    uint8_t _serialBuffer[OPENPIXELNET_MAX_CHANNELS + 8];
     #pragma endregion Member Variables
 
 public:

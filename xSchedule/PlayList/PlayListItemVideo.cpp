@@ -203,7 +203,7 @@ void PlayListItemVideo::OpenFiles(bool doCache)
     }
 }
 
-void PlayListItemVideo::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     //logger_base.debug("Video rendering frame %ld for video %s.", (long)ms, (const char *)GetNameNoTime().c_str());

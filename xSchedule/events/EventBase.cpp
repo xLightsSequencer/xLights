@@ -54,7 +54,7 @@ std::string EventBase::DefaultParmTooltip()
     return "Available:\n\n   %CHVALUE% - Channel value\n   %CHVALUE100% - Channel value scaled from 0-255 to 0-100\n   %CHVALUE255% - Channel value scaled from 0-100 to 0-255";
 }
 
-void EventBase::ProcessCommand(wxByte value, ScheduleManager* scheduleManager)
+void EventBase::ProcessCommand(uint8_t value, ScheduleManager* scheduleManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString p1 = _parm1;
@@ -89,7 +89,7 @@ void EventBase::ProcessCommand(wxByte value, ScheduleManager* scheduleManager)
     logger_base.debug("    Event processed.");
 }
 
-bool EventBase::EvaluateCondition(wxByte value)
+bool EventBase::EvaluateCondition(uint8_t value)
 {
     bool res = false;
     bool changed = _first || _lastValue != value;

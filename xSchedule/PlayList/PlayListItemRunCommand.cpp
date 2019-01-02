@@ -78,7 +78,7 @@ std::string PlayListItemRunCommand::GetNameNoTime() const
     return "Run Command";
 }
 
-void PlayListItemRunCommand::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemRunCommand::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

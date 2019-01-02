@@ -722,7 +722,7 @@ wxString xLightsRequest(int xFadePort, wxString message, wxString ipAddress)
     {
         logger_base.debug("Sending xLights message %s", (const char *)message.c_str());
         socket.WriteMsg(message.c_str(), message.size() + 1);
-        wxByte buffer[1534];
+        uint8_t buffer[1534];
         memset(buffer, 0x00, sizeof(buffer));
         int read = 0;
         while (read == 0)

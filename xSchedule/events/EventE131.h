@@ -19,7 +19,7 @@ class EventE131: public EventBase
         void SetChannel(int channel) { if (_channel != channel) { _channel = channel; _changeCount++; } }
         int GetUniverse() const { return _universe; }
         int GetChannel() const { return _channel; }
-        virtual void Process(int universe, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) override;
+        virtual void Process(int universe, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) override;
         static std::string GetParmToolTip();
 };
 

@@ -102,7 +102,7 @@ public:
     bool GetLastOnce() const
     { return _lastOnlyOnce; }
     void SetLastOnce(bool foo) { if (_lastOnlyOnce != foo) { _lastOnlyOnce = foo; _changeCount++; } }
-    bool Frame(wxByte* buffer, size_t size, bool outputframe); // true if this was the last frame
+    bool Frame(uint8_t* buffer, size_t size, bool outputframe); // true if this was the last frame
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
     void StopAtEndOfThisLoop() { _lastLoop = true; }

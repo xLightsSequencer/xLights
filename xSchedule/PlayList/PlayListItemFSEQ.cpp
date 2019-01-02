@@ -461,7 +461,7 @@ bool PlayListItemFSEQ::Done() const
     return GetPositionMS() >= GetDurationMS() - _msPerFrame;
 }
 
-void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemFSEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -484,7 +484,7 @@ void PlayListItemFSEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
                 
                 int frame =  ms / framems;
                 FSEQFile::FrameData *data = _fseqFile->getFrame(frame);
-                std::vector<wxByte> buf(_fseqFile->getMaxChannel() + 1);
+                std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
                 data->readFrame(&buf[0]);
                 uint32_t channelsPerFrame = _fseqFile->getMaxChannel() + 1;
                 if (_channels > 0) {

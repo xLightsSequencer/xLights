@@ -14,7 +14,7 @@ class ESEQFile
 	size_t _offset;
 	size_t _modelSize;
     wxFile* _fh;
-    wxByte* _frameBuffer;
+    uint8_t* _frameBuffer;
     size_t _frame0Offset;
     bool _ok;
 
@@ -29,7 +29,7 @@ class ESEQFile
 		void Load(const std::string& filename);
 		virtual ~ESEQFile();
 		int GetLengthFrames() const { return _frames; }
-		void ReadData(wxByte* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod);
+		void ReadData(uint8_t* buffer, size_t buffersize, size_t frame, APPLYMETHOD applyMethod);
 		bool IsOk() const { return _ok; }
 		size_t GetChannels() const { return _channelsPerFrame; }
 		size_t GetOffset() const { return _offset; }

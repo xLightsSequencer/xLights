@@ -76,8 +76,8 @@ void E131Output::CreateMultiUniverses(int num)
 void E131Output::SendSync(int syncUniverse)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static wxByte syncdata[E131_SYNCPACKET_LEN];
-    static wxByte syncSequenceNum = 0;
+    static uint8_t syncdata[E131_SYNCPACKET_LEN];
+    static uint8_t syncSequenceNum = 0;
     static bool initialised = false;
     static wxUint16 _lastsyncuniverse = 0;
     static wxIPV4address syncremoteAddr;
@@ -115,7 +115,7 @@ void E131Output::SendSync(int syncUniverse)
             wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
-            syncdata[j++] = (wxByte)((msb << 4) | lsb);
+            syncdata[j++] = (uint8_t)((msb << 4) | lsb);
         }
 
         syncdata[38] = 0x70;  // Framing Protocol flags and length (high)
@@ -251,8 +251,8 @@ bool E131Output::Open()
 
         memset(_data, 0x00, sizeof(_data));
         _sequenceNum = 0;
-        wxByte UnivHi = _universe >> 8;   // Universe Number (high)
-        wxByte UnivLo = _universe & 0xff; // Universe Number (low)
+        uint8_t UnivHi = _universe >> 8;   // Universe Number (high)
+        uint8_t UnivLo = _universe & 0xff; // Universe Number (low)
 
         _data[1] = 0x10;   // RLP preamble size (low)
         _data[4] = 0x41;   // ACN Packet Identifier (12 bytes)
@@ -280,7 +280,7 @@ bool E131Output::Open()
             wxChar lsb = id.GetChar(i + 1);
             msb -= isdigit(msb) ? 0x30 : 0x57;
             lsb -= isdigit(lsb) ? 0x30 : 0x57;
-            _data[j++] = (wxByte)((msb << 4) | lsb);
+            _data[j++] = (uint8_t)((msb << 4) | lsb);
         }
 
         _data[38] = 0x72;  // Framing Protocol flags and length (high)
@@ -314,15 +314,15 @@ bool E131Output::Open()
         _remoteAddr.Service(E131_PORT);
 
         int i = _channels;
-        wxByte NumHi = (_channels + 1) >> 8;   // Channels (high)
-        wxByte NumLo = (_channels + 1) & 0xff; // Channels (low)
+        uint8_t NumHi = (_channels + 1) >> 8;   // Channels (high)
+        uint8_t NumLo = (_channels + 1) & 0xff; // Channels (low)
 
         _data[123] = NumHi;  // Property value count (high)
         _data[124] = NumLo;  // Property value count (low)
 
         i = E131_PACKET_LEN - 16 - (512 - _channels);
-        wxByte hi = i >> 8;   // (high)
-        wxByte lo = i & 0xff; // (low)
+        uint8_t hi = i >> 8;   // (high)
+        uint8_t lo = i & 0xff; // (low)
 
         _data[16] = hi + 0x70;  // RLP Protocol flags and length (high)
         _data[17] = lo;  // 0x26e = E131_PACKET_LEN - 16

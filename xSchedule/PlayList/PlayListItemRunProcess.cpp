@@ -78,7 +78,7 @@ std::string PlayListItemRunProcess::GetTooltip()
     return GetTagHint() + "\n    %SHOWDIR% - the current show directory";
 }
 
-void PlayListItemRunProcess::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemRunProcess::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

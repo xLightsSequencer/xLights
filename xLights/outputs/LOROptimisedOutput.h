@@ -7,9 +7,9 @@
 // Should be called with: 0 <= chindex <= 3839 (max channels=240*16)
 
 struct LORDataPair {
-    wxByte value;
+    uint8_t value;
     wxWord bits;
-    LORDataPair( wxByte value_, wxWord bits_ )
+    LORDataPair( uint8_t value_, wxWord bits_ )
     : value(value_), bits(bits_)
     {
     }
@@ -19,10 +19,10 @@ class LOROptimisedOutput : public LOROutput
 {
     static const unsigned int MAX_BANKS = 64;
     #pragma region Member Variables
-    wxByte _unit_id = 0x01;
+    uint8_t _unit_id = 0x01;
     bool banks_changed[MAX_BANKS];
     bool unit_id_in_use[256];
-    wxByte _curData[LOR_MAX_CHANNELS];
+    uint8_t _curData[LOR_MAX_CHANNELS];
     LorControllers _controllers;
     #pragma endregion Member Variables
 
@@ -53,7 +53,7 @@ public:
     virtual void SetOneChannel(long channel, unsigned char data) override;
     virtual void SetManyChannels(long channel, unsigned char data[], long size) override;
     virtual void AllOff() override;
-    void GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb);
+    void GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb);
     #pragma endregion Data Setting
 
 #ifndef EXCLUDENETWORKUI

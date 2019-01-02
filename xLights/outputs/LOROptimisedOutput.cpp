@@ -100,7 +100,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
 
         while( controller_channels_to_process > 0 ) {
             size_t idx = 0;  // running index for placing next byte
-            wxByte d[8192];
+            uint8_t d[8192];
             std::vector< std::vector<LORDataPair> > lorBankData;
             lorBankData.resize((channels_per_pass/16)+1);
 
@@ -172,8 +172,8 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
                                 // send a value byte command for 0 if in color mode
                                 // otherwise its either all off or all on and will be covered
                                 // by other commands.
-                                wxByte lsb = lorBankData[bank][i].bits & 0xFF;
-                                wxByte msb = lorBankData[bank][i].bits >> 8;
+                                uint8_t lsb = lorBankData[bank][i].bits & 0xFF;
+                                uint8_t msb = lorBankData[bank][i].bits >> 8;
                                 d[idx++] = 0;
                                 d[idx++] = unit_id;
                                 d[idx++] = 0x53;
@@ -199,8 +199,8 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
                     // send all the channels with 0xFF first
                     for (int i = 0; i < num_bank_records; ++i) {
                         if (lorBankData[bank][i].value == 0xFF) {
-                            wxByte lsb = lorBankData[bank][i].bits & 0xFF;
-                            wxByte msb = lorBankData[bank][i].bits >> 8;
+                            uint8_t lsb = lorBankData[bank][i].bits & 0xFF;
+                            uint8_t msb = lorBankData[bank][i].bits >> 8;
                             bool value_byte = lorBankData[bank][i].value != 0xFF;
                             GenerateCommand(d, idx, unit_id, bank, value_byte, _data[lorBankData[bank][i].value], lsb, msb);
                         }
@@ -209,8 +209,8 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
                     // now send all commands that are values between 0 and FF
                     for (int i = 0; i < num_bank_records; ++i) {
                         if ((lorBankData[bank][i].value != 0) && (lorBankData[bank][i].value != 0xFF)) {
-                            wxByte lsb = lorBankData[bank][i].bits & 0xFF;
-                            wxByte msb = lorBankData[bank][i].bits >> 8;
+                            uint8_t lsb = lorBankData[bank][i].bits & 0xFF;
+                            uint8_t msb = lorBankData[bank][i].bits >> 8;
                             bool value_byte = lorBankData[bank][i].value != 0xFF;
                             GenerateCommand(d, idx, unit_id, bank, value_byte, _data[lorBankData[bank][i].value], lsb, msb);
                         }
@@ -239,7 +239,7 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
     //logger_base.debug("    LOROptimisedOutput: Sent %d bytes", total_bytes_sent);
 }
 
-void LOROptimisedOutput::GenerateCommand(wxByte d[], size_t& idx, int unit_id, int bank, bool value_byte, wxByte dbyte, wxByte lsb, wxByte msb)
+void LOROptimisedOutput::GenerateCommand(uint8_t d[], size_t& idx, int unit_id, int bank, bool value_byte, uint8_t dbyte, uint8_t lsb, uint8_t msb)
 {
     d[idx++] = 0;        // Leading zero
     d[idx++] = unit_id;  // Unit ID
@@ -301,7 +301,7 @@ void LOROptimisedOutput::AllOff()
 
         while( controller_channels_to_process > 0 ) {
             size_t idx = 0;
-            wxByte d[1024];
+            uint8_t d[1024];
             int channels_to_process = channels_per_pass;
             while (channels_to_process > 0) {
                 d[idx++] = 0;

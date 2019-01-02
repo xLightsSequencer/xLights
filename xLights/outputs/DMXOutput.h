@@ -18,7 +18,7 @@ class DMXOutput : public SerialOutput
 {
     #pragma region Member Variables
     int _datalen;
-    wxByte _data[DMX_MAX_CHANNELS + 6];
+    uint8_t _data[DMX_MAX_CHANNELS + 6];
     #pragma endregion Member Variables
 
 public:

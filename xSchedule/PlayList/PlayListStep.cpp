@@ -429,7 +429,7 @@ PlayListItem* PlayListStep::GetTimeSource(size_t &ms)
     return timesource;
 }
 
-bool PlayListStep::Frame(wxByte* buffer, size_t size, bool outputframe)
+bool PlayListStep::Frame(uint8_t* buffer, size_t size, bool outputframe)
 {
     ReentrancyCounter rec(_reentrancyCounter);
 

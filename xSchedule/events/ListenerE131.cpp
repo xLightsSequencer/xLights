@@ -5,7 +5,7 @@
 #include "ListenerManager.h"
 #include "../../xLights/UtilFunctions.h"
 
-bool ListenerE131::IsValidHeader(wxByte* buffer)
+bool ListenerE131::IsValidHeader(uint8_t* buffer)
 {
     return
         buffer[0] == 0x00 &&

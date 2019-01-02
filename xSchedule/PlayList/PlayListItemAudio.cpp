@@ -33,7 +33,7 @@ void PlayListItemAudio::Load(wxXmlNode* node)
     }
 }
 
-void PlayListItemAudio::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemAudio::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {

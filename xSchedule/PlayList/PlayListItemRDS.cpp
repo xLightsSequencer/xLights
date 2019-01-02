@@ -10,8 +10,8 @@
 #include "../../xLights/AudioManager.h"
 #include "PlayList.h"
 
-#define MRDS_STARTBYTEWRITE (wxByte)0xD6
-#define RDS_STARTBYTEREAD (wxByte)0xD7
+#define MRDS_STARTBYTEWRITE (uint8_t)0xD6
+#define RDS_STARTBYTEREAD (uint8_t)0xD7
 
 class EDMRDSThread : public wxThread
 {
@@ -202,7 +202,7 @@ void PlayListItemRDS::Dump(unsigned char* buffer, int buflen)
     wxString debug = "Serial: ";
     for (int i = 0; i < buflen; i++)
     {
-        debug += wxString::Format("0x%02X ", (wxByte)buffer[i]);
+        debug += wxString::Format("0x%02X ", (uint8_t)buffer[i]);
     }
     logger_base.debug("%s", (const char*)debug.c_str());
 }
@@ -249,7 +249,7 @@ int PlayListItemRDS::SendWithDTRCTS(SerialPort* serial, char* buf, size_t len)
 
     for (int i = 0; i < len; i++)
     {
-        wxByte mask = 0x80;
+        uint8_t mask = 0x80;
 
         for (int j = 0; j < 8; j++)
         {
@@ -272,7 +272,7 @@ int PlayListItemRDS::SendWithDTRCTS(SerialPort* serial, char* buf, size_t len)
     return len;
 }
 
-void PlayListItemRDS::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemRDS::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 

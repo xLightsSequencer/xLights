@@ -128,7 +128,7 @@ std::string PlayListItemImage::GetNameNoTime() const
     }
 }
 
-void PlayListItemImage::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemImage::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms > _delay)
     {

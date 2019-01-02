@@ -50,7 +50,7 @@ void PlayListItemDelay::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemDelayPanel(notebook, this), GetTitle(), true);
 }
 
-void PlayListItemDelay::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemDelay::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     
 }

@@ -11,7 +11,7 @@ class ListenerFPPUnicast : public ListenerBase
 {
     wxDatagramSocket* _socket;
 
-    bool IsValidHeader(wxByte* buffer);
+    bool IsValidHeader(uint8_t* buffer);
 
 	public:
         ListenerFPPUnicast(ListenerManager* _listenerManager);

@@ -144,7 +144,7 @@ unsigned char* PlayListItemSerial::PrepareData(const std::string s, int& used)
 	return res;
 }
 
-void PlayListItemSerial::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemSerial::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (ms >= _delay && !_started)
