@@ -3340,7 +3340,7 @@ controllers/SanDevices.cpp: models/Model.h outputs/OutputManager.h outputs/Outpu
 
 controllers/ESPixelStick.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h models/ModelManager.h UtilFunctions.h
 
-controllers/FPP.cpp: xLightsXmlFile.h models/Model.h outputs/OutputManager.h outputs/Output.h outputs/DDPOutput.h UtilFunctions.h
+controllers/FPP.cpp: xLightsXmlFile.h models/Model.h outputs/OutputManager.h outputs/Output.h outputs/DDPOutput.h UtilFunctions.h xLightsVersion.h
 
 controllers/FPPConnectDialog.cpp: xLightsMain.h xLightsXmlFile.h outputs/Output.h outputs/OutputManager.h UtilFunctions.h
 
