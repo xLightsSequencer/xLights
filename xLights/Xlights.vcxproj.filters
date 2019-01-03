@@ -365,6 +365,7 @@
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="PathGenerationDialog.cpp" />
+    <ClCompile Include="models\CubeModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -731,6 +732,7 @@
     <ClInclude Include="wxModelGridCellRenderer.h" />
     <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="PathGenerationDialog.h" />
+    <ClInclude Include="models\CubeModel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

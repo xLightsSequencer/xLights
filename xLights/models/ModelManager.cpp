@@ -10,6 +10,7 @@
 #include "ChannelBlockModel.h"
 #include "CircleModel.h"
 #include "TreeModel.h"
+#include "CubeModel.h"
 #include "CustomModel.h"
 #include "DmxModel.h"
 #include "ImageModel.h"
@@ -24,9 +25,9 @@
 #include "IciclesModel.h"
 #include "../sequencer/Element.h"
 #include "../xLightsMain.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
-#include "UtilFunctions.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
@@ -523,6 +524,16 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         model = new SingleLineModel(node, *this, false);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, false);
+    } else if (type == "Cube") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "5");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "5");
+        node->DeleteAttribute("parm3");
+        node->AddAttribute("parm3", "5");
+        node->DeleteAttribute("Style");
+        node->AddAttribute("Style", "Horizontal Left/Right");
+        model = new CubeModel(node, *this, false);
     } else if (type == "Custom") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "5");
@@ -597,6 +608,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new SingleLineModel(node, *this, zeroBased);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, zeroBased);
+    } else if (type == "Cube") {
+        model = new CubeModel(node, *this, zeroBased);
     } else if (type == "Custom") {
         model = new CustomModel(node, *this, zeroBased);
     } else if (type.find("Tree") == 0) {

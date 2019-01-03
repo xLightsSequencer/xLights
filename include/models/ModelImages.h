@@ -5,6 +5,7 @@
 #include "wreath.xpm"
 #include "circles.xpm"
 #include "channelblock.xpm"
+#include "cube.xpm"
 #include "dmx.xpm"
 #include "spinner.xpm"
 #include "custom.xpm"

@@ -66,6 +66,8 @@
 #include "../include/channelblock-icon-64.xpm"
 #include "../include/circle-icon-16.xpm"
 #include "../include/circle-icon-64.xpm"
+#include "../include/cube-icon-16.xpm"
+#include "../include/cube-icon-64.xpm"
 #include "../include/custom-icon-16.xpm"
 #include "../include/custom-icon-64.xpm"
 #include "../include/dmx-icon-16.xpm"
@@ -407,6 +409,8 @@ wxBitmap xlArtProvider::CreateBitmap(const wxArtID& id,
         return effectBitmaps.get(16, false, id, circle_icon_16_xpm, circle_icon_16_xpm, circle_icon_64_xpm, circle_icon_64_xpm, circle_icon_64_xpm);
     } else if ("xlART_CHANNELBLOCK_ICON" == id) {
         return effectBitmaps.get(16, false, id, channelblock_icon_16_xpm, channelblock_icon_16_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm, channelblock_icon_64_xpm);
+    } else if ("xlART_CUBE_ICON" == id) {
+        return effectBitmaps.get(16, false, id, cube_icon_16_xpm, cube_icon_16_xpm, cube_icon_64_xpm, cube_icon_64_xpm, cube_icon_64_xpm);
     } else if ("xlART_CUSTOM_ICON" == id) {
         return effectBitmaps.get(16, false, id, custom_icon_16_xpm, custom_icon_16_xpm, custom_icon_64_xpm, custom_icon_64_xpm, custom_icon_64_xpm);
     } else if ("xlART_DMX_ICON" == id) {

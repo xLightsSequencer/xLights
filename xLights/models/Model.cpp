@@ -2633,12 +2633,12 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
 
     // Zero buffer sizes are bad
     // This can happen when a strand is zero length ... maybe also a custom model with no nodes
-    if (BufferHt == 0)
+    if (bufferHt == 0)
     {
         logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overidden to be 1.");
         bufferHt = 1;
     }
-    if (BufferWi == 0)
+    if (bufferWi == 0)
     {
         logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overidden to be 1.");
         bufferWi = 1;

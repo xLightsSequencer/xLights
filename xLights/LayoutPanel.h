@@ -355,6 +355,7 @@ class LayoutPanel: public wxPanel
             Icon_CandyCane,
             Icon_Circle,
             Icon_ChannelBlock,
+            Icon_Cube,
             Icon_Custom,
             Icon_Dmx,
             Icon_Icicle,
