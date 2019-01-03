@@ -1699,8 +1699,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
         }
         wxFileName oName(filename);
 
-        if (oName.GetPathWithSep() == "")
-        {
+        if (oName.GetPathWithSep() == "") {
             oName.SetPath(CurrentDir);
         }
         wxString fullpath;
@@ -1725,8 +1724,7 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
             while (!wait.checkIfDone(SeqData.NumFrames())) {
                 wxYield();
             }
-        }
-        else {
+        } else {
             Model *m2 = GetModel(model);
             for (int frame = 0; frame < SeqData.NumFrames(); ++frame) {
                 for (int x = 0; x < job->getBuffer()->GetNodeCount(); ++x) {
@@ -1749,44 +1747,35 @@ void xLightsFrame::ExportModel(wxCommandEvent &command) {
                 lcbVer = 2;
             }
             WriteLcbFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, lcbVer, cpn);
-        }
-        else if (Out3 == "Vir") {
+        } else if (Out3 == "Vir") {
             oName.SetExt(_("vir"));
             fullpath = oName.GetFullPath();
             WriteVirFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
-        }
-        else if (Out3 == "LSP") {
+        } else if (Out3 == "LSP") {
             oName.SetExt(_("xml"));
             fullpath = oName.GetFullPath();
             WriteLSPFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, cpn);
-        }
-        else if (Out3 == "HLS") {
+        } else if (Out3 == "HLS") {
             oName.SetExt(_("hlsnc"));
             fullpath = oName.GetFullPath();
             WriteHLSFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data);
-        }
-        else if (Out3 == "Fal") {
+        } else if (Out3 == "Fal") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("eseq"));
             fullpath = oName.GetFullPath();
-            WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels());
-        }
-        else if (Out3 == "Com")
-        {
+            bool v2 = format.Contains("Compressed");
+            WriteFalconPiModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), v2);
+        } else if (Out3 == "Com") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
             WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), true);
-        }
-        else if (Out3 == "Unc")
-        {
+        } else if (Out3 == "Unc") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("avi"));
             fullpath = oName.GetFullPath();
             WriteVideoModelFile(fullpath, data->NumChannels(), SeqData.NumFrames(), data, stChan, data->NumChannels(), GetModel(model), false);
-        }
-        else if (Out3 == "Min")
-        {
+        } else if (Out3 == "Min") {
             int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
             oName.SetExt(_("bin"));
             fullpath = oName.GetFullPath();

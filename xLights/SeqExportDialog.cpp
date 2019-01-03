@@ -99,8 +99,7 @@ SeqExportDialog::~SeqExportDialog()
 
 void SeqExportDialog::ModelExportTypes(bool isgroup)
 {
-    if (isgroup)
-    {
+    if (isgroup) {
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.avi")));
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.avi")));
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Minleon Network Effects Controller, *.bin")));
@@ -110,26 +109,20 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     //ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights, *.xseq")));
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("Falcon, *.fseq")));
     ChoiceFormat->Append(_("Falcon Pi Sub sequence. *.eseq"));
+    ChoiceFormat->Append(_("Falcon Pi Compressed Sub sequence. *.eseq"));
 
     wxString let;
     wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr)
-    {
+    if (config != nullptr) {
         config->Read("xLightsLastExportType", &let, "");
-        if (let == "")
-        {
+        if (let == "") {
             ChoiceFormat->SetSelection(0);
-        }
-        else
-        {
-            if (!ChoiceFormat->SetStringSelection(let))
-            {
+        } else {
+            if (!ChoiceFormat->SetStringSelection(let)) {
                 ChoiceFormat->SetSelection(0);
             }
         }
-    }
-    else
-    {
+    } else {
         ChoiceFormat->SetSelection(0);
     }
 
@@ -140,45 +133,32 @@ void SeqExportDialog::SetDefaultName()
 {
     wxString fmt = ChoiceFormat->GetStringSelection();
     wxString cwd = xLightsFrame::CurrentDir;
+    wxString fsd = ((xLightsFrame*)GetParent())->GetFseqDirectory();
+    if (fsd == "") {
+        fsd = cwd;
+    }
 
-    if (fmt == "LOR. *.lms or *.las")
-    {
+    if (fmt == "LOR. *.lms or *.las") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".lms");
-    }
-    else if (fmt == "Lcb, LOR Clipboard *.lcb" || fmt == "Lcb, LOR S5 Clipboard *.lcb")
-    {
+    } else if (fmt == "Lcb, LOR Clipboard *.lcb" || fmt == "Lcb, LOR S5 Clipboard *.lcb") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".lcb");
-    }
-    else if (fmt == "Vixen, Vixen sequence file *.vix")
-    {
+    } else if (fmt == "Vixen, Vixen sequence file *.vix") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".vix");
-    }
-    else if (fmt == "Vir, Vixen Routine file. *.vir")
-    {
+    } else if (fmt == "Vir, Vixen Routine file. *.vir") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".vir");
-    }
-    else if (fmt == "LSP, Light Show Pro ")
-    {
+    } else if (fmt == "LSP, Light Show Pro ") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model);
-    }
-    else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc")
-    {
+    } else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".hlsnc");
-    }
-    else if (fmt == "Falcon Pi Sub sequence. *.eseq")
-    {
-        TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".eseq");
-    }
-    else if (fmt == "Falcon, *.fseq")
-    {
-        TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".fseq");
-    }
-    else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi")
-    {
+    } else if (fmt == "Falcon Pi Sub sequence. *.eseq") {
+        TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".eseq");
+    } else if (fmt == "Falcon Pi Compressed Sub sequence. *.eseq") {
+        TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".eseq");
+    } else if (fmt == "Falcon, *.fseq") {
+        TextCtrlFilename->SetValue(fsd + wxFileName::GetPathSeparator() + _model + ".fseq");
+    } else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".avi");
-    }
-    else if (fmt == "Minleon Network Effects Controller, *.bin")
-    {
+    } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(cwd + wxFileName::GetPathSeparator() + _model + ".bin");
     }
 }
@@ -195,45 +175,32 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
 {
     wxString fmt = ChoiceFormat->GetStringSelection();
     wxString cwd = xLightsFrame::CurrentDir;
+    wxString fsd = ((xLightsFrame*)GetParent())->GetFseqDirectory();
+    if (fsd == "") {
+        fsd = cwd;
+    }
 
-    if (fmt == "LOR. *.lms or *.las")
-    {
+    if (fmt == "LOR. *.lms or *.las") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "LOR (*.lms;*.las)|*.lms;*.las", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "Lcb, LOR Clipboard *.lcb" || fmt == "Lcb, LOR S5 Clipboard *.lcb")
-    {
+    } else if (fmt == "Lcb, LOR Clipboard *.lcb" || fmt == "Lcb, LOR S5 Clipboard *.lcb") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "LOR Clipboard (*.lcb)|*.lcb", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "Vixen, Vixen sequence file *.vix")
-    {
+    } else if (fmt == "Vixen, Vixen sequence file *.vix") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Vixen Sequence File (*.vix)|*.vix", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "Vir, Vixen Routine file. *.vir")
-    {
+    } else if (fmt == "Vir, Vixen Routine file. *.vir") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Vixen Routine File (*.vir)|*.vir", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "LSP, Light Show Pro ")
-    {
+    } else if (fmt == "LSP, Light Show Pro ") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Light Show Pro (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc")
-    {
+    } else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "Falcon Pi Sub sequence. *.eseq")
-    {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "Falcon, *.fseq")
-    {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi")
-    {
+    } else if (fmt == "Falcon Pi Sub sequence. *.eseq") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "Falcon Pi Compressed Sub sequence. *.eseq") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "Falcon, *.fseq") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fsd, TextCtrlFilename->GetValue(), wxEmptyString, "Falcon (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "Compressed Video, *.avi" || fmt == "Uncompressed Video, *.avi") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    }
-    else if (fmt == "Minleon Network Effects Controller, *.bin")
-    {
+    } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), cwd, TextCtrlFilename->GetValue(), wxEmptyString, "Minleon Networks Effects Controller (*.bin)|*.bin", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     }
 
@@ -243,8 +210,7 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
 void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
 {
     wxConfigBase* config = wxConfigBase::Get();
-    if (config != nullptr)
-    {
+    if (config != nullptr) {
         config->Write("xLightsLastExportType", ChoiceFormat->GetStringSelection());
     }
     EndDialog(wxID_OK);
@@ -262,20 +228,14 @@ void SeqExportDialog::OnTextCtrlFilenameText(wxCommandEvent& event)
 
 void SeqExportDialog::ValidateWindow()
 {
-    if (TextCtrlFilename->GetValue() != "")
-    {
+    if (TextCtrlFilename->GetValue() != "") {
         wxFileName fn(TextCtrlFilename->GetValue());
-        if (fn.GetPathWithSep() == "" || wxDir::Exists(fn.GetPathWithSep()))
-        {
+        if (fn.GetPathWithSep() == "" || wxDir::Exists(fn.GetPathWithSep())) {
             ButtonOk->Enable();
-        }
-        else
-        {
+        } else {
             ButtonOk->Disable();
         }
-    }
-    else
-    {
+    } else {
         ButtonOk->Disable();
     }
 }

@@ -30,7 +30,7 @@ extern "C"
 #include "outputs/OutputManager.h"
 #include "sequencer/EffectLayer.h"
 #include "xLightsMain.h"
-
+#include "FSEQFile.h"
 #include <log4cpp/Category.hh>
 
 #ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
@@ -621,60 +621,76 @@ Rene Nyffenegger rene.nyffenegger@adp-gmbh.ch
 #define ESEQ_HEADER_LENGTH 20
 
 void xLightsFrame:: WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-    SeqDataType *dataBuf, int startAddr, int modelSize)
+                                           SeqDataType *dataBuf, int startAddr, int modelSize,
+                                           bool v2)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (v2) {
+        V2FSEQFile *file = (V2FSEQFile*)FSEQFile::createFSEQFile(filename, 2);
+        file->setNumFrames(numPeriods);
+        file->setStepTime(dataBuf->FrameTime());
+        file->setChannelCount(startAddr + modelSize);
+        
+        //add a sparse range so the header is correct,
+        file->m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(startAddr - 1, modelSize));
+        file->writeHeader();
+        //now reset the sparse range to channel 0 since we don't have all the data in the dataBuf
+        file->m_sparseRanges[0] = std::pair<uint32_t, uint32_t>(0, modelSize);
+        for (int x = 0; x < numPeriods; x++) {
+            file->addFrame(x, &(*dataBuf)[x][0]);
+        }
+        file->finalize();
+        delete file;
+    } else {
+        wxUint32 stepSize = roundTo4(numChans);
+        wxFile f;
+        logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.",
+            (const char*)filename.c_str(),
+            numChans, numPeriods, startAddr, modelSize);
 
-    wxUint32 stepSize = roundTo4(numChans);
-    wxFile f;
+        if (!f.Create(filename, true)) {
+            ConversionError(wxString("Unable to create file: ") + filename);
+            logger_base.error("Unable to create file %s.", (const char*)filename.c_str());
+            return;
+        }
 
-    logger_base.debug("Creating file %s. Channels: %ld Frames %ld, Start Channel %d, Model Size %d.", 
-        (const char*)filename.c_str(),
-        numChans, numPeriods, startAddr, modelSize);
+        wxUint8 buf[ESEQ_HEADER_LENGTH];
 
-    if (!f.Create(filename, true))
-    {
-        ConversionError(wxString("Unable to create file: ") + filename);
-        logger_base.error("Unable to create file %s.", (const char*)filename.c_str());
-        return;
+        // Header Information
+        // Format Identifier
+        buf[0] = 'E';
+        buf[1] = 'S';
+        buf[2] = 'E';
+        buf[3] = 'Q';
+        // Data offset
+        buf[4] = (wxUint8)1; //Hard coded to export a single model for now
+        buf[5] = 0; //Pad byte
+        buf[6] = 0; //Pad byte
+        buf[7] = 0; //Pad byte
+                    // Step Size
+        buf[8] = (wxUint8)(stepSize & 0xFF);
+        buf[9] = (wxUint8)((stepSize >> 8) & 0xFF);
+        buf[10] = (wxUint8)((stepSize >> 16) & 0xFF);
+        buf[11] = (wxUint8)((stepSize >> 24) & 0xFF);
+        //Model Start address
+        buf[12] = (wxUint8)(startAddr & 0xFF);
+        buf[13] = (wxUint8)((startAddr >> 8) & 0xFF);
+        buf[14] = (wxUint8)((startAddr >> 16) & 0xFF);
+        buf[15] = (wxUint8)((startAddr >> 24) & 0xFF);
+        // Model Size
+        buf[16] = (wxUint8)(modelSize & 0xFF);
+        buf[17] = (wxUint8)((modelSize >> 8) & 0xFF);
+        buf[18] = (wxUint8)((modelSize >> 16) & 0xFF);
+        buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
+        f.Write(buf, ESEQ_HEADER_LENGTH);
+
+        size_t size = dataBuf->NumFrames();
+        size *= stepSize;
+
+        f.Write(&(*dataBuf)[0][0], size);
+
+        f.Close();
     }
-
-    wxUint8 buf[ESEQ_HEADER_LENGTH];
-
-    // Header Information
-    // Format Identifier
-    buf[0] = 'E';
-    buf[1] = 'S';
-    buf[2] = 'E';
-    buf[3] = 'Q';
-    // Data offset
-    buf[4] = (wxUint8)1; //Hard coded to export a single model for now
-    buf[5] = 0; //Pad byte
-    buf[6] = 0; //Pad byte
-    buf[7] = 0; //Pad byte
-                // Step Size
-    buf[8] = (wxUint8)(stepSize & 0xFF);
-    buf[9] = (wxUint8)((stepSize >> 8) & 0xFF);
-    buf[10] = (wxUint8)((stepSize >> 16) & 0xFF);
-    buf[11] = (wxUint8)((stepSize >> 24) & 0xFF);
-    //Model Start address
-    buf[12] = (wxUint8)(startAddr & 0xFF);
-    buf[13] = (wxUint8)((startAddr >> 8) & 0xFF);
-    buf[14] = (wxUint8)((startAddr >> 16) & 0xFF);
-    buf[15] = (wxUint8)((startAddr >> 24) & 0xFF);
-    // Model Size
-    buf[16] = (wxUint8)(modelSize & 0xFF);
-    buf[17] = (wxUint8)((modelSize >> 8) & 0xFF);
-    buf[18] = (wxUint8)((modelSize >> 16) & 0xFF);
-    buf[19] = (wxUint8)((modelSize >> 24) & 0xFF);
-    f.Write(buf, ESEQ_HEADER_LENGTH);
-
-    size_t size = dataBuf->NumFrames();
-    size *= stepSize;
-
-    f.Write(&(*dataBuf)[0][0], size);
-
-    f.Close();
 }
 
 // Log messages from libav*
