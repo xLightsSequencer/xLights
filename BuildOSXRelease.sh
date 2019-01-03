@@ -23,9 +23,9 @@ else
     fi
     xcodebuild -alltargets -jobs=10 CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=${DEVELOPMENT_TEAM} CODE_SIGN_IDENTITY="Developer ID Application"
     if [[ $? == 0 ]]; then
-        ALLTARGETS=0
-    else
         ALLTARGETS=1
+    else
+        ALLTARGETS=0
     fi
 fi
 
@@ -42,7 +42,7 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
     hdiutil attach xLights.dmg
 
     cp -a xLights.app /Volumes/xLights-$VER
-    if [ "$ALLTARGETS}" == "1" ]; then
+    if [ "${ALLTARGETS}" == "1" ]; then
         cp -a xSchedule.app /Volumes/xLights-$VER
         cp -a xCapture.app /Volumes/xLights-$VER
         cp -a xFade.app /Volumes/xLights-$VER
@@ -70,7 +70,7 @@ if [ "${NOTARIZE_PWD}x" != "x" ]; then
 
     # attache the notarization stamps to the apps
     xcrun stapler staple -v xLights.app
-    if [ "$ALLTARGETS}" == "1" ]; then
+    if [ "${ALLTARGETS}" == "1" ]; then
         xcrun stapler staple -v xSchedule.app
         xcrun stapler staple -v xFade.app
         xcrun stapler staple -v xCapture.app
@@ -91,7 +91,7 @@ hdiutil create -size 192m -fs HFS+ -volname "xLights-$VER" xLights.dmg
 hdiutil attach xLights.dmg
 
 cp -a xLights.app /Volumes/xLights-$VER
-if [ "$ALLTARGETS}" == "1" ]; then
+if [ "${ALLTARGETS}" == "1" ]; then
     cp -a xSchedule.app /Volumes/xLights-$VER
     cp -a xCapture.app /Volumes/xLights-$VER
     cp -a xFade.app /Volumes/xLights-$VER
