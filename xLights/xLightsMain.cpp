@@ -8829,7 +8829,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         }
     }
 
-    KeyBinding *binding = mainSequencer->keyBindings.Find(event, KBSCOPE_ALL);
+    auto binding = mainSequencer->keyBindings.Find(event, KBSCOPE::All);
     if (binding != nullptr) {
         std::string type = binding->GetType();
         if (type == "RENDER_ALL")

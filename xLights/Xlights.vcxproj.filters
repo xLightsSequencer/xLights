@@ -359,7 +359,6 @@
     <ClCompile Include="ViewObjectPanel.cpp" />
     <ClCompile Include="models\ImageObject.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
-    <ClCompile Include="NodeSelectGrid.h" />
     <ClCompile Include="models\MeshObject.cpp" />
     <ClCompile Include="NodeSelectGrid.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />

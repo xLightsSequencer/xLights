@@ -82,4 +82,29 @@ inline char HexToChar(char c1, char c2)
 {
     return (HexToChar(c1) << 8) + HexToChar(c2);
 }
+
+inline bool Contains(const std::string& in, const std::string contains) noexcept
+{
+    return in.find(contains) != std::string::npos;
+}
+
+inline std::string Capitalise(const std::string& input) noexcept
+{
+    std::string res = "";
+    char last = ' ';
+    for (const auto c : input)
+    {
+        if (last == ' ' || last == '\t' || last == '\n' || last == '\r')
+        {
+            res += ::toupper(c);
+        }
+        else
+        {
+            res += ::tolower(c);
+        }
+
+        last = c;
+    }
+    return res;
+}
 #endif

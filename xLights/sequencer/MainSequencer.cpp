@@ -450,7 +450,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         }
     }
 
-    KeyBinding *binding = keyBindings.Find(event, KBSCOPE_SEQUENCE);
+    auto binding = keyBindings.Find(event, KBSCOPE::Sequence);
     if (binding != nullptr) {
         std::string type = binding->GetType();
         if (type == "TIMING_ADD")
@@ -475,7 +475,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         }
         else if (type == "EFFECT")
         {
-            PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
+            PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
         }
         else if (type == "PRESET")
         {
@@ -628,12 +628,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         event.StopPropagation();
         return true;
     }
-    else
-    {
-        return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
-    }
 
-    return false;
+    return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
 }
 
 void MainSequencer::OnCharHook(wxKeyEvent& event)

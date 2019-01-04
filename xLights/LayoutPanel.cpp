@@ -5587,7 +5587,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
     }
 
-    KeyBinding *binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE_LAYOUT);
+    auto binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE::Layout);
     if (binding != nullptr) {
         std::string type = binding->GetType();
         if (type == "LOCK_MODEL")
