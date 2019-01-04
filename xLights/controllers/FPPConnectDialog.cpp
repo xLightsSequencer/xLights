@@ -1188,10 +1188,10 @@ void FPPConnectDialog::LoadSettings()
         CheckBox_UploadController->SetValue(config->ReadBool("FPPConnectUploadController", false));
         CheckBox_UploadModels->SetValue(config->ReadBool("FPPConnectUploadModels", false));
 
-        PlayListCheckbox->SetValue(config->ReadBool("FPPConnectPlayListUpload", false));
+        //PlayListCheckbox->SetValue(config->ReadBool("FPPConnectPlayListUpload", false));
         Choice_DefaultVersion->SetSelection(config->ReadLong("FPPConnectDefaultVersion", Choice_DefaultVersion->GetCount() - 1));
 
-        PlayListName->SetStringSelection(config->Read("FPPConnectPlayListName", wxEmptyString));
+        //PlayListName->SetStringSelection(config->Read("FPPConnectPlayListName", wxEmptyString));
         Choice_Drives->SetStringSelection(config->Read("FPPConnectUSBDrive", wxEmptyString));
         CheckBox_SuppressZip->SetValue(config->ReadBool("FPPConnectSuppressZip", false));
         CheckBox_SuppressMediaUpload->SetValue(config->ReadBool("FPPConnectSuppressMediaUpload", false));
