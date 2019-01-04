@@ -366,6 +366,6 @@ void DMXEffect::SetPanelStatus(Model *cls) {
             if( text != nullptr ) text->Enable(true);
         }
     }
-    p->FlexGridSizer_Main->RecalcSizes();
+    p->FlexGridSizer_Main->Layout();
     p->Refresh();
 }

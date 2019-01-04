@@ -115,7 +115,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	CheckBox_SuppressZip = new wxCheckBox(Panel_FTP, ID_CHECKBOX3, _("Suppress zipping of content"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_SuppressZip->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_SuppressZip, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_SuppressMediaUpload = new wxCheckBox(Panel_FTP, ID_CHECKBOX4, _("Suppress media upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_SuppressMediaUpload->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_SuppressMediaUpload, 1, wxALL|wxEXPAND, 5);

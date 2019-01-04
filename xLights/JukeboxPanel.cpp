@@ -231,7 +231,7 @@ void JukeboxPanel::OnResize(wxSizeEvent& event)
 
     GridSizer1->SetCols(i);
     GridSizer1->SetDimension(0, 0, wsz.GetWidth(), wsz.GetHeight());
-    GridSizer1->RecalcSizes();
+    GridSizer1->Layout();
 }
 
 void JukeboxPanel::OnButtonClick(wxCommandEvent& event)
