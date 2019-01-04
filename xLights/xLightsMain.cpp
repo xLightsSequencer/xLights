@@ -5493,7 +5493,7 @@ void xLightsFrame::CheckSequence(bool display)
 
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
-        auto facefiles = it->second->GetFaceFiles(true);
+        auto facefiles = it->second->GetFaceFiles(std::list<std::string>(), true);
 
         for (auto fit = facefiles.begin(); fit != facefiles.end(); ++fit)
         {
@@ -6709,12 +6709,34 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     prog.Update(10);
 
+    std::list<std::string> facesUsed;
+
+    for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
+    {
+        Element* e = mSequenceElements.GetElement(j);
+        facesUsed.splice(end(facesUsed), e->GetFacesUsed(effectManager));
+
+        if (dynamic_cast<ModelElement*>(e) != nullptr)
+        {
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
+                SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
+                facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
+            }
+            for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
+                StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
+                facesUsed.splice(end(facesUsed), se->GetFacesUsed(effectManager));
+            }
+        }
+    }
+    facesUsed.sort();
+    facesUsed.unique();
+
     // Add any model images
     std::list<std::string> modelfiles;
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
     {
-        modelfiles.merge((*it).second->GetFaceFiles());
-        modelfiles.merge((*it).second->GetFileReferences());
+        modelfiles.splice(end(modelfiles), (*it).second->GetFaceFiles(facesUsed, false));
+        modelfiles.splice(end(modelfiles), (*it).second->GetFileReferences());
     }
     modelfiles.sort();
     modelfiles.unique();
@@ -6802,17 +6824,17 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
     {
         Element* e = mSequenceElements.GetElement(j);
-        effectfiles.merge(e->GetFileReferences(effectManager));
+        effectfiles.splice(end(effectfiles), e->GetFileReferences(effectManager));
 
         if (dynamic_cast<ModelElement*>(e) != nullptr)
         {
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetSubModelAndStrandCount(); s++) {
                 SubModelElement *se = dynamic_cast<ModelElement*>(e)->GetSubModel(s);
-                effectfiles.merge(se->GetFileReferences(effectManager));
+                effectfiles.splice(end(effectfiles), se->GetFileReferences(effectManager));
             }
             for (size_t s = 0; s < dynamic_cast<ModelElement*>(e)->GetStrandCount(); s++) {
                 StrandElement *se = dynamic_cast<ModelElement*>(e)->GetStrand(s);
-                effectfiles.merge(se->GetFileReferences(effectManager));
+                effectfiles.splice(end(effectfiles), se->GetFileReferences(effectManager));
             }
         }
     }

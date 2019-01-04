@@ -607,7 +607,21 @@ std::list<std::string> Element::GetFileReferences(EffectManager& em) const
         for (int j = 0; j < GetEffectLayerCount(); j++)
         {
             EffectLayer* el = GetEffectLayer(j);
-            res.merge(el->GetFileReferences(em));
+            res.splice(end(res), el->GetFileReferences(em));
+        }
+    }
+    return res;
+}
+
+std::list<std::string> Element::GetFacesUsed(EffectManager& em) const
+{
+    std::list<std::string> res;
+    if (GetType() != ELEMENT_TYPE_TIMING)
+    {
+        for (int j = 0; j < GetEffectLayerCount(); j++)
+        {
+            EffectLayer* el = GetEffectLayer(j);
+            res.splice(end(res), el->GetFacesUsed(em));
         }
     }
     return res;

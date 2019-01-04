@@ -197,6 +197,17 @@ void FacesEffect::SetPanelStatus(Model *cls) {
     fp->Face_FaceDefinitonChoice->SetSelection(0);
 }
 
+std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap)
+{
+    std::list<std::string> res;
+    auto face = SettingsMap.Get("E_CHOICE_Faces_FaceDefinition", "Default");
+    if (face != "Default" && face != "Rendered" && face != "")
+    {
+        res.emplace_back(face);
+    }
+    return res;
+}
+
 wxPanel *FacesEffect::CreatePanel(wxWindow *parent) {
     return new FacesPanel(parent);
 }
