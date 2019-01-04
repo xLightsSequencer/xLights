@@ -8228,7 +8228,7 @@ bool xLightsFrame::CheckForUpdate(bool force)
         bit.Replace("bit", "");
         downloadUrl = downloadUrl + "xLights" + bit + "_" + dlv + ".exe";
 #else
-        wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)\\..*$");
+        wxRegEx reVersion("^.*(2[0-9]*\\.[0-9]*)[a-z]?\\..*$");
         wxString urlVersion = wxString(out_stream.GetString());
         reVersion.Replace(&urlVersion, "\\1", 1);
 #endif
