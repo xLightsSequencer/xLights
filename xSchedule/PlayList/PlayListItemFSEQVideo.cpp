@@ -598,9 +598,10 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
         {
             if (_cachedVideoReader != nullptr)
             {
-                while (_loopVideo && adjustedMS > _cachedVideoReader->GetLengthMS())
+                auto videoLength = _cachedVideoReader->GetLengthMS();
+                while (_loopVideo && adjustedMS > videoLength && videoLength > 0)
                 {
-                    adjustedMS -= _cachedVideoReader->GetLengthMS();
+                    adjustedMS -= videoLength;
                 }
 
                 _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
@@ -610,9 +611,10 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
         {
             if (_videoReader != nullptr)
             {
-                while (_loopVideo && adjustedMS > _videoReader->GetLengthMS())
+                auto videoLength = _videoReader->GetLengthMS();
+                while (_loopVideo && videoLength > 0 && adjustedMS > videoLength)
                 {
-                    adjustedMS -= _videoReader->GetLengthMS();
+                    adjustedMS -= videoLength;
                 }
 
                 AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
@@ -655,6 +657,11 @@ void PlayListItemFSEQVideo::Start(long stepLengthMS)
     // load the FSEQ
     // load the audio
     LoadFiles(true);
+
+    if (_fseqFile != nullptr)
+    {
+        _fseqFile->prepareRead({ { 0, _fseqFile->getMaxChannel() + 1} });
+    }
 
     _currentFrame = 0;
     if (ControlsTiming() && _audioManager != nullptr)

@@ -232,9 +232,10 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
         {
             if (_cachedVideoReader != nullptr)
             {
-                while (_loopVideo && adjustedMS > _cachedVideoReader->GetLengthMS())
+                auto videoLength = _cachedVideoReader->GetLengthMS();
+                while (_loopVideo && adjustedMS > videoLength && videoLength > 0)
                 {
-                    adjustedMS -= _cachedVideoReader->GetLengthMS();
+                    adjustedMS -= videoLength;
                 }
 
                 _window->SetImage(CachedVideoReader::FadeImage(_cachedVideoReader->GetNextFrame(adjustedMS), brightness));
@@ -244,9 +245,10 @@ void PlayListItemVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fr
         {
             if (_videoReader != nullptr)
             {
-                while (_loopVideo && adjustedMS > _videoReader->GetLengthMS())
+                auto videoLength = _videoReader->GetLengthMS();
+                while (_loopVideo && adjustedMS > videoLength && videoLength > 0)
                 {
-                    adjustedMS -= _videoReader->GetLengthMS();
+                    adjustedMS -= videoLength;
                 }
 
                 AVFrame* img = _videoReader->GetNextFrame(adjustedMS, framems);
