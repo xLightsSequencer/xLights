@@ -4697,12 +4697,12 @@ void xLightsFrame::CheckSequence(bool display)
 
     // Check for inactive outputs
     auto outputs = _outputManager.GetOutputs();
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (auto o : outputs)
     {
-        if (!(*it)->IsEnabled())
+        if (!o->IsEnabled())
         {
             wxString msg = wxString::Format("    WARN: Inactive output %d %s:%s:%s:%s:'%s'.",
-                (*it)->GetOutputNumber(), (*it)->GetType(), (*it)->GetIP(), (*it)->GetUniverseString(), (*it)->GetCommPort(), (*it)->GetDescription());
+                o->GetOutputNumber(), o->GetType(), o->GetIP(), o->GetUniverseString(), o->GetCommPort(), o->GetDescription());
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -4721,15 +4721,15 @@ void xLightsFrame::CheckSequence(bool display)
 
     std::list<std::string> used;
     outputs = _outputManager.GetAllOutputs();
-    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    for (auto o : outputs)
     {
-        if ((*n)->IsIpOutput())
+        if (o->IsIpOutput())
         {
-            std::string usedval = (*n)->GetIP() + "|" + (*n)->GetUniverseString();
+            std::string usedval = o->GetIP() + "|" + o->GetUniverseString();
 
             if (std::find(used.begin(), used.end(), usedval) != used.end())
             {
-                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)(*n)->GetDescription().c_str(), (const char*)(*n)->GetIP().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same controller '%s' (%s) and universe %s.", (const char*)o->GetDescription().c_str(), (const char*)o->GetIP().c_str(), (const char *)o->GetUniverseString().c_str());
                 LogAndWrite(f, msg.ToStdString());
                 errcount++;
             }
@@ -4738,19 +4738,19 @@ void xLightsFrame::CheckSequence(bool display)
                 used.push_back(usedval);
             }
         }
-        else if ((*n)->IsSerialOutput())
+        else if (o->IsSerialOutput())
         {
-            if ((*n)->GetCommPort() != "NotConnected")
+            if (o->GetCommPort() != "NotConnected")
             {
-                if (std::find(used.begin(), used.end(), (*n)->GetCommPort()) != used.end())
+                if (std::find(used.begin(), used.end(), o->GetCommPort()) != used.end())
                 {
-                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)(*n)->GetType().c_str(), (const char *)(*n)->GetCommPort().c_str(), (const char*)(*n)->GetDescription().c_str());
+                    wxString msg = wxString::Format("    ERR: Multiple outputs being sent to the same comm port %s '%s' %s.", (const char *)o->GetType().c_str(), (const char *)o->GetCommPort().c_str(), (const char*)o->GetDescription().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
                 else
                 {
-                    used.push_back((*n)->GetCommPort());
+                    used.push_back(o->GetCommPort());
                 }
             }
         }
@@ -4769,16 +4769,16 @@ void xLightsFrame::CheckSequence(bool display)
 
     std::map<int, int> useduid;
     outputs = _outputManager.GetAllOutputs();
-    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    for (auto o : outputs)
     {
-        useduid[(*n)->GetUniverse()]++;
+        useduid[o->GetUniverse()]++;
     }
 
-    for (auto it = useduid.begin(); it != useduid.end(); ++it)
+    for (auto u : useduid)
     {
-        if (it->second > 1)
+        if (u.second > 1)
         {
-            wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", it->second, it->first);
+            wxString msg = wxString::Format("    WARN: Multiple outputs (%d) with same universe/id number %d. If using #universe:start_channel result may be incorrect.", u.second, u.first);
             LogAndWrite(f, msg.ToStdString());
             warncount++;
         }
@@ -4833,21 +4833,21 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Invalid controller IP addresses");
 
     outputs = _outputManager.GetOutputs();
-    for (auto n = outputs.begin(); n != outputs.end(); ++n)
+    for (auto o : outputs)
     {
-        if ((*n)->IsIpOutput())
+        if (o->IsIpOutput())
         {
-            if ((*n)->GetIP() != "MULTICAST")
+            if (o->GetIP() != "MULTICAST")
             {
-                if (!IsIPValidOrHostname((*n)->GetIP()))
+                if (!IsIPValidOrHostname(o->GetIP()))
                 {
-                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                    wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s does not look valid.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                     LogAndWrite(f, msg.ToStdString());
                     warncount++;
                 }
                 else
                 {
-                    wxArrayString ipElements = wxSplit((*n)->GetIP(), '.');
+                    wxArrayString ipElements = wxSplit(o->GetIP(), '.');
                     if (ipElements.size() > 3) {
                         //looks like an IP address
                         int ip1 = wxAtoi(ipElements[0]);
@@ -4858,7 +4858,7 @@ void xLightsFrame::CheckSequence(bool display)
                         if (ip1 == 10)
                         {
                             if (ip2 == 255 && ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
                             }
@@ -4867,7 +4867,7 @@ void xLightsFrame::CheckSequence(bool display)
                         else if (ip1 == 192 && ip2 == 168)
                         {
                             if (ip3 == 255 && ip4 == 255) {
-                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                                wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                                 LogAndWrite(f, msg.ToStdString());
                                 errcount++;
                             }
@@ -4879,25 +4879,25 @@ void xLightsFrame::CheckSequence(bool display)
                         }
                         else if (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a broadcast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 == 0)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s not valid.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else if (ip1 >= 224 && ip1 <= 239)
                         {
-                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    ERR: IP address '%s' on controller '%s' universe %s is a multicast address.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             errcount++;
                         }
                         else
                         {
-                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)(*n)->GetIP().c_str(), (const char*)(*n)->GetDescription().c_str(), (const char *)(*n)->GetUniverseString().c_str());
+                            wxString msg = wxString::Format("    WARN: IP address '%s' on controller '%s' universe %s in internet routable ... are you sure you meant to do this.", (const char*)o->GetIP().c_str(), (const char*)o->GetDescription().c_str(), (const char *)o->GetUniverseString().c_str());
                             LogAndWrite(f, msg.ToStdString());
                             warncount++;
                         }
@@ -5314,7 +5314,7 @@ void xLightsFrame::CheckSequence(bool display)
                     else if (m->GetDisplayAs() != "ModelGroup")
                     {
                         // If model is in all previews dont report it as a problem
-                        if (m->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
+                        if (m->GetLayoutGroup() != "All Previews" && mg->GetLayoutGroup() != "All Previews" && mgp != m->GetLayoutGroup())
                         {
                             wxString msg = wxString::Format("    WARN: Model Group '%s' in preview '%s' contains model '%s' which is in preview '%s'. This will cause the '%s' model to also appear in the '%s' preview.", mg->GetName(), mg->GetLayoutGroup(), m->GetName(), m->GetLayoutGroup(), m->GetName(), mg->GetLayoutGroup());
                             LogAndWrite(f, msg.ToStdString());
@@ -6710,7 +6710,6 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     prog.Update(10);
 
     std::list<std::string> facesUsed;
-
     for (size_t j = 0; j < mSequenceElements.GetElementCount(0); j++)
     {
         Element* e = mSequenceElements.GetElement(j);
@@ -6733,19 +6732,19 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 
     // Add any model images
     std::list<std::string> modelfiles;
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto m : AllModels)
     {
-        modelfiles.splice(end(modelfiles), (*it).second->GetFaceFiles(facesUsed, false));
-        modelfiles.splice(end(modelfiles), (*it).second->GetFileReferences());
+        modelfiles.splice(end(modelfiles), m.second->GetFaceFiles(facesUsed, false));
+        modelfiles.splice(end(modelfiles), m.second->GetFileReferences());
     }
     modelfiles.sort();
     modelfiles.unique();
 
     float i = 0;
-    for (auto f = modelfiles.begin(); f != modelfiles.end(); ++f)
+    for (auto f : modelfiles)
     {
         i++;
-        wxFileName fnf(*f);
+        wxFileName fnf(f);
         if (fnf.Exists())
         {
             prog.Update(10 + (int)(10.0 * i / (float)modelfiles.size()), fnf.GetFullName());
@@ -6842,10 +6841,10 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
     effectfiles.unique();
 
     i = 0;
-    for (auto f = effectfiles.begin(); f != effectfiles.end(); ++f)
+    for (auto f : effectfiles)
     {
         i++;
-        wxFileName fnf(*f);
+        wxFileName fnf(f);
         if (fnf.Exists())
         {
             prog.Update(35 + (int)(59.0 * i / (float)effectfiles.size()), fnf.GetFullName());
