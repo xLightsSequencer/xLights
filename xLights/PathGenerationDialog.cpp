@@ -17,6 +17,8 @@
 
 //(*IdInit(PathGenerationDialog)
 const long PathGenerationDialog::ID_PANEL1 = wxNewId();
+const long PathGenerationDialog::ID_FILEPICKERCTRL1 = wxNewId();
+const long PathGenerationDialog::ID_SLIDER1 = wxNewId();
 const long PathGenerationDialog::ID_BUTTON3 = wxNewId();
 const long PathGenerationDialog::ID_BUTTON1 = wxNewId();
 const long PathGenerationDialog::ID_BUTTON2 = wxNewId();
@@ -35,6 +37,7 @@ PathGenerationDialog::PathGenerationDialog(wxWindow* parent, const std::string& 
 	//(*Initialize(PathGenerationDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 
 	Create(parent, id, _("2D Path Generator"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -44,6 +47,13 @@ PathGenerationDialog::PathGenerationDialog(wxWindow* parent, const std::string& 
 	FlexGridSizer1->AddGrowableRow(0);
 	Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxSize(400,300), wxTAB_TRAVERSAL, _T("ID_PANEL1"));
 	FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer3->AddGrowableCol(0);
+	FilePickerCtrl1 = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Select an image file"), _T("*.jpg;*.gif;*.png;*.bmp"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+	FlexGridSizer3->Add(FilePickerCtrl1, 1, wxALL|wxEXPAND, 5);
+	Slider_Brightness = new wxSlider(this, ID_SLIDER1, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
+	FlexGridSizer3->Add(Slider_Brightness, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Load = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer2->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -64,11 +74,15 @@ PathGenerationDialog::PathGenerationDialog(wxWindow* parent, const std::string& 
 	Panel1->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&PathGenerationDialog::OnPanel1RightDown,0,this);
 	Panel1->Connect(wxEVT_MOTION,(wxObjectEventFunction)&PathGenerationDialog::OnPanel1MouseMove,0,this);
 	Panel1->Connect(wxEVT_SIZE,(wxObjectEventFunction)&PathGenerationDialog::OnPanel1Resize,0,this);
+	Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PathGenerationDialog::OnFilePickerCtrl1FileChanged);
+	Connect(ID_SLIDER1,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&PathGenerationDialog::OnSlider_BrightnessCmdScrollChanged);
+	Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PathGenerationDialog::OnSlider_BrightnessCmdSliderUpdated);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_LoadClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_GenerateClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_CloseClick);
 	//*)
 
+    RegenerateImage();
     Panel1->SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 
@@ -277,7 +291,7 @@ void PathGenerationDialog::OnButton_CloseClick(wxCommandEvent& event)
 wxPoint PathGenerationDialog::CreatePoint(const std::pair<float, float>& pt) const
 {
     auto size = Panel1->GetSize();
-    return wxPoint(pt.first * (size.GetWidth() - 2 * BORDER) + BORDER, 
+    return wxPoint(pt.first * (size.GetWidth() - 2 * BORDER) + BORDER,
                    size.GetHeight() - BORDER - pt.second * (size.GetHeight() - 2 * BORDER));
 }
 
@@ -290,8 +304,13 @@ void PathGenerationDialog::OnPanel1Paint(wxPaintEvent& event)
     pdc.DrawRectangle(0,0,Panel1->GetSize().GetWidth(),Panel1->GetSize().GetHeight());
 
     pdc.SetPen(*wxLIGHT_GREY_PEN);
-    pdc.DrawRectangle(BORDER, BORDER, Panel1->GetSize().GetWidth() - 2 * BORDER, 
+    pdc.DrawRectangle(BORDER, BORDER, Panel1->GetSize().GetWidth() - 2 * BORDER,
         Panel1->GetSize().GetHeight() - 2 * BORDER);
+
+    if (_image.get() != nullptr)
+    {
+        pdc.DrawBitmap(*_image, 0, 0);
+    }
 
     if (_points.size() > 1)
     {
@@ -462,7 +481,20 @@ int PathGenerationDialog::GetMouseOverLine(const std::pair<float, float>& pt) co
 
 float PathGenerationDialog::PointDistanceFromLineThrough(const std::pair<float, float>& pt, const std::pair<float, float>& lpt1, const std::pair<float, float>& lpt2)
 {
-    return abs(pt.first*(lpt2.second - lpt1.second) - pt.second*(lpt2.first - lpt1.first) + lpt2.first * lpt1.second - lpt2.second * lpt1.first) / GetDistance(lpt1,lpt2);
+    float distance = abs(pt.first*(lpt2.second - lpt1.second) - pt.second*(lpt2.first - lpt1.first) + lpt2.first * lpt1.second - lpt2.second * lpt1.first) / GetDistance(lpt1,lpt2);
+
+    auto minx = std::min(lpt1.first, lpt2.first);
+    auto miny = std::min(lpt1.second, lpt2.second);
+    auto maxx = std::max(lpt1.first, lpt2.first);
+    auto maxy = std::max(lpt1.second, lpt2.second);
+
+    if (pt.first < minx || pt.first > maxx || pt.second < miny || pt.second > maxy)
+    {
+        // past the end of our points ... make our distance really large
+        return 9999.0;
+    }
+
+    return distance;
 }
 
 std::list<std::pair<float,float>>::iterator PathGenerationDialog::GetPoint(int index)
@@ -620,5 +652,56 @@ void PathGenerationDialog::OnPanel1LeftUp1(wxMouseEvent& event)
 
 void PathGenerationDialog::OnPanel1Resize(wxSizeEvent& event)
 {
+    RegenerateImage();
     Panel1->Refresh(true);
+}
+
+void PathGenerationDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event)
+{
+    RegenerateImage();
+}
+
+void PathGenerationDialog::OnSlider_BrightnessCmdScrollChanged(wxScrollEvent& event)
+{
+    RegenerateImage();
+}
+
+void PathGenerationDialog::OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event)
+{
+    RegenerateImage();
+}
+
+void PathGenerationDialog::RegenerateImage()
+{
+    bool success = wxFile::Exists(FilePickerCtrl1->GetFileName().GetFullPath());
+    if (success)
+    {
+        wxImage image(FilePickerCtrl1->GetFileName().GetFullPath());
+        success = image.IsOk();
+
+        if (success)
+        {
+            auto size = Panel1->GetSize();
+            image.Rescale(size.GetWidth(), size.GetHeight());
+
+            image.InitAlpha();
+            int alpha = (Slider_Brightness->GetValue() * 255) / 100;
+
+            for (int x = 0; x < image.GetWidth(); x++)
+            {
+                for (int y = 0; y < image.GetHeight(); y++)
+                {
+                    image.SetAlpha(x, y, alpha);
+                }
+            }
+
+            _image = std::make_unique<wxBitmap>(wxBitmap(image));
+            Panel1->Refresh(true);
+        }
+    }
+
+    if (!success)
+    {
+        _image = nullptr;
+    }
 }
