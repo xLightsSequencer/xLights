@@ -4,12 +4,15 @@
 //(*Headers(PathGenerationDialog)
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/filepicker.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 //*)
 
 class PathGenerationDialog: public wxDialog
 {
+    std::unique_ptr<wxBitmap> _image;
     std::string _showFolder = "";
     bool unsaved = false;
     int _selected = -1;
@@ -17,6 +20,7 @@ class PathGenerationDialog: public wxDialog
     std::list<std::pair<float, float>> _points;
     std::list<std::tuple<int, std::string, std::pair<float,float>>> _undo;
 
+    void RegenerateImage();
     std::list<std::pair<float, float>>::iterator GetPoint(int index);
     wxPoint CreatePoint(const std::pair<float, float>& pt) const;
     float TotalLength() const;
@@ -35,13 +39,17 @@ class PathGenerationDialog: public wxDialog
 		wxButton* Button_Close;
 		wxButton* Button_Generate;
 		wxButton* Button_Load;
+		wxFilePickerCtrl* FilePickerCtrl1;
 		wxPanel* Panel1;
+		wxSlider* Slider_Brightness;
 		//*)
 
 	protected:
 
 		//(*Identifiers(PathGenerationDialog)
 		static const long ID_PANEL1;
+		static const long ID_FILEPICKERCTRL1;
+		static const long ID_SLIDER1;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
@@ -61,6 +69,9 @@ class PathGenerationDialog: public wxDialog
 		void OnPanel1LeftDClick(wxMouseEvent& event);
 		void OnPanel1Resize(wxSizeEvent& event);
 		void OnPanel1LeftUp1(wxMouseEvent& event);
+		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
+		void OnSlider_BrightnessCmdScrollChanged(wxScrollEvent& event);
+		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
