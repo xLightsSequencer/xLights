@@ -16,7 +16,7 @@ class EventState: public EventBase
 		virtual std::string GetType() const override { return "State"; }
         void SetState(std::string state) { if (_state != state) { _state = state; _changeCount++; } }
         std::string GetState() const { return _state; }
-        void Process(const std::string&  state, ScheduleManager* scheduleManager);
+        void Process(const std::string&  state, ScheduleManager* scheduleManager) override;
         static std::list<std::string> GetStates();
         void ProcessState(const std::string&  state, ScheduleManager* scheduleManager);
         static std::string GetParmToolTip();

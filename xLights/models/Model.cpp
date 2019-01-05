@@ -42,12 +42,6 @@ static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
 
 static const std::string PER_PREVIEW_NO_OFFSET("Per Preview No Offset");
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 const std::vector<std::string> Model::DEFAULT_BUFFER_STYLES {DEFAULT, PER_PREVIEW, SINGLE_LINE, AS_PIXEL};
 
 Model::Model(const ModelManager &manager) : modelDimmingCurve(nullptr),
@@ -570,10 +564,10 @@ void Model::AddProperties(wxPropertyGridInterface *grid, OutputManager* outputMa
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));
     int i = NODE_TYPES.Index(StringType);
     if (i == wxNOT_FOUND) {
-        i = NODE_TYPES.size() - 2;
+        i = NODE_TYPES.Index("Single Color");
     }
     grid->AppendIn(p, new wxEnumProperty("String Type", "ModelStringType", NODE_TYPES, wxArrayInt(), i));
-    if (i == NODE_TYPES.size() - 1 || i == NODE_TYPES.size() - 2) {
+    if (NODE_TYPES[i] == "Single Color" || NODE_TYPES[i] == "Single Color Intensity") {
         //get the color
         wxColor v;
         if (StringType == "Single Color Red") {
@@ -1126,7 +1120,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         int i = p2->GetValue().GetLong();
         ModelXml->DeleteAttribute("StringType");
         ModelXml->DeleteAttribute("RGBWHandling");
-        if (i == NODE_TYPES.size() - 1 || i == NODE_TYPES.size() - 2) {
+        if (NODE_TYPES[i] == "Single Color"|| NODE_TYPES[i] == "Single Color Intensity") {
             wxPGProperty *p = grid->GetPropertyByName("ModelStringColor");
             xlColor c;
             wxString tp = GetColorString(p, c);
@@ -3209,7 +3203,7 @@ void Model::ExportAsCustomXModel() const {
 
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
 
     wxString cm = "";
 
@@ -3479,8 +3473,9 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
     ModelScreenLocation& screenLocation = GetModelScreenLocation();
 
-    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
     screenLocation.PrepareToDraw(is_3d, allowSelected);
+    //UpdateBoundgingBox depends on "matrix" which is set in PrepareToDraw
+    screenLocation.UpdateBoundingBox(Nodes);  // FIXME: Temporary...really only want to do this when something causes a boundary change
 
     int vcount = 0;
     for (auto it = Nodes.begin(); it != Nodes.end(); ++it) {
@@ -4062,7 +4057,7 @@ Model* Model::GetXlightsModel(Model* model, std::string &last_model, xLightsFram
 
                     if (last_model == "")
                     {
-                        wxMessageBox("Failed to download model file.");
+                        DisplayError("Failed to download model file.");
 
                         cancelled = true;
                         return model;
@@ -4409,21 +4404,24 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
 }
 
 // all when true includes all image files ... even if they dont really exist
-std::list<std::string> Model::GetFaceFiles(bool all) const
+std::list<std::string> Model::GetFaceFiles(const std::list<std::string>& facesUsed, bool all) const
 {
     std::list<std::string> res;
 
     for (auto it = faceInfo.begin(); it != faceInfo.end(); ++it)
     {
-        if (it->second.find("Type") != it->second.end() && it->second.at("Type") == "Matrix")
+        if (all || std::find(begin(facesUsed), end(facesUsed), it->first) != facesUsed.end())
         {
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+            if (it->second.find("Type") != it->second.end() && it->second.at("Type") == "Matrix")
             {
-                if (it2->first != "CustomColors" && it2->first != "ImagePlacement" && it2->first != "Type" && it2->second != "")
+                for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
                 {
-                    if (all || wxFile::Exists(it2->second))
+                    if (it2->first != "CustomColors" && it2->first != "ImagePlacement" && it2->first != "Type" && it2->second != "")
                     {
-                        res.push_back(it2->second);
+                        if (all || wxFile::Exists(it2->second))
+                        {
+                            res.push_back(it2->second);
+                        }
                     }
                 }
             }

@@ -93,7 +93,7 @@ std::string PlayListItemDim::GetNameNoTime() const
     return "Dim";
 }
 
-void PlayListItemDim::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemDim::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {

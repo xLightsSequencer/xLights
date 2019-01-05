@@ -18,6 +18,7 @@
 #include "xLightsVersion.h"
 #include "xLightsXmlFile.h"
 #include "outputs/OutputManager.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -781,7 +782,7 @@ void GenerateCustomModelDialog::SetBulbs(bool nodes, int count, int startch, int
 
 void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 {
-    wxMessageBox("Please prepare to video the model ... press ok when ready to start.", "", 5L, this);
+    DisplayInfo("Please prepare to video the model ... press ok when ready to start.", this);
 
     static log4cpp::Category &logger_pcm = log4cpp::Category::getInstance(std::string("log_prepcustommodel"));
     logger_pcm.info("Running lights to be videoed.");
@@ -814,7 +815,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 
     if (_outputManager->IsOutputOpenInAnotherProcess())
     {
-        wxMessageBox("Another process seems to be outputing to lights right now. This may not generate the result expected.");
+        DisplayWarning("Another process seems to be outputing to lights right now. This may not generate the result expected.", this);
     }
 
     _outputManager->StartOutput();
@@ -859,7 +860,7 @@ void GenerateCustomModelDialog::OnButton_PCM_RunClick(wxCommandEvent& event)
 
     logger_pcm.info("   Done.");
 
-    wxMessageBox("Please stop the video.", "", 5L, this);
+    DisplayInfo("Please stop the video.", this);
     ValidateWindow();
 }
 
@@ -1100,8 +1101,7 @@ void GenerateCustomModelDialog::DoStartFrameIdentify()
 
     if (_vr == nullptr)
     {
-        logger_gcm.info("Error starting video reader.");
-        wxMessageBox("Unable to process video.");
+        DisplayError("Unable to process video.", this);
         ValidateWindow();
         return;
     }
@@ -1746,8 +1746,7 @@ void GenerateCustomModelDialog::DoBulbIdentify()
 
             if (sincefound >= BLANKFRAMESBEFOREABORT)
             {
-                logger_gcm.info("   Too many frames with no lights spotted. Aborting scan.");
-                wxMessageBox("Too many frames with no lights spotted. Aborting scan.");
+                DisplayError("Too many frames with no lights spotted. Aborting scan.", this);
             }
 
             _biFrame = CreateDetectMask(_startFrame, true, _clip);
@@ -2058,9 +2057,7 @@ void GenerateCustomModelDialog::WalkPixels(int x, int y, int w, int h, int w3, u
         if (!_warned)
         {
             _warned = true;
-            static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
-            logger_gcm.info("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
-            wxMessageBox("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.");
+            DisplayError("Too many pixels are looking like bulbs ... this could take forever ... you need to change your settings ... maybe increase sensitivity.", this);
         }
     }
 }
@@ -2562,8 +2559,7 @@ void GenerateCustomModelDialog::OnButton_CM_SaveClick(wxCommandEvent& event)
     logger_gcm.info("Saving to xmodel file %s.", (const char *)filename.c_str());
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        logger_gcm.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
     wxString name = wxFileName(filename).GetName();

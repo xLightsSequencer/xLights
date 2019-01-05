@@ -45,7 +45,7 @@ DDPOutput::~DDPOutput()
 #pragma region Static Functions
 void DDPOutput::SendSync()
 {
-    static wxByte syncdata[DDP_SYNCPACKET_LEN];
+    static uint8_t syncdata[DDP_SYNCPACKET_LEN];
     static wxIPV4address syncremoteAddr;
     static wxDatagramSocket *syncdatagram = nullptr;
 
@@ -167,7 +167,7 @@ bool DDPOutput::Open()
     if (!_enabled) return true;
 
     if (_fulldata != nullptr) delete _fulldata;
-    _fulldata = (wxByte*)malloc(_channels);
+    _fulldata = (uint8_t*)malloc(_channels);
     if (_fulldata == nullptr)
     {
         logger_base.error("Problem allocating %ld memory for DDP output '%s'.", _channels, (const char *)_description.c_str());

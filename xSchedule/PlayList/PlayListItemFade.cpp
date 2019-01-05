@@ -82,7 +82,7 @@ void PlayListItemFade::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemFadePanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
-void PlayListItemFade::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemFade::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     long duration = _duration;
 

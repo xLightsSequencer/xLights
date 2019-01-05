@@ -98,7 +98,7 @@ wxXmlNode* EventMIDI::Save()
     return en;
 }
 
-void EventMIDI::Process(wxByte status, wxByte channel, wxByte data1, wxByte data2, ScheduleManager* scheduleManager)
+void EventMIDI::Process(uint8_t status, uint8_t channel, uint8_t data1, uint8_t data2, ScheduleManager* scheduleManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -117,7 +117,7 @@ void EventMIDI::Process(wxByte status, wxByte channel, wxByte data1, wxByte data
     }
 }
 
-void EventMIDI::ProcessMIDICommand(wxByte data1, wxByte data2, ScheduleManager* scheduleManager)
+void EventMIDI::ProcessMIDICommand(uint8_t data1, uint8_t data2, ScheduleManager* scheduleManager)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString p1 = _parm1;

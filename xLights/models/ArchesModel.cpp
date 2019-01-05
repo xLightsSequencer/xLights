@@ -9,6 +9,7 @@
 #include "ModelScreenLocation.h"
 #include "xLightsVersion.h"
 #include "../xLightsMain.h"
+#include "UtilFunctions.h"
 
 ArchesModel::ArchesModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), arc(180)
 {
@@ -254,12 +255,6 @@ void ArchesModel::SetArchCoord() {
     screenLocation.SetRenderSize(width * parm1, renderHt);
 }
 
-#define retmsg(msg) \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 void ArchesModel::ExportXlightsModel()
 {
     wxString name = ModelXml->GetAttribute("name");
@@ -268,7 +263,7 @@ void ArchesModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -388,11 +383,11 @@ void ArchesModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
         }
         else
         {
-            wxMessageBox("Failure loading Arches model file.");
+            DisplayError("Failure loading Arches model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading Arches model file.");
+        DisplayError("Failure loading Arches model file.");
     }
 }

@@ -429,6 +429,11 @@
 					<handler function="OnMenuItem_StandaloneSelected" entry="EVT_MENU" />
 					<radio>1</radio>
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_TEST" variable="MenuItem_Test" member="yes">
+					<label>Test</label>
+					<handler function="OnMenuItem_TestSelected" entry="EVT_MENU" />
+					<radio>1</radio>
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_FPPMASTER" variable="MenuItem_FPPMaster" member="yes">
 					<label>FPP Master</label>
 					<handler function="OnMenuItem_FPPMasterSelected" entry="EVT_MENU" />
@@ -491,6 +496,10 @@
 				<object class="wxMenuItem" name="MNU_CONFIGUREMIDITIMECODE" variable="MenuItem5MenuItem_ConfigureMIDITimecode" member="yes">
 					<label>Configure MIDI Timecode</label>
 					<handler function="OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_CONFIGURE_TEST" variable="MenuItem_ConfigureTest" member="yes">
+					<label>Configure Test</label>
+					<handler function="OnMenuItem_ConfigureTestSelected" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">

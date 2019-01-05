@@ -16,7 +16,7 @@ class OutputProcessSet : public OutputProcess
         OutputProcessSet(OutputManager* outputManager, std::string _startChannel, size_t p1, size_t p2, const std::string& description);
         virtual ~OutputProcessSet() {}
         virtual wxXmlNode* Save() override;
-        virtual void Frame(wxByte* buffer, size_t size) override;
+        virtual void Frame(uint8_t* buffer, size_t size) override;
         virtual size_t GetP1() const override { return _channels; }
         virtual size_t GetP2() const override { return _value; }
         virtual std::string GetType() const override { return "Set"; }

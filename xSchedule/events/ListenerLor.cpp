@@ -42,7 +42,7 @@ void ListenerLor::Poll()
 	int inputs1 = 0;
 	int inputs2 = 0;
     size_t idx = 0;
-    wxByte d[8];
+    uint8_t d[8];
 	bool done = false;
 
     if (_serial == nullptr) return;

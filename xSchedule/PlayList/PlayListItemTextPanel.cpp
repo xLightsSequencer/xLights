@@ -7,7 +7,6 @@
 //*)
 
 #include <wx/colordlg.h>
-#include "../FSEQFile.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleOptions.h"
 #include "../ScheduleManager.h"

@@ -32,13 +32,13 @@ wxXmlNode* OutputProcessDeadChannel::Save()
     return res;
 }
 
-void OutputProcessDeadChannel::Frame(wxByte* buffer, size_t size)
+void OutputProcessDeadChannel::Frame(uint8_t* buffer, size_t size)
 {
     if (!_enabled) return;
 
     size_t sc = GetStartChannelAsNumber();
 
-    wxByte* p = buffer + (sc - 1);
+    uint8_t* p = buffer + (sc - 1);
 
     // if our dead channel is not zero then blank the node
     // this ensures the pixel never looks the wrong colour

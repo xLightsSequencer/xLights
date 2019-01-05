@@ -135,7 +135,7 @@ class Xyzzy
     int _score;
     std::string _playerName;
     std::string _highScoreOwner;
-    wxByte _board[BOARDWIDTH*BOARDHEIGHT];
+    uint8_t _board[BOARDWIDTH*BOARDHEIGHT];
     int _colsPerSquare;
     int _rowsPerSquare;
     bool _isOk;
@@ -162,11 +162,11 @@ class Xyzzy
     bool TestMoveDown() const;
     bool TestSpin() const;
     void Drop();
-    void DrawPixel(int x, int y, wxColour c, wxByte* buffer, size_t size);
+    void DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size);
     bool AdvanceGame();
     void MakePiecePermanent();
     std::string GameNotRunningResult(const std::string& reference);
-    void DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size);
+    void DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size);
     void CheckFullRow();
     void Reset();
     void AddToScore(int add);
@@ -175,8 +175,8 @@ public:
 
         Xyzzy();
         virtual ~Xyzzy();
-        bool Frame(wxByte* buffer, size_t size, bool outputframe); 
-        void DrawBlack(wxByte* buffer, size_t size);
+        bool Frame(uint8_t* buffer, size_t size, bool outputframe); 
+        void DrawBlack(uint8_t* buffer, size_t size);
         void Initialise(const std::string& parameters, std::string& result, const std::string& reference);
         void Close(std::string& result, const std::string& reference);
         bool Action(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);

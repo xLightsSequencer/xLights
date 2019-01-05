@@ -87,7 +87,7 @@ void PlayListItemSetColour::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemSetColourPanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
-void PlayListItemSetColour::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemSetColour::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {
@@ -105,11 +105,11 @@ void PlayListItemSetColour::Frame(wxByte* buffer, size_t size, size_t ms, size_t
 
             if (toset > 0)
             {
-                wxByte data[3];
+                uint8_t data[3];
                 data[0] = _value.Red();
                 data[1] = _value.Green();
                 data[2] = _value.Blue();
-                wxByte* values = (wxByte*)malloc(toset * 3);
+                uint8_t* values = (uint8_t*)malloc(toset * 3);
                 if (values != nullptr)
                 {
                     for (int i = 0; i < toset; i++)

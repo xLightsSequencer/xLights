@@ -50,7 +50,7 @@ public:
 
     #pragma region Playing
     virtual void Start(long stepLengthMS) override;
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     #pragma endregion Playing
 
 #pragma region UI

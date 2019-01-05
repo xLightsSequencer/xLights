@@ -80,5 +80,5 @@ void EffectIconPanel::OnResize(wxSizeEvent& event) {
     int i = std::round(cols);
     GridSizer1->SetCols(i);
     GridSizer1->SetDimension(0, 0, wsz.GetWidth(), wsz.GetHeight());
-    GridSizer1->RecalcSizes();
+    GridSizer1->Layout();
 }

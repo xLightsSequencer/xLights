@@ -196,6 +196,8 @@ public:
         void OnMenuItem_MIDITimeCodeSlaveSelected(wxCommandEvent& event);
         void OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected(wxCommandEvent& event);
         void OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event);
+        void OnMenuItem_TestSelected(wxCommandEvent& event);
+        void OnMenuItem_ConfigureTestSelected(wxCommandEvent& event);
         //*)
 
         bool IsPlayList(wxTreeItemId id) const;
@@ -268,6 +270,7 @@ public:
         static const long ID_MNU_IMPORT;
         static const long ID_MNU_CRASH;
         static const long ID_MNU_MODENORMAL;
+        static const long ID_MNU_TEST;
         static const long ID_MNU_FPPMASTER;
         static const long ID_MNU_OSCMASTER;
         static const long ID_MNU_OSCFPPMASTER;
@@ -281,6 +284,7 @@ public:
         static const long ID_MNU_EDITFPPREMOTE;
         static const long ID_MNU_OSCOPTION;
         static const long MNU_CONFIGUREMIDITIMECODE;
+        static const long ID_MNU_CONFIGURE_TEST;
         static const long idMenuAbout;
         static const long ID_STATUSBAR1;
         static const long ID_TIMER1;
@@ -330,6 +334,7 @@ public:
         wxMenuItem* MenuItem_BackgroundPlaylist;
         wxMenuItem* MenuItem_CheckSchedule;
         wxMenuItem* MenuItem_ConfigureOSC;
+        wxMenuItem* MenuItem_ConfigureTest;
         wxMenuItem* MenuItem_Crash;
         wxMenuItem* MenuItem_EditEvents;
         wxMenuItem* MenuItem_EditFPPRemotes;
@@ -347,6 +352,7 @@ public:
         wxMenuItem* MenuItem_Save;
         wxMenuItem* MenuItem_ShowFolder;
         wxMenuItem* MenuItem_Standalone;
+        wxMenuItem* MenuItem_Test;
         wxMenuItem* MenuItem_UsexLightsFolder;
         wxMenuItem* MenuItem_ViewLog;
         wxMenuItem* MenuItem_VirtualMatrices;

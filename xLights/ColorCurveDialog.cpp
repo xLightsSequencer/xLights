@@ -788,12 +788,12 @@ void ColorCurveDialog::LoadXCC(ColorCurve* cc, const wxString& filename)
         }
         else
         {
-            wxMessageBox("Failure loading color curve file " + filename + ".");
+            DisplayError("Failure loading color curve file " + filename + ".");
         }
     }
     else
     {
-        wxMessageBox("Failure loading color curve file " + filename + ".");
+        DisplayError("Failure loading color curve file " + filename + ".");
     }
 }
 
@@ -844,8 +844,7 @@ void ColorCurveDialog::OnButtonExportClick(wxCommandEvent& event)
 
     if (!f.Create(filename, true) || !f.IsOpened())
     {
-        logger_base.info("Unable to create file %s. Error %d\n", (const char *)filename.c_str(), f.GetLastError());
-        wxMessageBox(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
         return;
     }
 

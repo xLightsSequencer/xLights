@@ -2,7 +2,6 @@
 #define PLAYLISTITEMFSEQ_H
 
 #include "PlayListItem.h"
-#include "../FSEQFile.h"
 #include "../Blend.h"
 #include <string>
 
@@ -10,6 +9,7 @@ class wxXmlNode;
 class wxWindow;
 class AudioManager;
 class OutputManager;
+class FSEQFile;
 
 #define FSEQFILES "FSEQ files|*.fseq|All files (*.*)|*.*"
 
@@ -84,7 +84,7 @@ public:
     void Load(wxXmlNode* node) override;
 
     #pragma region Playing
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     virtual void Start(long stepLengthMS) override;
     virtual void Stop() override;
     virtual void Restart() override;

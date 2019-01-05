@@ -79,7 +79,7 @@ public:
     int GetPlayStepSize() const { return _items.size(); }
     void AddItem(PlayListItem* item) { _items.push_back(item); _items.sort(); _changeCount++; }
     void RemoveItem(PlayListItem* item);
-    bool Frame(wxByte* buffer, size_t size, bool outputframe);
+    bool Frame(uint8_t* buffer, size_t size, bool outputframe);
     size_t GetPosition();
     PlayListItem* GetItem(const std::string item);
     PlayListItem* GetItem(const wxUint32 id);

@@ -228,6 +228,11 @@ static const AudioObjectPropertyAddress devlist_address = {
     kAudioObjectPropertyScopeGlobal,
     kAudioObjectPropertyElementMaster
 };
+static const AudioObjectPropertyAddress defaultdev_address = {
+    kAudioHardwarePropertyDefaultOutputDevice,
+    kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyElementMaster
+};
 
 /* this is called when the system's list of available audio devices changes. */
 static OSStatus
@@ -240,8 +245,10 @@ device_list_changed(AudioObjectID systemObj, UInt32 num_addr, const AudioObjectP
 
 void AddAudioDeviceChangeListener(AudioManager *am) {
     AudioObjectAddPropertyListener(kAudioObjectSystemObject, &devlist_address, device_list_changed, am);
+    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &defaultdev_address, device_list_changed, am);
 }
 void RemoveAudioDeviceChangeListener(AudioManager *am) {
     AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &devlist_address, device_list_changed, am);
+    AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &defaultdev_address, device_list_changed, am);
 }
 #endif

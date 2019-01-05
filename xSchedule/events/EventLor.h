@@ -18,7 +18,7 @@ class EventLor: public EventSerial
         std::string GetUnitIdString() const { return _unit_id_str; }
 		virtual std::string GetType() const override { return "LOR"; }
         virtual int GetSubType() const override { return _unit_id; }
-        //virtual void Process(const std::string& commPort, wxByte* buffer, long buffersize, ScheduleManager* scheduleManager) override;
+        //virtual void Process(const std::string& commPort, uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager) override;
         static std::string GetParmToolTip();
 };
 

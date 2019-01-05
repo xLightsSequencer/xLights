@@ -12,6 +12,7 @@
 #include <wx/stdpaths.h>
 #include <wx/msgdlg.h>
 #include <log4cpp/Category.hh>
+#include "UtilFunctions.h"
 
 //(*IdInit(LyricUserDictDialog)
 const long LyricUserDictDialog::ID_TEXTCTRL_NEW_LYRIC = wxNewId();
@@ -154,7 +155,7 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
     if ((m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found)
         || DoesGridContain(TextCtrlNewLyric->GetValue().Upper()))
     {
-        wxMessageBox("Word '" + TextCtrlNewLyric->GetValue() +"' Already Exists In Phoneme Dictionary");
+        DisplayError("Word '" + TextCtrlNewLyric->GetValue() +"' Already Exists In Phoneme Dictionary", this);
         return;
     }
 
@@ -201,7 +202,7 @@ void LyricUserDictDialog::OnButtonLyricOKClick(wxCommandEvent& event)
         if (GridUserLyricDict->GetCellValue(i, 1).IsEmpty() || !IsValidPhoneme(GridUserLyricDict->GetCellValue(i, 1).Upper()))
         {
             const auto msg = "Invalid Phonemes for: " + GridUserLyricDict->GetCellValue(i, 0);
-            wxMessageBox(msg,"Invalid Phonemes");
+            DisplayError(msg, this);
             return;
         }
     }

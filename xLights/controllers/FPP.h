@@ -10,6 +10,23 @@
 class OutputManager;
 class wxJSONValue;
 
+class FPPInstance {
+    public:
+    FPPInstance() : majorVersion(0), minorVersion(0) {}
+    virtual ~FPPInstance() {}
+    
+    
+    std::string hostName;
+    std::string ipAddress;
+    std::string fullVersion;
+    std::string platform;
+    std::string model;
+    uint32_t majorVersion;
+    uint32_t minorVersion;
+    std::string ranges;
+};
+
+
 class FPP
 {
 	wxHTTP _http;
@@ -29,8 +46,12 @@ class FPP
     bool GetURLAsJSON(const std::string& url, wxJSONValue& val);
     
     bool uploadFileViaHTTP(const std::string &fn, const std::string &localfile, wxWindow* parent, bool compress = false);
+    
+    
 
 public:
+    static void Discover(std::list<FPPInstance> &instances);
+
     std::string Version() { return _version; };
 	void RestartFFPD();
 	void E131Output(bool enable);

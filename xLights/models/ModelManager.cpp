@@ -27,6 +27,7 @@
 
 #include <log4cpp/Category.hh>
 #include "outputs/Output.h"
+#include "UtilFunctions.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
@@ -231,7 +232,7 @@ void ModelManager::NewRecalcStartChannels() const
         }
     }
     if (failed) {
-        wxMessageBox(msg);
+        DisplayError(msg);
     }
 
     //long end  = sw.Time();
@@ -309,8 +310,7 @@ void ModelManager::DisplayStartChannelCalcWarning() const
 
     if (msg != lastwarn)
     {
-        logger_base.warn(msg);
-        wxMessageBox(msg);
+        DisplayWarning(msg);
         lastwarn = msg;
     }
 }
@@ -496,8 +496,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
                         msg = "Could not process model group " + g->GetName()
                             + " due to models not being found.  The following models will be removed from the group:"
                             + modelsRemoved;
-                        logger_base.warn("ModelManager::LoadGroups %s", (const char *)msg.c_str());
-                        wxMessageBox(msg);
+                        DisplayWarning(msg);
                     }
                     maxIter = toBeDone.size();
                     changed = true;
@@ -512,8 +511,7 @@ bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) 
             if (maxIter == 0) {
                 // I would prefer NOT to send users to the log but the model group does not get loaded so when we run check sequence you can't see the error.
                 msg += "\n\nCheck log file for more details.";
-                logger_base.warn(msg);
-                wxMessageBox(msg);
+                DisplayWarning(msg);
                 //nothing improved
                 break;
             }
@@ -671,7 +669,7 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
         node->AddAttribute("DropPattern", "3,4,5,4");
         model = new IciclesModel(node, *this, false);
     } else {
-        wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
+        DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;
     }
     return model;
@@ -723,7 +721,7 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
     } else if (type == "Spinner") {
         model = new SpinnerModel(node, *this, zeroBased);
     } else {
-        wxMessageBox(type + " is not a valid model type for model " + node->GetAttribute("name"));
+        DisplayError(wxString::Format("'%s' is not a valid model type for model '%s'", type, node->GetAttribute("name")).ToStdString());
         return nullptr;
     }
     model->GetModelScreenLocation().previewW = previewW;
@@ -788,8 +786,7 @@ void ModelManager::Delete(const std::string &name) {
 
             if (effects_exist)
             {
-                int result = wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO);
-                if (result != wxYES) return;
+                if (wxMessageBox("Model '" + name + "' exists in the currently open sequence and has effects on it. Delete all effects and layers on this model?", "Confirm Delete?", wxICON_QUESTION | wxYES_NO) != wxYES) return;
             }
 
             // Delete the model from the sequencer grid and views

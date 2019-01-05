@@ -31,13 +31,13 @@
 class DDPOutput : public IPOutput
 {
     #pragma region Member Variables
-    wxByte _data[DDP_PACKET_LEN];
-    wxByte _sequenceNum;
+    uint8_t _data[DDP_PACKET_LEN];
+    uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
     int _channelsPerPacket;
     bool _keepChannelNumbers;
-    wxByte* _fulldata;
+    uint8_t* _fulldata;
 
     // These are used for DDP sync
     static bool __initialised;

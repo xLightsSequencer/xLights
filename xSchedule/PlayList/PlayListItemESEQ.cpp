@@ -91,7 +91,7 @@ void PlayListItemESEQ::SetESEQFileName(const std::string& ESEQFileName)
     }
 }
 
-void PlayListItemESEQ::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemESEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {

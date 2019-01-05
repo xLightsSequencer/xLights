@@ -11,6 +11,28 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)  Fix model group per model default is not rendering correctly
+   -- bug (keith)  Fix cant rename objects
+   -- bug (scott)  Dont persist some not useful FPP connect settings
+   -- bug (keith)  Fix xSchedule not reading FSEQ correctly
+   -- bug (keith)  Fix erroneous check sequence warning if a group is in All Previews
+   -- enh (keith)  Exclude faces not used in a sequence from the package sequence file
+   -- bug (dkulp)  Fix xLights does not handle system audio device change on OSX
+   -- bug (dkulp)  Remove non-functioning scroll bars on layout
+2019.02 January 2, 2019
+   -- enh (keith)  Add xSchedule test mode
+   -- bug (keith)  Fix 3D undo crash and loss of objects
+   -- bug (keith)  More keybindings work to try to isolate the problem
+   -- bug (keith)  Fix cant change model to single channel
+   -- bug (scott)  Timing track rename does not show you current name
+2019.01 January 1, 2019
+   -- enh (gil)    Add 3d
+   -- enh (keith)  Test for out of order universes on a controller in check sequence
+   -- bug (dan)    Fix more issues with FSEQ saving and loading
+2018.59 December 30, 2018
+   -- bug (keith)  Fix Single colour models not working correctly
+2018.58 December 28, 2018
+   -- bug (keith)  Fix FSEQ files not being saved with correct format
 2018.57 December 27, 2018
    -- enh (keith)  Add full support for model connection properties for Falcon controllers. Create virtual strings 
                    where necessary. Virtual strings will now be deleted on ports we upload to.

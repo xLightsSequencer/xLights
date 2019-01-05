@@ -337,5 +337,6 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Clear background playlist", 0, {}, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Close xSchedule", 0, {}, false, false, false, false, true, true, true, false));
     _commands.push_back(new Command("Add n Seconds To Current Step Position", 1, i, false, false, true, false, false, true, true, false));
+    _commands.push_back(new Command("Start test mode", 1, s, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Stop test mode", 0, {}, false, false, false, false, false, true, true, false));
 }
-

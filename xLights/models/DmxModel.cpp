@@ -14,6 +14,7 @@
 #include "../xLightsVersion.h"
 #include <wx/msgdlg.h>
 #include "../xLightsMain.h"
+#include "UtilFunctions.h"
 
 DmxModel::DmxModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -2896,12 +2897,6 @@ void DmxModel::Draw3DDMXHead(DrawGLUtils::xl3Accumulator &va, const xlColor &c, 
     va.AddVertex(p41.x, p41.y, p41.z, c);
 }
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 void DmxModel::ExportXlightsModel()
 {
     wxString name = ModelXml->GetAttribute("name");
@@ -2910,7 +2905,7 @@ void DmxModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -3176,11 +3171,11 @@ void DmxModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, f
         }
         else
         {
-            wxMessageBox("Failure loading DMX model file.");
+            DisplayError("Failure loading DMX model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading DMX model file.");
+        DisplayError("Failure loading DMX model file.");
     }
 }

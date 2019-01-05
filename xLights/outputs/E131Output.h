@@ -20,8 +20,8 @@
 class E131Output : public IPOutput
 {
     #pragma region Member Variables
-    wxByte _data[E131_PACKET_LEN];
-    wxByte _sequenceNum;
+    uint8_t _data[E131_PACKET_LEN];
+    uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
 

@@ -93,7 +93,7 @@ Xyzzy::~Xyzzy()
 
 }
 
-void Xyzzy::DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size)
+void Xyzzy::DrawNode(int x, int y, wxColour c, uint8_t* buffer, size_t size)
 {
     if (x < 0 || x >= _matrixMapper->GetWidth()) return;
     if (y < 0 || y >= _matrixMapper->GetHeight()) return;
@@ -108,14 +108,14 @@ void Xyzzy::DrawNode(int x, int y, wxColour c, wxByte* buffer, size_t size)
     }
     else
     {
-        wxByte* p = buffer + bl;
+        uint8_t* p = buffer + bl;
         *p = c.Red();
         *(p + 1) = c.Green();
         *(p + 2) = c.Blue();
     }
 }
 
-void Xyzzy::DrawPixel(int x, int y, wxColour c, wxByte* buffer, size_t size)
+void Xyzzy::DrawPixel(int x, int y, wxColour c, uint8_t* buffer, size_t size)
 {
     for (int xout = 0; xout < _colsPerSquare; xout++)
     {
@@ -132,7 +132,7 @@ void Xyzzy::DrawPixel(int x, int y, wxColour c, wxByte* buffer, size_t size)
     }
 }
 
-void Xyzzy::DrawBlack(wxByte* buffer, size_t size)
+void Xyzzy::DrawBlack(uint8_t* buffer, size_t size)
 {
     if (_matrixMapper == nullptr) return;
 
@@ -145,7 +145,7 @@ void Xyzzy::DrawBlack(wxByte* buffer, size_t size)
     }
 }
 
-bool Xyzzy::Frame(wxByte* buffer, size_t size, bool outputframe)
+bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
 {
     if (_matrixMapper == nullptr) return false;
 

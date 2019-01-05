@@ -115,7 +115,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	CheckBox_SuppressZip = new wxCheckBox(Panel_FTP, ID_CHECKBOX3, _("Suppress zipping of content"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_SuppressZip->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_SuppressZip, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer2->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_SuppressMediaUpload = new wxCheckBox(Panel_FTP, ID_CHECKBOX4, _("Suppress media upload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_SuppressMediaUpload->SetValue(false);
 	FlexGridSizer2->Add(CheckBox_SuppressMediaUpload, 1, wxALL|wxEXPAND, 5);
@@ -583,8 +583,7 @@ bool FPPConnectDialog::FTPUpload()
 
     if (!fpp.IsConnected())
     {
-        logger_base.warn("Could not connect to FPP using address '%s'.", (const char *)ComboBox_IPAddress->GetValue().c_str());
-        wxMessageBox("Could not connect to FPP using address '" + ComboBox_IPAddress->GetValue() + "'.");
+        DisplayError("Could not connect to FPP using address '" + ComboBox_IPAddress->GetValue() + "'.");
         return true;
     }
 
@@ -636,7 +635,7 @@ bool FPPConnectDialog::USBUpload()
 
     if (!wxDir::Exists(tgtdir))
     {
-        wxMessageBox("USB Drive " + tgtdir + " does not have the expected media folder.", "Error", 4 | wxCENTRE, this);
+        DisplayError("USB Drive " + tgtdir + " does not have the expected media folder.", this);
         return true;
     }
     wxProgressDialog progress("File Copy", "", 1000, this, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
@@ -1189,10 +1188,10 @@ void FPPConnectDialog::LoadSettings()
         CheckBox_UploadController->SetValue(config->ReadBool("FPPConnectUploadController", false));
         CheckBox_UploadModels->SetValue(config->ReadBool("FPPConnectUploadModels", false));
 
-        PlayListCheckbox->SetValue(config->ReadBool("FPPConnectPlayListUpload", false));
+        //PlayListCheckbox->SetValue(config->ReadBool("FPPConnectPlayListUpload", false));
         Choice_DefaultVersion->SetSelection(config->ReadLong("FPPConnectDefaultVersion", Choice_DefaultVersion->GetCount() - 1));
 
-        PlayListName->SetStringSelection(config->Read("FPPConnectPlayListName", wxEmptyString));
+        //PlayListName->SetStringSelection(config->Read("FPPConnectPlayListName", wxEmptyString));
         Choice_Drives->SetStringSelection(config->Read("FPPConnectUSBDrive", wxEmptyString));
         CheckBox_SuppressZip->SetValue(config->ReadBool("FPPConnectSuppressZip", false));
         CheckBox_SuppressMediaUpload->SetValue(config->ReadBool("FPPConnectSuppressMediaUpload", false));

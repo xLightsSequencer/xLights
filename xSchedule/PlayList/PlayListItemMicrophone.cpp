@@ -103,7 +103,7 @@ std::string PlayListItemMicrophone::GetNameNoTime() const
     return _mode;
 }
 
-void PlayListItemMicrophone::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemMicrophone::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     static int lastValue = 0;
     if (outputframe)
@@ -127,7 +127,7 @@ void PlayListItemMicrophone::Frame(wxByte* buffer, size_t size, size_t ms, size_
         //wxASSERT(c.Green() <= _colour.Green());
         //wxASSERT(c.Blue() <= _colour.Blue());
 
-        for (wxByte* p = buffer + sc - 1; p < buffer + sc - 1 + toset; p+=3)
+        for (uint8_t* p = buffer + sc - 1; p < buffer + sc - 1 + toset; p+=3)
         {
             SetPixel(p, c.Red(), c.Green(), c.Blue(), _blendMode);
         }
@@ -146,9 +146,9 @@ void PlayListItemMicrophone::Stop()
     AudioManager::GetSDL()->StopListening();
 }
 
-void PlayListItemMicrophone::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode)
+void PlayListItemMicrophone::SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode)
 {
-    wxByte rgb[3];
+    uint8_t rgb[3];
     rgb[0] = r;
     rgb[1] = g;
     rgb[2] = b;

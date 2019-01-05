@@ -157,7 +157,7 @@ std::string PlayListItemOSC::SubstituteVariables(const std::string value)
     return ReplaceTags(res.ToStdString());
 }
 
-void PlayListItemOSC::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemOSC::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

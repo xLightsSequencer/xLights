@@ -605,7 +605,7 @@ void ListenerManager::Pause(bool pause)
     _pause = pause;
 }
 
-void ListenerManager::ProcessFrame(wxByte* buffer, long buffsize)
+void ListenerManager::ProcessFrame(uint8_t* buffer, long buffsize)
 {
     if (_pause || _stop) return;
 
@@ -619,7 +619,7 @@ void ListenerManager::ProcessFrame(wxByte* buffer, long buffsize)
     }
 }
 
-void ListenerManager::ProcessPacket(const std::string& source, int universe, wxByte* buffer, long buffsize)
+void ListenerManager::ProcessPacket(const std::string& source, int universe, uint8_t* buffer, long buffsize)
 {
     if (_pause || _stop) return;
 
@@ -645,7 +645,7 @@ void ListenerManager::ProcessPacket(const std::string& source, const std::string
     }
 }
 
-void ListenerManager::ProcessPacket(const std::string& source, wxByte status, wxByte channel, wxByte data1, wxByte data2)
+void ListenerManager::ProcessPacket(const std::string& source, uint8_t status, uint8_t channel, uint8_t data1, uint8_t data2)
 {
     if (_notifyScan != nullptr && source == "MIDI")
     {
@@ -670,7 +670,7 @@ void ListenerManager::ProcessPacket(const std::string& source, wxByte status, wx
     }
 }
 
-void ListenerManager::ProcessPacket(const std::string& source, const std::string& commPort, wxByte* buffer, long buffsize, int subtype)
+void ListenerManager::ProcessPacket(const std::string& source, const std::string& commPort, uint8_t* buffer, long buffsize, int subtype)
 {
     if (_pause || _stop) return;
 

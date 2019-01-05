@@ -88,7 +88,7 @@ std::string PlayListItemFile::FileReplaceTags(const std::string s)
     return ReplaceTags(res);
 }
 
-void PlayListItemFile::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemFile::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

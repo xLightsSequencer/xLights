@@ -1494,7 +1494,7 @@ void SubModelsDialog::ImportSubModel(std::string filename)
     }
     else
     {
-        wxMessageBox("Failure loading xModel file.");
+        DisplayError("Failure loading xModel file.");
     }
 }
 

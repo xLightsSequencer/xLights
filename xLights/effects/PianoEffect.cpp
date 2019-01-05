@@ -100,11 +100,11 @@ void PianoEffect::adjustSettings(const std::string &version, Effect *effect, boo
         {
             if (oldsettings == "Timing Track")
             {
-                wxMessageBox("Piano effect has changed. Old settings have been removed but you should be ok.");
+                DisplayWarning("Piano effect has changed. Old settings have been removed but you should be ok.");
             }
             else
             {
-                wxMessageBox("Piano effect has changed. Old settings have been removed. Please create a notes timing track using 'import notes' by right clicking on the timing track in the sequencer and then adjust piano settings.");
+                DisplayWarning("Piano effect has changed. Old settings have been removed. Please create a notes timing track using 'import notes' by right clicking on the timing track in the sequencer and then adjust piano settings.");
             }
 
             // strip out old settings

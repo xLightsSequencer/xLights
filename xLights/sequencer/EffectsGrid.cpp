@@ -4363,13 +4363,13 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
     if( banner_data[0] == "CopyFormatAC" && !xlights->IsACActive() )
     {
-        wxMessageBox("Cannot paste AC data in non-AC mode", "Paste Warning!", wxICON_WARNING | wxOK );
+        DisplayWarning("Cannot paste AC data in non-AC mode");
         return;
     }
 
     if( banner_data[0] != "CopyFormatAC" && xlights->IsACActive() )
     {
-        wxMessageBox("Only AC data may be pasted in AC mode", "Paste Warning!", wxICON_WARNING | wxOK );
+        DisplayWarning("Only AC data may be pasted in AC mode");
         return;
     }
 
@@ -4380,12 +4380,12 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
     {
         if( !contains_cell_info )
         {
-            wxMessageBox("Paste By Cell information missing.\nYou can only Paste By Time with this data.", "Paste Warning!", wxICON_WARNING | wxOK );
+            DisplayWarning("Paste By Cell information missing.\nYou can only Paste By Time with this data.");
             return;
         }
         if( mSequenceElements->GetSelectedTimingRow() < 0 )
         {
-            wxMessageBox("Paste By Cell requires an active timing track.", "Paste Warning!", wxICON_WARNING | wxOK );
+            DisplayWarning("Paste By Cell requires an active timing track.");
             return;
         }
     }
@@ -4404,7 +4404,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
     {
         if( number_of_original_timing_rows != number_of_timing_rows )
         {
-            wxMessageBox("Number of timing rows does not match how many existed when copied.", "Paste Warning!", wxICON_WARNING | wxOK );
+            DisplayWarning("Number of timing rows does not match how many existed when copied.");
             return;
         }
     }
@@ -4454,7 +4454,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             {
                 if( last_timing_row + mDropRow >= number_of_timing_rows )
                 {
-                    wxMessageBox("Not enough timing rows to paste timing effects starting on this row.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    DisplayWarning("Not enough timing rows to paste timing effects starting on this row.");
                     return;
                 }
             }
@@ -4462,7 +4462,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
             {
                 if( mDropRow < number_of_timing_rows )
                 {
-                    wxMessageBox("Cannot paste model effects into timing tracks.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    DisplayWarning("Cannot paste model effects into timing tracks.");
                     return;
                 }
             }
@@ -4476,7 +4476,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                 bool found_selected_start_column = tel->HitTestEffectByTime(mDropStartTimeMS+1, selected_start_column);
                 if( !found_selected_start_column )
                 {
-                    wxMessageBox("Unable to find a selected timing start location for Paste By Cell.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    DisplayWarning("Unable to find a selected timing start location for Paste By Cell.");
                     return;
                 }
             }
@@ -4621,7 +4621,7 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
                 }
                 if( number_of_timings == 0 && mDropRow < number_of_timing_rows )
                 {
-                    wxMessageBox("Cannot paste model effect into timing track.", "Paste Warning!", wxICON_WARNING | wxOK );
+                    DisplayWarning("Cannot paste model effect into timing track.");
                     return;
                 }
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());

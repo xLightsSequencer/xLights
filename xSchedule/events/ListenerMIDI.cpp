@@ -186,7 +186,7 @@ void ListenerMIDI::Poll()
             {
             case 0xF0: // Begin System Exclusive	0xF0
             {
-                wxByte * buffer = msg->GetMessage();
+                uint8_t * buffer = msg->GetMessage();
                 if (buffer[3] == 0x01 && buffer[4] == 0x01)
                 {
                     // F0 7F 7F 01 01 hh mm ss ff F7

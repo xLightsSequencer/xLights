@@ -315,12 +315,13 @@ glm::mat4 VectorMath::rotMatrixFromXAxisToVector(const glm::vec3 &vector)
 glm::mat4 VectorMath::rotationMatrixFromXAxisToVector(const glm::vec3 &a)
 {
     glm::vec3 v = glm::vec3(0, -a.z, a.y);
-    float angle = acos(a.x / glm::length(a));
-    if (angle == 0.0f) {
+    float len = glm::length(a);
+    float ax = a.x / len;
+    float angle = acos(ax);
+    if (ax > 0.9999f || angle == 0.0f) {
         // aligned with x-axis so return identity matrix
         return glm::mat4(1.0f);
-    }
-    else if (std::abs(angle - M_PI) < 0.0001f) {
+    } else if (ax < -0.9999f || std::abs(angle - M_PI) < 0.0001f) {
         // aligned with x-axis in opposite direction
         return glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     }

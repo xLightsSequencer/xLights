@@ -197,7 +197,7 @@ std::list<Output*> ArtNetOutput::Discover(OutputManager* outputManager)
 
 void ArtNetOutput::SendSync()
 {
-    static wxByte syncdata[ARTNET_SYNCPACKET_LEN];
+    static uint8_t syncdata[ARTNET_SYNCPACKET_LEN];
     static wxIPV4address syncremoteAddr;
     static wxDatagramSocket *syncdatagram = nullptr;
 
@@ -371,8 +371,8 @@ bool ArtNetOutput::Open()
     __initialised = false;
     logger_base.debug("Artnet broadcast address %d.%d.%d.255", __ip1, __ip2, __ip3);
 
-    _data[16] = (wxByte)(_channels >> 8);  // Property value count (high)
-    _data[17] = (wxByte)(_channels & 0xff);  // Property value count (low)
+    _data[16] = (uint8_t)(_channels >> 8);  // Property value count (high)
+    _data[17] = (uint8_t)(_channels & 0xff);  // Property value count (low)
 
     return _ok;
 }

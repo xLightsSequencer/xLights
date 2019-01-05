@@ -14,8 +14,8 @@ protected:
     #pragma region Member Variables
     std::string _name;
     std::string _mode;
-    wxByte _value1;
-    wxByte _value2;
+    uint8_t _value1;
+    uint8_t _value2;
     size_t _sc;
     std::string _startChannel;
     OutputManager* _outputManager;
@@ -60,7 +60,7 @@ public:
 
     #pragma region Playing
     virtual void Start(long stepLengthMS) override;
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     #pragma endregion Playing
 
 #pragma region UI

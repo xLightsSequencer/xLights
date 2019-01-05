@@ -1173,7 +1173,8 @@ public:
 private:
 
     void WriteFalconPiModelFile(const wxString& filename, long numChans, long numPeriods,
-                                SeqDataType *dataBuf, int startAddr, int modelSize); //Falcon Pi sub sequence .eseq
+                                SeqDataType *dataBuf, int startAddr, int modelSize,
+                                bool v2 = false); //Falcon Pi sub sequence .eseq
     void WriteVideoModelFile(const wxString& filename, long numChans, long numPeriods,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, long numPeriods,

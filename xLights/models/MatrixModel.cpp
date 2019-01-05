@@ -9,6 +9,7 @@
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
+#include "UtilFunctions.h"
 
 MatrixModel::MatrixModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
 {
@@ -244,12 +245,6 @@ void MatrixModel::InitHMatrix() {
     }
 }
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 void MatrixModel::ExportXlightsModel()
 {
     wxString name = ModelXml->GetAttribute("name");
@@ -258,7 +253,7 @@ void MatrixModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -382,11 +377,11 @@ void MatrixModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
         }
         else
         {
-            wxMessageBox("Failure loading Matrix model file.");
+            DisplayError("Failure loading Matrix model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading Matrix model file.");
+        DisplayError("Failure loading Matrix model file.");
     }
 }

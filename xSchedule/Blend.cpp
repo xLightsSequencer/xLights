@@ -6,7 +6,7 @@
 #include "emmintrin.h"
 #define ALIGNMENT (128 / 8)
 
-int GetMisalignedBytes(wxByte* b1, wxByte* b2)
+int GetMisalignedBytes(uint8_t* b1, uint8_t* b2)
 {
     int m1 = (size_t)b1 % ALIGNMENT;
     int m2 = (size_t)b2 % ALIGNMENT;
@@ -107,12 +107,12 @@ std::string DecodeBlendMode(APPLYMETHOD blendMode)
     return "Overwrite";
 }
 
-void Blend(wxByte* buffer, size_t bufferSize, wxByte* blendBuffer, size_t blendBufferSize, APPLYMETHOD applyMethod, size_t offset)
+void Blend(uint8_t* buffer, size_t bufferSize, uint8_t* blendBuffer, size_t blendBufferSize, APPLYMETHOD applyMethod, size_t offset)
 {
     if (offset > bufferSize) return;
 
     size_t bytesToUse = std::min(bufferSize - offset, blendBufferSize);
-    wxByte* pb = buffer + offset;
+    uint8_t* pb = buffer + offset;
 
     switch (applyMethod)
     {
@@ -139,12 +139,12 @@ void Blend(wxByte* buffer, size_t bufferSize, wxByte* blendBuffer, size_t blendB
     }
 }
 
-void Overwrite(wxByte* buffer, wxByte* blendBuffer, size_t channels)
+void Overwrite(uint8_t* buffer, uint8_t* blendBuffer, size_t channels)
 {
     memcpy(buffer, blendBuffer, channels);
 }
 
-void OverwriteIfZero(wxByte* buffer, wxByte* blendBuffer, size_t channels)
+void OverwriteIfZero(uint8_t* buffer, uint8_t* blendBuffer, size_t channels)
 {
 #ifdef SIMD
     int misaligned = GetMisalignedBytes(buffer, blendBuffer);
@@ -197,7 +197,7 @@ void OverwriteIfZero(wxByte* buffer, wxByte* blendBuffer, size_t channels)
     }
 }
 
-void Mask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
+void Mask(uint8_t* buffer, uint8_t* blendBuffer, size_t channels)
 {
 #ifdef SIMD
     int misaligned = GetMisalignedBytes(buffer, blendBuffer);
@@ -250,15 +250,15 @@ void Mask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
     }
 }
 
-void MaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
+void MaskPixel(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels)
 {
     for (size_t i = 0; i < pixels; ++i)
     {
-        wxByte* p = blendBuffer + i * 3;
+        uint8_t* p = blendBuffer + i * 3;
         auto sum = *p + *(p + 1) + *(p + 2);
         if (sum > 0)
         {
-            wxByte* pp = buffer + i * 3;
+            uint8_t* pp = buffer + i * 3;
             *pp = 0x00;
             *(pp + 1) = 0x00;
             *(pp + 2) = 0x00;
@@ -266,7 +266,7 @@ void MaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
     }
 }
 
-void Unmask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
+void Unmask(uint8_t* buffer, uint8_t* blendBuffer, size_t channels)
 {
 #ifdef SIMD
     int misaligned = GetMisalignedBytes(buffer, blendBuffer);
@@ -318,15 +318,15 @@ void Unmask(wxByte* buffer, wxByte* blendBuffer, size_t channels)
     }
 }
 
-void UnmaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
+void UnmaskPixel(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels)
 {
     for (size_t i = 0; i < pixels; ++i)
     {
-        wxByte* p = blendBuffer + i * 3;
+        uint8_t* p = blendBuffer + i * 3;
         auto sum = *p + *(p + 1) + *(p + 2);
         if (sum == 0)
         {
-            wxByte* pp = buffer + i * 3;
+            uint8_t* pp = buffer + i * 3;
             *pp = 0x00;
             *(pp + 1) = 0x00;
             *(pp + 2) = 0x00;
@@ -334,7 +334,7 @@ void UnmaskPixel(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
     }
 }
 
-void Average(wxByte* buffer, wxByte* blendBuffer, size_t channels)
+void Average(uint8_t* buffer, uint8_t* blendBuffer, size_t channels)
 {
 #ifdef SIMD
     int misaligned = GetMisalignedBytes(buffer, blendBuffer);
@@ -343,7 +343,7 @@ void Average(wxByte* buffer, wxByte* blendBuffer, size_t channels)
         // do the misaligned
         for (size_t i = 0; i < misaligned; ++i)
         {
-            *(buffer + i) = (wxByte)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
+            *(buffer + i) = (uint8_t)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
         }
 
         int simd = channels / ALIGNMENT;
@@ -362,7 +362,7 @@ void Average(wxByte* buffer, wxByte* blendBuffer, size_t channels)
         for (size_t i = 0; i < channels % ALIGNMENT; ++i)
         {
             size_t offset = i + misaligned + simd * ALIGNMENT;
-            *(buffer + offset) = (wxByte)(((int)*(buffer + offset) + (int)*(blendBuffer + offset)) / 2);
+            *(buffer + offset) = (uint8_t)(((int)*(buffer + offset) + (int)*(blendBuffer + offset)) / 2);
         }
     }
     else
@@ -370,12 +370,12 @@ void Average(wxByte* buffer, wxByte* blendBuffer, size_t channels)
     {
         for (size_t i = 0; i < channels; ++i)
         {
-            *(buffer + i) = (wxByte)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
+            *(buffer + i) = (uint8_t)(((int)*(buffer + i) + (int)*(blendBuffer + i)) / 2);
         }
     }
 }
 
-void Maximum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
+void Maximum(uint8_t* buffer, uint8_t* blendBuffer, size_t channels)
 {
 #ifdef SIMD
     int misaligned = GetMisalignedBytes(buffer, blendBuffer);
@@ -417,7 +417,7 @@ void Maximum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
     }
 }
 
-void Minimum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
+void Minimum(uint8_t* buffer, uint8_t* blendBuffer, size_t channels)
 {
 #ifdef SIMD
     int misaligned = GetMisalignedBytes(buffer, blendBuffer);
@@ -459,15 +459,15 @@ void Minimum(wxByte* buffer, wxByte* blendBuffer, size_t channels)
     }
 }
 
-void OverwriteIfBlack(wxByte* buffer, wxByte* blendBuffer, size_t pixels)
+void OverwriteIfBlack(uint8_t* buffer, uint8_t* blendBuffer, size_t pixels)
 {
     for (size_t i = 0; i < pixels; ++i)
     {
-        wxByte* p = buffer + i * 3;
+        uint8_t* p = buffer + i * 3;
         auto sum = *p + *(p + 1) + *(p + 2);
         if (sum == 0)
         {
-            wxByte* pp = blendBuffer + i * 3;
+            uint8_t* pp = blendBuffer + i * 3;
             *p = *pp;
             *(p + 1) = *(pp + 1);
             *(p + 2) = *(pp + 2);

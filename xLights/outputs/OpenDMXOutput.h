@@ -17,7 +17,7 @@
 class OpenDMXOutput : public SerialOutput
 {
     #pragma region Member Variables
-    wxByte _data[OPENDMX_MAX_CHANNELS + 1];
+    uint8_t _data[OPENDMX_MAX_CHANNELS + 1];
     #pragma endregion Member Variables
 
 public:

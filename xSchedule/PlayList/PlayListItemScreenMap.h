@@ -2,8 +2,8 @@
 #define PLAYLISTITEMSCREENMAP_H
 
 #include "PlayListItem.h"
+#include "../Blend.h"
 #include <string>
-#include "../FSEQFile.h"
 
 class wxXmlNode;
 class MatrixMapper;
@@ -25,7 +25,7 @@ protected:
     MatrixMapper* _matrixMapper;
     #pragma endregion Member Variables
 
-    void SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode);
+    void SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode);
 
 public:
 
@@ -68,7 +68,7 @@ public:
     #pragma region Playing
     virtual void Start(long stepLengthMS) override;
     virtual void Stop() override;
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) override;
     #pragma endregion Playing
 
 #pragma region UI

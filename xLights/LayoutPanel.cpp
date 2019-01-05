@@ -359,6 +359,9 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_SPLITTERWINDOW2,wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,(wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
 	//*)
 
+    ScrollBarLayoutHorz->Hide();
+    ScrollBarLayoutVert->Hide();
+
     logger_base.debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, true);
     LayoutGLSizer->Insert(0, modelPreview, 1, wxALL | wxEXPAND, 0);
@@ -802,7 +805,7 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                     if (i & Model::GRIDCHANGE_REBUILD_PROP_GRID) {
                         CallAfter(&LayoutPanel::resetPropertyGrid);
                     }
-                    if (i & Model::GRIDCHANGE_REBUILD_MODEL_LIST | Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS)
+                    if (i & (Model::GRIDCHANGE_REBUILD_MODEL_LIST | Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS))
                     {
                         // if these values were returned then some absolute start channels may have changed
                         xlights->RecalcModels(true);
@@ -2514,9 +2517,9 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
         m_creating_bound_rect = false;
         const std::string& model_type = selectedButton->GetModelType();
         newModel = CreateNewModel(model_type);
-        newModel->SetLayoutGroup(currentLayoutGroup);
 
         if (newModel != nullptr) {
+            newModel->SetLayoutGroup(currentLayoutGroup);
             if (model_type == "Poly Line") {
                 m_polyline_active = true;
             }
@@ -3536,12 +3539,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     }
 }
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 void LayoutPanel::PreviewModelAlignWithGround()
 {
     int selectedindex = GetSelectedModelIndex();
@@ -4353,7 +4350,7 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
 
         if (copyData.IsOk() && wxTheClipboard->Open()) {
             if (!wxTheClipboard->SetData(new wxTextDataObject(copyData.Serialise()))) {
-                wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+                DisplayError("Unable to copy data to clipboard.", this);
             }
             wxTheClipboard->Close();
         }
@@ -4508,7 +4505,7 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             gdoc.Load(gin);
             wxStringInputStream min(undoBuffer[sz].models);
             wxXmlDocument mdoc(min);
-            wxStringInputStream oin(undoBuffer[sz].models);
+            wxStringInputStream oin(undoBuffer[sz].objects);
             wxXmlDocument odoc(oin);
 
             wxXmlNode *m = xlights->ModelsNode->GetChildren();
@@ -4574,6 +4571,10 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
             xlights->MarkEffectsFileDirty(true);
             ViewObject *vobj = xlights->AllObjects[origName];
             SelectViewObject(vobj);
+        }
+        else
+        {
+            wxASSERT(false);
         }
         modelPreview->SetFocus();
 
@@ -5079,8 +5080,7 @@ void LayoutPanel::PreviewPrintImage()
 	{
 		if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
 		{
-			logger_base.error("Problem printing. %d", wxPrinter::GetLastError());
-			wxMessageBox("Problem printing.");
+			DisplayError(wxString::Format("Problem printing. %d", wxPrinter::GetLastError()).ToStdString());
 		}
     }
 	else
@@ -5088,10 +5088,7 @@ void LayoutPanel::PreviewPrintImage()
 		printDialogData = printer.GetPrintDialogData();
         if (!printout.grabbedImage())
         {
-            logger_base.error("PrintPreviewImage() - problem grabbing ModelPreview image");
-
-            wxMessageDialog msgDlg(this, _("Error capturing preview image"), _("Image Capture Error"), wxOK | wxCENTRE);
-            msgDlg.ShowModal();
+            DisplayError("Problem grabbing ModelPreview image for printing", this);
         }
     }
 }
@@ -5587,7 +5584,7 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         }
     }
 
-    KeyBinding *binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE_LAYOUT);
+    auto binding = xlights->GetMainSequencer()->keyBindings.Find(event, KBSCOPE::Layout);
     if (binding != nullptr) {
         std::string type = binding->GetType();
         if (type == "LOCK_MODEL")
@@ -5657,12 +5654,8 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         event.StopPropagation();
         return true;
     }
-    else
-    {
-        return xlights->HandleAllKeyBinding(event);
-    }
 
-    return false;
+    return xlights->HandleAllKeyBinding(event);
 }
 
 void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)

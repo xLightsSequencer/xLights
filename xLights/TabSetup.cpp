@@ -223,7 +223,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     if (!DirExists)
     {
         wxString msg = _("The show directory '") + newdir + ("' no longer exists.\nPlease choose a new show directory.");
-        wxMessageBox(msg);
+        DisplayError(msg, this);
         return false;
     }
 
@@ -277,8 +277,7 @@ bool xLightsFrame::SetDir(const wxString& newdir)
     {
         if (!_outputManager.Load(CurrentDir.ToStdString()))
         {
-            logger_base.warn("Unable to load network config %s", (const char*)networkFile.GetFullPath().c_str());
-            wxMessageBox(_("Unable to load network definition file"), _("Error"));
+            DisplayError(wxString::Format("Unable to load network config %s", networkFile.GetFullPath()).ToStdString());
         }
         else
         {
@@ -530,7 +529,7 @@ bool xLightsFrame::PromptForShowDirectory()
 
         if (ShowFolderIsInBackup(newdir.ToStdString()))
         {
-            wxMessageBox("WARNING: Opening a show folder inside a backup folder. This is ok but please make sure you change back to your proper show folder and dont make changes in this folder.", "WARNING");
+            DisplayWarning("WARNING: Opening a show folder inside a backup folder. This is ok but please make sure you change back to your proper show folder and dont make changes in this folder.", this);
         }
 
         displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr, nullptr, nullptr);
@@ -605,7 +604,7 @@ void xLightsFrame::ChangeSelectedNetwork()
 
     if (item == -1 || GridNetwork->GetSelectedItemCount() != 1)
     {
-        wxMessageBox(_("Please select a single row first"), _("Error"));
+        DisplayError(_("Please select a single row first"), this);
         return;
     }
 
@@ -649,7 +648,7 @@ void xLightsFrame::UpdateSelectedIPAddresses()
     {
         if (!IsIPValidOrHostname(dlg.GetValue().ToStdString()) && dlg.GetValue().ToStdString() != "MULTICAST")
         {
-            wxMessageBox("Illegal ip address " + dlg.GetValue().ToStdString());
+            DisplayError("Illegal ip address " + dlg.GetValue().ToStdString(), this);
         }
         else
         {
@@ -745,7 +744,7 @@ void xLightsFrame::UpdateSelectedChannels()
             Output* o = _outputManager.GetOutput(item);
             if (dlg.GetValue() > o->GetMaxChannels())
             {
-                wxMessageBox(wxString::Format("%i Too many channels for %s controller %s. Channels not changed.", dlg.GetValue(), o->GetType(), o->GetDescription()));
+                DisplayError(wxString::Format("%i Too many channels for %s controller %s. Channels not changed.", dlg.GetValue(), o->GetType(), o->GetDescription()), this);
             }
             else
             {
@@ -881,7 +880,7 @@ void xLightsFrame::OnButtonNetworkMoveUpClick(wxCommandEvent& event)
     long SelectedItem = GetNetworkSelection();
     if (SelectedItem == -1)
     {
-        wxMessageBox(_("Please select a single row first"), _("Error"));
+        DisplayError(_("Please select a single row first"), this);
         return;
     }
     if (SelectedItem == 0) return;
@@ -894,7 +893,7 @@ void xLightsFrame::OnButtonNetworkMoveDownClick(wxCommandEvent& event)
     long SelectedItem = GetLastNetworkSelection();
     if (SelectedItem == -1)
     {
-        wxMessageBox(_("Please select a single row first"), _("Error"));
+        DisplayError(_("Please select a single row first"), this);
         return;
     }
     if (SelectedItem == GridNetwork->GetItemCount()-1) return;
@@ -1248,9 +1247,7 @@ bool xLightsFrame::SaveNetworksFile()
 #endif
         return true;
     } else {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.warn("Unable to save network definition file");
-        wxMessageBox(_("Unable to save network definition file"), _("Error"));
+        DisplayError(_("Unable to save network definition file"), this);
         return false;
     }
 }
@@ -1860,7 +1857,7 @@ void xLightsFrame::MultiControllerUpload()
 void xLightsFrame::UploadFPPBridgeOutput()
 {
     SetStatusText("");
-    wxMessageBox("Not implemented");
+    DisplayWarning("Not implemented", this);
 }
 
 void xLightsFrame::UploadFalconInput()
@@ -2144,22 +2141,22 @@ void xLightsFrame::PingController(Output* e)
 		switch (e->Ping()) {
 			case PING_OK:
 			case PING_WEBOK:
-				wxMessageBox("Pinging the Controller was Successful: " + name);
+				DisplayInfo("Pinging the Controller was Successful: " + name, this);
 				break;
 			case PING_OPENED:
-				wxMessageBox("Serial Port Exists and was Opened: " + name);
+				DisplayInfo("Serial Port Exists and was Opened: " + name, this);
 				break;
 			case PING_OPEN:
-				wxMessageBox("Serial Port Exists but couldn't be opened: " + name, _("Warn"), wxICON_WARNING);
+				DisplayWarning("Serial Port Exists but couldn't be opened: " + name, this);
 				break;
 			case PING_UNAVAILABLE:
-				wxMessageBox("Controller Status is Unavailible: " + name, _("Warn"), wxICON_WARNING);
+				DisplayWarning("Controller Status is Unavailible: " + name, this);
 				break;
 			case PING_UNKNOWN:
-				wxMessageBox("Controller Status is Unknown: " + name, _("Warn"), wxICON_WARNING);
+				DisplayWarning("Controller Status is Unknown: " + name, this);
 				break;
 			case PING_ALLFAILED:
-				wxMessageBox("Unable to Communicate with the Controller: " + name, _("Error"), wxICON_ERROR);
+				DisplayError("Unable to Communicate with the Controller: " + name, this);
 				break;
 		}
 	}

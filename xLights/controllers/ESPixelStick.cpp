@@ -1,12 +1,15 @@
 #include "ESPixelStick.h"
 #include <wx/msgdlg.h>
 #include <wx/regex.h>
+
 #include "models/Model.h"
-#include <log4cpp/Category.hh>
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
 #include "models/ModelManager.h"
 #include "ControllerUploadData.h"
+#include "UtilFunctions.h"
+
+#include <log4cpp/Category.hh>
 
 // This is tested with a pixel stick running v3.0 of the firmware
 
@@ -136,7 +139,7 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
     {
         if (check != "")
         {
-            wxMessageBox("Upload warnings:\n" + check);
+            DisplayWarning("Upload warnings:\n" + check);
         }
 
         UDControllerPort* port = cud.GetControllerPixelPort(1);
@@ -183,7 +186,7 @@ bool ESPixelStick::SetOutputs(ModelManager* allmodels, OutputManager* outputMana
     }
     else
     {
-        wxMessageBox("Not uploaded due to errors.\n" + check);
+        DisplayError("Not uploaded due to errors.\n" + check);
     }
 
     return success;

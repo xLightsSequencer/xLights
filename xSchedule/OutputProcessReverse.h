@@ -15,7 +15,7 @@ class OutputProcessReverse : public OutputProcess
         OutputProcessReverse(OutputManager* outputManager, std::string _startChannel, size_t p1, size_t p2, const std::string& description);
         virtual ~OutputProcessReverse() {}
         virtual wxXmlNode* Save() override;
-        virtual void Frame(wxByte* buffer, size_t size) override;
+        virtual void Frame(uint8_t* buffer, size_t size) override;
         virtual size_t GetP1() const override { return _nodes; }
         virtual size_t GetP2() const override { return 0; }
         virtual std::string GetType() const override { return "Reverse"; }

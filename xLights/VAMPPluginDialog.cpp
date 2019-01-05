@@ -13,6 +13,7 @@
 #include <wx/progdlg.h>
 
 #include "vamp-hostsdk/PluginLoader.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(VAMPPluginDialog)
 const long VAMPPluginDialog::ID_TEXTCTRL1 = wxNewId();
@@ -230,7 +231,7 @@ wxString VAMPPluginDialog::ProcessPlugin(xLightsXmlFile* xml_file, xLightsFrame 
     int res = ShowModal();
     if (res == wxID_OK) {
         while (xml_file->TimingAlreadyExists(TimingName->GetValue().ToStdString(), xLightsParent)) {
-            wxMessageBox("Timing track " + TimingName->GetValue() + " already exists");
+            DisplayError("Timing track " + TimingName->GetValue() + " already exists", this);
             res = ShowModal();
             if (res != wxID_OK) {
                 return "";

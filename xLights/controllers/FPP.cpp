@@ -21,6 +21,7 @@
 #include "outputs/Output.h"
 #include "outputs/DDPOutput.h"
 #include "UtilFunctions.h"
+#include "xLightsVersion.h"
 
 #include <log4cpp/Category.hh>
 
@@ -41,11 +42,11 @@ FPP::FPP(OutputManager* outputManager, const std::string& defaultVersion, const 
     if (_connected) {
         int oldTimeout = _http.GetTimeout();
         _http.SetTimeout(5);
-        
+
         wxJSONValue val;
         if (GetURLAsJSON("/fppjson.php?command=getSysInfo", val)) {
             _version = val["Version"].AsString().ToStdString();
-        } 
+        }
         if (_version == "" || _version == "null")
         {
             std::string version = GetURL("//");
@@ -75,8 +76,7 @@ FPP::FPP(OutputManager* outputManager, const std::string& defaultVersion, const 
         logger_base.debug("FPP: using version %s.", _version.c_str());
         if (!(_version[0] >= '2')) {
             //either old version or could not determine version
-            wxMessageBox("FPP 1.x is no longer supported by the FPP developers.  Some things may not work.  We strongly recommend upgrading to FPP 2.x",
-                         "Unsupported FPP version", wxICON_WARNING | wxOK | wxCENTRE);
+            DisplayWarning("Unsupported FPP version: FPP 1.x is no longer supported by the FPP developers.  Some things may not work.  We strongly recommend upgrading to FPP 2.x");
         }
         _http.SetTimeout(oldTimeout);
         if (!_ftp.Connect(ip, user, password)) {
@@ -135,8 +135,7 @@ std::string FPP::GetURL(const std::string& url, bool logresult)
             logger_base.debug("Response from fpp '%s' : %d.", (const char *)res.c_str(), _http.GetError());
         }
     } else {
-        logger_base.error("Unable to connect to fpp '%s'.", (const char *)url.c_str());
-        wxMessageBox(_T("Unable to connect!"));
+        DisplayError(wxString::Format("Unable to connect to fpp '%s'.", url).ToStdString());
     }
 
     wxDELETE(httpStream);
@@ -303,9 +302,9 @@ std::string FPP::SaveFPPUniversesV2(const std::string& onlyip, const std::list<i
     root["enabled"] = 1;
     root["startChannel"] = 1;
     root["channelCount"] = -1;
-    
+
     wxJSONValue universes;
-    
+
     // Get universes based on IP
     std::list<Output*> outputs = _outputManager->GetAllOutputs(onlyip, selected);
     long onebasedcount = 1;
@@ -314,7 +313,7 @@ std::string FPP::SaveFPPUniversesV2(const std::string& onlyip, const std::list<i
         if (onebased) {
             c = onebasedcount;
         }
-        
+
         wxJSONValue universe;
         universe["active"] = (*it)->IsEnabled() ? 1 : 0;
         universe["description"] = wxString((*it)->GetDescription());
@@ -348,7 +347,7 @@ std::string FPP::SaveFPPUniversesV2(const std::string& onlyip, const std::list<i
         }
         onebasedcount += (*it)->GetChannels();
     }
-    
+
     root["universes"] = universes;
 
     wxJSONValue json;
@@ -418,10 +417,10 @@ static wxString URLEncode(const wxString &value)
 {
     wxString ret = wxT("");
     unsigned int nPos = 0;
-    
+
     while (value.length() > nPos) {
         wxChar cChar = value.GetChar(nPos);
-        
+
         if( ( isalpha( cChar )) || ( isdigit( cChar )) || (cChar == wxT('-')) || (cChar == wxT('@'))
            || (cChar == wxT('*')) || (cChar == wxT('_')) ) {
             ret.Append( cChar );
@@ -462,14 +461,14 @@ static inline void addString(wxMemoryBuffer &buffer, const std::string &str) {
 bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file, wxWindow* parent, bool compress)  {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     static int bufLen = 1024*1024*4; //4MB buffer
-    
+
    //we cannot use wxHTTP for a few reasons:
     //1) It doesn't support transfers larger than 2GB, including all headers and boundaries and such
     //2) It has no way to monitor the bytes transferred
     //3) Cannot use wxSOCKET_NOWAIT_WRITE (which is much faster) as it doesn't actually check
     //   if all the data was sent
     //4) Nothing is virtual so cannot even subclass to fix issues
-    
+
     wxString fn;
     wxString ext;
 
@@ -481,15 +480,15 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             fn.Append(ch);
         }
     }
-    
+
     wxIPV4address address;
     std::string hostname = _ip;
     address.Hostname(hostname);
     address.Service(80);
-    
+
     size_t fileLen = 0;
     wxMemoryOutputStream mout;
-    
+
     bool cancelled = false;
     wxProgressDialog progress("FPP Upload", filename, 1000, parent, wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     logger_base.debug("FPP upload via http of %s.", (const char*)filename.c_str());
@@ -511,7 +510,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             size_t t = f_in.Read(rbuf, bufLen);
             zlib.WriteAll(rbuf, t);
             read += t;
-            
+
             size_t f = read;
             f *= 1000;
             f /= total;
@@ -542,13 +541,13 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
         wxFile f_in(file);
         fileLen = f_in.Length();
     }
-    
+
     wxSocketClient socket(wxSOCKET_NOWAIT_WRITE);
     if (socket.Connect(address)) {
         progress.Show();
 
         const std::string bound = "----WebKitFormBoundaryb29a7c2fe47b9481";
-        
+
         wxMemoryBuffer memBuffPost;
         addString(memBuffPost, "\r\n--");
         addString(memBuffPost, bound);
@@ -557,7 +556,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
         addString(memBuffPost,"\r\nContent-Disposition: form-data; name=\"\"\r\n\r\nundefined\r\n--");
         addString(memBuffPost, bound);
         addString(memBuffPost, "--\r\n");
-        
+
         wxMemoryBuffer memBuffHeader;
         addString(memBuffHeader, "POST /jqupload.php HTTP/1.1\r\n");
         addString(memBuffHeader, "Host: " + hostname + "\r\n");
@@ -571,10 +570,10 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
         addString(memBuffHeader, "Referer: http://" + hostname + "/uploadfile.php\r\n");
         addString(memBuffHeader, "Accept-Language: en-US,en;q=0.9\r\n");
 
-        
+
         unsigned char *rbuf = new unsigned char[bufLen];
 
-        
+
         std::string cd = "Content-Disposition: form-data; name=\"myfile\"; filename=\"";
         cd += fn.ToStdString();
         cd += "\"\r\n";
@@ -597,7 +596,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             socket.Write(&data[written], len - written);
             written += socket.LastWriteCount();
         }
-        
+
         len = memBuffPre.GetDataLen();
         data = (const char *) memBuffPre.GetData();
         socket.Write(data, len);
@@ -607,7 +606,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
             written += socket.LastWriteCount();
         }
         totalWritten += written;
-        
+
         int totalReadFromFile = 0;
         wxFile f_in(file);
         while (totalReadFromFile < fileLen) {
@@ -626,9 +625,9 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
                     written += socket.LastWriteCount();
                 }
             }
-            
+
             totalWritten += written;
-            
+
             size_t donePct = totalWritten;
             donePct *= compress ? 600 : 1000;
             donePct /= totalLen;
@@ -666,7 +665,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
         socket.Read(rbuf, bufLen-1);
         int i = socket.LastReadCount();
         rbuf[i] = 0;
-        
+
         if (strstr((char *)rbuf, fn.c_str()) != nullptr) {
             //upload OK, now rename
             wxHTTP http;
@@ -683,7 +682,7 @@ bool FPP::uploadFileViaHTTP(const std::string &filename, const std::string &file
         socket.Close();
         return cancelled;
     }
-    
+
     return true;
 }
 
@@ -725,9 +724,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
         }
         sequences[fn.GetName().ToStdString() + ".fseq"] = "";
     } else {
-        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-        logger_base.error("Unable to upload fseq file %s as it does not exist.", (const char *)fseq.c_str());
-        wxMessageBox("Unable to upload fseq file " + fseq + " as it does not exist.", "Error", 4, parent);
+        DisplayError("Unable to upload fseq file " + fseq + " as it does not exist.", parent);
     }
 
     if (!cancelled && media != "" && uploadMedia) {
@@ -742,9 +739,7 @@ bool FPP::UploadSequence(const std::string& file, const std::string& fseqDir, wx
             }
             sequences[fn.GetName().ToStdString() + ".fseq"] = fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString();
         } else {
-            static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-            logger_base.error("Unable to upload media file %s as it does not exist.", (const char *)(fnmedia.GetName().ToStdString() + "." + fnmedia.GetExt().ToStdString()).c_str());
-            wxMessageBox("Unable to upload media file "+ fnmedia.GetName() + "." + fnmedia.GetExt() +" as it does not exist.", "Error", 4, parent);
+            DisplayError("Unable to upload media file "+ fnmedia.GetName() + "." + fnmedia.GetExt() +" as it does not exist.", parent);
         }
     }
 
@@ -780,7 +775,7 @@ bool FPP::SetPlaylist(const std::string &name, wxWindow *parent) {
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
     writer.Write(origJson, ufile);
     ufile.Close();
-    
+
     bool cancelled = _ftp.UploadFile(file, "/home/fpp/media/playlists", name + ".json", true, false, parent);
     ::wxRemoveFile(wxString(file));
     return cancelled;
@@ -803,7 +798,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("FPP Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
-    
+
     std::string fppFileName = "co-bbbStrings.json";
     int minPorts = 1;
     if (controller == "PiHat") {
@@ -821,7 +816,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
         reader.Parse(ufile, &origJson);
     }
     ::wxRemoveFile(wxString(file));
-    
+
     wxString pinout = "1.x";
     std::map<std::string, wxJSONValue> origStrings;
     if (origJson["channelOutputs"].IsArray()) {
@@ -843,7 +838,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             }
         }
     }
-    
+
 
     // build a list of models on this controller
     std::map<int, Model*> models;
@@ -853,8 +848,8 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     std::vector<int> DMXMin = {INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX, INT_MAX};
     std::vector<int> DMXMax = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
     int maxDMXPort = -1;
-    
-    
+
+
     wxJSONValue stringData;
     stringData["enabled"] = 1;
     stringData["startChannel"] = 1;
@@ -893,7 +888,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
                                 dmxData["subType"] = wxString("Pixelnet");
                                 isDMX = false;
                             }
-                            
+
                             int firstC = it->second->GetFirstChannel() + 1; //DMX channels are 1 based
                             int lastC = it->second->GetLastChannel();
                             wxXmlNode *v = it->second->GetControllerConnection();
@@ -943,7 +938,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     stringData["outputCount"] = maxport;
     dmxData["device"] = wxString(controller);
 
-    
+
     for (int x = 0; x < maxport; x++) {
         wxJSONValue port;
         port["portNumber"] = x;
@@ -963,7 +958,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             }
             vs["startChannel"] = model->GetStringStartChan(x);
             vs["pixelCount"] = model->NodesPerString();
-            
+
             if (origStrings.find(vs["description"].AsString()) != origStrings.end()) {
                 wxJSONValue &vo = origStrings[vs["description"].AsString()];
                 vs["groupCount"] = vo["groupCount"];
@@ -1030,7 +1025,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
             stringData["outputs"][x]["virtualStrings"].Append(vs);
         }
     }
-    
+
     int maxChan = 0;
     int maxDmxPort = -1;
     int chanPerOut = isDMX ? 512 : 4096;
@@ -1055,8 +1050,8 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
         dmxData["enabled"] = 0;
         dmxData["subType"] = wxString("off");
     }
-    
-    
+
+
     wxJSONValue root;
     root["channelOutputs"].Append(stringData);
     if (controller != "PiHat") {
@@ -1066,7 +1061,7 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
         dmxData["device"] = dev;
         stringData["subType"] = dev;
     }
-    
+
     wxFileName fn;
     fn.AssignTempFileName("pixelOutputs");
     file = fn.GetFullPath().ToStdString();
@@ -1074,13 +1069,143 @@ bool FPP::SetOutputs(const std::string &controller, ModelManager* allmodels,
     wxJSONWriter writer(wxJSONWRITER_STYLED, 0, 3);
     writer.Write(root, ufile);
     ufile.Close();
-    
+
     bool cancelled = _ftp.UploadFile(file, "/home/fpp/media/config", fppFileName, true, false, parent);
     ::wxRemoveFile(wxString(file));
-    
+
     // restart ffpd
     RestartFFPD();
-    
+
     return !cancelled;
 }
+
+#define FPP_CTRL_PORT 32320
+void FPP::Discover(std::list<FPPInstance> &instances) {
+    wxDatagramSocket *socket;
+    wxIPV4address localaddr;
+    localaddr.AnyAddress();
+    localaddr.Service(FPP_CTRL_PORT);
+
+    socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
+    socket->SetTimeout(1);
+    socket->Notify(false);
+
+    uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
+    buffer[5] = 207-7;
+    buffer[7] = 2; //v2 ping
+    buffer[8] = 1; //discovery
+    buffer[9] = 0xC0;
+
+    wxString ver = xlights_version_string;
+    auto parts = wxSplit(ver, '.');
+    int maj = wxAtoi(parts[0]);
+    int min = wxAtoi(parts[1]);
+
+    buffer[10] = (maj >> 8) & 0xFF;
+    buffer[11] = maj & 0xFF;
+    buffer[12] = 0;
+    buffer[13] = min;
+
+    buffer[14] = 0; // MODE?!?!?
+
+    //Technically, the IP address but since we aren't actually an FPP instance,
+    //we don't want anyone trying to contact us, so we'll set to 0
+    buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
+    strcpy((char *)&buffer[84], ver.c_str());
+
+    wxIPV4address bcAddress;
+    bcAddress.BroadcastAddress();
+    bcAddress.Service(FPP_CTRL_PORT);
+    socket->SendTo(bcAddress, buffer, 207);
+
+    uint64_t time = wxGetLocalTimeMillis().GetValue() + 1000l;
+    while (wxGetLocalTimeMillis().GetValue() < time) {
+        memset(buffer, 0x00, sizeof(buffer));
+        socket->Read(&buffer[0], sizeof(buffer));
+        if (socket->GetLastIOReadSize() == 0) {
+            socket->WaitForRead(0, 50);
+        } else if (buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
+            char ip[64];
+            sprintf(ip, "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
+            if (strcmp(ip, "0.0.0.0")) {
+                //we found a system!!!
+                FPPInstance inst;
+                inst.hostName = (char *)&buffer[19];
+                inst.model = (char *)&buffer[125];
+                inst.ipAddress = ip;
+                inst.fullVersion = (char *)&buffer[84];
+                inst.minorVersion = buffer[13] + (buffer[12] << 8);
+                inst.majorVersion = buffer[11] + (buffer[10] << 8);
+                inst.ranges = (char*)&buffer[166];
+                instances.push_back(inst);
+            }
+        }
+    }
+    socket->Close();
+    delete socket;
+    //discovered based on broadcast, now lets get the lists they know about... (may span other networks)
+    for (auto a : instances) {
+        wxHTTP http;
+        http.Connect(a.ipAddress);
+        http.SetMethod("GET");
+        wxInputStream *inp = http.GetInputStream("/fppjson.php?command=getFPPSystems");
+        if (inp) {
+            wxJSONValue origJson;
+            wxJSONReader reader;
+            reader.Parse(*inp, &origJson);
+            delete inp;
+
+            for (int x = 0; x < origJson.Size(); x++) {
+                wxJSONValue system = origJson[x];
+                wxString address = system["IP"].AsString();
+                FPPInstance *found = nullptr;
+                for (auto &b : instances) {
+                    if (b.ipAddress == address) {
+                        found = &b;
+                    }
+                }
+                FPPInstance inst;
+                inst.hostName = system["HostName"].AsString();
+                if (!system["Platform"].IsNull()) {
+                    inst.platform = system["Platform"].AsString();
+                }
+                if (!system["model"].IsNull()) {
+                    inst.model = system["model"].AsString();
+                }
+                inst.ipAddress = address;
+                if (!system["version"].IsNull()) {
+                    inst.fullVersion = system["version"].AsString();
+                }
+                if (system["minorVersion"].IsInt()) {
+                    inst.minorVersion = system["minorVersion"].AsInt();
+                }
+                if (system["majorVersion"].IsInt()) {
+                    inst.majorVersion = system["majorVersion"].AsInt();
+                }
+                if (!system["channelRanges"].IsNull()) {
+                    inst.ranges = system["channelRanges"].AsString();
+                }
+                if (found) {
+                    if (found->majorVersion == 0) {
+                        *found = inst;
+                    } else if (found->platform == "") {
+                        found->platform = inst.platform;
+                    }
+                } else {
+                    instances.push_back(inst);
+                }
+            }
+        }
+    }
+    /*
+    for (auto a : instances) {
+        printf("%s/%s:\n", a.hostName.c_str(), a.ipAddress.c_str());
+        printf("    version: %s    %d.%d\n", a.fullVersion.c_str(), a.majorVersion, a.minorVersion);
+        printf("    platform: %s\n", a.platform.c_str());
+        printf("    model: %s\n", a.model.c_str());
+        printf("    ranges: %s\n", a.ranges.c_str());
+    }
+    */
+}
+
 

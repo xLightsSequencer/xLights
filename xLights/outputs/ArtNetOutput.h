@@ -20,8 +20,8 @@
 class ArtNetOutput : public IPOutput
 {
     #pragma region Member Variables
-    wxByte _data[ARTNET_PACKET_LEN];
-    wxByte _sequenceNum;
+    uint8_t _data[ARTNET_PACKET_LEN];
+    uint8_t _sequenceNum;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
 

@@ -36,6 +36,7 @@
 #include "Pinger.h"
 #include "events/ListenerManager.h"
 #include "wxMIDI/src/wxMidi.h"
+#include "wxJSON/jsonreader.h"
 
 ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir)
 {
@@ -45,6 +46,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     // prime fix file with our show directory for any filename fixups
     FixFile(showDir, "");
 
+    _testMode = false;
     _mainThread = wxThread::GetCurrentId();
     _listenerManager = nullptr;
     _pinger = nullptr;
@@ -228,7 +230,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 
     // This is out frame data buffer ... it cannot be resized
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
-    _buffer = (wxByte*)malloc(_outputManager->GetTotalChannels());
+    _buffer = (uint8_t*)malloc(_outputManager->GetTotalChannels());
     memset(_buffer, 0x00, _outputManager->GetTotalChannels());
 }
 
@@ -787,7 +789,7 @@ void ScheduleManager::AllOff()
             CreateBrightnessArray();
         }
 
-        wxByte* pb = _buffer;
+        uint8_t* pb = _buffer;
         for (int i = 0; i < _outputManager->GetTotalChannels(); ++i)
         {
             *pb = _brightnessArray[*pb];
@@ -830,214 +832,332 @@ int ScheduleManager::Frame(bool outputframe)
         DoXyzzy("close", "", msg, "");
     }
 
-    PlayList* running = GetRunningPlayList();
-    if (running != nullptr || _xyzzy != nullptr)
+    if (IsTest())
     {
-        rate = 50;
-        std::string fseq = "";
-        std::string media = "";
-
-        if (running != nullptr)
-        {
-            fseq = running->GetActiveSyncItemFSEQ();
-            media = running->GetActiveSyncItemMedia();
-            rate = running->GetFrameMS();
-        }
-
         long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
 
         if (outputframe)
         {
             memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
             _outputManager->StartFrame(msec);
+            TestFrame(_buffer, totalChannels, msec);
         }
 
-        bool done = false;
-        if (running != nullptr)
+        // apply any output processing
+        for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
         {
-            logger_frame.debug("Frame: About to run step frame %ldms", sw.Time());
-            done = running->Frame(_buffer, totalChannels, outputframe);
-            logger_frame.debug("Frame: step frame done %ldms", sw.Time());
+            (*it)->Frame(_buffer, totalChannels);
+        }
 
-            if (outputframe && (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
+        if (outputframe && _brightness < 100)
+        {
+            if (_brightness != _lastBrightness)
             {
-                if (running->GetActiveSyncItemFSEQ() != "")
-                {
-                    SendFPPSync(fseq, running->GetRunningStep()->GetPosition(), rate);
-                }
-                if (running->GetActiveSyncItemMedia() != "")
-                {
-                    SendFPPSync(media, running->GetRunningStep()->GetPosition(), rate);
-                }
+                _lastBrightness = _brightness;
+                CreateBrightnessArray();
             }
 
-            if (outputframe && (_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER)  && running->GetRunningStep() != nullptr)
+            uint8_t* pb = _buffer;
+            for (int i = 0; i < totalChannels; ++i)
             {
-                SendOSCSync(running->GetRunningStep(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
-            }
-
-            if (outputframe && _mode == SYNCMODE::ARTNETMASTER  && running != nullptr)
-            {
-                SendARTNetSync(running->GetPosition(), running->GetFrameMS());
-            }
-
-            if (outputframe && _mode == SYNCMODE::MIDIMASTER  && running != nullptr)
-            {
-                SendMIDISync(running->GetPosition(), running->GetFrameMS());
-            }
-
-            // for queued songs we must remove the queued song when it finishes
-            if (running == _queuedSongs)
-            {
-                if (_queuedSongs->GetRunningStep() != _queuedSongs->GetSteps().front())
-                {
-                    _queuedSongs->RemoveStep(_queuedSongs->GetSteps().front());
-                    wxCommandEvent event(EVT_DOCHECKSCHEDULE);
-                    wxPostEvent(wxGetApp().GetTopWindow(), event);
-                    wxCommandEvent event2(EVT_SCHEDULECHANGED);
-                    wxPostEvent(wxGetApp().GetTopWindow(), event2);
-                }
+                *pb = _brightnessArray[*pb];
+                pb++;
             }
         }
 
-        if (_backgroundPlayList != nullptr)
+        auto vm = GetOptions()->GetVirtualMatrices();
+        for (auto it = vm->begin(); it != vm->end(); ++it)
         {
-            if (!_backgroundPlayList->IsRunning())
-            {
-                _backgroundPlayList->Start(true);
-                logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
-            }
-            _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
-        }
-
-        if (_eventPlayLists.size() > 0)
-        {
-            auto it = _eventPlayLists.begin();
-            while (it != _eventPlayLists.end())
-            {
-                if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe))
-                {
-                    auto temp = it;
-                    ++it;
-                    (*temp)->Stop();
-                    delete *temp;
-                    _eventPlayLists.remove(*temp);
-                }
-                else
-                {
-                    ++it;
-                }
-            }
-        }
-
-        if (_xyzzy != nullptr)
-        {
-            _xyzzy->Frame(_buffer, totalChannels, outputframe);
+            (*it)->Frame(_buffer, totalChannels);
         }
 
         if (outputframe)
         {
-            // apply any overlay data
-            for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
-            {
-                (*it)->Set(_buffer, totalChannels);
-            }
-
-            logger_frame.debug("Frame: Overlay data done %ldms", sw.Time());
-
-            // apply any output processing
-            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            logger_frame.debug("Frame: Output processing done %ldms", sw.Time());
-
-            if (outputframe && _brightness < 100)
-            {
-                if (_brightness != _lastBrightness)
-                {
-                    _lastBrightness = _brightness;
-                    CreateBrightnessArray();
-                }
-
-                wxByte* pb = _buffer;
-                for (int i = 0; i < totalChannels; ++i)
-                {
-                    *pb = _brightnessArray[*pb];
-                    pb++;
-                }
-            }
-
-            logger_frame.debug("Frame: Brightness done %ldms", sw.Time());
-
-            auto vm = GetOptions()->GetVirtualMatrices();
-            for (auto it = vm->begin(); it != vm->end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            logger_frame.debug("Frame: Virtual matrices done %ldms", sw.Time());
-
-            _listenerManager->ProcessFrame(_buffer, totalChannels);
-
-            logger_frame.debug("Frame: Listening done %ldms", sw.Time());
-
             _outputManager->SetManyChannels(0, _buffer, totalChannels);
-
-            logger_frame.debug("Frame: Data set %ldms", sw.Time());
-
             _outputManager->EndFrame();
-
-            logger_frame.debug("Frame: Data sent %ldms", sw.Time());
-        }
-
-        if (done)
-        {
-            if (running != nullptr)
-            {
-                SendFPPSync(fseq, 0xFFFFFFFF, rate);
-                SendFPPSync(media, 0xFFFFFFFF, rate);
-                SendARTNetSync(0xFFFFFFFF, rate);
-                SendMIDISync(0xFFFFFFFF, rate);
-
-                // playlist is done
-                if (!running->IsSuspended())
-                {
-                    StopPlayList(running, false);
-                }
-            }
-
-            wxCommandEvent event(EVT_DOCHECKSCHEDULE);
-            wxPostEvent(wxGetApp().GetTopWindow(), event);
-            wxCommandEvent event2(EVT_SCHEDULECHANGED);
-            wxPostEvent(wxGetApp().GetTopWindow(), event2);
         }
     }
     else
     {
-        if (_scheduleOptions->IsSendOffWhenNotRunning())
+        PlayList* running = GetRunningPlayList();
+        if (running != nullptr || _xyzzy != nullptr)
         {
-            if (outputframe)
+            rate = 50;
+            std::string fseq = "";
+            std::string media = "";
+
+            if (running != nullptr)
             {
-                _outputManager->StartFrame(0);
-                _outputManager->AllOff(false);
+                fseq = running->GetActiveSyncItemFSEQ();
+                media = running->GetActiveSyncItemMedia();
+                rate = running->GetFrameMS();
             }
 
-            if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+            long msec = wxGetUTCTimeMillis().GetLo() - _startTime;
+
+            if (outputframe)
             {
-                if (_backgroundPlayList != nullptr)
+                memset(_buffer, 0x00, totalChannels); // clear out any prior frame data
+                _outputManager->StartFrame(msec);
+            }
+
+            bool done = false;
+            if (running != nullptr)
+            {
+                logger_frame.debug("Frame: About to run step frame %ldms", sw.Time());
+                done = running->Frame(_buffer, totalChannels, outputframe);
+                logger_frame.debug("Frame: step frame done %ldms", sw.Time());
+
+                if (outputframe && (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
                 {
-                    if (!_backgroundPlayList->IsRunning())
+                    if (running->GetActiveSyncItemFSEQ() != "")
                     {
-                        _backgroundPlayList->Start(true);
-                        logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                        SendFPPSync(fseq, running->GetRunningStep()->GetPosition(), rate);
                     }
-                    _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
+                    if (running->GetActiveSyncItemMedia() != "")
+                    {
+                        SendFPPSync(media, running->GetRunningStep()->GetPosition(), rate);
+                    }
                 }
 
+                if (outputframe && (_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
+                {
+                    SendOSCSync(running->GetRunningStep(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
+                }
+
+                if (outputframe && _mode == SYNCMODE::ARTNETMASTER  && running != nullptr)
+                {
+                    SendARTNetSync(running->GetPosition(), running->GetFrameMS());
+                }
+
+                if (outputframe && _mode == SYNCMODE::MIDIMASTER  && running != nullptr)
+                {
+                    SendMIDISync(running->GetPosition(), running->GetFrameMS());
+                }
+
+                // for queued songs we must remove the queued song when it finishes
+                if (running == _queuedSongs)
+                {
+                    if (_queuedSongs->GetRunningStep() != _queuedSongs->GetSteps().front())
+                    {
+                        _queuedSongs->RemoveStep(_queuedSongs->GetSteps().front());
+                        wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
+                        wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                        wxPostEvent(wxGetApp().GetTopWindow(), event2);
+                    }
+                }
+            }
+
+            if (_backgroundPlayList != nullptr)
+            {
+                if (!_backgroundPlayList->IsRunning())
+                {
+                    _backgroundPlayList->Start(true);
+                    logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                }
+                _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
+            }
+
+            if (_eventPlayLists.size() > 0)
+            {
+                auto it = _eventPlayLists.begin();
+                while (it != _eventPlayLists.end())
+                {
+                    if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), outputframe))
+                    {
+                        auto temp = it;
+                        ++it;
+                        (*temp)->Stop();
+                        delete *temp;
+                        _eventPlayLists.remove(*temp);
+                    }
+                    else
+                    {
+                        ++it;
+                    }
+                }
+            }
+
+            if (_xyzzy != nullptr)
+            {
+                _xyzzy->Frame(_buffer, totalChannels, outputframe);
+            }
+
+            if (outputframe)
+            {
+                // apply any overlay data
+                for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                {
+                    (*it)->Set(_buffer, totalChannels);
+                }
+
+                logger_frame.debug("Frame: Overlay data done %ldms", sw.Time());
+
+                // apply any output processing
+                for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                logger_frame.debug("Frame: Output processing done %ldms", sw.Time());
+
+                if (outputframe && _brightness < 100)
+                {
+                    if (_brightness != _lastBrightness)
+                    {
+                        _lastBrightness = _brightness;
+                        CreateBrightnessArray();
+                    }
+
+                    uint8_t* pb = _buffer;
+                    for (int i = 0; i < totalChannels; ++i)
+                    {
+                        *pb = _brightnessArray[*pb];
+                        pb++;
+                    }
+                }
+
+                logger_frame.debug("Frame: Brightness done %ldms", sw.Time());
+
+                auto vm = GetOptions()->GetVirtualMatrices();
+                for (auto it = vm->begin(); it != vm->end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                logger_frame.debug("Frame: Virtual matrices done %ldms", sw.Time());
+
+                _listenerManager->ProcessFrame(_buffer, totalChannels);
+
+                logger_frame.debug("Frame: Listening done %ldms", sw.Time());
+
+                _outputManager->SetManyChannels(0, _buffer, totalChannels);
+
+                logger_frame.debug("Frame: Data set %ldms", sw.Time());
+
+                _outputManager->EndFrame();
+
+                logger_frame.debug("Frame: Data sent %ldms", sw.Time());
+            }
+
+            if (done)
+            {
+                if (running != nullptr)
+                {
+                    SendFPPSync(fseq, 0xFFFFFFFF, rate);
+                    SendFPPSync(media, 0xFFFFFFFF, rate);
+                    SendARTNetSync(0xFFFFFFFF, rate);
+                    SendMIDISync(0xFFFFFFFF, rate);
+
+                    // playlist is done
+                    if (!running->IsSuspended())
+                    {
+                        StopPlayList(running, false);
+                    }
+                }
+
+                wxCommandEvent event(EVT_DOCHECKSCHEDULE);
+                wxPostEvent(wxGetApp().GetTopWindow(), event);
+                wxCommandEvent event2(EVT_SCHEDULECHANGED);
+                wxPostEvent(wxGetApp().GetTopWindow(), event2);
+            }
+        }
+        else
+        {
+            if (_scheduleOptions->IsSendOffWhenNotRunning())
+            {
+                if (outputframe)
+                {
+                    _outputManager->StartFrame(0);
+                    _outputManager->AllOff(false);
+                }
+
+                if ((_backgroundPlayList != nullptr || _eventPlayLists.size() > 0) && _scheduleOptions->IsSendBackgroundWhenNotRunning())
+                {
+                    if (_backgroundPlayList != nullptr)
+                    {
+                        if (!_backgroundPlayList->IsRunning())
+                        {
+                            _backgroundPlayList->Start(true);
+                            logger_base.debug("Background playlist restarted. %s.", (const char *)_backgroundPlayList->GetNameNoTime().c_str());
+                        }
+                        _backgroundPlayList->Frame(_buffer, totalChannels, outputframe);
+                    }
+
+                    if (_eventPlayLists.size() > 0)
+                    {
+                        auto it = _eventPlayLists.begin();
+                        while (it != _eventPlayLists.end())
+                        {
+                            if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), true))
+                            {
+                                auto temp = it;
+                                ++it;
+                                (*temp)->Stop();
+                                delete *temp;
+                                _eventPlayLists.remove(*temp);
+                            }
+                            else
+                            {
+                                ++it;
+                            }
+                        }
+                    }
+
+                    // apply any overlay data
+                    for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
+                    {
+                        (*it)->Set(_buffer, totalChannels);
+                    }
+                }
+
+                // apply any output processing
+                for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                if (outputframe && _brightness < 100)
+                {
+                    if (_brightness != _lastBrightness)
+                    {
+                        _lastBrightness = _brightness;
+                        CreateBrightnessArray();
+                    }
+
+                    uint8_t* pb = _buffer;
+                    for (int i = 0; i < totalChannels; ++i)
+                    {
+                        *pb = _brightnessArray[*pb];
+                        pb++;
+                    }
+                }
+
+                auto vm = GetOptions()->GetVirtualMatrices();
+                for (auto it = vm->begin(); it != vm->end(); ++it)
+                {
+                    (*it)->Frame(_buffer, totalChannels);
+                }
+
+                _listenerManager->ProcessFrame(_buffer, totalChannels);
+
+                if (outputframe)
+                {
+                    _outputManager->SetManyChannels(0, _buffer, totalChannels);
+                    _outputManager->EndFrame();
+                }
+            }
+            else
+            {
                 if (_eventPlayLists.size() > 0)
                 {
+                    if (outputframe)
+                    {
+                        _outputManager->StartFrame(0);
+                        _outputManager->AllOff(false);
+                    }
+
                     auto it = _eventPlayLists.begin();
                     while (it != _eventPlayLists.end())
                     {
@@ -1054,110 +1174,40 @@ int ScheduleManager::Frame(bool outputframe)
                             ++it;
                         }
                     }
-                }
 
-                // apply any overlay data
-                for (auto it = _overlayData.begin(); it != _overlayData.end(); ++it)
-                {
-                    (*it)->Set(_buffer, totalChannels);
-                }
-            }
-
-            // apply any output processing
-            for (auto it = _outputProcessing.begin(); it != _outputProcessing.end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            if (outputframe && _brightness < 100)
-            {
-                if (_brightness != _lastBrightness)
-                {
-                    _lastBrightness = _brightness;
-                    CreateBrightnessArray();
-                }
-
-                wxByte* pb = _buffer;
-                for (int i = 0; i < totalChannels; ++i)
-                {
-                    *pb = _brightnessArray[*pb];
-                    pb++;
-                }
-            }
-
-            auto vm = GetOptions()->GetVirtualMatrices();
-            for (auto it = vm->begin(); it != vm->end(); ++it)
-            {
-                (*it)->Frame(_buffer, totalChannels);
-            }
-
-            _listenerManager->ProcessFrame(_buffer, totalChannels);
-
-            if (outputframe)
-            {
-                _outputManager->SetManyChannels(0, _buffer, totalChannels);
-                _outputManager->EndFrame();
-            }
-        }
-        else
-        {
-            if (_eventPlayLists.size() > 0)
-            {
-                if (outputframe)
-                {
-                    _outputManager->StartFrame(0);
-                    _outputManager->AllOff(false);
-                }
-
-                auto it = _eventPlayLists.begin();
-                while (it != _eventPlayLists.end())
-                {
-                    if ((*it)->Frame(_buffer, _outputManager->GetTotalChannels(), true))
+                    // apply any output processing
+                    for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
                     {
-                        auto temp = it;
-                        ++it;
-                        (*temp)->Stop();
-                        delete *temp;
-                        _eventPlayLists.remove(*temp);
-                    }
-                    else
-                    {
-                        ++it;
-                    }
-                }
-
-                // apply any output processing
-                for (auto it2 = _outputProcessing.begin(); it2 != _outputProcessing.end(); ++it2)
-                {
-                    (*it2)->Frame(_buffer, totalChannels);
-                }
-
-                if (outputframe && _brightness < 100)
-                {
-                    if (_brightness != _lastBrightness)
-                    {
-                        _lastBrightness = _brightness;
-                        CreateBrightnessArray();
+                        (*it2)->Frame(_buffer, totalChannels);
                     }
 
-                    wxByte* pb = _buffer;
-                    for (int i = 0; i < totalChannels; ++i)
+                    if (outputframe && _brightness < 100)
                     {
-                        *pb = _brightnessArray[*pb];
-                        pb++;
+                        if (_brightness != _lastBrightness)
+                        {
+                            _lastBrightness = _brightness;
+                            CreateBrightnessArray();
+                        }
+
+                        uint8_t* pb = _buffer;
+                        for (int i = 0; i < totalChannels; ++i)
+                        {
+                            *pb = _brightnessArray[*pb];
+                            pb++;
+                        }
                     }
-                }
 
-                auto vm = GetOptions()->GetVirtualMatrices();
-                for (auto it2 = vm->begin(); it2 != vm->end(); ++it2)
-                {
-                    (*it2)->Frame(_buffer, totalChannels);
-                }
+                    auto vm = GetOptions()->GetVirtualMatrices();
+                    for (auto it2 = vm->begin(); it2 != vm->end(); ++it2)
+                    {
+                        (*it2)->Frame(_buffer, totalChannels);
+                    }
 
-                if (outputframe)
-                {
-                    _outputManager->SetManyChannels(0, _buffer, totalChannels);
-                    _outputManager->EndFrame();
+                    if (outputframe)
+                    {
+                        _outputManager->SetManyChannels(0, _buffer, totalChannels);
+                        _outputManager->EndFrame();
+                    }
                 }
             }
         }
@@ -1183,7 +1233,7 @@ void ScheduleManager::CreateBrightnessArray()
     for (size_t i = 0; i < 256; i++)
     {
         int b = (i * _brightness) / 100;
-        _brightnessArray[i] = (wxByte)(b & 0xFF);
+        _brightnessArray[i] = (uint8_t)(b & 0xFF);
     }
 }
 
@@ -2374,6 +2424,73 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                             scheduleChanged = true;
                         }
                     }
+                }
+                else if (command == "Start test mode")
+                {
+                    wxArrayString pp = wxSplit(parameters, '|');
+                    if (pp.size() > 0)
+                    {
+                        GetOptions()->GetTestOptions()->SetMode(pp[0]);
+                    }
+                    if (pp.size() > 1)
+                    {
+                        long start = -1;
+                        long end = -1;
+                        std::string data1;
+                        std::string msg1;
+                        RetrieveData("GetModels", data1, msg1);
+                        wxJSONValue  root;
+                        wxJSONReader reader;
+                        int numErrors = reader.Parse(data1, &root);
+                        if (numErrors == 0)
+                        {
+                            auto models = root["models"].AsArray();
+                            if (models != nullptr)
+                            {
+                                auto size = models->size();
+                                for (int i = 0; i < size && start == -1; i++)
+                                {
+                                    auto m = (*models)[i];
+                                    if (m["name"].AsString() == pp[1])
+                                    {
+                                        start = wxAtoi(m["startchannel"].AsString()) - 1;
+                                        end = start + wxAtoi(m["channels"].AsString()) - 1;
+                                    }
+                                }
+                            }
+                            if (start == -1)
+                            {
+                                logger_base.error("Unable to find model '%s' in models JSON", (const char*)pp[1].c_str());
+                            }
+                        }
+                        else
+                        {
+                            logger_base.error("Unable to load models JSON");
+                        }
+                        GetOptions()->GetTestOptions()->SetBounds(start, end);
+                    }
+                    if (pp.size() > 2)
+                    {
+                        int interval = wxAtoi(pp[2]);
+                        if (interval > 0)
+                        {
+                            GetOptions()->GetTestOptions()->SetInterval(interval);
+                        }
+                    }
+                    if (pp.size() > 3)
+                    {
+                            GetOptions()->GetTestOptions()->SetLevel1(wxAtoi(pp[3]));
+                    }
+                    if (pp.size() > 4)
+                    {
+                            GetOptions()->GetTestOptions()->SetLevel2(wxAtoi(pp[4]));
+                    }
+                    SetTestMode(true);
+                }
+                else if (command == "Stop test mode")
+                {
+                    GetOptions()->GetTestOptions()->ClearBounds();
+                    SetTestMode(false);
                 }
                 else if (command == "Add to the current schedule n minutes")
                 {
@@ -4837,7 +4954,7 @@ PixelData::PixelData(size_t startChannel, size_t channels, const wxColor& c, APP
     _startChannel = startChannel;
     _blendMode = blendMode;
     _size = channels;
-    _data = (wxByte*)malloc(_size);
+    _data = (uint8_t*)malloc(_size);
 
     SetColor(c, blendMode);
 }
@@ -4873,7 +4990,7 @@ PixelData::~PixelData()
     }
 }
 
-void PixelData::Set(wxByte* buffer, size_t size)
+void PixelData::Set(uint8_t* buffer, size_t size)
 {
     if (_data != nullptr)
     {
@@ -4891,7 +5008,7 @@ void PixelData::ExtractData(const std::string& data)
     {
         delete _data;
     }
-    _data = (wxByte*)malloc(_size);
+    _data = (uint8_t*)malloc(_size);
     if (_data != nullptr)
     {
         for (size_t i = 0; i < _size; ++i)
@@ -5327,7 +5444,7 @@ void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
 
     if (sendresync)
     {
-        wxByte buffer[10];
+        uint8_t buffer[10];
         size_t ms = msec;
 
         ms += GetOptions()->GetMIDITimecodeOffset();
@@ -6024,3 +6141,142 @@ std::string ScheduleManager::xScheduleShowDir()
     return showDir.ToStdString();
 }
 
+bool ScheduleManager::IsTest() const
+{
+    return _testMode;
+}
+
+void ScheduleManager::TestFrame(uint8_t* buffer, long totalChannels, long msec)
+{
+    auto mode = GetOptions()->GetTestOptions()->GetModeCode();
+    auto interval = GetOptions()->GetTestOptions()->GetInterval();
+    auto level1 = GetOptions()->GetTestOptions()->GetLevel1();
+    auto level2 = GetOptions()->GetTestOptions()->GetLevel2();
+    long start = 0;
+    long end = totalChannels - 1;
+    if (GetOptions()->GetTestOptions()->HasBounds())
+    {
+        GetOptions()->GetTestOptions()->GetBounds(start, end);
+    }
+
+    if (mode == TESTMODE::TEST_ALTERNATE)
+    {
+        auto v1 = level1;
+        auto v2 = level2;
+        int pos = msec % (2 * interval);
+        if (pos >= interval)
+        {
+            v1 = level2;
+            v2 = level1;
+        }
+        for (size_t i = start; i <= end; i++)
+        {
+            if (i % 2 == 0)
+            {
+                buffer[i] = v1;
+            }
+            else
+            {
+                buffer[i] = v2;
+            }
+        }
+    }
+    else if (mode == TESTMODE::TEST_LEVEL1)
+    {
+        memset(&buffer[start], level1, end -  start + 1);
+    }
+    else
+    {
+        uint8_t a = level2;
+        uint8_t b = level2;
+        uint8_t c = level2;
+        if (mode == TESTMODE::TEST_A_B_C)
+        {
+            int pos = msec % (3 * interval);
+            if (pos < interval)
+            {
+                a = level1;
+            }
+            else if (pos < 2 * interval)
+            {
+                b = level1;
+            }
+            else
+            {
+                c = level1;
+            }
+        }
+        else if (mode == TESTMODE::TEST_A_B_C_ALL)
+        {
+            int pos = msec % (4 * interval);
+            if (pos < interval)
+            {
+                a = level1;
+            }
+            else if (pos < 2 * interval)
+            {
+                b = level1;
+            }
+            else if (pos < 3 * interval)
+            {
+                c = level1;
+            }
+            else
+            {
+                a = level1;
+                b = level1;
+                c = level1;
+            }
+        }
+        else if (mode == TESTMODE::TEST_A_B_C_ALL_NONE)
+        {
+            int pos = msec % (5 * interval);
+            if (pos < interval)
+            {
+                a = level1;
+            }
+            else if (pos < 2 * interval)
+            {
+                b = level1;
+            }
+            else if (pos < 3 * interval)
+            {
+                c = level1;
+            }
+            else if (pos < 4 * interval)
+            {
+                a = level1;
+                b = level1;
+                c = level1;
+            }
+        }
+        else if (mode == TESTMODE::TEST_A)
+        {
+            a = level1;
+        }
+        else if (mode == TESTMODE::TEST_B)
+        {
+            b = level1;
+        }
+        else if (mode == TESTMODE::TEST_C)
+        {
+            c = level1;
+        }
+        long tc = (end / 3) * 3;
+        for (size_t i = start; i <= tc; i += 3)
+        {
+            buffer[i] = a;
+            buffer[i + 1] = b;
+            buffer[i + 2] = c;
+        }
+
+        if (tc == end - 1)
+        {
+            buffer[tc] = a;
+        }
+        else if (tc == end - 2)
+        {
+            buffer[tc+1] = b;
+        }
+    }
+}

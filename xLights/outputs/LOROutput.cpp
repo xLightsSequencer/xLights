@@ -32,7 +32,7 @@ void LOROutput::SendHeartbeat() const
 {
     if (!_enabled || _serial == nullptr || !_ok) return;
 
-    wxByte d[5];
+    uint8_t d[5];
     d[0] = 0;
     d[1] = 0xFF;
     d[2] = 0x81;
@@ -107,7 +107,7 @@ void LOROutput::SetOneChannel(long channel, unsigned char data)
     if (_lastSent[channel] != data || _notSentCount[channel] > 200)
     {
         _notSentCount[channel] = 0;
-        wxByte d[6];
+        uint8_t d[6];
         d[0] = 0;
         d[1] = channel >> 4;
         if (d[1] < 0xF0) d[1]++;

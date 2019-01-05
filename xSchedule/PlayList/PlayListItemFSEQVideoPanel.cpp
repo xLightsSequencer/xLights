@@ -5,6 +5,7 @@
 #include "../ScheduleManager.h"
 #include "VideoWindowPositionDialog.h"
 #include "../../xLights/outputs/OutputManager.h"
+#include "../../xLights/FSEQFile.h"
 
 //(*InternalHeaders(PlayListItemFSEQVideoPanel)
 #include <wx/intl.h>
@@ -262,7 +263,7 @@ PlayListItemFSEQVideoPanel::PlayListItemFSEQVideoPanel(wxWindow* parent, OutputM
 
     if (!CheckBox_OverrideAudio->GetValue())
     {
-        std::string f = FSEQFile::GrabAudioFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
+        std::string f = FSEQFile::getMediaFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
         FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
         FilePickerCtrl_AudioFile->SetToolTip(f);
     }
@@ -332,7 +333,7 @@ void PlayListItemFSEQVideoPanel::OnFilePickerCtrl1FileChanged(wxFileDirPickerEve
 
     if (!CheckBox_OverrideAudio->GetValue())
     {
-        std::string f = FSEQFile::GrabAudioFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
+        std::string f = FSEQFile::getMediaFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
         FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
         FilePickerCtrl_AudioFile->SetToolTip(f);
     }
@@ -347,7 +348,7 @@ void PlayListItemFSEQVideoPanel::OnCheckBox_OverrideAudioClick(wxCommandEvent& e
 {
     if (!CheckBox_OverrideAudio->GetValue())
     {
-        std::string f = FSEQFile::GrabAudioFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
+        std::string f = FSEQFile::getMediaFilename(FilePickerCtrl_FSEQFile->GetFileName().GetFullPath().ToStdString());
         FilePickerCtrl_AudioFile->SetFileName(wxFileName(f));
         FilePickerCtrl_AudioFile->SetToolTip(f);
     }

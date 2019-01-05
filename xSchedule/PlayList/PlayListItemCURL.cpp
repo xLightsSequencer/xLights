@@ -87,7 +87,7 @@ std::string PlayListItemCURL::GetTooltip()
     return GetTagHint();
 }
 
-void PlayListItemCURL::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemCURL::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

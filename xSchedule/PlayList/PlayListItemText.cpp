@@ -6,7 +6,6 @@
 #include "PlayListItemTextPanel.h"
 #include <log4cpp/Category.hh>
 #include <wx/font.h>
-#include "../FSEQFile.h"
 #include "../MatrixMapper.h"
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
@@ -420,7 +419,7 @@ wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
     return res;
 }
 
-void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemText::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     // static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -500,7 +499,7 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
 
                     if (bl < size)
                     {
-                        wxByte* p = buffer + bl;
+                        uint8_t* p = buffer + bl;
 
                         SetPixel(p, image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), _blendMode);
                     }
@@ -514,9 +513,9 @@ void PlayListItemText::Frame(wxByte* buffer, size_t size, size_t ms, size_t fram
     }
 }
 
-void PlayListItemText::SetPixel(wxByte* p, wxByte r, wxByte g, wxByte b, APPLYMETHOD blendMode)
+void PlayListItemText::SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode)
 {
-    wxByte rgb[3];
+    uint8_t rgb[3];
     rgb[0] = r;
     rgb[1] = g;
     rgb[2] = b;

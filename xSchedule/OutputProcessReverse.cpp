@@ -32,18 +32,18 @@ wxXmlNode* OutputProcessReverse::Save()
     return res;
 }
 
-void OutputProcessReverse::Frame(wxByte* buffer, size_t size)
+void OutputProcessReverse::Frame(uint8_t* buffer, size_t size)
 {
     if (_nodes < 2) return;
 
     size_t sc = GetStartChannelAsNumber();
 
     size_t nodes = std::min(_nodes, (size - (sc - 1)) / 3);
-    wxByte* p = buffer + (sc - 1);
+    uint8_t* p = buffer + (sc - 1);
 
-	wxByte rgb[3];
-	wxByte* from = p;
-	wxByte* to = p + (nodes - 1) * 3;
+	uint8_t rgb[3];
+	uint8_t* from = p;
+	uint8_t* to = p + (nodes - 1) * 3;
 		
 	for (int i = 0; i < nodes; i++)
 	{

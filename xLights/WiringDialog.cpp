@@ -7,6 +7,7 @@
 
 #include <map>
 #include <list>
+
 #include <wx/position.h>
 #include <wx/dcmemory.h>
 #include <wx/dcscreen.h>
@@ -14,10 +15,13 @@
 #include <wx/menu.h>
 #include <wx/filepicker.h>
 #include <wx/config.h>
-#include "models/Model.h"
 #include <wx/cmndata.h>
 #include <wx/prntbase.h>
 #include <wx/msgdlg.h>
+
+#include "models/Model.h"
+#include "UtilFunctions.h"
+
 #include <log4cpp/Category.hh>
 
 #define MINFONTSIZE 8
@@ -632,8 +636,7 @@ void WiringDialog::OnPopup(wxCommandEvent& event)
         {
             if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
             {
-                logger_base.error("Problem printing. %d", wxPrinter::GetLastError());
-                wxMessageBox("Problem printing.");
+                DisplayError(wxString::Format("Problem printing wiring. %d", wxPrinter::GetLastError()).ToStdString(), this);
             }
         }
         else

@@ -43,7 +43,7 @@ public:
         VirtualMatrix(OutputManager* outputManager, int width, int height, bool topMost, const std::string& rotation, const std::string& quality, const std::string& startChannel, const std::string& name, wxSize size, wxPoint loc, bool useMatrixSize, int matrixMultiplier);
         VirtualMatrix(OutputManager* outputManager);
         virtual ~VirtualMatrix() {}
-        void Frame(wxByte*buffer, size_t size);
+        void Frame(uint8_t*buffer, size_t size);
         void Start();
         void Stop();
         void Suppress(bool suppress);

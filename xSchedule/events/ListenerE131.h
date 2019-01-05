@@ -12,7 +12,7 @@ class ListenerE131 : public ListenerBase
 {
     wxDatagramSocket* _socket;
 
-    bool IsValidHeader(wxByte* buffer);
+    bool IsValidHeader(uint8_t* buffer);
 
 	public:
         ListenerE131(ListenerManager* _listenerManager);

@@ -2,6 +2,7 @@
 #include <wx/file.h>
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
+#include "UtilFunctions.h"
 
 VSAFile::VSAFile()
 {
@@ -119,7 +120,7 @@ void VSAFile::Load(const std::string& filename)
                 }
                 _fh->Read(&evt.data[0], 16);
             } else {
-                wxMessageBox("Unsupported event type! Halted.");
+                DisplayError("Unsupported event type! Halted.");
                 break;
             }
 
@@ -145,14 +146,14 @@ void VSAFile::Load(const std::string& filename)
             else {
                 if( next_evt == 0xFFFF ) {
                     // Read other data
-                    uint16_t other_data;
-                    _fh->Read(&other_data, 2);
+                    uint16_t other_data2;
+                    _fh->Read(&other_data2, 2);
                     // Read event type
                     _fh->Read(&str_bytes, 2);
                     event_type.resize(str_bytes);
                     _fh->Read(&event_type[0], str_bytes);
                 } else {
-                    wxMessageBox("Unsupported event type! Halted.");
+                    DisplayError("Unsupported event type! Halted.");
                     break;
                 }
             }

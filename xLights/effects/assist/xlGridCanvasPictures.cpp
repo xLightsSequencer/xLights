@@ -5,6 +5,7 @@
 #include <wx/filename.h>
 
 #include "../../ResizeImageDialog.h"
+#include "UtilFunctions.h"
 
 //static const wxString strSupportedImageTypes = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files(*.jpg)|*.jpg|All files (*.*)|*.*";
 static const wxString strSupportedImageTypes = "Image files|*.png;*.bmp;*.jpg;*.gif|All files (*.*)|*.*";
@@ -322,7 +323,7 @@ void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
 {
     if( image_dir == wxEmptyString )
     {
-        wxMessageBox("Error creating new image file.  Image Directory is not defined.");
+        DisplayError("Error creating new image file.  Image Directory is not defined.");
         return;
     }
     wxFileName new_file;
@@ -337,7 +338,7 @@ void xlGridCanvasPictures::CreateNewImage(wxString& image_dir)
 
     if (!image.IsOk())
     {
-        wxMessageBox("Error creating image file!");
+        DisplayError("Error creating image file!");
         return;
     }
     mModified = true;

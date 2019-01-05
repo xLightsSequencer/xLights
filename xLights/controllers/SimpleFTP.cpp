@@ -6,6 +6,7 @@
 #include <wx/filename.h>
 #include <wx/log.h>
 #include <wx/sckstrm.h>
+#include "UtilFunctions.h"
 
 class MySocketOutputStream : public wxSocketOutputStream {
 public:
@@ -26,16 +27,13 @@ std::string SimpleFTP::Pwd() {
 
 bool SimpleFTP::Connect(std::string ip, std::string user, std::string password)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ip = ip;
     _ftp.SetUser(user);
     _ftp.SetPassword(password);
     _ftp.SetTimeout(5);
-    if (!_ftp.Connect(ip))
+    if (!_ftp.Connect(_ip))
     {
-        logger_base.warn("Could not connect using address '%s'.", (const char *)ip.c_str());
-        wxString wxip = wxString(ip.c_str());
-        wxMessageBox("Could not connect using address '" + wxip + "'.");
+        DisplayError(wxString::Format("Could not connect using address '%s'.", _ip).ToStdString());
         return false;
     }
 
@@ -44,16 +42,13 @@ bool SimpleFTP::Connect(std::string ip, std::string user, std::string password)
 
 SimpleFTP::SimpleFTP(std::string ip, std::string user, std::string password)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     _ip = ip;
     _ftp.SetFlags(wxSOCKET_NOWAIT_WRITE);
     _ftp.SetUser(user);
     _ftp.SetPassword(password);
     if (!_ftp.Connect(ip))
     {
-        logger_base.warn("Could not connect using address '%s'.", (const char *)ip.c_str());
-        wxString wxip = wxString(ip.c_str());
-        wxMessageBox("Could not connect using address '" + wxip + "'.");
+        DisplayError(wxString::Format("Could not connect using address '%s'.", _ip).ToStdString());
     }
 }
 
@@ -222,9 +217,8 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
 
         if (length <= 0)
         {
-            wxMessageBox("FTP Upload of file failed as file size zero.");
+            DisplayError(wxString::Format("FTP Upload of file %s failed as file size zero.", file).ToStdString());
             progress.Update(100, wxEmptyString, &cancelled);
-            logger_base.error("   FTP Upload of file %s failed as file size is zero.", (const char *)file.c_str());
         }
         else if (out != nullptr)
         {
@@ -288,16 +282,14 @@ bool SimpleFTP::UploadFile(std::string file, std::string folder, std::string new
         }
         else
         {
-            wxMessageBox("FTP Upload of file failed to create the target file.");
+            DisplayError(wxString::Format("FTP Upload of file %s failed as target file %s could not be created on FPP.", file, (folder + "/" + basefilenew)).ToStdString());
             progress.Update(100, wxEmptyString, &cancelled);
-            logger_base.error("   FTP Upload of file %s failed as file %s could not be created on FPP.", (const char *)file.c_str(), (const char *)(folder + "/" + basefilenew).c_str());
         }
     }
     else
     {
-        wxMessageBox("FTP Upload of file failed to open the file.");
+        DisplayError(wxString::Format("FTP Upload of file %s failed as file could not be opened.", file).ToStdString());
         progress.Update(100, wxEmptyString, &cancelled);
-        logger_base.error("   FTP Upload of file %s failed as file could not be opened.", (const char *)file.c_str());
     }
 
     if (!cancelled)

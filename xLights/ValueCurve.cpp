@@ -1206,7 +1206,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
                                 if (xLightsFrame::CurrentSeqXmlFile != nullptr && warnedfile != xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString())
                                 {
                                     warnedfile = xLightsFrame::CurrentSeqXmlFile->GetFullName().ToStdString();
-                                    wxMessageBox("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2018.23 before proceeding.");
+                                    DisplayWarning("Sequence contains value curves that cannot be converted automatically. Please open and save this sequence in v2018.23 before proceeding.");
                                 }
                             }
                             FixChangedScale(oldmin, oldmax, _divisor);

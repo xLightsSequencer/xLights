@@ -450,7 +450,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         }
     }
 
-    KeyBinding *binding = keyBindings.Find(event, KBSCOPE_SEQUENCE);
+    auto binding = keyBindings.Find(event, KBSCOPE::Sequence);
     if (binding != nullptr) {
         std::string type = binding->GetType();
         if (type == "TIMING_ADD")
@@ -475,7 +475,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         }
         else if (type == "EFFECT")
         {
-            PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + "\t\n", binding->GetEffectDataVersion());
+            PanelEffectGrid->Paste(binding->GetEffectName() + "\t" + binding->GetEffectString() + _("\t\n"), binding->GetEffectDataVersion());
         }
         else if (type == "PRESET")
         {
@@ -628,12 +628,8 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
         event.StopPropagation();
         return true;
     }
-    else
-    {
-        return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
-    }
 
-    return false;
+    return mSequenceElements->GetXLightsFrame()->HandleAllKeyBinding(event);
 }
 
 void MainSequencer::OnCharHook(wxKeyEvent& event)
@@ -1218,7 +1214,7 @@ bool MainSequencer::CopySelectedEffects() {
     }
     if (!copy_data.IsEmpty() && wxTheClipboard->Open()) {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
-            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+            DisplayError("Unable to copy data to clipboard.", this);
         }
         wxTheClipboard->Close();
         return true;
@@ -1378,7 +1374,7 @@ void MainSequencer::InsertTimingMarkFromRange()
             }
             else
             {
-                wxMessageBox("Timing exist already in the selected region", "Timing placement error");
+                DisplayError("Timing placement error: Timing exists already in the selected region", this);
             }
         }
         else
@@ -1496,7 +1492,7 @@ void MainSequencer::SplitTimingMark()
             }
             else
             {
-                wxMessageBox("Timing cannot be split across timing marks.", "Timing placement error");
+                DisplayError("Timing placement error: Timing cannot be split across timing marks.");
             }
         }
     }

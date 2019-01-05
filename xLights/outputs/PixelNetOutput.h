@@ -14,8 +14,8 @@ class PixelNetOutput : public SerialOutput
 {
     #pragma region Member Variables
     int _datalen;
-    wxByte _data[PIXELNET_MAX_CHANNELS];
-    wxByte _serialBuffer[PIXELNET_MAX_CHANNELS + 1];
+    uint8_t _data[PIXELNET_MAX_CHANNELS];
+    uint8_t _serialBuffer[PIXELNET_MAX_CHANNELS + 1];
     #pragma endregion Member Variables
 
 public:

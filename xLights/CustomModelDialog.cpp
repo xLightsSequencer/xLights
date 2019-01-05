@@ -27,6 +27,7 @@
 #include "WiringDialog.h"
 #include "wxModelGridCellRenderer.h"
 #include "UtilClasses.h"
+#include "UtilFunctions.h"
 
 //(*IdInit(CustomModelDialog)
 const long CustomModelDialog::ID_SPINCTRL1 = wxNewId();
@@ -469,7 +470,7 @@ void CustomModelDialog::OnButton_CustomModelZoomOutClick(wxCommandEvent& event)
 
 void CustomModelDialog::OnButtonCustomModelHelpClick(wxCommandEvent& event)
 {
-    wxMessageBox("To create a custom model, set 'Display As' to 'Custom';\nthen set the model width and model height values.\n\nA custom model allows you to represent almost any display element \ncreated from RGB lights. If your element has 12 RGB nodes in it, then \nyou will need to place the numbers 1 through 12 in the grid. \nPlace the numbers so that they are in the shape of your display \nelement. If you enter a number and then need to erase it, enter a 0.\n\nNode 1 will be assigned:\n  StartChannel\n  StartChannel+1\n  StartChannel+2\nNode 2 will be assigned:\n  StartChannel+3\n  StartChannel+4\n  StartChannel+5\netc.\n\nFor example, to model a candy cane with 12 nodes, you could \nstart with a grid 4 columns wide and 10 rows high. You would place the \nnumbers 1-9 up the right-hand side, 10 and 11 would go in the middle \ncells in the top row, and then 12 would go in column A, row 2.\n\n     11 10\n12           9\n               8\n               7\n               6\n               5\n               4\n               3\n               2\n               1");
+    DisplayInfo("To create a custom model, set 'Display As' to 'Custom';\nthen set the model width and model height values.\n\nA custom model allows you to represent almost any display element \ncreated from RGB lights. If your element has 12 RGB nodes in it, then \nyou will need to place the numbers 1 through 12 in the grid. \nPlace the numbers so that they are in the shape of your display \nelement. If you enter a number and then need to erase it, enter a 0.\n\nNode 1 will be assigned:\n  StartChannel\n  StartChannel+1\n  StartChannel+2\nNode 2 will be assigned:\n  StartChannel+3\n  StartChannel+4\n  StartChannel+5\netc.\n\nFor example, to model a candy cane with 12 nodes, you could \nstart with a grid 4 columns wide and 10 rows high. You would place the \nnumbers 1-9 up the right-hand side, 10 and 11 would go in the middle \ncells in the top row, and then 12 would go in column A, row 2.\n\n     11 10\n12           9\n               8\n               7\n               6\n               5\n               4\n               3\n               2\n               1");
 }
 
 void CustomModelDialog::OnGridCustomCellChange(wxGridEvent& event)
@@ -529,13 +530,13 @@ void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
     {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data)))
         {
-            wxMessageBox(_("Unable to copy data to clipboard."), _("Error"));
+            DisplayError(_("Unable to copy data to clipboard."), this);
         }
         wxTheClipboard->Close();
     }
     else
     {
-        wxMessageBox(_("Error opening clipboard."), _("Error"));
+        DisplayError(_("Error opening clipboard."), this);
     }
 
 }
@@ -563,18 +564,18 @@ void CustomModelDialog::Paste()
                 }
                 else
                 {
-                    wxMessageBox(_("Unable to copy data from clipboard."), _("Error"));
+                    DisplayError(_("Unable to copy data from clipboard."), this);
                 }
             }
             else
             {
-                wxMessageBox(_("Non-Text data in clipboard."), _("Error"));
+                DisplayError(_("Non-Text data in clipboard."), this);
             }
             wxTheClipboard->Close();
         }
         else
         {
-            wxMessageBox(_("Error opening clipboard."), _("Error"));
+            DisplayError(_("Error opening clipboard."), this);
             return;
         }
     }
@@ -617,7 +618,7 @@ void CustomModelDialog::Paste()
 
     if (errflag)
     {
-        wxMessageBox(_("One or more of the values were not pasted because they did not contain a number") + errdetails, _("Paste Error")); //-DJ
+        DisplayError(_("One or more of the values were not pasted because they did not contain a number") + errdetails, this); //-DJ
     }
 }
 

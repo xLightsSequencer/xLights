@@ -55,7 +55,7 @@ wxXmlNode* OutputProcessDim::Save()
     return res;
 }
 
-void OutputProcessDim::Frame(wxByte* buffer, size_t size)
+void OutputProcessDim::Frame(uint8_t* buffer, size_t size)
 {
     if (!_enabled) return;
     if (_dim == 100) return;

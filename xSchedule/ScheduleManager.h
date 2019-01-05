@@ -6,10 +6,10 @@
 #include "Schedule.h"
 #include "CommandManager.h"
 #include "OSCPacket.h"
-#include "FSEQFile.h"
 #include <wx/socket.h>
 #include <wx/thread.h>
 #include "wxMIDI/src/wxMidi.h"
+#include "Blend.h"
 
 class PlayListItemText;
 class ScheduleOptions;
@@ -43,7 +43,7 @@ class PixelData
 {
     size_t _startChannel;
     size_t _size;
-    wxByte* _data;
+    uint8_t* _data;
     APPLYMETHOD _blendMode;
 
     void ExtractData(const std::string& data);
@@ -52,7 +52,7 @@ public:
     PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode);
     PixelData(size_t startChannel, size_t channels, const wxColor& c, APPLYMETHOD blendMode);
     virtual ~PixelData();
-    void Set(wxByte* buffer, size_t size);
+    void Set(uint8_t* buffer, size_t size);
     void SetColor(const wxColor& c, APPLYMETHOD blendMode);
     void SetData(const std::string& data, APPLYMETHOD blendMode);
     long GetSize() const { return _size; }
@@ -76,6 +76,7 @@ public:
 class ScheduleManager
 {
     SYNCMODE _mode;
+    bool _testMode;
     int _manualOTL;
     std::string _showDir;
     int _lastSavedChangeCount;
@@ -83,7 +84,7 @@ class ScheduleManager
 	std::list<PlayList*> _playLists;
     ScheduleOptions* _scheduleOptions;
     OutputManager* _outputManager;
-    wxByte* _buffer;
+    uint8_t* _buffer;
     wxUint32 _startTime;
     PlayList* _immediatePlay;
     PlayList* _backgroundPlayList;
@@ -95,7 +96,7 @@ class ScheduleManager
     wxThreadIdType _mainThread;
     int _brightness;
     int _lastBrightness;
-    wxByte _brightnessArray[256];
+    uint8_t _brightnessArray[256];
     wxMidiOutDevice* _midiMaster;
     wxDatagramSocket* _fppSyncMaster;
     wxDatagramSocket* _artNetSyncMaster;
@@ -131,6 +132,7 @@ class ScheduleManager
     void StartStep(const std::string stepName);
     void StartTiming(const std::string timgingName);
     PlayListItem* FindRunProcessNamed(const std::string& item) const;
+    void TestFrame(uint8_t* buffer, long totalChannels, long msec);
 
     public:
 
@@ -233,6 +235,8 @@ class ScheduleManager
         int Sync(const std::string& filename, long ms);
         int DoSync(const std::string& filename, long ms);
         bool IsSlave() const;
+        bool IsTest() const;
+        void SetTestMode(bool test) { _testMode = test; }
 };
 
 #endif

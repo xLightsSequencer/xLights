@@ -12,6 +12,7 @@
 #include "OpenDMXOutput.h"
 #include "OpenPixelNetOutput.h"
 #include "OutputManager.h"
+#include "../UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
 
@@ -179,11 +180,11 @@ std::list<std::string> SerialOutput::GetPossibleSerialPorts()
     wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
     if (!errors.IsEmpty())
     {
-        wxMessageBox(errors.Last(), _("Error"));
+        DisplayError(errors.Last());
     }
     else if (output.IsEmpty())
     {
-        wxMessageBox(_("no devices found"), _("Error"));
+        DisplayError(_("no devices found"));
     }
     else
     {
@@ -277,11 +278,11 @@ std::list<std::string> SerialOutput::GetAvailableSerialPorts()
     wxExecute("ls -1 /dev", output, errors, wxEXEC_SYNC);
     if (!errors.IsEmpty())
     {
-        wxMessageBox(errors.Last(), _("Error"));
+        DisplayError(errors.Last());
     }
     else if (output.IsEmpty())
     {
-        wxMessageBox(_("no devices found"), _("Error"));
+        DisplayError(_("no devices found"));
     }
     else
     {
@@ -354,7 +355,7 @@ bool SerialOutput::Open()
                     (const char *)p.c_str(),
                     (const char *)_commPort.c_str(),
                     errcode);
-                wxMessageBox(msg, _("Communication Error"), wxOK);
+                DisplayError(msg);
             }
         }
         else

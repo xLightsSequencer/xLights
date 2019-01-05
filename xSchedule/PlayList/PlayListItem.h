@@ -70,7 +70,7 @@ protected:
     size_t GetPriority() const { return _priority; }
     void SetPriority(size_t priority) { if (_priority != priority) { _priority = priority; _changeCount++; } }
     virtual bool Done() const { return false; }
-    virtual void Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
+    virtual void Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe) = 0;
     virtual std::string GetSyncItemFSEQ() const { return ""; }
     virtual std::string GetSyncItemMedia() { return ""; }
     virtual std::string GetTitle() const = 0;

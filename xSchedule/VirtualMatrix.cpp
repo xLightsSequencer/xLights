@@ -76,7 +76,7 @@ VirtualMatrix::VirtualMatrix(OutputManager* outputManager, int width, int height
 VirtualMatrix::VirtualMatrix(OutputManager* outputManager, wxXmlNode* n)
 {
     _suppress = false;
-    _outputManager = outputManager,
+    _outputManager = outputManager;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
     _name = n->GetAttribute("Name", "");
@@ -287,7 +287,7 @@ std::string VirtualMatrix::DecodeScalingQuality(wxImageResizeQuality quality, in
     return "Normal";
 }
 
-void VirtualMatrix::Frame(wxByte*buffer, size_t size)
+void VirtualMatrix::Frame(uint8_t*buffer, size_t size)
 {
     if (!_image.IsOk()) return;
     if (_window == nullptr) return;
@@ -298,14 +298,14 @@ void VirtualMatrix::Frame(wxByte*buffer, size_t size)
 
     for (size_t i = 0; i < end; i += 3)
     {
-        wxByte* pb = buffer + (sc - 1) + i;
-        wxByte r = *pb;
-        wxByte g = 0;
+        uint8_t* pb = buffer + (sc - 1) + i;
+        uint8_t r = *pb;
+        uint8_t g = 0;
         if (i + 1 < end)
         {
             g = *(pb + 1);
         }
-        wxByte b = 0;
+        uint8_t b = 0;
         if (i + 2 < end)
         {
             b = *(pb + 2);

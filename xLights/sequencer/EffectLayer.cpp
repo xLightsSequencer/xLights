@@ -1204,7 +1204,25 @@ std::list<std::string> EffectLayer::GetFileReferences(EffectManager& em) const
         if (ef->GetEffectIndex() >= 0)
         {
             RenderableEffect *eff = em[ef->GetEffectIndex()];
-            res.merge(eff->GetFileReferences(ef->GetSettings()));
+            res.splice(end(res), eff->GetFileReferences(ef->GetSettings()));
+        }
+    }
+
+    return res;
+}
+
+std::list<std::string> EffectLayer::GetFacesUsed(EffectManager& em) const
+{
+    std::list<std::string> res;
+
+    for (int k = 0; k < GetEffectCount(); k++)
+    {
+        Effect* ef = GetEffect(k);
+
+        if (ef->GetEffectIndex() >= 0)
+        {
+            RenderableEffect *eff = em[ef->GetEffectIndex()];
+            res.splice(end(res), eff->GetFacesUsed(ef->GetSettings()));
         }
     }
 

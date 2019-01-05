@@ -87,7 +87,7 @@ void PlayListItemAllOff::Configure(wxNotebook* notebook)
     notebook->AddPage(new PlayListItemAllOffPanel(notebook, _outputManager, this), GetTitle(), true);
 }
 
-void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemAllOff::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (outputframe)
     {
@@ -105,7 +105,7 @@ void PlayListItemAllOff::Frame(wxByte* buffer, size_t size, size_t ms, size_t fr
 
             if (toset > 0)
             {
-                wxByte* values = (wxByte*)malloc(toset);
+                uint8_t* values = (uint8_t*)malloc(toset);
                 if (values != nullptr)
                 {
                     memset(values, _value, toset);

@@ -1656,17 +1656,19 @@ int PixelBufferClass::BufferCountForLayer(int layer)
     }
     return 1;
 }
+
 void PixelBufferClass::MergeBuffersForLayer(int layer) {
     if (layers[layer]->usingModelBuffers) {
         //get all the data
         xlColor color;
         int nc = 0;
-        for (auto it = layers[layer]->modelBuffers.begin(); it != layers[layer]->modelBuffers.end(); ++it) {
-            for (auto node = (*it)->Nodes.begin(); node != (*it)->Nodes.end(); ++node, nc++) {
-                (*it)->GetPixel((*node)->Coords[0].bufX, (*node)->Coords[0].bufY, color);
-                for (auto coord = layers[layer]->buffer.Nodes[nc]->Coords.begin(); coord != layers[layer]->buffer.Nodes[nc]->Coords.end(); coord++) {
-                    layers[layer]->buffer.SetPixel(coord->bufX, coord->bufY, color);
+        for (const auto& modelBuffer : layers[layer]->modelBuffers) {
+            for (const auto& node : modelBuffer->Nodes) {
+                modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
+                for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
+                    layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);
                 }
+                nc++;
             }
         }
     }

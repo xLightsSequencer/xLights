@@ -133,8 +133,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
 
         if (!EffectsXml.Load(effectsFile.GetFullPath()))
         {
-            logger_base.warn("Unable to load RGB effects file ... creating a default one.");
-            wxMessageBox(_("Unable to load RGB effects file"), _("Error"));
+            DisplayError("Unable to load RGB effects file ... creating a default one.", this);
             CreateDefaultEffectsXml();
         }
     }
@@ -142,8 +141,7 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
     wxXmlNode* root = EffectsXml.GetRoot();
     if (root->GetName() != "xrgb")
     {
-        logger_base.warn("Invalid RGB effects file... xrgb node not found ... creating a default one.");
-        wxMessageBox(_("Invalid RGB effects file. Press Save File button to start a new file."), _("Error"));
+        DisplayError("Invalid RGB effects file ... creating a default one.", this);
         CreateDefaultEffectsXml();
     }
     ModelsNode = EffectsNode = PalettesNode = ModelGroupsNode = LayoutGroupsNode = SettingsNode = PerspectivesNode = nullptr;
@@ -668,8 +666,7 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         }
         else
         {
-            logger_base.warn("Unable to save RGB effects file");
-            wxMessageBox(_("Unable to save RGB effects file"), _("Error"));
+            DisplayError("Unable to save RGB effects file", this);
         }
         return false;
     }
@@ -1082,7 +1079,7 @@ void xLightsFrame::SaveSequence()
 
     if (SeqData.NumFrames() == 0)
     {
-        wxMessageBox("You must open a sequence first!", "Error");
+        DisplayError("You must open a sequence first!", this);
         return;
     }
 
@@ -1116,7 +1113,7 @@ void xLightsFrame::SaveSequence()
             if (NewFilename.IsEmpty())
             {
                 ok=false;
-                wxMessageBox(_("File name cannot be empty"), _("ERROR"));
+                DisplayError("File name cannot be empty", this);
             }
         }
         while (!ok);
@@ -1226,7 +1223,7 @@ void xLightsFrame::SaveAsSequence()
 {
    if (SeqData.NumFrames() == 0)
     {
-        wxMessageBox("You must open a sequence first!", "Error");
+        DisplayError("You must open a sequence first!", this);
         return;
     }
     wxString NewFilename;
@@ -1251,7 +1248,7 @@ void xLightsFrame::SaveAsSequence()
         if (NewFilename.IsEmpty())
         {
             ok=false;
-            wxMessageBox(_("File name cannot be empty"), _("ERROR"));
+            DisplayError("File name cannot be empty", this);
         }
     }
     while (!ok);

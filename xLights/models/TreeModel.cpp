@@ -10,6 +10,7 @@
 #include "ModelScreenLocation.h"
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
+#include "UtilFunctions.h"
 
 TreeModel::TreeModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : MatrixModel(manager)
 {
@@ -331,12 +332,6 @@ void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {
     p->Enable(treeType == 0);
 }
 
-#define retmsg(msg)  \
-{ \
-wxMessageBox(msg, _("Export Error")); \
-return; \
-}
-
 void TreeModel::ExportXlightsModel()
 {
     wxString name = ModelXml->GetAttribute("name");
@@ -345,7 +340,7 @@ void TreeModel::ExportXlightsModel()
     if (filename.IsEmpty()) return;
     wxFile f(filename);
     //    bool isnew = !wxFile::Exists(filename);
-    if (!f.Create(filename, true) || !f.IsOpened()) retmsg(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()));
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
     wxString p3 = ModelXml->GetAttribute("parm3");
@@ -486,11 +481,11 @@ void TreeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
         }
         else
         {
-            wxMessageBox("Failure loading Tree model file.");
+            DisplayError("Failure loading Tree model file.");
         }
     }
     else
     {
-        wxMessageBox("Failure loading Tree model file.");
+        DisplayError("Failure loading Tree model file.");
     }
 }

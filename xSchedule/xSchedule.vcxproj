@@ -101,7 +101,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;iphlpapi.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;imagehlp.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;iphlpapi.lib;%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;log4cpp.lib;imagehlp.lib;libzstdd_static.lib</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
@@ -118,7 +118,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;portmidi-staticd.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;SDL2.lib;swscale.lib;%(AdditionalDependencies);libdbghelp.a;log4cppd.lib;iphlpapi.lib;libzstdd_static.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -163,6 +163,7 @@
   <ItemGroup>
     <ClCompile Include="..\xLights\AudioManager.cpp" />
     <ClCompile Include="..\xLights\effects\GIFImage.cpp" />
+    <ClCompile Include="..\xLights\FSEQFile.cpp" />
     <ClCompile Include="..\xLights\JobPool.cpp" />
     <ClCompile Include="..\xLights\kiss_fft\kiss_fft.c" />
     <ClCompile Include="..\xLights\kiss_fft\tools\kiss_fftr.c" />
@@ -218,6 +219,7 @@
     <ClCompile Include="CommandManager.cpp" />
     <ClCompile Include="ConfigureMIDITimecodeDialog.cpp" />
     <ClCompile Include="ConfigureOSC.cpp" />
+    <ClCompile Include="ConfigureTest.cpp" />
     <ClCompile Include="DeadChannelDialog.cpp" />
     <ClCompile Include="DimDialog.cpp" />
     <ClCompile Include="DimWhiteDialog.cpp" />
@@ -258,7 +260,6 @@
     <ClCompile Include="ExtraIPDialog.cpp" />
     <ClCompile Include="ExtraIPsDialog.cpp" />
     <ClCompile Include="FPPRemotesDialog.cpp" />
-    <ClCompile Include="FSEQFile.cpp" />
     <ClCompile Include="GammaDialog.cpp" />
     <ClCompile Include="MatricesDialog.cpp" />
     <ClCompile Include="MatrixMapper.cpp" />
@@ -373,6 +374,7 @@
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
     <ClInclude Include="..\xLights\effects\GIFImage.h" />
+    <ClInclude Include="..\xLights\FSEQFile.h" />
     <ClInclude Include="..\xLights\kiss_fft\_kiss_fft_guts.h" />
     <ClInclude Include="..\xLights\MSWStackWalk.h" />
     <ClInclude Include="..\xLights\outputs\ArtNetOutput.h" />
@@ -413,6 +415,7 @@
     <ClInclude Include="CommandManager.h" />
     <ClInclude Include="ConfigureMIDITimecodeDialog.h" />
     <ClInclude Include="ConfigureOSC.h" />
+    <ClInclude Include="ConfigureTest.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="DeadChannelDialog.h" />
     <ClInclude Include="DimDialog.h" />
@@ -454,7 +457,6 @@
     <ClInclude Include="ExtraIPDialog.h" />
     <ClInclude Include="ExtraIPsDialog.h" />
     <ClInclude Include="FPPRemotesDialog.h" />
-    <ClInclude Include="FSEQFile.h" />
     <ClInclude Include="GammaDialog.h" />
     <ClInclude Include="MatricesDialog.h" />
     <ClInclude Include="MatrixMapper.h" />

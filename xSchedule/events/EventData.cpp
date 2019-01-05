@@ -21,13 +21,13 @@ wxXmlNode* EventData::Save()
     return en;
 }
 
-void EventData::Process(wxByte* buffer, long buffersize, ScheduleManager* scheduleManager)
+void EventData::Process(uint8_t* buffer, long buffersize, ScheduleManager* scheduleManager)
 {
     long sc = scheduleManager->GetOutputManager()->DecodeStartChannel(_channel);
 
     if (sc >= 1 && sc <= buffersize)
     {
-        wxByte value = *(buffer + sc - 1);
+        uint8_t value = *(buffer + sc - 1);
 
         if (EvaluateCondition(value))
         {

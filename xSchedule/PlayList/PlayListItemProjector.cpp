@@ -280,7 +280,7 @@ std::string PlayListItemProjector::GetNameNoTime() const
     }
 }
 
-void PlayListItemProjector::Frame(wxByte* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
+void PlayListItemProjector::Frame(uint8_t* buffer, size_t size, size_t ms, size_t framems, bool outputframe)
 {
     if (ms >= _delay && !_started)
     {

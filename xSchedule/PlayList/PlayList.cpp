@@ -555,7 +555,7 @@ int PlayList::GetPos(PlayListStep* step)
     return -1;
 }
 
-bool PlayList::Frame(wxByte* buffer, size_t size, bool outputframe)
+bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (_currentStep != nullptr)

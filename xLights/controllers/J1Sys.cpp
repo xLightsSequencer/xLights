@@ -8,6 +8,7 @@
 #include "outputs/Output.h"
 #include "models/ModelManager.h"
 #include <wx/sstream.h>
+#include "UtilFunctions.h"
 
 // This code has been tested with
 // ECG-P12S App Version 3.3
@@ -104,8 +105,7 @@ std::string J1Sys::GetURL(const std::string& url, bool logresult)
     }
     else
     {
-        logger_base.error("Unable to connect to J1Sys '%s'.", (const char *)url.c_str());
-        wxMessageBox(_T("Unable to connect!"));
+        DisplayError(wxString::Format("Unable to connect to J1Sys '%s'.", url).ToStdString());
         res = "";
     }
 
@@ -144,8 +144,7 @@ std::string J1Sys::PutURL(const std::string& url, const std::string& request, bo
     }
     else
     {
-        logger_base.error("Unable to connect to J1Sys '%s' => %d.", (const char *)url.c_str(), httpres);
-        wxMessageBox(_T("Unable to connect!"));
+        DisplayError(wxString::Format("Unable to connect to J1Sys '%s' => %d.", url, httpres).ToStdString());
     }
     _http.SetPostText("", "");
 
@@ -233,8 +232,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                         if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
                         {
                             warnedmodels.push_back(it->second);
-                            logger_base.warn("J1Sys Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str());
-                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed. Model ignored.", "Model Ignored");
+                            DisplayWarning("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed. Model ignored.");
                         }
                     }
                     else
@@ -273,9 +271,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
     {
         if (DecodeSerialPortProtocol(*protocol) >= 0 && GetMaxSerialOutputs() == 0)
         {
-            logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s not supported by this controller.",
-                (const char *)_ip.c_str(), (const char *)protocol->c_str());
-            wxMessageBox("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.", "Protocol Ignored");
+            DisplayError("Controller " + _ip + " protocol " + (*protocol) + " not supported by this controller.");
             success = false;
 
             continue;
@@ -339,8 +335,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                         {
                             if (portdone[i + j])
                             {
-                                logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j);
-                                wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
+                                DisplayError(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", first->GetName(), i + j).ToStdString());
                                 success = false;
                             }
                             else
@@ -356,17 +351,15 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                                 if (_outputs == 12 && usedoutputs.size() > 1)
                                 {
                                     // P12 only supports 1 universe per output
-                                    logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 1.",
-                                        (const char *)_ip.c_str(), (const char *)protocol->c_str(), i, (int)usedoutputs.size());
-                                    wxMessageBox(wxString::Format("Attempt to upload port %d more than 1 universe %d.", i, (int)usedoutputs.size()));
+                                    DisplayError(wxString::Format("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 1.",
+                                        _ip, *protocol, i, (int)usedoutputs.size()).ToStdString());
                                     success = false;
                                 }
                                 else if (_outputs == 2 && usedoutputs.size() > 4)
                                 {
                                     // P2 only supports 4 universes per output
-                                    logger_base.warn("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 4.",
-                                        (const char *)_ip.c_str(), (const char *)protocol->c_str(), i, (int)usedoutputs.size());
-                                    wxMessageBox(wxString::Format("Attempt to upload port %d more than 4 universes %d.", i, (int)usedoutputs.size()));
+                                    DisplayError(wxString::Format("J1Sys Outputs Upload: Controller %s protocol %s port %d does not support %d universes ... only 4.",
+                                        _ip, *protocol, i, (int)usedoutputs.size()).ToStdString());
                                     success = false;
                                 }
 
@@ -401,8 +394,7 @@ bool J1Sys::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, st
                     {
                         if (portdone[i])
                         {
-                            logger_base.warn("J1Sys Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i);
-                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
+                            DisplayError(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", first->GetName(), i).ToStdString());
                             success = false;
                         }
                         else

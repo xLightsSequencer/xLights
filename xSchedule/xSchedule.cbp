@@ -42,6 +42,7 @@
 					<Add option="-lopengl32" />
 					<Add option="-Wl,-Map=../bin/xLights.map" />
 					<Add option="-Wl,--large-address-aware" />
+					<Add option="-lz" />
 					<Add library="libwxmsw31ud.a" />
 					<Add library="libwxmsw31ud_gl.a" />
 					<Add library="../lib/windows/avcodec.lib" />
@@ -55,6 +56,7 @@
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add library="libwinmm.a" />
 					<Add directory="$(#wx)/lib/gcc_dll" />
 				</Linker>
@@ -100,6 +102,7 @@
 					<Add option="-Wl,-Map=../bin/xSchedule.map" />
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
+					<Add option="-lz" />
 					<Add library="../lib/windows/libwxmsw31u.a" />
 					<Add library="../lib/windows/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows/avutil.lib" />
@@ -113,6 +116,7 @@
 					<Add library="../lib/windows/iphlpapi.lib" />
 					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add library="libwinmm.a" />
 					<Add directory="../lib/windows" />
 				</Linker>
@@ -142,7 +146,7 @@
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -177,7 +181,7 @@
 					<Add directory="../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --libs log4cpp`" />
 					<Add option="`sdl2-config --libs`" />
@@ -226,6 +230,7 @@
 					<Add option="-m64" />
 					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
 					<Add option="-lpthread" />
+					<Add option="-lz" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
 					<Add library="../lib/windows64/avutil.lib" />
@@ -240,6 +245,7 @@
 					<Add library="../lib/windows64/Ws2_32.lib" />
 					<Add library="../lib/windows64/libportmidi.a" />
 					<Add library="libwinmm.a" />
+					<Add library="../lib/windows64/libzstd_static.lib" />
 					<Add directory="../lib/windows64" />
 				</Linker>
 			</Target>
@@ -254,6 +260,8 @@
 		</ResourceCompiler>
 		<Unit filename="../xLights/AudioManager.cpp" />
 		<Unit filename="../xLights/AudioManager.h" />
+		<Unit filename="../xLights/FSEQFile.cpp" />
+		<Unit filename="../xLights/FSEQFile.h" />
 		<Unit filename="../xLights/JobPool.cpp" />
 		<Unit filename="../xLights/JobPool.h" />
 		<Unit filename="../xLights/MSWStackWalk.h" />
@@ -360,6 +368,8 @@
 		<Unit filename="ConfigureMIDITimecodeDialog.h" />
 		<Unit filename="ConfigureOSC.cpp" />
 		<Unit filename="ConfigureOSC.h" />
+		<Unit filename="ConfigureTest.cpp" />
+		<Unit filename="ConfigureTest.h" />
 		<Unit filename="Control.h" />
 		<Unit filename="DeadChannelDialog.cpp" />
 		<Unit filename="DeadChannelDialog.h" />
@@ -383,14 +393,14 @@
 		<Unit filename="EventLorPanel.h" />
 		<Unit filename="EventMIDIPanel.cpp" />
 		<Unit filename="EventMIDIPanel.h" />
-		<Unit filename="EventStatePanel.cpp" />
-		<Unit filename="EventStatePanel.h" />
 		<Unit filename="EventOSCPanel.cpp" />
 		<Unit filename="EventOSCPanel.h" />
 		<Unit filename="EventPingPanel.cpp" />
 		<Unit filename="EventPingPanel.h" />
 		<Unit filename="EventSerialPanel.cpp" />
 		<Unit filename="EventSerialPanel.h" />
+		<Unit filename="EventStatePanel.cpp" />
+		<Unit filename="EventStatePanel.h" />
 		<Unit filename="EventsDialog.cpp" />
 		<Unit filename="EventsDialog.h" />
 		<Unit filename="ExtraIPDialog.cpp" />
@@ -399,8 +409,6 @@
 		<Unit filename="ExtraIPsDialog.h" />
 		<Unit filename="FPPRemotesDialog.cpp" />
 		<Unit filename="FPPRemotesDialog.h" />
-		<Unit filename="FSEQFile.cpp" />
-		<Unit filename="FSEQFile.h" />
 		<Unit filename="GammaDialog.cpp" />
 		<Unit filename="GammaDialog.h" />
 		<Unit filename="MatricesDialog.cpp" />
@@ -596,14 +604,14 @@
 		<Unit filename="events/EventLor.h" />
 		<Unit filename="events/EventMIDI.cpp" />
 		<Unit filename="events/EventMIDI.h" />
-		<Unit filename="events/EventState.cpp" />
-		<Unit filename="events/EventState.h" />
 		<Unit filename="events/EventOSC.cpp" />
 		<Unit filename="events/EventOSC.h" />
 		<Unit filename="events/EventPing.cpp" />
 		<Unit filename="events/EventPing.h" />
 		<Unit filename="events/EventSerial.cpp" />
 		<Unit filename="events/EventSerial.h" />
+		<Unit filename="events/EventState.cpp" />
+		<Unit filename="events/EventState.h" />
 		<Unit filename="events/ListenerARTNet.cpp" />
 		<Unit filename="events/ListenerARTNet.h" />
 		<Unit filename="events/ListenerBase.cpp" />
@@ -656,6 +664,7 @@
 		<Unit filename="wxsmith/ColourOrderDialog.wxs" />
 		<Unit filename="wxsmith/ConfigureMIDITimecodeDialog.wxs" />
 		<Unit filename="wxsmith/ConfigureOSC.wxs" />
+		<Unit filename="wxsmith/ConfigureTest.wxs" />
 		<Unit filename="wxsmith/DeadChannelDialog.wxs" />
 		<Unit filename="wxsmith/DimDialog.wxs" />
 		<Unit filename="wxsmith/DimWhiteDialog.wxs" />
@@ -666,10 +675,10 @@
 		<Unit filename="wxsmith/EventFPPPanel.wxs" />
 		<Unit filename="wxsmith/EventLorPanel.wxs" />
 		<Unit filename="wxsmith/EventMIDIPanel.wxs" />
-		<Unit filename="wxsmith/EventStatePanel.wxs" />
 		<Unit filename="wxsmith/EventOSCPanel.wxs" />
 		<Unit filename="wxsmith/EventPingPanel.wxs" />
 		<Unit filename="wxsmith/EventSerialPanel.wxs" />
+		<Unit filename="wxsmith/EventStatePanel.wxs" />
 		<Unit filename="wxsmith/EventsDialog.wxs" />
 		<Unit filename="wxsmith/ExtraIPDialog.wxs" />
 		<Unit filename="wxsmith/ExtraIPsDialog.wxs" />
@@ -799,6 +808,7 @@
 					<wxDialog wxs="wxsmith/ConfigureMIDITimecodeDialog.wxs" src="ConfigureMIDITimecodeDialog.cpp" hdr="ConfigureMIDITimecodeDialog.h" fwddecl="0" i18n="1" name="ConfigureMIDITimecodeDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ExtraIPsDialog.wxs" src="ExtraIPsDialog.cpp" hdr="ExtraIPsDialog.h" fwddecl="0" i18n="1" name="ExtraIPsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ExtraIPDialog.wxs" src="ExtraIPDialog.cpp" hdr="ExtraIPDialog.h" fwddecl="0" i18n="1" name="ExtraIPDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/ConfigureTest.wxs" src="ConfigureTest.cpp" hdr="ConfigureTest.h" fwddecl="0" i18n="1" name="ConfigureTest" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

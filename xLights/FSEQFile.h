@@ -1,11 +1,9 @@
 #ifndef __FSEQFILE_H_
+#define __FSEQFILE_H_
 
 #include <stdio.h>
 #include <string>
 #include <vector>
-
-
-
 
 class FSEQFile {
 public:
@@ -55,7 +53,11 @@ public:
                                     int version,
                                     CompressionType ct = CompressionType::zstd,
                                     int level = 10);
-    
+    //utility methods
+    static std::string getMediaFilename(const std::string &fn);
+    std::string getMediaFilename() const;
+    uint32_t getTotalTimeMS() const { return m_seqNumFrames * m_seqStepTime; }
+
     void parseVariableHeaders(const std::vector<uint8_t> &header, int start);
     
     
@@ -73,7 +75,7 @@ public:
     virtual void initializeFromFSEQ(const FSEQFile& fseq);
     virtual void writeHeader() = 0;
     virtual void addFrame(uint32_t frame,
-                          uint8_t *data) = 0;
+                          const uint8_t *data) = 0;
     virtual void finalize();
     
     virtual void dumpInfo(bool indent = false);
@@ -101,7 +103,6 @@ protected:
     int           m_seqStepTime;
     int           m_seqVersionMajor;
     int           m_seqVersionMinor;
-    int           m_seqVersion;
     
     std::vector<VariableHeader> m_variableHeaders;
 
@@ -134,7 +135,7 @@ public:
 
     virtual void writeHeader() override;
     virtual void addFrame(uint32_t frame,
-                          uint8_t *data) override;
+                          const uint8_t *data) override;
     virtual void finalize() override;
     
     virtual uint32_t getMaxChannel() const override;
@@ -161,7 +162,7 @@ public:
     
     virtual void writeHeader() override;
     virtual void addFrame(uint32_t frame,
-                          uint8_t *data) override;
+                          const uint8_t *data) override;
     virtual void finalize() override;
 
     virtual void dumpInfo(bool indent = false) override;

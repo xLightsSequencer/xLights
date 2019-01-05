@@ -11,6 +11,7 @@
 #include <wx/progdlg.h>
 
 #include "CachedFileDownloader.h"
+#include "UtilFunctions.h"
 
 CachedFileDownloader VendorModelDialog::_cache;
 
@@ -917,7 +918,7 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 
     if (_vendors.size() == 0)
     {
-        wxMessageBox("Unable to retrieve any vendor information", "Error");
+        DisplayError("Unable to retrieve any vendor information", this);
         return false;
     }
 
