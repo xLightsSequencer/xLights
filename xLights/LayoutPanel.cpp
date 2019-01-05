@@ -1002,7 +1002,7 @@ void LayoutPanel::refreshModelList() {
                     TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
-                
+
                 std::string cc = model->GetControllerConnectionRangeString();
                 if (cv != cc)
                 {
@@ -2759,7 +2759,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
             float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
             if (event.ShiftDown()) {
-                modelPreview->SetPan(delta_x, delta_y);
+                modelPreview->SetPan(delta_x, delta_y, 0.0f /* delta_z */);
             } else {
                 modelPreview->SetCameraView(delta_x, delta_y, false);
                 modelPreview->SetCameraView(0, 0, true);
@@ -2778,7 +2778,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
             delta_x *= modelPreview->GetZoom() * 2.0f;
             delta_y *= modelPreview->GetZoom() * 2.0f;
-            modelPreview->SetPan(delta_x, delta_y);
+            modelPreview->SetPan(delta_x, delta_y, 0.0f /* delta_z */);
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
         }
@@ -2802,11 +2802,19 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         float new_y = event.GetY() - m_previous_mouse_y;
         // account for grid rotation
         float angle = glm::radians(modelPreview->GetCameraRotation());
-        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-        delta_x *= modelPreview->GetZoom() * 2.0f;
-        delta_y *= modelPreview->GetZoom() * 2.0f;
-        modelPreview->SetPan(delta_x, delta_y);
+        float mouse_delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+        float mouse_delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+        mouse_delta_x *= modelPreview->GetZoom() * 2.0f;
+        mouse_delta_y *= modelPreview->GetZoom() * 2.0f;
+        if (event.ControlDown()) {
+            // User is holding down the control modifier, so apply the up/down mouse
+            // movement as a pan along the Y axis.
+            modelPreview->SetPan(mouse_delta_x, -1.0f * mouse_delta_y /* Y */, 0.0f /* Z */);
+        } else {
+            // User is not holding down the control modifier, so apply the up/down
+            // mouse movement as a pan along the Z axis.
+            modelPreview->SetPan(mouse_delta_x, 0.0f /* Y */, mouse_delta_y /*Z */);
+        }
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
         UpdatePreview();
@@ -3022,7 +3030,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         float delta_y = event.GetY() - m_previous_mouse_y;
         delta_x /= modelPreview->GetZoom();
         delta_y /= modelPreview->GetZoom();
-        modelPreview->SetPan(delta_x, -delta_y);
+        modelPreview->SetPan(delta_x, -delta_y, 0.0f /* delta_z */);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
         UpdatePreview();
@@ -4302,7 +4310,7 @@ void LayoutPanel::ReplaceModel()
                     tocc->DeleteAttribute("Protocol");
                     tocc->AddAttribute("Protocol", fromcc->GetAttribute("Protocol"));
                 }
-                
+
                 if (fromcc->GetAttribute("Port", "") != "")
                 {
                     tocc->DeleteAttribute("Port");

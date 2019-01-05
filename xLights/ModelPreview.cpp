@@ -100,11 +100,23 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
         }
         // account for grid rotation
         float angle = glm::radians(GetCameraRotation());
-        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
-        delta_x *= GetZoom() * 2.0f;
-        delta_y *= GetZoom() * 2.0f;
-        SetPan(delta_x, delta_y);
+        float mouse_delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+        float mouse_delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+        mouse_delta_x *= GetZoom() * 2.0f;
+        mouse_delta_y *= GetZoom() * 2.0f;
+        if (is_3d) {
+            // Support panning along the X/Y plane when the control modifier is down and
+            // panning along the X/Z plane when no modifier is down.
+            if (event.ControlDown()) {
+                // Control modifier is down, so apply mouse delta y to the y axis.
+                SetPan(mouse_delta_x, -1.0f * mouse_delta_y /* Y */, 0.0f /* Z */);
+            } else {
+                // No modifier, so apply mouse delta y to the z axis.
+                SetPan(mouse_delta_x, 0.0f /* Y */, mouse_delta_y /* Z */);
+            }
+        } else {
+            SetPan(mouse_delta_x, mouse_delta_y, 0.0f);
+        }
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
         if (xlights != nullptr) {
@@ -671,11 +683,12 @@ void ModelPreview::SetZoomDelta(float delta)
     }
 }
 
-void ModelPreview::SetPan(float deltax, float deltay)
+void ModelPreview::SetPan(float deltax, float deltay, float deltaz)
 {
     if (is_3d) {
         camera3d->SetPanX(camera3d->GetPanX() + deltax);
         camera3d->SetPanY(camera3d->GetPanY() + deltay);
+        camera3d->SetPanZ(camera3d->GetPanZ() + deltaz);
     } else {
         camera2d->SetPanX(camera2d->GetPanX() + deltax);
         camera2d->SetPanY(camera2d->GetPanY() + deltay);
@@ -736,7 +749,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         accumulator.Finish(GL_TRIANGLES);
     } else {
         /*****************************   3D   ********************************/
-        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), 1.0f, camera3d->GetPosY() + camera3d->GetPanY()));
+        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), camera3d->GetPosY() + camera3d->GetPanY(), camera3d->GetPanZ()));
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f));
