@@ -265,7 +265,7 @@ void PathGenerationDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
     if (unsaved)
     {
-        if (wxMessageBox("You have not saved your curve.", "Are you sure you want to exit?", wxYES_NO, this) == wxNO)
+        if (wxMessageBox("Are you sure you want to exit?", "You have not saved your curve. Are you sure you want to exit?", wxYES_NO, this) == wxNO)
         {
             return;
         }
