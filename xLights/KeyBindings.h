@@ -33,7 +33,7 @@ public:
         : _type(_("EFFECT")), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
     {
         _scope = KBSCOPE::Sequence;
-        _shift = IsShiftedKey(_key);
+        _shift |= IsShiftedKey(_key);
     }
     explicit KeyBinding(const std::string& k, bool disabled, const std::string& name, const std::string& eff, const std::string& ver, bool control = false, bool alt = false, bool shift = false)
         : _type(_("EFFECT")), _effectName(name), _effectString(eff), _effectDataVersion(ver), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
@@ -41,13 +41,13 @@ public:
         _key = DecodeKey(k);
         if (_key == WXK_NONE) _disabled = true;
         _scope = KBSCOPE::Sequence;
-        _shift = IsShiftedKey(_key);
+        _shift |= IsShiftedKey(_key);
     }
     explicit KeyBinding(bool disabled, wxKeyCode k, const std::string& presetName, bool control, bool alt, bool shift)
         : _type(_("PRESET")), _effectName(presetName), _control(control), _alt(alt), _shift(shift), _disabled(disabled), _key(k)
     {
         _scope = KBSCOPE::Sequence;
-        _shift = IsShiftedKey(_key);
+        _shift |= IsShiftedKey(_key);
     }
     explicit KeyBinding(bool disabled, const std::string& k, const std::string& presetName, bool control, bool alt, bool shift)
         : _type(_("PRESET")), _effectName(presetName), _control(control), _alt(alt), _shift(shift), _disabled(disabled)
@@ -55,7 +55,7 @@ public:
         _key = DecodeKey(k);
         if (_key == WXK_NONE) _disabled = true;
         _scope = KBSCOPE::Sequence;
-        _shift = IsShiftedKey(_key);
+        _shift |= IsShiftedKey(_key);
     }
 
     const std::string& GetType() const noexcept { return _type; }

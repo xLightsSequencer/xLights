@@ -85,6 +85,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
 
 const std::vector<KeyBinding> DefaultBindings =
 {
+    KeyBinding(_("A"), false, _("SELECT_ALL"), true, false, true),
+    KeyBinding(_("a"), false, _("SELECT_ALL_NO_TIMING"), true),
     KeyBinding(_("F10"), false, _("BACKUP")),
     KeyBinding(_("F11"), false, _("ALTERNATE_BACKUP")),
     KeyBinding(_("F9"), false, _("SELECT_SHOW_FOLDER")),
@@ -180,7 +182,7 @@ const std::vector<std::pair<std::string, std::string>> ConvertKeys =
 {
     { _("OPEN_SEQUENCE"), _("CTRL+O") },
     { _("NEW_SEQUENCE"), _("CTRL+N") },
-    { _("PAUSE"), _("CTRL+PAUSE") },
+    { _("PAUSE"), _("+PAUSE") },
     { _("START_OF_SONG"), _("+HOME") },
     { _("END_OF_SONG"), _("+END") },
     { _("SAVE_CURRENT_TAB"), _("CTRL+S") },
@@ -262,7 +264,7 @@ KeyBinding::KeyBinding(wxKeyCode k, bool disabled, const std::string& type, bool
     {
         _scope = it->second;
     }
-    _shift = IsShiftedKey(_key);
+    _shift |= IsShiftedKey(_key);
 }
 
 KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& type, bool control, bool alt, bool shift) :
@@ -286,7 +288,7 @@ KeyBinding::KeyBinding(const std::string& k, bool disabled, const std::string& t
     {
         _scope = it->second;
     }
-    _shift = IsShiftedKey(_key);
+    _shift |= IsShiftedKey(_key);
 }
 #pragma endregion Constructors
 
