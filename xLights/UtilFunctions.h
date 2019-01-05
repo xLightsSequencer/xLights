@@ -83,9 +83,14 @@ inline char HexToChar(char c1, char c2)
     return (HexToChar(c1) << 8) + HexToChar(c2);
 }
 
-inline bool Contains(const std::string& in, const std::string contains) noexcept
+inline bool Contains(const std::string& in, const std::string& contains) noexcept
 {
     return in.find(contains) != std::string::npos;
+}
+
+inline bool StartsWith(const std::string& in, const std::string& startswith) noexcept
+{
+    return in.size() >= startswith.size() && in.substr(0, startswith.size()) == startswith;
 }
 
 inline std::string Capitalise(const std::string& input) noexcept

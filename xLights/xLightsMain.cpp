@@ -5816,6 +5816,22 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
         }
     }
 
+    // check we are not doing sub-buffers on Per Model* buffer styles
+    bool isPerModel = false;
+    bool isSubBuffer = false;
+    for (auto it : sm)
+    {
+        isPerModel |= (it.first == "B_CHOICE_BufferStyle" && StartsWith(it.second, "Per Model"));
+        isSubBuffer |= (it.first == "B_CUSTOM_SubBuffer");
+    }
+
+    if (isPerModel && isSubBuffer)
+    {
+        wxString msg = wxString::Format("    ERR: Effect on a model group using a 'Per Model' render buffer is also using a subbuffer. This will not work as you might expect. Effect: %s, Model: %s, Start %s", ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+        LogAndWrite(f, msg.ToStdString());
+        errcount++;
+    }
+
     // check value curves not updated
     for (auto it = sm.begin(); it != sm.end(); ++it)
     {
