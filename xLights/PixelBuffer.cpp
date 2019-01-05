@@ -1564,10 +1564,17 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     {
         int origNodeCount = inf->buffer.Nodes.size();
         inf->buffer.Nodes.clear();
-        model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+
+        // If we are a 'Per Model Default' render buffer then we need to ensure we create a full set of pixels
+        // so we change the type of the render buffer but just for model initialisation
+        auto tt = type;
+        if (type == "Per Model Default") {
+            tt = "Horizontal Per Model";
+        }
+        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
         
         int curBH = inf->BufferHt;
@@ -1617,7 +1624,6 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
         // we create the buffer oversized to prevent issues
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
-
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
             const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);

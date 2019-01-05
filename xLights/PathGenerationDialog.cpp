@@ -82,6 +82,7 @@ PathGenerationDialog::PathGenerationDialog(wxWindow* parent, const std::string& 
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_CloseClick);
 	//*)
 
+    Slider_Brightness->SetValue(20); // start dim by default
     RegenerateImage();
     Panel1->SetBackgroundStyle(wxBG_STYLE_PAINT);
 }

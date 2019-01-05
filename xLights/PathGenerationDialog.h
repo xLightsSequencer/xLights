@@ -10,6 +10,8 @@
 #include <wx/slider.h>
 //*)
 
+#include <memory>
+
 class PathGenerationDialog: public wxDialog
 {
     std::unique_ptr<wxBitmap> _image;
