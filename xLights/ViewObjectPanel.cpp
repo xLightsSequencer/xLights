@@ -491,7 +491,7 @@ bool ViewObjectPanel::OnSelectionChanged(wxTreeListEvent& event, ViewObject** vi
 void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPropertyGridEvent& event) {
     wxString name = event.GetPropertyName();
     if (mSelectedObject != nullptr) {
-        if ("ModelName" == name) {
+        if ("ObjectName" == name) {
             std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
 
             if (safename != event.GetValue().GetString().ToStdString())
@@ -506,26 +506,27 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
             if (oldname != safename) {
                 RenameObjectInTree(mSelectedObject, safename);
                 mSelectedObject = nullptr;
-                //layoutPanel->xlights->RenameModel(oldname, safename);
-                //SelectViewObject(safename);
-                CallAfter(&LayoutPanel::RefreshLayout); // refresh whole layout seems the most reliable at this point
+                layoutPanel->xlights->RenameObject(oldname, safename);
+                layoutPanel->SelectBaseObject(safename);
+                mSelectedObject = dynamic_cast<ViewObject*>(layoutPanel->selectedBaseObject);
+                CallAfter(&ViewObjectPanel::refreshObjectList);
                 layoutPanel->xlights->MarkEffectsFileDirty(true);
             }
         } else {
             int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
-            if (i & 0x0001) {
+            if (i & Model::GRIDCHANGE_REFRESH_DISPLAY) {
                 layoutPanel->xlights->UpdatePreview();
             }
-            if (i & 0x0002) {
+            if (i & Model::GRIDCHANGE_MARK_DIRTY) {
                 layoutPanel->xlights->MarkEffectsFileDirty(true);
             }
-            if (i & 0x0004) {
+            if (i & Model::GRIDCHANGE_REBUILD_PROP_GRID) {
                 CallAfter(&LayoutPanel::resetPropertyGrid);
             }
-            if (i & 0x0008) {
+            if (i & Model::GRIDCHANGE_REBUILD_MODEL_LIST) {
                 CallAfter(&ViewObjectPanel::refreshObjectList);
             }
-            if (i & 0x0010) {
+            if (i & Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
                 // Preview assignment change so model may not exist in current preview anymore
                 CallAfter(&LayoutPanel::RefreshLayout);
             }
