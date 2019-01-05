@@ -1074,6 +1074,10 @@
 					<help>Generate lyric phenomes from data</help>
 					<handler function="OnMenuItem_GenerateLyricsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MENU_GENERATE2DPATH" variable="MenuItem_Generate2DPath" member="yes">
+					<label>Generate 2D Path</label>
+					<handler function="OnMenuItem_Generate2DPathSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CHECKSEQ" variable="MenuItemCheckSequence" member="yes">
 					<label>C&amp;heck Sequence</label>
 					<handler function="OnMenuItemCheckSequenceSelected" entry="EVT_MENU" />

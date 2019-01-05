@@ -85,6 +85,20 @@ float ValueCurve::Denormalise(int parm, float value)
     return res;
 }
 
+std::string ValueCurve::GetValueCurveFolder(const std::string& showFolder)
+{
+    std::string vcf = showFolder + "/valuecurves";
+    if (!wxDir::Exists(vcf))
+    {
+        wxMkDir(vcf);
+        if (!wxDir::Exists(vcf))
+        {
+            return "";
+        }
+    }
+    return vcf;
+}
+
 void ValueCurve::ConvertToRealValues(float oldmin, float oldmax)
 {
     float min = _min;
@@ -1295,6 +1309,92 @@ std::string ValueCurve::Serialise()
         res += "Active=FALSE|";
     }
     return res;
+}
+
+void ValueCurve::LoadXVC(const wxFileName& fn)
+{
+    LoadXVC(fn.GetFullPath().ToStdString());
+}
+
+void ValueCurve::LoadXVC(const std::string& fn)
+{
+    wxXmlDocument doc(fn);
+
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+
+        if (root->GetName() == "valuecurve")
+        {
+            wxString data = root->GetAttribute("data");
+            wxString v = root->GetAttribute("SourceVersion");
+
+            // Add any valuecurve version conversion logic here
+            // Source version will be the program version that created the custom model
+
+            Deserialise(data.ToStdString(), true);
+
+            if (GetId() == "ID_VALUECURVE_XVC")
+            {
+                // this should already have the 0-100 scale
+            }
+            else
+            {
+                // need to fudge it
+                float min = GetMin();
+                float max = GetMax();
+                SetLimits(0, 100);
+                FixChangedScale(min, max, 1);
+            }
+
+            SetActive(true);
+        }
+        else
+        {
+            DisplayError("Failure loading value curve file " + fn + ".");
+        }
+    }
+    else
+    {
+        DisplayError("Failure loading value curve file " + fn + ".");
+    }
+}
+
+void ValueCurve::SaveXVC(const wxFileName& fn)
+{
+    SaveXVC(fn.GetFullPath().ToStdString());
+}
+
+void ValueCurve::SaveXVC(const std::string& filename)
+{
+    wxFile f(filename);
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
+
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
+    bool active = IsActive();
+    std::string id = GetId();
+    if (id == "") SetId("Dummy");
+    SetActive(true);
+
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
+    ValueCurve vc(Serialise());
+    vc.SetId("ID_VALUECURVE_XVC");
+    vc.SetLimits(0, 100);
+    vc.UnFixChangedScale(GetMin(), GetMax());
+    f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" >\n");
+    f.Write("</valuecurve>");
+    f.Close();
+    SetActive(active);
+    SetId(id);
 }
 
 void ValueCurve::SetSerialisedValue(std::string k, std::string s)

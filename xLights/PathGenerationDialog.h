@@ -1,0 +1,69 @@
+#ifndef PATHGENERATIONDIALOG_H
+#define PATHGENERATIONDIALOG_H
+
+//(*Headers(PathGenerationDialog)
+#include <wx/button.h>
+#include <wx/dialog.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+//*)
+
+class PathGenerationDialog: public wxDialog
+{
+    std::string _showFolder = "";
+    bool unsaved = false;
+    int _selected = -1;
+    std::pair<float, float> _movefrom = {-1, -1};
+    std::list<std::pair<float, float>> _points;
+    std::list<std::tuple<int, std::string, std::pair<float,float>>> _undo;
+
+    std::list<std::pair<float, float>>::iterator GetPoint(int index);
+    wxPoint CreatePoint(const std::pair<float, float>& pt) const;
+    float TotalLength() const;
+    static float GetDistance(const std::pair<float, float>& pt1, const std::pair<float, float>& pt2);
+    std::pair<float, float> ConvertMousePosition(const wxPoint& pt) const;
+    int GetMouseOverPoint(const std::pair<float, float>& pt, int start) const;
+    int GetMouseOverLine(const std::pair<float, float>& pt) const;
+    static float PointDistanceFromLineThrough(const std::pair<float, float>& pt, const std::pair<float, float>& lpt1, const std::pair<float, float>& lpt2);
+
+	public:
+
+		PathGenerationDialog(wxWindow* parent, const std::string& showFolder, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		virtual ~PathGenerationDialog();
+
+		//(*Declarations(PathGenerationDialog)
+		wxButton* Button_Close;
+		wxButton* Button_Generate;
+		wxButton* Button_Load;
+		wxPanel* Panel1;
+		//*)
+
+	protected:
+
+		//(*Identifiers(PathGenerationDialog)
+		static const long ID_PANEL1;
+		static const long ID_BUTTON3;
+		static const long ID_BUTTON1;
+		static const long ID_BUTTON2;
+		//*)
+
+	private:
+
+		//(*Handlers(PathGenerationDialog)
+		void OnButton_LoadClick(wxCommandEvent& event);
+		void OnButton_GenerateClick(wxCommandEvent& event);
+		void OnButton_CloseClick(wxCommandEvent& event);
+		void OnPanel1LeftDown(wxMouseEvent& event);
+		void OnPanel1Paint(wxPaintEvent& event);
+		void OnPanel1KeyDown(wxKeyEvent& event);
+		void OnPanel1MouseMove(wxMouseEvent& event);
+		void OnPanel1RightDown(wxMouseEvent& event);
+		void OnPanel1LeftDClick(wxMouseEvent& event);
+		void OnPanel1Resize(wxSizeEvent& event);
+		void OnPanel1LeftUp1(wxMouseEvent& event);
+		//*)
+
+		DECLARE_EVENT_TABLE()
+};
+
+#endif

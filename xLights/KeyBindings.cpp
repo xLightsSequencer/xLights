@@ -588,7 +588,6 @@ bool KeyBinding::IsEquivalentKey(wxKeyCode key) const noexcept
 #pragma region KeyBindingMap
 void KeyBindingMap::LoadDefaults() noexcept
 {
-
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Loading default keybindings.");
 

@@ -76,7 +76,6 @@ class ValueCurveDialog: public wxDialog
     void UpdateLinkedTextCtrl(wxScrollEvent& event);
     void UpdateLinkedSlider(wxCommandEvent& event);
     void PopulatePresets();
-    void LoadXVC(ValueCurve* vc, const wxString& filename);
     void ProcessPresetDir(wxDir& directory, bool subdirs);
     void SetTextCtrlsFromSliders();
     void SetSlidersFromTextCtrls();
@@ -154,14 +153,10 @@ class ValueCurveDialog: public wxDialog
 		void OnButton_OkClick(wxCommandEvent& event);
 		void OnButton_CancelClick(wxCommandEvent& event);
 		void OnChoice1Select(wxCommandEvent& event);
-		void OnPanel_GraphLeftDown(wxMouseEvent& event);
-		void OnPanel_GraphLeftUp(wxMouseEvent& event);
-		void OnPanel_GraphMouseMove(wxMouseEvent& event);
 		void OnTextCtrl_Parameter1Text(wxCommandEvent& event);
 		void OnTextCtrl_Parameter2Text(wxCommandEvent& event);
 		void OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event);
 		void OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event);
-		void OnPanel_GraphPaint(wxPaintEvent& event);
 		void OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_Parameter3Text(wxCommandEvent& event);
 		void OnChar(wxKeyEvent& event);

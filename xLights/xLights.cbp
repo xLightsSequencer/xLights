@@ -88,7 +88,6 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=c++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option="-Wno-attributes" />
 					<Add option="-D__GNUWIN32__" />
@@ -533,6 +532,8 @@
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="Parallel.cpp" />
 		<Unit filename="Parallel.h" />
+		<Unit filename="PathGenerationDialog.cpp" />
+		<Unit filename="PathGenerationDialog.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />
@@ -1160,6 +1161,7 @@
 		<Unit filename="wxsmith/OnPanel.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
+		<Unit filename="wxsmith/PathGenerationDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="wxsmith/PianoPanel.wxs" />
 		<Unit filename="wxsmith/PicturesAssistPanel.wxs" />
@@ -1393,6 +1395,7 @@
 					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

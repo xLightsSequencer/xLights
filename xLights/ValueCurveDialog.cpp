@@ -1361,7 +1361,7 @@ void ValueCurveDialog::OnButtonLoadClick(wxCommandEvent& event)
     int div = _vc->GetDivisor();
     _vc->SetLimits(0, 100);
     _vc->SetDivisor(1);
-    LoadXVC(_vc, filename);
+    _vc->LoadXVC(filename.ToStdString());
     _vc->SetLimits(min, max);
     _vc->SetDivisor(div);
     SetSliderMinMax();
@@ -1388,29 +1388,7 @@ void ValueCurveDialog::OnButtonExportClick(wxCommandEvent& event)
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, "ValueCurve", wxEmptyString, "Value Curves (*.xvc)|*.xvc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename.IsEmpty()) return;
 
-    wxFile f(filename);
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
-
-    if (!f.Create(filename, true) || !f.IsOpened())
-    {
-        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
-        return;
-    }
-
-    _vc->SetActive(true);
-
-    wxString v = xlights_version_string;
-    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
-    ValueCurve vc(_vc->Serialise());
-    vc.SetId("ID_VALUECURVE_XVC");
-    vc.SetLimits(0, 100);
-    vc.UnFixChangedScale(_vc->GetMin(), _vc->GetMax());
-    f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
-    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
-    f.Write(" >\n");
-    f.Write("</valuecurve>");
-    f.Close();
+    _vc->SaveXVC(filename.ToStdString());
 
     _vcp->ClearUndo();
 
@@ -1443,11 +1421,12 @@ void ValueCurveDialog::ProcessPresetDir(wxDir& directory, bool subdirs)
         if (!found)
         {
             ValueCurve vc("");
-            LoadXVC(&vc, fn.GetFullPath());
+            vc.LoadXVC(fn);
             long id = wxNewId();
             wxBitmapButton* bmb = new wxBitmapButton(this, id, vc.GetImage(30, 30, GetContentScaleFactor()), wxDefaultPosition,
                                                      wxSize(30, 30), wxBU_AUTODRAW | wxNO_BORDER);
             bmb->SetLabel(fn.GetFullPath());
+            bmb->SetToolTip(fn.GetFullPath());
             PresetSizer->Add(bmb);
             Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ValueCurveDialog::OnButtonPresetClick);
         }
@@ -1474,7 +1453,7 @@ void ValueCurveDialog::PopulatePresets()
 
     ProcessPresetDir(dir, false);
 
-    wxString d = xLightsFrame::CurrentDir + "/valuecurves";
+    wxString d = ValueCurve::GetValueCurveFolder(xLightsFrame::CurrentDir.ToStdString());
 
     if (wxDir::Exists(d))
     {
@@ -1508,50 +1487,6 @@ void ValueCurveDialog::PopulatePresets()
     //Fit();
 }
 
-void ValueCurveDialog::LoadXVC(ValueCurve* vc, const wxString& filename)
-{
-    wxXmlDocument doc(filename);
-
-    if (doc.IsOk())
-    {
-        wxXmlNode* root = doc.GetRoot();
-
-        if (root->GetName() == "valuecurve")
-        {
-            wxString data = root->GetAttribute("data");
-            wxString v = root->GetAttribute("SourceVersion");
-
-            // Add any valuecurve version conversion logic here
-            // Source version will be the program version that created the custom model
-
-            vc->Deserialise(data.ToStdString(), true);
-
-            if (vc->GetId() == "ID_VALUECURVE_XVC")
-            {
-                // this should already have the 0-100 scale
-            }
-            else
-            {
-                // need to fudge it
-                float min = vc->GetMin();
-                float max = vc->GetMax();
-                vc->SetLimits(0, 100);
-                vc->FixChangedScale(min, max, 1);
-            }
-
-            vc->SetActive(true);
-        }
-        else
-        {
-            DisplayError("Failure loading value curve file " + filename + ".", this);
-        }
-    }
-    else
-    {
-        DisplayError("Failure loading value curve file " + filename + ".", this);
-    }
-}
-
 void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
 {
     if (_vcp->IsDirty())
@@ -1570,7 +1505,7 @@ void ValueCurveDialog::OnButtonPresetClick(wxCommandEvent& event)
     int div = _vc->GetDivisor();
     _vc->SetLimits(0, 100);
     _vc->SetDivisor(1);
-    LoadXVC(_vc, filename);
+    _vc->LoadXVC(filename.ToStdString());
     _vc->SetLimits(min, max);
     _vc->SetDivisor(div);
     SetSliderMinMax();

@@ -554,6 +554,7 @@ public:
     void OnChar(wxKeyEvent& event);
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
+    void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -666,6 +667,7 @@ public:
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
     static const long ID_MNU_GENERATELYRICS;
+    static const long ID_MENU_GENERATE2DPATH;
     static const long ID_MNU_CHECKSEQ;
     static const long ID_MNU_CLEANUPFILE;
     static const long ID_MENU_VIEW_LOG;
@@ -933,6 +935,7 @@ public:
     wxMenuItem* MenuItem_File_Save;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
     wxMenuItem* MenuItem_ForceLocalIP;
+    wxMenuItem* MenuItem_Generate2DPath;
     wxMenuItem* MenuItem_GenerateLyrics;
     wxMenuItem* MenuItem_Help_Download;
     wxMenuItem* MenuItem_Help_Facebook;
