@@ -656,7 +656,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                                        int &BufferWi, int &BufferHt) const {
     CheckForChanges();
     std::string type = tp;
-    if (type.compare(0, 9, "Per Model") == 0) {
+    if (type.compare(0, 9, "Per Model") == 0 && type != PER_MODEL_DEFAULT) {
         type = "Default";
     }
     if (type == "Default") {
@@ -688,7 +688,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
-    } else if (type == HORIZ) {
+    } else if (type == HORIZ || type == PER_MODEL_DEFAULT) {
         int modelX = 0;
         for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];
