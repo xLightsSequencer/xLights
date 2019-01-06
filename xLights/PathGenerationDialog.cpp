@@ -19,6 +19,9 @@
 const long PathGenerationDialog::ID_PANEL1 = wxNewId();
 const long PathGenerationDialog::ID_FILEPICKERCTRL1 = wxNewId();
 const long PathGenerationDialog::ID_SLIDER1 = wxNewId();
+const long PathGenerationDialog::ID_BUTTON4 = wxNewId();
+const long PathGenerationDialog::ID_BUTTON5 = wxNewId();
+const long PathGenerationDialog::ID_BUTTON6 = wxNewId();
 const long PathGenerationDialog::ID_BUTTON3 = wxNewId();
 const long PathGenerationDialog::ID_BUTTON1 = wxNewId();
 const long PathGenerationDialog::ID_BUTTON2 = wxNewId();
@@ -38,6 +41,7 @@ PathGenerationDialog::PathGenerationDialog(wxWindow* parent, const std::string& 
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
 
 	Create(parent, id, _("2D Path Generator"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -54,6 +58,14 @@ PathGenerationDialog::PathGenerationDialog(wxWindow* parent, const std::string& 
 	Slider_Brightness = new wxSlider(this, ID_SLIDER1, 100, 0, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER1"));
 	FlexGridSizer3->Add(Slider_Brightness, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
+	Button_FlipX = new wxButton(this, ID_BUTTON4, _("Flip X"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+	FlexGridSizer4->Add(Button_FlipX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_FlipY = new wxButton(this, ID_BUTTON5, _("Flip Y"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
+	FlexGridSizer4->Add(Button_FlipY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Button_Rotate = new wxButton(this, ID_BUTTON6, _("Rotate"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+	FlexGridSizer4->Add(Button_Rotate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_Load = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
 	FlexGridSizer2->Add(Button_Load, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -77,6 +89,9 @@ PathGenerationDialog::PathGenerationDialog(wxWindow* parent, const std::string& 
 	Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&PathGenerationDialog::OnFilePickerCtrl1FileChanged);
 	Connect(ID_SLIDER1,wxEVT_SCROLL_CHANGED,(wxObjectEventFunction)&PathGenerationDialog::OnSlider_BrightnessCmdScrollChanged);
 	Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&PathGenerationDialog::OnSlider_BrightnessCmdSliderUpdated);
+	Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_FlipXClick);
+	Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_FlipYClick);
+	Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_RotateClick);
 	Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_LoadClick);
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_GenerateClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&PathGenerationDialog::OnButton_CloseClick);
@@ -704,5 +719,34 @@ void PathGenerationDialog::RegenerateImage()
     if (!success)
     {
         _image = nullptr;
+    }
+}
+
+void PathGenerationDialog::OnButton_FlipXClick(wxCommandEvent& event)
+{
+    for (auto& pt : _points)
+    {
+        pt.first = 1.0 - pt.first;
+    }
+    Panel1->Refresh(true);
+}
+
+void PathGenerationDialog::OnButton_FlipYClick(wxCommandEvent& event)
+{
+    for (auto& pt : _points)
+    {
+        pt.second = 1.0 - pt.second;
+    }
+    Panel1->Refresh(true);
+}
+
+void PathGenerationDialog::OnButton_RotateClick(wxCommandEvent& event)
+{
+    // flip x
+    OnButton_FlipXClick(event);
+    // swap x and y
+    for (auto& pt : _points)
+    {
+        std::swap(pt.first, pt.second);
     }
 }

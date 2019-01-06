@@ -92,6 +92,7 @@ class ValueCurveDialog: public wxDialog
 		wxButton* ButtonExport;
 		wxButton* ButtonLoad;
 		wxButton* Button_Cancel;
+		wxButton* Button_Flip;
 		wxButton* Button_Ok;
 		wxButton* Button_Reverse;
 		wxCheckBox* CheckBox_WrapValues;
@@ -138,6 +139,7 @@ class ValueCurveDialog: public wxDialog
 		static const long IDD_TEXTCTRL_Parameter4;
 		static const long ID_CHECKBOX_WrapValues;
 		static const long ID_BUTTON5;
+		static const long ID_BUTTON6;
 		static const long ID_STATICTEXT8;
 		static const long ID_SLIDER1;
 		static const long ID_TEXTCTRL1;
@@ -170,6 +172,7 @@ class ValueCurveDialog: public wxDialog
 		void OnButton_ReverseClick(wxCommandEvent& event);
 		void OnSlider_TimeOffsetCmdSliderUpdated(wxScrollEvent& event);
 		void OnTextCtrl_TimeOffsetText(wxCommandEvent& event);
+		void OnButton_FlipClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

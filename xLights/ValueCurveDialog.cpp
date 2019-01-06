@@ -80,6 +80,7 @@ const long ValueCurveDialog::ID_SLIDER_Parameter4 = wxNewId();
 const long ValueCurveDialog::IDD_TEXTCTRL_Parameter4 = wxNewId();
 const long ValueCurveDialog::ID_CHECKBOX_WrapValues = wxNewId();
 const long ValueCurveDialog::ID_BUTTON5 = wxNewId();
+const long ValueCurveDialog::ID_BUTTON6 = wxNewId();
 const long ValueCurveDialog::ID_STATICTEXT8 = wxNewId();
 const long ValueCurveDialog::ID_SLIDER1 = wxNewId();
 const long ValueCurveDialog::ID_TEXTCTRL1 = wxNewId();
@@ -108,6 +109,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
 
     Create(parent, id, _("Value Curve"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
     SetClientSize(wxDefaultSize);
@@ -192,8 +194,12 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     FlexGridSizer2->Add(CheckBox_WrapValues, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Reverse = new wxButton(this, ID_BUTTON5, _("Reverse"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    FlexGridSizer2->Add(Button_Reverse, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer9->Add(Button_Reverse, 1, wxALL|wxEXPAND, 2);
+    Button_Flip = new wxButton(this, ID_BUTTON6, _("Flip"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
+    FlexGridSizer9->Add(Button_Flip, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer2->Add(FlexGridSizer9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT8, _("Time offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
     FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -236,6 +242,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Connect(IDD_TEXTCTRL_Parameter4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_Parameter4Text);
     Connect(ID_CHECKBOX_WrapValues,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnCheckBox_WrapValuesClick);
     Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_ReverseClick);
+    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButton_FlipClick);
     Connect(ID_SLIDER1,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnSlider_TimeOffsetCmdSliderUpdated);
     Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&ValueCurveDialog::OnTextCtrl_TimeOffsetText);
     Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ValueCurveDialog::OnButtonLoadClick);
@@ -1299,6 +1306,8 @@ void ValueCurveDialog::ValidateWindow()
         type == "Logarithmic Down" ||
         type == "Exponential Up" ||
         type == "Random" ||
+        type == "Music" ||
+        type == "Music Trigger Fade" ||
         type == "Exponential Down")
     {
         Button_Reverse->Enable(false);
@@ -1306,6 +1315,21 @@ void ValueCurveDialog::ValidateWindow()
     else
     {
         Button_Reverse->Enable();
+    }
+    if (type == "Logarithmic Up" ||
+        type == "Logarithmic Down" ||
+        type == "Sine" ||
+        type == "Abs Sine" ||
+        type == "Music" ||
+        type == "Music Trigger Fade" ||
+        type == "Decaying Sine"
+        )
+    {
+        Button_Flip->Enable(false);
+    }
+    else
+    {
+        Button_Flip->Enable();
     }
 }
 
@@ -1566,4 +1590,21 @@ void ValueCurveDialog::OnTextCtrl_TimeOffsetText(wxCommandEvent& event)
     _vc->SetTimeOffset(i);
     _vcp->SetTimeOffset(Slider_TimeOffset->GetValue());
     _vcp->Refresh();
+}
+
+void ValueCurveDialog::OnButton_FlipClick(wxCommandEvent& event)
+{
+    _vc->Flip();
+    Choice1->SetStringSelection(wxString(_vc->GetType().c_str()));
+    Slider_TimeOffset->SetValue(_vc->GetTimeOffset());
+    SetParameter(1, _vc->GetParameter1());
+    SetParameter(2, _vc->GetParameter2());
+    SetParameter(3, _vc->GetParameter3());
+    SetParameter(4, _vc->GetParameter4());
+    SetTextCtrlsFromSliders();
+    _vcp->Refresh();
+    _vcp->SetType(_vc->GetType());
+    _vcp->SetTimeOffset(_vc->GetTimeOffset());
+    _vcp->ClearUndo();
+    ValidateWindow();
 }

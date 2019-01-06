@@ -245,12 +245,29 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON5" variable="Button_Reverse" member="yes">
-							<label>Reverse</label>
-							<handler function="OnButton_ReverseClick" entry="EVT_BUTTON" />
+						<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+							<cols>3</cols>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON5" variable="Button_Reverse" member="yes">
+									<label>Reverse</label>
+									<handler function="OnButton_ReverseClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxButton" name="ID_BUTTON6" variable="Button_Flip" member="yes">
+									<label>Flip</label>
+									<handler function="OnButton_FlipClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
 						</object>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>2</border>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 						<option>1</option>
 					</object>
 					<object class="spacer">

@@ -506,6 +506,58 @@ void ValueCurve::Reverse()
     }
 }
 
+void ValueCurve::Flip()
+{
+    if (_type == "Custom")
+    {
+        for (auto it = _values.begin(); it != _values.end(); ++it)
+        {
+            it->y = 1.0 - it->y;
+        }
+    }
+    else if (_type == "Ramp" || _type == "Saw Tooth" || _type == "Square" || _type == "Random")
+    {
+        SetParameter1(GetMax() - GetParameter1());
+        SetParameter2(GetMax() - GetParameter2());
+    }
+    else if (_type == "Ramp Up/Down" || _type == "Ramp Up/Down Hold")
+    {
+        SetParameter1(GetMax() - GetParameter1());
+        SetParameter2(GetMax() - GetParameter2());
+        SetParameter3(GetMax() - GetParameter3());
+    }
+    else if (_type == "Flat")
+    {
+        SetParameter1(GetMax() - GetParameter1());
+    }
+    else if (_type == "Parabolic Down")
+    {
+        SetType("Parabolic Up");
+        SetParameter2(GetMax() - GetParameter2());
+    }
+    else if (_type == "Parabolic Up")
+    {
+        SetType("Parabolic Down");
+        SetParameter2(GetMax() - GetParameter2());
+    }
+    else if (_type == "Exponential Up")
+    {
+        SetType("Exponential Down");
+    }
+    else if (_type == "Exponential Down")
+    {
+        SetType("Exponential Up");
+    }
+    else if (_type == "Sine") {}
+    else if (_type == "Logarithmic Up") {}
+    else if (_type == "Logarithmic Down") {}
+    else if (_type == "Music") {}
+    else if (_type == "Music Trigger Fade") {}
+    else if (_type == "Decaying Sine") {}
+    else if (_type == "Abs Sine") {}
+    else { wxASSERT(false); }
+}
+
 float ValueCurve::Normalise(int parm, float value)
 {
     float low;

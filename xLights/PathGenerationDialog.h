@@ -39,8 +39,11 @@ class PathGenerationDialog: public wxDialog
 
 		//(*Declarations(PathGenerationDialog)
 		wxButton* Button_Close;
+		wxButton* Button_FlipX;
+		wxButton* Button_FlipY;
 		wxButton* Button_Generate;
 		wxButton* Button_Load;
+		wxButton* Button_Rotate;
 		wxFilePickerCtrl* FilePickerCtrl1;
 		wxPanel* Panel1;
 		wxSlider* Slider_Brightness;
@@ -52,6 +55,9 @@ class PathGenerationDialog: public wxDialog
 		static const long ID_PANEL1;
 		static const long ID_FILEPICKERCTRL1;
 		static const long ID_SLIDER1;
+		static const long ID_BUTTON4;
+		static const long ID_BUTTON5;
+		static const long ID_BUTTON6;
 		static const long ID_BUTTON3;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
@@ -74,6 +80,9 @@ class PathGenerationDialog: public wxDialog
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnSlider_BrightnessCmdScrollChanged(wxScrollEvent& event);
 		void OnSlider_BrightnessCmdSliderUpdated(wxScrollEvent& event);
+		void OnButton_FlipXClick(wxCommandEvent& event);
+		void OnButton_FlipYClick(wxCommandEvent& event);
+		void OnButton_RotateClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
