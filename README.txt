@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.03 January 6, 2019
    -- bug (scott)  Dont persist some not useful FPP connect settings
    -- bug (dkulp)  Fix xLights does not handle system audio device change on OSX
    -- bug (dkulp)  Remove non-functioning scroll bars on layout
@@ -18,6 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix cant rename objects
    -- bug (keith)  Fix xSchedule not reading FSEQ correctly
    -- bug (keith)  Fix erroneous check sequence warning if a group is in All Previews
+   -- bug (keith)  Fix some problems with lyric breakdown and improve user experience while dictionaries load
    -- enh (keith)  Exclude faces not used in a sequence from the package sequence file
    -- enh (keith)  Add a 2D value curve generator
 2019.02 January 2, 2019
