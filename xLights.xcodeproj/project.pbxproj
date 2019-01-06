@@ -145,6 +145,7 @@
 		67447D981C6664900095CDB5 /* WreathModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D951C6664900095CDB5 /* WreathModel.cpp */; };
 		67447D991C6664900095CDB5 /* WindowFrameModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D971C6664900095CDB5 /* WindowFrameModel.cpp */; };
 		67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D9B1C6666A00095CDB5 /* SphereModel.cpp */; };
+		674623C421E1A889005AE464 /* PathGenerationDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674623C321E1A888005AE464 /* PathGenerationDialog.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
 		67480D122072575600B3ED60 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67480D112072575600B3ED60 /* Assets.xcassets */; };
 		67480D242072578700B3ED60 /* xCaptureMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D1E2072578600B3ED60 /* xCaptureMain.cpp */; };
@@ -1038,6 +1039,8 @@
 		67447D971C6664900095CDB5 /* WindowFrameModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WindowFrameModel.cpp; path = models/WindowFrameModel.cpp; sourceTree = "<group>"; };
 		67447D9A1C6666970095CDB5 /* SphereModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SphereModel.h; path = models/SphereModel.h; sourceTree = "<group>"; };
 		67447D9B1C6666A00095CDB5 /* SphereModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SphereModel.cpp; path = models/SphereModel.cpp; sourceTree = "<group>"; };
+		674623C221E1A888005AE464 /* PathGenerationDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathGenerationDialog.h; sourceTree = "<group>"; };
+		674623C321E1A888005AE464 /* PathGenerationDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PathGenerationDialog.cpp; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
 		67480D0C2072575400B3ED60 /* xCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67480D112072575600B3ED60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -2885,6 +2888,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				674623C321E1A888005AE464 /* PathGenerationDialog.cpp */,
+				674623C221E1A888005AE464 /* PathGenerationDialog.h */,
 				6794272221CC075B00F7ED59 /* FSEQFile.cpp */,
 				6794272321CC075B00F7ED59 /* FSEQFile.h */,
 				67CE25942138235500ADF180 /* ViewObjectPanel.cpp */,
@@ -4151,6 +4156,7 @@
 				672F95261A7A6619005FF8BF /* SeqSettingsDialog.cpp in Sources */,
 				67278C7F1CF74A01000DCFFB /* ValueCurveButton.cpp in Sources */,
 				67A327031836A04A00EABDF4 /* ExportModelSelect.cpp in Sources */,
+				674623C421E1A889005AE464 /* PathGenerationDialog.cpp in Sources */,
 				67B2CF851C39D98A003C17CA /* SingleStrandPanel.cpp in Sources */,
 				67B7971A1A5AE343008D5921 /* ColorPanel.cpp in Sources */,
 				67BC8BB41D2152C5009B660F /* StateEffect.cpp in Sources */,
