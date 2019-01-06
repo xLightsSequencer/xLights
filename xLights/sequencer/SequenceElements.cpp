@@ -1932,8 +1932,18 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
 {
     if( phrase != "" )
     {
-        xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
-        wxArrayString words = wxSplit(phrase, ' ');
+        xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
+        wxArrayString rawwords = wxStringTokenize(phrase, " \t:;,.-_!?{}[]()<>+=|");
+        wxArrayString words;
+
+        // remove any empty words
+        for (auto w: rawwords)
+        {
+            if (w != "")
+            {
+                words.emplace_back(w);
+            }
+        }
         int num_words = words.Count();
         double interval_ms = (end_time-start_time) / num_words;
         int word_start_time = start_time;
@@ -1950,46 +1960,65 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
     }
 }
 
+bool removechar(std::string& word, char remove)
+{
+    auto pos = word.find(remove);
+    if (pos != std::string::npos)
+    {
+        word.erase(pos, 1);
+        return true;
+    }
+    return false;
+}
+
 void SequenceElements::BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time, const std::string& word)
 {
-    xframe->dictionary.LoadDictionaries(xframe->CurrentDir);
+    xframe->dictionary.LoadDictionaries(xframe->CurrentDir, xframe);
     wxArrayString phonemes;
     xframe->dictionary.BreakdownWord(word, phonemes);
     if (phonemes.Count() > 0)
     {
-        int phoneme_start_time = start_time;
-        double phoneme_interval_ms = (end_time - start_time) / phonemes.Count();
-        int grow_next = 0;
-        Effect* last_effect = nullptr;
-        for (size_t i = 0; i < phonemes.Count(); i++)
+        int countShort = 0;
+        for (auto it: phonemes)
         {
-            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time + grow_next + (phoneme_interval_ms*(i + 1)), GetFrequency());
-            if (i == phonemes.Count() - 1 || phoneme_end_time > end_time)
+            if (it == "etc" || it == "MBP") countShort++;
+        }
+
+        double default_interval_ms = (end_time - start_time) / phonemes.Count(); // the interval if we just split everything evenly
+        double short_interval = 50; // our preferred interval for MBP/etc
+        if (default_interval_ms < 50)
+        {
+            short_interval = GetMinPeriod();
+        }
+        // our adjusted interval for non MBP/etc once split evenly
+        double adjusted_interval = (end_time - start_time - countShort * short_interval) / (phonemes.Count() - countShort);
+
+        int phoneme_start_time = start_time;
+        int shorts = 0;
+        int longs = 0;
+        for (auto phoneme : phonemes)
+        {
+            if (phoneme == "etc" || phoneme == "MBP")
+            {
+                shorts++;
+            }
+            else
+            {
+                longs++;
+            }
+            int phoneme_end_time = TimeLine::RoundToMultipleOfPeriod(start_time + longs * adjusted_interval + shorts * short_interval, GetFrequency());
+            if (phoneme_end_time > end_time)
             {
                 phoneme_end_time = end_time;
             }
-            grow_next = 0;
-            if (phonemes[i].ToStdString() == "etc" || phonemes[i].ToStdString() == "MBP")
-            {
-                int duration = phoneme_end_time - phoneme_start_time;
-                int psize = GetMinPeriod();
-                if (duration >= 50)
-                {
-                    psize = 50;
-                }
-                if (last_effect == nullptr || last_effect->GetEffectName() == "etc" || last_effect->GetEffectName() == "MBP")
-                {
-                    grow_next = duration - psize;
-                    phoneme_end_time = phoneme_start_time + psize;
-                }
-                else
-                {
-                    phoneme_start_time = phoneme_end_time - psize;
-                    last_effect->SetEndTimeMS(phoneme_start_time);
-                }
-            }
+            // This can fire if the interval is too short to fit in all the phonemes
             wxASSERT(phoneme_start_time < phoneme_end_time);
-            last_effect = phoneme_layer->AddEffect(0, phonemes[i].ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
+
+            // only create phonemes with duration
+            if (phoneme_end_time > phoneme_start_time)
+            {
+                phoneme_layer->AddEffect(0, phoneme.ToStdString(), "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
+            }
             phoneme_start_time = phoneme_end_time;
         }
     }

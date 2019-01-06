@@ -8810,7 +8810,7 @@ void xLightsFrame::OnMenuItemUserDictSelected(wxCommandEvent& event)
 {
     SetCursor(wxCURSOR_WAIT);
     SetStatusText(_("Loading dictionaries ..."));
-    dictionary.LoadDictionaries(CurrentDir);
+    dictionary.LoadDictionaries(CurrentDir, this);
     SetStatusText(_(""));
 
     LyricUserDictDialog dlg(&dictionary, showDirectory, this);

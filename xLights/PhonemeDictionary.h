@@ -6,14 +6,16 @@
 #include <wx/string.h>
 #include <wx/arrstr.h>
 
+class wxWindow;
+
 class PhonemeDictionary
 {
     public:
         PhonemeDictionary() {}
         virtual ~PhonemeDictionary() {}
 
-        void LoadDictionaries(const wxString &showDir);
-        void LoadDictionary(const wxString &filename, const wxString &showDir, wxFontEncoding defEnc = wxFONTENCODING_UTF8);
+        void LoadDictionaries(const wxString &showDir, wxWindow* parent);
+        void LoadDictionary(const wxString &filename, const wxString &showDir, wxWindow* parent, wxFontEncoding defEnc = wxFONTENCODING_UTF8);
         void BreakdownWord(const wxString& text, wxArrayString& phonemes);
         void InsertSpacesAfterPunctuation(wxString& text);
         void InsertPhoneme(const wxArrayString& phonemes);

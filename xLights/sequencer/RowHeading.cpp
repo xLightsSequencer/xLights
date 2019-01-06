@@ -724,12 +724,20 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
         mSequenceElements->ImportLyrics(dynamic_cast<TimingElement *>(element), GetParent());
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
-        int result = wxMessageBox("Breakdown phrases? Any existing words and phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        int result = wxOK;
+        if (element->GetEffectLayerCount() > 1)
+        {
+            result = wxMessageBox("Breakdown phrases? Any existing words and phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        }
         if (result == wxOK) {
             BreakdownTimingPhrases(dynamic_cast<TimingElement *>(element));
         }
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_WORDS) {
-        int result = wxMessageBox("Breakdown words? Any existing phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        int result = wxOK;
+        if (element->GetEffectLayerCount() > 2)
+        {
+            result = wxMessageBox("Breakdown words? Any existing phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        }
         if (result == wxOK) {
             BreakdownTimingWords(dynamic_cast<TimingElement *>(element));
         }

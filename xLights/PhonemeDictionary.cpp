@@ -2,21 +2,21 @@
 #include <wx/wfstream.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
-#include <wx/msgdlg.h>
+#include <wx/progdlg.h>
 
 #include "PhonemeDictionary.h"
 
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
 
-void PhonemeDictionary::LoadDictionaries(const wxString &showDir)
+void PhonemeDictionary::LoadDictionaries(const wxString &showDir, wxWindow* parent)
 {
 	if (phoneme_dict.size() > 0)
 		return;
 
-    LoadDictionary("user_dictionary", showDir);
-    LoadDictionary("standard_dictionary", showDir, wxFONTENCODING_ISO8859_1);
-    LoadDictionary("extended_dictionary", showDir, wxFONTENCODING_ISO8859_1);
+    LoadDictionary("user_dictionary", showDir, parent);
+    LoadDictionary("standard_dictionary", showDir, parent, wxFONTENCODING_ISO8859_1);
+    LoadDictionary("extended_dictionary", showDir, parent, wxFONTENCODING_ISO8859_1);
 
     wxFileName phonemeFile = wxFileName::FileName(wxStandardPaths::Get().GetExecutablePath());
     phonemeFile.SetFullName("phoneme_mapping");
@@ -47,7 +47,7 @@ void PhonemeDictionary::LoadDictionaries(const wxString &showDir)
     }
 }
 
-void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString &showDir, wxFontEncoding defEnc)
+void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString &showDir, wxWindow* parent, wxFontEncoding defEnc)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -74,10 +74,14 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
 
     logger_base.debug("Loading phoneme dictionary. '%s'", (const char *)phonemeFile.GetFullPath().c_str());
 
+    wxProgressDialog dlg("Loading", "Loading dictionary " + phonemeFile.GetName(), 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+
     wxFileInputStream input(phonemeFile.GetFullPath());
     wxTextInputStream text(input, " \t", wxConvAuto(defEnc));
 
-	while(input.IsOk() && !input.Eof()) {
+    auto size = input.GetSize();
+    long linenum = 0;
+    while(input.IsOk() && !input.Eof()) {
 		wxString line = text.ReadLine();
 		line = line.Trim();
         if (line.Length() == 0 || line.Left(2) == "##" || line.Left(2) == ";;")
@@ -85,26 +89,30 @@ void PhonemeDictionary::LoadDictionary(const wxString &filename, const wxString 
 
 		wxArrayString strList = wxSplit(line,' ');
 		if (strList.size() > 1) {
-			if (!phoneme_dict.count(strList[0]))
-				phoneme_dict.insert( std::pair<wxString, wxArrayString>(strList[0], strList));
+			if (phoneme_dict.find(strList[0]) == phoneme_dict.end())
+				phoneme_dict.emplace(std::pair<wxString, wxArrayString>(strList[0], strList));
 		}
-	}
+        linenum++;
+        if (linenum % 1000 == 0)
+        {
+            dlg.Update(input.TellI() * 100 / size);
+        }
+    }
+    dlg.Update(100);
 }
 
 void PhonemeDictionary::BreakdownWord(const wxString& text, wxArrayString& phonemes)
 {
     wxString word = text;
-    word.Replace("[", "");
-    word.Replace(".", "");
-    word.Replace(",", "");
-    word.Replace("!", "");
-    word.Replace("?", "");
-    word.Replace(";", "");
-    word.Replace("-", "");
     word.Replace("/", "");
-    word.Replace("(", "");
-    word.Replace(")", "");
-    word.Replace("]", "");
+    word.Replace("#", "");
+    word.Replace("~", "");
+    word.Replace("@", "");
+    word.Replace("$", "");
+    word.Replace("%", "");
+    word.Replace("^", "");
+    word.Replace("*", "");
+
     phonemes.Clear();
 
     if (!phoneme_dict.count(word.Upper())) return;

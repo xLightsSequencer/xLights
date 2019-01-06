@@ -90,7 +90,7 @@ std::string ValueCurve::GetValueCurveFolder(const std::string& showFolder)
     std::string vcf = showFolder + "/valuecurves";
     if (!wxDir::Exists(vcf))
     {
-        wxMkDir(vcf);
+        wxMkdir(vcf);
         if (!wxDir::Exists(vcf))
         {
             return "";

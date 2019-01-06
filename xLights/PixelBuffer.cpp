@@ -34,6 +34,7 @@
 
 #include <random>
 #include "Parallel.h"
+#include "UtilFunctions.h"
 
 // This is needed for visual studio
 #ifdef _MSC_VER
@@ -1568,7 +1569,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
         // If we are a 'Per Model Default' render buffer then we need to ensure we create a full set of pixels
         // so we change the type of the render buffer but just for model initialisation
         auto tt = type;
-        if (type == "Per Model Default") {
+        if (StartsWith(type, "Per Model")) {
             tt = "Horizontal Per Model";
         }
         model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
