@@ -43,7 +43,7 @@ SaveChangesDialog::SaveChangesDialog(wxWindow* parent)
 	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
 	Button_SaveChanges = new wxButton(this, ID_BUTTON_SaveChanges, _("&Save Changes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SaveChanges"));
 	FlexGridSizer3->Add(Button_SaveChanges, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_DiscardChanges = new wxButton(this, ID_BUTTON_DiscardChanges, _("Discard Cha&nges"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DiscardChanges"));
+	Button_DiscardChanges = new wxButton(this, ID_BUTTON_DiscardChanges, _("&Discard Changes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_DiscardChanges"));
 	FlexGridSizer3->Add(Button_DiscardChanges, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Button_Cancel = new wxButton(this, ID_BUTTON_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_CANCEL"));
 	FlexGridSizer3->Add(Button_Cancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

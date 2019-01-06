@@ -60,7 +60,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_DiscardChanges" variable="Button_DiscardChanges" member="yes">
-							<label>Discard Cha&amp;nges</label>
+							<label>&amp;Discard Changes</label>
 							<handler function="OnButton_DiscardChangesClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
