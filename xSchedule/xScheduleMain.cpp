@@ -3290,5 +3290,6 @@ void xScheduleFrame::OnMenuItem_ConfigureTestSelected(wxCommandEvent& event)
     if (__schedule->GetOptions()->GetTestOptions() != nullptr)
     {
         ConfigureTest dlg(this, __schedule->GetOptions()->GetTestOptions());
+        dlg.ShowModal();
     }
 }
