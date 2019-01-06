@@ -1002,7 +1002,7 @@ void LayoutPanel::refreshModelList() {
                     TreeListViewModels->SetItemText(item, Col_EndChan, endStr);
                 }
                 cv = TreeListViewModels->GetItemText(item, Col_ControllerConnection);
-                
+
                 std::string cc = model->GetControllerConnectionRangeString();
                 if (cv != cc)
                 {
@@ -2759,7 +2759,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
             float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
             if (event.ShiftDown()) {
-                modelPreview->SetPan(delta_x, delta_y);
+                modelPreview->SetPan(delta_x, delta_y, 0.0f);
             } else {
                 modelPreview->SetCameraView(delta_x, delta_y, false);
                 modelPreview->SetCameraView(0, 0, true);
@@ -2773,12 +2773,12 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
 
             // account for grid rotation
-            float angle = glm::radians(modelPreview->GetCameraRotation());
+            float angle = glm::radians(modelPreview->GetCameraRotationY());
             float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
             float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
             delta_x *= modelPreview->GetZoom() * 2.0f;
             delta_y *= modelPreview->GetZoom() * 2.0f;
-            modelPreview->SetPan(delta_x, delta_y);
+            modelPreview->SetPan(delta_x, delta_y, 0.0f);
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
         }
@@ -2801,12 +2801,32 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         float new_x = event.GetX() - m_previous_mouse_x;
         float new_y = event.GetY() - m_previous_mouse_y;
         // account for grid rotation
-        float angle = glm::radians(modelPreview->GetCameraRotation());
-        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+        float angleX = glm::radians(modelPreview->GetCameraRotationX());
+        float angleY = glm::radians(modelPreview->GetCameraRotationY());
+        float delta_x = 0.0f;
+        float delta_y = 0.0f;
+        float delta_z = 0.0f;
+        bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+        bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+        bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+        if( top_view ) {
+            delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+            delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+        } else if( bottom_view ) {
+            delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+            delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
+        } else {
+            delta_x = new_x * std::cos(angleY);
+            delta_y = new_y;
+            delta_z = new_x * std::sin(angleY);
+            if( !upside_down_view ) {
+                delta_y *= -1.0f;
+            }
+        }
         delta_x *= modelPreview->GetZoom() * 2.0f;
         delta_y *= modelPreview->GetZoom() * 2.0f;
-        modelPreview->SetPan(delta_x, delta_y);
+        delta_z *= modelPreview->GetZoom() * 2.0f;
+        modelPreview->SetPan(delta_x, delta_y, delta_z);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
         UpdatePreview();
@@ -3022,7 +3042,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         float delta_y = event.GetY() - m_previous_mouse_y;
         delta_x /= modelPreview->GetZoom();
         delta_y /= modelPreview->GetZoom();
-        modelPreview->SetPan(delta_x, -delta_y);
+        modelPreview->SetPan(delta_x, -delta_y, 0.0f);
         m_previous_mouse_x = event.GetX();
         m_previous_mouse_y = event.GetY();
         UpdatePreview();
@@ -4302,7 +4322,7 @@ void LayoutPanel::ReplaceModel()
                     tocc->DeleteAttribute("Protocol");
                     tocc->AddAttribute("Protocol", fromcc->GetAttribute("Protocol"));
                 }
-                
+
                 if (fromcc->GetAttribute("Port", "") != "")
                 {
                     tocc->DeleteAttribute("Port");

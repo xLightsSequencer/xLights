@@ -80,14 +80,15 @@ public:
         additionalModel = m;
         Refresh();
     }
-    
-    
+
+
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
     bool GetActive();
     float GetZoom() { return (is_3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
-    float GetCameraRotation() { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
-    void SetPan(float deltax, float deltay);
+    float GetCameraRotationY() { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
+    float GetCameraRotationX() { return (is_3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
+    void SetPan(float deltax, float deltay, float deltaz);
     void Set3D(bool value) { is_3d = value; }
     bool Is3D() { return is_3d; }
     glm::mat4& GetProjViewMatrix() { return ProjViewMatrix; }
@@ -142,13 +143,13 @@ private:
     bool allowPreviewChange;
     PreviewPane* mPreviewPane;
     DrawGLUtils::xlAccumulator accumulator;
-    
+
     xLightsFrame* xlights;
     std::string currentModel;
     std::string currentLayoutGroup;
     std::vector<Model*> tmpModelList;
     Model *additionalModel;
-    
+
 	DrawGLUtils::xl3Accumulator view_object_accumulator;
     DrawGLUtils::xl3Accumulator accumulator3d;
     bool is_3d;

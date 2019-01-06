@@ -21,12 +21,14 @@ public:
 
     float GetPosX() { return posX; }
     float GetPosY() { return posY; }
+    float GetPosZ() { return posZ; }
     float GetAngleX() { return angleX; }
     float GetAngleY() { return angleY; }
     float GetDistance() { return distance; }
     float GetZoom() { return zoom; }
     float GetPanX() { return panx; }
     float GetPanY() { return pany; }
+    float GetPanZ() { return panz; }
     float GetZoomCorrX() { return zoom_corrx; }
     float GetZoomCorrY() { return zoom_corry; }
     float GetIs3D() { return is_3d; }
@@ -36,12 +38,13 @@ public:
 
     void SetPosX(float value) { posX = value; mat_valid = false; }
     void SetPosY(float value) { posY = value; mat_valid = false; }
-    void SetAngleX(float value) { angleX = value; mat_valid = false; }
-    void SetAngleY(float value) { angleY = value; mat_valid = false; }
+    void SetAngleX(float value);
+    void SetAngleY(float value);
     void SetDistance(float value) { distance = value; mat_valid = false; }
     void SetZoom(float value) { zoom = value; mat_valid = false; }
     void SetPanX(float value) { panx = value; mat_valid = false; }
     void SetPanY(float value) { pany = value; mat_valid = false; }
+    void SetPanZ(float value) { panz = value; mat_valid = false; }
     void SetZoomCorrX(float value) { zoom_corrx = value; mat_valid = false; }
     void SetZoomCorrY(float value) { zoom_corry = value; mat_valid = false; }
     void SetIs3D(bool value) { is_3d = value; mat_valid = false; }
@@ -50,12 +53,14 @@ public:
 protected:
     float posX;
     float posY;
+    float posZ;
     float angleX;
     float angleY;
     float distance;
     float zoom;
     float panx;
     float pany;
+    float panz;
     float zoom_corrx;
     float zoom_corry;
     bool is_3d;

@@ -99,12 +99,32 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
             new_y *= -1.0f;
         }
         // account for grid rotation
-        float angle = glm::radians(GetCameraRotation());
-        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+        float angleX = glm::radians(GetCameraRotationX());
+        float angleY = glm::radians(GetCameraRotationY());
+        float delta_x = 0.0f;
+        float delta_y = 0.0f;
+        float delta_z = 0.0f;
+        bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+        bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+        bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+        if( top_view ) {
+            delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+            delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+        } else if( bottom_view ) {
+            delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
+            delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+        } else {
+            delta_x = new_x * std::cos(angleY);
+            delta_y = new_y;
+            delta_z = new_x * std::sin(angleY);
+            if( !upside_down_view ) {
+                delta_y *= -1.0f;
+            }
+        }
         delta_x *= GetZoom() * 2.0f;
         delta_y *= GetZoom() * 2.0f;
-        SetPan(delta_x, delta_y);
+        delta_z *= GetZoom() * 2.0f;
+        SetPan(delta_x, delta_y, delta_z);
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
         if (xlights != nullptr) {
@@ -671,11 +691,12 @@ void ModelPreview::SetZoomDelta(float delta)
     }
 }
 
-void ModelPreview::SetPan(float deltax, float deltay)
+void ModelPreview::SetPan(float deltax, float deltay, float deltaz)
 {
     if (is_3d) {
         camera3d->SetPanX(camera3d->GetPanX() + deltax);
         camera3d->SetPanY(camera3d->GetPanY() + deltay);
+        camera3d->SetPanZ(camera3d->GetPanZ() + deltaz);
     } else {
         camera2d->SetPanX(camera2d->GetPanX() + deltax);
         camera2d->SetPanY(camera2d->GetPanY() + deltay);
@@ -736,7 +757,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         accumulator.Finish(GL_TRIANGLES);
     } else {
         /*****************************   3D   ********************************/
-        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), 1.0f, camera3d->GetPosY() + camera3d->GetPanY()));
+        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), camera3d->GetPosY() + camera3d->GetPanY(), camera3d->GetPosZ() + camera3d->GetPanZ()));
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f));
