@@ -537,6 +537,7 @@ void ModelGroup::CheckForChanges() const {
     }
 
     if (l != changeCount) {
+        // this is ugly ... it is casting away the const-ness of this
         ModelGroup *group = (ModelGroup*)this;
         if (group != nullptr) group->Reset();
     }

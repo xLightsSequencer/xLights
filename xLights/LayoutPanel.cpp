@@ -438,11 +438,12 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel property grid created");
 
-    ToolSizer->SetCols(19);
+    ToolSizer->SetCols(20);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
     AddModelButton("Circle", circles);
+    AddModelButton("Cube", cube_xpm);
     AddModelButton("Custom", custom);
     AddModelButton("DMX", dmx_xpm);
     AddModelButton("Image", image_xpm);
@@ -580,6 +581,7 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_CANE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_CIRCLE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_CHANNELBLOCK_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_CUBE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_CUSTOM_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_DMX_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_ICICLE_ICON", scaleFactor);
@@ -1041,6 +1043,8 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
             return Icon_Circle;
         } else if (type == "Channel Block") {
             return Icon_ChannelBlock;
+        } else if( type == "Cube" ) {
+            return Icon_Cube;
         } else if( type == "Custom" ) {
             return Icon_Custom;
         } else if( type == "DMX" ) {

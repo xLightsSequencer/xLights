@@ -20,7 +20,7 @@ class ModelManager : public ObjectManager
         OutputManager* GetOutputManager() const { return _outputManager; }
         Model *operator[](const std::string &name) const;
         Model *GetModel(const std::string &name) const;
-        virtual BaseObject *GetObject(const std::string &name) const;
+        virtual BaseObject *GetObject(const std::string &name) const override;
 
         void OldRecalcStartChannels() const;
         void NewRecalcStartChannels() const;

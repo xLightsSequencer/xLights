@@ -129,7 +129,7 @@ void MatrixModel::InitModel() {
 // parm3=StrandsPerString
 void MatrixModel::InitVMatrix(int firstExportStrand) {
     vMatrix = true;
-    int y,x,idx,stringnum,segmentnum,yincr;
+    int y,x, stringnum,segmentnum;
     if (parm3 > parm2) {
         parm3 = parm2;
     }
@@ -147,7 +147,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
         for (size_t n=0; n<Nodes.size(); n++) {
             Nodes[n]->ActChan = stringStartChan[n];
             y=0;
-            yincr=1;
+            int yincr = 1;
             for (size_t c=0; c<PixelsPerString; c++) {
                 Nodes[n]->Coords[c].bufX=IsLtoR ? x : NumStrands-x-1;
                 Nodes[n]->Coords[c].bufY=y;
@@ -163,17 +163,17 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
         std::vector<int> strandStartChan;
         strandStartChan.clear();
         strandStartChan.resize(NumStrands);
-        for (int x = 0; x < NumStrands; x++) {
-            stringnum = x / parm3;
-            segmentnum = x % parm3;
-            strandStartChan[x] = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode;
+        for (int x2 = 0; x2 < NumStrands; x2++) {
+            stringnum = x2 / parm3;
+            segmentnum = x2 % parm3;
+            strandStartChan[x2] = stringStartChan[stringnum] + segmentnum * PixelsPerStrand * chanPerNode;
         }
         if (firstExportStrand > 0 && firstExportStrand < NumStrands) {
             int offset = strandStartChan[firstExportStrand];
-            for (int x = 0; x < NumStrands; x++) {
-                strandStartChan[x] = strandStartChan[x] - offset;
-                if (strandStartChan[x] < 0) {
-                    strandStartChan[x] += (PixelsPerStrand * NumStrands * chanPerNode);
+            for (int x2 = 0; x2 < NumStrands; x2++) {
+                strandStartChan[x2] = strandStartChan[x2] - offset;
+                if (strandStartChan[x2] < 0) {
+                    strandStartChan[x2] += (PixelsPerStrand * NumStrands * chanPerNode);
                 }
             }
         }
@@ -182,7 +182,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand) {
             stringnum = x / parm3;
             segmentnum = x % parm3;
             for(y=0; y < PixelsPerStrand; y++) {
-                idx=stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
+                int idx = stringnum * PixelsPerString + segmentnum * PixelsPerStrand + y;
                 Nodes[idx]->ActChan = strandStartChan[x] + y*chanPerNode;
                 Nodes[idx]->Coords[0].bufX=IsLtoR ? x : NumStrands-x-1;
                 Nodes[idx]->Coords[0].bufY= isBotToTop == (segmentnum % 2 == 0) ? y:PixelsPerStrand-y-1;
