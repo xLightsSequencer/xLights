@@ -1687,6 +1687,19 @@
 					<handler function="OnMenuItem_SnapToTimingMarksSelected" entry="EVT_MENU" />
 					<checkable>1</checkable>
 				</object>
+				<object class="wxMenu" name="ID_MENUITEM1" variable="MenuItem54" member="yes">
+					<label>FSEQ Version</label>
+					<object class="wxMenuItem" name="ID_MENUITEM21" variable="MenuItemFSEQV1" member="yes">
+						<label>V1</label>
+						<handler function="OnMenuItemFSEQV1Selected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM22" variable="MenuItemFSEQV2" member="yes">
+						<label>V2</label>
+						<handler function="OnMenuItemFSEQV2Selected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+				</object>
 			</object>
 			<object class="wxMenu" variable="MenuHelp" member="no">
 				<label>&amp;Help</label>

@@ -11,7 +11,7 @@ xLights on Mac OS/X.
 
 xLights is written in C++ and uses the wxWidgets library as a
 compatibility layer across operating systems.  The minimum required version
-of wxWidgets for xLights on OS X is 3.1.1.
+of wxWidgets for xLights on OS X is 3.1.2.
 
 Unfortunately, xLights cannot be compiled wxWidgets3 that is part 
 of MacPorts due to that build not including the wxMediaControl widgets that 
@@ -27,9 +27,8 @@ Instructions are here:
   http://wiki.wxwidgets.org/Installing_Xcode
 
 
-The latest wxWidgets release (3.1.1) will not work anymore as we need some API's that have
-been added since then.  We also have several other fixes in place for background rendering,
-Mojave color support, etc...
+The latest wxWidgets release (3.1.2) will not work anymore as we need some API's that have
+been added since then.  We also have several other fixes in place for background rendering, etc...
 
 To get the latest code that we've tested, do:
 
@@ -39,8 +38,8 @@ Then, from inside a Terminal window:
 
   cd <wxMac base dir>
   cd build
-  export CXXFLAGS="-stdlib=libc++ -std=gnu++14 -g"
-  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++14"
+  export CXXFLAGS="-stdlib=libc++ -std=gnu++17 -g"
+  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++17"
   export CPPFLAGS="-stdlib=libc++ -g"
   export LDFLAGS="-stdlib=libc++"
   export CXX=clang++ 
@@ -52,16 +51,16 @@ Then, from inside a Terminal window:
                 --enable-debug --disable-compat30 --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa  --with-opengl --disable-dependency-tracking \
                 --with-macosx-version-min=10.10 --with-libjpeg=builtin \
-                --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
+                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
-  make
+  make -j 8
   make install
 
 
 If you are planning on being able to build Release builds, you will ALSO need to do:
 
-  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14"
-  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++14"
+  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++17"
+  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++17"
   export CPPFLAGS="-stdlib=libc++ -flto=thin"
   export LDFLAGS="-stdlib=libc++ -flto=thin"
   export CXX=clang++ 
@@ -72,9 +71,9 @@ If you are planning on being able to build Release builds, you will ALSO need to
   ../configure  --disable-debug --enable-optimise --prefix=/opt/local --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
                 --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin \
-                --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
+                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --disable-shared
-  make 
+  make -j 8
   make install
 
 
@@ -129,3 +128,4 @@ June 17, 2018 - add notes about wxWidgets for OSX Mojave
 July 16, 2018 - 85c2877a6c660c3b59c7a5400bab224374e3324a Fixes the native wxDataViewCtrl drag/drop
 Aug  1, 2018 - c83f3b39424fd0d6690a64ba05277c77c077b861 Fixes sRGB <-> RGB color space issues
 Oct 30, 2018 - move to dkulp/wxWidgets xlights_fixes branch to grab atomic ref counting, Mojave fixes, color fixes, etc...
+Jan 6, 2018 - 81de073d3b06d61ed8959d417692e27d49ec17eb  Move to c++17, fixes for multitouch on OpenGL

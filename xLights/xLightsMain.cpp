@@ -336,6 +336,9 @@ const long xLightsFrame::ID_E131_Sync = wxNewId();
 const long xLightsFrame::ID_MNU_FORCEIP = wxNewId();
 const long xLightsFrame::ID_MNU_DEFAULTMODELBLENDOFF = wxNewId();
 const long xLightsFrame::ID_MNU_SNAP_TO_TIMING = wxNewId();
+const long xLightsFrame::ID_MENUITEM21 = wxNewId();
+const long xLightsFrame::ID_MENUITEM22 = wxNewId();
+const long xLightsFrame::ID_MENUITEM1 = wxNewId();
 const long xLightsFrame::ID_MNU_ZOOM = wxNewId();
 const long xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
 const long xLightsFrame::idMenuHelpContent = wxNewId();
@@ -1127,6 +1130,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     MenuSettings->Append(MenuItem_ModelBlendDefaultOff);
     MenuItem_SnapToTimingMarks = new wxMenuItem(MenuSettings, ID_MNU_SNAP_TO_TIMING, _("Snap to Timing Marks"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_SnapToTimingMarks);
+    MenuItem54 = new wxMenu();
+    MenuItemFSEQV1 = new wxMenuItem(MenuItem54, ID_MENUITEM21, _("V1"), wxEmptyString, wxITEM_RADIO);
+    MenuItem54->Append(MenuItemFSEQV1);
+    MenuItemFSEQV2 = new wxMenuItem(MenuItem54, ID_MENUITEM22, _("V2"), wxEmptyString, wxITEM_RADIO);
+    MenuItem54->Append(MenuItemFSEQV2);
+    MenuSettings->Append(ID_MENUITEM1, _("FSEQ Version"), MenuItem54, wxEmptyString);
     MenuBar->Append(MenuSettings, _("&Settings"));
     MenuHelp = new wxMenu();
     MenuItem_Zoom = new wxMenuItem(MenuHelp, ID_MNU_ZOOM, _("Zoom"), wxEmptyString, wxITEM_NORMAL);
@@ -1362,6 +1371,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MNU_FORCEIP,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ForceLocalIPSelected);
     Connect(ID_MNU_DEFAULTMODELBLENDOFF,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ModelBlendDefaultOffSelected);
     Connect(ID_MNU_SNAP_TO_TIMING,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_SnapToTimingMarksSelected);
+    Connect(ID_MENUITEM21,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV1Selected);
+    Connect(ID_MENUITEM22,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemFSEQV2Selected);
     Connect(ID_MNU_ZOOM,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ZoomSelected);
     Connect(ID_MNU_KEYBINDINGS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowKeyBindingsSelected);
     Connect(idMenuHelpContent,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnBitmapButtonTabInfoClick);
@@ -1540,6 +1551,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Read("xLightsSnapToTimingMarks", &_snapToTimingMarks, false);
     MenuItem_SnapToTimingMarks->Check(_snapToTimingMarks);
     logger_base.debug("Snap To Timing Marks: %s.", _snapToTimingMarks ? "true" : "false");
+
+    config->Read("xLightsFSEQVersion", &_fseqVersion, 2);
+    MenuItemFSEQV1->Check(_fseqVersion == 1);
+    MenuItemFSEQV2->Check(_fseqVersion == 2);
 
     logger_base.debug("xLightsFrame constructor creating sequencer.");
 
@@ -2131,6 +2146,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsAutoShowHousePreview", _autoShowHousePreview);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsSnapToTimingMarks", _snapToTimingMarks);
+    config->Write("xLightsFSEQVersion", _fseqVersion);
     config->Write("xLightsAutoSavePerspectives", _autoSavePerspecive);
     config->Write("xLightsBackupOnSave", mBackupOnSave);
     config->Write("xLightsBackupOnLaunch", mBackupOnLaunch);
@@ -9022,4 +9038,14 @@ void xLightsFrame::OnMenuItem_Generate2DPathSelected(wxCommandEvent& event)
 {
     PathGenerationDialog dlg(this, CurrentDir.ToStdString());
     dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItemFSEQV1Selected(wxCommandEvent& event)
+{
+    _fseqVersion = 1;
+}
+
+void xLightsFrame::OnMenuItemFSEQV2Selected(wxCommandEvent& event)
+{
+    _fseqVersion = 2;
 }

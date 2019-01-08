@@ -1669,7 +1669,8 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
     static log4cpp::Category &logger_conversion = log4cpp::Category::getInstance(std::string("log_conversion"));
     logger_conversion.debug("Start fseq write");
     
-    const wxUint8 vMajor = 1;  //SUPPORT v2
+    
+    const wxUint8 vMajor = params.xLightsFrm->_fseqVersion;
     FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor);
     if (!file) {
         params.ConversionError(wxString("Unable to create file: ") + params.out_filename);

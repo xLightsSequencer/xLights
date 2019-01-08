@@ -528,6 +528,11 @@ void V1FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &r
 }
 
 FrameData *V1FSEQFile::getFrame(uint32_t frame) {
+    if (m_rangesToRead.empty()) {
+        std::vector<std::pair<uint32_t, uint32_t>> range;
+        range.push_back(std::pair<uint32_t, uint32_t>(0, m_seqChannelCount));
+        prepareRead(range);
+    }
     uint64_t offset = m_seqChannelCount;
     offset *= frame;
     offset += m_seqChanDataOffset;
@@ -1354,7 +1359,7 @@ void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &r
 FrameData *V2FSEQFile::getFrame(uint32_t frame) {
     if (m_rangesToRead.empty()) {
         std::vector<std::pair<uint32_t, uint32_t>> range;
-        range.push_back(std::pair<uint32_t, uint32_t>(0, getMaxChannel()));
+        range.push_back(std::pair<uint32_t, uint32_t>(0, getMaxChannel() + 1));
         prepareRead(range);
     }
     if (frame >= m_seqNumFrames) {

@@ -555,6 +555,8 @@ public:
     void OnMenuItem_ZoomSelected(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
+    void OnMenuItemFSEQV1Selected(wxCommandEvent& event);
+    void OnMenuItemFSEQV2Selected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -794,6 +796,9 @@ public:
     static const long ID_MNU_FORCEIP;
     static const long ID_MNU_DEFAULTMODELBLENDOFF;
     static const long ID_MNU_SNAP_TO_TIMING;
+    static const long ID_MENUITEM21;
+    static const long ID_MENUITEM22;
+    static const long ID_MENUITEM1;
     static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
     static const long idMenuHelpContent;
@@ -860,6 +865,7 @@ public:
     wxMenu* MenuItem1;
     wxMenu* MenuItem29;
     wxMenu* MenuItem53;
+    wxMenu* MenuItem54;
     wxMenu* MenuItem7;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
@@ -897,6 +903,8 @@ public:
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenuItem* MenuItemEffectAssistToggleMode;
     wxMenuItem* MenuItemEffectAssistWindow;
+    wxMenuItem* MenuItemFSEQV1;
+    wxMenuItem* MenuItemFSEQV2;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItemGridNodeValuesOff;
@@ -1057,6 +1065,7 @@ public:
     bool _modelBlendDefaultOff;
     bool _snapToTimingMarks;
     bool _autoSavePerspecive;
+    int _fseqVersion;
     int _xFadePort;
     wxSocketServer* _xFadeSocket;
 
@@ -1106,7 +1115,7 @@ public:
     void UploadJ1SYSOutput();
     void UploadESPixelStickOutput();
     void UploadPixlite16Output();
-    void UploadFPPStringOuputs(const std::string &controllers, int maxport, int maxdmx);
+    void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
 
     void DeleteSelectedNetworks();

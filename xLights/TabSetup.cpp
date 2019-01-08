@@ -1557,37 +1557,37 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_UCOESPIXELSTICK) {
         UploadESPixelStickOutput();
     } else if (id == ID_NETWORK_UCOFPP_F4B) {
-        UploadFPPStringOuputs("F4-B", 4, 1);
+        UploadFPPStringOuputs("F4-B");
     } else if (id == ID_NETWORK_UCOFPP_F8B) {
-        UploadFPPStringOuputs("F8-B", 12, 8);
+        UploadFPPStringOuputs("F8-B");
     } else if (id == ID_NETWORK_UCOFPP_F8B_16) {
-        UploadFPPStringOuputs("F8-B-16", 16, 4);
+        UploadFPPStringOuputs("F8-B-16");
     } else if (id == ID_NETWORK_UCOFPP_F8B_20) {
-        UploadFPPStringOuputs("F8-B-20", 20, 0);
+        UploadFPPStringOuputs("F8-B-20");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP) {
-        UploadFPPStringOuputs("F8-B-EXP", 28, 8);
+        UploadFPPStringOuputs("F8-B-EXP");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_32) {
-        UploadFPPStringOuputs("F8-B-EXP-32", 32, 4);
+        UploadFPPStringOuputs("F8-B-EXP-32");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_36) {
-        UploadFPPStringOuputs("F8-B-EXP-36", 36, 0);
+        UploadFPPStringOuputs("F8-B-EXP-36");
     } else if (id == ID_NETWORK_UCOFPP_F16B) {
-        UploadFPPStringOuputs("F16-B", 16, 8);
+        UploadFPPStringOuputs("F16-B");
     } else if (id == ID_NETWORK_UCOFPP_F16B_32) {
-        UploadFPPStringOuputs("F16-B-32", 32, 8);
+        UploadFPPStringOuputs("F16-B-32");
     } else if (id == ID_NETWORK_UCOFPP_F16B_48) {
-        UploadFPPStringOuputs("F16-B-48", 48, 0);
+        UploadFPPStringOuputs("F16-B-48");
     } else if (id == ID_NETWORK_UCOFPP_F32B) {
-        UploadFPPStringOuputs("F32-B", 40, 8);
+        UploadFPPStringOuputs("F32-B");
     } else if (id == ID_NETWORK_UCOFPP_F32B_48) {
-        UploadFPPStringOuputs("F32-B-48", 48, 0);
+        UploadFPPStringOuputs("F32-B-48");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape24) {
-        UploadFPPStringOuputs("RGBCape24", 48, 0);
+        UploadFPPStringOuputs("RGBCape24");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape48C) {
-        UploadFPPStringOuputs("RGBCape48C", 48, 0);
+        UploadFPPStringOuputs("RGBCape48C");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape48F) {
-        UploadFPPStringOuputs("RGBCape48F", 48, 0);
+        UploadFPPStringOuputs("RGBCape48F");
     } else if (id == ID_NETWORK_UCOFPP_PIHAT) {
-        UploadFPPStringOuputs("PiHat", 2, 0);
+        UploadFPPStringOuputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
     } else if (id == ID_NETWORK_BEIPADDR) {
@@ -1735,14 +1735,14 @@ void xLightsFrame::UploadFPPBridgeInput()
             }
         }
 
-        FPP fpp(&_outputManager, "2.0", ip.ToStdString(), theUser.ToStdString(), password.ToStdString());
-
-        if (fpp.IsConnected()) {
-            if (fpp.SetInputUniversesBridge(selected, this)) {
-                SetStatusText("FPP Input Upload Complete.");
-            } else {
-                SetStatusText("FPP Input Upload Failed.");
-            }
+        FPP fpp(ip);
+        fpp.parent = this;
+        fpp.username = theUser;
+        fpp.password = password;
+        if (fpp.AuthenticateAndUpdateVersions() && !fpp.SetInputUniversesBridge(selected, &_outputManager)) {
+            SetStatusText("FPP Input Upload Complete.");
+        } else {
+            SetStatusText("FPP Input Upload Failed.");
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1833,7 +1833,7 @@ void xLightsFrame::UploadFalconOutput()
     }
 }
 
-void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxport, int maxdmx) {
+void xLightsFrame::UploadFPPStringOuputs(const std::string &controller) {
     SetStatusText("");
     if (wxMessageBox("This will upload the output controller configuration for a " + controller + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES) {
         SetCursor(wxCURSOR_WAIT);
@@ -1852,13 +1852,13 @@ void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxp
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        FPP fpp(&_outputManager, "2.0", ip.ToStdString(), "fpp", "falcon");
-        if (fpp.IsConnected()) {
-            if (fpp.SetOutputs(controller, &AllModels, selected, this, maxport, maxdmx)) {
-                SetStatusText("FPP Upload Complete.");
-            } else {
-                SetStatusText("FPP Upload Failed.");
-            }
+        FPP fpp(ip);
+        fpp.parent = this;
+        fpp.pixelControllerType = controller;
+        if (fpp.AuthenticateAndUpdateVersions() && !fpp.UploadPixelOutputs(&AllModels, &_outputManager, selected)) {
+            SetStatusText("FPP Upload Complete.");
+        } else {
+            SetStatusText("FPP Upload Failed.");
         }
         SetCursor(wxCURSOR_ARROW);
     }

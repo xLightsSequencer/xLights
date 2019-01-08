@@ -84,6 +84,8 @@ public:
     uint32_t      getNumFrames() const { return m_seqNumFrames; }
     int           getStepTime() const { return m_seqStepTime; }
     uint32_t      getChannelCount() const  { return m_seqChannelCount; }
+    int           getVersionMajor() const { return m_seqVersionMajor; }
+    int           getVersionMinor() const { return m_seqVersionMinor; }
     virtual uint32_t getMaxChannel() const = 0;
     const std::vector<VariableHeader> &getVariableHeaders() const { return m_variableHeaders;}
 

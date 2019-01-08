@@ -8,273 +8,12 @@
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
-			<growablerows>3</growablerows>
+			<growablerows>1</growablerows>
 			<object class="sizeritem">
-				<object class="wxNotebook" name="ID_NOTEBOOK_FPP" variable="Notebook_FPP" member="yes">
-					<handler function="OnNotebook_FPPPageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
-					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL_FTP" variable="Panel_FTP" member="yes">
-							<pos>14,59</pos>
-							<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">
-								<cols>2</cols>
-								<growablecols>1</growablecols>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
-										<label>IP Address</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
-										<cols>2</cols>
-										<growablecols>0</growablecols>
-										<object class="sizeritem">
-											<object class="wxComboBox" name="ID_COMBOBOX_IPAddress" variable="ComboBox_IPAddress" member="yes">
-												<handler function="OnComboBox_IPAddressSelected" entry="EVT_COMBOBOX" />
-												<handler function="OnComboBox_IPAddressTextEnter" entry="EVT_TEXT_ENTER" />
-											</object>
-											<flag>wxALL|wxEXPAND</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON2" variable="Button_Forget" member="yes">
-												<label>Forget</label>
-												<handler function="OnButton_ForgetClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
-										<label>Description</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl_Description" member="yes">
-										<handler function="OnTextCtrl_DescriptionText" entry="EVT_TEXT" />
-										<handler function="OnTextCtrl_DescriptionTextEnter" entry="EVT_TEXT_ENTER" />
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
-										<label>Username</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Username" variable="TextCtr_Username" member="yes">
-										<value>fpp</value>
-										<handler function="OnTextCtr_UsernameText" entry="EVT_TEXT" />
-										<handler function="OnTextCtr_UsernameTextEnter" entry="EVT_TEXT_ENTER" />
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
-										<label>Password</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxTextCtrl" name="ID_TEXTCTRL_Password" variable="TextCtrl_Password" member="yes">
-										<value>falcon</value>
-										<handler function="OnTextCtrl_PasswordText" entry="EVT_TEXT" />
-										<handler function="OnTextCtrl_PasswordTextEnter" entry="EVT_TEXT_ENTER" />
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxButton" name="ID_BUTTON_Console" variable="Button_Console" member="yes">
-										<label>FPP Console</label>
-										<handler function="OnButton_ConsoleClick" entry="EVT_BUTTON" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
-										<label>Default Version</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxChoice" name="ID_CHOICE1" variable="Choice_DefaultVersion" member="yes">
-										<content>
-											<item>1.x</item>
-											<item>2.x</item>
-										</content>
-										<selection>1</selection>
-										<tooltip>We recommend you leave this at 2.x unless you have a 1.x FPP AND experience issues uploading.</tooltip>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_SuppressZip" member="yes">
-										<label>Suppress zipping of content</label>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="spacer">
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_SuppressMediaUpload" member="yes">
-										<label>Suppress media upload</label>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxCheckBox" name="ID_CHECKBOX2" variable="PlayListCheckbox" member="yes">
-										<label>Append To Playlist</label>
-										<handler function="OnPlayListCheckboxClick" entry="EVT_CHECKBOX" />
-									</object>
-									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxComboBox" name="ID_COMBOBOX1" variable="PlayListName" member="yes">
-										<content>
-											<item></item>
-										</content>
-										<selection>0</selection>
-										<enabled>0</enabled>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>HTTP/FTP</label>
-						<selected>1</selected>
-					</object>
-					<object class="notebookpage">
-						<object class="wxPanel" name="ID_PANEL_USB" variable="Panel_USB" member="yes">
-							<pos>39,12</pos>
-							<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
-								<cols>2</cols>
-								<growablecols>1</growablecols>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-										<label>Drive</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBoxSizer" variable="BoxSizer1" member="no">
-										<object class="sizeritem">
-											<object class="wxChoice" name="ID_CHOICE_Drives" variable="Choice_Drives" member="yes" />
-											<flag>wxALL|wxEXPAND</flag>
-											<border>2</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxButton" name="ID_BUTTON_REFRESH_DRIVES" variable="Button_Refresh_Drives" member="yes">
-												<label>Refresh</label>
-												<handler function="OnButton_Refresh_DrivesClick" entry="EVT_BUTTON" />
-											</object>
-											<flag>wxALL|wxFIXED_MINSIZE</flag>
-											<border>2</border>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
-										<label>FPP Media Directory</label>
-									</object>
-									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-								<object class="sizeritem">
-									<object class="wxDirPickerCtrl" name="ID_DIRPICKERCTRL1" variable="DirPickerCtrl_FPPMedia" member="yes">
-										<message>Select FPP Media Directory on a USB Stick</message>
-										<handler function="OnFilePickerCtrl_MediaFolderFileChanged" entry="EVT_DIRPICKER_CHANGED" />
-									</object>
-									<flag>wxALL|wxEXPAND</flag>
-									<border>2</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>USB</label>
-					</object>
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX_UploadController" variable="CheckBox_UploadController" member="yes">
-					<label>Upload controller configuration</label>
-					<handler function="OnCheckBox_UploadControllerClick" entry="EVT_CHECKBOX" />
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_UploadModels" member="yes">
-					<label>Upload Models</label>
-					<handler function="OnCheckBox_UploadModelsClick" entry="EVT_CHECKBOX" />
-				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxCheckListBox" name="ID_CHECKLISTBOX_Sequences" variable="CheckListBox_Sequences" member="yes">
-					<minsize>-1,100d</minsize>
-					<style>wxLB_SORT</style>
-					<handler function="OnCheckListBox_SequencesToggled" entry="EVT_CHECKLISTBOX" />
+				<object class="wxListView" name="ID_LISTVIEW_Sequences" variable="CheckListBox_Sequences" member="yes">
+					<minsize>-1,200d</minsize>
+					<style>wxLC_REPORT</style>
+					<handler function="SequenceListPopup" entry="EVT_LIST_ITEM_RIGHT_CLICK" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
@@ -282,20 +21,31 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-					<cols>3</cols>
+					<cols>5</cols>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON_Upload" variable="Button_Upload" member="yes">
-							<label>Upload</label>
-							<handler function="OnButton_UploadClick" entry="EVT_BUTTON" />
+						<object class="wxButton" name="ID_BUTTON1" variable="AddFPPButton" member="yes">
+							<label>Add FPP</label>
+							<handler function="OnAddFPPButtonClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+						<size>50,-1d</size>
+					</object>
 					<object class="sizeritem">
-						<object class="wxButton" name="ID_BUTTON1" variable="Button_UploadToAll" member="yes">
-							<label>Upload To All</label>
-							<handler function="OnButton_UploadToAllClick" entry="EVT_BUTTON" />
+						<object class="wxButton" name="ID_BUTTON_Upload" variable="Button_Upload" member="yes">
+							<label>Upload</label>
+							<handler function="OnButton_UploadClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

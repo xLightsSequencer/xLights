@@ -895,6 +895,7 @@
 		<Unit filename="models/ChannelBlockModel.h" />
 		<Unit filename="models/CircleModel.cpp" />
 		<Unit filename="models/CircleModel.h" />
+		<Unit filename="models/CubeModel.cpp" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DmxModel.cpp" />
