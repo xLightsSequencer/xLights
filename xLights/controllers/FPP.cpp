@@ -23,7 +23,7 @@
 #include "UtilFunctions.h"
 #include "xLightsVersion.h"
 
-#include "parallel.h"
+#include "../Parallel.h"
 
 #include <log4cpp/Category.hh>
 #include "../FSEQFile.h"
