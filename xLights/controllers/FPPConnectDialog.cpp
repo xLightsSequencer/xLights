@@ -23,7 +23,7 @@
 #include "../include/spxml-0.5/spxmlparser.hpp"
 #include "../include/spxml-0.5/spxmlevent.hpp"
 #include "../FSEQFile.h"
-#include "parallel.h"
+#include "../Parallel.h"
 
 //(*IdInit(FPPConnectDialog)
 const long FPPConnectDialog::ID_LISTVIEW_Sequences = wxNewId();
