@@ -10,41 +10,42 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include <log4cpp/Category.hh>
 
 static std::vector<std::tuple<int, int, int, int>> transformations =
 {
-{ 0,1,-1,0 }, // FBL V FB
-{ 0,0,-1,1 }, //     V LR
-{ 0,1,0,1 },  //     H FB
-{ 0,0,0,0 },  //     H LR
-{ -1,1,0,1 }, // FBR V FB
-{ 0,0,1,0 },  //     V LR
-{ 0,1,0,0 },  //     H FB
-{ 0,0,0,1 },  //     H LR
-{ -1,-1,0,1 },// FTL V FB
-{0,0,-1,0},   //     V LR
-{0,-1,2,0},   //     H FB
-{0,0,2,1},    //     H LR
-{0,1,-1,0},   // FTR V FB
-{0,0,1,1},    //     V LR
-{0,1,2,1},    //     H FB
-{0,0,2,0},    //     H LR
-{0,-1,-1,1},  // BBL V FB
-{0,2,1,0},    //     V LR
-{0,-1,0,0},   //     H FB
-{0,2,0,1},    //     H LR
-{0,1,1,0},    // BBR V FB
-{0,2,-1,1},   //     V LR
-{0,1,0,1},    //     H FB
-{0,2,0,0},    //     H LR
-{0,-1,-1,0},  // BTL V FB
-{0,2,1,1},    //     V LR
-{0,1,2,0},    //     H FB
-{2,0,0,0},    //     H LR
-{0,1,1,1},    // BTR V FB
-{0,2,-1,0},   //     V LR
-{0,1,2,0},    //     H FB
-{2,0,0,1}     //     H LR
+{ 1,0,-1,0 },  // FBL V FB          ok
+{ 0,0,-1,1 },  //     V LR          ok
+{ 0,-1,0,1 },  //     H FB          ok
+{ 0,0,0,0 },   //     H LR          ok
+{ 1,0,-1,1 }, // FBR V FB           ok
+{ 0,0,-1,0 },  //     V LR          ok
+{ 0,-1,0,0 },  //     H FB          ok
+{ 0,0,0,1 },   //     H LR          ok
+{1,0,1,1 },   // FTL V FB           ok
+{0,0,1,0},     //     V LR          ok
+{0,-1,2,0},    //     H FB          ok
+{0,0,2,1},     //     H LR          ok
+{1,0,1,0},    // FTR V FB           ok
+{0,0,1,1},     //     V LR          ok
+{0,-1,2,1},    //     H FB          ok
+{0,0,2,0},     //     H LR          ok
+{-1,0,-1,1},    // BBL V FB         ok
+{0,2,1,0},     //     V LR          ok
+{0,1,0,0},     //     H FB          ok
+{0,2,0,1},     //     H LR          ok
+{-1,0,-1,0},    // BBR V FB         ok
+{0,2,1,1},     //     V LR          ok
+{0,1,0,1},     //     H FB          ok
+{0,2,0,0},     //     H LR          ok
+{-1,0,1,0},    // BTL V FB          ok
+{0,2,-1,1},    //     V LR          ok
+{0,-1,2,0},    //     H FB          ok
+{2,0,0,0},     //     H LR          ok
+{-1,0,1,1},    // BTR V FB          ok
+{0,2,-1,0},    //     V LR          ok
+{0,-1,2,1},    //     H FB          ok
+{2,0,0,1}      //     H LR          ok
 };
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT;
@@ -177,7 +178,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         }
         SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
-    } else if ("CubeStrandPerLayer" == event.GetPropertyName()) {
+    } else if ("StrandPerLayer" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StrandPerLayer");
         if (event.GetPropertyValue().GetBool())
         {
@@ -210,15 +211,15 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
     return Model::OnPropertyGridChange(grid, event);
 }
 
-std::tuple<int, int, int>& CubeModel::FlipX(std::tuple<int, int, int>& pt) const
+std::tuple<int, int, int>& CubeModel::FlipX(std::tuple<int, int, int>& pt, int width) const
 {
     auto& x = std::get<0>(pt);
-    x = parm1 - x - 1;
+    x = width - x - 1;
     return pt;
 }
 
 // +ve is clockwise assumes looking down on cube from top
-std::tuple<int, int, int>& CubeModel::RotateY90Degrees(std::tuple<int, int, int>& pt, int by) const
+std::tuple<int, int, int>& CubeModel::RotateY90Degrees(std::tuple<int, int, int>& pt, int by, int width, int depth) const
 {
     auto& x = std::get<0>(pt);
     auto& z = std::get<2>(pt);
@@ -227,21 +228,22 @@ std::tuple<int, int, int>& CubeModel::RotateY90Degrees(std::tuple<int, int, int>
         if (by > 0)
         {
             auto temp = z;
-            z = parm1 - x - 1;
+            z = width - x - 1;
             x = temp;
         }
         else
         {
             auto temp = x;
-            x = parm3 - z - 1;
+            x = depth - z - 1;
             z = temp;
         }
+        std::swap(width, depth);
     }
     return pt;
 }
 
 // +ve is clockwise assumes looking at cube from front
-std::tuple<int, int, int>& CubeModel::RotateZ90Degrees(std::tuple<int, int, int>& pt, int by) const
+std::tuple<int, int, int>& CubeModel::RotateZ90Degrees(std::tuple<int, int, int>& pt, int by, int width, int height) const
 {
     auto& x = std::get<0>(pt);
     auto& y = std::get<1>(pt);
@@ -250,21 +252,22 @@ std::tuple<int, int, int>& CubeModel::RotateZ90Degrees(std::tuple<int, int, int>
         if (by > 0)
         {
             auto temp = x;
-            x = parm2 - y - 1;
-            y = parm1 - temp - 1;
+            x = y;
+            y = width - temp - 1;
         }
         else
         {
             auto temp = x;
-            x = parm2 - y - 1;
+            x = height - y - 1;
             y = temp;
         }
+        std::swap(width, height);
     }
     return pt;
 }
 
 // +ve is up assumes looking at cube from front
-std::tuple<int, int, int>& CubeModel::RotateX90Degrees(std::tuple<int, int, int>& pt, int by) const
+std::tuple<int, int, int>& CubeModel::RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const
 {
     auto& y = std::get<1>(pt);
     auto& z = std::get<2>(pt);
@@ -274,16 +277,17 @@ std::tuple<int, int, int>& CubeModel::RotateX90Degrees(std::tuple<int, int, int>
         {
             // up
             auto temp = y;
-            y = parm3 - z - 1;
+            y = depth - z - 1;
             z = temp;
         }
         else
         {
             // down
             auto temp = z;
-            z = parm2 - y - 1;
+            z = height - y - 1;
             y = temp;
         }
+        std::swap(height, depth);
     }
     return pt;
 }
@@ -298,12 +302,13 @@ bool CubeModel::IsStrandPerLine() const
     return ModelXml->GetAttribute("StrandPerLine", "FALSE") == "TRUE";
 }
 
-// FIXME THERE IS SOMETHING WRONG WITH THIS ONCE YOU START PLAYING WITH START LOCATION AND SYLE
-std::vector<std::tuple<int, int, int>> CubeModel::BuildCube(int w, int h, int d) const
+std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
 {
-    int width = w;
-    int height = h;
-    int depth = d;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    int width = parm1;
+    int height = parm2;
+    int depth = parm3;
 
     std::vector<std::tuple<int, int, int>> nodes;
     nodes.resize(width*height*depth);
@@ -316,6 +321,15 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube(int w, int h, int d)
     auto yr = std::get<1>(rotation);
     auto zr = std::get<2>(rotation);
     auto xf = std::get<3>(rotation);
+
+    // pre-rotate the dimensions to compensate for the latter rotation
+    // need to pre-rotate dimensions before we build the model
+    if (abs(zr) == 1) std::swap(width, height);
+    if (abs(yr) == 1) std::swap(width, depth);
+    if (abs(xr) == 1) std::swap(height, depth);
+
+    logger_base.debug("%s %s StrandPerLine: %d StrandPerLayer: %d", (const char*)ModelXml->GetAttribute("Start", "").c_str(), (const char*)ModelXml->GetAttribute("Style", "").c_str(), IsStrandPerLine(), IsStrandPerLayer());
+    logger_base.debug("%dx%dx%d -> (%d,%d,%d,%d) -> %dx%dx%d", parm1, parm2, parm3, xr, yr, zr, xf, width, height, depth);
 
     for(int i = 0; i < width*height*depth; i++)
     {
@@ -338,7 +352,7 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube(int w, int h, int d)
             if (z % 2 != 0)
             {
                 y = height - y - 1;
-                if (height % 2 != 0)
+                if (height % 2 != 0 && !strandPerLine)
                 {
                     x = width - x - 1;
                 }
@@ -346,17 +360,75 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube(int w, int h, int d)
         }
 
         std::tuple<int,int,int> node = { x,y,z };
-        RotateX90Degrees(node, xr);
-        RotateY90Degrees(node, yr);
-        RotateZ90Degrees(node, zr);
-        if(xf > 0) FlipX(node);
+        int w = width;
+        int h = height;
+        int d = depth;
+        RotateX90Degrees(node, xr, h, d);
+        if (abs(xr) == 1) std::swap(h, d);
+        RotateY90Degrees(node, yr, w, d);
+        if (abs(yr) == 1) std::swap(w, d);
+        RotateZ90Degrees(node, zr, w, h);
+        if (abs(zr) == 1) std::swap(w, h);
+
+        wxASSERT(w == parm1 && h == parm2 && d == parm3);
+
+        if(xf > 0) FlipX(node, w);
 
         nodes[i] = node;
     }
+
+    //DumpNodes(nodes, parm1, parm2, parm3);
+
     return nodes;
 }
 
-static std::vector<std::string> CUBE_BUFFERSTYLES = 
+int CubeModel::FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const
+{
+    int index = 0;
+    for (auto it: nodes)
+    {
+        auto nx = std::get<0>(it);
+        auto ny = std::get<1>(it);
+        auto nz = std::get<2>(it);
+
+        if (nx == x && ny == y && nz == z) return index;
+
+        index++;
+    }
+    return -1;
+}
+
+void CubeModel::DumpNode(const std::string desc, const std::tuple<int, int, int>& node, int width, int height, int depth) const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    auto x = std::get<0>(node);
+    auto y = std::get<1>(node);
+    auto z = std::get<2>(node);
+
+    logger_base.debug("%s (%d,%d,%d) %dx%dx%d", (const char*)desc.c_str(), x, y, z, width, height, depth);
+}
+
+void CubeModel::DumpNodes(std::vector<std::tuple<int,int,int>> nodes, int width, int height, int depth) const
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    for (int z = 0; z < depth; z++)
+    {
+        std::string out = "\n";
+        for (int y = height - 1; y >= 0; y--)
+        {
+            for (int x  = 0; x < width; x++)
+            {
+                out += wxString::Format("%d ", FindNodeIndex(nodes, x, y, z));
+            }
+            out += "\n";
+        }
+        logger_base.debug("Layer: %d %s", z, (const char *)out.c_str());
+    }
+}
+
+static std::vector<std::string> CUBE_BUFFERSTYLES =
 {
     "Default",
     "Per Preview",
@@ -508,25 +580,12 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
 
     if (type == "Per Preview" || type == "Single Line" || type == "As Pixel")
     {
-        return; 
+        return;
     }
 
     GetBufferSize(type, camera, transform, BufferWi, BufferHi);
 
-    // need to pre-rotate dimensions before we build the model
-    int w = width;
-    int h = height;
-    int d = depth;
-    std::tuple<int, int, int, int> rotation = transformations[CalcTransformationIndex()];
-    auto xr = std::get<0>(rotation);
-    auto yr = std::get<1>(rotation);
-    auto zr = std::get<2>(rotation);
-    auto xf = std::get<3>(rotation);
-    if (abs(xr) == 1) std::swap(h, d);
-    if (abs(yr) == 1) std::swap(w, d);
-    if (abs(zr) == 1) std::swap(w, h);
-
-    auto locations = BuildCube(w, h, d);
+    auto locations = BuildCube();
 
     if (type == "Stacked X Horizontally")
     {
@@ -739,19 +798,7 @@ void CubeModel::InitModel()
 
     int chanPerNode = GetNodeChannelCount(StringType);
 
-    // need to pre-rotate dimensions before we build the model
-    int w = width;
-    int h = height;
-    int d = depth;
-    std::tuple<int, int, int, int> rotation = transformations[CalcTransformationIndex()];
-    auto xr = std::get<0>(rotation);
-    auto yr = std::get<1>(rotation);
-    auto zr = std::get<2>(rotation);
-    auto xf = std::get<3>(rotation);
-    if (abs(xr) == 1) std::swap(h, d);
-    if (abs(yr) == 1) std::swap(w, d);
-    if (abs(zr) == 1) std::swap(w, h);
-    auto locations = BuildCube(w,h,d);
+    auto locations = BuildCube();
 
     for (size_t n = 0; n < Nodes.size(); n++)
     {
@@ -786,7 +833,6 @@ void CubeModel::InitModel()
 
 void CubeModel::ExportXlightsModel()
 {
-    // FIXME
     wxString name = ModelXml->GetAttribute("name");
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -807,6 +853,11 @@ void CubeModel::ExportXlightsModel()
     wxString sn = ModelXml->GetAttribute("StrandNames");
     wxString nn = ModelXml->GetAttribute("NodeNames");
     wxString da = ModelXml->GetAttribute("DisplayAs");
+    wxString s0 = ModelXml->GetAttribute("Strings");
+    wxString s1 = ModelXml->GetAttribute("Start");
+    wxString s2 = ModelXml->GetAttribute("Style");
+    wxString s3 = ModelXml->GetAttribute("StrandPerLine");
+    wxString s4 = ModelXml->GetAttribute("StrandPerLayer");
     wxString v = xlights_version_string;
     f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Cubemodel \n");
     f.Write(wxString::Format("name=\"%s\" ", name));
@@ -824,6 +875,11 @@ void CubeModel::ExportXlightsModel()
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
     f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(wxString::Format("Strings=\"%s\" ", s0));
+    f.Write(wxString::Format("Start=\"%s\" ", s1));
+    f.Write(wxString::Format("Style=\"%s\" ", s2));
+    f.Write(wxString::Format("StrandsPerLine=\"%s\" ", s3));
+    f.Write(wxString::Format("StrandsPerLayer=\"%s\" ", s4));
     f.Write(" >\n");
     wxString state = SerialiseState();
     if (state != "")
@@ -846,7 +902,6 @@ void CubeModel::ExportXlightsModel()
 
 void CubeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    // FIXME
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())
@@ -873,6 +928,11 @@ void CubeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             wxString pc = root->GetAttribute("PixelCount");
             wxString pt = root->GetAttribute("PixelType");
             wxString psp = root->GetAttribute("PixelSpacing");
+            wxString s0 = root->GetAttribute("Strings");
+            wxString s1 = root->GetAttribute("Start");
+            wxString s2 = root->GetAttribute("Style");
+            wxString s3 = root->GetAttribute("StrandsPerLine");
+            wxString s4 = root->GetAttribute("StrandsPerLayer");
 
             // Add any model version conversion logic here
             // Source version will be the program version that created the custom model
@@ -893,6 +953,11 @@ void CubeModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("PixelCount", pc);
             SetProperty("PixelType", pt);
             SetProperty("PixelSpacing", psp);
+            SetProperty("Strings", s0);
+            SetProperty("Start", s1);
+            SetProperty("Style", s2);
+            SetProperty("StrandsPerLine", s3);
+            SetProperty("StrandsPerLayer", s4);
 
             wxString newname = xlights->AllModels.GenerateModelName(name.ToStdString());
             GetModelScreenLocation().Write(ModelXml);

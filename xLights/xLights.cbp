@@ -16,6 +16,7 @@
 				<Compiler>
 					<Add option="-march=i586" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-g" />
 					<Add option="-pipe" />
@@ -83,7 +84,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -152,7 +153,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-g" />
 					<Add option="-std=gnu++14" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
@@ -248,6 +249,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
@@ -312,7 +314,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-g" />
 					<Add option="-pipe" />

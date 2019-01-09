@@ -33,15 +33,18 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
     protected:
         int GetStartIndex() const;
         int GetStyleIndex() const;
-        std::tuple<int, int, int>& FlipX(std::tuple<int, int, int>& pt) const;
-        std::tuple<int, int, int>& RotateY90Degrees(std::tuple<int, int, int>& pt, int by) const;
-        std::tuple<int, int, int>& RotateZ90Degrees(std::tuple<int, int, int>& pt, int by) const;
-        std::tuple<int, int, int>& RotateX90Degrees(std::tuple<int, int, int>& pt, int by) const;
+        std::tuple<int, int, int>& FlipX(std::tuple<int, int, int>& pt, int width) const;
+        std::tuple<int, int, int>& RotateY90Degrees(std::tuple<int, int, int>& pt, int by, int width, int depth) const;
+        std::tuple<int, int, int>& RotateZ90Degrees(std::tuple<int, int, int>& pt, int by, int width, int height) const;
+        std::tuple<int, int, int>& RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const;
         int CalcTransformationIndex() const;
-        std::vector<std::tuple<int, int, int>> BuildCube(int w, int h, int d) const;
+        std::vector<std::tuple<int, int, int>> BuildCube() const;
         bool IsStrandPerLayer() const;
         bool IsStrandPerLine() const;
         int GetStrings() const;
+        void DumpNodes(std::vector<std::tuple<int, int, int>> nodes,int width, int height, int depth) const;
+        int FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const;
+        void DumpNode(const std::string desc, const std::tuple<int, int, int>& node, int width, int height, int depth) const;
 
         CubeModel(const ModelManager &manager);
         virtual void InitModel() override;
