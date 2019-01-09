@@ -41,14 +41,14 @@ BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 END_EVENT_TABLE()
 
 
-static inline const int CHECK_COL = 0;
-static inline const int SEQ_COL = 4;
-static inline const int MEDIA_COL = 5;
-static inline const int MODELS_COL = 6;
-static inline const int UDP_COL = 7;
-static inline const int PLAYLIST_COL = 8;
-static inline const int UPLOAD_PIXELS_COL = 9;
-//static inline const int PIXELS_CONTROLLER_COL = 10;
+static const int CHECK_COL = 0;
+static const int SEQ_COL = 4;
+static const int MEDIA_COL = 5;
+static const int MODELS_COL = 6;
+static const int UDP_COL = 7;
+static const int PLAYLIST_COL = 8;
+static const int UPLOAD_PIXELS_COL = 9;
+//static const int PIXELS_CONTROLLER_COL = 10;
 
 
 FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
