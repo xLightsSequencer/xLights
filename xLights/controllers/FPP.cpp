@@ -1187,17 +1187,13 @@ void FPP::Discover(std::list<FPP> &instances) {
 
 
 void FPP::Probe(const std::list<std::string> &addresses, std::list<FPP> &instances, const std::list<std::string> &complete) {
-    std::mutex instanceMutex;
-    std::list<wxHTTP*> https;
     //wxHTTP has to be created and connected on main thread
     for (auto &a : addresses) {
         wxHTTP *http = new wxHTTP();
         http->Connect(a);
         http->SetMethod("GET");
         http->SetTimeout(10);
-        https.push_back(http);
-    }
-    std::function<void(wxHTTP* &, int)> f = [&instances, &instanceMutex, &complete](wxHTTP*& http, int idx) {
+        http->Initialize();
         wxInputStream *inp = http->GetInputStream("/fppjson.php?command=getFPPSystems");
         if (inp) {
             wxJSONValue origJson;
@@ -1217,7 +1213,6 @@ void FPP::Probe(const std::list<std::string> &addresses, std::list<FPP> &instanc
                     //already complete, continue
                     continue;
                 }
-                instanceMutex.lock();
                 FPP *found = nullptr;
                 for (auto &b : instances) {
                     if (b.ipAddress == address) {
@@ -1271,12 +1266,7 @@ void FPP::Probe(const std::list<std::string> &addresses, std::list<FPP> &instanc
                 } else {
                     instances.push_back(inst);
                 }
-                instanceMutex.unlock();
             }
         }
     };
-    parallel_for(https, f);
-    for (auto a : https) {
-        delete a;
-    }
 }
