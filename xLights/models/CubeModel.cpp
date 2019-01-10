@@ -50,6 +50,7 @@ static std::vector<std::tuple<int, int, int, int>> transformations =
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT;
 static wxPGChoices CUBE_STYLES;
+static wxPGChoices STRAND_STYLES;
 
 void CubeModel::InitialiseChoices()
 {
@@ -67,6 +68,10 @@ void CubeModel::InitialiseChoices()
         CUBE_STYLES.Add("Vertical Left/Right");
         CUBE_STYLES.Add("Horizontal Front/Back");
         CUBE_STYLES.Add("Horizontal Left/Right");
+
+        STRAND_STYLES.Add("Zig Zag");
+        STRAND_STYLES.Add("No Zig Zag");
+        STRAND_STYLES.Add("Aternate Pixel");
     }
 }
 
@@ -99,9 +104,8 @@ void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     grid->Append(new wxEnumProperty("Starting Location", "CubeStart", TOP_BOT_LEFT_RIGHT, GetStartIndex()));
     grid->Append(new wxEnumProperty("Direction", "CubeStyle", CUBE_STYLES, GetStyleIndex()));
-    auto p = grid->Append(new wxBoolProperty("No Zig Zag", "StrandPerLine", IsStrandPerLine()));
-    p->SetAttribute("UseCheckbox", true);
-    p = grid->Append(new wxBoolProperty("Layers All Start in Same Place", "StrandPerLayer", IsStrandPerLayer()));
+    grid->Append(new wxEnumProperty("Strand Style", "StrandPerLine", STRAND_STYLES, GetStrandStyleIndex()));
+    auto p = grid->Append(new wxBoolProperty("Layers All Start in Same Place", "StrandPerLayer", IsStrandPerLayer()));
     p->SetAttribute("UseCheckbox", true);
 
     p = grid->Append(new wxUIntProperty("Width", "CubeWidth", parm1));
@@ -134,7 +138,7 @@ int CubeModel::GetStartIndex() const
 {
     auto start = ModelXml->GetAttribute("Start", "");
 
-    for (int i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++)
+    for (size_t i = 0; i < TOP_BOT_LEFT_RIGHT.GetCount(); i++)
     {
         if (start == TOP_BOT_LEFT_RIGHT.GetLabel(i))
         {
@@ -148,9 +152,23 @@ int CubeModel::GetStyleIndex() const
 {
     auto start = ModelXml->GetAttribute("Style", "");
 
-    for (int i = 0; i < CUBE_STYLES.GetCount(); i++)
+    for (size_t i = 0; i < CUBE_STYLES.GetCount(); i++)
     {
         if (start == CUBE_STYLES.GetLabel(i))
+        {
+            return i;
+        }
+    }
+    return 3;
+}
+
+int CubeModel::GetStrandStyleIndex() const
+{
+    auto start = ModelXml->GetAttribute("StrandPerLine", "Zig Zag");
+
+    for (size_t i = 0; i < STRAND_STYLES.GetCount(); i++)
+    {
+        if (start == STRAND_STYLES.GetLabel(i))
         {
             return i;
         }
@@ -172,12 +190,9 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("StrandPerLine" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StrandPerLine");
-        if (event.GetPropertyValue().GetBool())
-        {
-            ModelXml->AddAttribute("StrandPerLine", "TRUE");
-        }
+        ModelXml->AddAttribute("StrandPerLine", STRAND_STYLES.GetLabel(event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("StrandPerLayer" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("StrandPerLayer");
         if (event.GetPropertyValue().GetBool())
@@ -185,7 +200,7 @@ int CubeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
             ModelXml->AddAttribute("StrandPerLayer", "TRUE");
         }
         SetFromXml(ModelXml, zeroBased);
-        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("CubeWidth" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", static_cast<int>(event.GetPropertyValue().GetLong())));
@@ -297,11 +312,6 @@ bool CubeModel::IsStrandPerLayer() const
     return ModelXml->GetAttribute("StrandPerLayer", "FALSE") == "TRUE";
 }
 
-bool CubeModel::IsStrandPerLine() const
-{
-    return ModelXml->GetAttribute("StrandPerLine", "FALSE") == "TRUE";
-}
-
 std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -313,8 +323,8 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
     std::vector<std::tuple<int, int, int>> nodes;
     nodes.resize(width*height*depth);
 
-    bool strandPerLine = IsStrandPerLine();
     bool strandPerLayer = IsStrandPerLayer();
+    int strandStyle = GetStrandStyleIndex();
 
     std::tuple<int, int, int, int> rotation = transformations[CalcTransformationIndex()];
     auto xr = std::get<0>(rotation);
@@ -328,7 +338,7 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
     if (abs(yr) == 1) std::swap(width, depth);
     if (abs(xr) == 1) std::swap(height, depth);
 
-    logger_base.debug("%s %s StrandPerLine: %d StrandPerLayer: %d", (const char*)ModelXml->GetAttribute("Start", "").c_str(), (const char*)ModelXml->GetAttribute("Style", "").c_str(), IsStrandPerLine(), IsStrandPerLayer());
+    logger_base.debug("%s %s StrandStyle: %s StrandPerLayer: %d", (const char*)ModelXml->GetAttribute("Start", "").c_str(), (const char*)ModelXml->GetAttribute("Style", "").c_str(), (const char*)ModelXml->GetAttribute("StrandPerLine", "").c_str(), IsStrandPerLayer());
     logger_base.debug("%dx%dx%d -> (%d,%d,%d,%d) -> %dx%dx%d", parm1, parm2, parm3, xr, yr, zr, xf, width, height, depth);
 
     for(int i = 0; i < width*height*depth; i++)
@@ -337,9 +347,21 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
         int baselayer = i % (width*height);
         int y = baselayer / width;
         int x;
-        if (strandPerLine || y % 2 == 0)
+        if ((strandStyle == 1 || y % 2 == 0) && strandStyle != 2)
         {
             x = baselayer % width;
+        }
+        else if (strandStyle == 2)
+        {
+            int pos = baselayer % width + 1;
+            if (pos <= (width + 1) / 2)
+            {
+                x = 2 * (pos - 1);
+            }
+            else
+            {
+                x = (width - pos) * 2 + 1;
+            }
         }
         else
         {
@@ -352,7 +374,7 @@ std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
             if (z % 2 != 0)
             {
                 y = height - y - 1;
-                if (height % 2 != 0 && !strandPerLine)
+                if (height % 2 != 0 && strandStyle == 0)
                 {
                     x = width - x - 1;
                 }
@@ -828,7 +850,7 @@ void CubeModel::InitModel()
     screenLocation.SetRenderSize(width, height, depth);
 
     DisplayAs = "Cube";
-    screenLocation.SetPerspective2D(0.1); // if i dont do this you cant see the back nodes in 2D
+    screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
 }
 
 void CubeModel::ExportXlightsModel()

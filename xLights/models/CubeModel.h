@@ -33,6 +33,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
     protected:
         int GetStartIndex() const;
         int GetStyleIndex() const;
+        int GetStrandStyleIndex() const;
         std::tuple<int, int, int>& FlipX(std::tuple<int, int, int>& pt, int width) const;
         std::tuple<int, int, int>& RotateY90Degrees(std::tuple<int, int, int>& pt, int by, int width, int depth) const;
         std::tuple<int, int, int>& RotateZ90Degrees(std::tuple<int, int, int>& pt, int by, int width, int height) const;
@@ -40,7 +41,6 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int CalcTransformationIndex() const;
         std::vector<std::tuple<int, int, int>> BuildCube() const;
         bool IsStrandPerLayer() const;
-        bool IsStrandPerLine() const;
         int GetStrings() const;
         void DumpNodes(std::vector<std::tuple<int, int, int>> nodes,int width, int height, int depth) const;
         int FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const;
