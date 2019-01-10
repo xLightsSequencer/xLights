@@ -765,12 +765,27 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
     wxTextEntryDialog dlg(this, "Find FPP Instance", "Enter IP address or hostname for FPP Instance");
     if (dlg.ShowModal() == wxID_OK && IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
         std::string ipAd = dlg.GetValue().ToStdString();
+        int curSize = instances.size();
+        
+        wxProgressDialog prgs("Gathering configuration for " + ipAd,
+                              "Gathering configuration for " + ipAd, 100, this);
+        prgs.Pulse("Gathering configuration for " + ipAd);
+        prgs.Show();
+
         FPP inst(ipAd);
         if (inst.AuthenticateAndUpdateVersions()) {
             std::list<std::string> add;
             add.push_back(ipAd);
             FPP::Probe(add, instances);
-            
+            int cur = 0;
+            for (auto &fpp : instances) {
+                prgs.Pulse("Gathering configuration for " + fpp.hostName + " - " + fpp.ipAddress);
+                if (cur >= curSize) {
+                    fpp.AuthenticateAndUpdateVersions();
+                    fpp.probePixelControllerType();
+                }
+                cur++;
+            }
             
             //it worked, we found some new instances, record this
             wxConfigBase* config = wxConfigBase::Get();
@@ -786,5 +801,6 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
             }
             PopulateFPPInstanceList();
         }
+        prgs.Hide();
     }
 }
