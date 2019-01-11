@@ -303,6 +303,7 @@ public:
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
     void ExportAsCustomXModel() const;
+    virtual std::string GetStartLocation() const;
     bool IsCustom(void);
     virtual bool SupportsExportAsCustom() const = 0;
     virtual bool SupportsWiringView() const = 0;

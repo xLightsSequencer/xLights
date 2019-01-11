@@ -3103,6 +3103,22 @@ void Model::ExportAsCustomXModel() const {
     f.Close();
 }
 
+std::string Model::GetStartLocation() const
+{
+    if (!IsLtoR) {
+     if (!isBotToTop)
+         return "Top Right";
+     else
+         return "Bottom Right";
+    }
+     else {
+     if (!isBotToTop)
+         return "Top Left";
+     else
+         return "Bottom Left";
+    }
+}
+
 std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
 {
     size_t NodeCount = GetNodeCount();
@@ -3110,22 +3126,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi, 0);
 
-    bool IsCustom = DisplayAs == "Custom";
-
-    std::string direction;
-    if (IsCustom) {
-        direction = "n/a";
-    } else if (!IsLtoR) {
-        if(!isBotToTop)
-            direction = "Top Right";
-        else
-            direction = "Bottom Right";
-    } else {
-        if (!isBotToTop)
-            direction = "Top Left";
-        else
-            direction = "Bottom Left";
-    }
+    std::string direction = GetStartLocation();
 
     long sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);

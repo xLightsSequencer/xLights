@@ -27,6 +27,8 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual int GetNumStrands() const override { return _strands; };
         virtual int MapToNodeIndex(int strand, int node) const override;
 
+        virtual std::string ChannelLayoutHtml(OutputManager * outputManager);
+
         virtual void AddTypeProperties(wxPropertyGridInterface *grid) override;
         virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
@@ -41,6 +43,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int CalcTransformationIndex() const;
         std::vector<std::tuple<int, int, int>> BuildCube() const;
         bool IsStrandPerLayer() const;
+        virtual std::string GetStartLocation() const override;
         int GetStrings() const;
         void DumpNodes(std::vector<std::tuple<int, int, int>> nodes,int width, int height, int depth) const;
         int FindNodeIndex(std::vector<std::tuple<int, int, int>> nodes, int x, int y, int z) const;

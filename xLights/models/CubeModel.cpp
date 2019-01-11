@@ -10,6 +10,9 @@
 #include "../xLightsVersion.h"
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
+#include "../outputs/OutputManager.h"
+#include "../outputs/Output.h"
+
 #include <log4cpp/Category.hh>
 
 static std::vector<std::tuple<int, int, int, int>> transformations =
@@ -310,6 +313,11 @@ std::tuple<int, int, int>& CubeModel::RotateX90Degrees(std::tuple<int, int, int>
 bool CubeModel::IsStrandPerLayer() const
 {
     return ModelXml->GetAttribute("StrandPerLayer", "FALSE") == "TRUE";
+}
+
+std::string CubeModel::GetStartLocation() const
+{
+    return ModelXml->GetAttribute("Start", "") + " " + ModelXml->GetAttribute("Style", "");
 }
 
 std::vector<std::tuple<int, int, int>> CubeModel::BuildCube() const
@@ -1028,4 +1036,70 @@ int CubeModel::MapToNodeIndex(int strand, int node) const
     {
         return strand * _strandLength + node;
     }
+}
+
+std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
+{
+    size_t NodeCount = GetNodeCount();
+
+    std::vector<int> chmap;
+    chmap.resize(BufferHt * BufferWi, 0);
+
+    int strings = GetStrings();
+    int nodes = GetNodeCount();
+    int nodesPerString = std::ceil(static_cast<float>(nodes) / strings);
+
+    std::string direction = GetStartLocation();
+
+    long sc;
+    Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
+
+    std::string html = "<html><body><table border=0>";
+    html += "<tr><td>Name:</td><td>" + name + "</td></tr>";
+    html += "<tr><td>Display As:</td><td>" + DisplayAs + "</td></tr>";
+    html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
+    html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
+    html += wxString::Format("<tr><td>Total nodes:</td><td>%d</td></tr>", static_cast<int>(NodeCount));
+    html += wxString::Format("<tr><td>Width:</td><td>%d</td></tr>", parm1);
+    html += wxString::Format("<tr><td>Height:</td><td>%d</td></tr>", parm2);
+    html += wxString::Format("<tr><td>Depth:</td><td>%d</td></tr>", parm3);
+
+    if (o != nullptr)
+    {
+        html += wxString::Format("<tr><td>Controller:</td><td>%s:%s</td></tr>", o->GetCommPort(), o->GetDescription());
+    }
+
+    if (GetProtocol() != "") {
+        html += wxString::Format("<tr><td>Pixel protocol:</td><td>%s</td></tr>", GetProtocol().c_str());
+        if (GetNumStrings() == 1) {
+            html += wxString::Format("<tr><td>Controller Connection:</td><td>%d</td></tr>", GetPort());
+        }
+        else {
+            html += wxString::Format("<tr><td>Controller Connections:</td><td>%d-%d</td></tr>", GetPort(), GetPort() + GetNumPhysicalStrings() - 1);
+        }
+    }
+    html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
+
+    auto locations = BuildCube();
+
+    for (int y = parm2 -1; y >=0; y--)
+    {
+        html += "<tr>";
+        for (int j = 0; j < parm1 * parm3; j++)
+        {
+            int z = j / parm1;
+            int x = j % parm1;
+
+            int index = FindNodeIndex(locations, x, y, z);
+            int string = index / nodesPerString + 1;
+            int nodenum = index % nodesPerString + 1;
+            wxString bgcolor = string % 2 == 1 ? "#ADD8E6" : "#90EE90";
+
+            html += wxString::Format("<td bgcolor='" + bgcolor + "'>n%ds%d</td>", nodenum, string);
+        }
+        html += "</tr>";
+    }
+
+    html += "</table></body></html>";
+    return html;
 }
