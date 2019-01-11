@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.04 January 11, 2019
    -- enh (gil)    Add pan based on viewing angle in 3d
    -- enh (dkulp)  Implement advanced FPP connect dialog including
 						Discovery of FPP instances
