@@ -24,12 +24,12 @@ MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
 
 MeshObject::~MeshObject()
 {
-    for (auto it = textures.begin(); it != textures.end(); ++it)
+    for (auto it : textures)
     {
-        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        for (auto it2 : it.second)
         {
-            if (it2->second != nullptr) {
-                delete it2->second;
+            if (it2.second != nullptr) {
+                delete it2.second;
             }
         }
     }
@@ -239,8 +239,6 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
     {
         if (!frame->IsInShowFolder(_objFile))
         {
-            _objFile = frame->MoveToShowFolder(_objFile, wxString(wxFileName::GetPathSeparator()) + "3D");
-
             auto fr = GetFileReferences();
             for (auto f: fr)
             {
@@ -250,6 +248,8 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
                 }
             }
 
+            _objFile = frame->MoveToShowFolder(_objFile, wxString(wxFileName::GetPathSeparator()) + "3D");
+
             ModelXml->DeleteAttribute("ObjFile");
             ModelXml->AddAttribute("ObjFile", _objFile);
             SetFromXml(ModelXml);
@@ -258,6 +258,52 @@ bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
     }
 
     return BaseObject::CleanupFileLocations(frame) || rc;
+}
+
+std::list<std::string> MeshObject::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (_objFile == "" || !wxFile::Exists(_objFile))
+    {
+        res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find obj file '%s'", GetName(), _objFile).ToStdString());
+    }
+    else
+    {
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _objFile))
+        {
+            res.push_back(wxString::Format("    WARN: Mesh object '%s' obj file '%s' not under show directory.", GetName(), _objFile).ToStdString());
+        }
+
+        wxFileName fn(_objFile);
+        fn.SetExt("mtl");
+        if (!fn.Exists())
+        {
+            res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
+        }
+
+        std::string base_path = fn.GetPath();
+
+        tinyobj::attrib_t attr;
+        std::vector<int> lin;
+        std::vector<tinyobj::shape_t> shap;
+        std::vector<tinyobj::material_t> mater;
+        std::string err;
+        bool ret = tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+
+        for (auto m : mater) {
+            if (m.diffuse_texname.length() > 0) {
+                wxFileName tex(m.diffuse_texname);
+                tex.SetPath(fn.GetPath());
+                if (!tex.Exists())
+                {
+                    res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find texture file '%s'", GetName(), tex.GetFullPath()).ToStdString());
+                }
+            }
+        }
+    }
+
+    return res;
 }
 
 std::list<std::string> MeshObject::GetFileReferences()
@@ -285,10 +331,9 @@ std::list<std::string> MeshObject::GetFileReferences()
         std::string err;
         bool ret = tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
 
-        for (size_t m = 0; m < mater.size(); m++) {
-            tinyobj::material_t* mp = &mater[m];
-            if (mp->diffuse_texname.length() > 0) {
-                wxFileName tex(mp->diffuse_texname);
+        for (auto m : mater) {
+            if (m.diffuse_texname.length() > 0) {
+                wxFileName tex(m.diffuse_texname);
                 tex.SetPath(fn.GetPath());
                 if (tex.Exists())
                 {
@@ -322,18 +367,17 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             // Append `default` material
             materials.push_back(tinyobj::material_t());
 
-
             bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
             bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
 
-            for (size_t s = 0; s < shapes.size(); s++) {
+            for (auto shape : shapes) {
                 // Loop over faces(polygon)
                 size_t index_offset = 0;
 
-                for (size_t f = 0; f < shapes[s].mesh.indices.size() / 3; f++) {
-                    tinyobj::index_t idx0 = shapes[s].mesh.indices[3 * f + 0];
-                    tinyobj::index_t idx1 = shapes[s].mesh.indices[3 * f + 1];
-                    tinyobj::index_t idx2 = shapes[s].mesh.indices[3 * f + 2];
+                for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
+                    tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
+                    tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
+                    tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
 
                     float v[3][3];
                     for (int k = 0; k < 3; k++) {
@@ -366,24 +410,22 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
     // Load diffuse textures
     {
         wxFileName fn(_objFile);
-        for (size_t m = 0; m < materials.size(); m++) {
-            tinyobj::material_t* mp = &materials[m];
-            
-            if (mp->diffuse_texname.length() > 0) {
+        for (auto m : materials) {
+            if (m.diffuse_texname.length() > 0) {
                 // Only load the texture if it is not already loaded
-                if (textures[preview->GetName().ToStdString()].find(mp->diffuse_texname) == textures[preview->GetName().ToStdString()].end()) {
-                    std::string texture_filename = mp->diffuse_texname;
+                if (textures[preview->GetName().ToStdString()].find(m.diffuse_texname) == textures[preview->GetName().ToStdString()].end()) {
+                    std::string texture_filename = m.diffuse_texname;
                     if (!wxFileExists(texture_filename)) {
                         // Append base dir.
                         wxFileName fn2(texture_filename);
                         fn2.SetPath(fn.GetPath());
                         texture_filename = fn2.GetFullPath();
                         if (!wxFileExists(texture_filename)) {
-                            logger_base.debug("Unable to find materials file: %s", (const char *)mp->diffuse_texname.c_str());
+                            logger_base.debug("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
                             continue;
                         }
                     }
-                    textures[preview->GetName().ToStdString()][mp->diffuse_texname] = new Image(texture_filename, false, true);
+                    textures[preview->GetName().ToStdString()][m.diffuse_texname] = new Image(texture_filename, false, true);
                 }
             }
         }
@@ -393,23 +435,23 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
 
     if (obj_loaded) {
         // Loop over shapes
-        for (size_t s = 0; s < shapes.size(); s++) {
+        for (auto shape : shapes) {
             // Loop over faces(polygon)
 
             // Check for smoothing group and compute smoothing normals
             std::map<int, vec3> smoothVertexNormals;
-            if (hasSmoothingGroup(shapes[s])) {
-                computeSmoothingNormals(attrib, shapes[s], smoothVertexNormals);
+            if (hasSmoothingGroup(shape)) {
+                computeSmoothingNormals(attrib, shape, smoothVertexNormals);
             }
 
             int last_material_id = -1;
             GLuint image_id = 0;
-            for (size_t f = 0; f < shapes[s].mesh.indices.size() / 3; f++) {
-                tinyobj::index_t idx0 = shapes[s].mesh.indices[3 * f + 0];
-                tinyobj::index_t idx1 = shapes[s].mesh.indices[3 * f + 1];
-                tinyobj::index_t idx2 = shapes[s].mesh.indices[3 * f + 2];
+            for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
+                tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
+                tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
+                tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
 
-                int current_material_id = shapes[s].mesh.material_ids[f];
+                int current_material_id = shape.mesh.material_ids[f];
 
                 if ((current_material_id < 0) ||
                     (current_material_id >= static_cast<int>(materials.size()))) {

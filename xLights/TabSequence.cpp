@@ -668,12 +668,12 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         }
         return false;
     }
+
     if (!backup)
     {
+        SaveModelsFile();
         UnsavedRgbEffectsChanges = false;
     }
-
-    SaveModelsFile();
 
     return true;
 }

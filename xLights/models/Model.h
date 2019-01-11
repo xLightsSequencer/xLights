@@ -273,7 +273,6 @@ public:
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);
-    virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     std::vector<std::string> GetModelState() const;
     void SaveModelState( std::vector<std::string>& state );

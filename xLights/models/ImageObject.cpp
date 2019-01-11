@@ -6,6 +6,7 @@
 #include "DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
+#include "../xLightsMain.h"
 
 #include <log4cpp/Category.hh>
 
@@ -165,4 +166,50 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     if ((Selected || Highlighted) && allowSelected) {
         GetObjectScreenLocation().DrawHandles(va3);
     }
+}
+
+std::list<std::string> ImageObject::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (_imageFile == "" || !wxFile::Exists(_imageFile))
+    {
+        res.push_back(wxString::Format("    ERR: Image object '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
+    }
+    else
+    {
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile))
+        {
+            res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show directory.", GetName(), _imageFile).ToStdString());
+        }
+    }
+    return res;
+}
+
+bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    if (wxFile::Exists(_imageFile))
+    {
+        if (!frame->IsInShowFolder(_imageFile))
+        {
+            _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
+            ModelXml->DeleteAttribute("Image");
+            ModelXml->AddAttribute("Image", _imageFile);
+            SetFromXml(ModelXml);
+            rc = true;
+        }
+    }
+
+    return BaseObject::CleanupFileLocations(frame) || rc;
+}
+
+std::list<std::string> ImageObject::GetFileReferences()
+{
+    std::list<std::string> res;
+    if (wxFile::Exists(_imageFile))
+    {
+        res.push_back(_imageFile);
+    }
+    return res;
 }

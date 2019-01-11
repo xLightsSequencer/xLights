@@ -189,7 +189,7 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
         logger_base.crit("LayoutPanel::AddObjectToTree view_object is null ... this is going to crash.");
     }
 
-    logger_base.debug("Adding object %s", (const char *)view_object->GetName().c_str());
+    //logger_base.debug("Adding object %s", (const char *)view_object->GetName().c_str());
 
     wxTreeListItem item = TreeListViewObjects->AppendItem(*parent, fullName ? view_object->GetName() : view_object->name,
                                                          GetObjectTreeIcon(view_object, false),

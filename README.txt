@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)    Add pan based on viewing angle in 3d
+   -- enh (dkulp)  Implement advanced FPP connect dialog including
+						Discovery of FPP instances
+						Instance by instance settings controls over what is uploaded
+						Sparse FSEQ uploading
+						Compressed FSEQs
+   -- enh (scott)  Add keyboard shortcuts to sequence save dialog
+   -- enh (keith)  Add cube model
+   -- enh (keith)  Add value curve flipping
+   -- enh (keith)  Include 3d onjects in package sequence and cleanup file locations
+   -- bug (keith)  Fix multistring custom model start channel
+   -- bug (keith)  Fix xSchedule test settings dialog does not open
+   -- bug (keith)  Fix anomalies when creating a sequence with a specified timing track
 2019.03 January 6, 2019
    -- bug (scott)  Dont persist some not useful FPP connect settings
    -- bug (dkulp)  Fix xLights does not handle system audio device change on OSX

@@ -5281,9 +5281,26 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Models with issues");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        std::list<std::string> warnings = it->second->CheckModelSettings();
+        std::list<std::string> warnings = it.second->CheckModelSettings();
+        for (auto s = warnings.begin(); s != warnings.end(); ++s)
+        {
+            LogAndWrite(f, *s);
+            if (s->find("WARN:") != std::string::npos)
+            {
+                warncount++;
+            }
+            else if (s->find("ERR:") != std::string::npos)
+            {
+                errcount++;
+            }
+        }
+    }
+
+    for (auto it : AllObjects)
+    {
+        std::list<std::string> warnings = it.second->CheckModelSettings();
         for (auto s = warnings.begin(); s != warnings.end(); ++s)
         {
             LogAndWrite(f, *s);
@@ -7054,6 +7071,14 @@ void xLightsFrame::CleanupRGBEffectsFileLocations()
     }
 
     for (auto m : AllModels)
+    {
+        if (m.second->CleanupFileLocations(this))
+        {
+            MarkEffectsFileDirty(false);
+        }
+    }
+
+    for (auto m : AllObjects)
     {
         if (m.second->CleanupFileLocations(this))
         {
