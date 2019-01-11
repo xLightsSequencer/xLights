@@ -291,7 +291,7 @@ void CustomModel::SetStringStartChannels(bool zeroBased, int NumberOfStrings, in
             wxString nm = StartChanAttrName(i);
             int node = wxAtoi(ModelXml->GetAttribute(nm, "1"));
             if (node < 0) node = 0; // prevent invalid start nodes
-            if (node > GetNodeCount()) node = GetNodeCount();
+            if (node > maxval) node = maxval;
             stringStartChan[i] = (zeroBased ? 0 : StartChannel - 1) + (node - 1) * GetNodeChannelCount(StringType);
         }
     }
