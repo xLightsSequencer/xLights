@@ -21,7 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)  Add keyboard shortcuts to sequence save dialog
    -- enh (keith)  Add cube model
    -- enh (keith)  Add value curve flipping
-   -- enh (keith)  Include 3d onjects in package sequence and cleanup file locations
+   -- enh (keith)  Include 3d objects in package sequence and cleanup file locations
    -- bug (keith)  Fix multistring custom model start channel
    -- bug (keith)  Fix xSchedule test settings dialog does not open
    -- bug (keith)  Fix anomalies when creating a sequence with a specified timing track

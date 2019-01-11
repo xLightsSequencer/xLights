@@ -849,6 +849,10 @@ void CubeModel::InitModel()
 
     screenLocation.SetRenderSize(width, height, depth);
 
+    // save the default model size
+    BufferWi = width * depth;
+    BufferHt = height;
+
     DisplayAs = "Cube";
     screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D
 }
