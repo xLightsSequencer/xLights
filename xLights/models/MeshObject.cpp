@@ -1,6 +1,7 @@
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+
 #include <algorithm>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -8,6 +9,8 @@
 #include "DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
+#include "../xLightsMain.h"
+
 #include <log4cpp/Category.hh>
 
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
@@ -228,6 +231,74 @@ namespace  // Local utility functions
 
     }  // computeSmoothingNormals
 }  // namespace
+
+bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    if (wxFile::Exists(_objFile))
+    {
+        if (!frame->IsInShowFolder(_objFile))
+        {
+            _objFile = frame->MoveToShowFolder(_objFile, wxString(wxFileName::GetPathSeparator()) + "3D");
+
+            auto fr = GetFileReferences();
+            for (auto f: fr)
+            {
+                if (f != _objFile)
+                {
+                    frame->MoveToShowFolder(f, wxString(wxFileName::GetPathSeparator()) + "3D");
+                }
+            }
+
+            ModelXml->DeleteAttribute("ObjFile");
+            ModelXml->AddAttribute("ObjFile", _objFile);
+            SetFromXml(ModelXml);
+            rc = true;
+        }
+    }
+
+    return BaseObject::CleanupFileLocations(frame) || rc;
+}
+
+std::list<std::string> MeshObject::GetFileReferences()
+{
+    std::list<std::string> res;
+    if (wxFile::Exists(_objFile))
+    {
+        res.push_back(_objFile);
+
+        wxFileName mtl(_objFile);
+        mtl.SetExt("mtl");
+
+        if (mtl.Exists())
+        {
+            res.push_back(mtl.GetFullPath());
+        }
+
+        wxFileName fn(_objFile);
+        std::string base_path = fn.GetPath();
+
+        tinyobj::attrib_t attr;
+        std::vector<int> lin;
+        std::vector<tinyobj::shape_t> shap;
+        std::vector<tinyobj::material_t> mater;
+        std::string err;
+        bool ret = tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+
+        for (size_t m = 0; m < mater.size(); m++) {
+            tinyobj::material_t* mp = &mater[m];
+            if (mp->diffuse_texname.length() > 0) {
+                wxFileName tex(mp->diffuse_texname);
+                tex.SetPath(fn.GetPath());
+                if (tex.Exists())
+                {
+                    res.push_back(tex.GetFullPath());
+                }
+            }
+        }
+    }
+    return res;
+}
 
 void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
 {
@@ -516,8 +587,8 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             red *= brightness / 100.f;
                             green *= brightness / 100.f;
                             blue *= brightness / 100.f;
-                            xlColor c(red * 255, green * 255, blue * 255, trans);
-                            va3.AddVertex(v[k][0], v[k][1], v[k][2], c);
+                            xlColor color(red * 255, green * 255, blue * 255, trans);
+                            va3.AddVertex(v[k][0], v[k][1], v[k][2], color);
                         } else {
                             va3.AddTextureVertex(v[k][0], v[k][1], v[k][2], tc[k][0], tc[k][1]);
                         }

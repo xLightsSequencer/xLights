@@ -1363,7 +1363,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_File_Save->Enable(false);
         MenuItem_File_SaveAs_Sequence->Enable(false);
         MenuItem_File_Close_Sequence->Enable(false);
-		  MenuItem_File_Export_Video->Enable(false);
+		MenuItem_File_Export_Video->Enable(false);
         MenuItem_PackageSequence->Enable(false);
         MenuItem_GenerateLyrics->Enable(false);
         MenuItem_ExportEffects->Enable(false);

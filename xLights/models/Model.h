@@ -262,9 +262,8 @@ public:
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
 
+    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false) const;
-    virtual bool CleanupFileLocations(xLightsFrame* frame);
-    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     int GetSelectedHandle();
     int GetNumHandles();

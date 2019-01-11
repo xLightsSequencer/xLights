@@ -4148,7 +4148,7 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
         Model::WriteFaceInfo(ModelXml, faceInfo);
     }
 
-    return rc;
+    return BaseObject::CleanupFileLocations(frame) || rc;
 }
 
 // all when true includes all image files ... even if they dont really exist

@@ -3,6 +3,7 @@
 
 #include <string>
 
+class xLightsFrame;
 class wxPropertyGridInterface;
 class wxXmlNode;
 class ModelScreenLocation;
@@ -20,6 +21,9 @@ public:
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() = 0;
+
+    virtual bool CleanupFileLocations(xLightsFrame* frame) { return false; }
+    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
 
     void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     void SelectHandle(int handle);

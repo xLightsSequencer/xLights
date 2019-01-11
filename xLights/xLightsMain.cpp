@@ -6774,6 +6774,10 @@ void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
         modelfiles.splice(end(modelfiles), m.second->GetFaceFiles(facesUsed, false));
         modelfiles.splice(end(modelfiles), m.second->GetFileReferences());
     }
+    for (auto o : AllObjects)
+    {
+        modelfiles.splice(end(modelfiles), o.second->GetFileReferences());
+    }
     modelfiles.sort();
     modelfiles.unique();
 
