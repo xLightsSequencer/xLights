@@ -206,6 +206,7 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
         LogErr(VB_SEQUENCE, "Error opening sequence file: %s. Could not read header.\n", fn.c_str());
         DumpHeader("Sequence File head:", &header[0], bytesRead);
         fclose(seqFile);
+        return nullptr;
     }
 
     FSEQFile *file = nullptr;
@@ -218,7 +219,6 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
                fn.c_str(), seqVersionMajor, seqVersionMinor);
         DumpHeader("Sequence File head:", tmpData, bytesRead);
         fclose(seqFile);
-
         return nullptr;
     }
     file->dumpInfo();
