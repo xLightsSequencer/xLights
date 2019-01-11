@@ -1009,8 +1009,10 @@ void xLightsFrame::UpdateModelsList()
 
 void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames, bool exitOnDone) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (origFilenames.IsEmpty()) {
         EnableSequenceControls(true);
+        logger_base.debug("Batch render done.");
         printf("Done All Files\n");
         if (exitOnDone) {
             Destroy();
@@ -1019,6 +1021,21 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         }
         return;
     }
+
+    if (wxGetKeyState(WXK_ESCAPE))
+    {
+        logger_base.debug("Batch render cancelled.");
+        EnableSequenceControls(true);
+        printf("Batch render cancelled.\n");
+        if (exitOnDone) {
+            Destroy();
+        }
+        else {
+            CloseSequence();
+        }
+        return;
+    }
+
     EnableSequenceControls(false);
 
     wxArrayString fileNames = origFilenames;
@@ -1027,6 +1044,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     wxStopWatch sw; // start a stopwatch timer
 
     printf("Processing file %s\n", (const char *)seq.c_str());
+    logger_base.debug("Batch Render Processing file %s\n", (const char *)seq.c_str());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 

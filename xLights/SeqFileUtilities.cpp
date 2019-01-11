@@ -128,9 +128,17 @@ void xLightsFrame::NewSequence()
 
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    std::string new_timing = "New Timing";
-    CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-    mSequenceElements.AddTimingToAllViews(new_timing);
+    if (mSequenceElements.GetNumberOfTimingElements() == 0)
+    {
+        // only add timing if the user didnt set up timings
+        std::string new_timing = "New Timing";
+        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+        mSequenceElements.AddTimingToAllViews(new_timing);
+    }
+    else
+    {
+        mSequenceElements.GetTimingElement(0)->SetActive(true);
+    }
     MenuItem_File_Save->Enable(true);
     MenuItem_File_SaveAs_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
@@ -174,6 +182,7 @@ void xLightsFrame::NewSequence()
     if( view == "All Models" )
     {
         AddAllModelsToSequence();
+        displayElementsPanel->SelectView("Master View");
     }
     else if( view != "Empty" )
     {

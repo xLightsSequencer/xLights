@@ -8156,8 +8156,8 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
     if (dlg.Prepare(this->GetShowDirectory()) && dlg.ShowModal() == wxID_OK && CloseSequence()) {
         wxArrayString files = dlg.GetFileList();
         wxArrayString filesToRender;
-        for (auto f = files.begin(); f != files.end(); f++) {
-            wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + *f);
+        for (auto f : files) {
+            wxFileName fname(this->GetShowDirectory() + wxFileName::GetPathSeparator() + f);
             if(fname.FileExists())
                 filesToRender.push_back(fname.GetFullPath());
             else
