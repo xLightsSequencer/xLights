@@ -5038,23 +5038,23 @@ void xLightsFrame::CheckSequence(bool display)
         }
     }
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
-            std::string start = it->second->ModelStartChannel;
+            std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@')
             {
                 std::list<std::string> seen;
-                seen.push_back(it->first);
+                seen.push_back(it.first);
                 size_t colon = start.find(':', 1);
                 if (colon != std::string::npos)
                 {
                     std::string reference = start.substr(1, colon - 1);
-                    if (reference != it->first)
+                    if (reference != it.first)
                     {
-                        if (!CheckStart(f, it->first, seen, reference))
+                        if (!CheckStart(f, it.first, seen, reference))
                         {
                             errcount++;
                         }
@@ -5062,7 +5062,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 else
                 {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it->first, start);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it.first, start);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5083,14 +5083,14 @@ void xLightsFrame::CheckSequence(bool display)
 
                     if (o == nullptr)
                     {
-                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined universe %d.", it->first, start, universe);
+                        wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined universe %d.", it.first, start, universe);
                         LogAndWrite(f, msg.ToStdString());
                         errcount++;
                     }
                 }
                 else
                 {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it->first, start);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' invalid.", it.first, start);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5104,7 +5104,7 @@ void xLightsFrame::CheckSequence(bool display)
 
                 if (output < 1 || output > cnt)
                 {
-                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it->first, start, output, cnt);
+                    wxString msg = wxString::Format("    ERR: Model '%s' start channel '%s' refers to undefined output %d. Only %d outputs are defined.", it.first, start, output, cnt);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5123,27 +5123,25 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "Overlapping model channels");
 
     // Check for overlapping channels in models
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it)
     {
         if (it->second->GetDisplayAs() != "ModelGroup")
         {
-            int m1start = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-            int m1end = m1start + it->second->GetChanCount() - 1;
-            //int m1end = m1start + it->second->GetActChanCount() - 1; // I dont think this is a good idea
+            auto m1start = it->second->GetFirstChannel() + 1;
+            auto m1end = it->second->GetLastChannel() + 1;
 
-            auto it2 = it;
-            ++it2;
-            for (; it2 != AllModels.end(); ++it2)
+            for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2)
             {
                 if (it2->second->GetDisplayAs() != "ModelGroup")
                 {
-                    int m2start = it2->second->GetNumberFromChannelString(it2->second->ModelStartChannel);
-                    int m2end = m2start + it2->second->GetChanCount() - 1;
-                    //int m2end = m2start + it2->second->GetActChanCount() - 1; // I dont think this is a good idea
+                    auto m2start = it2->second->GetFirstChannel() + 1;
+                    auto m2end = it2->second->GetLastChannel() + 1;
 
                     if (m2start <= m1end && m2end >= m1start)
                     {
-                        wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%d-%d) and '%s' (%d-%d).", it->first, m1start, m1end, it2->first, m2start, m2end);
+                        wxString msg = wxString::Format("    WARN: Probable model overlap '%s' (%ld-%ld) and '%s' (%ld-%ld).", 
+                            it->first, (long)m1start, (long)m1end, 
+                            it2->first, (long)m2start, (long)m2end);
                         LogAndWrite(f, msg.ToStdString());
                         warncount++;
                     }
@@ -5164,18 +5162,18 @@ void xLightsFrame::CheckSequence(bool display)
     std::map<std::string, std::list<Model*>*> modelsByPort;
 
     // Check for non contiguous models on the same controller connection
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() != "ModelGroup")
+        if (it.second->GetDisplayAs() != "ModelGroup")
         {
             std::string cc = "";
-            if (it->second->IsControllerConnectionValid())
+            if (it.second->IsControllerConnectionValid())
             {
-                cc = wxString::Format("%s:%d", it->second->GetProtocol(), it->second->GetPort()).ToStdString();
+                cc = wxString::Format("%s:%d", it.second->GetProtocol(), it.second->GetPort()).ToStdString();
             }
             if (cc != "")
             {
-                long start = it->second->GetFirstChannel() + 1;
+                long start = it.second->GetFirstChannel() + 1;
                 long sc;
                 Output* o = _outputManager.GetOutput(start, sc);
 
@@ -5186,7 +5184,7 @@ void xLightsFrame::CheckSequence(bool display)
                     {
                         modelsByPort[key] = new std::list<Model*>();
                     }
-                    modelsByPort[key]->push_back(it->second);
+                    modelsByPort[key]->push_back(it.second);
                 }
             }
         }
@@ -5325,29 +5323,29 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model Groups containing models from different previews");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() == "ModelGroup")
+        if (it.second->GetDisplayAs() == "ModelGroup")
         {
-            std::string mgp = it->second->GetLayoutGroup();
+            std::string mgp = it.second->GetLayoutGroup();
 
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg == nullptr)
             {
                 // this should never happen
-                logger_base.error("Model %s says it is a model group but it doesnt cast as one.", (const char *)it->second->GetName().c_str());
+                logger_base.error("Model %s says it is a model group but it doesnt cast as one.", (const char *)it.second->GetName().c_str());
             }
             else
             {
                 auto models = mg->ModelNames();
 
-                for (auto it2 = models.begin(); it2 != models.end(); ++it2)
+                for (auto it2 : models)
                 {
-                    Model* m = AllModels.GetModel(*it2);
+                    Model* m = AllModels.GetModel(it2);
                     if (m == nullptr)
                     {
                         // this should never happen
-                        logger_base.error("Model Group %s contains non existent model %s.", (const char *)mg->GetName().c_str(), (const char *)(*it2).c_str());
+                        logger_base.error("Model Group %s contains non existent model %s.", (const char *)mg->GetName().c_str(), (const char *)it2.c_str());
                     }
                     else if (m->GetDisplayAs() != "ModelGroup")
                     {
@@ -5375,11 +5373,9 @@ void xLightsFrame::CheckSequence(bool display)
     LogAndWrite(f, "");
     LogAndWrite(f, "Model/Model Groups without distinct names");
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it = std::begin(AllModels); it != std::end(AllModels); ++it)
     {
-        auto it2 = it;
-        ++it2;
-        for (; it2 != AllModels.end(); ++it2)
+        for (auto it2 = std::next(it); it2 != std::end(AllModels); ++it2)
         {
             if (it->second->GetName() == it2->second->GetName())
             {
@@ -5403,11 +5399,11 @@ void xLightsFrame::CheckSequence(bool display)
 
     std::list<std::string> emptyModelGroups;
 
-    for (auto it = AllModels.begin(); it != AllModels.end(); ++it)
+    for (auto it : AllModels)
     {
-        if (it->second->GetDisplayAs() == "ModelGroup")
+        if (it.second->GetDisplayAs() == "ModelGroup")
         {
-            ModelGroup* mg = dynamic_cast<ModelGroup*>(it->second);
+            ModelGroup* mg = dynamic_cast<ModelGroup*>(it.second);
             if (mg != nullptr) // this should never fail
             {
                 auto models = mg->ModelNames();
@@ -5437,7 +5433,7 @@ void xLightsFrame::CheckSequence(bool display)
                 }
                 if (modelCount == 0)
                 {
-                    emptyModelGroups.push_back(it->first);
+                    emptyModelGroups.push_back(it.first);
                 }
             }
         }
@@ -5693,12 +5689,12 @@ void xLightsFrame::CheckSequence(bool display)
             wxArrayString modelnames = wxSplit(models, ',');
 
             std::list<std::string> seenmodels;
-            for (auto it = modelnames.begin(); it != modelnames.end(); ++it)
+            for (auto it : modelnames)
             {
-                Model* m = AllModels.GetModel(it->ToStdString());
+                Model* m = AllModels.GetModel(it.ToStdString());
                 if (m == nullptr)
                 {
-                    wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it->ToStdString());
+                    wxString msg = wxString::Format("    ERR: Model %s in your sequence does not seem to exist in the layout. This will need to be deleted or remapped to another model next time you load this sequence.", it);
                     LogAndWrite(f, msg.ToStdString());
                     errcount++;
                 }
@@ -5708,12 +5704,11 @@ void xLightsFrame::CheckSequence(bool display)
                     {
                         ModelGroup* mg = dynamic_cast<ModelGroup*>(m);
                         if (mg == nullptr) logger_base.crit("CheckSequence ModelGroup cast was null. We are about to crash.");
-                        auto cm = mg->Models();
-                        for (auto it2 = cm.begin(); it2 != cm.end(); ++it2)
+                        for (auto it2 : mg->Models())
                         {
-                            if (std::find(seenmodels.begin(), seenmodels.end(), (*it2)->GetName()) != seenmodels.end())
+                            if (std::find(seenmodels.begin(), seenmodels.end(), it2->GetName()) != seenmodels.end())
                             {
-                                wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), (*it2)->GetName());
+                                wxString msg = wxString::Format("    WARN: Model Group '%s' will hide effects on model '%s'.", mg->GetName(), it2->GetName());
                                 LogAndWrite(f, msg.ToStdString());
                                 warncount++;
                             }
