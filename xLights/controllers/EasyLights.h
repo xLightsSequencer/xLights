@@ -120,27 +120,25 @@ public:
 	wxIPV4address controller;
 	std::string controller_ip;
 
-#pragma pack(push)
-#pragma pack(2)
 	struct Tag_UDP_Packet_Request
 	{
-		wxUint16 AbsoluteMsgSize;
-		wxUint16 CMD;
-		wxUint16 MSG_Size;
+		wxUint32 AbsoluteMsgSize;
+		wxUint32 CMD;
+		wxUint32 MSG_Size;
 		wxUint32 Xlights_IP;
-		wxUint16 Index;			// variable associated with CMD
-		wxUint16 Max_Port_Config_Row;
+		wxUint32 Index;			// variable associated with CMD
+		wxUint32 Max_Port_Config_Row;
 	};
 
 	struct Tag_UDP_Packet_Reply
 	{
-		wxUint16 AbsoluteMsgSize;
-		wxUint16 CMD;
-		wxUint16 type;
-		wxUint16 FW_Version;
-		wxUint16 Reply;	// 0 = no error, else error #
+		wxUint32 AbsoluteMsgSize;
+		wxUint32 CMD;
+		wxUint32 type;
+		wxUint32 FW_Version;
+		wxUint32 Reply;	// 0 = no error, else error #
 	};
-#pragma pack(pop)
+
 
 	struct Tag_UDP_Packet_Reply *Reply;
 

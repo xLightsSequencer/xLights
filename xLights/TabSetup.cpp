@@ -1477,7 +1477,6 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
     mnuUploadController->Append(ID_NETWORK_UCOUTPUT, "Output", mnuUCOutput, "");
     mnuUCOutput->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
-	//************************************
 
 	wxMenu* mnuUCReset= new wxMenu();
 
@@ -1498,8 +1497,6 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 	mnuUploadController->Append(ID_NETWORK_UCRESET, "Reset", mnuUCReset, "");
 	mnuUCReset->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
 
-
-	//***************************************
 
     mnu.Append(ID_NETWORK_UPLOADCONTROLLER, "Upload To Controller", mnuUploadController, "");
     mnuUploadController->Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnNetworkPopup, nullptr, this);
