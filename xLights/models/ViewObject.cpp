@@ -65,6 +65,9 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         active = event.GetValue().GetBool();
         if (active) {
             ModelXml->AddAttribute("Active", "1");
+        } else
+        {
+            ModelXml->AddAttribute("Active", "0");
         }
         IncrementChangeCount();
         return 3 | 0x0008;
