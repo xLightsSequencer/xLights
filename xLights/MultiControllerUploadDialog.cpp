@@ -14,7 +14,7 @@
 #include "controllers/SanDevices.h"
 #include "controllers/Pixlite16.h"
 #include "controllers/Falcon.h"
-#include "controllers/EasyLights.h"
+
 
 //(*IdInit(MultiControllerUploadDialog)
 const long MultiControllerUploadDialog::ID_STATICTEXT1 = wxNewId();

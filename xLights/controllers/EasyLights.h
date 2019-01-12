@@ -7,6 +7,11 @@
 #include <wx/xml/xml.h>
 #include <list>
 
+
+wxUint16 Get_Network_Pack_word(wxByte *Start_Of_Struct, int Offset);
+void Set_Network_Pack_dword(wxByte *Start_Of_Struct, int Offset, wxUint32 V);
+void Set_Network_Pack_word(wxByte *Start_Of_Struct, int Offset, wxUint16 V);
+
 class Output;
 class OutputManager;
 class ModelManager;
@@ -24,6 +29,7 @@ enum
 	UDP_CMD_Xlights_Get_Port_Config_Row,
 	UDP_CMD_Xlights_Send_Port_Config_Row,
 	UDP_CMD_Xlights_Send_DMX_Univ,
+	UDP_CMD_Xlights_Send_NetworkType,
 };
 
 #define Controller_Recv_Port	49147
@@ -120,27 +126,56 @@ public:
 	wxIPV4address controller;
 	std::string controller_ip;
 
+	/*** reference only -- use network packing functions --- controller expects these structures
+
+	wxUint16 Get_Network_Pack_word(wxByte *Start_Of_Struct, int Offset);
+	void Set_Network_Pack_dword(wxByte *Start_Of_Struct, int Offset, wxUint32 V);
+	void Set_Network_Pack_word(wxByte *Start_Of_Struct, int Offset, wxUint16 V);
+
+	These are PACK'd 2 bytes little endian
+
 	struct Tag_UDP_Packet_Request
 	{
-		wxUint32 AbsoluteMsgSize;
-		wxUint32 CMD;
-		wxUint32 MSG_Size;
-		wxUint32 Xlights_IP;
-		wxUint32 Index;			// variable associated with CMD
-		wxUint32 Max_Port_Config_Row;
+		word AbsoluteMsgSize;
+		word CMD;
+		word MSG_Size;
+		dword Xlights_IP;
+		word Index;			// variable associated with CMD
+		word Max_Port_Config_Row;
+		word DMX_Chans;
 	};
 
 	struct Tag_UDP_Packet_Reply
 	{
-		wxUint32 AbsoluteMsgSize;
-		wxUint32 CMD;
-		wxUint32 type;
-		wxUint32 FW_Version;
-		wxUint32 Reply;	// 0 = no error, else error #
+		word AbsoluteMsgSize;
+		word CMD;
+		word type;
+		word FW_Version;
+		word Reply;	// 0 = no error, else error #
 	};
+	****/
+
+#define Size_struct_Tag_UDP_Packet_Request 16
+#define Tag_UDP_Packet_Request_Offset_AbsoluteMsgSize 0
+#define Tag_UDP_Packet_Request_Offset_CMD 2
+#define Tag_UDP_Packet_Request_Offset_MSG_Size 4
+#define Tag_UDP_Packet_Request_Offset_Xlights_IP 6
+#define Tag_UDP_Packet_Request_Offset_Index 10
+#define Tag_UDP_Packet_Request_Offset_Max_Port_Config_Row 12
+#define Tag_UDP_Packet_Request_Offset_DMX_Chans 14
 
 
-	struct Tag_UDP_Packet_Reply *Reply;
+#define Size_struct_Tag_UDP_Packet_Reply 10
+#define Tag_UDP_Packet_Reply_Offset_AbsoluteMsgSize 0
+#define Tag_UDP_Packet_Reply__Offset_CMD 2
+#define Tag_UDP_Packet_Reply_Offset_type 4
+#define Tag_UDP_Packet_Reply_Offset_FW_Version 6
+#define Tag_UDP_Packet_Reply_Offset_Reply 8
+
+
+
+	//struct Tag_UDP_Packet_Reply *Reply;
+	wxByte *Reply;
 
 	EasyLights_Network_Communication();
 	virtual ~EasyLights_Network_Communication();
@@ -154,10 +189,11 @@ public:
 	// all return true if failure detected - false = complete nor errors
 	bool Initial_Connection(const std::string& ip, wxByte *Board_type, wxUint16 *firmwareVersion);
 	bool Command_Reset_Controller(const std::string& ip);
-	bool Send_Universe_Data(std::vector<EasyLights_E131*>& e131, int E131_Artnet);
-	bool Get_Port_Config_Row(std::vector<std::string>&  Row_Data);
-	bool Send_Port_Config_Row(std::vector<EasyLightsString*> MystringData);
-	bool Send_DMX_Universe(int DMX_Univ);
+	bool Send_Universe_Data(std::vector<EasyLights_E131*>& e131);
+	bool Get_Port_Config_Rows(std::vector<std::string>&  Row_Data);
+	bool Send_Port_Config_Rows(std::vector<EasyLightsString*> MystringData);
+	bool Send_DMX_Universe(int DMX_Univ, wxUint32 Start_Chan, wxUint32 Num_Chans);
+	bool Send_Network_Type(int DMX_Univ);
 
 };
 
@@ -173,6 +209,7 @@ class EasyLights
 	wxByte Board_type;		// 1 = pixel 17 ports, 2 = AC 25 ports
 	int _version;
 	int _model;
+	int Network_Type;
 
 	std::string controller_ip;
 
@@ -180,6 +217,13 @@ class EasyLights
 	wxUint32 Last_Channel_Supported;
 
 
+	enum
+	{
+		Network_E131 = 1,
+		Network_ArtNet,
+		Network_DDP,
+
+	};
 
 
 	
@@ -201,14 +245,15 @@ class EasyLights
 	int DecodeSerialOutputProtocol(std::string protocol) const;
 	void UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent);
 	int GetMaxSerialOutputs() const;
-	int Build_E131_Channel_Map(OutputManager* outputManager, std::list<int>& selected);
+	int Build_E131_Channel_Map(std::list<Output*>& outputs);
 	int UploadStringPorts(const std::vector<EasyLightsString*>& stringData);
+	int Check_And_Return_Controllers_Network_Type(std::list<Output*>& outputs);
 
+	int Send_E131_Data_to_Controller(std::list<Output*>& outputs);
 
 public:
     EasyLights(const std::string& ip, int Reset);
     virtual ~EasyLights();
-    bool SetInputUniverses(OutputManager* outputManager, std::list<int>& selected);
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
 	bool Test_Reset_Complete();
 };
