@@ -180,9 +180,9 @@ public:
 	EasyLights_Network_Communication();
 	virtual ~EasyLights_Network_Communication();
 
-	wxUint32 Convert_IP_String(const char *IP);
+	wxUint32 Convert_IP_String(const char *IP) const;
 	int Get_Controller_Reply();
-	wxByte* Build_Output_UDP_Header(wxByte *Buff, int Absolute_Size);
+	wxByte* Build_Output_UDP_Header(wxByte *Buff, int Absolute_Size) const;
 
 	bool Send_UDP_Packet_Acquire_Reply(wxByte *B, int SZ);
 
@@ -225,10 +225,6 @@ class EasyLights
 
 	};
 
-
-	
-
-
 	int GetMaxPixels() const;
 	void Set_Model_Version_Based_on_Type();
 	void ReadStringData(std::vector<EasyLightsString*>& stringData, std::vector<std::string>&  Row_Data) const;
@@ -255,8 +251,7 @@ public:
     EasyLights(const std::string& ip, int Reset);
     virtual ~EasyLights();
     bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent);
-	bool Test_Reset_Complete();
+	bool Test_Reset_Complete() const;
 };
-
 
 #endif

@@ -15,7 +15,6 @@
 #include "controllers/Pixlite16.h"
 #include "controllers/Falcon.h"
 
-
 //(*IdInit(MultiControllerUploadDialog)
 const long MultiControllerUploadDialog::ID_STATICTEXT1 = wxNewId();
 const long MultiControllerUploadDialog::ID_STATICTEXT2 = wxNewId();

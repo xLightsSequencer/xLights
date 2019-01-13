@@ -1119,8 +1119,6 @@ public:
 	void PingController(Output* e);
 	void UploadEasyLightsOutput();
 
-	
-
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
     void DeactivateUnusedNetworks();
@@ -1563,11 +1561,7 @@ private:
     static const long ID_NETWORK_PINGCONTROLLER;
 	static const long ID_NETWORK_UCOEASYLIGHTS;
 
-
-
-
-
-#define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
+    #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ

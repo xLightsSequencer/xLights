@@ -75,8 +75,6 @@ const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
 
-
-
 const long ID_NETWORK_UCOFPP_PIHAT = wxNewId();
 
 const long ID_NETWORK_UCOFPP_F4B = wxNewId();
@@ -1404,7 +1402,6 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
 		}
 	}
 
-
     bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
     bool allSupportIp = AllSelectedSupportIP();
     bool doEnable = allSupportIp && (selcnt == 1 || validIpNoType);
@@ -1642,7 +1639,6 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
 		UploadEasyLightsOutput();
 	}
 }
-
 
 void xLightsFrame::OnGridNetworkItemSelect(wxListEvent& event)
 {
@@ -2088,8 +2084,6 @@ void xLightsFrame::PingController(Output* e)
 	}
 }
 
-
-
 void xLightsFrame::UploadEasyLightsOutput()
 {
 	SetStatusText("");
@@ -2125,6 +2119,3 @@ void xLightsFrame::UploadEasyLightsOutput()
 		SetCursor(wxCURSOR_ARROW);
 	}
 }
-
-
-

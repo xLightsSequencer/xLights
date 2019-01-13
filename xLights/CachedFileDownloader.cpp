@@ -240,7 +240,7 @@ void CachedFileDownloader::LoadCache()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    _cacheItems.empty();
+    _cacheItems.clear();
 
     if (!Initialize())
     {

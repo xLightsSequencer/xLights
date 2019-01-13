@@ -9,17 +9,19 @@
 #include "../outputs/Output.h"
 #include "../models/ModelManager.h"
 #include "ControllerUploadData.h"
-
-#include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
 
-
+#include <log4cpp/Category.hh>
 
 EasyLights_Network_Communication::EasyLights_Network_Communication()
 {
 	Xlights_IP_DW = 0;
 	udp = nullptr;
 	Reset_Complete = 0;
+    _firmwareVersion = 0;
+    _Board_type = 0;
+    Start_Of_Recv_Message = nullptr;
+    Reply = nullptr;
 }
 
 EasyLights_Network_Communication::~EasyLights_Network_Communication()
@@ -36,13 +38,12 @@ bool EasyLights_Network_Communication::Send_UDP_Packet_Acquire_Reply(wxByte *B, 
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
 	int Actuall_Sent = 0;
-	int r;
 
-	while(1)
+    while (true)
 	{
 		udp->SendTo(controller, (const void*)&B[Actuall_Sent], (SZ - Actuall_Sent));
 
-		r = udp->LastError();
+		int r = udp->LastError();
 		if(r)
 		{
 			logger_base.error("Error Transmit/Connecting to EasyLights  UDP Error %d : %s. %s", udp->LastError(), (const char *)DecodeIPError(udp->LastError()).c_str(), (const char *)controller_ip.c_str());
@@ -55,9 +56,7 @@ bool EasyLights_Network_Communication::Send_UDP_Packet_Acquire_Reply(wxByte *B, 
 			break;
 	}
 
-
 	return Get_Controller_Reply();
-
 }
 
 
@@ -68,7 +67,6 @@ bool EasyLights_Network_Communication::Initial_Connection(const std::string& ip,
 
 	logger_base.debug("Connecting to EasyLights on %s.", (const char *)controller_ip.c_str());
 	logger_base.debug("Xlights Local IP %s.", (const char *)Xlights_IP.c_str());
-
 
 	controller_ip = ip;
 
@@ -85,34 +83,29 @@ bool EasyLights_Network_Communication::Initial_Connection(const std::string& ip,
 	if(udp == nullptr)
 	{
 		logger_base.error("Error initializing EasyLights datagram. %s", (const char *)Xlights_IP.c_str());
-		return 1;
+		return true;
 	}
 	else if(!udp->IsOk())
 	{
 		logger_base.error("Error initializing EasyLights datagram ... is network connected? OK: FALSE %s", (const char *)Xlights_IP.c_str());
 		udp->Destroy();
 		udp = nullptr;
-		return 1;
+		return true;
 	}
 	else if(udp->Error() != wxSOCKET_NOERROR)
 	{
 		logger_base.error("Error creating EasyLights datagram => %d : %s. %s", udp->LastError(), (const char *)DecodeIPError(udp->LastError()).c_str(), (const char *)Xlights_IP.c_str());
 		udp->Destroy();
 		udp = nullptr;
-		return 1;
+		return true;
 	}
-
 
 	udp->SetTimeout(3);
 
-
 	wxByte B[6 + Size_struct_Tag_UDP_Packet_Request]; // 6 for 3 byte header and trailer
 	int AbsSize = sizeof(B);
-	wxByte *M;
-	int r;
 
-	M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
-
+    wxByte *M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
 
 	//M->MSG_Size = 0;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_MSG_Size, 0);
@@ -129,7 +122,7 @@ bool EasyLights_Network_Communication::Initial_Connection(const std::string& ip,
 	//M->Index = 0;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_Index, 0);
 
-	r = Send_UDP_Packet_Acquire_Reply(B, AbsSize);
+	int r = Send_UDP_Packet_Acquire_Reply(B, AbsSize);
 
 	if(r == 0)
 	{
@@ -143,17 +136,14 @@ bool EasyLights_Network_Communication::Initial_Connection(const std::string& ip,
 	}
 
 	return r;
-
 }
 
 bool EasyLights_Network_Communication::Command_Reset_Controller(const std::string& ip)
 {
-
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
 	logger_base.debug("Resetting EasyLights on %s.", (const char *)controller_ip.c_str());
 	logger_base.debug("Xlights Local IP %s.", (const char *)Xlights_IP.c_str());
-
 
 	controller_ip = ip;
 
@@ -170,34 +160,29 @@ bool EasyLights_Network_Communication::Command_Reset_Controller(const std::strin
 	if(udp == nullptr)
 	{
 		logger_base.error("Error initializing EasyLights datagram. %s", (const char *)Xlights_IP.c_str());
-		return 1;
+		return true;
 	}
 	else if(!udp->IsOk())
 	{
 		logger_base.error("Error initializing EasyLights datagram ... is network connected? OK: FALSE %s", (const char *)Xlights_IP.c_str());
 		udp->Destroy();
 		udp = nullptr;
-		return 1;
+		return true;
 	}
 	else if(udp->Error() != wxSOCKET_NOERROR)
 	{
 		logger_base.error("Error creating EasyLights datagram => %d : %s. %s", udp->LastError(), (const char *)DecodeIPError(udp->LastError()).c_str(), (const char *)Xlights_IP.c_str());
 		udp->Destroy();
 		udp = nullptr;
-		return 1;
+		return true;
 	}
-
 
 	udp->SetTimeout(3);
 
-
 	wxByte B[6 + Size_struct_Tag_UDP_Packet_Request]; // 6 for 3 byte header and trailer
 	int AbsSize = sizeof(B);
-	wxByte *M;
-	int r;
 
-	M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
-
+    wxByte *M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
 
 	//M->MSG_Size = 0;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_MSG_Size, 0);
@@ -214,7 +199,7 @@ bool EasyLights_Network_Communication::Command_Reset_Controller(const std::strin
 	//M->Index = 0;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_Index, 0);
 
-	r = Send_UDP_Packet_Acquire_Reply(B, AbsSize);
+	int r = Send_UDP_Packet_Acquire_Reply(B, AbsSize);
 
 	udp->Destroy();
 	udp = nullptr;
@@ -223,12 +208,10 @@ bool EasyLights_Network_Communication::Command_Reset_Controller(const std::strin
 		Reset_Complete = 1;
 
 	return r;
-
 }
 
 bool EasyLights_Network_Communication::Send_Universe_Data(std::vector<EasyLights_E131*>& e131)
 {
-
 	memset(Xmit_Buffer, 0, Controller_MTU_Size);
 
 	int MessageSize = ((e131.size() * 2) + 1) * sizeof(wxUint16);	// we send array of 16 bit words
@@ -239,21 +222,15 @@ bool EasyLights_Network_Communication::Send_Universe_Data(std::vector<EasyLights
 
 	*Wptr++ = e131.size();
 
-	int i;
-	int r;
-
-	for(i = 0; i < e131.size(); i++)
+    for(int i = 0; i < e131.size(); i++)
 	{
 		*Wptr++ = e131[i]->Univ;
 		*Wptr++ = e131[i]->Channels;
 	}
 
 	int AbsSize = Size_struct_Tag_UDP_Packet_Request + 6 + MessageSize;
-	wxByte *M;
 
-
-	M = Build_Output_UDP_Header((wxByte*)Xmit_Buffer, AbsSize);
-
+    wxByte *M = Build_Output_UDP_Header((wxByte*)Xmit_Buffer, AbsSize);
 
 	//M->MSG_Size = MessageSize;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_MSG_Size, MessageSize);
@@ -270,11 +247,9 @@ bool EasyLights_Network_Communication::Send_Universe_Data(std::vector<EasyLights
 	//M->Index = 0;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_Index, 0);
 
-	r = Send_UDP_Packet_Acquire_Reply(Xmit_Buffer, AbsSize);
+	int r = Send_UDP_Packet_Acquire_Reply(Xmit_Buffer, AbsSize);
 
 	return r;
-
-
 }
 
 bool EasyLights_Network_Communication::Get_Port_Config_Rows(std::vector<std::string>&  Row_Data)
@@ -282,13 +257,10 @@ bool EasyLights_Network_Communication::Get_Port_Config_Rows(std::vector<std::str
 	wxByte B[6 + Size_struct_Tag_UDP_Packet_Request];
 
 	int AbsSize = Size_struct_Tag_UDP_Packet_Request + 6;
-	wxByte *M;
 
-	int Row_Index = 0;
-	int r;
+    int Row_Index = 0;
 
-
-	M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
+    wxByte *M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
 
 
 	//M->MSG_Size = 0;
@@ -303,12 +275,12 @@ bool EasyLights_Network_Communication::Get_Port_Config_Rows(std::vector<std::str
 	//M->CMD = UDP_CMD_Xlights_Get_Port_Config_Row;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_CMD, UDP_CMD_Xlights_Get_Port_Config_Row);
 
-	while(1)
+	while (true)
 	{
 		//M->Index = Row_Index;
 		Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_Index, Row_Index);
 
-		r = Send_UDP_Packet_Acquire_Reply(B, AbsSize);
+		int r = Send_UDP_Packet_Acquire_Reply(B, AbsSize);
 		if(r)
 			return 1;
 
@@ -320,28 +292,21 @@ bool EasyLights_Network_Communication::Get_Port_Config_Rows(std::vector<std::str
 			Row_Data.push_back((char*)Start_Of_Recv_Message);
 		}
 		else
-			return 0;
+			return false;
 
 		Row_Index++;
 	}
 
-	return 1;
+	return true;
 }
 
 bool EasyLights_Network_Communication::Send_Port_Config_Rows(std::vector<EasyLightsString*> MystringData)
 {
-	int i, r;
+    memset(Xmit_Buffer, 0, Controller_MTU_Size);
+    char *SOM = (char*)(3 + Size_struct_Tag_UDP_Packet_Request + Xmit_Buffer);
 
-	memset(Xmit_Buffer, 0, Controller_MTU_Size);
-	int MessageSize;
-	int AbsSize;
-	wxByte *M;
-	char *SOM = (char*)(3 + Size_struct_Tag_UDP_Packet_Request + Xmit_Buffer);
-
-
-	for(i = 0; i < MystringData.size(); i++)
+	for(int i = 0; i < MystringData.size(); i++)
 	{
-
 		sprintf(SOM, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
 			MystringData[i]->Port_Segment,
 			MystringData[i]->StringType,
@@ -359,11 +324,11 @@ bool EasyLights_Network_Communication::Send_Port_Config_Rows(std::vector<EasyLig
 			MystringData[i]->Gamma,
 			MystringData[i]->Slots);
 
-		MessageSize = strlen(SOM) + 1;	// include term zero
+		int MessageSize = strlen(SOM) + 1;	// include term zero
 
-		AbsSize = Size_struct_Tag_UDP_Packet_Request + 6 + MessageSize;
+		int AbsSize = Size_struct_Tag_UDP_Packet_Request + 6 + MessageSize;
 
-		M = Build_Output_UDP_Header((wxByte*)Xmit_Buffer, AbsSize);
+		wxByte *M = Build_Output_UDP_Header((wxByte*)Xmit_Buffer, AbsSize);
 
 		//M->MSG_Size = MessageSize;
 		Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_MSG_Size, MessageSize);
@@ -383,15 +348,13 @@ bool EasyLights_Network_Communication::Send_Port_Config_Rows(std::vector<EasyLig
 		//M->Max_Port_Config_Row = MystringData.size();
 		Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_Max_Port_Config_Row, MystringData.size());
 
-
-		r = Send_UDP_Packet_Acquire_Reply(Xmit_Buffer, AbsSize);
+		int r = Send_UDP_Packet_Acquire_Reply(Xmit_Buffer, AbsSize);
 
 		if(r)
 			return r;
 	}
 
-	return 0;
-
+	return false;
 }
 
 bool EasyLights_Network_Communication::Send_DMX_Universe(int DMX_Univ, wxUint32 Start_Chan, wxUint32 Num_Chans)
@@ -399,9 +362,8 @@ bool EasyLights_Network_Communication::Send_DMX_Universe(int DMX_Univ, wxUint32 
 
 	wxByte B[6 + Size_struct_Tag_UDP_Packet_Request]; // 6 for 3 byte header and trailer
 	int AbsSize = sizeof(B);
-	wxByte *M;
 
-	M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
+    wxByte *M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
 
 	//M->MSG_Size = 0;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_MSG_Size, 0);
@@ -423,18 +385,15 @@ bool EasyLights_Network_Communication::Send_DMX_Universe(int DMX_Univ, wxUint32 
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_DMX_Chans, Num_Chans);
 
 	return Send_UDP_Packet_Acquire_Reply(B, AbsSize);
-
 }
-
 
 bool EasyLights_Network_Communication::Send_Network_Type(int DMX_Univ)
 {
 
 	wxByte B[6 + Size_struct_Tag_UDP_Packet_Request]; // 6 for 3 byte header and trailer
 	int AbsSize = sizeof(B);
-	wxByte *M;
 
-	M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
+    wxByte *M = Build_Output_UDP_Header((wxByte*)B, AbsSize);
 
 	//M->MSG_Size = 0;
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_MSG_Size, 0);
@@ -452,11 +411,9 @@ bool EasyLights_Network_Communication::Send_Network_Type(int DMX_Univ)
 	Set_Network_Pack_word(M, Tag_UDP_Packet_Request_Offset_Index, DMX_Univ);
 
 	return Send_UDP_Packet_Acquire_Reply(B, AbsSize);
-
 }
 
-
-wxByte* EasyLights_Network_Communication::Build_Output_UDP_Header(wxByte *B, int ABSZ)
+wxByte* EasyLights_Network_Communication::Build_Output_UDP_Header(wxByte *B, int ABSZ) const
 {
 	B[0] = 'J';
 	B[1] = 'H';
@@ -467,19 +424,15 @@ wxByte* EasyLights_Network_Communication::Build_Output_UDP_Header(wxByte *B, int
 	B[ABSZ - 1] = 'E';
 
 	return &B[3];
-
 }
 
 int EasyLights_Network_Communication::Get_Controller_Reply()
 {
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-	int n;
-	int Acquired = 0;
-	wxUint16 Reply_AbsoluteMsgSize;
-	wxUint16 Reply_type, Reply_FW_Version;
+    int Acquired = 0;
 
-	wxIPV4address Controller_Address_From_UDP;
+    wxIPV4address Controller_Address_From_UDP;
 
 	memset(Rcv_Buffer, 0, Controller_MTU_Size);
 	memset((byte*)&Controller_Address_From_UDP, 0, sizeof(Controller_Address_From_UDP));
@@ -488,12 +441,11 @@ int EasyLights_Network_Communication::Get_Controller_Reply()
 
 	Start_Of_Recv_Message = Rcv_Buffer + 3 + Size_struct_Tag_UDP_Packet_Reply;
 
-
-	while(1)
+	while (true)
 	{
 		udp->RecvFrom(Controller_Address_From_UDP, &Rcv_Buffer[Acquired], (Controller_MTU_Size - Acquired));
 
-		n = udp->LastError();	// wxSOCKET_TIMEDOUT
+		int n = udp->LastError();	// wxSOCKET_TIMEDOUT
 		if(n)
 			return -n;
 
@@ -506,20 +458,18 @@ int EasyLights_Network_Communication::Get_Controller_Reply()
 
 			Reply = &Rcv_Buffer[3];
 
-			Reply_AbsoluteMsgSize = Get_Network_Pack_word(Reply, Tag_UDP_Packet_Reply_Offset_AbsoluteMsgSize);
+			wxUint16 Reply_AbsoluteMsgSize = Get_Network_Pack_word(Reply, Tag_UDP_Packet_Reply_Offset_AbsoluteMsgSize);
 
 			if(Acquired < Reply_AbsoluteMsgSize)
 				continue;
-
 
 			if(Rcv_Buffer[Reply_AbsoluteMsgSize - 1] != 'E' || Rcv_Buffer[Reply_AbsoluteMsgSize - 2] != 'H' || Rcv_Buffer[Reply_AbsoluteMsgSize - 3] != 'J')
 				return -101;
 
 			if(Get_Network_Pack_word(Reply, Tag_UDP_Packet_Reply_Offset_Reply) == 0)
 			{
-				Reply_type = Get_Network_Pack_word(Reply, Tag_UDP_Packet_Reply_Offset_type);
-				Reply_FW_Version = Get_Network_Pack_word(Reply, Tag_UDP_Packet_Reply_Offset_FW_Version);
-
+				wxUint16 Reply_type = Get_Network_Pack_word(Reply, Tag_UDP_Packet_Reply_Offset_type);
+				wxUint16 Reply_FW_Version = Get_Network_Pack_word(Reply, Tag_UDP_Packet_Reply_Offset_FW_Version);
 
 				if(_Board_type != Reply_type || _firmwareVersion != Reply_FW_Version)	// only debug once per major call
 					logger_base.debug("Connected to Easylights Controller at IP %s - Type %d using FirmWare Version %d", (const char *)controller_ip.c_str(), Reply_type, Reply_FW_Version);
@@ -537,27 +487,21 @@ int EasyLights_Network_Communication::Get_Controller_Reply()
 	}
 
 	return 0;
-
 }
 
-
-
-
-wxUint32 EasyLights_Network_Communication::Convert_IP_String(const char *IP)
+wxUint32 EasyLights_Network_Communication::Convert_IP_String(const char *IP) const
 {
 	char B[20];
-	char *p;
-	wxByte IPB[4];
-	char *V1, *V2, *V3, *V4;
-	wxUint32 DW = 0;
+    wxByte IPB[4];
+    wxUint32 DW = 0;
 
 	memset(B, 0, 20);
 	strncpy(B, IP, 20);
 
-	p = B;
+	char *p = B;
 
 	while(*p && *p == ' ') p++;
-	V1 = p;
+	char *V1 = p;
 	while(*p && *p != '.') p++;
 	if(*p)
 	{
@@ -566,7 +510,7 @@ wxUint32 EasyLights_Network_Communication::Convert_IP_String(const char *IP)
 	}
 
 	while(*p && *p == ' ') p++;
-	V2 = p;
+	char *V2 = p;
 	while(*p && *p != '.') p++;
 	if(*p)
 	{
@@ -575,7 +519,7 @@ wxUint32 EasyLights_Network_Communication::Convert_IP_String(const char *IP)
 	}
 
 	while(*p && *p == ' ') p++;
-	V3 = p;
+	char *V3 = p;
 	while(*p && *p != '.') p++;
 	if(*p)
 	{
@@ -584,7 +528,7 @@ wxUint32 EasyLights_Network_Communication::Convert_IP_String(const char *IP)
 	}
 
 	while(*p && *p == ' ') p++;
-	V4 = p;
+	char *V4 = p;
 	while(*p && *p != ' ') p++;
 	if(*p)
 	{
@@ -600,15 +544,11 @@ wxUint32 EasyLights_Network_Communication::Convert_IP_String(const char *IP)
 	DW = (IPB[3] << 24) | (IPB[2] << 16) | (IPB[1] << 8) | IPB[0];
 
 	return DW;
-
 }
-
 
 void EasyLightsString::Dump() const
 {
-
 	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 
 	logger_base.debug("    Index %02d  Port_Segment %02d  StringType %d  Segmented %d  StartChan %d  PixelCount %d  GroupCount %d  EndChan %d  Direction %d  RGB_Order %d  NullPixels %d  ZigZig %d  ZigZagCount %d  Brightness %d  Gamma %d  Slots %d",
 
@@ -630,7 +570,6 @@ void EasyLightsString::Dump() const
 		Slots );
 }
 
-
 class EasyLightsControllerRules: public ControllerRules
 {
 	int _type;
@@ -638,13 +577,15 @@ class EasyLightsControllerRules: public ControllerRules
 	int _expansions;
 
 public:
-	EasyLightsControllerRules(int type, int version): ControllerRules()
+
+    EasyLightsControllerRules(int type, int version): ControllerRules()
 	{
 		_expansions = 0;
 		_type = type;
 		_version = version;
 	}
-	virtual ~EasyLightsControllerRules() {}
+
+    virtual ~EasyLightsControllerRules() {}
 
 	virtual int GetMaxPixelPortChannels() const override
 	{
@@ -657,7 +598,8 @@ public:
 			return 0;
 		}
 	}
-	virtual int GetMaxPixelPort() const override
+
+    virtual int GetMaxPixelPort() const override
 	{
 		if(_type == 1)
 		{
@@ -670,10 +612,12 @@ public:
 
 		return 48;
 	}
+
 	virtual int GetMaxSerialPortChannels() const override
 	{
 		return 512;
 	}
+
 	virtual int GetMaxSerialPort() const override
 	{
 		if(_type == 1)
@@ -685,6 +629,7 @@ public:
 			return 1;
 		}
 	}
+
 	virtual bool IsValidPixelProtocol(const std::string protocol) const override
 	{
 		wxString p(protocol);
@@ -692,8 +637,10 @@ public:
 		if(p == "ws2811") return true;
 
 		return false;
+	
 	}
-	virtual bool IsValidSerialProtocol(const std::string protocol) const override
+
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override
 	{
 		wxString p(protocol);
 		p = p.Lower();
@@ -701,15 +648,18 @@ public:
 
 		return false;
 	}
-	virtual bool SupportsMultipleProtocols() const override
+
+    virtual bool SupportsMultipleProtocols() const override
 	{
 		return false;
 	}
-	virtual bool AllUniversesSameSize() const override
+
+    virtual bool AllUniversesSameSize() const override
 	{
 		return false;
 	}
-	virtual std::list<std::string> GetSupportedInputProtocols() const override
+
+    virtual std::list<std::string> GetSupportedInputProtocols() const override
 	{
 		std::list<std::string> res;
 		res.push_back("E131");
@@ -717,13 +667,12 @@ public:
 		res.push_back("DDP");
 		return res;
 	}
-	virtual bool UniversesMustBeSequential() const override
+
+    virtual bool UniversesMustBeSequential() const override
 	{
 		return false;
 	}
 };
-
-
 
 int EasyLights::GetMaxPixels() const
 {
@@ -733,38 +682,32 @@ int EasyLights::GetMaxPixels() const
 		return 0;
 }
 
-
-
 EasyLights::EasyLights(const std::string& ip, int Reset)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
 	controller_ip = ip;
-
     firmwareVersion = 0;
 	_version = 0;
 	_model = 0;
 	Port_Link_List_Size = 0;
+    Port_LL_Head = nullptr;
+    Board_type = 0;
+    Network_Type = 0;
+    Last_Channel_Supported = 0;
 
 	if(Reset)
 	{
 		EL_Comm.Command_Reset_Controller(ip);
 	}
-
-
 }
-
 
 EasyLights::~EasyLights()
 {
-
 	//EL_Comm.~EasyLights_Network_Communication();
-
 }
 
-
-
-bool EasyLights::Test_Reset_Complete()
+bool EasyLights::Test_Reset_Complete() const
 {
 	return EL_Comm.Reset_Complete;
 }
@@ -787,7 +730,6 @@ void EasyLights::Set_Model_Version_Based_on_Type()
 	}
 
 }
-
 
 bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, std::list<int>& selected, wxWindow* parent)
 {
@@ -818,7 +760,6 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 	// set model/version variables based on Easylights type
 
 	Set_Model_Version_Based_on_Type();
-
 
 	wxProgressDialog progress("Uploading ...", "", 100, parent, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 	progress.Show();
@@ -871,8 +812,6 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 		return false;	// error
 
 	
-	int mainPixels = GetMaxPixels();
-
 	ReadStringData(stringData, Config_Rows);	// convert control EasyLights port config data to string array
 
 	logger_base.debug("Downloaded string data.");
@@ -882,7 +821,7 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 	progress.Update(50, "Configuring string ports.");
 	logger_base.info("Configuring string ports.");
 
-											   // break it up into virtual strings
+	// break it up into virtual strings
 	std::vector<EasyLightsString*> newStringData;
 	std::vector<EasyLightsString*> toDelete;
 	int index = 0;
@@ -1023,9 +962,6 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 	logger_base.debug("Virtual strings created.");
 	DumpStringData(stringData);
 
-
-
-
 	if(success && cud.GetMaxPixelPort() > 0)
 	{
 		progress.Update(60, "Uploading string ports.");
@@ -1045,7 +981,6 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 			DisplayError("Not uploaded due to errors.\n" + check);
 			check = "";
 		}
-
 	}
 	else
 	{
@@ -1053,8 +988,6 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 		check = "";
 
 	}
-
-
 
 	// delete all our string data
 	while(stringData.size() > 0)
@@ -1117,13 +1050,9 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 					}
 				}
 
-
-				int i;
-
-				if(Network_Type == Network_E131 || Network_Type == Network_ArtNet)
+			    if(Network_Type == Network_E131 || Network_Type == Network_ArtNet)
 				{
-
-					for(i = 0; i < 65; i++)
+					for (int i = 0; i < 65; i++)
 					{
 						if(E131_Array[i].Univ == 0)
 						{
@@ -1177,9 +1106,6 @@ bool EasyLights::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
 	
 }
 
-
-
-
 char *ParseToken(char *p)
 {
 	while(*p && *p != ',') p++;
@@ -1192,10 +1118,9 @@ char *ParseToken(char *p)
 	return p;
 }
 
-
 void EasyLights::ReadStringData(std::vector<EasyLightsString*>& stringData, std::vector<std::string>&  Row_Data) const
 {
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	//static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
 	char PD[60];
 
@@ -1206,24 +1131,20 @@ void EasyLights::ReadStringData(std::vector<EasyLightsString*>& stringData, std:
 		stringData[i] = nullptr;
 	}
 
-	int i = 0;
-	char *p, *p1;
-
-
-	for(i = 0; i < Row_Data.size(); i++)
+    for (int i = 0; i < Row_Data.size(); i++)
 	{
 		EasyLightsString* string = new EasyLightsString();
 		stringData.push_back(string);
 
 		strcpy(PD, Row_Data[i].c_str());	// don't work with string in linke list - use temp string
 
-		p = PD;
+		char *p = PD;
 
 		while(*p && *p == ' ') p++;
 
 		string->index = i;
 
-		p1 = p;
+		char *p1 = p;
 		p = ParseToken(p);
 		string->Port_Segment = atoi(p1);
 
@@ -1293,8 +1214,6 @@ void EasyLights::DumpStringData(std::vector<EasyLightsString*> stringData) const
 	}
 }
 
-
-
 int EasyLights::DecodeBrightness(int brightnessCode) const
 {
 	switch(brightnessCode)
@@ -1316,7 +1235,6 @@ int EasyLights::DecodeBrightness(int brightnessCode) const
 	return 100;
 }
 
-
 int EasyLights::EncodeBrightness(int brightness) const
 {
 	if(brightness < 11) return 10;
@@ -1336,15 +1254,15 @@ float EasyLights::DecodeGamma(int gammaCode) const
 {
 	switch(gammaCode)
 	{
-	case 0: return 1.0;
-	case 1: return 2.0;
-	case 2: return 2.3;
-	case 3: return 2.5;
-	case 4: return 2.8;
+	case 0: return 1.0f;
+	case 1: return 2.0f;
+	case 2: return 2.3f;
+	case 3: return 2.5f;
+	case 4: return 2.8f;
 
 	default: break;
 	}
-	return 1.0;
+	return 1.0f;
 }
 
 int EasyLights::EncodeGamma(float gamma) const
@@ -1411,10 +1329,9 @@ int EasyLights::DecodeSerialOutputProtocol(std::string protocol) const
 	return -1;
 }
 
-
 void EasyLights::UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent)
 {
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+	//static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 	if(output > GetMaxSerialOutputs())
 	{
 		DisplayError("EasyLights only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", parent);
@@ -1446,18 +1363,16 @@ int EasyLights::GetMaxSerialOutputs() const
 int EasyLights::Check_And_Return_Controllers_Network_Type(std::list<Output*>& outputs)
 {
 	int Type = 0;
-	int tt;
 
-
-	for(auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (auto it : outputs)
 	{
-		tt = 0;
+		int tt = 0;
 
-		if((*it)->GetType() == "E131")
+		if(it->GetType() == "E131")
 			tt = Network_E131;
-		else if((*it)->GetType() == "ArtNet")
+		else if(it->GetType() == "ArtNet")
 			tt = Network_ArtNet;
-		else if((*it)->GetType() == "DDP")
+		else if(it->GetType() == "DDP")
 			tt = Network_DDP;
 
 		if(Type == 0)
@@ -1476,14 +1391,11 @@ int EasyLights::Check_And_Return_Controllers_Network_Type(std::list<Output*>& ou
 
 int EasyLights::Build_E131_Channel_Map(std::list<Output*>& outputs)
 {
-	int U, CH, SC;
-	wxUint32 Total_Channel_Count = 0;
-
+    wxUint32 Total_Channel_Count = 0;
 
 	memset(E131_Array, 0, sizeof(E131_Array));
 	Last_Channel_Supported = 0;
 	int E131_Array_Index = 0;
-
 
 	int Number_Of_Universes = outputs.size();
 	if(Number_Of_Universes > 65)
@@ -1492,14 +1404,11 @@ int EasyLights::Build_E131_Channel_Map(std::list<Output*>& outputs)
 		return 1;
 	}
 
-
-	for(auto it = outputs.begin(); it != outputs.end(); ++it)
+	for (auto it : outputs)
 	{
-
-
-		U = (*it)->GetUniverse();
-		CH = (*it)->GetChannels();
-		SC = (*it)->GetStartChannel();
+		int U = it->GetUniverse();
+		int CH = it->GetChannels();
+		int SC = it->GetStartChannel();
 
 		if(SC != (Total_Channel_Count + 1))
 		{
@@ -1508,7 +1417,6 @@ int EasyLights::Build_E131_Channel_Map(std::list<Output*>& outputs)
 
 		}
 
-
 		E131_Array[E131_Array_Index].Univ = U;
 		E131_Array[E131_Array_Index].Num_Chan = CH;
 		E131_Array[E131_Array_Index].Start_Chan = Total_Channel_Count + 1;
@@ -1516,8 +1424,6 @@ int EasyLights::Build_E131_Channel_Map(std::list<Output*>& outputs)
 
 		Total_Channel_Count += CH;
 		E131_Array_Index++;
-
-
 	}
 
 	Last_Channel_Supported = Total_Channel_Count;
@@ -1525,15 +1431,12 @@ int EasyLights::Build_E131_Channel_Map(std::list<Output*>& outputs)
 	return 0;
 }
 
-
-
 // here is where we do custome EasyLights port config process based on generic virtual strings
 
 int EasyLights::UploadStringPorts(const std::vector<EasyLightsString*>& stringData)
 {
-	int i;
-	int Last_Port_Processed = 0;
-	int Segment_Row_Number;
+    int Last_Port_Processed = 0;
+	int Segment_Row_Number = 0;
 
 	// If we have virtual/segmented rows, Easylights uses a master row followed by the segments that make up that row so Easylights has 1 additional row for each
 	// port that utilizes a virtual/segmented string.  That Master string must also be update to hold 
@@ -1567,11 +1470,11 @@ We will use a link list to build the actual row data to be sent to the controlle
 
 	std::vector<EasyLightsString*> MystringData;
 
-	EasyLightsString *R, *Master, *TMP;
+    EasyLightsString *Master = nullptr;
 
-	for(i = 0; i < stringData.size(); ++i)
+	for (int i = 0; i < stringData.size(); ++i)
 	{
-		R = new EasyLightsString();
+		EasyLightsString *R = new EasyLightsString();
 
 		memmove(R, stringData[i], sizeof(EasyLightsString));	// create a copy of xlights data
 
@@ -1595,7 +1498,7 @@ We will use a link list to build the actual row data to be sent to the controlle
 
 			if(Segment_Row_Number == 1)	// We need duplicate the last xlights row -- because it is really the first segment and this is segment 2
 			{
-				TMP = new EasyLightsString();
+                EasyLightsString  *TMP = new EasyLightsString();
 				memmove(TMP, Master, sizeof(EasyLightsString));	// create a copy of last master record as it will be segment 1
 
 				// Port_Master_Row is now master row
@@ -1653,13 +1556,12 @@ We will use a link list to build the actual row data to be sent to the controlle
 
 	while(Last_Port_Processed < 16)
 	{
-		TMP = new EasyLightsString();
+        EasyLightsString  *TMP = new EasyLightsString();
 		memmove(TMP, Master, sizeof(EasyLightsString));	// create a copy of last master record
 		Last_Port_Processed++;
 		TMP->Port_Segment = Last_Port_Processed;
 		MystringData.push_back(TMP);
 	}
-
 
 	// dump the data for debug
 	logger_base.debug("EasyLights Rows Created.");
@@ -1667,20 +1569,13 @@ We will use a link list to build the actual row data to be sent to the controlle
 		// send rows to controller
 
 	return EL_Comm.Send_Port_Config_Rows(MystringData);
-
 }
-
-
 
 int EasyLights::Send_E131_Data_to_Controller(std::list<Output*>& outputs)
 {
-	int r;
-	int U, CH, SC;;
-	wxUint32 Total_Channel_Count = 0;
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-
-
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    wxUint32 Total_Channel_Count = 0;
 	wxString request;
 	int output = 0;
 
@@ -1691,33 +1586,29 @@ int EasyLights::Send_E131_Data_to_Controller(std::list<Output*>& outputs)
 	}
 
 	std::vector<EasyLights_E131*> U_CH_Array;
-	EasyLights_E131 *U_CH;
 
-	for(auto it = outputs.begin(); it != outputs.end(); ++it)
+    for(auto it : outputs)
 	{
 
-		U = (*it)->GetUniverse();
-		CH = (*it)->GetChannels();
-		SC = (*it)->GetStartChannel();
+		int U = it->GetUniverse();
+		int CH = it->GetChannels();
+		int SC = it->GetStartChannel();
 
 		if(SC != (Total_Channel_Count + 1))
 		{
 			DisplayError(wxString::Format("EasyLights Channels need to be Sequencial.  Univ %d has of Start Chan of %d but was Expecting %d", U, SC, (Total_Channel_Count + 1)).ToStdString());
 			return 1;
-
 		}
 
-
-		U_CH = new EasyLights_E131;
+		EasyLights_E131 *U_CH = new EasyLights_E131;
 		U_CH->Univ = U;
 		U_CH->Channels = CH;
 		U_CH_Array.push_back(U_CH);
 
 		Total_Channel_Count += CH;
-
 	}
 
-	r = EL_Comm.Send_Universe_Data(U_CH_Array);
+	int r = EL_Comm.Send_Universe_Data(U_CH_Array);
 	if(r)
 		return 1;
 
@@ -1733,7 +1624,6 @@ void Set_Network_Pack_word(wxByte *Start_Of_Struct, int Offset, wxUint16 V)
 
 	*P++ = V & 0xff;
 	*P = (V >> 8) & 0xff;
-
 }
 
 // struct is always packed as little endian
@@ -1745,18 +1635,15 @@ void Set_Network_Pack_dword(wxByte *Start_Of_Struct, int Offset, wxUint32 V)
 	*P++ = (V >> 8) & 0xff;
 	*P++ = (V >> 16) & 0xff;
 	*P++ = (V >> 24) & 0xff;
-
 }
 
 // struct is always packed as little endian
 wxUint16 Get_Network_Pack_word(wxByte *Start_Of_Struct, int Offset)
 {
 	wxByte  *P = Start_Of_Struct + Offset;
-	wxUint16 V = 0;
-
-	V = *P++;
+	
+    wxUint16 V = *P++;
 	V |= (*P << 8);
 
 	return V;
-
 }
