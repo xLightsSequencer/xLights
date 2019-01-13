@@ -435,7 +435,7 @@ int EasyLights_Network_Communication::Get_Controller_Reply()
     wxIPV4address Controller_Address_From_UDP;
 
 	memset(Rcv_Buffer, 0, Controller_MTU_Size);
-	memset((byte*)&Controller_Address_From_UDP, 0, sizeof(Controller_Address_From_UDP));
+	memset((uint8_t*)&Controller_Address_From_UDP, 0, sizeof(Controller_Address_From_UDP));
 
 	Reply = &Rcv_Buffer[3];	// offset header
 
