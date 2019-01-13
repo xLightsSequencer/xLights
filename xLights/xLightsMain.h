@@ -1117,6 +1117,9 @@ public:
     void UploadPixlite16Output();
     void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
+	void UploadEasyLightsOutput();
+
+	
 
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
@@ -1558,6 +1561,11 @@ private:
     static const long ID_NETWORK_UCOESPIXELSTICK;
     static const long ID_NETWORK_UCOPIXLITE16;
     static const long ID_NETWORK_PINGCONTROLLER;
+	static const long ID_NETWORK_UCOEASYLIGHTS;
+
+
+
+
 
 #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

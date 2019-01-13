@@ -24,6 +24,7 @@
 #include "controllers/SanDevices.h"
 #include "controllers/J1Sys.h"
 #include "controllers/ESPixelStick.h"
+#include "controllers/EasyLights.h"
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
 #include "outputs/Output.h"
@@ -72,6 +73,10 @@ const long xLightsFrame::ID_NETWORK_UCOPIXLITE16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
+
+
+
 const long ID_NETWORK_UCOFPP_PIHAT = wxNewId();
 
 const long ID_NETWORK_UCOFPP_F4B = wxNewId();
@@ -1372,6 +1377,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
+
     wxMenuItem* beUCOJ1SYS = mnuUCOutput->Append(ID_NETWORK_UCOJ1SYS, "J1SYS");
     if (!AllSelectedSupportIP()) {
         beUCOJ1SYS->Enable(false);
@@ -1383,6 +1389,21 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             beUCOJ1SYS->Enable(valid);
         }
     }
+
+	wxMenuItem* beUCOEasyLights = mnuUCOutput->Append(ID_NETWORK_UCOEASYLIGHTS, "EasyLights");
+	if(!AllSelectedSupportIP()) {
+		beUCOEasyLights->Enable(false);
+	}
+	else {
+		if(selcnt == 1) {
+			beUCOEasyLights->Enable(true);
+		}
+		else {
+			bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
+			beUCOEasyLights->Enable(valid);
+		}
+	}
+
 
     bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
     bool allSupportIp = AllSelectedSupportIP();
@@ -1616,8 +1637,12 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_PINGCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         PingController(o);
-    }
+	}
+	else if(id == ID_NETWORK_UCOEASYLIGHTS) {
+		UploadEasyLightsOutput();
+	}
 }
+
 
 void xLightsFrame::OnGridNetworkItemSelect(wxListEvent& event)
 {
@@ -2062,3 +2087,44 @@ void xLightsFrame::PingController(Output* e)
 		}
 	}
 }
+
+
+
+void xLightsFrame::UploadEasyLightsOutput()
+{
+	SetStatusText("");
+	if(wxMessageBox("This uploads your E131, Port Configurations and Resets your EasyLights controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+	{
+		SetCursor(wxCURSOR_WAIT);
+		wxString ip;
+		std::list<int> selected = GetSelectedOutputs(ip);
+
+		if(ip == "") {
+			wxTextEntryDialog dlg(this, "EasyLights IP Address", "IP Address", ip);
+			if(dlg.ShowModal() != wxID_OK) {
+				SetCursor(wxCURSOR_ARROW);
+				return;
+			}
+			ip = dlg.GetValue();
+		}
+
+		// Recalc all the models to make sure any changes on setup are incorporated
+		RecalcModels();
+
+		EasyLights EL(ip.ToStdString(), 0);
+
+		if(EL.SetOutputs(&AllModels, &_outputManager, selected, this)) 
+		{
+			SetStatusText("EasyLights Output Upload Complete.");
+		}
+		else 
+		{
+			SetStatusText("EasyLights Output Upload Failed.");
+		}
+		
+		SetCursor(wxCURSOR_ARROW);
+	}
+}
+
+
+
