@@ -21,7 +21,7 @@ is required for xLights.  You must build wxWidgets from source.
 On OS/X, compilation is done using Xcode. Code::Blocks is not used.
 Xcode can be downloaded from the Apple developer web site. Make
 sure you install the version of Xcode that matches your version of
-OS/X. For example, I use OS/X 10.8, so I installed Xcode 9.4.
+OS/X. For example, I use OS/X 10.14, so I installed Xcode 10.0.
 Instructions are here:
 
   http://wiki.wxwidgets.org/Installing_Xcode
@@ -38,8 +38,8 @@ Then, from inside a Terminal window:
 
   cd <wxMac base dir>
   cd build
-  export CXXFLAGS="-stdlib=libc++ -std=gnu++17 -g"
-  export OBJCXXFLAGS="-stdlib=libc++ -std=gnu++17"
+  export CXXFLAGS="-stdlib=libc++ -std=c++1z -g"
+  export OBJCXXFLAGS="-stdlib=libc++ -std=c++1z"
   export CPPFLAGS="-stdlib=libc++ -g"
   export LDFLAGS="-stdlib=libc++"
   export CXX=clang++ 
@@ -51,7 +51,7 @@ Then, from inside a Terminal window:
                 --enable-debug --disable-compat30 --enable-debug_info --disable-optimise --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa  --with-opengl --disable-dependency-tracking \
                 --with-macosx-version-min=10.10 --with-libjpeg=builtin \
-                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
+                --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin
   make -j 8
   make install
@@ -59,8 +59,8 @@ Then, from inside a Terminal window:
 
 If you are planning on being able to build Release builds, you will ALSO need to do:
 
-  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++17"
-  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=gnu++17"
+  export CXXFLAGS="-stdlib=libc++ -flto=thin -std=c++1z"
+  export OBJCXXFLAGS="-stdlib=libc++ -flto=thin -std=c++1z"
   export CPPFLAGS="-stdlib=libc++ -flto=thin"
   export LDFLAGS="-stdlib=libc++ -flto=thin"
   export CXX=clang++ 
@@ -71,7 +71,7 @@ If you are planning on being able to build Release builds, you will ALSO need to
   ../configure  --disable-debug --enable-optimise --prefix=/opt/local --enable-macosx_arch=x86_64 \
                 --enable-mediactrl --with-osx_cocoa --with-opengl --disable-dependency-tracking \
                 --disable-compat30 --with-macosx-version-min=10.10 --with-libjpeg=builtin \
-                --with-cxx=17 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
+                --with-cxx=14 --enable-cxx11 --enable-std_containers --enable-std_string --enable-std_string_conv_in_wxstring \
                 --enable-backtrace --enable-exceptions --enable-aui --without-liblzma  --with-expat=builtin --disable-shared
   make -j 8
   make install
