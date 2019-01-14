@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)   Fix #1418 effects dont work correctly on strands
+   -- bug (keith)   Fix #1411 moving a model group containg a submodel in 3D crashes
+   -- bug (keith)   Fix #1400 drawing an effect reactivate inactive objects
+   -- bug (keith)   Fix FSEQ files not loading correctly
+   -- bug (keith)   Fix check sequence overlapping channel false positive if first model node is not the lowest channel
+   -- bug (keith)   Fix node layout dialog for cube model
+   -- bug (keith)   Fix submodel generation on cube models
+   -- bug (keith)   Fix strand and node names should not be duplicated on a model
+   -- enh (jhinkle) Add Easylights controller upload
 2019.04 January 11, 2019
    -- enh (gil)    Add pan based on viewing angle in 3d
    -- enh (dkulp)  Implement advanced FPP connect dialog including
