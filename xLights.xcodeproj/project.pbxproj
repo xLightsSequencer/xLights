@@ -106,6 +106,7 @@
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
+		6722E9F821EC275D0063D54E /* EasyLights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6722E9F621EC275C0063D54E /* EasyLights.cpp */; };
 		6723D3911E3946ED00355C72 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
 		6725FAE81F943AD8007F2D7C /* FPPRemotesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */; };
 		6725FAE91F943AD8007F2D7C /* GammaDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */; };
@@ -954,6 +955,8 @@
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
 		671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResizeImageDialog.cpp; sourceTree = "<group>"; };
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
+		6722E9F621EC275C0063D54E /* EasyLights.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EasyLights.cpp; path = controllers/EasyLights.cpp; sourceTree = "<group>"; };
+		6722E9F721EC275D0063D54E /* EasyLights.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EasyLights.h; path = controllers/EasyLights.h; sourceTree = "<group>"; };
 		6725FAE41F943AD7007F2D7C /* GammaDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GammaDialog.h; sourceTree = "<group>"; };
 		6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FPPRemotesDialog.cpp; sourceTree = "<group>"; };
 		6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GammaDialog.cpp; sourceTree = "<group>"; };
@@ -2647,6 +2650,8 @@
 		67BF7FF31F278946002F118D /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				6722E9F621EC275C0063D54E /* EasyLights.cpp */,
+				6722E9F721EC275D0063D54E /* EasyLights.h */,
 				67912999213423A800818B73 /* ControllerUploadData.cpp */,
 				6791299A213423A800818B73 /* ControllerUploadData.h */,
 				671142EE207BAD5400F45296 /* WebSocketClient.cpp */,
@@ -4009,6 +4014,7 @@
 				675DE2671B53381800A9BB44 /* EffectAssist.cpp in Sources */,
 				67B2CF951C39D98A003C17CA /* CirclesEffect.cpp in Sources */,
 				6762EFF51D5A323300F28879 /* SubModelsDialog.cpp in Sources */,
+				6722E9F821EC275D0063D54E /* EasyLights.cpp in Sources */,
 				67DAFDE11CA1A63C004B3237 /* Options.cpp in Sources */,
 				67D7DD041B23C586007A3F20 /* UndoManager.cpp in Sources */,
 				67AAC48E214199A7005D55A9 /* NodeSelectGrid.cpp in Sources */,
