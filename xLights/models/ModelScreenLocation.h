@@ -139,11 +139,11 @@ public:
         float z;
     };
 
-    void SetDefaultMatrices();  // for models that draw themselves
+    void SetDefaultMatrices() const;  // for models that draw themselves
     virtual void SetActiveHandle(int handle);
-    int GetActiveHandle() { return active_handle; }
+    int GetActiveHandle() const { return active_handle; }
     virtual void SetActiveAxis(int axis);
-    int GetActiveAxis() { return active_axis; }
+    int GetActiveAxis() const { return active_axis; }
     virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= (NUM_TOOLS-1); }
     virtual void SetAxisTool(int mode) { axis_tool = mode; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
@@ -152,14 +152,14 @@ public:
     virtual int GetDefaultHandle() { return CENTER_HANDLE; }
     virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
     virtual void MouseOverHandle(int handle);
-    int GetNumSelectableHandles() { return mSelectableHandles; }
+    int GetNumSelectableHandles() const { return mSelectableHandles; }
     virtual bool IsXYTransHandle() const { return false; }
-    bool GetSupportsZScaling() { return supportsZScaling; }
+    bool GetSupportsZScaling() const { return supportsZScaling; }
     void SetSupportsZScaling(bool b) {
         supportsZScaling = b;
     }
-    glm::vec3 GetWorldPosition() { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
-    glm::vec3 GetRotation() { return glm::vec3(rotatex, rotatey, rotatez); }
+    glm::vec3 GetWorldPosition() const { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
+    glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
 
 protected:
     ModelScreenLocation(int points);

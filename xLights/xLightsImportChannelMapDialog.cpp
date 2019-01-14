@@ -1693,7 +1693,7 @@ void xLightsImportChannelMapDialog::MarkUsed()
 
     int items = ListCtrl_Available->GetItemCount();
     ListCtrl_Available->Freeze();
-    for (unsigned int i = 0; i < items; ++i)
+    for (int i = 0; i < items; ++i)
     {
         if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).ToStdString()))
         {
@@ -1750,7 +1750,7 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
         {
             if (model->_mapping == "")
             {
-                for (unsigned int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
+                for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j)
                 {
                     wxString availName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower();
                     if (availName.Contains("/"))

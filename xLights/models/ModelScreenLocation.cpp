@@ -129,6 +129,7 @@ ModelScreenLocation::ModelScreenLocation(int sz)
   active_handle(-1), highlighted_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE),
   supportsZScaling(false)
 {
+    mSelectableHandles = 0;
     draw_3d = false;
     _locked = false;
 }
@@ -330,7 +331,7 @@ void ModelScreenLocation::TranslateVector(glm::vec3& point) const
     point.y = sy;
     point.z = sz;
 }
-void ModelScreenLocation::SetDefaultMatrices()
+void ModelScreenLocation::SetDefaultMatrices() const
 {
     TranslateMatrix = glm::translate(Identity, glm::vec3(worldPos_x, worldPos_y, worldPos_z));
     ModelMatrix = TranslateMatrix;
@@ -1562,22 +1563,18 @@ float BoxedScreenLocation::GetMWidth() const {
 float BoxedScreenLocation::GetMHeight() const {
     return RenderHt*scaley;
 }
-
 void BoxedScreenLocation::SetMWidth(float w)
 {
     scalex = w / RenderWi;
 }
-
 void BoxedScreenLocation::SetMDepth(float d)
 {
     scalez = d / RenderWi;
 }
-
 void BoxedScreenLocation::SetMHeight(float h)
 {
     scaley = h / RenderHt;
 }
-
 void BoxedScreenLocation::SetLeft(float x) {
     worldPos_x = x + (RenderWi*scalex / 2.0f);
 }
@@ -1598,8 +1595,12 @@ void BoxedScreenLocation::SetBack(float z) {
 }
 
 TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
-    old(nullptr), minMaxSet(false), point2(glm::vec3(0.0f)), center(glm::vec3(0.0f))
+    point2(glm::vec3(0.0f)), center(glm::vec3(0.0f)), minMaxSet(false), old(nullptr)
 {
+    x2 = 0;
+    y2 = 0;
+    z2 = 0;
+    saved_angle = 0;
     mSelectableHandles = 3;
     handle_aabb_min.push_back(glm::vec3(0.0f));
     handle_aabb_min.push_back(glm::vec3(0.0f));
@@ -1608,6 +1609,7 @@ TwoPointScreenLocation::TwoPointScreenLocation() : ModelScreenLocation(3),
     handle_aabb_max.push_back(glm::vec3(0.0f));
     handle_aabb_max.push_back(glm::vec3(0.0f));
 }
+
 TwoPointScreenLocation::~TwoPointScreenLocation() {
 }
 
@@ -1650,7 +1652,6 @@ int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
     }
     return UPGRADE_NOT_NEEDED;
 }
-
 
 void TwoPointScreenLocation::Read(wxXmlNode *ModelNode) {
     int upgrade_result = CheckUpgrade(ModelNode);
@@ -3611,7 +3612,7 @@ void PolyPointScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) con
         }
 
         if (x1p == x2p && y1p == y2p && z1p == z2p) {
-            x2p += 0.001;
+            x2p += 0.001f;
         }
         glm::vec3 pt1(x1p, y1p, z1p);
         glm::vec3 pt2(x2p, y2p, z2p);
