@@ -249,14 +249,14 @@ void MultiControllerUploadDialog::OnPopup(wxCommandEvent& event)
 {
     if (event.GetId() == ID_MCU_SELECTALL)
     {
-        for (int i = 0; i < CheckListBox_Controllers->GetCount(); i++)
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++)
         {
             CheckListBox_Controllers->Check(i);
         }
     }
     else if (event.GetId() == ID_MCU_SELECTNONE)
     {
-        for (int i = 0; i < CheckListBox_Controllers->GetCount(); i++)
+        for (size_t i = 0; i < CheckListBox_Controllers->GetCount(); i++)
         {
             CheckListBox_Controllers->Check(i, false);
         }

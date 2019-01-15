@@ -117,7 +117,7 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
             delta_x = new_x * std::cos(angleY);
             delta_y = new_y;
             delta_z = new_x * std::sin(angleY);
-            if( !upside_down_view ) {
+            if( !upside_down_view && is_3d) {
                 delta_y *= -1.0f;
             }
         }
@@ -584,7 +584,7 @@ double ModelPreview::calcPixelSize(double i) {
     return d;
 }
 
-bool ModelPreview::GetActive()
+bool ModelPreview::GetActive() const
 {
     return mPreviewPane->GetActive();
 }
