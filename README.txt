@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.05 January 15, 2019
+   -- bug (keith)   Fix controller upload picks up USB outputs
    -- bug (keith)   Fix #1418 effects dont work correctly on strands
    -- bug (keith)   Fix #1411 moving a model group containg a submodel in 3D crashes
    -- bug (keith)   Fix #1400 drawing an effect reactivate inactive objects

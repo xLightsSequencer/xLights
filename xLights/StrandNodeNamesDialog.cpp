@@ -75,7 +75,7 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	Connect(ID_BUTTONCANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnButtonCancelClick);
 	//*)
 
-    SetEscapeId(wxID_CANCEL);
+    SetEscapeId(ID_BUTTONCANCEL);
 
     ValidateWindow();
 }
