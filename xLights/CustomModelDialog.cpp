@@ -121,7 +121,6 @@ class CopyPasteGrid : public wxGrid
     {
 
     }
-
 };
 
 CustomModelDialog::CustomModelDialog(wxWindow* parent)
@@ -275,6 +274,10 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
     GridCustom->Connect(wxEVT_TEXT_CUT, (wxObjectEventFunction)&CustomModelDialog::OnCut, 0, this);
     GridCustom->Connect(wxEVT_TEXT_COPY, (wxObjectEventFunction)&CustomModelDialog::OnCopy, 0, this);
     GridCustom->Connect(wxEVT_TEXT_PASTE, (wxObjectEventFunction)&CustomModelDialog::OnPaste, 0, this);
+
+    GridCustom->EnableDragColSize(false);
+    GridCustom->EnableDragGridSize(false);
+    GridCustom->EnableDragRowSize(false);
 
     name = "";
 
