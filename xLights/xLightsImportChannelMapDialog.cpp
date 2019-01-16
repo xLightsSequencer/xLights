@@ -576,9 +576,6 @@ int CountChar(wxString& line, char c)
 }
 
 bool xLightsImportChannelMapDialog::InitImport() {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (channelNames.size() == 0)
     {
         DisplayError("No models to import from. Source sequence had no data.");

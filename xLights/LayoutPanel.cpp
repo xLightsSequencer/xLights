@@ -5082,8 +5082,6 @@ void LayoutPanel::PreviewSaveImage()
 
 void LayoutPanel::PreviewPrintImage()
 {
-	static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
 	class Printout : public wxPrintout
 	{
 	public:

@@ -808,9 +808,6 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
 }
 
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     if (preview != nullptr) {
@@ -2271,9 +2268,6 @@ int TwoPointScreenLocation::MoveHandle(ModelPreview* preview, int handle, bool S
 }
 
 wxCursor TwoPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (preview != nullptr) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         active_axis = X_AXIS;
@@ -2623,9 +2617,6 @@ ThreePointScreenLocation::~ThreePointScreenLocation() {
 }
 
 wxCursor ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (preview != nullptr) {
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
         if (mSelectableHandles > 3 && supportsAngle && preview->Is3D()) {
@@ -4924,9 +4915,6 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
 }
 
 wxCursor PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
-
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     if (preview != nullptr) {
         active_axis = X_AXIS;
         saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);

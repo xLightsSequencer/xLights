@@ -632,8 +632,6 @@ void xLightsFrame::CheckForValidModels()
 
 void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // abort any in progress render ... as it may be using any already open media
     if (xml_file.GetMedia() != nullptr)
     {
@@ -2220,8 +2218,6 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
 
 void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxWindow* ContextWin;
 	if (name.StartsWith("E_"))
 	{

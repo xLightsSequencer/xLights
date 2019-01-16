@@ -393,7 +393,6 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
 
 bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString request;
     int output = 0;
 
@@ -949,8 +948,6 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
     {
         int port = wxAtoi(e->GetAttribute("p"));
 
-        bool vs = (port == lastString);
-
         //<vs y="" p="7" u="2000" us="0" s="0" c="50" g="1" t="0" d="0" o="0" n="0" z="0" b="13" bl="0" ga="0"/>
         // y = description
         // u = universe
@@ -1327,7 +1324,6 @@ int Falcon::DecodeSerialOutputProtocol(std::string protocol) const
 
 void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output > GetMaxSerialOutputs())
     {
         DisplayError("Falcon " + wxString(_modelString.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", parent);

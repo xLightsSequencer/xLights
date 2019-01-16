@@ -298,8 +298,6 @@ void ModelManager::OldRecalcStartChannels() const {
 
 void ModelManager::DisplayStartChannelCalcWarning() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     static std::string lastwarn = "";
     std::string msg = "Could not calculate start channels for models:\n";
     for (auto it = models.begin(); it != models.end(); ++it) {
@@ -316,7 +314,6 @@ void ModelManager::DisplayStartChannelCalcWarning() const
 }
 
 bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     this->groupNode = groupNode;
     std::list<ModelGroup*> toBeDone;
     bool changed = false;

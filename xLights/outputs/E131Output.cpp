@@ -231,7 +231,6 @@ void E131Output::OpenDatagram()
 
 bool E131Output::Open()
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (!_enabled) return true;
 
     if (IsOutputCollection())

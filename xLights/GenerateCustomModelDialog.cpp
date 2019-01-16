@@ -1090,7 +1090,6 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::DoStartFrameIdentify()
 {
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     if (_vr != nullptr)
     {
         delete _vr;
