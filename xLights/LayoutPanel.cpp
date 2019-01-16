@@ -4112,10 +4112,36 @@ void LayoutPanel::Nudge(int key)
             CreateUndoPoint("All", "", "");
         }
 
-        for (auto it = selectedModels.begin(); it != selectedModels.end(); ++it)
+        // this code speeds up the move the more times it is moved in the same direction in a short period of time
+        static wxLongLong lastTime = 0;
+        static float lastDelta = 0;
+        if (key == WXK_UP || key == WXK_DOWN || key == WXK_LEFT || key == WXK_RIGHT) {
+            static int repeats = 0;
+            static int lastKey = 0;
+
+            if (wxGetUTCTimeMillis() - lastTime > 500 || key != lastKey)
+            {
+                lastDelta = 1.0;
+                repeats = 0;
+            }
+            else
+            {
+                repeats++;
+                if (repeats > 5)
+                {
+                    lastDelta *= 2.0;
+                    if (lastDelta > 30) lastDelta = 30;
+                }
+            }
+
+            lastKey = key;
+        }
+
+        for (auto it : selectedModels)
         {
             float deltax = 0;
             float deltay = 0;
+
             if (key == WXK_UP) {
                 deltay = 1.0;
             }
@@ -4128,14 +4154,32 @@ void LayoutPanel::Nudge(int key)
             else if (key == WXK_RIGHT) {
                 deltax = 1.0;
             }
-            // FIXME:  Only nudges in X/Z plane currently
-            (*it)->AddOffset(deltax, 0.0, deltay);
 
-            (*it)->UpdateXmlWithScale();
-            SetupPropGrid(*it);
+            if (deltax != 0 || deltay != 0)
+            {
+                deltax *= lastDelta;
+                deltay *= lastDelta;
+
+                // FIXME:  Only nudges in X/Z plane currently
+                if (is_3d)
+                {
+                    deltay *= -1;
+                    it->AddOffset(deltax, 0.0, deltay);
+                }
+                else
+                {
+                    it->AddOffset(deltax, deltay, 0.0);
+                }
+                it->UpdateXmlWithScale();
+                SetupPropGrid(it);
+            }
         }
+
         xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
+
+        // set last time after everything is done
+        lastTime = wxGetUTCTimeMillis();
     }
 }
 
