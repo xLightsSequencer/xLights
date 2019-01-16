@@ -740,14 +740,14 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("PolyLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%ld", (int)event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
         sp->SetValueFromInt(parm2);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%ld", (int)event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("PolyLineStart" == event.GetPropertyName()) {
