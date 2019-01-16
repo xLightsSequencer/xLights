@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   Fix sub-buffers ending up with two rows/columns identical.  Fixes #1421
 2019.05 January 15, 2019
    -- bug (keith)   Fix controller upload picks up USB outputs
    -- bug (keith)   Fix #1418 effects dont work correctly on strands

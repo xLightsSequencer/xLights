@@ -1463,18 +1463,22 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     x2 /= 100.0;
     y1 /= 100.0;
     y2 /= 100.0;
+    
+    int x1Int = std::round(x1);
+    int x2Int = std::round(x2);
+    int y1Int = std::round(y1);
+    int y2Int = std::round(y2);
 
-    for (size_t x = 0; x < newNodes.size(); x++) {
-        for (auto &it2 : newNodes[x]->Coords) {
-            it2.bufX -= x1;
-            it2.bufY -= y1;
-        }
-    }
-
-    bufferWi = int(std::ceil(x2 - x1));
-    bufferHi = int(std::ceil(y2 - y1));
+    bufferWi = x2Int - x1Int;
+    bufferHi = y2Int - y1Int;
     if (bufferWi < 1) bufferWi = 1;
     if (bufferHi < 1) bufferHi = 1;
+    for (size_t x = 0; x < newNodes.size(); x++) {
+        for (auto &it2 : newNodes[x]->Coords) {
+            it2.bufX -= x1Int;
+            it2.bufY -= y1Int;
+        }
+    }
 }
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
