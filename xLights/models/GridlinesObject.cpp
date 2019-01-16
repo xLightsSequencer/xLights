@@ -114,23 +114,30 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
     float half_width = width / 2.0f;
     float half_height = height / 2.0f;
     for (float i = 0; i <= half_height; i += line_spacing)
-	{
-	    sx = -half_width; sy = i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+    {
+        if (hasAxis && i == 0)
+        {
+            // dont draw
+        }
+        else
+        {
+            sx = -half_width; sy = i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = half_width; sy = i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = half_width; sy = i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = -half_width; sy = -i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = -half_width; sy = -i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = half_width; sy = -i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
-	}
+            sx = half_width; sy = -i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
+        }
+    }
 
 	if( hasAxis ) {
         sx = -half_width; sy = 0; sz = 0;
@@ -142,25 +149,31 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
         va3.AddVertex(sx, sy, sz, xaxis);
 	}
 
-	for (float i = 0; i <= half_width; i += line_spacing)
-	{
-	    sx = i; sy = -half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+    for (float i = 0; i <= half_width; i += line_spacing)
+    {
+        if (hasAxis && i == 0)
+        {
+            // dont draw
+        }
+        else
+        {
+            sx = i; sy = -half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = i; sy = half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = i; sy = half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = -i; sy = -half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = -i; sy = -half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = -i; sy = half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
-	}
-
+            sx = -i; sy = half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
+        }
+    }
 	if( hasAxis ) {
         sx = 0; sy = -half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
