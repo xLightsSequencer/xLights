@@ -438,7 +438,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     logger_base.debug("LayoutPanel property grid created");
 
-    ToolSizer->SetCols(20);
+    ToolSizer->SetCols(21);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
@@ -451,6 +451,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Matrix", matrix);
     AddModelButton("Single Line", singleline);
     AddModelButton("Poly Line", polyline);
+    AddModelButton("Sphere", sphere);
     AddModelButton("Spinner", spinner);
     AddModelButton("Star", star);
     AddModelButton("Tree", tree);
@@ -589,6 +590,7 @@ void LayoutPanel::InitImageList()
     AddIcon(*m_imageList, "xlART_LINE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_MATRIX_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_POLY_ICON", scaleFactor);
+    AddIcon(*m_imageList, "xlART_SPHERE_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_SPINNER_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_STAR_ICON", scaleFactor);
     AddIcon(*m_imageList, "xlART_SUBMODEL_ICON", scaleFactor);
@@ -1059,6 +1061,8 @@ int LayoutPanel::GetModelTreeIcon(Model* model, bool open) {
             return Icon_Matrix;
         } else if( type == "Poly Line" ) {
             return Icon_Poly;
+        } else if( type == "Sphere" ) {
+            return Icon_Sphere;
         } else if( type == "Spinner" ) {
             return Icon_Spinner;
         } else if( type == "Star" ) {

@@ -16,6 +16,7 @@
 #include "singleline.xpm"
 #include "canes.xpm"
 #include "icicles.xpm"
+#include "sphere.xpm"
 #include "import.xpm"
 #include "polyline.xpm"
 #include "download.xpm"

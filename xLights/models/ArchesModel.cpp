@@ -191,9 +191,6 @@ int ArchesModel::CalcCannelsPerString() {
     SingleChannel = false;
     return GetNodeChannelCount(StringType) * parm2;
 }
-static inline double toRadians(long degrees) {
-    return 2.0*M_PI*double(degrees)/360.0;
-}
 
 static void rotate_point(float cx,float cy, float angle, float &x, float &y)
 {

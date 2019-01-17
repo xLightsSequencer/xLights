@@ -363,6 +363,7 @@ class LayoutPanel: public wxPanel
             Icon_Line,
             Icon_Matrix,
             Icon_Poly,
+            Icon_Sphere,
             Icon_Spinner,
             Icon_Star,
             Icon_SubModel,

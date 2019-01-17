@@ -34,14 +34,6 @@ static inline void TranslatePointDoubles(float radians,float x, float y,float &x
     y1 = s*x+(c*y);
 }
 
-static inline float toRadians(long degrees) {
-    return 2.0*M_PI*float(degrees)/360.0f;
-}
-
-static inline int toDegrees(float radians) {
-    return (radians/(2*M_PI))*360.0;
-}
-
 // used to print matrix when debugging
 static void PrintMatrix(std::string name, glm::mat4& matrix)
 {

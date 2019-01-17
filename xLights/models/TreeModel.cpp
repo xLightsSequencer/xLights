@@ -55,9 +55,6 @@ void TreeModel::InitModel() {
     DisplayAs = "Tree";
 }
 
-static inline double toRadians(float degrees) {
-    return 2.0*M_PI*double(degrees)/360.0;
-}
 // initialize screen coordinates for tree
 void TreeModel::SetTreeCoord(long degrees) {
     double bufferX, bufferY;
@@ -65,7 +62,6 @@ void TreeModel::SetTreeCoord(long degrees) {
     if (BufferHt < 1) return; // June 27,2013. added check to not divide by zero
     double RenderHt, RenderWi;
     if (degrees > 0) {
-        double angle;
         RenderHt=BufferHt * 3;
         RenderWi=((double)RenderHt)/1.8;
 
@@ -144,7 +140,7 @@ void TreeModel::SetTreeCoord(long degrees) {
             for(size_t c=0; c < CoordCount; c++) {
                 bufferX=Nodes[n]->Coords[c].bufX;
                 bufferY=Nodes[n]->Coords[c].bufY;
-                angle=StartAngle + double(bufferX) * AngleIncr + xInc[bufferY];
+                double angle = StartAngle + double(bufferX) * AngleIncr + xInc[bufferY];
                 double xb=radius * sin(angle);
                 double xt=topradius * sin(angle);
                 double zb=radius * cos(angle);
@@ -230,6 +226,7 @@ void TreeModel::SetTreeCoord(long degrees) {
     }
     screenLocation.SetRenderSize(RenderWi, RenderHt, RenderWi);
 }
+
 int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if (event.GetPropertyName() == "TreeStyle") {
         ModelXml->DeleteAttribute("DisplayAs");

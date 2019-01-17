@@ -12,6 +12,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (dkulp)   Fix sub-buffers ending up with two rows/columns identical.  Fixes #1421
+   -- bug (keith)   Fix 2D pan Y is reversed
+   -- bug (keith)   Fix model move in 2D not working in Y direction
+   -- bug (keith)   Fix grid axis not drawing
+   -- enh (keith)   Make model move accelerate when using keyboard when repeatedly moving models using keyboard
+   -- enh (keith)   Add sphere model
+   -- enh (keith)   Increase maximum hollow size on spinner
 2019.05 January 15, 2019
    -- bug (keith)   Fix controller upload picks up USB outputs
    -- bug (keith)   Fix #1418 effects dont work correctly on strands
