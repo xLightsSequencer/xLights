@@ -1172,15 +1172,15 @@ void BoxedScreenLocation::AddSizeLocationProperties(wxPropertyGridInterface *pro
     prop->SetAttribute("Step", 0.5);
     prop->SetEditor("SpinCtrl");
     prop = propertyEditor->Append(new wxFloatProperty("ScaleX", "ScaleX", scalex));
-    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Precision", 3);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
     prop = propertyEditor->Append(new wxFloatProperty("ScaleY", "ScaleY", scaley));
-    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Precision", 3);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
     prop = propertyEditor->Append(new wxFloatProperty("ScaleZ", "ScaleZ", scalez));
-    prop->SetAttribute("Precision", 2);
+    prop->SetAttribute("Precision", 3);
     prop->SetAttribute("Step", 0.1);
     prop->SetEditor("SpinCtrl");
     prop = propertyEditor->Append(new wxIntProperty("RotateX", "RotateX", rotatex));
