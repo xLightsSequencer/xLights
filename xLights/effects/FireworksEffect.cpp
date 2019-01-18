@@ -57,6 +57,7 @@ public:
     float vel;
     float angle;
     bool _bActive;
+    bool _bManualLocationSet;
     int _cycles;
     int _colorindex;
     int startPeriod;
@@ -98,6 +99,18 @@ public:
         _colorindex = colorindex;
         startPeriod = start;
         _bActive = false;
+        _bManualLocationSet = false;
+    }
+    
+    void SetManualLocation(int x, int y)
+    {
+        if( !_bManualLocationSet ) {
+            _bManualLocationSet = true;
+            _x       = x;
+            orig_x = x;
+            _y       = y;
+            orig_y = y;
+        }
     }
 protected:
 private:
@@ -125,9 +138,12 @@ void FireworksEffect::SetDefaultParameters() {
     SetSliderValue(fp->Slider_Fireworks_Velocity, 2);
     SetSliderValue(fp->Slider_Fireworks_Fade, 50);
     SetSliderValue(fp->Slider_Fireworks_Sensitivity, 50);
+    SetSliderValue(fp->Slider_Fireworks_LocationX, 0);
+    SetSliderValue(fp->Slider_Fireworks_LocationY, 0);
 
     SetCheckBoxValue(fp->CheckBox_Fireworks_UseMusic, false);
     SetCheckBoxValue(fp->CheckBox_FireTiming, false);
+    SetCheckBoxValue(fp->CheckBox_Fireworks_UseLocation, false);
 
     SetPanelTimingTracks();
 }
@@ -180,6 +196,9 @@ void FireworksEffect::SetPanelTimingTracks()
 }
 
 void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    
     int Number_Explosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
     int Count = SettingsMap.GetInt("SLIDER_Fireworks_Count", 50);
     float Velocity = SettingsMap.GetDouble("SLIDER_Fireworks_Velocity", 2.0f);
@@ -190,6 +209,13 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     float sensitivity = (float)SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50) / 100.0;
     bool useTiming = SettingsMap.GetBool("CHECKBOX_FIRETIMING", false);
     wxString timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", "");
+    bool useManualLocations = SettingsMap.GetBool("CHECKBOX_Fireworks_UseLocation", false);
+    
+    int manualLocationX = GetValueCurveInt("Fireworks_LocationX", 0, SettingsMap, oset, FIREWORKS_POSITIONX_MIN, FIREWORKS_POSITIONX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int manualLocationY = GetValueCurveInt("Fireworks_LocationY", 0, SettingsMap, oset, FIREWORKS_POSITIONY_MIN, FIREWORKS_POSITIONY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    
+    
+    
     if (timing == "") useTiming = false;
     if (useMusic)
     {
@@ -240,6 +266,13 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             if((x75-x25)>0) startX = x25 + rand()%(x75-x25); else startX=0;
             if((y75-y25)>0) startY = y25 + rand()%(y75-y25); else startY=0;
             
+            if( useManualLocations ) {
+                // x middle = 50, x left = 0, x right = 100
+                // y top = 50, y center = 25, y bottom = 0
+                startX = (manualLocationX / 2) + 50;
+                startY = (manualLocationY / 4) + 25;
+            }
+            
             // Create a new burst
             ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
             for(int i=0; i<Count; i++) {
@@ -265,6 +298,13 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                 for (int j = 0; j < Count; j++)
                 {
                     cache->fireworkBursts[Count*next + j]._bActive = true;
+                    
+                    if( useManualLocations ) {
+                        int startX = (manualLocationX / 2) + 50;
+                        int startY = (manualLocationY / 4) + 25;
+                        cache->fireworkBursts[Count*next + j].SetManualLocation(startX, startY);
+                    }
+                    
                     buffer.palette.GetHSV(cache->fireworkBursts[Count*next + j]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
                     cache->fireworkBursts[Count*next + j]._hsv = hsv;
                 }
@@ -331,6 +371,13 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
                         for (int k = 0; k < Count; k++)
                         {
                             cache->fireworkBursts[Count*next + k]._bActive = true;
+                            
+                            if( useManualLocations ) {
+                                int startX = (manualLocationX / 2) + 50;
+                                int startY = (manualLocationY / 4) + 25;
+                                cache->fireworkBursts[Count*next + k].SetManualLocation(startX, startY);
+                            }
+                            
                             buffer.palette.GetHSV(cache->fireworkBursts[Count*next + k]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
                             cache->fireworkBursts[Count*next + k]._hsv = hsv;
                         }
@@ -353,6 +400,12 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         {
             if (cache->fireworkBursts[i].startPeriod == buffer.curPeriod) {
                 cache->fireworkBursts[i]._bActive = true;
+                if( useManualLocations ) {
+                    int startX = (manualLocationX / 2) + 50;
+                    int startY = (manualLocationY / 4) + 25;
+                    cache->fireworkBursts[i].SetManualLocation(startX, startY);
+                }
+                
                 buffer.palette.GetHSV(cache->fireworkBursts[i]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
                 cache->fireworkBursts[i]._hsv = hsv;
             }

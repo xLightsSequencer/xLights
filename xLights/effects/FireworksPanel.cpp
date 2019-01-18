@@ -47,6 +47,18 @@ const long FireworksPanel::ID_CHECKBOX_FIRETIMING = wxNewId();
 const long FireworksPanel::ID_BITMAPBUTTON_CHECKBOX_FIRETIMING = wxNewId();
 const long FireworksPanel::ID_STATICTEXT_FIRETIMINGTRACK = wxNewId();
 const long FireworksPanel::ID_CHOICE_FIRETIMINGTRACK = wxNewId();
+const long FireworksPanel::ID_CHECKBOX_Fireworks_UseLocation = wxNewId();
+const long FireworksPanel::ID_SLIDER_Fireworks_LocationX = wxNewId();
+const long FireworksPanel::ID_SLIDER_Fireworks_LocationY = wxNewId();
+const long FireworksPanel::IDD_TEXTCTRL_Fireworks_LocationX = wxNewId();
+const long FireworksPanel::IDD_TEXTCTRL_Fireworks_LocationY = wxNewId();
+const long FireworksPanel::ID_STATICTEXT_Fireworks_LocationX = wxNewId();
+const long FireworksPanel::ID_STATICTEXT_Fireworks_LocationY = wxNewId();
+const long FireworksPanel::ID_VALUECURVE_Fireworks_LocationX = wxNewId();
+const long FireworksPanel::ID_VALUECURVE_Fireworks_LocationY = wxNewId();
+const long FireworksPanel::ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseLocation = wxNewId();
+const long FireworksPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_LocationX = wxNewId();
+const long FireworksPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_LocationY = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(FireworksPanel,wxPanel)
@@ -59,6 +71,8 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 {
 	//(*Initialize(FireworksPanel)
 	wxFlexGridSizer* FlexGridSizer73;
+    wxFlexGridSizer* FlexGridSizer74;
+    wxFlexGridSizer* FlexGridSizer75;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer73 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -134,7 +148,63 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	Choice_TimingTrack = new BulkEditChoice(this, ID_CHOICE_FIRETIMINGTRACK, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_FIRETIMINGTRACK"));
 	FlexGridSizer73->Add(Choice_TimingTrack, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Fireworks_UseLocation = new BulkEditCheckBox(this, ID_CHECKBOX_Fireworks_UseLocation, _("Manual explosion location"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fireworks_UseLocation"));
+    CheckBox_Fireworks_UseLocation->SetValue(false);
+    FlexGridSizer73->Add(CheckBox_Fireworks_UseLocation, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    BitmapButton_Fireworks_UseLocation = new xlLockButton(this, ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseLocation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseLocation"));
+    BitmapButton_Fireworks_UseLocation->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+    FlexGridSizer73->Add(BitmapButton_Fireworks_UseLocation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    
+    StaticText100 = new wxStaticText(this, ID_STATICTEXT_Fireworks_LocationX, _("Location X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fireworks_LocationX"));
+    FlexGridSizer73->Add(StaticText100, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    
+    FlexGridSizer74 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer74->AddGrowableCol(0);
+    Slider_Fireworks_LocationX = new BulkEditSlider(this, ID_SLIDER_Fireworks_LocationX, 0, FIREWORKS_POSITIONX_MIN, FIREWORKS_POSITIONX_MAX, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_LocationX"));
+    FlexGridSizer74->Add(Slider_Fireworks_LocationX, 1, wxALL|wxEXPAND, 2);
+    
+    ValueCurve_Fireworks_LocationX = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_LocationX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_LocationX"));
+    FlexGridSizer74->Add(ValueCurve_Fireworks_LocationX, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    FlexGridSizer73->Add(FlexGridSizer74, 1, wxALL|wxEXPAND, 0);
+    
+    TextCtrl_Fireworks_LocationX = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_LocationX, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_LocationX"));
+    TextCtrl_Fireworks_LocationX->SetMaxLength(3);
+    FlexGridSizer73->Add(TextCtrl_Fireworks_LocationX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    BitmapButton_Fireworks_LocationX = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_LocationX, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_LocationX"));
+    BitmapButton_Fireworks_LocationX->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+    FlexGridSizer73->Add(BitmapButton_Fireworks_LocationX, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    
+    
+    
+    StaticText170 = new wxStaticText(this, ID_STATICTEXT_Fireworks_LocationY, _("Location Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fireworks_LocationY"));
+    FlexGridSizer73->Add(StaticText170, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    
+    FlexGridSizer75 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer75->AddGrowableCol(0);
+    Slider_Fireworks_LocationY = new BulkEditSlider(this, ID_SLIDER_Fireworks_LocationY, 0, FIREWORKS_POSITIONY_MIN, FIREWORKS_POSITIONY_MAX, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_LocationY"));
+    FlexGridSizer75->Add(Slider_Fireworks_LocationY, 1, wxALL|wxEXPAND, 2);
+    
+    ValueCurve_Fireworks_LocationY = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_LocationY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_LocationY"));
+    FlexGridSizer75->Add(ValueCurve_Fireworks_LocationY, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
+    FlexGridSizer73->Add(FlexGridSizer75, 1, wxALL|wxEXPAND, 0);
+    
+    TextCtrl_Fireworks_LocationY = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_LocationY, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_LocationY"));
+    TextCtrl_Fireworks_LocationY->SetMaxLength(3);
+    FlexGridSizer73->Add(TextCtrl_Fireworks_LocationY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    BitmapButton_Fireworks_LocationY = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_Fireworks_LocationY, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_Fireworks_LocationY"));
+    BitmapButton_Fireworks_LocationY->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
+    FlexGridSizer73->Add(BitmapButton_Fireworks_LocationY, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    
+    
+	
 	SetSizer(FlexGridSizer73);
 	FlexGridSizer73->Fit(this);
 	FlexGridSizer73->SetSizeHints(this);
@@ -149,11 +219,22 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	Connect(ID_CHECKBOX_FIRETIMING,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnCheckBox_FireTimingClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_FIRETIMING,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_CHOICE_FIRETIMINGTRACK,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&FireworksPanel::OnChoice_TimingTrackSelect);
+    
+    Connect(ID_CHECKBOX_Fireworks_UseLocation,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnCheckBox_UseLocationClick);
+    Connect(ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseLocation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_LocationX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
+    Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_LocationY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
+    Connect(ID_VALUECURVE_Fireworks_LocationX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Fireworks_LocationY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
 	//*)
 
     SetName("ID_PANEL_FIREWORKS");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&FireworksPanel::OnVCChanged, 0, this);
+    
+    ValueCurve_Fireworks_LocationX->GetValue()->SetLimits(FIREWORKS_POSITIONX_MIN, FIREWORKS_POSITIONY_MAX);
+    ValueCurve_Fireworks_LocationY->GetValue()->SetLimits(FIREWORKS_POSITIONY_MIN, FIREWORKS_POSITIONY_MAX);
+
     ValidateWindow();
 }
 
@@ -181,6 +262,29 @@ void FireworksPanel::ValidateWindow()
     {
         Choice_TimingTrack->Enable(false);
     }
+    
+    if (CheckBox_Fireworks_UseLocation->GetValue())
+    {
+        Slider_Fireworks_LocationX->Enable();
+        Slider_Fireworks_LocationY->Enable();
+        ValueCurve_Fireworks_LocationX->Enable();
+        ValueCurve_Fireworks_LocationY->Enable();
+        TextCtrl_Fireworks_LocationX->Enable();
+        TextCtrl_Fireworks_LocationY->Enable();
+        BitmapButton_Fireworks_LocationX->Enable();
+        BitmapButton_Fireworks_LocationY->Enable();
+    }
+    else
+    {
+        Slider_Fireworks_LocationX->Disable();
+        Slider_Fireworks_LocationY->Disable();
+        ValueCurve_Fireworks_LocationX->Disable();
+        ValueCurve_Fireworks_LocationY->Disable();
+        TextCtrl_Fireworks_LocationX->Disable();
+        TextCtrl_Fireworks_LocationY->Disable();
+        BitmapButton_Fireworks_LocationX->Disable();
+        BitmapButton_Fireworks_LocationY->Disable();
+    }
 }
 
 PANEL_EVENT_HANDLERS(FireworksPanel)
@@ -191,6 +295,11 @@ void FireworksPanel::OnCheckBox_Fireworks_UseMusicClick(wxCommandEvent& event)
 }
 
 void FireworksPanel::OnCheckBox_FireTimingClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void FireworksPanel::OnCheckBox_UseLocationClick(wxCommandEvent& event)
 {
     ValidateWindow();
 }

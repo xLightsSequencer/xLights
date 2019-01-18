@@ -3,6 +3,10 @@
 
 #include "RenderableEffect.h"
 
+#define FIREWORKS_POSITIONX_MIN -250
+#define FIREWORKS_POSITIONX_MAX 250
+#define FIREWORKS_POSITIONY_MIN -250
+#define FIREWORKS_POSITIONY_MAX 250
 
 class FireworksEffect : public RenderableEffect
 {
