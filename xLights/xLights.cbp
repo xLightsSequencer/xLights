@@ -665,8 +665,6 @@
 		<Unit filename="controllers/Pixlite16.h" />
 		<Unit filename="controllers/SanDevices.cpp" />
 		<Unit filename="controllers/SanDevices.h" />
-		<Unit filename="controllers/SimpleFTP.cpp" />
-		<Unit filename="controllers/SimpleFTP.h" />
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="djdebug.cpp" />

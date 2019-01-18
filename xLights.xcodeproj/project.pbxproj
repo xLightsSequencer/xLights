@@ -488,7 +488,6 @@
 		67BD442A1FAB3B3D0007E083 /* UpdaterDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BD44281FAB3B3C0007E083 /* UpdaterDialog.cpp */; };
 		67BD732D200D0C000074208A /* ImageModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BD732B200D0C000074208A /* ImageModel.cpp */; };
 		67BE75131CAC2EB200D7BA82 /* IciclesModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */; };
-		67BF80021F278956002F118D /* SimpleFTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF51F278956002F118D /* SimpleFTP.cpp */; };
 		67BF80031F278956002F118D /* SanDevices.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF71F278956002F118D /* SanDevices.cpp */; };
 		67BF80041F278956002F118D /* Pixlite16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FF91F278956002F118D /* Pixlite16.cpp */; };
 		67BF80051F278956002F118D /* J1Sys.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67BF7FFB1F278956002F118D /* J1Sys.cpp */; };
@@ -1617,8 +1616,6 @@
 		67BD732C200D0C000074208A /* ImageModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImageModel.h; path = models/ImageModel.h; sourceTree = "<group>"; };
 		67BE75111CAC2EB200D7BA82 /* IciclesModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IciclesModel.cpp; path = models/IciclesModel.cpp; sourceTree = "<group>"; };
 		67BE75121CAC2EB200D7BA82 /* IciclesModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IciclesModel.h; path = models/IciclesModel.h; sourceTree = "<group>"; };
-		67BF7FF41F278956002F118D /* SimpleFTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleFTP.h; path = controllers/SimpleFTP.h; sourceTree = "<group>"; };
-		67BF7FF51F278956002F118D /* SimpleFTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SimpleFTP.cpp; path = controllers/SimpleFTP.cpp; sourceTree = "<group>"; };
 		67BF7FF61F278956002F118D /* SanDevices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SanDevices.h; path = controllers/SanDevices.h; sourceTree = "<group>"; };
 		67BF7FF71F278956002F118D /* SanDevices.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SanDevices.cpp; path = controllers/SanDevices.cpp; sourceTree = "<group>"; };
 		67BF7FF81F278956002F118D /* Pixlite16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pixlite16.h; path = controllers/Pixlite16.h; sourceTree = "<group>"; };
@@ -2658,8 +2655,6 @@
 				671142ED207BAD5400F45296 /* WebSocketClient.h */,
 				671142EB207BACF200F45296 /* ESPixelStick.cpp */,
 				671142EA207BACF100F45296 /* ESPixelStick.h */,
-				67BF7FF41F278956002F118D /* SimpleFTP.h */,
-				67BF7FF51F278956002F118D /* SimpleFTP.cpp */,
 				67BF7FF61F278956002F118D /* SanDevices.h */,
 				67BF7FF71F278956002F118D /* SanDevices.cpp */,
 				67BF7FF81F278956002F118D /* Pixlite16.h */,
@@ -3942,7 +3937,6 @@
 				671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */,
 				67B2CF8F1C39D98A003C17CA /* CurtainPanel.cpp in Sources */,
 				67CE25922138234000ADF180 /* ViewObjectManager.cpp in Sources */,
-				67BF80021F278956002F118D /* SimpleFTP.cpp in Sources */,
 				67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */,
 				676CFAF5207D2BBE002EB5E7 /* jsonval.cpp in Sources */,
 				67EE95B31C848A3600C62C95 /* VideoEffect.cpp in Sources */,

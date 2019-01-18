@@ -10,6 +10,7 @@
 #include <wx/sckstrm.h>
 #include <wx/zstream.h>
 #include <wx/mstream.h>
+#include <wx/protocol/http.h>
 
 #include "../xSchedule/wxJSON/jsonreader.h"
 #include "../xSchedule/wxJSON/jsonwriter.h"
@@ -130,9 +131,13 @@ void FPP::probePixelControllerType() {
     if (GetURLAsJSON("/fppjson.php?command=getChannelOutputs&file=" + file, val)) {
         for (int x = 0; x < val["channelOutputs"].Size(); x++) {
             if (val["channelOutputs"][x]["type"].AsString() == "RPIWS281X") {
-                pixelControllerType = "PiHat";
+                if (val["channelOutputs"][x]["enabled"].AsInt()) {
+                    pixelControllerType = "PiHat";
+                }
             } else if (val["channelOutputs"][x]["type"].AsString() == "BBB48String") {
-                pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
+                if (val["channelOutputs"][x]["enabled"].AsInt()) {
+                    pixelControllerType = val["channelOutputs"][x]["subType"].AsString();
+                }
             }
         }
     }

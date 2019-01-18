@@ -1,8 +1,6 @@
 #ifndef FPP_H
 #define FPP_H
 
-#include <wx/protocol/http.h>
-#include "SimpleFTP.h"
 #include <list>
 #include <map>
 #include "models/ModelManager.h"
