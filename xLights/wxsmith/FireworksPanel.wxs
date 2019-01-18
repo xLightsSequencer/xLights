@@ -289,6 +289,139 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+            <object class="spacer">
+                <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxCheckBox" name="ID_CHECKBOX_Fireworks_UseLocation" subclass="BulkEditCheckBox" variable="CheckBox_Fireworks_UseLocation" member="yes">
+                    <label>Manual explosion location</label>
+                    <handler function="OnCheckBox_UseLocationClick" entry="EVT_CHECKBOX" />
+                </object>
+                <flag>wxALL|wxEXPAND</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="spacer">
+                <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxStaticText" name="ID_STATICTEXT_Fireworks_LocationX" variable="StaticText100" member="yes">
+                    <label>Location X</label>
+                </object>
+                <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+                    <cols>2</cols>
+                    <growablecols>0</growablecols>
+                    <object class="sizeritem">
+                        <object class="wxSlider" name="ID_SLIDER_Fireworks_LocationX" subclass="BulkEditSlider" variable="Slider_Fireworks_LocationX" member="yes">
+                            <value>0</value>
+                            <min>-250</min>
+                            <max>250</max>
+                        </object>
+                        <flag>wxALL|wxEXPAND</flag>
+                        <border>2</border>
+                        <option>1</option>
+                    </object>
+                    <object class="sizeritem">
+                        <object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_LocationX" subclass="BulkEditValueCurveButton" variable="ValueCurve_Fireworks_LocationX" member="yes">
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+                            <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                            <handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+                        </object>
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                        <option>1</option>
+                    </object>
+                </object>
+                <flag>wxALL|wxEXPAND</flag>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_LocationX" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_LocationX" member="yes">
+                    <value>0</value>
+                    <maxlength>3</maxlength>
+                    <size>25,-1d</size>
+                </object>
+                <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_LocationX" variable="BitmapButton_Fireworks_LocationX" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+                    <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+                    <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                    <handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+                </object>
+                <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxStaticText" name="ID_STATICTEXT_Fireworks_LocationY" variable="StaticText170" member="yes">
+                    <label>Location Y</label>
+                </object>
+                <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+                    <cols>2</cols>
+                    <growablecols>0</growablecols>
+                    <object class="sizeritem">
+                        <object class="wxSlider" name="ID_SLIDER_Fireworks_LocationY" subclass="BulkEditSlider" variable="Slider_Fireworks_LocationY" member="yes">
+                            <value>0</value>
+                            <min>-250</min>
+                            <max>250</max>
+                        </object>
+                        <flag>wxALL|wxEXPAND</flag>
+                        <border>2</border>
+                        <option>1</option>
+                    </object>
+                    <object class="sizeritem">
+                        <object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_LocationY" subclass="BulkEditValueCurveButton" variable="ValueCurve_Fireworks_LocationY" member="yes">
+                            <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+                            <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                            <handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+                        </object>
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                        <option>1</option>
+                    </object>
+                </object>
+                <flag>wxALL|wxEXPAND</flag>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxTextCtrl" name="IDD_TEXTCTRL_Fireworks_LocationY" subclass="BulkEditTextCtrl" variable="TextCtrl_Fireworks_LocationY" member="yes">
+                    <value>0</value>
+                    <maxlength>3</maxlength>
+                    <size>25,-1d</size>
+                </object>
+                <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
+            <object class="sizeritem">
+                <object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_Fireworks_LocationY" variable="BitmapButton_Fireworks_LocationY" member="yes">
+                    <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+                    <size>14,14</size>
+                    <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+                    <style>wxBU_AUTODRAW|wxNO_BORDER</style>
+                    <handler function="OnLockButtonClick" entry="EVT_BUTTON" />
+                </object>
+                <flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+                <border>5</border>
+                <option>1</option>
+            </object>
 		</object>
 	</object>
 </wxsmith>
