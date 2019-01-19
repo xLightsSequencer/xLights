@@ -5,11 +5,11 @@
 #include <wx/wx.h>
 #include "Schedule.h"
 #include "CommandManager.h"
-#include "OSCPacket.h"
 #include <wx/socket.h>
 #include <wx/thread.h>
 #include "wxMIDI/src/wxMidi.h"
 #include "Blend.h"
+#include "SyncManager.h"
 
 class PlayListItemText;
 class ScheduleOptions;
@@ -23,21 +23,6 @@ class PlayListItem;
 class xScheduleFrame;
 class Pinger;
 class ListenerManager;
-
-typedef enum
-{
-    STANDALONE,
-    FPPMASTER,
-    FPPSLAVE,
-    FPPUNICASTSLAVE,
-    ARTNETMASTER,
-    ARTNETSLAVE,
-    OSCMASTER,
-    FPPOSCMASTER,
-    OSCSLAVE,
-    MIDIMASTER,
-    MIDISLAVE
-} SYNCMODE;
 
 class PixelData
 {
@@ -75,8 +60,9 @@ public:
 
 class ScheduleManager
 {
-    SYNCMODE _mode;
-    bool _testMode;
+    int _mode = (int)SYNCMODE::STANDALONE;
+    REMOTEMODE _remoteMode = REMOTEMODE::DISABLED;
+    bool _testMode = false;
     int _manualOTL;
     std::string _showDir;
     int _lastSavedChangeCount;
@@ -100,9 +86,7 @@ class ScheduleManager
     wxMidiOutDevice* _midiMaster;
     wxDatagramSocket* _fppSyncMaster;
     wxDatagramSocket* _artNetSyncMaster;
-    wxDatagramSocket* _oscSyncMaster;
     wxDatagramSocket* _fppSyncMasterUnicast;
-    wxDatagramSocket* _oscSyncSlave;
     std::list<OutputProcess*> _outputProcessing;
     ListenerManager* _listenerManager;
     Xyzzy* _xyzzy;
@@ -110,21 +94,12 @@ class ScheduleManager
     int _timerAdjustment;
     bool _webRequestToggle;
     Pinger* _pinger;
+    std::unique_ptr<SyncManager> _syncManager = nullptr;
 
     void DisableRemoteOutputs();
     std::string GetPingStatus();
-    void SendOSC(const OSCPacket& osc);
     std::string FormatTime(size_t timems);
     void CreateBrightnessArray();
-    void SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS);
-    void SendARTNetSync(size_t msec, size_t frameMS);
-    void SendMIDISync(size_t msec, size_t frameMS);
-    void SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS);
-    void SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action);
-    void CloseFPPSyncSendSocket();
-    void CloseARTNetSyncSendSocket();
-    void CloseOSCSyncSendSocket();
-    void CloseMIDIMaster();
     void ManageBackground();
     bool DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties);
     void StartVirtualMatrices();
@@ -137,8 +112,8 @@ class ScheduleManager
     public:
 
         void SetPinger(Pinger* pinger) { _pinger = pinger; }
-        void SetMode(SYNCMODE mode);
-        SYNCMODE GetMode() const { return _mode; }
+        void SetMode(int mode, REMOTEMODE remote);
+        void GetMode(int& mode, REMOTEMODE& remote) const { mode = _mode; remote = _remoteMode; }
         void ToggleMute();
         void SetVolume(int volume);
         void AdjustVolumeBy(int volume);
@@ -149,10 +124,7 @@ class ScheduleManager
         void ManualOutputToLightsClick(xScheduleFrame* frame);
         bool IsScheduleActive(Schedule* schedue);
         std::list<RunningSchedule*> GetRunningSchedules() const { return _activeSchedules; }
-        void OpenMIDIMaster();
-        void OpenFPPSyncSendSocket();
-        void OpenARTNetSyncSendSocket();
-        void OpenOSCSyncSendSocket();
+        const SyncManager* GetSyncManager() const { return _syncManager.get(); }
         int GetTimerAdjustment() const { return _timerAdjustment; }
         std::string GetOurIP() const;
         void SetTimerAdjustment(int timerAdjustment) { _timerAdjustment = timerAdjustment; }
@@ -238,5 +210,4 @@ class ScheduleManager
         bool IsTest() const;
         void SetTestMode(bool test) { _testMode = test; }
 };
-
 #endif

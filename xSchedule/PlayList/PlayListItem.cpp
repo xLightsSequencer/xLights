@@ -110,9 +110,7 @@ bool PlayListItem::IsInSlaveMode() const
 
     if (sm == nullptr) return false;
 
-    SYNCMODE m = sm->GetMode();
-
-    return (m == SYNCMODE::FPPSLAVE || m == SYNCMODE::ARTNETSLAVE || m == SYNCMODE::FPPUNICASTSLAVE);
+    return sm->GetSyncManager()->IsSlave();
 }
 
 std::string PlayListItem::ReplaceTags(const std::string s) const

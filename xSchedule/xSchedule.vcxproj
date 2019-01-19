@@ -344,6 +344,11 @@
     <ClCompile Include="ScheduleOptions.cpp" />
     <ClCompile Include="SetDialog.cpp" />
     <ClCompile Include="SustainDialog.cpp" />
+    <ClCompile Include="SyncArtNet.cpp" />
+    <ClCompile Include="SyncFPP.cpp" />
+    <ClCompile Include="SyncManager.cpp" />
+    <ClCompile Include="SyncMIDI.cpp" />
+    <ClCompile Include="SyncOSC.cpp" />
     <ClCompile Include="ThreeToFourDialog.cpp" />
     <ClCompile Include="UserButton.cpp" />
     <ClCompile Include="VideoCache.cpp" />
@@ -542,6 +547,11 @@
     <ClInclude Include="ScheduleOptions.h" />
     <ClInclude Include="SetDialog.h" />
     <ClInclude Include="SustainDialog.h" />
+    <ClInclude Include="SyncArtNet.h" />
+    <ClInclude Include="SyncFPP.h" />
+    <ClInclude Include="SyncManager.h" />
+    <ClInclude Include="SyncMIDI.h" />
+    <ClInclude Include="SyncOSC.h" />
     <ClInclude Include="ThreeToFourDialog.h" />
     <ClInclude Include="UserButton.h" />
     <ClInclude Include="VideoCache.h" />

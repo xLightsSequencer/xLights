@@ -93,6 +93,20 @@ inline bool StartsWith(const std::string& in, const std::string& startswith) noe
     return in.size() >= startswith.size() && in.substr(0, startswith.size()) == startswith;
 }
 
+inline void Replace(std::string& in, const std::string& what, const std::string& with)
+{
+    auto pos = in.find(what);
+
+    // Repeat till end is reached
+    while (pos != std::string::npos)
+    {
+        // Replace this occurrence of Sub String
+        in.replace(pos, what.size(), with);
+        // Get the next occurrence from the current position
+        pos = in.find(what, pos + with.size());
+    }
+}
+
 inline std::string Capitalise(const std::string& input) noexcept
 {
     std::string res = "";

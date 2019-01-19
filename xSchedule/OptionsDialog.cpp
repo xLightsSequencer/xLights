@@ -212,7 +212,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     Choice_OnCrash->SetStringSelection(options->GetCrashBehaviour());
     CheckBox_SendOffWhenNotRunning->SetValue(options->IsSendOffWhenNotRunning());
     CheckBox_MultithreadedTransmission->SetValue(options->IsParallelTransmission());
-    Choice_ARTNetTimeCodeFormat->SetSelection(options->GetARTNetTimeCodeFormat());
+    Choice_ARTNetTimeCodeFormat->SetSelection(static_cast<int>(options->GetARTNetTimeCodeFormat()));
     CheckBox_RunBackground->SetValue(options->IsSendBackgroundWhenNotRunning());
     CheckBox_Sync->SetValue(options->IsSync());
     CheckBox_APIOnly->SetValue(options->GetAPIOnly());
@@ -297,7 +297,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetPassword(TextCtrl_Password->GetValue().ToStdString());
     _options->SetPasswordTimeout(SpinCtrl_PasswordTimeout->GetValue());
     _options->SetAdvancedMode(CheckBox_SimpleMode->GetValue());
-    _options->SetArtNetTimeCodeFormat(Choice_ARTNetTimeCodeFormat->GetSelection());
+    _options->SetArtNetTimeCodeFormat(static_cast<TIMECODEFORMAT>(Choice_ARTNetTimeCodeFormat->GetSelection()));
     _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
     _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
     _options->SetRemoteAllOff(CheckBox_RemoteAllOff->GetValue());

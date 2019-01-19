@@ -1,27 +1,27 @@
-#include "ScheduleManager.h"
 #include <wx/xml/xml.h>
 #include <wx/msgdlg.h>
 #include <wx/log.h>
+#include <wx/dir.h>
+#include <wx/file.h>
+#include <wx/config.h>
+#include <wx/sckaddr.h>
+#include <wx/socket.h>
+#include <wx/filename.h>
+#include <wx/mimetype.h>
+
+#include "ScheduleManager.h"
 #include "ScheduleOptions.h"
 #include "PlayList/PlayList.h"
 #include "../xLights/outputs/OutputManager.h"
 #include "../xLights/outputs/Output.h"
 #include "PlayList/PlayListStep.h"
 #include "RunningSchedule.h"
-#include <log4cpp/Category.hh>
-#include <wx/dir.h>
-#include <wx/file.h>
 #include "../xLights/xLightsVersion.h"
 #include "../xLights/AudioManager.h"
 #include "xScheduleMain.h"
 #include "xScheduleApp.h"
-#include <wx/config.h>
-#include <wx/sckaddr.h>
-#include <wx/socket.h>
 #include "UserButton.h"
 #include "OutputProcess.h"
-#include <wx/filename.h>
-#include <wx/mimetype.h>
 #include "PlayList/PlayListItemAudio.h"
 #include "PlayList/PlayListItemFSEQ.h"
 #include "PlayList/PlayListItemFSEQVideo.h"
@@ -29,14 +29,15 @@
 #include "PlayList/PlayListItemVideo.h"
 #include "Xyzzy.h"
 #include "PlayList/PlayListItemText.h"
-#include "Control.h"
 #include "../xLights/outputs/IPOutput.h"
-#include "../xLights/outputs/ArtNetOutput.h"
 #include "../xLights/UtilFunctions.h"
 #include "Pinger.h"
 #include "events/ListenerManager.h"
-#include "wxMIDI/src/wxMidi.h"
 #include "wxJSON/jsonreader.h"
+
+#include <memory>
+
+#include <log4cpp/Category.hh>
 
 ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showDir)
 {
@@ -55,11 +56,9 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _queuedSongs = new PlayList();
     _queuedSongs->SetName("Song Queue");
     _fppSyncMaster = nullptr;
-    _oscSyncMaster = nullptr;
     _midiMaster = nullptr;
     _artNetSyncMaster = nullptr;
     _fppSyncMasterUnicast = nullptr;
-    _oscSyncSlave = nullptr;
     _manualOTL = -1;
     _immediatePlay = nullptr;
     _scheduleOptions = nullptr;
@@ -73,12 +72,15 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
     _timerAdjustment = 0;
     _lastXyzzyCommand = wxDateTime::Now();
     _outputManager = new OutputManager();
+    _syncManager = std::make_unique<SyncManager>(this);
 
-    _mode = SYNCMODE::STANDALONE;
+    _mode = (int)SYNCMODE::STANDALONE;
+    _remoteMode = REMOTEMODE::DISABLED;
     wxConfigBase* config = wxConfigBase::Get();
     if (config != nullptr)
     {
-        _mode = (SYNCMODE)config->ReadLong(_("SyncMode"), SYNCMODE::STANDALONE);
+        _mode = config->ReadLong(_("SyncMode"), (int)SYNCMODE::STANDALONE);
+        _remoteMode = (REMOTEMODE)config->ReadLong(_("RemoteMode"), (int)REMOTEMODE::DISABLED);
     }
 
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
@@ -176,57 +178,7 @@ ScheduleManager::ScheduleManager(xScheduleFrame* frame, const std::string& showD
 
     _listenerManager = new ListenerManager(this);
 
-    if (_mode == SYNCMODE::FPPMASTER) {
-        logger_base.info("SyncMode: FPPMASTER");
-        OpenFPPSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::OSCMASTER) {
-        logger_base.info("SyncMode: OSCMASTER");
-        OpenOSCSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::FPPOSCMASTER) {
-        logger_base.info("SyncMode: FPPOSCMASTER");
-        OpenFPPSyncSendSocket();
-        OpenOSCSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::MIDIMASTER) {
-        logger_base.info("SyncMode: MIDIMASTER");
-        OpenMIDIMaster();
-    }
-    else if (_mode == SYNCMODE::MIDISLAVE) {
-        logger_base.info("SyncMode: MIDISLAVE");
-        _listenerManager->SetRemoteMIDI();
-    }
-    else if (_mode == SYNCMODE::FPPSLAVE)
-    {
-        logger_base.info("SyncMode: FPPREMOTE");
-        _listenerManager->SetRemoteFPP();
-    }
-    else if (_mode == SYNCMODE::OSCSLAVE)
-    {
-        logger_base.info("SyncMode: OSCREMOTE");
-        _listenerManager->SetRemoteOSC();
-    }
-    else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
-    {
-        logger_base.info("SyncMode: FPPUNICASTREMOTE");
-        _listenerManager->SetRemoteFPPUnicast();
-    }
-    else if (_mode == SYNCMODE::STANDALONE)
-    {
-        logger_base.info("SyncMode: STANDALONE");
-    }
-    else if (_mode == SYNCMODE::ARTNETMASTER)
-    {
-        logger_base.info("SyncMode: ARTNETMASTER");
-        OpenARTNetSyncSendSocket();
-    }
-    else if (_mode == SYNCMODE::ARTNETSLAVE)
-    {
-        logger_base.info("SyncMode: ARTNETREMOTE");
-        _listenerManager->SetRemoteArtNet();
-    }
-    _listenerManager->StartListeners();
+    _syncManager->Start(_mode, _remoteMode);
 
     // This is out frame data buffer ... it cannot be resized
     logger_base.info("Allocated frame buffer of %ld bytes", _outputManager->GetTotalChannels());
@@ -276,6 +228,9 @@ logger_base.debug("DoSync Enter");
 	
     PlayList* pl = GetRunningPlayList();
     PlayListStep* pls = nullptr;
+
+    // adjust the time we received by the desired latency
+    ms += GetOptions()->GetRemoteLatency();
 
     if (filename != "" && pl != nullptr && pl->GetRunningStep() != nullptr && pl->GetRunningStep()->GetNameNoTime() == filename)
     {
@@ -424,10 +379,7 @@ logger_base.debug("DoSync Leave");
 ScheduleManager::~ScheduleManager()
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    CloseFPPSyncSendSocket();
-    CloseOSCSyncSendSocket();
-    CloseARTNetSyncSendSocket();
-    CloseMIDIMaster();
+    _syncManager = nullptr;
     AllOff();
     _outputManager->StopOutput();
     StopVirtualMatrices();
@@ -686,9 +638,7 @@ void ScheduleManager::StopAll(bool sustain)
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.info("Stopping all playlists.");
 
-    SendFPPSync("", 0xFFFFFFFF, 50);
-    SendMIDISync(0xFFFFFFFF, 50);
-    SendARTNetSync(0xFFFFFFFF, 50);
+    _syncManager->SendStop();
 
     if (_immediatePlay != nullptr)
     {
@@ -908,31 +858,17 @@ int ScheduleManager::Frame(bool outputframe)
                 done = running->Frame(_buffer, totalChannels, outputframe);
                 logger_frame.debug("Frame: step frame done %ldms", sw.Time());
 
-                if (outputframe && (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
+                if (running->GetRunningStep() != nullptr)
                 {
-                    if (running->GetActiveSyncItemFSEQ() != "")
-                    {
-                        SendFPPSync(fseq, running->GetRunningStep()->GetPosition(), rate);
-                    }
-                    if (running->GetActiveSyncItemMedia() != "")
-                    {
-                        SendFPPSync(media, running->GetRunningStep()->GetPosition(), rate);
-                    }
-                }
-
-                if (outputframe && (_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER) && running->GetRunningStep() != nullptr)
-                {
-                    SendOSCSync(running->GetRunningStep(), running->GetRunningStep()->GetPosition(), running->GetFrameMS());
-                }
-
-                if (outputframe && _mode == SYNCMODE::ARTNETMASTER  && running != nullptr)
-                {
-                    SendARTNetSync(running->GetPosition(), running->GetFrameMS());
-                }
-
-                if (outputframe && _mode == SYNCMODE::MIDIMASTER  && running != nullptr)
-                {
-                    SendMIDISync(running->GetPosition(), running->GetFrameMS());
+                    size_t fms;
+                    _syncManager->SendSync(rate , 
+                        running->GetRunningStep()->GetLengthMS(), 
+                        running->GetRunningStep()->GetPosition(), 
+                        running->GetPosition(),
+                        fseq, 
+                        media, 
+                        running->GetRunningStep()->GetNameNoTime(), 
+                        running->GetRunningStep()->GetTimeSource(fms)->GetNameNoTime());
                 }
 
                 // for queued songs we must remove the queued song when it finishes
@@ -1045,10 +981,7 @@ int ScheduleManager::Frame(bool outputframe)
             {
                 if (running != nullptr)
                 {
-                    SendFPPSync(fseq, 0xFFFFFFFF, rate);
-                    SendFPPSync(media, 0xFFFFFFFF, rate);
-                    SendARTNetSync(0xFFFFFFFF, rate);
-                    SendMIDISync(0xFFFFFFFF, rate);
+                    _syncManager->SendStop();
 
                     // playlist is done
                     if (!running->IsSuspended())
@@ -1221,11 +1154,7 @@ int ScheduleManager::Frame(bool outputframe)
 
 bool ScheduleManager::IsSlave() const
 {
-    return _mode == FPPSLAVE ||
-        _mode == FPPUNICASTSLAVE ||
-        _mode == ARTNETSLAVE ||
-        _mode == OSCSLAVE ||
-        _mode == MIDISLAVE;
+    return _syncManager->IsSlave();
 }
 
 void ScheduleManager::CreateBrightnessArray()
@@ -1297,7 +1226,7 @@ bool compare_runningschedules(const RunningSchedule* first, const RunningSchedul
 
 int ScheduleManager::CheckSchedule()
 {
-    if (_mode == SYNCMODE::FPPSLAVE || _mode == SYNCMODE::FPPUNICASTSLAVE) return 50;
+    if (_syncManager->IsSlave()) return 50;
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Checking the schedule ...");
@@ -2309,9 +2238,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
 
                     _queuedSongs->RemoveAllSteps();
-                    SendFPPSync("", 0xFFFFFFFF, 50);
-                    SendMIDISync(0xFFFFFFFF, 50);
-                    SendARTNetSync(0xFFFFFFFF, 50);
+                    _syncManager->SendStop();
 
                     wxCommandEvent event(EVT_DOCHECKSCHEDULE);
                     wxPostEvent(wxGetApp().GetTopWindow(), event);
@@ -2725,9 +2652,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                         bool random = rs->GetPlayList()->IsRandom();
 
                         rs->GetPlayList()->Stop();
-                        SendFPPSync("", 0xFFFFFFFF, 50);
-                        SendMIDISync(0xFFFFFFFF, 50);
-                        SendARTNetSync(0xFFFFFFFF, 50);
+                        _syncManager->SendStop();
                         _activeSchedules.remove(rs);
                         delete rs;
 
@@ -2783,9 +2708,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                             int steploopsleft = p->GetRunningStep()->GetLoopsLeft();
 
                             p->Stop();
-                            SendFPPSync("", 0xFFFFFFFF, 50);
-                            SendMIDISync(0xFFFFFFFF, 50);
-                            SendARTNetSync(0xFFFFFFFF, 50);
+                            _syncManager->SendStop();
 
                             auto plid = p->GetId();
 
@@ -3016,9 +2939,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, 
         }
         else
         {
-            SendFPPSync("", 0xFFFFFFFF, 50);
-            SendMIDISync(0xFFFFFFFF, 50);
-            SendARTNetSync(0xFFFFFFFF, 50);
+            _syncManager->SendStop();
             _immediatePlay->Stop();
             delete _immediatePlay;
             _immediatePlay = nullptr;
@@ -3035,9 +2956,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, 
             }
             else
             {
-                SendFPPSync("", 0xFFFFFFFF, 50);
-                SendMIDISync(0xFFFFFFFF, 50);
-                SendARTNetSync(0xFFFFFFFF, 50);
+                _syncManager->SendStop();
                 (*it)->Stop();
             }
         }
@@ -3418,7 +3337,7 @@ void ScheduleManager::DisableRemoteOutputs()
 
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    if (_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) {
+    if (_syncManager->IsMaster(SYNCMODE::FPPBROADCASTMASTER) || _syncManager->IsMaster(SYNCMODE::FPPUNICASTMASTER)) {
         std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
 
         for (auto it = remotes.begin(); it != remotes.end(); ++it)
@@ -3788,106 +3707,17 @@ void ScheduleManager::ToggleMute()
     }
 }
 
-void ScheduleManager::SetMode(SYNCMODE mode)
+void ScheduleManager::SetMode(int mode, REMOTEMODE remote)
 {
-    if (_mode != mode)
-    {
-        _mode = mode;
+    _mode = mode;
+    _remoteMode = remote;
 
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(_("SyncMode"), (long)_mode);
-        config->Flush();
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Write(_("SyncMode"), (long)_mode);
+    config->Write(_("RemoteMode"), (long)_remoteMode);
+    config->Flush();
 
-        if (_mode == SYNCMODE::FPPMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseOSCSyncSendSocket();
-            CloseARTNetSyncSendSocket();
-            CloseMIDIMaster();
-            OpenFPPSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::OSCMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseFPPSyncSendSocket();
-            CloseARTNetSyncSendSocket();
-            CloseMIDIMaster();
-            OpenOSCSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::ARTNETMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseFPPSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseMIDIMaster();
-            OpenARTNetSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::FPPOSCMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseARTNetSyncSendSocket();
-            CloseMIDIMaster();
-            OpenFPPSyncSendSocket();
-            OpenOSCSyncSendSocket();
-        }
-        else if (_mode == SYNCMODE::FPPSLAVE)
-        {
-            _listenerManager->SetRemoteFPP();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::ARTNETSLAVE)
-        {
-            _listenerManager->SetRemoteArtNet();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::OSCSLAVE)
-        {
-            _listenerManager->SetRemoteOSC();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::FPPUNICASTSLAVE)
-        {
-            _listenerManager->SetRemoteFPPUnicast();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::MIDIMASTER)
-        {
-            _listenerManager->SetRemoteNone();
-            CloseOSCSyncSendSocket();
-            CloseARTNetSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            OpenMIDIMaster();
-        }
-        else if (_mode == SYNCMODE::MIDISLAVE)
-        {
-            _listenerManager->SetRemoteMIDI();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        else
-        {
-            _listenerManager->SetRemoteNone();
-            CloseARTNetSyncSendSocket();
-            CloseOSCSyncSendSocket();
-            CloseFPPSyncSendSocket();
-            CloseMIDIMaster();
-        }
-        _listenerManager->StartListeners();
-    }
+    _syncManager->Start(mode, remote);
 }
 
 PlayList* ScheduleManager::GetPlayList(int id) const
@@ -5111,787 +4941,6 @@ void ScheduleManager::StopVirtualMatrices()
     for (auto it = v->begin(); it != v->end(); ++it)
     {
         (*it)->Stop();
-    }
-}
-
-#define FPP_MEDIA_SYNC_INTERVAL_MS 500
-#define FPP_SEQ_SYNC_INTERVAL_FRAMES 16
-#define FPP_SEQ_SYNC_INTERVAL_INITIAL_FRAMES 4
-#define FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES 32
-
-void ScheduleManager::SendFPPSync(const std::string& syncItem, size_t msec, size_t frameMS)
-{
-    static std::string lastfseq = "";
-    static std::string lastmedia = "";
-    static size_t lastfseqmsec = 0;
-    static size_t lastmediamsec = 0;
-
-    if (syncItem == "")
-    {
-        if (lastfseq != "")
-        {
-            SendFPPSync(lastfseq, 0xFFFFFFFF, 50);
-        }
-
-        if (lastmedia != "")
-        {
-            SendFPPSync(lastmedia, 0xFFFFFFFF, 50);
-        }
-
-        return;
-    }
-
-    if ((_mode == SYNCMODE::FPPMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _fppSyncMaster == nullptr)
-    {
-        OpenFPPSyncSendSocket();
-    }
-
-    if (_fppSyncMaster == nullptr) return;
-
-    bool dosend = false;
-    if (msec == 0 || msec == 0xFFFFFFFF) dosend = true;
-
-    wxFileName fn(syncItem.c_str());
-    if (fn.GetExt().Lower() == "fseq")
-    {
-        if (lastfseq != syncItem)
-        {
-            if (lastfseq != "")
-            {
-                SendFPPSync(lastfseq, 0xFFFFFFFF, frameMS);
-            }
-
-            lastfseq = syncItem;
-
-            if (msec != 0)
-            {
-                SendFPPSync(syncItem, 0, frameMS);
-            }
-        }
-
-        if (!dosend)
-        {
-            if (msec <= FPP_SEQ_SYNC_INITIAL_NUMBER_OF_FRAMES * frameMS)
-            {
-                // we are in the initial period
-                if (msec - lastfseqmsec >= FPP_SEQ_SYNC_INTERVAL_INITIAL_FRAMES * frameMS)
-                {
-                    dosend = true;
-                }
-            }
-            else
-            {
-                if (msec - lastfseqmsec >= FPP_SEQ_SYNC_INTERVAL_FRAMES * frameMS)
-                {
-                    dosend = true;
-                }
-            }
-        }
-    }
-    else
-    {
-        if (lastmedia != syncItem)
-        {
-            if (lastmedia != "")
-            {
-                SendFPPSync(lastmedia, 0xFFFFFFFF, frameMS);
-            }
-
-            lastmedia = syncItem;
-
-            if (msec != 0)
-            {
-                SendFPPSync(syncItem, 0, frameMS);
-            }
-        }
-
-        if (!dosend)
-        {
-            if (msec - lastmediamsec >= FPP_MEDIA_SYNC_INTERVAL_MS)
-            {
-                dosend = true;
-            }
-        }
-    }
-
-    if (!dosend) return;
-
-    wxIPV4address remoteAddr;
-    //remoteAddr.BroadcastAddress();
-    remoteAddr.Hostname("255.255.255.255");
-    remoteAddr.Service(FPP_CTRL_PORT);
-
-    wxASSERT(sizeof(ControlPkt) == 7); // ensure data is packed correctly
-
-    int bufsize = sizeof(ControlPkt) + sizeof(SyncPkt) + fn.GetFullName().Length();
-    unsigned char* buffer = (unsigned char*)malloc(bufsize);
-    memset(buffer, 0x00, bufsize);
-
-    if (buffer != nullptr)
-    {
-        ControlPkt* cp = (ControlPkt*)buffer;
-        strncpy(cp->fppd, "FPPD", 4);
-        cp->pktType = CTRL_PKT_SYNC;
-        cp->extraDataLen = bufsize - sizeof(ControlPkt);
-
-        SyncPkt* sp = (SyncPkt*)(buffer + sizeof(ControlPkt));
-
-        if (msec == 0)
-        {
-            sp->pktType = SYNC_PKT_START;
-        }
-        else if(msec == 0xFFFFFFFF)
-        {
-            sp->pktType = SYNC_PKT_STOP;
-        }
-        else
-        {
-            sp->pktType = SYNC_PKT_SYNC;
-        }
-
-        if (fn.GetExt().Lower() == "fseq")
-        {
-            lastfseqmsec = msec;
-            sp->fileType = SYNC_FILE_SEQ;
-            sp->frameNumber = msec / frameMS;
-
-            if (msec == 0xFFFFFFFF)
-            {
-                lastfseq = "";
-                lastfseqmsec = 0;
-            }
-        }
-        else
-        {
-            lastmediamsec = msec;
-            sp->fileType = SYNC_FILE_MEDIA;
-            sp->frameNumber = 0;
-
-            if (msec == 0xFFFFFFFF)
-            {
-                lastmedia = "";
-                lastmediamsec = 0;
-            }
-        }
-
-        if (sp->pktType == SYNC_PKT_SYNC)
-        {
-            sp->secondsElapsed = msec / 1000.0;
-        }
-        else
-        {
-            sp->frameNumber = 0;
-            sp->secondsElapsed = 0;
-        }
-
-        strcpy(&sp->filename[0], fn.GetFullName().c_str());
-
-        _fppSyncMaster->SendTo(remoteAddr, buffer, bufsize);
-
-        if (sp->fileType == SYNC_FILE_SEQ)
-        {
-            auto remotes = GetOptions()->GetFPPRemotes();
-            for (auto it = remotes.begin(); it != remotes.end(); ++it)
-            {
-                SendUnicastSync(*it, fn.GetFullName().ToStdString(), msec, frameMS, sp->pktType);
-            }
-        }
-
-        free(buffer);
-    }
-}
-
-void ScheduleManager::SendARTNetSync(size_t msec, size_t frameMS)
-{
-    // static size_t lastmsec = 0;
-
-    if ((_mode == SYNCMODE::ARTNETMASTER) && _artNetSyncMaster == nullptr)
-    {
-        OpenARTNetSyncSendSocket();
-    }
-
-    if (_artNetSyncMaster == nullptr) return;
-
-    bool dosend = false;
-    if (msec == 0) dosend = true;
-
-    if (!dosend)
-    {
-        //if (msec - lastmsec > 1000)
-        {
-            dosend = true;
-        }
-    }
-
-    if (!dosend) return;
-
-    // lastmsec = msec;
-
-    wxIPV4address remoteAddr;
-    //remoteAddr.BroadcastAddress();
-    remoteAddr.Hostname("255.255.255.255");
-    remoteAddr.Service(ARTNET_PORT);
-
-    int bufsize = 19;
-    unsigned char* buffer = (unsigned char*)malloc(bufsize);
-    memset(buffer, 0x00, bufsize);
-
-    if (buffer != nullptr)
-    {
-        buffer[0] = 'A';
-        buffer[1] = 'r';
-        buffer[2] = 't';
-        buffer[3] = '-';
-        buffer[4] = 'N';
-        buffer[5] = 'e';
-        buffer[6] = 't';
-        buffer[9] = 0x97;
-        buffer[11] = 0x0E;
-
-        size_t ms = msec;
-
-		if (ms == 0xFFFFFFFF)
-		{
-			ms = 0;
-		}
-		
-        buffer[17] = ms / (3600000);
-        ms = ms % 360000;
-
-        buffer[16] = ms / 60000;
-        ms = ms % 60000;
-
-        buffer[15] = ms / 1000;
-        ms = ms % 1000;
-
-        buffer[18] = GetOptions()->GetARTNetTimeCodeFormat();
-
-        switch(buffer[16])
-        {
-        case 0: //24 fps
-            buffer[14] = ms * 24 / 1000;
-            break;
-        case 1: // 25 fps
-            buffer[14] = ms * 25 / 1000;
-            break;
-        case 2: // 29.97 fps
-            buffer[14] = ms * 2997 / 100000;
-            break;
-        case 3: // 30 fps
-            buffer[14] = ms * 30 / 1000;
-            break;
-        default:
-            break;
-        }
-
-        _artNetSyncMaster->SendTo(remoteAddr, buffer, bufsize);
-
-        free(buffer);
-    }
-}
-
-void ScheduleManager::SendMIDISync(size_t msec, size_t frameMS)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    static size_t lastmsec = 999999999;
-
-    if ((_mode == SYNCMODE::MIDIMASTER) && _midiMaster == nullptr)
-    {
-        OpenMIDIMaster();
-    }
-
-    if (_midiMaster == nullptr) return;
-
-    bool dosend = false;
-    if (msec == 0) dosend = true;
-
-    if (!dosend)
-    {
-        //if (msec - lastmsec > 1000)
-        {
-            dosend = true;
-        }
-    }
-
-    if (!dosend) return;
-
-    bool sendresync = false;
-    if (msec - lastmsec < 0 || msec - lastmsec > 5000)
-    {
-        sendresync = true;
-    }
-
-    if (lastmsec == 999999999)
-    {
-        wxMidiShortMessage msg(0xFA, 0, 0);
-        msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-        _midiMaster->Write(&msg);
-    }
-    else if (msec == 0xFFFFFFFF)
-    {
-        lastmsec = 999999999;
-        wxMidiShortMessage msg(0xFC, 0, 0);
-        msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-        _midiMaster->Write(&msg);
-        return;
-    }
-
-    lastmsec = msec;
-
-    // send the packet
-
-    if (sendresync)
-    {
-        uint8_t buffer[10];
-        size_t ms = msec;
-
-        ms += GetOptions()->GetMIDITimecodeOffset();
-
-        buffer[0] = 0xF0;
-        buffer[1] = 0x7F;
-        buffer[2] = 0x7F;
-        buffer[3] = 0x01;
-        buffer[4] = 0x01;
-
-        buffer[5] = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
-        ms = ms % 360000;
-
-        buffer[6] = ms / 60000;
-        ms = ms % 60000;
-
-        buffer[7] = ms / 1000;
-        ms = ms % 1000;
-
-        switch (GetOptions()->GetMIDITimecodeFormat())
-        {
-        default:
-        case 0: // 24 fps
-            buffer[8] = ms * 24 / 1000;
-            break;
-        case 1: // 25 fps
-            buffer[8] = ms * 25 / 1000;
-            break;
-        case 2: // 29.97 fps
-            buffer[8] = ms * 2997 / 100000;
-            break;
-        case 3: // 30 fps
-            buffer[8] = ms * 30 / 1000;
-            break;
-        }
-        buffer[9] = 0xF7;
-        _midiMaster->Write(buffer);
-    }
-    else
-    {
-        size_t ms = msec;
-        ms += GetOptions()->GetMIDITimecodeOffset();
-        int hours = (GetOptions()->GetMIDITimecodeFormat() << 5) + ms / (3600000);
-        ms = ms % 360000;
-
-        int mins = ms / 60000;
-        ms = ms % 60000;
-
-        int secs = ms / 1000;
-        ms = ms % 1000;
-
-        int frames = 0;
-        switch (GetOptions()->GetMIDITimecodeFormat())
-        {
-        default:
-        case 0: // 24 fps
-            frames = ms * 24 / 1000;
-            break;
-        case 1: // 25 fps
-            frames = ms * 25 / 1000;
-            break;
-        case 2: // 29.97 fps
-            frames = ms * 2997 / 100000;
-            break;
-        case 3: // 30 fps
-            frames = ms * 30 / 1000;
-            break;
-        }
-
-        for (int i = 0; i < 8; i++)
-        {
-            int data = 0;
-            switch(i)
-            {
-            case 0:
-                data = frames & 0x0F;
-                break;
-            case 1:
-                data = (frames & 0xF0) >> 4;
-                break;
-            case 2:
-                data = secs & 0x0F;
-                break;
-            case 3:
-                data = (secs & 0xF0) >> 4;
-                break;
-            case 4:
-                data = mins & 0x0F;
-                break;
-            case 5:
-                data = (mins & 0xF0) >> 4;
-                break;
-            case 6:
-                data = hours & 0x0F;
-                break;
-            case 7:
-                data = (hours & 0xF0) >> 4;
-                break;
-            default:
-                break;
-            }
-            wxMidiShortMessage msg(0xF1, (i<<4) + data, 0);
-            msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-            logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-            _midiMaster->Write(&msg);
-        }
-        wxMidiShortMessage msg(0xF8, 0, 0);
-        msg.SetTimestamp(wxMidiSystem::GetInstance()->GetTime());
-        logger_base.debug("MIDI Short Message 0x%02x Data 0x%02x 0x%02x Timestamp 0x%04x", msg.GetStatus(), msg.GetData1(), msg.GetData2(), (int)msg.GetTimestamp());
-        _midiMaster->Write(&msg);
-    }
-}
-
-void ScheduleManager::SendOSCSync(PlayListStep* step, size_t msec, size_t frameMS)
-{
-    static std::string lastfseq = "";
-    // static size_t lastfseqmsec = 0;
-
-    if ((_mode == SYNCMODE::OSCMASTER || _mode == SYNCMODE::FPPOSCMASTER) && _oscSyncMaster == nullptr)
-    {
-        OpenOSCSyncSendSocket();
-    }
-
-    if (_oscSyncMaster == nullptr) return;
-
-    wxString path = GetOptions()->GetOSCOptions()->GetMasterPath();
-
-    path.Replace("%STEPNAME%", step->GetNameNoTime());
-
-    if (step->GetTimeSource(frameMS) != nullptr)
-        path.Replace("%TIMINGITEM%", step->GetTimeSource(frameMS)->GetNameNoTime());
-
-    if (GetOptions()->GetOSCOptions()->IsTime())
-    {
-        switch (GetOptions()->GetOSCOptions()->GetTimeCode())
-        {
-        case OSCTIME::TIME_SECONDS:
-            SendOSC(OSCPacket(path.ToStdString(), (float)msec / 1000));
-            break;
-        case OSCTIME::TIME_MILLISECONDS:
-            SendOSC(OSCPacket(path.ToStdString(), (int)msec));
-            break;
-        }
-    }
-    else
-    {
-        switch (GetOptions()->GetOSCOptions()->GetFrameCode())
-        {
-        case OSCFRAME::FRAME_24:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 24 / 1000)));
-            break;
-        case OSCFRAME::FRAME_25:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 25 / 1000)));
-            break;
-        case OSCFRAME::FRAME_2997:
-            SendOSC(OSCPacket(path.ToStdString(), (int)((float)msec * 29.97 / 1000)));
-            break;
-        case OSCFRAME::FRAME_30:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 30 / 1000)));
-            break;
-        case OSCFRAME::FRAME_60:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec * 60 / 1000)));
-            break;
-        case OSCFRAME::FRAME_DEFAULT:
-            SendOSC(OSCPacket(path.ToStdString(), (int)(msec / frameMS)));
-            break;
-        case OSCFRAME::FRAME_PROGRESS:
-            SendOSC(OSCPacket(path.ToStdString(), (float)msec / (float)step->GetLengthMS()));
-            break;
-        }
-    }
-}
-
-void ScheduleManager::SendOSC(const OSCPacket& osc)
-{
-    wxIPV4address remoteAddr;
-    //remoteAddr.BroadcastAddress();
-    remoteAddr.Hostname(GetOptions()->GetOSCOptions()->GetIPAddress());
-    remoteAddr.Service(GetOptions()->GetOSCOptions()->GetServerPort());
-
-    _oscSyncMaster->SendTo(remoteAddr, osc.GetBuffer(), osc.GetBuffSize());
-}
-
-void ScheduleManager::SendUnicastSync(const std::string& ip, const std::string& syncItem, size_t msec, size_t frameMS, int action)
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    wxIPV4address remoteAddr;
-    remoteAddr.Hostname(ip);
-    remoteAddr.Service(FPP_CTRL_CSV_PORT);
-
-    char buffer[1024];
-    memset(buffer, 0x00, sizeof(buffer));
-
-    switch (action)
-    {
-    case SYNC_PKT_SYNC:
-        sprintf(buffer, "FPP,%d,%d,%d,%s,%d,%d\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str(), (int)(msec / 1000), (int)msec % 1000);
-        //logger_base.debug("Sending remote sync unicast packet to %s.", (const char*)ip.c_str());
-        break;
-    case SYNC_PKT_STOP:
-        sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
-        logger_base.debug("Sending remote stop unicast packet to %s.", (const char*)ip.c_str());
-        break;
-    case SYNC_PKT_START:
-        sprintf(buffer, "FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str());
-        logger_base.debug("Sending remote start unicast packet to %s.", (const char*)ip.c_str());
-        break;
-    case CTRL_PKT_BLANK:
-        sprintf(buffer, "FPP,%d\n", CTRL_PKT_BLANK);
-        break;
-    default:
-        break;
-    }
-
-    _fppSyncMasterUnicast->SendTo(remoteAddr, buffer, strlen(buffer));
-}
-
-void ScheduleManager::OpenMIDIMaster()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    CloseMIDIMaster();
-
-    if (GetOptions()->GetMIDITimecodeDevice() != "")
-    {
-        _midiMaster = new wxMidiOutDevice(wxAtoi(wxString(GetOptions()->GetMIDITimecodeDevice()).AfterLast(' ')));
-        if (_midiMaster->IsOutputPort())
-        {
-            wxMidiError err = _midiMaster->Open(0);
-            if (err != wxMIDI_NO_ERROR)
-            {
-                delete _midiMaster;
-                _midiMaster = nullptr;
-                logger_base.error("MIDI failed to open as a timecode master: %d", err);
-            }
-            else
-            {
-                logger_base.debug("MIDI opened as a timecode master");
-            }
-        }
-        else
-        {
-            delete _midiMaster;
-            _midiMaster = nullptr;
-            logger_base.debug("Attempt to use input MIDI device as a timecode master. Device must be an output device.");
-            wxMessageBox("Invalid MIDI device type for master mode.");
-        }
-    }
-}
-
-void ScheduleManager::OpenFPPSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseFPPSyncSendSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-
-    _fppSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_fppSyncMaster == nullptr)
-    {
-        logger_base.error("Error opening datagram for FPP Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
-    }
-    else if (!_fppSyncMaster->IsOk())
-    {
-        logger_base.error("Error opening datagram for FPP Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
-        delete _fppSyncMaster;
-        _fppSyncMaster = nullptr;
-    }
-    else if (_fppSyncMaster->Error())
-    {
-        logger_base.error("Error opening datagram for FPP Sync as master. %d : %s", _fppSyncMaster->LastError(), (const char*)DecodeIPError(_fppSyncMaster->LastError()).c_str());
-        delete _fppSyncMaster;
-        _fppSyncMaster = nullptr;
-    }
-    else
-    {
-        logger_base.info("FPP Sync as master datagram opened successfully.");
-    }
-
-    std::list<std::string> remotes = GetOptions()->GetFPPRemotes();
-
-    if (remotes.size() > 0)
-    {
-        _fppSyncMasterUnicast = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
-        if (_fppSyncMasterUnicast == nullptr)
-        {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master %s.", (const char *)localaddr.IPAddress().c_str());
-        }
-        else if (!_fppSyncMasterUnicast->IsOk())
-        {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master %s. OK : FALSE", (const char *)localaddr.IPAddress().c_str());
-            delete _fppSyncMasterUnicast;
-            _fppSyncMasterUnicast = nullptr;
-        }
-        else if (_fppSyncMasterUnicast->Error())
-        {
-            logger_base.error("Error opening unicast datagram for FPP Sync as master. %d : %s %s", _fppSyncMasterUnicast->LastError(), (const char*)DecodeIPError(_fppSyncMasterUnicast->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
-            delete _fppSyncMasterUnicast;
-            _fppSyncMasterUnicast = nullptr;
-        }
-        else
-        {
-            logger_base.info("FPP Sync as master unicast datagram opened successfully.");
-        }
-    }
-}
-
-void ScheduleManager::OpenOSCSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseOSCSyncSendSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-
-    _oscSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_oscSyncMaster == nullptr)
-    {
-        logger_base.error("Error opening datagram for OSC Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
-    }
-    else if (!_oscSyncMaster->IsOk())
-    {
-        logger_base.error("Error opening datagram for OSC Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
-        delete _oscSyncMaster;
-        _oscSyncMaster = nullptr;
-    }
-    else if (_oscSyncMaster->Error())
-    {
-        logger_base.error("Error opening datagram for OSC Sync as master. %d : %s", 
-            _oscSyncMaster->LastError(), 
-            (const char*)DecodeIPError(_oscSyncMaster->LastError()).c_str());
-        delete _oscSyncMaster;
-        _oscSyncMaster = nullptr;
-    }
-    else
-    {
-        logger_base.info("OSC Sync as master datagram opened successfully.");
-    }
-}
-
-void ScheduleManager::OpenARTNetSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    CloseARTNetSyncSendSocket();
-
-    wxIPV4address localaddr;
-    if (IPOutput::GetLocalIP() == "")
-    {
-        localaddr.AnyAddress();
-    }
-    else
-    {
-        localaddr.Hostname(IPOutput::GetLocalIP());
-    }
-
-    _artNetSyncMaster = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT | wxSOCKET_BROADCAST);
-    if (_artNetSyncMaster == nullptr)
-    {
-        logger_base.error("Error opening datagram for ARTNet Sync as master. %s", (const char *)localaddr.IPAddress().c_str());
-    }
-    else if (!_artNetSyncMaster->IsOk())
-    {
-        logger_base.error("Error opening datagram for ARTNet Sync as master. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
-        delete _artNetSyncMaster;
-        _artNetSyncMaster = nullptr;
-    }
-    else if (_artNetSyncMaster->Error())
-    {
-        logger_base.error("Error opening datagram for ARTNet Sync as master. %d : %s", 
-            _artNetSyncMaster->LastError(), 
-            (const char*)DecodeIPError(_artNetSyncMaster->LastError()).c_str());
-        delete _artNetSyncMaster;
-        _artNetSyncMaster = nullptr;
-    }
-    else
-    {
-        logger_base.info("ARTNet Sync as master datagram opened successfully.");
-    }
-}
-
-void ScheduleManager::CloseFPPSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_fppSyncMaster != nullptr) {
-        logger_base.info("FPP Sync as master datagram closed.");
-        _fppSyncMaster->Close();
-        delete _fppSyncMaster;
-        _fppSyncMaster = nullptr;
-    }
-
-    if (_fppSyncMasterUnicast != nullptr)
-    {
-        logger_base.info("FPP Sync as master unicast datagram closed.");
-        _fppSyncMasterUnicast->Close();
-        delete _fppSyncMasterUnicast;
-        _fppSyncMasterUnicast = nullptr;
-    }
-}
-
-void ScheduleManager::CloseARTNetSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_artNetSyncMaster != nullptr) {
-        logger_base.info("ARTNet Sync as master datagram closed.");
-        _artNetSyncMaster->Close();
-        delete _artNetSyncMaster;
-        _artNetSyncMaster = nullptr;
-    }
-}
-
-void ScheduleManager::CloseOSCSyncSendSocket()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_oscSyncMaster != nullptr) {
-        logger_base.info("OSC Sync as master datagram closed.");
-        _oscSyncMaster->Close();
-        delete _oscSyncMaster;
-        _oscSyncMaster = nullptr;
-    }
-}
-
-void ScheduleManager::CloseMIDIMaster()
-{
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    if (_midiMaster != nullptr)
-    {
-        logger_base.info("Midi Timecode as master closed.");
-        _midiMaster->Close();
-        delete _midiMaster;
-        _midiMaster = nullptr;
     }
 }
 

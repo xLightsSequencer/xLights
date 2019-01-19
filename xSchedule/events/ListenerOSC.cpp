@@ -1,11 +1,14 @@
 #include "ListenerOSC.h"
-#include <log4cpp/Category.hh>
-#include <wx/socket.h>
 #include "ListenerManager.h"
 #include "../../xLights/outputs/IPOutput.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../OSCPacket.h"
+
+#include <wx/socket.h>
+
+#include <log4cpp/Category.hh>
 
 ListenerOSC::ListenerOSC(ListenerManager* listenerManager) : ListenerBase(listenerManager)
 {

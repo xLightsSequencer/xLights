@@ -31,8 +31,9 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _MIDITimecodeDevice = node->GetAttribute("MIDITimecodeDevice", "").ToStdString();
-    _MIDITimecodeFormat = wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0"));
+    _MIDITimecodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0")));
     _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
+    _remoteLatency = wxAtoi(node->GetAttribute("RemoteLatency", "0"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
@@ -49,7 +50,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
     _crashBehaviour = node->GetAttribute("CrashBehaviour", "Prompt user");
-    _artNetTimeCodeFormat = wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1"));
+    _artNetTimeCodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1")));
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
@@ -164,7 +165,7 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
 
 ScheduleOptions::ScheduleOptions()
 {
-    _artNetTimeCodeFormat = 1;
+    _artNetTimeCodeFormat = TIMECODEFORMAT::F25;
     _oscOptions = new OSCOptions();
     _testOptions = new TestOptions();
     _password = "";
@@ -177,6 +178,7 @@ ScheduleOptions::ScheduleOptions()
 #else
     _port = 8080;
 #endif
+    _remoteLatency = 0;
     _webAPIOnly = false;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
@@ -189,7 +191,7 @@ ScheduleOptions::ScheduleOptions()
     _advancedMode = false;
     _crashBehaviour = "Prompt user";
     _MIDITimecodeDevice = "";
-    _MIDITimecodeFormat = 0;
+    _MIDITimecodeFormat = TIMECODEFORMAT::F24;
     _MIDITimecodeOffset = 0;
 }
 
@@ -222,6 +224,7 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("MIDITimecodeOffset", wxString::Format("%ld", (long)_MIDITimecodeOffset));
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
+    res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");

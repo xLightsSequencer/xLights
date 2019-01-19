@@ -23,7 +23,7 @@ BEGIN_EVENT_TABLE(ConfigureMIDITimecodeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, int format, size_t offset, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, TIMECODEFORMAT format, size_t offset, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ConfigureMIDITimecodeDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -157,25 +157,25 @@ std::string ConfigureMIDITimecodeDialog::GetMIDI() const
     return Choice1->GetStringSelection().ToStdString();
 }
 
-int ConfigureMIDITimecodeDialog::GetFormat() const
+TIMECODEFORMAT ConfigureMIDITimecodeDialog::GetFormat() const
 {
     if (ChoiceFormat->GetStringSelection() == "24 fps")
     {
-        return 0;
+        return TIMECODEFORMAT::F24;
     }
     if (ChoiceFormat->GetStringSelection() == "25 fps")
     {
-        return 1;
+        return TIMECODEFORMAT::F25;
     }
     if (ChoiceFormat->GetStringSelection() == "29.97 fps")
     {
-        return 2;
+        return TIMECODEFORMAT::F2997;
     }
     if (ChoiceFormat->GetStringSelection() == "30 fps")
     {
-        return 3;
+        return TIMECODEFORMAT::F30;
     }
-    return 0;
+    return TIMECODEFORMAT::F24;
 }
 
 int ConfigureMIDITimecodeDialog::GetOffset() const
