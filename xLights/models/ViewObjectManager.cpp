@@ -120,7 +120,7 @@ void ViewObjectManager::LoadViewObjects(wxXmlNode *modelNode) {
         if (e->GetName() == "view_object") {
             std::string name = e->GetAttribute("name").ToStdString();
             if (!name.empty()) {
-                ViewObject *v = createAndAddObject(e);
+                createAndAddObject(e);
             }
         }
     }

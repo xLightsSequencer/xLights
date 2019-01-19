@@ -1443,7 +1443,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     info.BestSize(sz);
     MainAuiManager->Update();
 
-    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date );
+    SetTitle( xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date );
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(OutputToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
@@ -2251,8 +2251,8 @@ void xLightsFrame::LogPerspective(const wxString & perspective) const
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString hdg = wxString::Format(_("About xLights %s %s"), xlights_version_string, GetBitness());
-    wxString ver = wxString::Format(_("xLights\nVersion: %s  -  %s\n\n"), xlights_version_string, GetBitness());
+    wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
+    wxString ver = wxString::Format(_("xLights\nVersion: %s\n\n"), GetDisplayVersionString());
     wxMessageDialog dlg(this, ver + XLIGHTS_LICENSE, hdg);
     dlg.ShowModal();
 }

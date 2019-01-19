@@ -206,7 +206,7 @@ void handleCrash(void *data) {
     //    }
     //}
 
-    wxString trace = wxString::Format("xFade version %s %s\n\n", xlights_version_string, GetBitness());
+    wxString trace = wxString::Format("xFade version %s\n\n", GetDisplayVersionString());
 
 #ifndef __WXMSW__
     void* callstack[128];

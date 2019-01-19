@@ -661,7 +661,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_XYZZYEVENT, (wxObjectEventFunction)&xScheduleFrame::DoXyzzyEvent);
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, (wxObjectEventFunction)&xScheduleFrame::OnKeyDown);
 
-    SetTitle("xLights Scheduler " + xlights_version_string + " " + GetBitness());
+    SetTitle("xLights Scheduler " + GetDisplayVersionString());
 
     StaticText_RemoteWarning->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
                                              wxFONTWEIGHT_BOLD, false, wxEmptyString, wxFONTENCODING_DEFAULT));
@@ -972,7 +972,7 @@ void xScheduleFrame::OnQuit(wxCommandEvent& event)
 
 void xScheduleFrame::OnAbout(wxCommandEvent& event)
 {
-    auto about = wxString::Format(wxT("xSchedule v%s %s, the xLights scheduler."), xlights_version_string, GetBitness());
+    auto about = wxString::Format(wxT("xSchedule v%s, the xLights scheduler."), GetDisplayVersionString());
     wxMessageBox(about, _("Welcome to..."));
 }
 

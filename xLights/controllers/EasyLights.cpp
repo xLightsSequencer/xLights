@@ -1577,25 +1577,20 @@ int EasyLights::Send_E131_Data_to_Controller(std::list<Output*>& outputs)
 
     wxUint32 Total_Channel_Count = 0;
 	wxString request;
-	int output = 0;
 
-	if(outputs.size() > 65)
-	{
+	if(outputs.size() > 65) {
 		DisplayError(wxString::Format("Attempt to upload %d universes to EasyLights controller but only 65 are supported.", outputs.size()).ToStdString());
 		return 1;
 	}
 
 	std::vector<EasyLights_E131*> U_CH_Array;
 
-    for(auto it : outputs)
-	{
-
+    for(auto it : outputs) {
 		int U = it->GetUniverse();
 		int CH = it->GetChannels();
 		int SC = it->GetStartChannel();
 
-		if(SC != (Total_Channel_Count + 1))
-		{
+		if(SC != (Total_Channel_Count + 1)) {
 			DisplayError(wxString::Format("EasyLights Channels need to be Sequencial.  Univ %d has of Start Chan of %d but was Expecting %d", U, SC, (Total_Channel_Count + 1)).ToStdString());
 			return 1;
 		}

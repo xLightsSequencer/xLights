@@ -372,7 +372,6 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
 
             for (auto shape : shapes) {
                 // Loop over faces(polygon)
-                size_t index_offset = 0;
 
                 for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
                     tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];

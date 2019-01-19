@@ -2280,12 +2280,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     int outSamples;
 					try
 					{
-                        if (frame->data == nullptr)
-                        {
-                            logger_base.error("DoLoadAudioData: frame->data was nullptr.");
-                            // let this go maybe it causes the crash
-                            wxASSERT(false);
-                        }
                         if (*(frame->data) == nullptr)
                         {
                             logger_base.error("DoLoadAudioData: frame->data was a pointer to a nullptr.");
@@ -2371,12 +2365,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                 int outSamples;
 				try
 				{
-                    if (frame->data == nullptr)
-                    {
-                        logger_base.error("DoLoadAudioData: frame->data was nullptr.");
-                        // let this go maybe it causes the crash
-                        wxASSERT(false);
-                    }
                     if (*(frame->data) == nullptr)
                     {
                         logger_base.error("DoLoadAudioData: frame->data was a pointer to a nullptr.");

@@ -434,7 +434,7 @@ xFadeFrame::xFadeFrame(wxWindow* parent, wxWindowID id)
     Connect(Slider_RightBrightness->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickRightBrightness);
     Connect(Slider_MasterBrightness->GetId(), wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xFadeFrame::OnSliderRClickMasterBrightness);
 
-    SetTitle("xLights Fade " + xlights_version_string + " " + GetBitness());
+    SetTitle("xLights Fade " + GetDisplayVersionString());
 
     wxIconBundle icons;
     icons.AddIcon(wxIcon(xlights_16_xpm));
@@ -627,7 +627,7 @@ void xFadeFrame::OnQuit(wxCommandEvent& event)
 
 void xFadeFrame::OnAbout(wxCommandEvent& event)
 {
-    auto about = wxString::Format(wxT("xFade v%s %s, the xLights cross fader."), xlights_version_string, GetBitness());
+    auto about = wxString::Format(wxT("xFade v%s, the xLights cross fader."), GetDisplayVersionString());
     wxMessageBox(about, _("Welcome to..."));
 }
 

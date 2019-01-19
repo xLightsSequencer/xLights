@@ -811,32 +811,27 @@ void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int st
 
 void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr)
 {
-    int width = image.GetWidth();
-    int height = image.GetHeight();
-
-    if (model->GetDisplayAs() == "ModelGroup")
-    {
+    if (model->GetDisplayAs() == "ModelGroup") {
         ModelGroup* mg = static_cast<ModelGroup*>(model);
 
         // Render each model
-        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m)
-        {
+        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m) {
             // work out this models start channel relative to the buffer
             int start = (*m)->GetFirstChannel() - startAddr;
 
             // Work out where the zero point is for this model
-            ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
             // FIXME:  Models are no longer fixed percentages on the screen
             //         We can use msl.GetScreenOffset(preview) but it needs a pointer to the ModelPreview that contains the model to be rendered.
             int x = 0, y = 0;
+            //ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
+            //int width = image.GetWidth();
+            //int height = image.GetHeight();
             //int x = ((float)width * msl.GetHcenterOffset());
             //int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
 
             RenderModelOnImage(image, *m, framedata, start, x, y);
         }
-    }
-    else
-    {
+    } else {
         // Render the model
         RenderModelOnImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1);
     }

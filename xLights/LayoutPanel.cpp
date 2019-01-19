@@ -1960,8 +1960,6 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     if (modelPreview == nullptr) logger_base.crit("LayoutPanel::SelectViewObject modelPreview is nullptr ... this is going to crash.");
 
     modelPreview->SetFocus();
-    int foundStart = 0;
-    int foundEnd = 0;
 
     if (v != nullptr) {
         v->Selected = true;
@@ -2584,15 +2582,11 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     m_moving_handle = false;
     over_handle = NO_HANDLE;
 
-    int y = event.GetY();
-
-    if (m_creating_bound_rect)
-    {
+    if (m_creating_bound_rect) {
         if (is_3d) {
             m_bound_end_x = event.GetX();
             m_bound_end_y = event.GetY();
-        }
-        else {
+        } else {
             glm::vec3 ray_origin;
             glm::vec3 ray_direction;
             GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);

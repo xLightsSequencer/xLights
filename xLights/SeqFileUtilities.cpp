@@ -647,7 +647,7 @@ bool xLightsFrame::CloseSequence()
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
 
-    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date);
+    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
 
     return true;
 }
