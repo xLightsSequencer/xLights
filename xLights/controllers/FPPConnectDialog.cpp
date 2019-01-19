@@ -66,7 +66,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_3DSASH, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxDLG_UNIT(this,wxSize(-1,450)));
+	SplitterWindow1->SetMinSize(wxDLG_UNIT(this,wxSize(-1,350)));
 	SplitterWindow1->SetMinimumPaneSize(150);
 	SplitterWindow1->SetSashGravity(0.5);
 	FPPInstanceList = new wxScrolledWindow(SplitterWindow1, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
@@ -76,7 +76,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FPPInstanceSizer->Fit(FPPInstanceList);
 	FPPInstanceSizer->SetSizeHints(FPPInstanceList);
 	CheckListBox_Sequences = new wxListView(SplitterWindow1, ID_LISTVIEW_Sequences, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_LISTVIEW_Sequences"));
-	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,250)));
+	CheckListBox_Sequences->SetMinSize(wxDLG_UNIT(SplitterWindow1,wxSize(-1,100)));
 	SplitterWindow1->SplitHorizontally(FPPInstanceList, CheckListBox_Sequences);
 	FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 5, 0, 0);
@@ -89,7 +89,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer4->Add(Button_Upload, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	cancelButton = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("wxID_CANCEL"));
 	FlexGridSizer4->Add(cancelButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
@@ -189,7 +189,6 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     h *= 33;
     h /= 100;
     SplitterWindow1->SetSashPosition(h);
-    
 }
 
 void FPPConnectDialog::PopulateFPPInstanceList() {
@@ -284,6 +283,7 @@ void FPPConnectDialog::PopulateFPPInstanceList() {
     FPPInstanceList->ShowScrollbars(wxSHOW_SB_ALWAYS, wxSHOW_SB_ALWAYS);
     FPPInstanceList->Thaw();
 }
+
 void FPPConnectDialog::AddInstanceHeader(const std::string &h) {
     wxPanel *Panel1 = new wxPanel(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     wxBoxSizer *BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
@@ -356,11 +356,11 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString dir) const
 
             while (!done) {
                 if (!event) {
-                    size_t read = doc.Read(&buf[0], BUFFER_SIZE);
-                    if (read == 0) {
+                    size_t read2 = doc.Read(&buf[0], BUFFER_SIZE);
+                    if (read2 == 0) {
                         done = true;
                     } else {
-                        parser->append(&buf[0], read);
+                        parser->append(&buf[0], read2);
                     }
                 } else {
                     switch (event->getEventType()) {
@@ -496,7 +496,6 @@ void FPPConnectDialog::LoadSequences()
 
     CheckListBox_Sequences->SetColumnWidth(0, wxLIST_AUTOSIZE);
     CheckListBox_Sequences->SetColumnWidth(1, wxLIST_AUTOSIZE);
-    Fit();
 }
 
 void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
@@ -761,7 +760,6 @@ void FPPConnectDialog::SetCheckValue(const std::string &col, bool b) {
     }
 
 }
-
 
 void FPPConnectDialog::SaveSettings()
 {

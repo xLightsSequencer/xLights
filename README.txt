@@ -1,7 +1,7 @@
 xLights is a show sequencer and player/scheduler designed to control
-USB/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
+USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
-xLights imports and exports sequence data from sequencers such as LOR (SE & SS),
+xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
 Vixen2, LSP, HLS.
 
 Latest releases are found at www.xlights.org
@@ -11,10 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.06 January 19, 2019
    -- bug (dkulp)   Fix sub-buffers ending up with two rows/columns identical.  Fixes #1421
+   -- bug (dkulp)   Fix FPP connect dialog not working correctly on windows
    -- bug (keith)   Fix 2D pan Y is reversed
    -- bug (keith)   Fix model move in 2D not working in Y direction
    -- bug (keith)   Fix grid axis not drawing
+   -- bug (keith)   Fix xSchedule not reading FSEQ correctly
    -- enh (keith)   Make model move accelerate when using keyboard when repeatedly moving models using keyboard
    -- enh (keith)   Add sphere model
    -- enh (keith)   Increase maximum hollow size on spinner
