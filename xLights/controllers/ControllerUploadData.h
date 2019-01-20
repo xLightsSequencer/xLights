@@ -127,6 +127,7 @@ class UDControllerPort
         void CreateVirtualStrings();
         int GetVirtualStringCount() const { return _virtualStrings.size(); }
         std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
+        std::list<UDControllerPortModel*> GetModels() const { return _models; }
 };
 
 class UDController
