@@ -22,8 +22,10 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         long GetCustomWidth() const { return parm1;}
         long GetCustomHeight() const { return parm2;}
+        long GetCustomDepth() const { return _depth;}
         void SetCustomWidth(long w);
         void SetCustomHeight(long u);
+        void SetCustomDepth(long d);
         virtual int NodesPerString() const override;
         virtual int MapPhysicalStringToLogicalString(int string) const override;
 
@@ -63,6 +65,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         std::string ComputeStringStartNode(int x) const;
         int GetCustomNodeStringNumber(int node) const;
 
+        int _depth = 1;
         std::string custom_background;
         int _strings;
         std::vector<int> stringStartNodes;
