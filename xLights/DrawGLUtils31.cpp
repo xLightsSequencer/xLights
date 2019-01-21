@@ -164,15 +164,19 @@ class ShaderProgram {
 public:
     ShaderProgram() : ProgramID(0), buffers(nullptr), numBuffers(0), bufferInfo(nullptr), buffersValid(false) {}
 
-    void Cleanup() {
+    void Cleanup(GLuint &pid) {
         if (ProgramID != 0) {
             LOG_GL_ERRORV(glUseProgram(0));
             LOG_GL_ERRORV(glDeleteBuffers(numBuffers, buffers));
-            LOG_GL_ERRORV(glDeleteProgram(ProgramID));
             delete [] buffers;
             LOG_GL_ERRORV(glDeleteVertexArrays(1, &VertexArrayID));
             delete [] bufferInfo;
             numBuffers = 0;
+        }
+        if (pid) {
+            LOG_GL_ERRORV(glDeleteProgram(pid));
+            pid = 0;
+            ProgramID = 0;
         }
     }
 
@@ -245,14 +249,17 @@ public:
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
 
-    void Init(const char * vs, const char * fs, int numBuf) {
-        GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-        GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-        CompileShader(vs, VertexShaderID);
-        CompileShader(fs, FragmentShaderID);
-        ProgramID = CreateProgram(VertexShaderID, FragmentShaderID);
-        glDeleteShader(VertexShaderID);
-        glDeleteShader(FragmentShaderID);
+    void Init(GLuint &pid, const char * vs, const char * fs, int numBuf) {
+        if (pid == 0) {
+            GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+            GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+            CompileShader(vs, VertexShaderID);
+            CompileShader(fs, FragmentShaderID);
+            pid = CreateProgram(VertexShaderID, FragmentShaderID);
+            glDeleteShader(VertexShaderID);
+            glDeleteShader(FragmentShaderID);
+        }
+        ProgramID = pid;
 
         UseProgram();
         LOG_GL_ERRORV(MatrixID = glGetUniformLocation(ProgramID, "MVP"));
@@ -366,6 +373,15 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     ShaderProgram normalProgram;
     ShaderProgram normal3Program;
     ShaderProgram vbNormalProgram;
+    
+    static std::atomic_int cacheCount;
+    static GLuint textureProgramId;
+    static GLuint texture3ProgramId;
+    static GLuint singleColorProgramId;
+    static GLuint singleColor3ProgramId;
+    static GLuint normalProgramId;
+    static GLuint normal3ProgramId;
+    static GLuint vbNormalProgramId;
 
     void Load33Shaders(bool UsesVertexTextureAccumulator,
                        bool UsesVertexColorAccumulator,
@@ -374,8 +390,9 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 					   bool UsesVertex3Accumulator,
                        bool UsesVertex3TextureAccumulator,
 					   bool UsesVertex3ColorAccumulator) {
+        cacheCount++;
         if (UsesVertexTextureAccumulator) {
-            textureProgram.Init(
+            textureProgram.Init(textureProgramId,
                                 "#version 330 core\n"
                                 "layout(location = 0) in vec2 vertexPosition_modelspace;\n"
                                 "layout(location = 2) in vec2 vertexUV;\n"
@@ -405,7 +422,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                                 "}\n", 3);
         }
         if (UsesVertex3TextureAccumulator) {
-            texture3Program.Init(
+            texture3Program.Init(texture3ProgramId,
                 "#version 330 core\n"
                 "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
                 "layout(location = 2) in vec2 vertexUV;\n"
@@ -431,7 +448,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "}\n", 3);
         }
         if (UsesVertexAccumulator) {
-			singleColorProgram.Init(
+			singleColorProgram.Init(singleColorProgramId,
 				"#version 330 core\n"
 				"layout(location = 0) in vec2 vertexPosition_modelspace;\n"
 				"out vec4 fragmentColor;\n"
@@ -460,7 +477,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 				"}\n", 1);
 		}
 		if (UsesVertex3Accumulator) {
-			singleColor3Program.Init(
+			singleColor3Program.Init(singleColor3ProgramId,
 				"#version 330 core\n"
 				"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
 				"out vec4 fragmentColor;\n"
@@ -565,23 +582,26 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 							"    }\n"
 							"}\n";
 		if (UsesVertexColorAccumulator) {
-            normalProgram.Init(npVS, npFS, 2);
+            normalProgram.Init(normalProgramId, npVS, npFS, 2);
         }
         if (UsesVertex3ColorAccumulator) {
-            normal3Program.Init(np3VS, np3FS, 2);
+            normal3Program.Init(normal3ProgramId, np3VS, np3FS, 2);
         }
         if (UsesAddVertex) {
-            vbNormalProgram.Init(npVS, npFS, 2);
+            vbNormalProgram.Init(vbNormalProgramId, npVS, npFS, 2);
         }
     }
     void Release33Shaders() {
-        singleColorProgram.Cleanup();
-        singleColor3Program.Cleanup();
-        textureProgram.Cleanup();
-        texture3Program.Cleanup();
-        normalProgram.Cleanup();
-        normal3Program.Cleanup();
-        vbNormalProgram.Cleanup();
+        --cacheCount;
+        bool del = cacheCount == 0;
+        GLuint zero = 0;
+        singleColorProgram.Cleanup(del ? singleColorProgramId : zero);
+        singleColor3Program.Cleanup(del ? singleColor3ProgramId : zero);
+        textureProgram.Cleanup(del ? textureProgramId : zero);
+        texture3Program.Cleanup(del ? texture3ProgramId : zero);
+        normalProgram.Cleanup(del ? normalProgramId : zero);
+        normal3Program.Cleanup(del ? normal3ProgramId : zero);
+        vbNormalProgram.Cleanup(del ? vbNormalProgramId : zero);
     }
 
 
@@ -986,6 +1006,15 @@ protected:
     std::stack<glm::mat4*> matrixStack;
     glm::mat4 *matrix;
 };
+std::atomic_int OpenGL33Cache::cacheCount(0);
+GLuint OpenGL33Cache::textureProgramId(0);
+GLuint OpenGL33Cache::texture3ProgramId(0);
+GLuint OpenGL33Cache::singleColorProgramId(0);
+GLuint OpenGL33Cache::singleColor3ProgramId(0);
+GLuint OpenGL33Cache::normalProgramId(0);
+GLuint OpenGL33Cache::normal3ProgramId(0);
+GLuint OpenGL33Cache::vbNormalProgramId(0);
+
 
 
 DrawGLUtils::xlGLCacheInfo *Create33Cache(bool UsesVertexTextureAccumulator,
