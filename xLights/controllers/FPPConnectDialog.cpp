@@ -66,7 +66,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
 	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_3DSASH, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinSize(wxDLG_UNIT(this,wxSize(-1,350)));
+	SplitterWindow1->SetMinSize(wxDLG_UNIT(this,wxSize(550,350)));
 	SplitterWindow1->SetMinimumPaneSize(150);
 	SplitterWindow1->SetSashGravity(0.5);
 	FPPInstanceList = new wxScrolledWindow(SplitterWindow1, ID_SCROLLEDWINDOW1, wxDefaultPosition, wxDefaultSize, wxVSCROLL|wxHSCROLL, _T("ID_SCROLLEDWINDOW1"));
@@ -507,6 +507,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     for (auto a : instances) {
         std::string rowStr = std::to_string(row);
         doUpload.push_back(GetCheckValue(CHECK_COL + rowStr));
+        row++;
     }
     for (int fs = 0; fs < CheckListBox_Sequences->GetItemCount(); fs++) {
         if (CheckListBox_Sequences->IsItemChecked(fs)) {

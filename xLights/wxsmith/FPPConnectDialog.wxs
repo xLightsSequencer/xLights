@@ -12,7 +12,7 @@
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
 					<minpanesize>150</minpanesize>
-					<minsize>-1,350d</minsize>
+					<minsize>550,350d</minsize>
 					<style>wxSP_3D|wxSP_3DSASH</style>
 					<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="FPPInstanceList" member="yes">
 						<minsize>-1,150d</minsize>
