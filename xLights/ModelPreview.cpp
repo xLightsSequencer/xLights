@@ -163,6 +163,8 @@ void ModelPreview::mouseLeftUp(wxMouseEvent& event) {
 }
 
 void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
+    m_mouse_down = false;
+    m_wheel_down = false;
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
@@ -344,6 +346,7 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
 void ModelPreview::rightClick(wxMouseEvent& event) {
     if (allowPreviewChange && xlights != nullptr) {
         wxMenu mnu;
+        mnu.Append(0x2001, "Reset");
         wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
         item->Check(is_3d);
         mnu.AppendSeparator();
@@ -394,7 +397,11 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
             SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
         }
     }
-    if (id == 0x1000) {
+    if (id == 0x2000)
+    {
+        Reset();
+    }
+    else if (id == 0x1000) {
         is_3d = !is_3d;
     } else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
@@ -419,12 +426,26 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     Update();
 }
 
+// reset cameras
+void ModelPreview::Reset()
+{
+    // Reset
+    if (is_3d)
+    {
+        camera3d->Reset();
+    }
+    else
+    {
+        camera2d->Reset();
+    }
+}
+
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
     virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
-    allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr), xlights(xlights_), is_3d(false),
-    m_mouse_down(false), m_wheel_down(false),  m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
-    currentLayoutGroup("Default"), currentModel("&---none---&"), additionalModel(nullptr)
+    allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr), xlights(xlights_), currentModel("&---none---&"),
+    currentLayoutGroup("Default"), additionalModel(nullptr),  is_3d(false), m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1),
+    camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -528,6 +549,7 @@ void ModelPreview::OnSysColourChanged(wxSysColourChangedEvent& event) {
         LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));
     }
 }
+
 void ModelPreview::SetOrigin()
 {
 }
@@ -851,4 +873,3 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     accumulator.Reset();
     mIsDrawing = false;
 }
-

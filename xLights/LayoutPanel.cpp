@@ -112,6 +112,7 @@ END_EVENT_TABLE()
 
 const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_REPLACEMODEL = wxNewId();
+const long LayoutPanel::ID_PREVIEW_RESET = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
@@ -3107,6 +3108,8 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
     wxMenu mnu;
 
+    mnu.Append(ID_PREVIEW_RESET, "Reset");
+
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
 
     if (selectedObjectCnt > 1)
@@ -3273,7 +3276,12 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
 {
-    if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
+    if (event.GetId() == ID_PREVIEW_RESET)
+    {
+        modelPreview->Reset();
+        UpdatePreview();
+    }
+    else if (event.GetId() == ID_PREVIEW_REPLACEMODEL)
     {
         ReplaceModel();
     }

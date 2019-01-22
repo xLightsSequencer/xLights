@@ -6,6 +6,23 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "UtilFunctions.h"
 
+void PreviewCamera::Reset()
+{
+    posX = 0.0f;
+    posY = 0.0f;
+    posZ = 0.0f;
+    angleX = 20.0f;
+    angleY = 5.0f;
+    distance = -2000.0f;
+    zoom = 1.0f;
+    panx = 0.0f; 
+    pany = 0.0f;
+    panz = 0.0f;
+    zoom_corrx = 0.0f;
+    zoom_corry = 0.0f;
+    mat_valid = false;
+}
+
 PreviewCamera::PreviewCamera(bool is_3d_)
 : posX(0.0f), posY(0.0f), posZ(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
   panx(0.0f), pany(0.0f), panz(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_),

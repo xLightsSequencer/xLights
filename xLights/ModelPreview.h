@@ -37,6 +37,7 @@ public:
 	void InitializePreview(wxString img,int brightness,int alpha);
     bool StartDrawing(wxDouble pointSize, bool fromPaint = false);
     void SetPointSize(wxDouble pointSize);
+    void Reset();
     void EndDrawing(bool swapBuffers=true);
 	void SetCanvasSize(int width,int height);
     void SetVirtualCanvasSize(int width, int height);

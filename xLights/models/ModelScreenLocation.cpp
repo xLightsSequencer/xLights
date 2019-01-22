@@ -924,10 +924,10 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     float sz1 = RenderDp / 2;
     float sz2 =  -RenderDp / 2;
 
-    xlColor handleColor = xlBLUE;
+    xlColor handleColor = xlBLUETRANSLUCENT;
     if (_locked)
     {
-        handleColor = xlRED;
+        handleColor = xlREDTRANSLUCENT;
     }
 
     xlColor color = handleColor;
@@ -1046,23 +1046,23 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
 
     if (active_handle != -1) {
         active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
-        DrawGLUtils::DrawSphere(mHandlePosition[CENTER_HANDLE].x, mHandlePosition[CENTER_HANDLE].y, mHandlePosition[CENTER_HANDLE].z, (double)(RECT_HANDLE_WIDTH), xlORANGE, va);
+        DrawGLUtils::DrawSphere(mHandlePosition[CENTER_HANDLE].x, mHandlePosition[CENTER_HANDLE].y, mHandlePosition[CENTER_HANDLE].z, (double)(RECT_HANDLE_WIDTH), xlORANGETRANSLUCENT, va);
         DrawAxisTool(active_handle_pos, va);
         if (active_axis != -1) {
             LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
             switch (active_axis)
             {
             case X_AXIS:
-                va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                 break;
             case Y_AXIS:
-                va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
-                va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
+                va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
+                va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 break;
             case Z_AXIS:
-                va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
-                va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
+                va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
+                va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
             }
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
@@ -1077,10 +1077,10 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     float w1 = worldPos_x;
     float h1 = worldPos_y;
 
-    xlColor handleColor = xlBLUE;
+    xlColor handleColor = xlBLUETRANSLUCENT;
     if (_locked)
     {
-        handleColor = xlRED;
+        handleColor = xlREDTRANSLUCENT;
     }
 
     // Upper Left Handle
@@ -1852,19 +1852,19 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const 
     va.PreAlloc(10);
 
     if (active_handle != NO_HANDLE) {
-        xlColor h1c = xlBLUE;
-        xlColor h2c = xlBLUE;
-        xlColor h3c = xlORANGE;
+        xlColor h1c = xlBLUETRANSLUCENT;
+        xlColor h2c = xlBLUETRANSLUCENT;
+        xlColor h3c = xlORANGETRANSLUCENT;
         if (_locked)
         {
-            h1c = xlRED;
-            h2c = xlRED;
-            h3c = xlRED;
+            h1c = xlREDTRANSLUCENT;
+            h2c = xlREDTRANSLUCENT;
+            h3c = xlREDTRANSLUCENT;
         }
         else {
-            h1c = (highlighted_handle == START_HANDLE) ? xlYELLOW : xlGREEN;
-            h2c = (highlighted_handle == END_HANDLE) ? xlYELLOW : xlBLUE;
-            h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOW : xlORANGE;
+            h1c = (highlighted_handle == START_HANDLE) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
+            h2c = (highlighted_handle == END_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
+            h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOWTRANSLUCENT : xlORANGETRANSLUCENT;
         }
 
         DrawGLUtils::DrawSphere(worldPos_x, worldPos_y, worldPos_z, RECT_HANDLE_WIDTH, h1c, va);
@@ -1904,32 +1904,31 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const 
         handle_aabb_max[CENTER_HANDLE].y = RECT_HANDLE_WIDTH;
         handle_aabb_max[CENTER_HANDLE].z = RECT_HANDLE_WIDTH;
 
-
         if (!_locked) {
             active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
             DrawAxisTool(active_handle_pos, va);
             if (active_axis != -1) {
                 LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
                 if (active_handle == SHEAR_HANDLE) {
-                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
-                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
+                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
+                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 }
                 else {
                     switch (active_axis)
                     {
                     case X_AXIS:
-                        va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                        va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                        va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                        va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                         break;
                     case Y_AXIS:
-                        va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
-                        va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
+                        va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
+                        va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                         break;
                     case Z_AXIS:
-                        va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
-                        va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
+                        va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
+                        va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                         break;
                     }
                 }
@@ -1945,10 +1944,10 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const 
 
 void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
 
-    xlColor handleColor = xlBLUE;
+    xlColor handleColor = xlBLUETRANSLUCENT;
     if (_locked)
     {
-        handleColor = xlRED;
+        handleColor = xlREDTRANSLUCENT;
     }
 
     va.PreAlloc(16);
@@ -1969,7 +1968,7 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const {
     float sy = worldPos_y;
     float sz = worldPos_z;
     //TranslatePoint(sx, sy, sz);
-    va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), xlGREEN);
+    va.AddRect(sx - (RECT_HANDLE_WIDTH / 2), sy - (RECT_HANDLE_WIDTH / 2), sx + (RECT_HANDLE_WIDTH / 2), sy + (RECT_HANDLE_WIDTH / 2), xlGREENTRANSLUCENT);
     mHandlePosition[START_HANDLE].x = sx;
     mHandlePosition[START_HANDLE].y = sy;
     mHandlePosition[START_HANDLE].z = sz;
@@ -2902,13 +2901,13 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) cons
         va.AddVertex(sx, sy, sz, xlWHITE);
         va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 
-        xlColor h4c = xlBLUE;
+        xlColor h4c = xlBLUETRANSLUCENT;
         if (_locked)
         {
-            h4c = xlRED;
+            h4c = xlREDTRANSLUCENT;
         }
         else {
-            h4c = (highlighted_handle == SHEAR_HANDLE) ? xlYELLOW : xlBLUE;
+            h4c = (highlighted_handle == SHEAR_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
         }
 
         DrawGLUtils::DrawSphere(sx, sy, sz, RECT_HANDLE_WIDTH, h4c, va);
@@ -2955,10 +2954,10 @@ void ThreePointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const
     va.AddVertex(sx, sy, xlWHITE);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 
-    xlColor handleColor = xlBLUE;
+    xlColor handleColor = xlBLUETRANSLUCENT;
     if (_locked)
     {
-        handleColor = xlRED;
+        handleColor = xlREDTRANSLUCENT;
     }
 
     va.AddRect(sx - RECT_HANDLE_WIDTH/2.0, sy - RECT_HANDLE_WIDTH/2.0, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, handleColor);
@@ -4060,14 +4059,14 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
         xlColor h1c, h2c, h3c;
         if (_locked)
         {
-            h1c = xlRED;
-            h2c = xlRED;
-            h3c = xlRED;
+            h1c = xlREDTRANSLUCENT;
+            h2c = xlREDTRANSLUCENT;
+            h3c = xlREDTRANSLUCENT;
         }
         else {
-            h1c = (highlighted_handle == START_HANDLE) ? xlYELLOW : xlGREEN;
+            h1c = (highlighted_handle == START_HANDLE) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
             h2c = xlBLUE;
-            h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOW : xlORANGE;
+            h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOWTRANSLUCENT : xlORANGETRANSLUCENT;
         }
 
         // add center handle
@@ -4214,24 +4213,24 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
             if (active_axis != -1) {
                 LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
                 if (axis_tool == TOOL_XY_TRANS) {
-                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
-                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
+                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
+                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                 }
                 switch (active_axis)
                 {
                 case X_AXIS:
-                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
-                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlRED);
+                    va.AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                    va.AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
                     break;
                 case Y_AXIS:
-                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREEN);
-                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREEN);
+                    va.AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
+                    va.AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
                     break;
                 case Z_AXIS:
-                    va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUE);
-                    va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUE);
+                    va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
+                    va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                     break;
                 }
                 va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
@@ -4265,10 +4264,10 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
     float x2 = maxX * scalex + worldPos_x + RECT_HANDLE_WIDTH / 2 + boundary_offset;
     float y2 = maxY * scaley + worldPos_y + RECT_HANDLE_WIDTH / 2 + boundary_offset;
     float z2 = maxZ * scalez + worldPos_z + RECT_HANDLE_WIDTH / 2 + boundary_offset;
-    xlColor handleColor = xlBLUE;
+    xlColor handleColor = xlBLUETRANSLUCENT;
     if (_locked)
     {
-        handleColor = xlRED;
+        handleColor = xlREDTRANSLUCENT;
     }
     va.AddRect(x1, y1, x1 + RECT_HANDLE_WIDTH, y1 + RECT_HANDLE_WIDTH, handleColor);
     va.AddRect(x1, y2, x1 + RECT_HANDLE_WIDTH, y2 + RECT_HANDLE_WIDTH, handleColor);
@@ -4345,7 +4344,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
         float sx = mPos[i].x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
         float sy = mPos[i].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
         float sz = mPos[i].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-        va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i == (selected_handle-1) ? xlMAGENTA : (i == 0 ? xlGREEN : handleColor));
+        va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i == (selected_handle-1) ? xlMAGENTATRANSLUCENT : (i == 0 ? xlGREENTRANSLUCENT : handleColor));
         int hpos = i + 1;
         mHandlePosition[hpos].x = sx;
         mHandlePosition[hpos].y = sy;
@@ -4362,7 +4361,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
             sx = mPos[i+1].x * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
             sy = mPos[i+1].y * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             sz = mPos[i+1].z * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i+1 == (selected_handle - 1) ? xlMAGENTA : handleColor);
+            va.AddRect(sx, sy, sx + RECT_HANDLE_WIDTH, sy + RECT_HANDLE_WIDTH, i+1 == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : handleColor);
             hpos++;
             mHandlePosition[hpos].x = sx;
             mHandlePosition[hpos].y = sy;
@@ -4383,14 +4382,14 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xlAccumulator &va) const 
             float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
             float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlRED);
+            va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlREDTRANSLUCENT);
             mPos[i].cp0.x = mPos[i].curve->get_cp0x();
             mPos[i].cp0.y = mPos[i].curve->get_cp0y();
             mPos[i].cp0.z = mPos[i].curve->get_cp0z();
             cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
             cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
             cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
-            va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlRED);
+            va.AddRect(cx, cy, cx + RECT_HANDLE_WIDTH, cy + RECT_HANDLE_WIDTH, xlREDTRANSLUCENT);
             mPos[i].cp1.x = mPos[i].curve->get_cp1x();
             mPos[i].cp1.y = mPos[i].curve->get_cp1y();
             mPos[i].cp1.z = mPos[i].curve->get_cp1z();

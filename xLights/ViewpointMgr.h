@@ -13,6 +13,8 @@ class PreviewCamera
 public:
     friend class ViewpointMgr;
 
+    void Reset();
+
     PreviewCamera(bool is_3d_);
     virtual ~PreviewCamera();
     PreviewCamera(const PreviewCamera &cam);

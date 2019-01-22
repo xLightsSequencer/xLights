@@ -122,6 +122,7 @@ class LayoutPanel: public wxPanel
 
 		static const long ID_TREELISTVIEW_MODELS;
         static const long ID_PREVIEW_REPLACEMODEL;
+        static const long ID_PREVIEW_RESET;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_LOCK;
