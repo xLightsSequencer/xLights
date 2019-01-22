@@ -2301,7 +2301,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                         wxASSERT(false);
                         swr_free(&au_convert_ctx);
 						av_free(out_buffer);
-						av_free(frame);
+						av_frame_free(&frame);
                         avformat_close_input(&formatContext);
                         _trackSize = _loadedData; // makes it looks like we are done
                         return;
@@ -2386,7 +2386,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     wxASSERT(false);
                     swr_free(&au_convert_ctx);
 					av_free(out_buffer);
-					av_free(frame);
+					av_frame_free(&frame);
                     avformat_close_input(&formatContext);
                     _trackSize = _loadedData; // makes it looks like we are done
                     return;
@@ -2436,7 +2436,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     logger_base.debug("DoLoadAudioData: Cleaning up");
     swr_free(&au_convert_ctx);
 	av_free(out_buffer);
-	av_free(frame);
+	av_frame_free(&frame);
 
     avformat_close_input(&formatContext);
 
