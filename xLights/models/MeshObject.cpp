@@ -24,13 +24,9 @@ MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
 
 MeshObject::~MeshObject()
 {
-    for (auto it : textures)
-    {
-        for (auto it2 : it.second)
-        {
-            if (it2.second != nullptr) {
-                delete it2.second;
-            }
+    for (auto it : textures) {
+        if (it.second != nullptr) {
+            delete it.second;
         }
     }
 }
@@ -72,14 +68,11 @@ void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
 int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ObjFile" == event.GetPropertyName()) {
         obj_loaded = false;
-        for (auto it = textures.begin(); it != textures.end(); ++it)
-        {
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-            {
-                if (it2->second != nullptr) {
-                    delete it2->second;
-                }
+        for (auto it = textures.begin(); it != textures.end(); ++it) {
+            if (it->second != nullptr) {
+                delete it->second;
             }
+            textures.clear();
         }
         _objFile = event.GetValue().GetString();
         ModelXml->DeleteAttribute("ObjFile");
@@ -412,7 +405,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
         for (auto m : materials) {
             if (m.diffuse_texname.length() > 0) {
                 // Only load the texture if it is not already loaded
-                if (textures[preview->GetName().ToStdString()].find(m.diffuse_texname) == textures[preview->GetName().ToStdString()].end()) {
+                if (textures.find(m.diffuse_texname) == textures.end()) {
                     std::string texture_filename = m.diffuse_texname;
                     if (!wxFileExists(texture_filename)) {
                         // Append base dir.
@@ -424,7 +417,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             continue;
                         }
                     }
-                    textures[preview->GetName().ToStdString()][m.diffuse_texname] = new Image(texture_filename, false, true);
+                    textures[m.diffuse_texname] = new Image(texture_filename, false, true);
                 }
             }
         }
@@ -460,10 +453,9 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
 
                 if (current_material_id != last_material_id) {
                     std::string diffuse_texname = materials[current_material_id].diffuse_texname;
-                    if (textures[preview->GetName().ToStdString()].find(diffuse_texname) != textures[preview->GetName().ToStdString()].end()) {
-                        image_id = textures[preview->GetName().ToStdString()][diffuse_texname]->getID();
-                    }
-                    else {
+                    if (textures.find(diffuse_texname) != textures.end()) {
+                        image_id = textures[diffuse_texname]->getID();
+                    } else {
                         image_id = -1;
                     }
                 }
@@ -486,8 +478,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             tc[1][1] = 0.0f;
                             tc[2][0] = 0.0f;
                             tc[2][1] = 0.0f;
-                        }
-                        else {
+                        } else {
                             assert(attrib.texcoords.size() >
                                 size_t(2 * idx0.texcoord_index + 1));
                             assert(attrib.texcoords.size() >
@@ -506,8 +497,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             //tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
                             //tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
                         }
-                    }
-                    else {
+                    } else {
                         tc[0][0] = 0.0f;
                         tc[0][1] = 0.0f;
                         tc[1][0] = 0.0f;
@@ -533,8 +523,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                 }
 
                 float n[3][3];
-                if( !mesh_only )
-                {
+                if( !mesh_only ) {
                     bool invalid_normal_index = false;
                     if (attrib.normals.size() > 0) {
                         int nf0 = idx0.normal_index;
@@ -544,8 +533,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         if ((nf0 < 0) || (nf1 < 0) || (nf2 < 0)) {
                             // normal index is missing from this face.
                             invalid_normal_index = true;
-                        }
-                        else {
+                        } else {
                             for (int k = 0; k < 3; k++) {
                                 assert(size_t(3 * nf0 + k) < attrib.normals.size());
                                 assert(size_t(3 * nf1 + k) < attrib.normals.size());
@@ -555,8 +543,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                                 n[2][k] = attrib.normals[3 * nf2 + k];
                             }
                         }
-                    }
-                    else {
+                    } else {
                         invalid_normal_index = true;
                     }
 
