@@ -24,9 +24,12 @@ class wxStaticText;
 #include <wx/notebook.h>
 
 class CustomModel;
+class CustomNotebook;
 class CopyPasteGrid;
 class wxModelGridCellRenderer;
 class ImageFilePickerCtrl;
+
+wxDECLARE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 
 class CustomModelDialog: public wxDialog
 {
@@ -46,6 +49,10 @@ class CustomModelDialog: public wxDialog
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE10;
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE50;
     static const long CUSTOMMODELDLGMNU_SHRINKSPACE99;
+    static const long CUSTOMMODELDLGMNU_COPYLAYERFWD1;
+    static const long CUSTOMMODELDLGMNU_COPYLAYERBKWD1;
+    static const long CUSTOMMODELDLGMNU_COPYLAYERFWDALL;
+    static const long CUSTOMMODELDLGMNU_COPYLAYERBKWDALL;
 
     public:
 
@@ -53,6 +60,7 @@ class CustomModelDialog: public wxDialog
 		virtual ~CustomModelDialog();
 
 		//(*Declarations(CustomModelDialog)
+		CustomNotebook* Notebook1;
 		ImageFilePickerCtrl* FilePickerCtrl1;
 		wxBitmapButton* BitmapButtonCustomBkgrd;
 		wxBitmapButton* BitmapButtonCustomCopy;
@@ -66,7 +74,6 @@ class CustomModelDialog: public wxDialog
 		wxCheckBox* CheckBoxAutoIncrement;
 		wxCheckBox* CheckBoxAutoNumber;
 		wxFlexGridSizer* Sizer1;
-		wxNotebook* Notebook1;
 		wxSlider* SliderCustomLightness;
 		wxSpinCtrl* HeightSpin;
 		wxSpinCtrl* SpinCtrlNextChannel;
@@ -145,13 +152,14 @@ class CustomModelDialog: public wxDialog
 		void OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event);
 		void OnGridCustomCellRightClick(wxGridEvent& event);
 		void OnSpinCtrl_DepthChange(wxSpinEvent& event);
-        void OnNotebook1PageChanged(wxNotebookEvent& event);
+		void OnNotebook1PageChanged(wxNotebookEvent& event);
 		//*)
 
         void OnCut(wxCommandEvent& event);
         void OnCopy(wxCommandEvent& event);
         void OnPaste(wxCommandEvent& event);
         void OnGridPopup(wxCommandEvent& event);
+        void OnGridKey(wxCommandEvent& event);
 
         void Reverse();
         bool CheckScale(std::list<wxPoint>& points, float scale) const;
@@ -168,6 +176,7 @@ class CustomModelDialog: public wxDialog
         void RemovePage();
         CopyPasteGrid* GetActiveGrid() const;
         CopyPasteGrid* GetLayerGrid(int layer) const;
+        void CopyLayer(bool forward, int layers);
 
 		DECLARE_EVENT_TABLE()
 };

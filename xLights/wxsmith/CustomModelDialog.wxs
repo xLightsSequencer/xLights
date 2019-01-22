@@ -313,7 +313,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxNotebook" name="ID_NOTEBOOK1" variable="Notebook1" member="yes">
+				<object class="wxNotebook" name="ID_NOTEBOOK1" subclass="CustomNotebook" variable="Notebook1" member="yes">
 					<handler function="OnNotebook1PageChanged" entry="EVT_NOTEBOOK_PAGE_CHANGED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>

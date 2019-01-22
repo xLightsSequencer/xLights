@@ -65,11 +65,47 @@ const long CustomModelDialog::CUSTOMMODELDLGMNU_TRIMUNUSEDSPACE = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE10 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE50 = wxNewId();
 const long CustomModelDialog::CUSTOMMODELDLGMNU_SHRINKSPACE99 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWD1 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERBKWD1 = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERFWDALL = wxNewId();
+const long CustomModelDialog::CUSTOMMODELDLGMNU_COPYLAYERBKWDALL = wxNewId();
+
+wxDEFINE_EVENT(EVT_GRID_KEY, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CustomModelDialog,wxDialog)
 	//(*EventTable(CustomModelDialog)
 	//*)
+    EVT_COMMAND(wxID_ANY, EVT_GRID_KEY, CustomModelDialog::OnGridKey)
 END_EVENT_TABLE()
+
+class CustomNotebook : public wxNotebook
+{
+public:
+    void DoNavigation(wxNavigationKeyEvent event)
+    {
+        if (event.GetDirection())
+        {
+            wxCommandEvent keyEvent(EVT_GRID_KEY);
+            keyEvent.SetInt(WXK_PAGEDOWN);
+            wxPostEvent(this, keyEvent);
+            event.StopPropagation();
+        }
+        else
+        {
+            wxCommandEvent keyEvent(EVT_GRID_KEY);
+            keyEvent.SetInt(WXK_PAGEUP);
+            wxPostEvent(this, keyEvent);
+            event.StopPropagation();
+        }
+    }
+
+    CustomNotebook(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) : wxNotebook(parent, id, pos, size, style, name)
+    {
+        Connect(wxEVT_NAVIGATION_KEY, (wxObjectEventFunction)&CustomNotebook::DoNavigation, 0, this);
+    }
+
+    virtual ~CustomNotebook() {}
+};
 
 // Subclassing wxGrid is the only way to get keyboard copy and paste working without breaking the grid behaviour
 class CopyPasteGrid : public wxGrid
@@ -104,6 +140,27 @@ class CopyPasteGrid : public wxGrid
             if (event.CmdDown() || event.ControlDown()) {
                 wxCommandEvent pasteEvent(wxEVT_TEXT_PASTE);
                 wxPostEvent(this, pasteEvent);
+                event.StopPropagation();
+            }
+            break;
+        case 'a':
+        case 'A':
+        case WXK_CONTROL_A:
+            if (event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent keyEvent(EVT_GRID_KEY);
+                keyEvent.SetInt(WXK_CONTROL_A);
+                wxPostEvent(this, keyEvent);
+                event.StopPropagation();
+            }
+            break;
+        case WXK_PAGEUP:
+        case WXK_PAGEDOWN:
+        case WXK_HOME:
+        case WXK_END:
+            if (event.ShiftDown() && event.CmdDown() || event.ControlDown()) {
+                wxCommandEvent keyEvent(EVT_GRID_KEY);
+                keyEvent.SetInt(event.GetUnicodeKey());
+                wxPostEvent(this, keyEvent);
                 event.StopPropagation();
             }
             break;
@@ -241,7 +298,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent)
 	FlexGridSizer7->Add(ButtonCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	Sizer2->Add(FlexGridSizer7, 1, wxALL|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL, 5);
 	Sizer1->Add(Sizer2, 1, wxALL|wxEXPAND, 5);
-	Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
+	Notebook1 = new CustomNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
 	Sizer1->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
 	SetSizer(Sizer1);
 	SetSizer(Sizer1);
@@ -514,6 +571,40 @@ void CustomModelDialog::OnBitmapButtonCustomCutClick(wxCommandEvent& event)
 void CustomModelDialog::OnBitmapButtonCustomCopyClick(wxCommandEvent& event)
 {
     CutOrCopyToClipboard(false);
+}
+
+void CustomModelDialog::CopyLayer(bool forward, int layers)
+{
+    int fromLayer = Notebook1->GetSelection();
+    auto fromGrid = GetActiveGrid();
+    auto fromCells = fromGrid->GetSelectedCells();
+    auto activer = fromGrid->GetGridCursorRow();
+    auto activec = fromGrid->GetGridCursorCol();
+
+    if (layers == -1) layers = 999;
+
+    if (forward)
+    {
+        for (int l  = fromLayer + 1; l <= fromLayer + layers && l < Notebook1->GetPageCount(); l++)
+        {
+            auto toGrid = GetLayerGrid(l);
+            for (auto r = 0; r < fromGrid->GetNumberRows(); r++)
+            {
+                for (auto c = 0; c < fromGrid->GetNumberCols(); c++)
+                {
+                    if (fromGrid->IsInSelection(r, c) || (r == activer && c == activec))
+                    {
+                        toGrid->SetCellValue(r, c, fromGrid->GetCellValue(r, c));
+                    }
+                }
+            }
+        }
+    }
+
+    // trigger update of what cells are used on other grids
+    wxBookCtrlEvent e;
+    e.SetSelection(Notebook1->GetSelection());
+    OnNotebook1PageChanged(e);
 }
 
 void CustomModelDialog::CutOrCopyToClipboard(bool IsCut) {
@@ -1244,6 +1335,46 @@ void CustomModelDialog::OnPaste(wxCommandEvent& event)
     Paste();
 }
 
+void CustomModelDialog::OnGridKey(wxCommandEvent& event)
+{
+    auto col = GetActiveGrid()->GetGridCursorCol();
+    auto row = GetActiveGrid()->GetGridCursorRow();
+
+    switch(event.GetInt())
+    {
+    case WXK_CONTROL_A:
+        GetActiveGrid()->SelectAll();
+        break;
+    case WXK_PAGEUP: // CTRL+SHIFT
+        if (Notebook1->GetSelection() != 0)
+        {
+            int newLayer = Notebook1->GetSelection() - 1;
+            Notebook1->SetSelection(Notebook1->GetSelection() - 1);
+            GetLayerGrid(newLayer)->SetGridCursor(row, col);
+        }
+        break;
+    case WXK_PAGEDOWN: // CTRL+SHIFT
+        if (Notebook1->GetSelection() != Notebook1->GetPageCount() - 1)
+        {
+            int newLayer = Notebook1->GetSelection() + 1;
+            Notebook1->SetSelection(newLayer);
+            GetLayerGrid(newLayer)->SetGridCursor(row, col);
+        }
+        break;
+    case WXK_HOME: // CTRL+SHIFT
+        Notebook1->SetSelection(0);
+        GetLayerGrid(0)->SetGridCursor(row, col);
+        break;
+    case WXK_END: // CTRL+SHIFT
+        Notebook1->SetSelection(Notebook1->GetPageCount()-1);
+        GetLayerGrid(Notebook1->GetPageCount()-1)->SetGridCursor(row, col);
+        break;
+    default:
+        wxASSERT(false);
+        break;
+    }
+}
+
 void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
@@ -1302,6 +1433,22 @@ void CustomModelDialog::OnGridPopup(wxCommandEvent& event)
     else if (id == CUSTOMMODELDLGMNU_SHRINKSPACE99)
     {
         ShrinkSpace(0.01f);
+    }
+    else if (id == CUSTOMMODELDLGMNU_COPYLAYERFWD1)
+    {
+        CopyLayer(true, 1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_COPYLAYERBKWD1)
+    {
+        CopyLayer(false, 1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_COPYLAYERFWDALL)
+    {
+        CopyLayer(true, -1);
+    }
+    else if (id == CUSTOMMODELDLGMNU_COPYLAYERBKWDALL)
+    {
+        CopyLayer(false, -1);
     }
 }
 
@@ -1384,6 +1531,17 @@ void CustomModelDialog::OnGridCustomCellRightClick(wxGridEvent& event)
     {
         menu_insert->Enable(false);
     }
+
+    mnu.AppendSeparator();
+    auto m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERFWD1, "Copy Layer Forward 1");
+    m->Enable(Notebook1->GetSelection() != Notebook1->GetPageCount() - 1);
+    m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERFWDALL, "Copy Layer Forward All");
+    m->Enable(Notebook1->GetSelection() != Notebook1->GetPageCount() - 1);
+    m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERBKWD1, "Copy Layer Backward 1");
+    m->Enable(Notebook1->GetSelection() != 0);
+    m = mnu.Append(CUSTOMMODELDLGMNU_COPYLAYERBKWDALL, "Copy Layer Backward All");
+    m->Enable(Notebook1->GetSelection() != 0);
+
     mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CustomModelDialog::OnGridPopup, nullptr, this);
     PopupMenu(&mnu);
 }
@@ -1482,7 +1640,7 @@ void CustomModelDialog::OnNotebook1PageChanged(wxNotebookEvent& event)
 
     wxColor priorc = wxColor(255, 200, 200);
     wxColor nextc = wxColor(200, 200, 255);
-    wxColor priornextc = wxColor(255, 200, 255);
+    wxColor priornextc = wxColor(200, 255, 200);
 
     for (auto c = 0; c < GetActiveGrid()->GetNumberCols(); c++)
     {
