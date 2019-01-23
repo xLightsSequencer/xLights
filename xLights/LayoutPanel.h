@@ -237,6 +237,7 @@ class LayoutPanel: public wxPanel
         void Reset();
         void SetDirtyHiLight(bool dirty);
         std::string GetCurrentPreview() const;
+        void SetDisplay2DBoundingBox(bool bb);
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);

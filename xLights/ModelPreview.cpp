@@ -841,8 +841,8 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
     }
 
     // Draw a box around the default area in 2D
-    if (!is_3d && allowSelected) {
-        accumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREEN);
+    if (!is_3d && allowSelected && _display2DBox) {
+        accumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
         accumulator.Finish(GL_LINES);
     }
 

@@ -284,6 +284,8 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     SetPreviewBackgroundImage(mBackgroundImage);
+    SetDisplay2DBoundingBox(GetXmlSetting("Display2DBoundingBox", "0") == "1");
+    layoutPanel->SetDisplay2DBoundingBox(GetDisplay2DBoundingBox());
 
     //Load FSEQ and Backup directory settings
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);

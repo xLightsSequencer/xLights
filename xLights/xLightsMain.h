@@ -1191,7 +1191,7 @@ private:
     void CreateDefaultEffectsXml();
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
-    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
+    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue) const;
     void SetPanelSequencerLabel(const std::string& sequence);
 
     void DisplayXlightsFilename(const wxString& filename) const;
@@ -1373,6 +1373,8 @@ public:
     void SetPreviewBackgroundScaled(bool scaled);
     void SetPreviewSize(int width, int height);
     void SetPreviewBackgroundImage(const wxString &filename);
+    void SetDisplay2DBoundingBox(bool bb);
+    bool GetDisplay2DBoundingBox() const;
     const wxString & GetDefaultPreviewBackgroundImage();
     bool GetDefaultPreviewBackgroundScaled();
     int GetDefaultPreviewBackgroundBrightness();

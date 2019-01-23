@@ -102,6 +102,7 @@ public:
     void SaveCurrentCameraPosition();
     void SetCamera2D(int i);
     void SetCamera3D(int i);
+    void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
 
 protected:
     virtual void InitializeGLCanvas() override;
@@ -137,6 +138,7 @@ private:
     wxDouble mPointSize = 2.0;
     int virtualWidth, virtualHeight;
 
+    bool _display2DBox;
     Image* image;
     bool scaleImage = false;
     xLightsDrawable* sprite;
@@ -172,6 +174,5 @@ private:
 
 	DECLARE_EVENT_TABLE()
 };
-
 
 #endif // MODELPREVIEW_H

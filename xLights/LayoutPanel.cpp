@@ -419,7 +419,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     comparator.SetFrame(xlights);
     TreeListViewModels->SetItemComparator(&comparator);
 
-
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
 
     wxConfigBase* config = wxConfigBase::Get();
@@ -739,6 +738,12 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         xlights->SetPreviewSize(modelPreview->GetVirtualCanvasWidth(), event.GetValue().GetLong());
         xlights->UpdateModelsList();
     }
+    else if (name == "BoundingBox")
+    {
+        modelPreview->SetDisplay2DBoundingBox(event.GetValue().GetBool());
+        xlights->SetDisplay2DBoundingBox(event.GetValue().GetBool());
+        xlights->MarkEffectsFileDirty(false);
+    }
     else if (name == "BkgImage") {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
@@ -837,6 +842,11 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         }
     }
     updatingProperty = false;
+}
+
+void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
+{
+    modelPreview->SetDisplay2DBoundingBox(bb);
 }
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
@@ -1753,6 +1763,9 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         prop->SetAttribute("Min", 0);
         prop->SetAttribute("Max", 100);
         prop->SetEditor("SpinCtrl");
+
+        prop = propertyEditor->Append(new wxBoolProperty("2D Bounding Box", "BoundingBox", xlights->GetDisplay2DBoundingBox()));
+        prop->SetAttribute("UseCheckbox", true);
 
         propertyEditor->Thaw();
     }
@@ -5052,6 +5065,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         mSelectedGroup = nullptr;
         UpdateModelList(true);
     }
+    modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
     modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
     modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
@@ -5182,6 +5196,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
             {
                 SetCurrentLayoutGroup(storedLayoutGroup);
                 ChoiceLayoutGroups->SetSelection(i);
+                modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
                 modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
                 modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
                 modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
@@ -5277,6 +5292,7 @@ void LayoutPanel::DeleteCurrentPreview()
         xlights->SetStoredLayoutGroup(currentLayoutGroup);
 
         UpdateModelList(true);
+        modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
         modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
