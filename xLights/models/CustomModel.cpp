@@ -651,17 +651,36 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
             html+="<tr><td>No custom data</td></tr>";
     }
 
+    std::vector<std::vector<std::vector<wxString>>> _data;
+
+    int cols = parm1;
     wxArrayString layers = wxSplit(data, '|');
-    for (auto layer = 0; layer < layers.size(); layer++)
+    for (auto l : layers)
     {
-        wxArrayString rows = wxSplit(layers[layer], ';');
-        for (auto row = 0; row < rows.size(); row++)
+        std::vector<std::vector<wxString>> ll;
+        wxArrayString rows = wxSplit(l, ';');
+        for (auto r : rows)
         {
-            html += "<tr>";
-            wxArrayString cols = wxSplit(rows[row], ',');
-            for (auto col = 0; col < cols.size(); col++)
+            std::vector<wxString> rr;
+            wxArrayString columns = wxSplit(r, ',');
+            for (auto c : columns)
             {
-                wxString value = cols[col];
+                rr.push_back(c);
+            }
+            while (rr.size() < cols) rr.push_back("");
+            ll.push_back(rr);
+        }
+        _data.push_back(ll);
+    }
+
+    for (int r = 0; r < parm2; r++)
+    {
+        html += "<tr>";
+        for (int l = 0; l < _depth; l++)
+        {
+            for (int c = 0; c < parm2; c++)
+            {
+                wxString value = _data[l][r][c];
                 if (!value.IsEmpty() && value != "0")
                 {
                     wxString bgcolor = "#ADD8E6"; //"#90EE90"
@@ -680,10 +699,10 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
                     html += "<td>&nbsp&nbsp&nbsp</td>";
                 }
             }
-            html += "</tr>";
         }
-        html += "<tr/>"; // a blank row
+        html += "</tr>";
     }
+
     html+="</table></body></html>";
     return html;
 }
