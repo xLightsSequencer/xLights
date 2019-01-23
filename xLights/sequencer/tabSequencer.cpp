@@ -968,7 +968,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
-            EffectsPanel1->EffectChoicebook->SetSelection(pageIndex);
+            EffectsPanel1->SetEffectType(pageIndex);
 
             timingPanel->SetDefaultControls(nullptr, true);
             bufferPanel->SetDefaultControls(nullptr, true);
@@ -1977,7 +1977,8 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         std::string palette;
         std::string effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
-            || palette != selectedEffectPalette) {
+            || palette != selectedEffectPalette
+            || eff->GetEffectIndex() != EffectsPanel1->EffectChoicebook->GetSelection()) {
 
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);

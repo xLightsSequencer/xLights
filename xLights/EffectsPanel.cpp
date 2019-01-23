@@ -97,6 +97,13 @@ void EffectsPanel::SetSequenceElements(SequenceElements *els) {
     }
 }
 
+void EffectsPanel::SetEffectType(int effectId)
+{
+    _suppressChangeEvent = true;
+    EffectChoicebook->SetSelection(effectId);
+    _suppressChangeEvent = false;
+}
+
 void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name) {
     RenderableEffect *eff = effectManager->GetEffect(name.ToStdString());
     if (eff != nullptr) {
@@ -234,11 +241,14 @@ void EffectsPanel::EffectSelected(wxChoicebookEvent& event)
     wxString ef = EffectChoicebook->GetPageText(EffectChoicebook->GetSelection());
     SetDefaultEffectValues(nullptr, nullptr, ef);
 
-    SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true, true);
-    // We do not have an actual effect in grid to send
-    // Set Index of page.
-    eventEffectChanged.SetInt(EffectChoicebook->GetSelection());
-    wxPostEvent(GetParent(), eventEffectChanged);
+    if (!_suppressChangeEvent)
+    {
+        SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true, true);
+        // We do not have an actual effect in grid to send
+        // Set Index of page.
+        eventEffectChanged.SetInt(EffectChoicebook->GetSelection());
+        wxPostEvent(GetParent(), eventEffectChanged);
+    }
 
     w->FitInside();
     w->SetScrollRate(5, 5);
