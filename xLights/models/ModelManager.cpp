@@ -516,6 +516,10 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     } else if (type == "Wreath") {
         model = new WreathModel(node, *this, false);
     } else if (type.find("Sphere") == 0) {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "10");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "10");
         model = new SphereModel(node, *this, false);
     } else if (type == "Single Line") {
         model = new SingleLineModel(node, *this, false);

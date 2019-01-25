@@ -236,3 +236,156 @@ void SphereModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
         DisplayError("Failure loading Sphere model file.");
     }
 }
+
+void SphereModel::ExportAsCustomXModel() const {
+
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+
+    float minx = 99999;
+    float miny = 99999;
+    float minz = 99999;
+    float maxx = -99999;
+    float maxy = -99999;
+    float maxz = -99999;
+
+    for (auto& n : Nodes)
+    {
+        minx = std::min(minx, n->Coords[0].screenX);
+        miny = std::min(miny, n->Coords[0].screenY);
+        minz = std::min(minz, n->Coords[0].screenZ);
+        maxx = std::max(maxx, n->Coords[0].screenX);
+        maxy = std::max(maxy, n->Coords[0].screenY);
+        maxz = std::max(maxz, n->Coords[0].screenZ);
+    }
+    float w = maxx - minx;
+    float h = maxy - miny;
+    float d = maxz - minz;
+
+    std::vector<std::vector<std::vector<int>>> data;
+    for (int l = 0; l < BufferWi * 2 + 1; l ++)
+    {
+        std::vector<std::vector<int>> layer;
+        for (int  r = BufferHt * 2; r >= 0; r--)
+        {
+            std::vector<int> row;
+            for (int c = 0; c < BufferWi * 2 + 1; c++)
+            {
+                row.push_back(-1);
+            }
+            layer.push_back(row);
+        }
+        data.push_back(layer);
+    }
+
+    int i = 0;
+    for (auto& n: Nodes)
+    {
+        int xx = 2 * BufferWi * (n->Coords[0].screenX - minx) / w;
+        int yy = 2 * BufferHt * (n->Coords[0].screenY - miny) / h;
+        int zz = 2 * BufferWi * (n->Coords[0].screenZ - minz) / d;
+        wxASSERT(xx >= 0 && xx < 2 * BufferWi + 1);
+        wxASSERT(yy >= 0 && yy < 2 * BufferHt + 1);
+        wxASSERT(zz >= 0 && zz < 2 * BufferWi + 1);
+        wxASSERT(data[zz][yy][xx] == -1);
+        data[zz][yy][xx] = i++;
+    }
+
+    wxString cm = "";
+    for (auto l : data)
+    {
+        if (cm != "") cm += "|";
+        wxString ll = "";
+
+        for (auto r : l)
+        {
+            if (ll != "") ll += ";";
+            wxString rr = "";
+
+            bool first = true;
+            for (auto c : r)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    rr += ",";
+                }
+
+                if (c != -1)
+                {
+                    rr += wxString::Format("%d ", c);
+                }
+            }
+            ll += rr;
+        }
+        cm += ll;
+    }
+
+    wxString p1 = wxString::Format("%i", 2 * BufferWi + 1);
+    wxString p2 = wxString::Format("%i", 2 * BufferHt + 1);
+    wxString dd = wxString::Format("%i", 2 * BufferWi + 1);
+    wxString p3 = wxString::Format("%i", parm3);
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString pc = ModelXml->GetAttribute("PixelCount");
+    wxString pt = ModelXml->GetAttribute("PixelType");
+    wxString psp = ModelXml->GetAttribute("PixelSpacing");
+
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("parm3=\"%s\" ", p3));
+    f.Write(wxString::Format("Depth=\"%s\" ", dd));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    if (pc != "")
+        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
+    if (pt != "")
+        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
+    if (psp != "")
+        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
+    f.Write("CustomModel=\"");
+    f.Write(cm);
+    f.Write("\" ");
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" >\n");
+    wxString face = SerialiseFace();
+    if (face != "")
+    {
+        f.Write(face);
+    }
+    wxString state = SerialiseState();
+    if (state != "")
+    {
+        f.Write(state);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "")
+    {
+        f.Write(submodel);
+    }
+    f.Write("</custommodel>");
+    f.Close();
+}
