@@ -302,7 +302,7 @@ public:
     char GetAbsoluteChannelColorLetter(long absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
-    void ExportAsCustomXModel() const;
+    virtual void ExportAsCustomXModel() const;
     virtual std::string GetStartLocation() const;
     bool IsCustom(void);
     virtual bool SupportsExportAsCustom() const = 0;

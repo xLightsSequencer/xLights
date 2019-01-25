@@ -1103,3 +1103,99 @@ std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager)
     html += "</table></body></html>";
     return html;
 }
+
+void CubeModel::ExportAsCustomXModel() const {
+
+    wxString name = ModelXml->GetAttribute("name");
+    wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
+    wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (filename.IsEmpty()) return;
+
+    wxFile f(filename);
+    //    bool isnew = !wxFile::Exists(filename);
+    if (!f.Create(filename, true) || !f.IsOpened()) DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+
+    wxString cm = "";
+    int width = parm1;
+    int height = parm2;
+    int depth = parm3;
+
+    auto locations = BuildCube();
+
+    for (int l = 0; l < depth; l++)
+    {
+        if (cm != "") cm += "|";
+        wxString ll = "";
+
+        for (int r = height-1; r >=0; r--)
+        {
+            if (ll != "") ll += ";";
+            wxString rr = "";
+
+            for (int c = 0; c < width; c++)
+            {
+                if (rr != "") rr += ",";
+                rr += wxString::Format("%d ", FindNodeIndex(locations, c, r, l));
+            }
+            ll += rr;
+        }
+        cm += ll;
+    }
+
+    wxString p1 = wxString::Format("%i", width);
+    wxString p2 = wxString::Format("%i", height);
+    wxString d = wxString::Format("%i", depth);
+    wxString st = ModelXml->GetAttribute("StringType");
+    wxString ps = ModelXml->GetAttribute("PixelSize");
+    wxString t = ModelXml->GetAttribute("Transparency");
+    wxString mb = ModelXml->GetAttribute("ModelBrightness");
+    wxString a = ModelXml->GetAttribute("Antialias");
+    wxString sn = ModelXml->GetAttribute("StrandNames");
+    wxString nn = ModelXml->GetAttribute("NodeNames");
+    wxString pc = ModelXml->GetAttribute("PixelCount");
+    wxString pt = ModelXml->GetAttribute("PixelType");
+    wxString psp = ModelXml->GetAttribute("PixelSpacing");
+
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<custommodel \n");
+    f.Write(wxString::Format("name=\"%s\" ", name));
+    f.Write(wxString::Format("parm1=\"%s\" ", p1));
+    f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("Depth=\"%s\" ", d));
+    f.Write(wxString::Format("StringType=\"%s\" ", st));
+    f.Write(wxString::Format("Transparency=\"%s\" ", t));
+    f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
+    f.Write(wxString::Format("ModelBrightness=\"%s\" ", mb));
+    f.Write(wxString::Format("Antialias=\"%s\" ", a));
+    f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
+    f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
+    if (pc != "")
+        f.Write(wxString::Format("PixelCount=\"%s\" ", pc));
+    if (pt != "")
+        f.Write(wxString::Format("PixelType=\"%s\" ", pt));
+    if (psp != "")
+        f.Write(wxString::Format("PixelSpacing=\"%s\" ", psp));
+    f.Write("CustomModel=\"");
+    f.Write(cm);
+    f.Write("\" ");
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" >\n");
+    wxString face = SerialiseFace();
+    if (face != "")
+    {
+        f.Write(face);
+    }
+    wxString state = SerialiseState();
+    if (state != "")
+    {
+        f.Write(state);
+    }
+    wxString submodel = SerialiseSubmodel();
+    if (submodel != "")
+    {
+        f.Write(submodel);
+    }
+    f.Write("</custommodel>");
+    f.Close();
+}

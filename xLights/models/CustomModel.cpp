@@ -726,6 +726,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             wxString cm = root->GetAttribute("CustomModel");
             wxString p1 = root->GetAttribute("parm1");
             wxString p2 = root->GetAttribute("parm2");
+            wxString d = root->GetAttribute("Depth", "1");
             wxString st = root->GetAttribute("StringType");
             wxString ps = root->GetAttribute("PixelSize");
             wxString t = root->GetAttribute("Transparency");
@@ -744,6 +745,7 @@ void CustomModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights
             SetProperty("CustomModel", cm);
             SetProperty("parm1", p1);
             SetProperty("parm2", p2);
+            SetProperty("Depth", d);
             SetProperty("StringType", st);
             SetProperty("PixelSize", ps);
             SetProperty("Transparency", t);
@@ -1067,6 +1069,7 @@ void CustomModel::ExportXlightsModel()
     wxString cm = ModelXml->GetAttribute("CustomModel");
     wxString p1 = ModelXml->GetAttribute("parm1");
     wxString p2 = ModelXml->GetAttribute("parm2");
+    wxString d = ModelXml->GetAttribute("Depth");
     wxString st = ModelXml->GetAttribute("StringType");
     wxString ps = ModelXml->GetAttribute("PixelSize");
     wxString t = ModelXml->GetAttribute("Transparency");
@@ -1079,6 +1082,7 @@ void CustomModel::ExportXlightsModel()
     f.Write(wxString::Format("name=\"%s\" ", name));
     f.Write(wxString::Format("parm1=\"%s\" ", p1));
     f.Write(wxString::Format("parm2=\"%s\" ", p2));
+    f.Write(wxString::Format("Depth=\"%s\" ", d));
     f.Write(wxString::Format("StringType=\"%s\" ", st));
     f.Write(wxString::Format("Transparency=\"%s\" ", t));
     f.Write(wxString::Format("PixelSize=\"%s\" ", ps));
