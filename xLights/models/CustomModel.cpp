@@ -495,7 +495,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
         return;
     }
 
-    if (type == "Per Preview" || type == "Single Line" || type == "As Pixel")
+    if (type == "Per Preview" || type == "Per Preview No Offset" || type == "Single Line" || type == "As Pixel")
     {
         return;
     }
