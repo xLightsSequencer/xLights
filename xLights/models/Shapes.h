@@ -121,8 +121,8 @@ public:
     virtual void UpdatePoints() = 0;
     void UpdateMatrices();
     void UpdateBoundingBox(bool is_3d);
-    void DrawBoundingBoxes(DrawGLUtils::xl3Accumulator &va);
-    void DrawBoundingBox(DrawGLUtils::xlAccumulator &va); // used for debugging hit testing
+    void DrawBoundingBoxes(xlColor c, DrawGLUtils::xl3Accumulator &va);
+    void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va); // used for debugging hit testing
     void CreateNormalizedMatrix(float &minX, float &maxX, float &minY, float &maxY, float &minZ, float &maxZ);
     float GetLength();
     float GetSegLength(int segment);

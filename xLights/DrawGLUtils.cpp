@@ -1591,7 +1591,7 @@ void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlC
     va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
     va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
     va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
     va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
 
@@ -1600,14 +1600,14 @@ void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlC
     va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
     va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
     va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
     va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
     va.Finish(GL_TRIANGLES);
 }
 
-void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va)
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va)
 {
     glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
     glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
@@ -1628,36 +1628,36 @@ void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat
     c8 = bound_matrix * c8;
 
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c1.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c1.x, c1.y, c1.z, c);
 
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
 
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c1.z, c);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
 
-void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
 {
     glm::vec4 c1(min_pt.x, max_pt.y, 1.0f, 1.0f);
     glm::vec4 c2(max_pt.x, max_pt.y, 1.0f, 1.0f);
@@ -1670,14 +1670,14 @@ void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat
     c4 = bound_matrix * c4;
 
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(c1.x, c1.y, xlWHITE);
-    va.AddVertex(c2.x, c2.y, xlWHITE);
-    va.AddVertex(c2.x, c2.y, xlWHITE);
-    va.AddVertex(c3.x, c3.y, xlWHITE);
-    va.AddVertex(c3.x, c3.y, xlWHITE);
-    va.AddVertex(c4.x, c4.y, xlWHITE);
-    va.AddVertex(c4.x, c4.y, xlWHITE);
-    va.AddVertex(c1.x, c1.y, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c);
+    va.AddVertex(c2.x, c2.y, c);
+    va.AddVertex(c2.x, c2.y, c);
+    va.AddVertex(c3.x, c3.y, c);
+    va.AddVertex(c3.x, c3.y, c);
+    va.AddVertex(c4.x, c4.y, c);
+    va.AddVertex(c4.x, c4.y, c);
+    va.AddVertex(c1.x, c1.y, c);
 
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }

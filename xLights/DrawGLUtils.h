@@ -541,9 +541,9 @@ namespace DrawGLUtils
 
     void DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va);
     void DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va);
-    void DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va);
+    void DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va);
     // 2D version is mainly useful for debugging hit testing
-    void DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va);
+    void DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va);
 }
 
 #endif

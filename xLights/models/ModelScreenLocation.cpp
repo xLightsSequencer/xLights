@@ -307,9 +307,9 @@ glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheig
     return position;
 }
 
-void ModelScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const
+void ModelScreenLocation::DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const
 {
-    DrawGLUtils::DrawBoundingBox(aabb_min, aabb_max, ModelMatrix, va);
+    DrawGLUtils::DrawBoundingBox(c, aabb_min, aabb_max, ModelMatrix, va);
 }
 
 void ModelScreenLocation::TranslateVector(glm::vec3& point) const
@@ -1016,32 +1016,36 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     mHandlePosition[CENTER_HANDLE].z = worldPos_z;
 
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(mHandlePosition[L_TOP_HANDLE].x, mHandlePosition[L_TOP_HANDLE].y, mHandlePosition[L_TOP_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_TOP_HANDLE].x, mHandlePosition[R_TOP_HANDLE].y, mHandlePosition[R_TOP_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_TOP_HANDLE].x, mHandlePosition[R_TOP_HANDLE].y, mHandlePosition[R_TOP_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_BOT_HANDLE].x, mHandlePosition[R_BOT_HANDLE].y, mHandlePosition[R_BOT_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_BOT_HANDLE].x, mHandlePosition[R_BOT_HANDLE].y, mHandlePosition[R_BOT_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_BOT_HANDLE].x, mHandlePosition[L_BOT_HANDLE].y, mHandlePosition[L_BOT_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_BOT_HANDLE].x, mHandlePosition[L_BOT_HANDLE].y, mHandlePosition[L_BOT_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_TOP_HANDLE].x, mHandlePosition[L_TOP_HANDLE].y, mHandlePosition[L_TOP_HANDLE].z, xlWHITE);
 
-    va.AddVertex(mHandlePosition[L_TOP_HANDLE_Z].x, mHandlePosition[L_TOP_HANDLE_Z].y, mHandlePosition[L_TOP_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_TOP_HANDLE_Z].x, mHandlePosition[R_TOP_HANDLE_Z].y, mHandlePosition[R_TOP_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_TOP_HANDLE_Z].x, mHandlePosition[R_TOP_HANDLE_Z].y, mHandlePosition[R_TOP_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_BOT_HANDLE_Z].x, mHandlePosition[R_BOT_HANDLE_Z].y, mHandlePosition[R_BOT_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_BOT_HANDLE_Z].x, mHandlePosition[R_BOT_HANDLE_Z].y, mHandlePosition[R_BOT_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_BOT_HANDLE_Z].x, mHandlePosition[L_BOT_HANDLE_Z].y, mHandlePosition[L_BOT_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_BOT_HANDLE_Z].x, mHandlePosition[L_BOT_HANDLE_Z].y, mHandlePosition[L_BOT_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_TOP_HANDLE_Z].x, mHandlePosition[L_TOP_HANDLE_Z].y, mHandlePosition[L_TOP_HANDLE_Z].z, xlWHITE);
+    xlColor Box3dColor = xlWHITE;
+    if (_locked) Box3dColor = xlREDTRANSLUCENT;
 
-    va.AddVertex(mHandlePosition[L_TOP_HANDLE].x, mHandlePosition[L_TOP_HANDLE].y, mHandlePosition[L_TOP_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_TOP_HANDLE_Z].x, mHandlePosition[L_TOP_HANDLE_Z].y, mHandlePosition[L_TOP_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_TOP_HANDLE].x, mHandlePosition[R_TOP_HANDLE].y, mHandlePosition[R_TOP_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_TOP_HANDLE_Z].x, mHandlePosition[R_TOP_HANDLE_Z].y, mHandlePosition[R_TOP_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_BOT_HANDLE].x, mHandlePosition[R_BOT_HANDLE].y, mHandlePosition[R_BOT_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[R_BOT_HANDLE_Z].x, mHandlePosition[R_BOT_HANDLE_Z].y, mHandlePosition[R_BOT_HANDLE_Z].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_BOT_HANDLE].x, mHandlePosition[L_BOT_HANDLE].y, mHandlePosition[L_BOT_HANDLE].z, xlWHITE);
-    va.AddVertex(mHandlePosition[L_BOT_HANDLE_Z].x, mHandlePosition[L_BOT_HANDLE_Z].y, mHandlePosition[L_BOT_HANDLE_Z].z, xlWHITE);
+    va.AddVertex(mHandlePosition[L_TOP_HANDLE].x, mHandlePosition[L_TOP_HANDLE].y, mHandlePosition[L_TOP_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_TOP_HANDLE].x, mHandlePosition[R_TOP_HANDLE].y, mHandlePosition[R_TOP_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_TOP_HANDLE].x, mHandlePosition[R_TOP_HANDLE].y, mHandlePosition[R_TOP_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_BOT_HANDLE].x, mHandlePosition[R_BOT_HANDLE].y, mHandlePosition[R_BOT_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_BOT_HANDLE].x, mHandlePosition[R_BOT_HANDLE].y, mHandlePosition[R_BOT_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_BOT_HANDLE].x, mHandlePosition[L_BOT_HANDLE].y, mHandlePosition[L_BOT_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_BOT_HANDLE].x, mHandlePosition[L_BOT_HANDLE].y, mHandlePosition[L_BOT_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_TOP_HANDLE].x, mHandlePosition[L_TOP_HANDLE].y, mHandlePosition[L_TOP_HANDLE].z, Box3dColor);
+
+    va.AddVertex(mHandlePosition[L_TOP_HANDLE_Z].x, mHandlePosition[L_TOP_HANDLE_Z].y, mHandlePosition[L_TOP_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_TOP_HANDLE_Z].x, mHandlePosition[R_TOP_HANDLE_Z].y, mHandlePosition[R_TOP_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_TOP_HANDLE_Z].x, mHandlePosition[R_TOP_HANDLE_Z].y, mHandlePosition[R_TOP_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_BOT_HANDLE_Z].x, mHandlePosition[R_BOT_HANDLE_Z].y, mHandlePosition[R_BOT_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_BOT_HANDLE_Z].x, mHandlePosition[R_BOT_HANDLE_Z].y, mHandlePosition[R_BOT_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_BOT_HANDLE_Z].x, mHandlePosition[L_BOT_HANDLE_Z].y, mHandlePosition[L_BOT_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_BOT_HANDLE_Z].x, mHandlePosition[L_BOT_HANDLE_Z].y, mHandlePosition[L_BOT_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_TOP_HANDLE_Z].x, mHandlePosition[L_TOP_HANDLE_Z].y, mHandlePosition[L_TOP_HANDLE_Z].z, Box3dColor);
+
+    va.AddVertex(mHandlePosition[L_TOP_HANDLE].x, mHandlePosition[L_TOP_HANDLE].y, mHandlePosition[L_TOP_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_TOP_HANDLE_Z].x, mHandlePosition[L_TOP_HANDLE_Z].y, mHandlePosition[L_TOP_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_TOP_HANDLE].x, mHandlePosition[R_TOP_HANDLE].y, mHandlePosition[R_TOP_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_TOP_HANDLE_Z].x, mHandlePosition[R_TOP_HANDLE_Z].y, mHandlePosition[R_TOP_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_BOT_HANDLE].x, mHandlePosition[R_BOT_HANDLE].y, mHandlePosition[R_BOT_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[R_BOT_HANDLE_Z].x, mHandlePosition[R_BOT_HANDLE_Z].y, mHandlePosition[R_BOT_HANDLE_Z].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_BOT_HANDLE].x, mHandlePosition[L_BOT_HANDLE].y, mHandlePosition[L_BOT_HANDLE].z, Box3dColor);
+    va.AddVertex(mHandlePosition[L_BOT_HANDLE_Z].x, mHandlePosition[L_BOT_HANDLE_Z].y, mHandlePosition[L_BOT_HANDLE_Z].z, Box3dColor);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 
     if (active_handle != -1) {
@@ -1938,7 +1942,9 @@ void TwoPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const 
     }
     else {
         // the bounding box is so close to a single line don't draw it once it's selected
-        DrawGLUtils::DrawBoundingBox(aabb_min, aabb_max, ModelMatrix, va);
+        xlColor Box3dColor = xlWHITETRANSLUCENT;
+        if (_locked) Box3dColor = xlREDTRANSLUCENT;
+        DrawGLUtils::DrawBoundingBox(Box3dColor, aabb_min, aabb_max, ModelMatrix, va);
     }
 }
 
@@ -3167,9 +3173,9 @@ float ThreePointScreenLocation::GetYShear() const {
     return 0.0;
 }
 
-void ThreePointScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const
+void ThreePointScreenLocation::DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const
 {
-    DrawGLUtils::DrawBoundingBox(aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, va);
+    DrawGLUtils::DrawBoundingBox(c, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, va);
 }
 
 void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
@@ -3534,14 +3540,14 @@ void PolyPointScreenLocation::Write(wxXmlNode *node) {
     }
 }
 
-void PolyPointScreenLocation::DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const
+void PolyPointScreenLocation::DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const
 {
     if (selected_segment != -1) {
         if (mPos[selected_segment].has_curve) {
-            mPos[selected_segment].curve->DrawBoundingBox(va);
+            mPos[selected_segment].curve->DrawBoundingBox(c, va);
         }
         else {
-            DrawGLUtils::DrawBoundingBox(seg_aabb_min[selected_segment], seg_aabb_max[selected_segment], *mPos[selected_segment].mod_matrix, va);
+            DrawGLUtils::DrawBoundingBox(c, seg_aabb_min[selected_segment], seg_aabb_max[selected_segment], *mPos[selected_segment].mod_matrix, va);
         }
     }
 }
@@ -4065,7 +4071,7 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
         }
         else {
             h1c = (highlighted_handle == START_HANDLE) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
-            h2c = xlBLUE;
+            h2c = xlBLUETRANSLUCENT;
             h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOWTRANSLUCENT : xlORANGETRANSLUCENT;
         }
 
@@ -4174,28 +4180,28 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
             // add control point handles for selected segments
             int i = selected_segment;
             if (mPos[i].has_curve) {
-                float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
-                float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
-                float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
+                float cxx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
+                float cyy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
+                float czz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
                 h2c = highlighted_handle & 0x4000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
-                DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
+                DrawGLUtils::DrawSphere(cxx, cyy, czz, RECT_HANDLE_WIDTH, h2c, va);
                 mPos[i].cp0.x = mPos[i].curve->get_cp0x();
                 mPos[i].cp0.y = mPos[i].curve->get_cp0y();
                 mPos[i].cp0.z = mPos[i].curve->get_cp0z();
-                cp_handle_pos[0].x = cx;
-                cp_handle_pos[0].y = cy;
-                cp_handle_pos[0].z = cz;
-                cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
-                cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
-                cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
+                cp_handle_pos[0].x = cxx;
+                cp_handle_pos[0].y = cyy;
+                cp_handle_pos[0].z = czz;
+                cxx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - RECT_HANDLE_WIDTH / 2;
+                cyy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - RECT_HANDLE_WIDTH / 2;
+                czz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - RECT_HANDLE_WIDTH / 2;
                 h2c = highlighted_handle & 0x8000 ? ((highlighted_handle & 0xFFF) == i ? xlYELLOW : xlRED) : xlRED;
-                DrawGLUtils::DrawSphere(cx, cy, cz, RECT_HANDLE_WIDTH, h2c, va);
+                DrawGLUtils::DrawSphere(cxx, cyy, czz, RECT_HANDLE_WIDTH, h2c, va);
                 mPos[i].cp1.x = mPos[i].curve->get_cp1x();
                 mPos[i].cp1.y = mPos[i].curve->get_cp1y();
                 mPos[i].cp1.z = mPos[i].curve->get_cp1z();
-                cp_handle_pos[1].x = cx;
-                cp_handle_pos[1].y = cy;
-                cp_handle_pos[1].z = cz;
+                cp_handle_pos[1].x = cxx;
+                cp_handle_pos[1].y = cyy;
+                cp_handle_pos[1].z = czz;
             }
         }
 
@@ -4239,12 +4245,14 @@ void PolyPointScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const
     }
     else {
         // draw bounding box for each segment if model is highlighted
+        xlColor Box3dColor = xlWHITETRANSLUCENT;
+        if (_locked) Box3dColor = xlREDTRANSLUCENT;
         for (int i = 0; i < num_points - 1; ++i) {
             if (mPos[i].has_curve) {
-                mPos[i].curve->DrawBoundingBoxes(va);
+                mPos[i].curve->DrawBoundingBoxes(Box3dColor, va);
             }
             else {
-                DrawGLUtils::DrawBoundingBox(seg_aabb_min[i], seg_aabb_max[i], *mPos[i].mod_matrix, va);
+                DrawGLUtils::DrawBoundingBox(Box3dColor, seg_aabb_min[i], seg_aabb_max[i], *mPos[i].mod_matrix, va);
             }
         }
     }
