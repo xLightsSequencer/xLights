@@ -183,6 +183,51 @@ int CustomModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
     return Model::OnPropertyGridChange(grid, event);
 }
 
+std::tuple<int,int,int> FindNode(int node, const std::vector<std::vector<std::vector<int>>>& locations)
+{
+    for (int l = 0; l < locations.size(); l++)
+    {
+        for (int r = 0; r < locations[l].size(); r++)
+        {
+            for (int c = 0; c < locations[r].size(); c++)
+            {
+                if (locations[l][r][c] == node+1)
+                {
+                    return { l, r, c };
+                }
+            }
+        }
+    }
+    wxASSERT(false);
+    return { -1,-1,-1 };
+}
+
+std::vector<std::vector<std::vector<int>>> ParseCustomModel(const wxString& data, int width)
+{
+    std::vector<std::vector<std::vector<int>>> res;
+
+    wxArrayString layers = wxSplit(data, '|');
+    for (auto l : layers)
+    {
+        std::vector<std::vector<int>> ll;
+        wxArrayString rows = wxSplit(l, ';');
+        for (auto r : rows)
+        {
+            std::vector<int> rr;
+            wxArrayString columns = wxSplit(r, ',');
+            for (auto c : columns)
+            {
+                if (c == "") rr.push_back(-1);
+                else rr.push_back(wxAtoi(c));
+            }
+            while (rr.size() < width) rr.push_back(-1);
+            ll.push_back(rr);
+        }
+        res.push_back(ll);
+    }
+    return res;
+}
+
 int CustomModel::GetStrandLength(int strand) const {
     return Nodes.size();
 }
@@ -327,6 +372,244 @@ inline void split(std::string frag, char splitBy, std::vector<std::string>& toke
         }
         tokens.push_back(frag.substr(0, splitAt));
         frag.erase(0, splitAt + 1);
+    }
+}
+
+static std::vector<std::string> CUSTOM_BUFFERSTYLES =
+{
+    "Default",
+    "Per Preview",
+    "Single Line",
+    "As Pixel",
+    "Stacked X Horizontally",
+    "Stacked Y Horizontally",
+    "Stacked Z Horizontally",
+    "Stacked X Vertically",
+    "Stacked Y Vertically",
+    "Stacked Z Vertically",
+    "Overlaid X",
+    "Overlaid Y",
+    "Overlaid Z",
+    "Unique X and Y X",
+    "Unique X and Y Y",
+    "Unique X and Y Z",
+};
+
+const std::vector<std::string> &CustomModel::GetBufferStyles() const {
+    return CUSTOM_BUFFERSTYLES;
+}
+
+void CustomModel::GetBufferSize(const std::string& type, const std::string& camera, const std::string& transform, int& BufferWi, int& BufferHi) const
+{
+    int width = parm1;
+    int height = parm2;
+    int depth = _depth;
+
+    if (SingleNode || SingleChannel)
+    {
+        BufferWi = 1;
+        BufferHi = 1;
+    }
+    else if (type == "Per Preview" || type == "Single Line" || type == "As Pixel")
+    {
+        Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+    }
+    else if (type == "Stacked X Horizontally")
+    {
+        BufferHi = height;
+        BufferWi = width * depth;
+    }
+    else if (type == "Stacked Y Horizontally")
+    {
+        BufferHi = depth;
+        BufferWi = width * height;
+    }
+    else if (type == "Default" || type == "Stacked Z Horizontally")
+    {
+        BufferHi = height;
+        BufferWi = width * depth;
+    }
+    else if (type == "Stacked X Vertically")
+    {
+        BufferHi = height * width;
+        BufferWi = depth;
+    }
+    else if (type == "Stacked Y Vertically")
+    {
+        BufferHi = height * depth;
+        BufferWi = width;
+    }
+    else if (type == "Stacked Z Vertically")
+    {
+        BufferWi = width;
+        BufferHi = depth * height;
+    }
+    else if (type == "Overlaid X")
+    {
+        BufferWi = depth;
+        BufferHi = height;
+    }
+    else if (type == "Overlaid Y")
+    {
+        BufferWi = width;
+        BufferHi = depth;
+    }
+    else if (type == "Overlaid Z")
+    {
+        BufferWi = width;
+        BufferHi = height;
+    }
+    else if (type == "Unique X and Y X")
+    {
+        BufferWi = height * width;
+        BufferHi = depth * width;
+    }
+    else if (type == "Unique X and Y Y")
+    {
+        BufferWi = width * height;
+        BufferHi = depth * height;
+    }
+    else if (type == "Unique X and Y Z")
+    {
+        BufferWi = width * depth;
+        BufferHi = height * depth;
+    }
+    else
+    {
+        wxASSERT(false);
+    }
+
+    AdjustForTransform(transform, BufferWi, BufferHi);
+}
+
+void CustomModel::InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi) const
+{
+    int width = parm1;
+    int height = parm2;
+    int depth = _depth;
+
+    Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
+
+    if (SingleChannel || SingleNode)
+    {
+        return;
+    }
+
+    if (type == "Per Preview" || type == "Single Line" || type == "As Pixel")
+    {
+        return;
+    }
+
+    GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+
+    auto locations = ParseCustomModel(ModelXml->GetAttribute("CustomModel"), parm1);
+
+    if (type == "Stacked X Horizontally")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1 + std::get<2>(loc) * depth;
+            Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
+        }
+    }
+    else if (type == "Stacked Y Horizontally")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<1>(loc) * width;
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc);
+        }
+    }
+    else if (type == "Default" || type == "Stacked Z Horizontally")
+    {
+        // dont need to do anything
+    }
+    else if (type == "Stacked X Vertically")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1;
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + height * std::get<2>(loc);
+        }
+    }
+    else if (type == "Stacked Y Vertically")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc) + depth * std::get<1>(loc);
+        }
+    }
+    else if (type == "Stacked Z Vertically")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + depth * std::get<0>(loc);
+        }
+    }
+    else if (type == "Overlaid X")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1;
+            Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
+        }
+    }
+    else if (type == "Overlaid Y")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc);
+        }
+    }
+    else if (type == "Overlaid Z")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc);
+            Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
+        }
+    }
+    else if (type == "Unique X and Y X")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1 + std::get<2>(loc) * depth;
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + std::get<2>(loc) * height;
+        }
+    }
+    else if (type == "Unique X and Y Y")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<1>(loc) * width;
+            Nodes[n]->Coords[0].bufY = std::get<0>(loc) + std::get<1>(loc) * depth;
+        }
+    }
+    else if (type == "Unique X and Y Z")
+    {
+        for (size_t n = 0; n < Nodes.size(); n++)
+        {
+            auto loc = FindNode(n, locations);
+            Nodes[n]->Coords[0].bufX = std::get<2>(loc) + std::get<0>(loc) * width;
+            Nodes[n]->Coords[0].bufY = std::get<1>(loc) + (height - std::get<1>(loc) - 1) * height;
+        }
+    }
+    else
+    {
+        wxASSERT(false);
     }
 }
 

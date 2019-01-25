@@ -9,6 +9,11 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         CustomModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CustomModel();
 
+        virtual const std::vector<std::string> &GetBufferStyles() const override;
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
 
