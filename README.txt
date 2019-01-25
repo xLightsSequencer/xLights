@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)   Add 3D Custom Model
+   -- enh (keith)   Make locked models more obvious in 3D
+   -- enh (keith)   Allow cube and sphere to be exported as 3D custom models
+   -- enh (keith)   Make green box on 2D layout optional
+   -- enh (keith)   Add right click reset camera position to house preview and layout
+   -- enh (keith)   Update J1SYS P2 upload to support more model configurations
+   -- bug (keith)   Fix issues with switching between effects using dropdown on effect settings dialog
 2019.06 January 19, 2019
    -- bug (dkulp)   Fix sub-buffers ending up with two rows/columns identical.  Fixes #1421
    -- bug (dkulp)   Fix FPP connect dialog not working correctly on windows

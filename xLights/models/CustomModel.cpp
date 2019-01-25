@@ -189,7 +189,7 @@ std::tuple<int,int,int> FindNode(int node, const std::vector<std::vector<std::ve
     {
         for (int r = 0; r < locations[l].size(); r++)
         {
-            for (int c = 0; c < locations[r].size(); c++)
+            for (int c = 0; c < locations[l][r].size(); c++)
             {
                 if (locations[l][r][c] == node+1)
                 {
