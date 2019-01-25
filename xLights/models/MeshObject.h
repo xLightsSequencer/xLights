@@ -7,6 +7,9 @@
 #include "tiny_obj_loader.h"
 
 class ModelPreview;
+namespace DrawGLUtils {
+    class xl3DMesh;
+}
 
 class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 {
@@ -24,6 +27,8 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         virtual std::list<std::string> GetFileReferences() override;
         virtual bool CleanupFileLocations(xLightsFrame* frame) override;
         virtual std::list<std::string> CheckModelSettings() override;
+        virtual void uncacheDisplayObjects();
+        virtual void IncrementChangeCount() override;
 
     protected:
 
@@ -45,6 +50,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
         float bmin[3];
         float bmax[3];
 
+        DrawGLUtils::xl3DMesh *mesh3d;
 };
 
 #endif // MESHOBJECT_H

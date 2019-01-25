@@ -289,6 +289,10 @@ public:
         LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     }
 
+    virtual DrawGLUtils::xl3DMesh *createMesh() override {
+        return nullptr;
+    }
+    
     virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
@@ -452,6 +456,10 @@ void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapab
 
 void DrawGLUtils::Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) {
 	currentCache->Draw(va, color, type, enableCapability);
+}
+
+DrawGLUtils::xl3DMesh *DrawGLUtils::createMesh() {
+    return currentCache->createMesh();
 }
 
 void DrawGLUtils::PreAlloc(int verts) {
@@ -647,6 +655,11 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     currentCache->flush(GL_TRIANGLES);
 }
 
+void DrawGLUtils::xlAccumulator::AddMesh(xl3DMesh *m, bool wireframe, float brightness) {
+    if (m) {
+        types.push_back(BufferRangeType(m, wireframe, brightness));
+    }
+}
 
 void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float extra) {
     if (!types.empty()

@@ -3232,6 +3232,7 @@ void Model::UpdateXmlWithScale() {
         ModelXml->DeleteAttribute("versionNumber");
     ModelXml->AddAttribute("versionNumber", "3");
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
+    IncrementChangeCount();
 }
 
 bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {

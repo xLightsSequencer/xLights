@@ -2723,7 +2723,7 @@ void LayoutPanel::OnPreviewRotateGesture(wxRotateGestureEvent& event) {
             } else if (wxGetKeyState(WXK_CONTROL)) {
                 axis = 1;
             }
-            if (selectedBaseObject->GetBaseObjectScreenLocation().Rotate(axis, delta)) {
+            if (selectedBaseObject->Rotate(axis, delta)) {
                 SetupPropGrid(selectedBaseObject);
                 xlights->MarkEffectsFileDirty(true);
                 UpdatePreview();
@@ -2739,7 +2739,7 @@ void LayoutPanel::OnPreviewZoomGesture(wxZoomGestureEvent& event) {
     if (selectedBaseObject != nullptr) {
         if (!event.IsGestureStart()) {
             //resize model
-            if (selectedBaseObject->GetBaseObjectScreenLocation().Scale(1.0f - delta)) {
+            if (selectedBaseObject->Scale(1.0f - delta)) {
                 SetupPropGrid(selectedBaseObject);
                 xlights->MarkEffectsFileDirty(true);
                 UpdatePreview();

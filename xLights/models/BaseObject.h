@@ -40,6 +40,8 @@ public:
     void SetVcenterPos(float pos);
     void SetWidth(float w);
     void SetHeight(float h);
+    bool Scale(float f);
+    bool Rotate(int axis, float factor);
 
     float GetTop();
     float GetBottom();
@@ -62,7 +64,7 @@ public:
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 
-    void IncrementChangeCount() { ++changeCount;};
+    virtual void IncrementChangeCount() { ++changeCount;};
 
     std::string name;
 

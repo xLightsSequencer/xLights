@@ -20,6 +20,17 @@ namespace DrawGLUtils
     #define IGNORE_GL_ERRORV(a) a; glGetError()
 
     bool LoadGLFunctions();
+    
+    
+    class xl3DMesh {
+    protected:
+        xl3DMesh() {}
+    public:
+        virtual ~xl3DMesh() {}
+        
+        virtual void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t colors[3][4], GLint imageId) = 0;
+        virtual void addLine(float v[2][3]) = 0;
+    };
 
     class xlVertexAccumulatorBase {
     public:
@@ -310,6 +321,7 @@ namespace DrawGLUtils
 
         bool HasMoreVertices() { return count != start; }
         void Finish(int type, int enableCapability = 0, float extra = 1);
+        void AddMesh(xl3DMesh *m, bool wireframe, float textureBrightness = 100.0);
 
 
         void PreAllocTexture(int i);
@@ -336,6 +348,7 @@ namespace DrawGLUtils
                 textureId = -1;
                 textureBrightness = 1.0f;
                 useTexturePixelColor = false;
+                mesh = nullptr;
             }
             BufferRangeType(int s, int c, int t, int ec, GLuint tid, uint8_t alpha, float brightness) {
                 start = s;
@@ -347,6 +360,7 @@ namespace DrawGLUtils
                 textureAlpha = alpha;
                 textureBrightness = brightness;
                 useTexturePixelColor = false;
+                mesh = nullptr;
             }
             BufferRangeType(int s, int c, int t, int ec, GLuint tid, const xlColor &color) {
                 start = s;
@@ -359,6 +373,18 @@ namespace DrawGLUtils
                 textureBrightness = 1.0f;
                 useTexturePixelColor = true;
                 texturePixelColor = color;
+                mesh = nullptr;
+            }
+            BufferRangeType(xl3DMesh *m, bool wireframe, float brightness) : mesh(m) {
+                start = 0;
+                count = 0;
+                type = 0;
+                enableCapability = 0;
+                extra = wireframe ? 1 : 0;
+                textureId = -1;
+                textureBrightness = brightness;
+                textureAlpha = 255;
+                useTexturePixelColor = false;
             }
             int start;
             int count;
@@ -370,6 +396,7 @@ namespace DrawGLUtils
             float textureBrightness;
             bool useTexturePixelColor;
             xlColor texturePixelColor;
+            xl3DMesh *mesh;
         };
         std::list<BufferRangeType> types;
         float *tvertices;
@@ -423,6 +450,8 @@ namespace DrawGLUtils
 		virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlAccumulator &va) = 0;
+        
+        virtual xl3DMesh *createMesh() = 0;
 
         virtual void addVertex(float x, float y, const xlColor &c) = 0;
         virtual unsigned int vertexCount() = 0;
@@ -496,6 +525,7 @@ namespace DrawGLUtils
     void Draw(xlVertexTextAccumulator &va, int size, float factor);
 	void Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability = 0);
 
+    xl3DMesh *createMesh();
 
     void DrawText(double x, double y, double size, const wxString &text, double factor = 1.0);
     int GetTextWidth(double size, const wxString &text, double factor = 1.0);

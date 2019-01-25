@@ -198,6 +198,7 @@ public:
 
     void UseProgram() const {
         LOG_GL_ERRORV(glUseProgram(ProgramID));
+        LOG_GL_ERRORV(glBindVertexArray(VertexArrayID));
     }
 
     void SetMatrix(glm::mat4 &m) const {
@@ -261,7 +262,7 @@ public:
         }
         ProgramID = pid;
 
-        UseProgram();
+        LOG_GL_ERRORV(glUseProgram(ProgramID));
         LOG_GL_ERRORV(MatrixID = glGetUniformLocation(ProgramID, "MVP"));
         LOG_GL_ERRORV(PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin"));
         LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
@@ -362,6 +363,233 @@ public:
 
 };
 
+class GL3Mesh : public DrawGLUtils::xl3DMesh {
+    static const int NUM_BUFFERS = 6;
+    static const int NUM_VAOS = 3;
+    public:
+    GL3Mesh() {
+        for (int x = 0; x < NUM_VAOS; x++) {
+            vaos[x] = 0;
+        }
+        for (int x = 0; x < NUM_BUFFERS; x++) {
+            buffers[x] = 0;
+        }
+    }
+    virtual ~GL3Mesh() {
+        if (buffers[0]) {
+            glDeleteBuffers(NUM_BUFFERS, buffers);
+            glDeleteVertexArrays(NUM_VAOS, vaos);
+        }
+    }
+    
+    virtual void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t clr[3][4], GLint imageId) {
+        for (int v = 0; v < 3; v++) {
+            vertices.push_back(vert[v][0]);
+            vertices.push_back(vert[v][1]);
+            vertices.push_back(vert[v][2]);
+            texCoords.push_back(uv[v][0]);
+            texCoords.push_back(uv[v][1]);
+            normals.push_back(norms[v][0]);
+            normals.push_back(norms[v][1]);
+            normals.push_back(norms[v][2]);
+            colors.push_back(clr[v][0]);
+            colors.push_back(clr[v][1]);
+            colors.push_back(clr[v][2]);
+            colors.push_back(clr[v][3]);
+            images.push_back(imageId);
+        }
+        
+        wireframe.push_back(vert[0][0]);
+        wireframe.push_back(vert[0][1]);
+        wireframe.push_back(vert[0][2]);
+        wireframe.push_back(vert[1][0]);
+        wireframe.push_back(vert[1][1]);
+        wireframe.push_back(vert[1][2]);
+        wireframe.push_back(vert[1][0]);
+        wireframe.push_back(vert[1][1]);
+        wireframe.push_back(vert[1][2]);
+        wireframe.push_back(vert[2][0]);
+        wireframe.push_back(vert[2][1]);
+        wireframe.push_back(vert[2][2]);
+        wireframe.push_back(vert[2][0]);
+        wireframe.push_back(vert[2][1]);
+        wireframe.push_back(vert[2][2]);
+        wireframe.push_back(vert[0][0]);
+        wireframe.push_back(vert[0][1]);
+        wireframe.push_back(vert[0][2]);
+    }
+    virtual void addLine(float vert[2][3]) {
+        for (int v = 0; v < 2; v++) {
+            lines.push_back(vert[v][0]);
+            lines.push_back(vert[v][1]);
+            lines.push_back(vert[v][2]);
+        }
+    }
+    
+    void Draw(bool wf, ShaderProgram &singleColorProgram, ShaderProgram &normalProgram, ShaderProgram &textureProgram, float brightness) {
+        /*
+        singleColorProgram.UseProgram();
+        //LOG_GL_ERRORV(glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(m)));
+        GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
+        LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 0.0f, 1.0f, 0.5f));
+        singleColorProgram.SetRenderType(0);
+         */
+
+        if (vaos[0] == 0) {
+            LOG_GL_ERRORV(glGenVertexArrays(NUM_VAOS, vaos));
+            LOG_GL_ERRORV(glGenBuffers(NUM_BUFFERS, buffers));
+
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[0]));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices.size(), &vertices[0], GL_STATIC_DRAW));
+
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[1]));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLbyte) * colors.size(), &colors[0], GL_STATIC_DRAW));
+
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[2]));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * texCoords.size(), &texCoords[0], GL_STATIC_DRAW));
+
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[3]));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * normals.size(), &normals[0], GL_STATIC_DRAW));
+
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[4]));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * wireframe.size(), &wireframe[0], GL_STATIC_DRAW));
+
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
+            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * lines.size(), &lines[0], GL_STATIC_DRAW));
+
+            
+            LOG_GL_ERRORV(glBindVertexArray(vaos[0])); // the surfaces
+            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(1));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(2));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(3));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[0]));
+            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[1]));
+            LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[2]));
+            LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[3]));
+            LOG_GL_ERRORV(glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+
+            LOG_GL_ERRORV(glBindVertexArray(vaos[1])); // the lines
+            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
+            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+
+            LOG_GL_ERRORV(glBindVertexArray(vaos[2])); // the wireframe
+            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[4]));
+            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+            
+            if (!images.empty()) {
+                programTypes.push_back(PType());
+                int curIdx = 0;
+                programTypes[curIdx].image = images[0];
+                programTypes[curIdx].startIdx = 0;
+                programTypes[curIdx].count = 1;
+                for (int x = 1; x < images.size(); x++) {
+                    if (images[x] != programTypes[curIdx].image) {
+                        //changing image
+                        programTypes.push_back(PType());
+                        curIdx++;
+                        programTypes[curIdx].image = images[x];
+                        programTypes[curIdx].startIdx = x;
+                        programTypes[curIdx].count = 1;
+                    } else {
+                        programTypes[curIdx].count++;
+                    }
+                }
+            }
+        }
+        
+        if (wf) {
+            singleColorProgram.UseProgram();
+            singleColorProgram.SetRenderType(0);
+            GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
+            LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 1.0f, 0.0f, 1.0f));
+            LOG_GL_ERRORV(glBindVertexArray(vaos[2]));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+            LOG_GL_ERRORV(glDisableVertexAttribArray(1));
+            glEnable(GL_LINE_SMOOTH);
+            LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, wireframe.size()));
+            glDisable(GL_LINE_SMOOTH);
+        } else {
+            for (auto & pt : programTypes) {
+                if (pt.image == -1) {
+                    normalProgram.UseProgram();
+                    normalProgram.SetRenderType(0);
+                    LOG_GL_ERRORV(glBindVertexArray(vaos[0]));
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(1));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(2));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(3));
+                } else {
+                    textureProgram.UseProgram();
+                    textureProgram.SetRenderType(0);
+                    
+                    LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                    LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
+                    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+                    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+                    GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
+                    float alpha = 1.0;
+                    float br = brightness / 100.0f;
+                    LOG_GL_ERRORV(glUniform4f(cid, br, br, br, alpha));
+                    textureProgram.SetRenderType(0);
+                    
+                    LOG_GL_ERRORV(glBindVertexArray(vaos[0]));
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(1));
+                    LOG_GL_ERRORV(glEnableVertexAttribArray(2));
+                    LOG_GL_ERRORV(glDisableVertexAttribArray(3));
+                }
+                LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                if (pt.image != -1) {
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                }
+            }
+
+            if (!lines.empty()) {
+                singleColorProgram.UseProgram();
+                singleColorProgram.SetRenderType(0);
+                GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
+                LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 0.0f, 0.0f, 1.0f));
+                LOG_GL_ERRORV(glBindVertexArray(vaos[1]));
+                LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+                glEnable(GL_LINE_SMOOTH);
+                LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, lines.size() / 2));
+                glDisable(GL_LINE_SMOOTH);
+            }
+        }
+        
+        LOG_GL_ERRORV(glBindVertexArray(0));
+
+        singleColorProgram.UseProgram();
+        singleColorProgram.ReBindBuffer(0);
+    }
+    
+    private:
+    GLuint vaos[NUM_VAOS];
+    GLuint buffers[NUM_BUFFERS];
+    
+    std::vector<GLfloat> vertices;
+    std::vector<GLbyte> colors;
+    std::vector<GLfloat> texCoords;
+    std::vector<GLfloat> normals;
+    std::vector<GLfloat> wireframe;
+    std::vector<GLfloat> lines;
+
+    std::vector<GLint> images;
+    
+    struct PType {
+        int startIdx;
+        int count;
+        GLint image;
+    };
+    std::vector<PType> programTypes;
+};
 
 
 class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
@@ -481,18 +709,14 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 				"#version 330 core\n"
 				"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
 				"out vec4 fragmentColor;\n"
-				"out vec3 Position_worldspace;"
 				"uniform mat4 MVP;\n"
-				"uniform mat4 M;\n"
 				"uniform vec4 inColor;\n"
 				"void main(){\n"
 				"    gl_Position = MVP * vec4(vertexPosition_modelspace,1);\n"
-				"    Position_worldspace = (M * vec4(vertexPosition_modelspace,1)).xyz;\n"
 				"    fragmentColor = inColor;\n"
 				"}\n",
 				"#version 330 core\n"
 				"in vec4 fragmentColor;\n"
-				"in vec3 Position_worldspace;\n"
 				"out vec4 color;\n"
 				"uniform int RenderType = 0;\n"
 				"uniform float PointSmoothMin = 0.4;\n"
@@ -547,14 +771,11 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 							"layout(location = 0) in vec3 vertexPosition_modelspace;\n"
 							"layout(location = 1) in vec4 vertexColor;\n"
 							"out vec4 fragmentColor;\n"
-							"out vec3 Position_worldspace;"
 							"uniform int RenderType;\n"
 							"uniform mat4 MVP;\n"
-							"uniform mat4 M;\n"
 							"uniform vec4 inColor;\n"
 							"void main(){\n"
 							"    gl_Position = MVP * vec4(vertexPosition_modelspace,1);\n"
-							"    Position_worldspace = (M * vec4(vertexPosition_modelspace,1)).xyz;\n"
 							"    if (RenderType == -2) {\n"
 							"        fragmentColor = inColor;\n"
 							"    } else if (RenderType == -1) {\n"
@@ -565,7 +786,6 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 							"}\n";
 		const char *np3FS = "#version 330 core\n"
 							"in vec4 fragmentColor;\n"
-							"in vec3 Position_worldspace;\n"
 							"out vec4 color;\n"
 							"uniform int RenderType;\n"
 							"uniform float PointSmoothMin = 0.4;\n"
@@ -684,7 +904,7 @@ public:
         
         bool hasTexture = false;
         for (auto &brt : va.types) {
-            if (brt.textureId != -1) {
+            if (brt.textureId != -1 || brt.mesh != nullptr) {
                 hasTexture = true;
             }
         }
@@ -693,10 +913,12 @@ public:
             // there are textures, bind the texture vertices
             texturep->UseProgram();
             texturep->SetMatrix(*matrix);
-            toffset0 = texturep->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
-            LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
-            texturep->BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
-            LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0 ));
+            if (va.tvertices) {
+                toffset0 = texturep->BindBuffer(0, &va.vertices[0], va.count*va.coordsPerVertex*sizeof(GLfloat))/ (va.coordsPerVertex*sizeof(GLfloat));
+                LOG_GL_ERRORV(glVertexAttribPointer(0, va.coordsPerVertex, GL_FLOAT, GL_FALSE, 0, (void*)0 ));
+                texturep->BindBuffer(2, va.tvertices, va.count * 2 * sizeof(GLfloat));
+                LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0 ));
+            }
         }
         
         program->UseProgram();
@@ -713,8 +935,16 @@ public:
         for (auto &brt : va.types) {
             int type = brt.type;
             int enableCapability = brt.enableCapability;
-            
-            if (brt.textureId != lastTextureId) {
+            if (brt.mesh != nullptr) {
+                GL3Mesh *mesh = (GL3Mesh*)brt.mesh;
+                singleColor3Program.UseProgram();
+                singleColor3Program.SetMatrix(*matrix);
+                singleColor3Program.SetRenderType(0);
+                mesh->Draw(brt.extra == 1, singleColor3Program, normal3Program, texture3Program, brt.textureBrightness);
+                program->UseProgram();
+                program->ReBindBuffer(0);
+                continue;
+            } else if (brt.textureId != lastTextureId) {
                 if (brt.textureId == -1) {
                     //back to non-texture
                     offset0 = roffset0;
@@ -887,8 +1117,10 @@ public:
         program->UnbindBuffer(0);
         program->UnbindBuffer(1);
     }
-
-
+    
+    virtual DrawGLUtils::xl3DMesh *createMesh() override {
+        return new GL3Mesh();
+    }
     virtual void SetCurrent() override {
         DrawGLUtils::xlGLCacheInfo::SetCurrent();
         data.Reset();

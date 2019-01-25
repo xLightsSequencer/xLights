@@ -594,8 +594,9 @@ public:
         LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
     }
-
-
+    virtual DrawGLUtils::xl3DMesh *createMesh() override {
+        return nullptr;
+    }
     virtual void addVertex(float x, float y, const xlColor &c) override {
         data.PreAlloc(1);
         data.AddVertex(x, y, c);
