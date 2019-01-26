@@ -19,7 +19,7 @@
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -77,7 +77,6 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -132,7 +131,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=c++1z" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -166,7 +165,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -207,7 +206,6 @@
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
