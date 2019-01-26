@@ -340,14 +340,14 @@ void SyncUnicastFPP::SendFPPSync(const std::string& item, uint32_t stepMS, uint3
     }
 }
 
-SyncBroadcastFPP::SyncBroadcastFPP(SyncBroadcastFPP& from) : SyncBase(from)
+SyncBroadcastFPP::SyncBroadcastFPP(SyncBroadcastFPP&& from) : SyncBase(from)
 {
     _fppBroadcastSocket = from._fppBroadcastSocket;
     from._fppBroadcastSocket = nullptr; // this is a transfer of ownership
     _remoteAddr = from._remoteAddr;
 }
 
-SyncUnicastFPP::SyncUnicastFPP(SyncUnicastFPP& from) : SyncBase(from)
+SyncUnicastFPP::SyncUnicastFPP(SyncUnicastFPP&& from) : SyncBase(from)
 {
     _fppUnicastSocket = from._fppUnicastSocket;
     from._fppUnicastSocket = nullptr; // this is a transfer of ownership

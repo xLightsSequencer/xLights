@@ -100,16 +100,16 @@ ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::
     switch(format)
     {
     default:
-    case 0:
+    case TIMECODEFORMAT::F24:
         ChoiceFormat->SetStringSelection("24 fps");
         break;
-    case 1:
+    case TIMECODEFORMAT::F25:
         ChoiceFormat->SetStringSelection("25 fps");
         break;
-    case 2:
+    case TIMECODEFORMAT::F2997:
         ChoiceFormat->SetStringSelection("29.97 fps");
         break;
-    case 3:
+    case TIMECODEFORMAT::F30:
         ChoiceFormat->SetStringSelection("30 fps");
         break;
     }

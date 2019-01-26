@@ -65,7 +65,7 @@ SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& op
     }
 }
 
-SyncOSC::SyncOSC(SyncOSC& from) : SyncBase(from)
+SyncOSC::SyncOSC(SyncOSC&& from) : SyncBase(from)
 {
     _oscSocket = from._oscSocket;
     from._oscSocket = nullptr; // this is a transfer of ownership

@@ -17,7 +17,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Make green box on 2D layout optional
    -- enh (keith)   Add right click reset camera position to house preview and layout
    -- enh (keith)   Update J1SYS P2 upload to support more model configurations
+   -- enh (keith)   Add a latency setting when running xSchedule in remote to adjust for network delays
+   -- enh (keith)   Add a jitter setting when running xSchedule in remote to reduce adjustments not 
+                    required due to small variations in packet delivery time
+   -- enh (keith)   Add bulk edit to effect type
+   -- enh (keith)   Add support for \n and \t in playlist item text
    -- bug (keith)   Fix issues with switching between effects using dropdown on effect settings dialog
+   -- bug (keith)   Fix issues with Artnet & MIDI timecode when in remote mode
+   -- enh (dkulp)   Optimise 3D management of images and matrix shaders to try to reduce resources/speed it up
 2019.06 January 19, 2019
    -- bug (dkulp)   Fix sub-buffers ending up with two rows/columns identical.  Fixes #1421
    -- bug (dkulp)   Fix FPP connect dialog not working correctly on windows

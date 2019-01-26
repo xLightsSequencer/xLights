@@ -17,7 +17,7 @@ class SyncBroadcastFPP : public SyncBase
     public:
 
         SyncBroadcastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
-        SyncBroadcastFPP(SyncBroadcastFPP& from);
+        SyncBroadcastFPP(SyncBroadcastFPP&& from);
         virtual ~SyncBroadcastFPP();
         virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const override;
         virtual std::string GetType() const override { return "FPPBROADCAST"; }
@@ -35,7 +35,7 @@ class SyncUnicastFPP : public SyncBase
     public:
 
         SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, ListenerManager* listenerManager);
-        SyncUnicastFPP(SyncUnicastFPP& from);
+        SyncUnicastFPP(SyncUnicastFPP&& from);
         virtual ~SyncUnicastFPP();
         virtual void SendSync(uint32_t frameMS, uint32_t stepLengthMS, uint32_t stepMS, uint32_t playlistMS, const std::string& fseq, const std::string& media, const std::string& step, const std::string& timeItem) const override;
         virtual std::string GetType() const override { return "FPPUNICAST"; }

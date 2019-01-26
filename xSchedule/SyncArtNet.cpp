@@ -59,7 +59,7 @@ SyncArtNet::SyncArtNet(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& option
     }
 }
 
-SyncArtNet::SyncArtNet(SyncArtNet& from) : SyncBase(from)
+SyncArtNet::SyncArtNet(SyncArtNet&& from) : SyncBase(from)
 {
     _artnetSocket = from._artnetSocket;
     from._artnetSocket = nullptr; // this is a transfer of ownership

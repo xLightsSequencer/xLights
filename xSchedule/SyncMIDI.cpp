@@ -49,7 +49,7 @@ SyncMIDI::SyncMIDI(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions& options, L
     }
 }
 
-SyncMIDI::SyncMIDI(SyncMIDI& from) : SyncBase(from)
+SyncMIDI::SyncMIDI(SyncMIDI&& from) : SyncBase(from)
 {
     _midi = from._midi;
     from._midi = nullptr; // this is a transfer of ownership
