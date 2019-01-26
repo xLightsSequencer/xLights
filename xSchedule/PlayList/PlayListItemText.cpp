@@ -369,6 +369,11 @@ std::string PlayListItemText::GetText(size_t ms)
     working.Replace("%MS%", wxString::Format(wxT("%03i"), now.GetMillisecond()));
     working.Replace("%AMPM%", now.GetHour() > 12 ? "PM" : "AM");
 
+    working.Replace("\\\\", "!xyzzy!");
+    working.Replace("\\t", "\t");
+    working.Replace("\\n", "\n");
+    working.Replace("!xyzzy!", "\\");
+
     return working.ToStdString();
 }
 
