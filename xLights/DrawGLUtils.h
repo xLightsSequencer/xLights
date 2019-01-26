@@ -24,13 +24,32 @@ namespace DrawGLUtils
     
     class xl3DMesh {
     protected:
-        xl3DMesh() {}
+        xl3DMesh() : matrix(1.0f)  {}
     public:
         virtual ~xl3DMesh() {}
         
-        virtual void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t colors[3][4], GLint imageId) = 0;
-        virtual void addLine(float v[2][3]) = 0;
-        virtual void setMatrix(glm::mat4& mat) = 0;
+        void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t colors[3][4], GLint imageId);
+        void addLine(float v[2][3]);
+        void setMatrix(glm::mat4& mat);
+
+    protected:
+        void calcProgram();
+        
+        std::vector<GLfloat> vertices;
+        std::vector<GLbyte> colors;
+        std::vector<GLfloat> texCoords;
+        std::vector<GLfloat> normals;
+        std::vector<GLfloat> wireframe;
+        std::vector<GLfloat> lines;
+        
+        std::vector<GLint> images;
+        glm::mat4 matrix;
+        struct PType {
+            int startIdx;
+            int count;
+            GLint image;
+        };
+        std::vector<PType> programTypes;
     };
 
     class xlVertexAccumulatorBase {

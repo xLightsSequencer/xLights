@@ -420,7 +420,11 @@ public:
                         GLuint cid = glGetUniformLocation(textProgramId, "RenderType");
                         LOG_GL_ERRORV(glUniform1i(cid, 0));
                         cid = glGetUniformLocation(textProgramId, "inColor");
-                        LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                        float trans = it->textureAlpha;
+                        trans /= 255.0f;
+                        float bri = it->textureBrightness;
+                        bri /= 100.0f;
+                        LOG_GL_ERRORV(glUniform4f(cid, bri, bri, bri, trans));
                     }
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));

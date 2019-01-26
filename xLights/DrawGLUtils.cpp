@@ -97,6 +97,74 @@ void DrawGLUtils::xlGLCacheInfo::SetCurrent() {
     }
 }
 
+void DrawGLUtils::xl3DMesh::setMatrix(glm::mat4& mat) {
+    matrix = mat;
+}
+void DrawGLUtils::xl3DMesh::addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t clr[3][4], GLint imageId) {
+    for (int v = 0; v < 3; v++) {
+        vertices.push_back(vert[v][0]);
+        vertices.push_back(vert[v][1]);
+        vertices.push_back(vert[v][2]);
+        texCoords.push_back(uv[v][0]);
+        texCoords.push_back(uv[v][1]);
+        normals.push_back(norms[v][0]);
+        normals.push_back(norms[v][1]);
+        normals.push_back(norms[v][2]);
+        colors.push_back(clr[v][0]);
+        colors.push_back(clr[v][1]);
+        colors.push_back(clr[v][2]);
+        colors.push_back(clr[v][3]);
+        images.push_back(imageId);
+    }
+    
+    wireframe.push_back(vert[0][0]);
+    wireframe.push_back(vert[0][1]);
+    wireframe.push_back(vert[0][2]);
+    wireframe.push_back(vert[1][0]);
+    wireframe.push_back(vert[1][1]);
+    wireframe.push_back(vert[1][2]);
+    wireframe.push_back(vert[1][0]);
+    wireframe.push_back(vert[1][1]);
+    wireframe.push_back(vert[1][2]);
+    wireframe.push_back(vert[2][0]);
+    wireframe.push_back(vert[2][1]);
+    wireframe.push_back(vert[2][2]);
+    wireframe.push_back(vert[2][0]);
+    wireframe.push_back(vert[2][1]);
+    wireframe.push_back(vert[2][2]);
+    wireframe.push_back(vert[0][0]);
+    wireframe.push_back(vert[0][1]);
+    wireframe.push_back(vert[0][2]);
+}
+void DrawGLUtils::xl3DMesh::addLine(float vert[2][3]) {
+    for (int v = 0; v < 2; v++) {
+        lines.push_back(vert[v][0]);
+        lines.push_back(vert[v][1]);
+        lines.push_back(vert[v][2]);
+    }
+}
+void DrawGLUtils::xl3DMesh::calcProgram() {
+    if (!images.empty()) {
+        programTypes.push_back(PType());
+        int curIdx = 0;
+        programTypes[curIdx].image = images[0];
+        programTypes[curIdx].startIdx = 0;
+        programTypes[curIdx].count = 1;
+        for (int x = 1; x < images.size(); x++) {
+            if (images[x] != programTypes[curIdx].image) {
+                //changing image
+                programTypes.push_back(PType());
+                curIdx++;
+                programTypes[curIdx].image = images[x];
+                programTypes[curIdx].startIdx = x;
+                programTypes[curIdx].count = 1;
+            } else {
+                programTypes[curIdx].count++;
+            }
+        }
+    }
+}
+
 class OpenGL11Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
     OpenGL11Cache() {

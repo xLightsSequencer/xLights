@@ -367,7 +367,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     static const int NUM_BUFFERS = 6;
     static const int NUM_VAOS = 3;
     public:
-    GL3Mesh() : matrix(1.0f) {
+    GL3Mesh() : DrawGLUtils::xl3DMesh() {
         for (int x = 0; x < NUM_VAOS; x++) {
             vaos[x] = 0;
         }
@@ -377,55 +377,8 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     }
     virtual ~GL3Mesh() {
         if (buffers[0]) {
-            glDeleteBuffers(NUM_BUFFERS, buffers);
-            glDeleteVertexArrays(NUM_VAOS, vaos);
-        }
-    }
-    virtual void setMatrix(glm::mat4& mat) {
-        matrix = mat;
-    }
-    
-    virtual void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t clr[3][4], GLint imageId) {
-        for (int v = 0; v < 3; v++) {
-            vertices.push_back(vert[v][0]);
-            vertices.push_back(vert[v][1]);
-            vertices.push_back(vert[v][2]);
-            texCoords.push_back(uv[v][0]);
-            texCoords.push_back(uv[v][1]);
-            normals.push_back(norms[v][0]);
-            normals.push_back(norms[v][1]);
-            normals.push_back(norms[v][2]);
-            colors.push_back(clr[v][0]);
-            colors.push_back(clr[v][1]);
-            colors.push_back(clr[v][2]);
-            colors.push_back(clr[v][3]);
-            images.push_back(imageId);
-        }
-        
-        wireframe.push_back(vert[0][0]);
-        wireframe.push_back(vert[0][1]);
-        wireframe.push_back(vert[0][2]);
-        wireframe.push_back(vert[1][0]);
-        wireframe.push_back(vert[1][1]);
-        wireframe.push_back(vert[1][2]);
-        wireframe.push_back(vert[1][0]);
-        wireframe.push_back(vert[1][1]);
-        wireframe.push_back(vert[1][2]);
-        wireframe.push_back(vert[2][0]);
-        wireframe.push_back(vert[2][1]);
-        wireframe.push_back(vert[2][2]);
-        wireframe.push_back(vert[2][0]);
-        wireframe.push_back(vert[2][1]);
-        wireframe.push_back(vert[2][2]);
-        wireframe.push_back(vert[0][0]);
-        wireframe.push_back(vert[0][1]);
-        wireframe.push_back(vert[0][2]);
-    }
-    virtual void addLine(float vert[2][3]) {
-        for (int v = 0; v < 2; v++) {
-            lines.push_back(vert[v][0]);
-            lines.push_back(vert[v][1]);
-            lines.push_back(vert[v][2]);
+            LOG_GL_ERRORV(glDeleteBuffers(NUM_BUFFERS, buffers));
+            LOG_GL_ERRORV(glDeleteVertexArrays(NUM_VAOS, vaos));
         }
     }
     
@@ -478,25 +431,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[4]));
             LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
             
-            if (!images.empty()) {
-                programTypes.push_back(PType());
-                int curIdx = 0;
-                programTypes[curIdx].image = images[0];
-                programTypes[curIdx].startIdx = 0;
-                programTypes[curIdx].count = 1;
-                for (int x = 1; x < images.size(); x++) {
-                    if (images[x] != programTypes[curIdx].image) {
-                        //changing image
-                        programTypes.push_back(PType());
-                        curIdx++;
-                        programTypes[curIdx].image = images[x];
-                        programTypes[curIdx].startIdx = x;
-                        programTypes[curIdx].count = 1;
-                    } else {
-                        programTypes[curIdx].count++;
-                    }
-                }
-            }
+            calcProgram();
         }
         glm::mat4 mat = curMatrix * matrix;
         
@@ -510,7 +445,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             LOG_GL_ERRORV(glEnableVertexAttribArray(0));
             LOG_GL_ERRORV(glDisableVertexAttribArray(1));
             glEnable(GL_LINE_SMOOTH);
-            LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, wireframe.size()));
+            LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, wireframe.size() / 2));
             glDisable(GL_LINE_SMOOTH);
             
             singleColorProgram.UseProgram();
@@ -569,22 +504,6 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     private:
     GLuint vaos[NUM_VAOS];
     GLuint buffers[NUM_BUFFERS];
-    
-    std::vector<GLfloat> vertices;
-    std::vector<GLbyte> colors;
-    std::vector<GLfloat> texCoords;
-    std::vector<GLfloat> normals;
-    std::vector<GLfloat> wireframe;
-    std::vector<GLfloat> lines;
-
-    std::vector<GLint> images;
-    glm::mat4 matrix;
-    struct PType {
-        int startIdx;
-        int count;
-        GLint image;
-    };
-    std::vector<PType> programTypes;
 };
 
 
@@ -939,7 +858,7 @@ public:
         
         bool hasTexture = false;
         for (auto &brt : va.types) {
-            if (brt.textureId != -1 || brt.mesh != nullptr) {
+            if (brt.textureId != -1) {
                 hasTexture = true;
             }
         }
