@@ -410,9 +410,21 @@ void CustomModel::GetBufferSize(const std::string& type, const std::string& came
         BufferWi = 1;
         BufferHi = 1;
     }
-    else if (type == "Per Preview" || type == "Single Line" || type == "As Pixel")
+    else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
     {
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+    }
+    else if (type == "Horizontal Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        BufferWi = 1;
+        BufferHi = parm1 * parm2 * _depth;
+    }
+    else if (type == "Vertical Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        BufferHi = 1;
+        BufferWi = parm1 * parm2 * _depth;
     }
     else if (type == "Stacked X Horizontally")
     {
@@ -495,7 +507,7 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
         return;
     }
 
-    if (type == "Per Preview" || type == "Per Preview No Offset" || type == "Single Line" || type == "As Pixel")
+    if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
     {
         return;
     }
@@ -506,11 +518,29 @@ void CustomModel::InitRenderBufferNodes(const std::string& type, const std::stri
 
     if (type == "Stacked X Horizontally")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (auto n = 0; n < Nodes.size(); n++)
         {
             auto loc = FindNode(n, locations);
             Nodes[n]->Coords[0].bufX = depth - std::get<0>(loc) - 1 + std::get<2>(loc) * depth;
             Nodes[n]->Coords[0].bufY = height - std::get<1>(loc) - 1;
+        }
+    }
+    else if (type == "Horizontal Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        for (auto n = 0; n < Nodes.size(); n++)
+        {
+            Nodes[n]->Coords[0].bufX = 0;
+            Nodes[n]->Coords[0].bufY = n;
+        }
+    }
+    else if (type == "Vertical Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        for (auto n = 0; n < Nodes.size(); n++)
+        {
+            Nodes[n]->Coords[0].bufX = n;
+            Nodes[n]->Coords[0].bufY = 0;
         }
     }
     else if (type == "Stacked Y Horizontally")

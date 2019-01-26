@@ -499,9 +499,21 @@ void CubeModel::GetBufferSize(const std::string& type, const std::string& camera
         BufferWi = 1;
         BufferHi = 1;
     }
-    else if (type == "Per Preview" || type == "Single Line" || type == "As Pixel")
+    else if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
     {
         Model::GetBufferSize(type, camera, transform, BufferWi, BufferHi);
+    }
+    else if (type == "Horizontal Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        BufferHi = GetStrandLength(0);
+        BufferWi = GetNumStrands();
+    }
+    else if (type == "Vertical Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        BufferWi = GetStrandLength(0);
+        BufferHi = GetNumStrands();
     }
     else if (type == "Stacked X Horizontally")
     {
@@ -608,7 +620,7 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
         return;
     }
 
-    if (type == "Per Preview" || type == "Single Line" || type == "As Pixel")
+    if (StartsWith(type, "Per Preview") || type == "Single Line" || type == "As Pixel")
     {
         return;
     }
@@ -637,9 +649,29 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
     {
         // dont need to do anything
     }
+    else if (type == "Horizontal Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        int sl = BufferHi;
+        for (auto n = 0; n < Nodes.size(); n++)
+        {
+            Nodes[n]->Coords[0].bufX = n / sl;
+            Nodes[n]->Coords[0].bufY = n % sl;
+        }
+    }
+    else if (type == "Vertical Per Strand")
+    {
+        // FIXME Pretty sure this isnt right
+        int sl = BufferWi;
+        for (auto n = 0; n < Nodes.size(); n++)
+        {
+            Nodes[n]->Coords[0].bufX = n % sl;
+            Nodes[n]->Coords[0].bufY = n / sl;
+        }
+    }
     else if (type == "Stacked X Vertically")
     {
-        for (size_t n = 0; n < Nodes.size(); n++)
+        for (auto n = 0; n < Nodes.size(); n++)
         {
             Nodes[n]->Coords[0].bufX = depth - std::get<2>(locations[n]) - 1;
             Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]) + height * std::get<0>(locations[n]);
