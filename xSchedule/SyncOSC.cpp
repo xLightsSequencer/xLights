@@ -15,12 +15,14 @@ SyncOSC::SyncOSC(SYNCMODE mode, REMOTEMODE remoteMode, const ScheduleOptions& op
 
     if (mode == SYNCMODE::OSCMASTER)
     {
+        int port = options.GetOSCOptions()->GetServerPort();
         _path = options.GetOSCOptions()->GetMasterPath();
         _isTime = options.GetOSCOptions()->IsTime();
         _timeType = options.GetOSCOptions()->GetTimeCode();
         _frameCode = options.GetOSCOptions()->GetFrameCode();
         _remoteAddr.Hostname(options.GetOSCOptions()->GetIPAddress());
-        _remoteAddr.Service(options.GetOSCOptions()->GetServerPort());
+        _remoteAddr.Service(port);
+        logger_base.error("OSC Sync sending to %s port %d", (const char*)options.GetOSCOptions()->GetIPAddress().c_str(), port);
 
         wxIPV4address localaddr;
         if (IPOutput::GetLocalIP() == "")

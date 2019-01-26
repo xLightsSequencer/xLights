@@ -93,6 +93,7 @@
 #include "../include/no_web_icon.xpm"
 
 #include <log4cpp/Category.hh>
+#include "RemoteModeConfigDialog.h"
 
 ScheduleManager* xScheduleFrame::__schedule = nullptr;
 
@@ -187,7 +188,7 @@ const long xScheduleFrame::ID_MNU_FPPUNICASTREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_ARTNETTIMECODESLAVE = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCREMOTE = wxNewId();
 const long xScheduleFrame::MNU_MIDITIMECODEREMOTE = wxNewId();
-const long xScheduleFrame::ID_MNU_REMOTELATENCY = wxNewId();
+const long xScheduleFrame::ID_MNU_REMOTECONFIGURE = wxNewId();
 const long xScheduleFrame::ID_MNU_REMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_EDITFPPREMOTE = wxNewId();
 const long xScheduleFrame::ID_MNU_OSCOPTION = wxNewId();
@@ -567,7 +568,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Menu6->Append(MenuItem_ModeOSCRemote);
     MenuItem_ModeMIDISlave = new wxMenuItem(Menu6, MNU_MIDITIMECODEREMOTE, _("MIDI Timecode"), wxEmptyString, wxITEM_RADIO);
     Menu6->Append(MenuItem_ModeMIDISlave);
-    MenuItem_RemoteLatency = new wxMenuItem(Menu6, ID_MNU_REMOTELATENCY, _("Remote Latency"), wxEmptyString, wxITEM_NORMAL);
+    MenuItem_RemoteLatency = new wxMenuItem(Menu6, ID_MNU_REMOTECONFIGURE, _("Configure"), wxEmptyString, wxITEM_NORMAL);
     Menu6->Append(MenuItem_RemoteLatency);
     Menu4->Append(ID_MNU_REMOTE, _("Remote"), Menu6, wxEmptyString);
     MenuItem_EditFPPRemotes = new wxMenuItem(Menu4, ID_MNU_EDITFPPREMOTE, _("Configure FPP Remotes"), _("Edit remotes to unicast sync packets to"), wxITEM_NORMAL);
@@ -648,7 +649,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(ID_MNU_ARTNETTIMECODESLAVE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ARTNetTimeCodeSlaveSelected);
     Connect(ID_MNU_OSCREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_OSCRemoteSelected);
     Connect(MNU_MIDITIMECODEREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_MIDITimeCodeSlaveSelected);
-    Connect(ID_MNU_REMOTELATENCY,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_RemoteLatencySelected);
+    Connect(ID_MNU_REMOTECONFIGURE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_RemoteLatencySelected);
     Connect(ID_MNU_EDITFPPREMOTE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_EditFPPRemotesSelected);
     Connect(ID_MNU_OSCOPTION,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem_ConfigureOSCSelected);
     Connect(MNU_CONFIGUREMIDITIMECODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xScheduleFrame::OnMenuItem5MenuItem_ConfigureMIDITimecodeSelected);
@@ -3221,9 +3222,10 @@ void xScheduleFrame::OnMenuItem_UsexLightsFolderSelected(wxCommandEvent& event)
 
 void xScheduleFrame::OnMenuItem_RemoteLatencySelected(wxCommandEvent& event)
 {
-    wxNumberEntryDialog dlg(this, "Remote offset", "Milliseconds", "", __schedule->GetOptions()->GetRemoteLatency(), -5000, 5000);
+    RemoteModeConfigDialog dlg(this, __schedule->GetOptions()->GetRemoteLatency(), __schedule->GetOptions()->GetRemoteAcceptableJitter());
     if (dlg.ShowModal() == wxID_OK)
     {
-        __schedule->GetOptions()->SetRemoteLatency(dlg.GetValue());
+        __schedule->GetOptions()->SetRemoteLatency(dlg.GetLatency());
+        __schedule->GetOptions()->SetRemoteAcceptableJitter(dlg.GetJitter());
     }
 }

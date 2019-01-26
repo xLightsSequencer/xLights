@@ -437,7 +437,6 @@ SyncUnicastFPP::SyncUnicastFPP(SYNCMODE sm, REMOTEMODE rm, const ScheduleOptions
         }
 
         _remotes = options.GetFPPRemotes();
-
         if (_remotes.size() > 0)
         {
             _fppUnicastSocket = new wxDatagramSocket(localaddr, wxSOCKET_NOWAIT);
@@ -487,11 +486,11 @@ void SyncUnicastFPP::SendUnicastSync(const std::string& ip, const std::string& s
         break;
     case SYNC_PKT_STOP:
         buffer = wxString::Format("FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str()).ToStdString();
-        logger_base.debug("Sending remote stop unicast packet to %s.", (const char*)ip.c_str());
+        logger_base.debug("Sending remote stop unicast packet to %s : %s.", (const char*)ip.c_str(), (const char*)buffer.c_str());
         break;
     case SYNC_PKT_START:
         buffer = wxString::Format("FPP,%d,%d,%d,%s\n", CTRL_PKT_SYNC, SYNC_FILE_SEQ, action, syncItem.c_str()).ToStdString();
-        logger_base.debug("Sending remote start unicast packet to %s.", (const char*)ip.c_str());
+        logger_base.debug("Sending remote start unicast packet to %s : %s.", (const char*)ip.c_str(), (const char*)buffer.c_str());
         break;
     case CTRL_PKT_BLANK:
         buffer = wxString::Format("FPP,%d\n", CTRL_PKT_BLANK).ToStdString();

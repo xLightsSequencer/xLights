@@ -15,6 +15,14 @@
 // ECG-P12S App Version 3.3
 // ECG-P2 App Version 2.9b
 
+// P12R - 1 universe per output
+//      - 0 serial ports
+//      - can receive 12 universes  
+// P12S/P12D - 1 universe per output on 3.3
+//           - 2 universes per output on 3.4
+//           - 2 serial ports
+//           - can receive 26 universes
+
 class J1SysControllerRules : public ControllerRules
 {
     int _outputs = 0;
@@ -237,12 +245,6 @@ bool J1Sys::SetInputUniverses(OutputManager* outputManager, std::list<int>& sele
 
     for (auto o:  outputs)
     {
-        if (o->GetIP() == "MULTICAST")
-        {
-            DisplayError(wxString::Format("Attempt to upload multicast universe to j1Sys controller.").ToStdString());
-            return false;
-        }
-
         if (o->GetChannels() > 510)
         {
             DisplayError(wxString::Format("Attempt to upload universe %d to j1Sys controller of size %ld but maximum is 510.", o->GetUniverse(), o->GetChannels()).ToStdString());

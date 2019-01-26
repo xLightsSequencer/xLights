@@ -1230,19 +1230,20 @@ std::string PlayList::GetActiveSyncItemMedia()
     return "";
 }
 
-PlayListStep* PlayList::GetStepAtTime(long ms)
+PlayListStep* PlayList::GetStepAtTime(long ms, long& newMS)
 {
     long at = 0;
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto it : _steps)
         {
-            if (at + (*it)->GetLengthMS() > ms)
+            if (at + it->GetLengthMS() > ms)
             {
-                return *it;
+                newMS = ms - at;
+                return it;
             }
-            at += (*it)->GetLengthMS();
+            at += it->GetLengthMS();
         }
     }
 

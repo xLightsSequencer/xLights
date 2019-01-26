@@ -489,8 +489,8 @@
 						<handler function="OnMenuItem_MIDITimeCodeSlaveSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MNU_REMOTELATENCY" variable="MenuItem_RemoteLatency" member="yes">
-						<label>Remote Latency</label>
+					<object class="wxMenuItem" name="ID_MNU_REMOTECONFIGURE" variable="MenuItem_RemoteLatency" member="yes">
+						<label>Configure</label>
 						<handler function="OnMenuItem_RemoteLatencySelected" entry="EVT_MENU" />
 					</object>
 				</object>

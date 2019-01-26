@@ -34,6 +34,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _MIDITimecodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0")));
     _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
     _remoteLatency = wxAtoi(node->GetAttribute("RemoteLatency", "0"));
+    _remoteAcceptableJitter = wxAtoi(node->GetAttribute("RemoteAcceptableJitter", "20"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
@@ -179,6 +180,7 @@ ScheduleOptions::ScheduleOptions()
     _port = 8080;
 #endif
     _remoteLatency = 0;
+    _remoteAcceptableJitter = 20;
     _webAPIOnly = false;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
@@ -225,6 +227,7 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
     res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
+    res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");

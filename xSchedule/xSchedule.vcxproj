@@ -337,6 +337,7 @@
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
     <ClCompile Include="RemapDialog.cpp" />
+    <ClCompile Include="RemoteModeConfigDialog.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
@@ -540,6 +541,7 @@
     <ClInclude Include="ProjectorCodes.h" />
     <ClInclude Include="ReentrancyCounter.h" />
     <ClInclude Include="RemapDialog.h" />
+    <ClInclude Include="RemoteModeConfigDialog.h" />
     <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />

@@ -485,6 +485,7 @@
     <ClCompile Include="SyncArtNet.cpp" />
     <ClCompile Include="SyncFPP.cpp" />
     <ClCompile Include="SyncMIDI.cpp" />
+    <ClCompile Include="RemoteModeConfigDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\xLights\AudioManager.h" />
@@ -947,6 +948,7 @@
     <ClInclude Include="SyncFPP.h" />
     <ClInclude Include="SyncMIDI.h" />
     <ClInclude Include="SyncArtNet.h" />
+    <ClInclude Include="RemoteModeConfigDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

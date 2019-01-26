@@ -240,7 +240,9 @@ logger_base.debug("DoSync Enter");
     else if (filename == "" && pl != nullptr)
     {
         // dont touch the playlist but need to work out which step should be playing
-        PlayListStep* shouldberunning = pl->GetStepAtTime(ms);
+        long stepMS = 0;
+        PlayListStep* shouldberunning = pl->GetStepAtTime(ms, stepMS);
+        ms = stepMS;
         if (shouldberunning != nullptr)
         {
             if (shouldberunning != pl->GetRunningStep())
@@ -252,7 +254,7 @@ logger_base.debug("DoSync Enter");
             }
             if (pl->GetRunningStep() != nullptr)
             {
-                pl->GetRunningStep()->SetSyncPosition(ms, true);
+                pl->GetRunningStep()->SetSyncPosition(ms, GetOptions()->GetRemoteAcceptableJitter(), true);
             }
         }
         else
@@ -277,7 +279,9 @@ logger_base.debug("DoSync Enter");
         if (_playLists.size() > 0)
         {
             pl = new PlayList(*_playLists.front());
-            PlayListStep* shouldberunning = pl->GetStepAtTime(ms);
+            long stepMS = 0;
+            PlayListStep* shouldberunning = pl->GetStepAtTime(ms, stepMS);
+            ms = stepMS;
             if (shouldberunning == nullptr)
             {
                 logger_base.debug("Remote sync with no filename ... playlist was not sufficiently long for received sync position %ld.", ms);
@@ -291,7 +295,7 @@ logger_base.debug("DoSync Enter");
                 pl->JumpToStep(shouldberunning->GetNameNoTime());
                 if (pl->GetRunningStep() != nullptr)
                 {
-                    pl->GetRunningStep()->SetSyncPosition(ms, true);
+                    pl->GetRunningStep()->SetSyncPosition(ms, GetOptions()->GetRemoteAcceptableJitter(), true);
                 }
                 _immediatePlay = pl;
                 wxCommandEvent event2(EVT_SCHEDULECHANGED);
@@ -355,7 +359,7 @@ logger_base.debug("DoSync Enter");
         }
         else
         {
-            pls->SetSyncPosition((size_t)ms, true);
+            pls->SetSyncPosition((size_t)ms, GetOptions()->GetRemoteAcceptableJitter(), true);
         }
     }
 

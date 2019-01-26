@@ -163,6 +163,7 @@ class ScheduleOptions
     bool _webAPIOnly;
     int _port;
     int _remoteLatency = 0;
+    int _remoteAcceptableJitter = 20;
     std::string _wwwRoot;
     std::string _password;
     std::string _crashBehaviour;
@@ -239,11 +240,13 @@ class ScheduleOptions
         void AddButton(const std::string& label, const std::string& command, const std::string& parms, char hotkey, const std::string& color, CommandManager* commandManager);
         bool GetAPIOnly() const { return _webAPIOnly; }
         int GetRemoteLatency() const { return _remoteLatency; }
+        int GetRemoteAcceptableJitter() const { return _remoteAcceptableJitter; }
         std::string GetPassword() const { return _password; }
         std::string GetCity() const { return _city; }
         int GetPasswordTimeout() const { return _passwordTimeout; }
         void SetAPIOnly(bool apiOnly) { if (_webAPIOnly != apiOnly) { _webAPIOnly = apiOnly; _changeCount++; } }
         void SetRemoteLatency(int remoteLatency) { if (remoteLatency != _remoteLatency) { _remoteLatency = remoteLatency; _changeCount++; } }
+        void SetRemoteAcceptableJitter(int remoteAcceptableJitter) { if (remoteAcceptableJitter != _remoteAcceptableJitter) { _remoteAcceptableJitter = remoteAcceptableJitter; _changeCount++; } }
         void SetPasswordTimeout(int passwordTimeout) { if (_passwordTimeout != passwordTimeout) { _passwordTimeout = passwordTimeout; _changeCount++; } }
         void SetPassword(const std::string& password) { if (_password != password) { _password = password; _changeCount++; } }
         void SetCity(const std::string& city) { if (_city != city) { _city = city; _changeCount++; } }

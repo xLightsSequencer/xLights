@@ -556,6 +556,8 @@
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
 		<Unit filename="RemapDialog.cpp" />
 		<Unit filename="RemapDialog.h" />
+		<Unit filename="RemoteModeConfigDialog.cpp" />
+		<Unit filename="RemoteModeConfigDialog.h" />
 		<Unit filename="RunningSchedule.cpp" />
 		<Unit filename="RunningSchedule.h" />
 		<Unit filename="Schedule.cpp" />
@@ -715,6 +717,7 @@
 		<Unit filename="wxsmith/PlayListStepPanel.wxs" />
 		<Unit filename="wxsmith/ProjectorDetailsDialog.wxs" />
 		<Unit filename="wxsmith/RemapDialog.wxs" />
+		<Unit filename="wxsmith/RemoteModeConfigDialog.wxs" />
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/SetDialog.wxs" />
 		<Unit filename="wxsmith/SustainDialog.wxs" />
@@ -805,6 +808,7 @@
 					<wxDialog wxs="wxsmith/ExtraIPsDialog.wxs" src="ExtraIPsDialog.cpp" hdr="ExtraIPsDialog.h" fwddecl="0" i18n="1" name="ExtraIPsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ExtraIPDialog.wxs" src="ExtraIPDialog.cpp" hdr="ExtraIPDialog.h" fwddecl="0" i18n="1" name="ExtraIPDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConfigureTest.wxs" src="ConfigureTest.cpp" hdr="ConfigureTest.h" fwddecl="0" i18n="1" name="ConfigureTest" language="CPP" />
+					<wxDialog wxs="wxsmith/RemoteModeConfigDialog.wxs" src="RemoteModeConfigDialog.cpp" hdr="RemoteModeConfigDialog.h" fwddecl="0" i18n="1" name="RemoteModeConfigDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

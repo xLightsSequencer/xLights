@@ -286,7 +286,7 @@ public:
         static const long ID_MNU_ARTNETTIMECODESLAVE;
         static const long ID_MNU_OSCREMOTE;
         static const long MNU_MIDITIMECODEREMOTE;
-        static const long ID_MNU_REMOTELATENCY;
+        static const long ID_MNU_REMOTECONFIGURE;
         static const long ID_MNU_REMOTE;
         static const long ID_MNU_EDITFPPREMOTE;
         static const long ID_MNU_OSCOPTION;

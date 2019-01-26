@@ -492,17 +492,25 @@ void PlayListItemFSEQ::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
                 
                 int frame =  ms / framems;
                 FSEQFile::FrameData *data = _fseqFile->getFrame(frame);
-                std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
-                data->readFrame(&buf[0]);
-                size_t channelsPerFrame = (size_t)_fseqFile->getMaxChannel() + 1;
-                if (_channels > 0) channelsPerFrame = std::min(_channels, (size_t)_fseqFile->getMaxChannel() + 1);
-                if (_channels > 0) {
-                    long offset = GetStartChannelAsNumber() - 1;
-                    Blend(buffer, size, &buf[offset], channelsPerFrame, _applyMethod, offset);
-                } else {
-                    Blend(buffer, size, &buf[0], channelsPerFrame, _applyMethod, 0);
+                if (data != nullptr)
+                {
+                    std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
+                    data->readFrame(&buf[0]);
+                    size_t channelsPerFrame = (size_t)_fseqFile->getMaxChannel() + 1;
+                    if (_channels > 0) channelsPerFrame = std::min(_channels, (size_t)_fseqFile->getMaxChannel() + 1);
+                    if (_channels > 0) {
+                        long offset = GetStartChannelAsNumber() - 1;
+                        Blend(buffer, size, &buf[offset], channelsPerFrame, _applyMethod, offset);
+                    }
+                    else {
+                        Blend(buffer, size, &buf[0], channelsPerFrame, _applyMethod, 0);
+                    }
+                    delete data;
                 }
-                delete data;
+                else
+                {
+                    wxASSERT(false);
+                }
             }
         }
         _currentFrame++;

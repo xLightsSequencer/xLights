@@ -90,7 +90,7 @@ public:
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { --_loops; if (_loops == 1) { _loops = -1; _looping = false; } }
     void SetStepLooping(bool loop) { _loopStep = loop; }
-    PlayListStep* GetStepAtTime(long ms);
+    PlayListStep* GetStepAtTime(long ms, long& stepMS);
     size_t GetPosition();
     std::string GetName();
     std::string GetRawName() const {  return _name; };
