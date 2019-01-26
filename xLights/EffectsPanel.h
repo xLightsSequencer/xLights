@@ -54,6 +54,8 @@ private:
     void OnLockButtonClick(wxCommandEvent& event);
     //*)
 
+    void OnRightDownChoice(wxMouseEvent& event);
+    void OnChoicePopup(wxCommandEvent& event);
     int GetRandomSliderValue(wxSlider* slider);
     wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
     wxWindow* GetWindowPanel(wxWindow* w);

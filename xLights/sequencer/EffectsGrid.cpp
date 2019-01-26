@@ -1194,7 +1194,7 @@ bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
     return true;
 }
 
-int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
+int EffectsGrid::GetSelectedEffectCount(const std::string& effectName) const
 {
     int count = 0;
 
@@ -1207,7 +1207,7 @@ int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
     return count;
 }
 
-void EffectsGrid::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
 {
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
@@ -1243,6 +1243,64 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string effectName, con
         else
         {
             mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, mSequenceElements->get_undo_mgr(), effectName, id, value, vc, vcid, xlights->GetEffectManager(), rangeAccumulator);
+        }
+    }
+
+    if (lastModel != nullptr && rangeAccumulator.size() > 0)
+    {
+        // send render events for all the ranges that changed
+        // 1000 means if there is less than a second gap between ranges then we will just merge them
+        //rangeAccumulator.Consolidate(1000);
+        //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+        //{
+        //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+        //}
+
+        // just send one render event for the whole model range
+        // if there are big gaps this massively over-renders compared to the commented out code above
+        rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+        sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+        rangeAccumulator.clear();
+    }
+}
+
+void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName)
+{
+    Element* lastModel = nullptr;
+    RangeAccumulator rangeAccumulator;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    for (int row = 0; row<mSequenceElements->GetRowInformationSize(); row++)
+    {
+        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+
+        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0)
+        {
+            // send render events for all the ranges that changed
+            // 1000 means if there is less than a second gap between ranges then we will just merge them
+            //rangeAccumulator.Consolidate(1000);
+            //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+            //{
+            //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+            //}
+
+            // just send one render event for the whole model range
+            // if there are big gaps this massively over-renders compared to the commented out code above
+            rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+            sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+            rangeAccumulator.clear();
+        }
+        lastModel = ri->element;
+
+        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            // skip timing rows
+        }
+        else
+        {
+            mSequenceElements->GetEffectLayer(row)->ConvertSelectedEffectsTo(this, mSequenceElements->get_undo_mgr(), effectName, xlights->GetEffectManager(), rangeAccumulator);
         }
     }
 

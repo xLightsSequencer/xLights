@@ -74,6 +74,8 @@ public:
     void SetEndTimeMS(int endTimeMS);
     bool OverlapsWith(int startTimeMS, int EndTimeMS);
 
+    void ConvertTo(int effectIndex);
+
     int GetSelected() const { return mSelected; }
     void SetSelected(int selected) { mSelected = selected; }
 

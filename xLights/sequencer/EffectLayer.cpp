@@ -1106,7 +1106,7 @@ int EffectLayer::GetSelectedEffectCount(const std::string effectName)
     return count;
 }
 
-void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
+void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -1133,6 +1133,25 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
         {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             mEffects[i]->ApplySetting(id, value, vc, vcid);
+
+            rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+        }
+    }
+}
+
+void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    for (int i = 0; i<mEffects.size(); i++)
+    {
+        if ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED)
+           )
+        {
+            undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
+            mEffects[i]->ConvertTo(effectManager.GetEffectIndex(effectName));
 
             rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
         }

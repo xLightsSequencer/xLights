@@ -328,6 +328,24 @@ bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
     return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
 }
 
+void Effect::ConvertTo(int effectIndex)
+{
+    if (effectIndex != mEffectIndex)
+    {
+        SetEffectIndex(effectIndex);
+        SettingsMap newSettings;
+        // remove any E_ settings as the effect type has changed
+        for (auto it : mSettings)
+        {
+            if (!StartsWith(it.first, "E_"))
+            {
+                newSettings[it.first] = it.second;
+            }
+        }
+        mSettings = newSettings;
+    }
+}
+
 bool Effect::IsLocked() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
