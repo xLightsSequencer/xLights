@@ -367,7 +367,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     static const int NUM_BUFFERS = 6;
     static const int NUM_VAOS = 3;
     public:
-    GL3Mesh() {
+    GL3Mesh() : matrix(1.0f) {
         for (int x = 0; x < NUM_VAOS; x++) {
             vaos[x] = 0;
         }
@@ -380,6 +380,9 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             glDeleteBuffers(NUM_BUFFERS, buffers);
             glDeleteVertexArrays(NUM_VAOS, vaos);
         }
+    }
+    virtual void setMatrix(glm::mat4& mat) {
+        matrix = mat;
     }
     
     virtual void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t clr[3][4], GLint imageId) {
@@ -426,15 +429,8 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
         }
     }
     
-    void Draw(bool wf, ShaderProgram &singleColorProgram, ShaderProgram &normalProgram, ShaderProgram &textureProgram, float brightness) {
-        /*
-        singleColorProgram.UseProgram();
-        //LOG_GL_ERRORV(glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr(m)));
-        GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
-        LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 0.0f, 1.0f, 0.5f));
-        singleColorProgram.SetRenderType(0);
-         */
-
+    void Draw(bool wf, float brightness, glm::mat4 &curMatrix,
+              ShaderProgram &singleColorProgram, ShaderProgram &normalProgram, ShaderProgram &textureProgram) {
         if (vaos[0] == 0) {
             LOG_GL_ERRORV(glGenVertexArrays(NUM_VAOS, vaos));
             LOG_GL_ERRORV(glGenBuffers(NUM_BUFFERS, buffers));
@@ -502,10 +498,12 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
                 }
             }
         }
+        glm::mat4 mat = curMatrix * matrix;
         
         if (wf) {
             singleColorProgram.UseProgram();
             singleColorProgram.SetRenderType(0);
+            singleColorProgram.SetMatrix(mat);
             GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
             LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 1.0f, 0.0f, 1.0f));
             LOG_GL_ERRORV(glBindVertexArray(vaos[2]));
@@ -514,11 +512,16 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             glEnable(GL_LINE_SMOOTH);
             LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, wireframe.size()));
             glDisable(GL_LINE_SMOOTH);
+            
+            singleColorProgram.UseProgram();
+            singleColorProgram.SetMatrix(curMatrix);
+            singleColorProgram.ReBindBuffer(0);
         } else {
             for (auto & pt : programTypes) {
                 if (pt.image == -1) {
                     normalProgram.UseProgram();
                     normalProgram.SetRenderType(0);
+                    normalProgram.SetMatrix(mat);
                     LOG_GL_ERRORV(glBindVertexArray(vaos[0]));
                     LOG_GL_ERRORV(glEnableVertexAttribArray(0));
                     LOG_GL_ERRORV(glEnableVertexAttribArray(1));
@@ -527,7 +530,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
                 } else {
                     textureProgram.UseProgram();
                     textureProgram.SetRenderType(0);
-                    
+                    textureProgram.SetMatrix(mat);
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
                     LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
@@ -554,6 +557,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             if (!lines.empty()) {
                 singleColorProgram.UseProgram();
                 singleColorProgram.SetRenderType(0);
+                singleColorProgram.SetMatrix(mat);
                 GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
                 LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 0.0f, 0.0f, 1.0f));
                 LOG_GL_ERRORV(glBindVertexArray(vaos[1]));
@@ -561,13 +565,18 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
                 glEnable(GL_LINE_SMOOTH);
                 LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, lines.size() / 2));
                 glDisable(GL_LINE_SMOOTH);
+                singleColorProgram.UseProgram();
+                singleColorProgram.SetMatrix(curMatrix);
+                singleColorProgram.ReBindBuffer(0);
             }
+            textureProgram.UseProgram();
+            textureProgram.SetMatrix(curMatrix);
+            textureProgram.ReBindBuffer(0);
+            normalProgram.UseProgram();
+            normalProgram.SetMatrix(curMatrix);
+            normalProgram.ReBindBuffer(0);
         }
-        
         LOG_GL_ERRORV(glBindVertexArray(0));
-
-        singleColorProgram.UseProgram();
-        singleColorProgram.ReBindBuffer(0);
     }
     
     private:
@@ -582,7 +591,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     std::vector<GLfloat> lines;
 
     std::vector<GLint> images;
-    
+    glm::mat4 matrix;
     struct PType {
         int startIdx;
         int count;
@@ -937,10 +946,7 @@ public:
             int enableCapability = brt.enableCapability;
             if (brt.mesh != nullptr) {
                 GL3Mesh *mesh = (GL3Mesh*)brt.mesh;
-                singleColor3Program.UseProgram();
-                singleColor3Program.SetMatrix(*matrix);
-                singleColor3Program.SetRenderType(0);
-                mesh->Draw(brt.extra == 1, singleColor3Program, normal3Program, texture3Program, brt.textureBrightness);
+                mesh->Draw(brt.extra == 1, brt.textureBrightness, *matrix, singleColor3Program, normal3Program, texture3Program);
                 program->UseProgram();
                 program->ReBindBuffer(0);
                 continue;

@@ -160,6 +160,7 @@ public:
     }
     glm::vec3 GetWorldPosition() const { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
     glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
+    glm::vec3 GetScaleMatrix() const { return glm::vec3(scalex, scaley, scalez); }
 
 protected:
     ModelScreenLocation(int points);

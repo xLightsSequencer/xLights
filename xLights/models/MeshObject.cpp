@@ -13,6 +13,10 @@
 
 #include <log4cpp/Category.hh>
 
+
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
     width(100), height(100), depth(100), brightness(100),
@@ -439,6 +443,15 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
     GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
     
     if (obj_loaded) {
+        glm::mat4 m = glm::mat4(1.0f);
+        glm::mat4 scalingMatrix = glm::scale(m, GetObjectScreenLocation().GetScaleMatrix());
+        glm::vec3 rot = GetObjectScreenLocation().GetRotation();
+        glm::mat4 RotateX = glm::rotate(m, glm::radians((float)-rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 RotateY = glm::rotate(m, glm::radians((float)-rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 RotateZ = glm::rotate(m, glm::radians((float)rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 translationMatrix = glm::translate(m, GetObjectScreenLocation().GetWorldPosition());
+        m = translationMatrix * RotateX * RotateY * RotateZ * scalingMatrix;
+        
         if (!mesh3d) {
             mesh3d = DrawGLUtils::createMesh();
             // Loop over shapes
@@ -533,8 +546,10 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         v[2][k] = attrib.vertices[3 * f2 + k];
                     }
 
-                    for (int k = 0; k < 3; k++) {
-                        GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
+                    if (!mesh3d) {
+                        for (int k = 0; k < 3; k++) {
+                            GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
+                        }
                     }
 
                     float n[3][3];
@@ -676,10 +691,10 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         v[0][k] = attrib.vertices[3 * f0 + k];
                         v[1][k] = attrib.vertices[3 * f1 + k];
                     }
-                    for (int k = 0; k < 2; k++) {
-                        GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
-                    }
                     if (!mesh3d) {
+                        for (int k = 0; k < 2; k++) {
+                            GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
+                        }
                         va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxBLACK);
                         va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxBLACK);
                     } else {
@@ -692,9 +707,11 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             }
             
             if (mesh3d) {
+                mesh3d->setMatrix(m);
                 va3.AddMesh(mesh3d, mesh_only, brightness);
             }
         } else {
+            mesh3d->setMatrix(m);
             va3.AddMesh(mesh3d, mesh_only, brightness);
         }
     }

@@ -30,6 +30,7 @@ namespace DrawGLUtils
         
         virtual void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t colors[3][4], GLint imageId) = 0;
         virtual void addLine(float v[2][3]) = 0;
+        virtual void setMatrix(glm::mat4& mat) = 0;
     };
 
     class xlVertexAccumulatorBase {
