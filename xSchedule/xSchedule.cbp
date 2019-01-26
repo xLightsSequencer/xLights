@@ -166,67 +166,30 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++1z" />
-					<Add option="-m64" />
-					<Add option="-pipe" />
-					<Add option="-mthreads" />
-					<Add option="-static-libgcc" />
 					<Add option="-std=gnu++14" />
-					<Add option="-fno-keep-inline-dllexport" />
-					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
-					<Add option="-D__GNUWIN32__" />
-					<Add option="-D__WXMSW__" />
-					<Add option="-DWXUSINGDLL" />
+					<Add option="-Wall" />
+					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="-Winvalid-pch" />
+					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
 					<Add option="-DNDEBUG" />
-					<Add option="-D_USE_MATH_DEFINES" />
+					<Add option="-D__cdecl=&apos;&apos;" />
 					<Add directory="include" />
 					<Add directory="../xSchedule" />
-					<Add directory="../xLights/ffmpeg-dev/include" />
 					<Add directory="../include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
 				</Compiler>
-				<ResourceCompiler>
-					<Add directory="$(#wx)/include" />
-					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
-				</ResourceCompiler>
 				<Linker>
-					<Add option="-s" />
-					<Add option="-m64" />
-					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
-					<Add option="-lpthread" />
-					<Add option="-lz" />
-					<Add library="../lib/windows64/avcodec.lib" />
-					<Add library="../lib/windows64/avformat.lib" />
-					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/iphlpapi.lib" />
-					<Add library="../lib/windows64/libimagehlp.a" />
-					<Add library="../lib/windows64/liblog4cpp.a" />
-					<Add library="../lib/windows64/libportmidi.a" />
-					<Add library="../lib/windows64/libSDL2.dll.a" />
-					<Add library="libwinmm.a" />
-					<Add library="../lib/windows64/libwxmsw31u.a" />
-					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
-					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/Ws2_32.lib" />
-					<Add library="../lib/windows64/libzstd_static.lib" />
-					<Add library="../lib/windows64/avcodec.lib" />
-					<Add library="../lib/windows64/avformat.lib" />
-					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/iphlpapi.lib" />
-					<Add library="../lib/windows64/libimagehlp.a" />
-					<Add library="../lib/windows64/liblog4cpp.a" />
-					<Add library="../lib/windows64/libportmidi.a" />
-					<Add library="../lib/windows64/libSDL2.dll.a" />
-					<Add library="libwinmm.a" />
-					<Add library="../lib/windows64/libwxmsw31u.a" />
-					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
-					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/Ws2_32.lib" />
-					<Add library="../lib/windows64/libzstd_static.lib" />
-					<Add directory="../lib/windows64" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --libs log4cpp`" />
+					<Add option="`sdl2-config --libs`" />
+					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="-lexpat" />
+					<Add option="-lporttime -lportmidi" />
+					<Add option="-rdynamic" />
 				</Linker>
 			</Target>
 			<Target title="64bit_MinGW_Release">
