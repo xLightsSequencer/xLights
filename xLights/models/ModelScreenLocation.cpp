@@ -3366,7 +3366,7 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode *node)
                 float cp0y = wxAtof(cpoint_array[i * 5 + 2]);
                 float cp1x = wxAtof(cpoint_array[i * 5 + 3]);
                 float cp1y = wxAtof(cpoint_array[i * 5 + 4]);
-                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
+                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
             }
             node->DeleteAttribute("PointData");
             node->DeleteAttribute("cPointData");
@@ -3421,7 +3421,7 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode *node)
                 cp0y = (previewH * cp0y - worldPos_y) / 100.0f;
                 cp1x = (previewW * cp1x - worldPos_x) / 100.0f;
                 cp1y = (previewH * cp1y - worldPos_y) / 100.0f;
-                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
+                new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
             }
             node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
             node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
