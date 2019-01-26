@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (gil)     Fix PolyLine crash when older version 1 positioning is upgraded.  Fixes #1436.
    -- enh (keith)   Add 3D Custom Model
    -- enh (keith)   Make locked models more obvious in 3D
    -- enh (keith)   Allow cube and sphere to be exported as 3D custom models
@@ -18,7 +19,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Add right click reset camera position to house preview and layout
    -- enh (keith)   Update J1SYS P2 upload to support more model configurations
    -- enh (keith)   Add a latency setting when running xSchedule in remote to adjust for network delays
-   -- enh (keith)   Add a jitter setting when running xSchedule in remote to reduce adjustments not 
+   -- enh (keith)   Add a jitter setting when running xSchedule in remote to reduce adjustments not
                     required due to small variations in packet delivery time
    -- enh (keith)   Add bulk edit to effect type
    -- enh (keith)   Add support for \n and \t in playlist item text
@@ -86,7 +87,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2018.58 December 28, 2018
    -- bug (keith)  Fix FSEQ files not being saved with correct format
 2018.57 December 27, 2018
-   -- enh (keith)  Add full support for model connection properties for Falcon controllers. Create virtual strings 
+   -- enh (keith)  Add full support for model connection properties for Falcon controllers. Create virtual strings
                    where necessary. Virtual strings will now be deleted on ports we upload to.
    -- enh (keith)  Add support for multi-string custom models
    -- bug (keith)  Fix change in model properties does not always update other models start channels in the model list
@@ -107,7 +108,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  When xSchedule is a FPP remote all sequences play as if they were 50ms timing
    -- bug (keith)  When xSchedule is FPP master it sends more sync packets than it should
    -- bug (keith)  Fix xSchedule hang - hard to be certain i got all causes but i likely did.
-   -- bug (keith)  Fix xSchedule corrupts sequence file name leading to skipping of step - possible fix. 
+   -- bug (keith)  Fix xSchedule corrupts sequence file name leading to skipping of step - possible fix.
                    This may also address looping problems but it is hard to be sure as I dont have those problems.
 2018.52 December 5, 2018
    *** CAUTION: This release on windows/linux include some changes which have a small risk of leading to xlights/xschedule hanging
@@ -156,9 +157,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix vendor model download failing
    -- bug (keith)  Fix playlist loops loops once more than it should
    -- bug (keith)  Fix indiv start channels default incorrectly if using #ip:u:sc
-   -- bug (keith)  Fix make view master crashes 
+   -- bug (keith)  Fix make view master crashes
    -- bug (keith)  Fix output processor colour order not saving
-   -- bug (keith)  Fix test model channel for dis-contiguous channel model is incorrect: 
+   -- bug (keith)  Fix test model channel for dis-contiguous channel model is incorrect:
    -- bug (keith)  Fix crash in submodel dialog
    -- enh (keith)  Add ability to define a step in a playlist that plays as part of every step in the playlist
 2018.47 November 22, 2018
@@ -176,9 +177,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (dkulp)  Add some fallbacks for FPP upload if UI security is on
    -- bug (keith)  Fix some old value curve warnings ... hopefully for good
    -- enh (keith)  Warn in check sequence if videos are being rendered without render cache
-   -- enh (keith)  Update the falcon upload to recognise the new connection properties ... these are 
+   -- enh (keith)  Update the falcon upload to recognise the new connection properties ... these are
                    taken from the first model on each output
-   -- enh (keith)  Add keybindings support for the effect and colour update buttons. F5 defaults for 
+   -- enh (keith)  Add keybindings support for the effect and colour update buttons. F5 defaults for
                    effect update but you need to delete keybindings to have the new defaults added
 2018.45 November 15, 2018
    -- bug (dkulp)  FPP Connect - failure to unzip fseq if name contains certain special characters
@@ -192,7 +193,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix xschedule pauses when web connection interupted
    -- enh (keith)  Make fixed timing tracks more obvious and make them convertable to unfixed
    -- enh (keith)  Adjust xSchedule FPP sync packets to match v2.x new send pattern
-   -- bug (keith)  Fix deleting a model containing a submodel which is in a group generates non-sensical 
+   -- bug (keith)  Fix deleting a model containing a submodel which is in a group generates non-sensical
                    errors and removes all the submodels from the group.
    -- bug (keith)  Fix polyline arc last segment doesnt arc
 2018.44 November 11, 2018
@@ -207,7 +208,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (dkulp)  Use HTTP upload method for transferring fseq/mp3 files to FPP instead of FTP
    -- enh (keith)  Allow manually adding IP addresses for xSchedule to monitor
 2018.42 November 6, 2018
-   -- enh (keith)  Add text effect grabbing text from a file ... so you can have multiple effects changed from one 
+   -- enh (keith)  Add text effect grabbing text from a file ... so you can have multiple effects changed from one
                    location even in multiple sequences
    -- enh (keith)  Add MIDI timecode offsets so you can use +1hr offsets
    -- enh (keith)  Add delay to the Screen Map playlist item
@@ -217,7 +218,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix OSX crash calling FPP event
    -- bug (keith)  Warn user if removing an element that has effects at the strand, node and submodel level
    -- bug (keith)  Fix not reclaiming effect memory when they are deleted - this may be a risky change
-   -- bug (keith)  Fix a bunch of crashes from crash reports         
+   -- bug (keith)  Fix a bunch of crashes from crash reports
 2018.41 November 2, 2018
    -- enh (scott)  Added Cut, Copy, Paste, Zoom In/Out, Background Image, and Model Select to the Node Select Dialog
    -- enh (keith)  Add music trigger fade value curve
@@ -227,7 +228,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix next time shows never if last day is today and show starts later.
    -- bug (keith)  Fix some colour anomalies in LMS import due to invalid effects.
    -- bug (keith)  Fix crash checking falcon firmware version
-   -- bug (keith)  Fix bulk controller upload buttons not visible if you have lots of controllers   
+   -- bug (keith)  Fix bulk controller upload buttons not visible if you have lots of controllers
 2018.40 October 29, 2018
    -- enh (keith)  Allow user to change row header text colour and fix time/frame rate text unreadable on OSX
    -- enh (keith)  Increase maximum DMX channels
