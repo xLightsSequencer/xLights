@@ -92,7 +92,6 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
-        uncacheDisplayObjects();
         return 3 | 0x0008;
     } else if ("MeshOnly" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("MeshOnly");
@@ -100,7 +99,6 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         if (mesh_only) {
             ModelXml->AddAttribute("MeshOnly", "1");
         }
-        IncrementChangeCount();
         return 3 | 0x0008;
     } else if ("Diffuse" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Diffuse");
@@ -109,7 +107,6 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             ModelXml->AddAttribute("Diffuse", "1");
         }
         uncacheDisplayObjects();
-        IncrementChangeCount();
         return 3 | 0x0008;
     }
 
@@ -290,7 +287,7 @@ std::list<std::string> MeshObject::CheckModelSettings()
         std::vector<tinyobj::shape_t> shap;
         std::vector<tinyobj::material_t> mater;
         std::string err;
-        bool ret = tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+        tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
 
         for (auto m : mater) {
             if (m.diffuse_texname.length() > 0) {
@@ -330,7 +327,7 @@ std::list<std::string> MeshObject::GetFileReferences()
         std::vector<tinyobj::shape_t> shap;
         std::vector<tinyobj::material_t> mater;
         std::string err;
-        bool ret = tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+        tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
 
         for (auto m : mater) {
             if (m.diffuse_texname.length() > 0) {
@@ -357,87 +354,90 @@ void MeshObject::uncacheDisplayObjects() {
     }
 }
 
+void MeshObject::loadObject() {
+    if (wxFileExists(_objFile)) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        logger_base.debug("Loading mesh model %s file %s.",
+                          (const char *)GetName().c_str(),
+                          (const char *)_objFile.c_str());
+        wxFileName fn(_objFile);
+        std::string base_path = fn.GetPath();
+        std::string err;
+        tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+        
+        // Append `default` material
+        materials.push_back(tinyobj::material_t());
+        
+        bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
+        bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
+        
+        for (auto shape : shapes) {
+            // Loop over faces(polygon)
+            
+            for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
+                tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
+                tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
+                tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
+                
+                float v[3][3];
+                for (int k = 0; k < 3; k++) {
+                    int f0 = idx0.vertex_index;
+                    int f1 = idx1.vertex_index;
+                    int f2 = idx2.vertex_index;
+                    assert(f0 >= 0);
+                    assert(f1 >= 0);
+                    assert(f2 >= 0);
+                    
+                    v[0][k] = attrib.vertices[3 * f0 + k];
+                    v[1][k] = attrib.vertices[3 * f1 + k];
+                    v[2][k] = attrib.vertices[3 * f2 + k];
+                    bmin[k] = std::min(v[0][k], bmin[k]);
+                    bmin[k] = std::min(v[1][k], bmin[k]);
+                    bmin[k] = std::min(v[2][k], bmin[k]);
+                    bmax[k] = std::max(v[0][k], bmax[k]);
+                    bmax[k] = std::max(v[1][k], bmax[k]);
+                    bmax[k] = std::max(v[2][k], bmax[k]);
+                }
+            }
+        }
+        width = std::max(std::abs(bmin[0]), bmax[0]) * 2.0f;
+        height = std::max(std::abs(bmin[1]), bmax[1]) * 2.0f;
+        depth = std::max(std::abs(bmin[2]), bmax[2]) * 2.0f;
+        screenLocation.SetRenderSize(width, height, depth);
+        obj_loaded = true;
+        
+        // Load textures
+        for (auto m : materials) {
+            if (m.diffuse_texname.length() > 0) {
+                // Only load the texture if it is not already loaded
+                if (textures.find(m.diffuse_texname) == textures.end()) {
+                    std::string texture_filename = m.diffuse_texname;
+                    if (!wxFileExists(texture_filename)) {
+                        // Append base dir.
+                        wxFileName fn2(texture_filename);
+                        fn2.SetPath(fn.GetPath());
+                        texture_filename = fn2.GetFullPath();
+                        if (!wxFileExists(texture_filename)) {
+                            logger_base.debug("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
+                            continue;
+                        }
+                    }
+                    textures[m.diffuse_texname] = new Image(texture_filename, false, true);
+                }
+            }
+        }
+    }
+}
+
 void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
 {
     if( !active ) { return; }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
     if (!obj_loaded) {
-        if (wxFileExists(_objFile)) {
-            logger_base.debug("Loading mesh model %s file %s for preview %s.",
-                (const char *)GetName().c_str(),
-                (const char *)_objFile.c_str(),
-                (const char *)preview->GetName().c_str());
-            wxFileName fn(_objFile);
-            std::string base_path = fn.GetPath();
-            std::string err;
-            tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
-
-            // Append `default` material
-            materials.push_back(tinyobj::material_t());
-
-            bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
-            bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
-
-            for (auto shape : shapes) {
-                // Loop over faces(polygon)
-
-                for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
-                    tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
-                    tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
-                    tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
-
-                    float v[3][3];
-                    for (int k = 0; k < 3; k++) {
-                        int f0 = idx0.vertex_index;
-                        int f1 = idx1.vertex_index;
-                        int f2 = idx2.vertex_index;
-                        assert(f0 >= 0);
-                        assert(f1 >= 0);
-                        assert(f2 >= 0);
-
-                        v[0][k] = attrib.vertices[3 * f0 + k];
-                        v[1][k] = attrib.vertices[3 * f1 + k];
-                        v[2][k] = attrib.vertices[3 * f2 + k];
-                        bmin[k] = std::min(v[0][k], bmin[k]);
-                        bmin[k] = std::min(v[1][k], bmin[k]);
-                        bmin[k] = std::min(v[2][k], bmin[k]);
-                        bmax[k] = std::max(v[0][k], bmax[k]);
-                        bmax[k] = std::max(v[1][k], bmax[k]);
-                        bmax[k] = std::max(v[2][k], bmax[k]);
-                    }
-                }
-            }
-            width = std::max(std::abs(bmin[0]), bmax[0]) * 2.0f;
-            height = std::max(std::abs(bmin[1]), bmax[1]) * 2.0f;
-            depth = std::max(std::abs(bmin[2]), bmax[2]) * 2.0f;
-            screenLocation.SetRenderSize(width, height, depth);
-            obj_loaded = true;
-            
-            // Load textures
-            for (auto m : materials) {
-                if (m.diffuse_texname.length() > 0) {
-                    // Only load the texture if it is not already loaded
-                    if (textures.find(m.diffuse_texname) == textures.end()) {
-                        std::string texture_filename = m.diffuse_texname;
-                        if (!wxFileExists(texture_filename)) {
-                            // Append base dir.
-                            wxFileName fn2(texture_filename);
-                            fn2.SetPath(fn.GetPath());
-                            texture_filename = fn2.GetFullPath();
-                            if (!wxFileExists(texture_filename)) {
-                                logger_base.debug("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
-                                continue;
-                            }
-                        }
-                        textures[m.diffuse_texname] = new Image(texture_filename, false, true);
-                    }
-                }
-            }
-        }
+        loadObject();
     }
 
     GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
@@ -639,9 +639,11 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                                 blue = diffuse[2];
                             }
                             float trans = materials[current_material_id].dissolve * 255.0f;
-                            red *= brightness / 100.f;
-                            green *= brightness / 100.f;
-                            blue *= brightness / 100.f;
+                            if (!mesh3d) {
+                                red *= brightness / 100.f;
+                                green *= brightness / 100.f;
+                                blue *= brightness / 100.f;
+                            }
                             xlColor color(red * 255, green * 255, blue * 255, trans);
                             colors[k][0] = color.red;
                             colors[k][1] = color.green;

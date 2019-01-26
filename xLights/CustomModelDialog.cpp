@@ -157,7 +157,7 @@ class CopyPasteGrid : public wxGrid
         case WXK_PAGEDOWN:
         case WXK_HOME:
         case WXK_END:
-            if (event.ShiftDown() && event.CmdDown() || event.ControlDown()) {
+            if (event.ShiftDown() && (event.CmdDown() || event.ControlDown())) {
                 wxCommandEvent keyEvent(EVT_GRID_KEY);
                 keyEvent.SetInt(event.GetUnicodeKey());
                 wxPostEvent(this, keyEvent);

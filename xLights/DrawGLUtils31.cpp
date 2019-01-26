@@ -430,7 +430,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     }
     
     void Draw(bool wf, float brightness, glm::mat4 &curMatrix,
-              ShaderProgram &singleColorProgram, ShaderProgram &normalProgram, ShaderProgram &textureProgram) {
+              ShaderProgram &singleColorProgram, ShaderProgram &meshProgram) {
         if (vaos[0] == 0) {
             LOG_GL_ERRORV(glGenVertexArrays(NUM_VAOS, vaos));
             LOG_GL_ERRORV(glGenBuffers(NUM_BUFFERS, buffers));
@@ -517,36 +517,29 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             singleColorProgram.SetMatrix(curMatrix);
             singleColorProgram.ReBindBuffer(0);
         } else {
+            meshProgram.UseProgram();
+            meshProgram.SetRenderType(0);
+            meshProgram.SetMatrix(mat);
+            
+            GLuint brightnessId = glGetUniformLocation(meshProgram.ProgramID, "brightness");
+            float br = brightness / 100.0f;
+            LOG_GL_ERRORV(glUniform1f(brightnessId, br));
+
+            LOG_GL_ERRORV(glBindVertexArray(vaos[0]));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(1));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(2));
+            LOG_GL_ERRORV(glEnableVertexAttribArray(3));
             for (auto & pt : programTypes) {
                 if (pt.image == -1) {
-                    normalProgram.UseProgram();
-                    normalProgram.SetRenderType(0);
-                    normalProgram.SetMatrix(mat);
-                    LOG_GL_ERRORV(glBindVertexArray(vaos[0]));
-                    LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-                    LOG_GL_ERRORV(glEnableVertexAttribArray(1));
-                    LOG_GL_ERRORV(glDisableVertexAttribArray(2));
-                    LOG_GL_ERRORV(glDisableVertexAttribArray(3));
+                    meshProgram.SetRenderType(1);
                 } else {
-                    textureProgram.UseProgram();
-                    textureProgram.SetRenderType(0);
-                    textureProgram.SetMatrix(mat);
+                    meshProgram.SetRenderType(0);
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
-                    LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(textureProgram.ProgramID, "tex"), 0));
+                    LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(meshProgram.ProgramID, "tex"), 0));
                     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
                     LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-                    GLuint cid = glGetUniformLocation(textureProgram.ProgramID, "inColor");
-                    float alpha = 1.0;
-                    float br = brightness / 100.0f;
-                    LOG_GL_ERRORV(glUniform4f(cid, br, br, br, alpha));
-                    textureProgram.SetRenderType(0);
-                    
-                    LOG_GL_ERRORV(glBindVertexArray(vaos[0]));
-                    LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-                    LOG_GL_ERRORV(glDisableVertexAttribArray(1));
-                    LOG_GL_ERRORV(glEnableVertexAttribArray(2));
-                    LOG_GL_ERRORV(glDisableVertexAttribArray(3));
                 }
                 LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
                 if (pt.image != -1) {
@@ -569,12 +562,6 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
                 singleColorProgram.SetMatrix(curMatrix);
                 singleColorProgram.ReBindBuffer(0);
             }
-            textureProgram.UseProgram();
-            textureProgram.SetMatrix(curMatrix);
-            textureProgram.ReBindBuffer(0);
-            normalProgram.UseProgram();
-            normalProgram.SetMatrix(curMatrix);
-            normalProgram.ReBindBuffer(0);
         }
         LOG_GL_ERRORV(glBindVertexArray(0));
     }
@@ -605,6 +592,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
 
     ShaderProgram textureProgram;
     ShaderProgram texture3Program;
+    ShaderProgram meshProgram;
     ShaderProgram singleColorProgram;
     ShaderProgram singleColor3Program;
     ShaderProgram normalProgram;
@@ -614,6 +602,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
     static std::atomic_int cacheCount;
     static GLuint textureProgramId;
     static GLuint texture3ProgramId;
+    static GLuint meshProgramId;
     static GLuint singleColorProgramId;
     static GLuint singleColor3ProgramId;
     static GLuint normalProgramId;
@@ -683,6 +672,42 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "    vec4 c = texture(tex, UV);\n"
                 "    color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
                 "}\n", 3);
+            
+            meshProgram.Init(meshProgramId,
+                "#version 330 core\n"
+                "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+                "layout(location = 1) in vec4 vertexColor;\n"
+                "layout(location = 2) in vec2 vertexUV;\n"
+                "layout(location = 4) in vec3 vertexNormal_modelspace;\n"
+                "out vec4 fragmentColor;\n"
+                "out vec2 UV;\n"
+                "uniform mat4 MVP;\n"
+                "uniform mat4 V;\n"
+                "uniform mat4 M;\n"
+                "uniform mat4 S;\n"
+                "void main(){\n"
+                "    gl_Position = MVP * vec4(vertexPosition_modelspace,1);\n"
+                "    fragmentColor = vertexColor;\n"
+                "    UV = vertexUV;\n"
+                "}\n",
+
+                "#version 330 core\n"
+                "in vec4 fragmentColor;\n"
+                "in vec2 UV;\n"
+                "out vec4 color;\n"
+                "uniform float brightness;\n"
+                "uniform sampler2D tex;\n"
+                "uniform int RenderType;\n"
+                "void main(){\n"
+                "    vec4 c;\n"
+                "    if (RenderType == 0) {\n"
+                "        c = texture(tex, UV);\n"
+                "    } else {\n"
+                "        c = fragmentColor;\n"
+                "    }\n"
+                "    color = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
+                "}\n", 3);
+            
         }
         if (UsesVertexAccumulator) {
 			singleColorProgram.Init(singleColorProgramId,
@@ -828,6 +853,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
         singleColor3Program.Cleanup(del ? singleColor3ProgramId : zero);
         textureProgram.Cleanup(del ? textureProgramId : zero);
         texture3Program.Cleanup(del ? texture3ProgramId : zero);
+        meshProgram.Cleanup(del ? meshProgramId : zero);
         normalProgram.Cleanup(del ? normalProgramId : zero);
         normal3Program.Cleanup(del ? normal3ProgramId : zero);
         vbNormalProgram.Cleanup(del ? vbNormalProgramId : zero);
@@ -946,9 +972,10 @@ public:
             int enableCapability = brt.enableCapability;
             if (brt.mesh != nullptr) {
                 GL3Mesh *mesh = (GL3Mesh*)brt.mesh;
-                mesh->Draw(brt.extra == 1, brt.textureBrightness, *matrix, singleColor3Program, normal3Program, texture3Program);
+                mesh->Draw(brt.extra == 1, brt.textureBrightness, *matrix, singleColor3Program, meshProgram);
                 program->UseProgram();
                 program->ReBindBuffer(0);
+                program->ReBindBuffer(1);
                 continue;
             } else if (brt.textureId != lastTextureId) {
                 if (brt.textureId == -1) {
@@ -986,42 +1013,42 @@ public:
                 }
                 lastTextureId = brt.textureId;
             }
-
-            if (brt.textureId != -1) {
-                GLuint cid = glGetUniformLocation(texturep->ProgramID, "inColor");
-                if (brt.useTexturePixelColor) {
-                    LOG_GL_ERRORV(glUniform4f(cid, ((float)brt.texturePixelColor.red) / 255.0f,
-                                              ((float)brt.texturePixelColor.green) / 255.0f,
-                                              ((float)brt.texturePixelColor.blue) / 255.0f,
-                                              ((float)brt.texturePixelColor.alpha) / 255.0f));
-                    texturep->SetRenderType(1);
+            if (brt.mesh == nullptr) {
+                if (brt.textureId != -1) {
+                    GLuint cid = glGetUniformLocation(texturep->ProgramID, "inColor");
+                    if (brt.useTexturePixelColor) {
+                        LOG_GL_ERRORV(glUniform4f(cid, ((float)brt.texturePixelColor.red) / 255.0f,
+                                                  ((float)brt.texturePixelColor.green) / 255.0f,
+                                                  ((float)brt.texturePixelColor.blue) / 255.0f,
+                                                  ((float)brt.texturePixelColor.alpha) / 255.0f));
+                        texturep->SetRenderType(1);
+                    } else {
+                        float alpha = ((float)brt.textureAlpha)/255.0;
+                        float brightness = brt.textureBrightness / 100.0f;
+                        LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, alpha));
+                        texturep->SetRenderType(0);
+                    }
+                } else if (type == GL_POINTS && enableCapability == 0x0B10) {
+                    //POINT_SMOOTH, removed in OpenGL3.x
+                    program->SetRenderType(1);
+                    program->CalcSmoothPointParams(brt.extra);
                 } else {
-                    float alpha = ((float)brt.textureAlpha)/255.0;
-                    float brightness = brt.textureBrightness / 100.0f;
-                    LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, alpha));
-                    texturep->SetRenderType(0);
+                    if (brt.type == GL_POINTS) {
+                        LOG_GL_ERRORV(glPointSize(brt.extra));
+                    }
+                    if (enableCapability > 0) {
+                        program->SetRenderType(0);
+                        LOG_GL_ERRORV(glEnable(enableCapability));
+                    } else if (enableCapability != 0) {
+                        program->SetRenderType(enableCapability);
+                    } else {
+                        program->SetRenderType(0);
+                    }
                 }
-            } else if (type == GL_POINTS && enableCapability == 0x0B10) {
-                //POINT_SMOOTH, removed in OpenGL3.x
-                program->SetRenderType(1);
-                program->CalcSmoothPointParams(brt.extra);
-            } else {
-                if (brt.type == GL_POINTS) {
-                    LOG_GL_ERRORV(glPointSize(brt.extra));
+                LOG_GL_ERRORV(glDrawArrays(type, offset0 + brt.start, brt.count));
+                if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
+                    LOG_GL_ERRORV(glDisable(enableCapability));
                 }
-                if (enableCapability > 0) {
-                    program->SetRenderType(0);
-                    LOG_GL_ERRORV(glEnable(enableCapability));
-                } else if (enableCapability != 0) {
-                    program->SetRenderType(enableCapability);
-                } else {
-                    program->SetRenderType(0);
-                }
-            }
-
-            LOG_GL_ERRORV(glDrawArrays(type, offset0 + brt.start, brt.count));
-            if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
-                LOG_GL_ERRORV(glDisable(enableCapability));
             }
         }
         program->SetRenderType(0);
@@ -1247,6 +1274,7 @@ protected:
 std::atomic_int OpenGL33Cache::cacheCount(0);
 GLuint OpenGL33Cache::textureProgramId(0);
 GLuint OpenGL33Cache::texture3ProgramId(0);
+GLuint OpenGL33Cache::meshProgramId(0);
 GLuint OpenGL33Cache::singleColorProgramId(0);
 GLuint OpenGL33Cache::singleColor3ProgramId(0);
 GLuint OpenGL33Cache::normalProgramId(0);

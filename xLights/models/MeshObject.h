@@ -32,6 +32,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 
     protected:
 
+        void loadObject();
     private:
         std::string _objFile;
         float width;
