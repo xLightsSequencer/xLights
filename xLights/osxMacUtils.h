@@ -40,6 +40,10 @@ void RemoveAudioDeviceChangeListener(AudioManager *am);
 #define WINDOW_LOCKER(a, b) wxWindowUpdateLocker b(a)
 #define AddAudioDeviceChangeListener(a)
 #define RemoveAudioDeviceChangeListener(a)
+
+inline bool IsMouseEventFromTouchpad() {
+    return false;
+}
 #endif
 
 

@@ -365,12 +365,9 @@ public:
 
 class GL3Mesh : public DrawGLUtils::xl3DMesh {
     static const int NUM_BUFFERS = 6;
-    static const int NUM_VAOS = 3;
+
     public:
     GL3Mesh() : DrawGLUtils::xl3DMesh() {
-        for (int x = 0; x < NUM_VAOS; x++) {
-            vaos[x] = 0;
-        }
         for (int x = 0; x < NUM_BUFFERS; x++) {
             buffers[x] = 0;
         }
@@ -378,14 +375,12 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     virtual ~GL3Mesh() {
         if (buffers[0]) {
             LOG_GL_ERRORV(glDeleteBuffers(NUM_BUFFERS, buffers));
-            LOG_GL_ERRORV(glDeleteVertexArrays(NUM_VAOS, vaos));
         }
     }
     
     void Draw(bool wf, float brightness, glm::mat4 &curMatrix,
               ShaderProgram &singleColorProgram, ShaderProgram &meshProgram) {
-        if (vaos[0] == 0) {
-            LOG_GL_ERRORV(glGenVertexArrays(NUM_VAOS, vaos));
+        if (buffers[0] == 0) {
             LOG_GL_ERRORV(glGenBuffers(NUM_BUFFERS, buffers));
 
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[0]));
@@ -405,32 +400,6 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
 
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
             LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * lines.size(), &lines[0], GL_STATIC_DRAW));
-
-            
-            LOG_GL_ERRORV(glBindVertexArray(vaos[0])); // the surfaces
-            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-            LOG_GL_ERRORV(glEnableVertexAttribArray(1));
-            LOG_GL_ERRORV(glEnableVertexAttribArray(2));
-            LOG_GL_ERRORV(glEnableVertexAttribArray(3));
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[0]));
-            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[1]));
-            LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0));
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[2]));
-            LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0));
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[3]));
-            LOG_GL_ERRORV(glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-
-            LOG_GL_ERRORV(glBindVertexArray(vaos[1])); // the lines
-            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
-            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-
-            LOG_GL_ERRORV(glBindVertexArray(vaos[2])); // the wireframe
-            LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[4]));
-            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
-            
             calcProgram();
         }
         glm::mat4 mat = curMatrix * matrix;
@@ -441,13 +410,14 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             singleColorProgram.SetMatrix(mat);
             GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
             LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 1.0f, 0.0f, 1.0f));
-            LOG_GL_ERRORV(glBindVertexArray(vaos[2]));
+            LOG_GL_ERRORV(glBindVertexArray(meshProgram.VertexArrayID));
             LOG_GL_ERRORV(glEnableVertexAttribArray(0));
-            LOG_GL_ERRORV(glDisableVertexAttribArray(1));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[4]));
+            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
             glEnable(GL_LINE_SMOOTH);
             LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, wireframe.size() / 2));
             glDisable(GL_LINE_SMOOTH);
-            
+            LOG_GL_ERRORV(glDisableVertexAttribArray(0));
             singleColorProgram.UseProgram();
             singleColorProgram.SetMatrix(curMatrix);
             singleColorProgram.ReBindBuffer(0);
@@ -460,11 +430,20 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             float br = brightness / 100.0f;
             LOG_GL_ERRORV(glUniform1f(brightnessId, br));
 
-            LOG_GL_ERRORV(glBindVertexArray(vaos[0]));
+            LOG_GL_ERRORV(glBindVertexArray(meshProgram.VertexArrayID));
             LOG_GL_ERRORV(glEnableVertexAttribArray(0));
             LOG_GL_ERRORV(glEnableVertexAttribArray(1));
             LOG_GL_ERRORV(glEnableVertexAttribArray(2));
             LOG_GL_ERRORV(glEnableVertexAttribArray(3));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[0]));
+            LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[1]));
+            LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[2]));
+            LOG_GL_ERRORV(glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, 0, (void*)0));
+            LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[3]));
+            LOG_GL_ERRORV(glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+            
             for (auto & pt : programTypes) {
                 if (pt.image == -1) {
                     meshProgram.SetRenderType(1);
@@ -481,18 +460,25 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
                 }
             }
-
+            LOG_GL_ERRORV(glDisableVertexAttribArray(0));
+            LOG_GL_ERRORV(glDisableVertexAttribArray(1));
+            LOG_GL_ERRORV(glDisableVertexAttribArray(2));
+            LOG_GL_ERRORV(glDisableVertexAttribArray(3));
             if (!lines.empty()) {
                 singleColorProgram.UseProgram();
                 singleColorProgram.SetRenderType(0);
                 singleColorProgram.SetMatrix(mat);
                 GLuint cid = glGetUniformLocation(singleColorProgram.ProgramID, "inColor");
                 LOG_GL_ERRORV(glUniform4f(cid, 0.0f, 0.0f, 0.0f, 1.0f));
-                LOG_GL_ERRORV(glBindVertexArray(vaos[1]));
+                LOG_GL_ERRORV(glBindVertexArray(meshProgram.VertexArrayID));
                 LOG_GL_ERRORV(glEnableVertexAttribArray(0));
+                LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
+                LOG_GL_ERRORV(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
+
                 glEnable(GL_LINE_SMOOTH);
                 LOG_GL_ERRORV(glDrawArrays(GL_LINES, 0, lines.size() / 2));
                 glDisable(GL_LINE_SMOOTH);
+                LOG_GL_ERRORV(glDisableVertexAttribArray(0));
                 singleColorProgram.UseProgram();
                 singleColorProgram.SetMatrix(curMatrix);
                 singleColorProgram.ReBindBuffer(0);
@@ -502,7 +488,6 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     }
     
     private:
-    GLuint vaos[NUM_VAOS];
     GLuint buffers[NUM_BUFFERS];
 };
 
@@ -625,7 +610,7 @@ class OpenGL33Cache : public DrawGLUtils::xlGLCacheInfo {
                 "        c = fragmentColor;\n"
                 "    }\n"
                 "    color = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
-                "}\n", 3);
+                "}\n", 0);
             
         }
         if (UsesVertexAccumulator) {

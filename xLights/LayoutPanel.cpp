@@ -45,20 +45,6 @@
 #include "KeyBindings.h"
 #include "sequencer/MainSequencer.h"
 
-#ifndef __WXOSX__
-static bool IsMouseEventFromTouchpad() {
-	return false;
-    // In theory this is the windows solution ... but
-    // - It does not compile in codeblocks - likely solveable
-    // - Testing on my laptop my trackpad appears to be a mouse ... not a touchpad which means it doesnt do anything useful
-    //        but maybe i could get it to work with my touch screen
-    //INPUT_MESSAGE_SOURCE ims;
-    //::GetCurrentInputMessageSource(&ims);
-
-    //return ims.deviceType == IMDT_TOUCHPAD;
-}
-#endif
-
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
 	wxRect r;
