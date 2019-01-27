@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.07 January 27, 2019
+   -- enh (tyler)   Add inside/outside ration to star model
    -- enh (dkulp)   Add zoom gesture to Preview Panels.
    -- bug (dkulp)   OpenGL 2.1 - texture/image brightness was always 100%
    -- enh (dkulp)   Add Mac TouchPad/MagicMouse "wheel" event handling to Preview Panels.
@@ -28,9 +30,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                     required due to small variations in packet delivery time
    -- enh (keith)   Add bulk edit to effect type
    -- enh (keith)   Add support for \n and \t in playlist item text
+   -- bug (keith)   Fix crash changing number of lights on single channel polyline
+   -- bug (keith)   Fix z coordinates on a polyline when typed dont work
    -- bug (keith)   Fix issues with switching between effects using dropdown on effect settings dialog
    -- bug (keith)   Fix issues with Artnet & MIDI timecode when in remote mode
-   -- enh (dkulp)   Optimise 3D management of images and matrix shaders to try to reduce resources/speed it up
 2019.06 January 19, 2019
    -- bug (dkulp)   Fix sub-buffers ending up with two rows/columns identical.  Fixes #1421
    -- bug (dkulp)   Fix FPP connect dialog not working correctly on windows

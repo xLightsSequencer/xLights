@@ -221,7 +221,7 @@ public:
 };
 
 static const xlColor xlBLUE(0, 0, 255);
-static const xlColor xlBLUETRANSLUCENT(0, 0, 255, 150);
+static const xlColor xlBLUETRANSLUCENT(0, 0, 255, 180); // higher alpha because blue/black lacks contrast
 static const xlColor xlRED(255, 0, 0);
 static const xlColor xlREDTRANSLUCENT(255, 0, 0, 150);
 static const xlColor xlGREEN(0, 255, 0);
