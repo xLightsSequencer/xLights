@@ -743,6 +743,10 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
+        if (sp == nullptr)
+        {
+            sp = grid->GetPropertyByLabel("# Lights");
+        }
         sp->SetValueFromInt(parm2);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
