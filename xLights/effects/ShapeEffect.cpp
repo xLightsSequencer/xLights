@@ -118,6 +118,7 @@ void ShapeEffect::SetDefaultParameters() {
     sp->BitmapButton_Shape_GrowthVC->SetActive(false);
     sp->BitmapButton_Shape_CountVC->SetActive(false);
     sp->BitmapButton_Shape_StartSizeVC->SetActive(false);
+    sp->BitmapButton_Shape_RotationVC->SetActive(false);
 
     SetChoiceValue(sp->Choice_Shape_ObjectToDraw, "Circle");
 
@@ -130,6 +131,7 @@ void ShapeEffect::SetDefaultParameters() {
     SetSliderValue(sp->Slider_Shape_Growth, 10);
     SetSliderValue(sp->Slider_Shape_Lifetime, 5);
     SetSliderValue(sp->Slider_Shape_Sensitivity, 50);
+    SetSliderValue(sp->Slider_Shape_Rotation, 0);
 
     SetCheckBoxValue(sp->CheckBox_Shape_RandomLocation, true);
     SetCheckBoxValue(sp->CheckBox_Shape_FadeAway, true);
@@ -286,6 +288,8 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     int startSize = GetValueCurveInt("Shape_StartSize", 5, SettingsMap, oset, SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int emoji = SettingsMap.GetInt("SPINCTRL_Shape_Char", 65);
     std::string font = SettingsMap["FONTPICKER_Shape_Font"];
+
+    int rotation = GetValueCurveInt("Shape_Rotation", 0, SettingsMap, oset, SHAPE_ROTATION_MIN, SHAPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     int Object_To_Draw = DecodeShape(Object_To_DrawStr);
 
@@ -543,25 +547,25 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
         switch ((*it)->_shape)
         {
         case RENDER_SHAPE_SQUARE:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 4, color, thickness, 45.0);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 4, color, thickness, rotation + 45.0);
             break;
         case RENDER_SHAPE_CIRCLE:
             Drawcircle(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
             break;
         case RENDER_SHAPE_STAR:
-            Drawstar(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, points, color, thickness);
+            Drawstar(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, points, color, thickness, rotation);
             break;
         case RENDER_SHAPE_TRIANGLE:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 3, color, thickness, 90.0);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 3, color, thickness, rotation + 90.0);
             break;
         case RENDER_SHAPE_PENTAGON:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 5, color, thickness, 90.0);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 5, color, thickness, rotation + 90.0);
             break;
         case RENDER_SHAPE_HEXAGON:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 6, color, thickness);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 6, color, thickness, rotation);
             break;
         case RENDER_SHAPE_OCTAGON:
-            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 8, color, thickness, 22.5);
+            Drawpolygon(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 8, color, thickness, rotation + 22.5);
             break;
         case RENDER_SHAPE_TREE:
             Drawtree(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
@@ -579,7 +583,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
             Drawcandycane(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
             break;
         case RENDER_SHAPE_SNOWFLAKE:
-            Drawsnowflake(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 3, color, 30);
+            Drawsnowflake(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, 3, color, rotation + 30);
             break;
         case RENDER_SHAPE_HEART:
             Drawheart(buffer, (*it)->_centre.x, (*it)->_centre.y, (*it)->_size, color, thickness);
@@ -643,7 +647,7 @@ void ShapeEffect::Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius
     }
 }
 
-void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness) const
+void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation) const
 {
     double interpolation = 0.6;
     double t = (double)thickness - 1.0 + interpolation;
@@ -674,17 +678,17 @@ void ShapeEffect::Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, 
             for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
             {
                 if (degrees > 360.0) degrees = 360.0;
-                double radian = (offsetangle + degrees) * (M_PI / 180.0);
+                double radian = (rotation + offsetangle + degrees) * (M_PI / 180.0);
                 int xouter = std::round(radius * buffer.cos(radian)) + xc;
                 int youter = std::round(radius * buffer.sin(radian)) + yc;
 
-                radian = (offsetangle + degrees + increment / 2.0) * (M_PI / 180.0);
+                radian = (rotation + offsetangle + degrees + increment / 2.0) * (M_PI / 180.0);
                 int xinner = std::round(InnerRadius * buffer.cos(radian)) + xc;
                 int yinner = std::round(InnerRadius * buffer.sin(radian)) + yc;
 
                 buffer.DrawLine(xinner, yinner, xouter, youter, color);
 
-                radian = (offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
+                radian = (rotation + offsetangle + degrees - increment / 2.0) * (M_PI / 180.0);
                 xinner = std::round(InnerRadius * buffer.cos(radian)) + xc;
                 yinner = std::round(InnerRadius * buffer.sin(radian)) + yc;
 

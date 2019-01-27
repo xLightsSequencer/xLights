@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (scott)   Added rotation to the Shape Effect
 2019.07 January 27, 2019
    -- enh (tyler)   Add inside/outside ration to star model
    -- enh (dkulp)   Add zoom gesture to Preview Panels.

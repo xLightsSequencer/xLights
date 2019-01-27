@@ -95,6 +95,10 @@ const long ShapePanel::IDD_TEXTCTRL_Shape_CentreY = wxNewId();
 const long ShapePanel::ID_STATICTEXT_Shape_Points = wxNewId();
 const long ShapePanel::ID_SLIDER_Shape_Points = wxNewId();
 const long ShapePanel::IDD_TEXTCTRL_Shape_Points = wxNewId();
+const long ShapePanel::ID_STATICTEXT_Shape_Rotation = wxNewId();
+const long ShapePanel::ID_SLIDER_Shape_Rotation = wxNewId();
+const long ShapePanel::ID_VALUECURVE_Shape_Rotation = wxNewId();
+const long ShapePanel::IDD_TEXTCTRL_Shape_Rotation = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_RandomLocation = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_FadeAway = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_UseMusic = wxNewId();
@@ -128,6 +132,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer57 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -264,6 +269,18 @@ ShapePanel::ShapePanel(wxWindow* parent)
     TextCtrl_Shape_Points = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Points, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Points"));
     TextCtrl_Shape_Points->SetMaxLength(1);
     FlexGridSizer57->Add(TextCtrl_Shape_Points, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText11 = new wxStaticText(this, ID_STATICTEXT_Shape_Rotation, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Rotation"));
+    FlexGridSizer57->Add(StaticText11, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer9->AddGrowableCol(0);
+    Slider_Shape_Rotation = new BulkEditSlider(this, ID_SLIDER_Shape_Rotation, 0, 0, 360, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shape_Rotation"));
+    FlexGridSizer9->Add(Slider_Shape_Rotation, 1, wxALL|wxEXPAND, 5);
+    BitmapButton_Shape_RotationVC = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shape_Rotation, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shape_Rotation"));
+    FlexGridSizer9->Add(BitmapButton_Shape_RotationVC, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer57->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
+    TextCtrl_Shape_Rotation = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Shape_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Shape_Rotation"));
+    TextCtrl_Shape_Rotation->SetMaxLength(3);
+    FlexGridSizer57->Add(TextCtrl_Shape_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     CheckBox_Shape_RandomLocation = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_RandomLocation, _("Random Location"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_RandomLocation"));
     CheckBox_Shape_RandomLocation->SetValue(false);
@@ -310,6 +327,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     Connect(ID_VALUECURVE_Shape_Growth,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_CentreX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_CentreY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Shape_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_CHECKBOX_Shape_RandomLocation,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shape_RandomLocationClick);
     Connect(ID_CHECKBOX_Shape_UseMusic,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shape_UseMusicClick);
     Connect(ID_CHECKBOX_Shape_FireTiming,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shape_FireTimingClick);
@@ -319,13 +337,14 @@ ShapePanel::ShapePanel(wxWindow* parent)
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&ShapePanel::OnVCChanged, 0, this);
 
-    BitmapButton_Shape_ThicknessVC->GetValue()->SetLimits(SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX);;
-    BitmapButton_Shape_GrowthVC->GetValue()->SetLimits(SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX);;
-    BitmapButton_Shape_CentreYVC->GetValue()->SetLimits(SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX);;
-    BitmapButton_Shape_CentreXVC->GetValue()->SetLimits(SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX);;
-    BitmapButton_Shape_LifetimeVC->GetValue()->SetLimits(SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX);;
-    BitmapButton_Shape_CountVC->GetValue()->SetLimits(SHAPE_COUNT_MIN, SHAPE_COUNT_MAX);;
-    BitmapButton_Shape_StartSizeVC->GetValue()->SetLimits(SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX);;
+    BitmapButton_Shape_ThicknessVC->GetValue()->SetLimits(SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX);
+    BitmapButton_Shape_GrowthVC->GetValue()->SetLimits(SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX);
+    BitmapButton_Shape_CentreYVC->GetValue()->SetLimits(SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX);
+    BitmapButton_Shape_CentreXVC->GetValue()->SetLimits(SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX);
+    BitmapButton_Shape_LifetimeVC->GetValue()->SetLimits(SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX);
+    BitmapButton_Shape_CountVC->GetValue()->SetLimits(SHAPE_COUNT_MIN, SHAPE_COUNT_MAX);
+    BitmapButton_Shape_StartSizeVC->GetValue()->SetLimits(SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX);
+    BitmapButton_Shape_RotationVC->GetValue()->SetLimits(SHAPE_ROTATION_MIN, SHAPE_ROTATION_MAX);
 
     wxFont f = FontPickerCtrl_Font->GetSelectedFont();
     f.SetPixelSize(wxSize(20, 20));
@@ -455,6 +474,25 @@ void ShapePanel::ValidateWindow()
     {
         Slider_Shape_Thickness->Enable();
         TextCtrl_Shape_Thickness->Enable();
+    }
+
+    if (Choice_Shape_ObjectToDraw->GetStringSelection() == "Square" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Triangle" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Pentagon" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Hexagon" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Octagon" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Star" ||
+        Choice_Shape_ObjectToDraw->GetStringSelection() == "Snowflake")
+    {
+        Slider_Shape_Rotation->Enable();
+        TextCtrl_Shape_Rotation->Enable();
+        BitmapButton_Shape_RotationVC->Enable();
+    }
+    else
+    {
+        Slider_Shape_Rotation->Disable();
+        TextCtrl_Shape_Rotation->Disable();
+        BitmapButton_Shape_RotationVC->Disable();
     }
 
     if (CheckBox_Shape_RandomLocation->IsChecked())

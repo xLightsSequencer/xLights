@@ -48,6 +48,7 @@ class ShapePanel: public wxPanel
 		BulkEditSlider* Slider_Shape_Growth;
 		BulkEditSlider* Slider_Shape_Lifetime;
 		BulkEditSlider* Slider_Shape_Points;
+		BulkEditSlider* Slider_Shape_Rotation;
 		BulkEditSlider* Slider_Shape_Sensitivity;
 		BulkEditSlider* Slider_Shape_StartSize;
 		BulkEditSlider* Slider_Shape_Thickness;
@@ -55,6 +56,7 @@ class ShapePanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Shape_CentreX;
 		BulkEditTextCtrl* TextCtrl_Shape_CentreY;
 		BulkEditTextCtrl* TextCtrl_Shape_Points;
+		BulkEditTextCtrl* TextCtrl_Shape_Rotation;
 		BulkEditTextCtrl* TextCtrl_Shape_Sensitivity;
 		BulkEditTextCtrl* TextCtrl_Shape_Thickness;
 		BulkEditValueCurveButton* BitmapButton_Shape_CentreXVC;
@@ -62,10 +64,12 @@ class ShapePanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Shape_CountVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_GrowthVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_LifetimeVC;
+		BulkEditValueCurveButton* BitmapButton_Shape_RotationVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_StartSizeVC;
 		BulkEditValueCurveButton* BitmapButton_Shape_ThicknessVC;
 		wxFontPickerCtrl* FontPickerCtrl_Font;
 		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
 		wxStaticText* StaticText176;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
@@ -121,6 +125,10 @@ class ShapePanel: public wxPanel
 		static const long ID_STATICTEXT_Shape_Points;
 		static const long ID_SLIDER_Shape_Points;
 		static const long IDD_TEXTCTRL_Shape_Points;
+		static const long ID_STATICTEXT_Shape_Rotation;
+		static const long ID_SLIDER_Shape_Rotation;
+		static const long ID_VALUECURVE_Shape_Rotation;
+		static const long IDD_TEXTCTRL_Shape_Rotation;
 		static const long ID_CHECKBOX_Shape_RandomLocation;
 		static const long ID_CHECKBOX_Shape_FadeAway;
 		static const long ID_CHECKBOX_Shape_UseMusic;
