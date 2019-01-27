@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   OpenGL 2.1 - texture/image brightness was always 100%
+   -- enh (dkulp)   Add Mac TouchPad/MagicMouse "wheel" event handling to Preview Panels.
+   -- enh (dkulp)   OpenGL 3.3 only - pass mesh data to Video memory once, share data - much faster display
+   -- enh (dkulp)   Share mesh textures across contexts (reduces memory, faster loads)
    -- bug (gil)     Fix PolyLine crash when older version 1 positioning is upgraded.  Fixes #1436.
    -- enh (keith)   Add 3D Custom Model
    -- enh (keith)   Make locked models more obvious in 3D
