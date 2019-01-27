@@ -5015,6 +5015,14 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
             event.Veto();
             return 0;
         }
+        else if (!_locked && name.find("ModelZ") != std::string::npos) {
+            mPos[selected_handle].z = event.GetValue().GetDouble() / 100.0;
+            return 3;
+        }
+        else if (_locked && name.find("ModelZ") != std::string::npos) {
+            event.Veto();
+            return 0;
+        }
     }
     else if ("Locked" == name)
     {
