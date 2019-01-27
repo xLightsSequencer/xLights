@@ -81,6 +81,20 @@ void ModelPreview::SaveCurrentCameraPosition()
     }
 }
 
+void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
+    if (!event.IsGestureStart()) {
+        float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
+        SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
+        if (xlights != nullptr) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+                Refresh();
+                Update();
+            }
+        }
+    }
+    m_last_mouse_x = (event.GetZoomFactor() * 1000);
+}
+
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
 	if (m_mouse_down) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
@@ -473,6 +487,11 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
+    
+    if (!allowSelected) {
+        EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
+        Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
+    }
 }
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
@@ -484,6 +503,9 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
+    
+    EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
+    Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
 }
 
 ModelPreview::~ModelPreview()

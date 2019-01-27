@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   Add zoom gesture to Preview Panels.
    -- bug (dkulp)   OpenGL 2.1 - texture/image brightness was always 100%
    -- enh (dkulp)   Add Mac TouchPad/MagicMouse "wheel" event handling to Preview Panels.
    -- enh (dkulp)   OpenGL 3.3 only - pass mesh data to Video memory once, share data - much faster display
