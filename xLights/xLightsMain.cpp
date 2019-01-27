@@ -3792,6 +3792,7 @@ void xLightsFrame::SendReport(const wxString &loc, wxDebugReportCompress &report
     int millis = wxGetUTCTimeMillis().GetLo() % 1000;
 
     wxString ver = xlights_version_string + xlights_qualifier;
+    ver.Trim();
     for (int x = 0; x < ver.length(); x++) {
         if (ver[x] == ' ') ver[x] = '-';
     }
