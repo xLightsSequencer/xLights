@@ -1256,6 +1256,11 @@ void MainSequencer::ApplyEffectSettingToSelected(const std::string& effectName, 
     return PanelEffectGrid->ApplyEffectSettingToSelected(effectName, id, value, vc, vcid);
 }
 
+void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs)
+{
+    return PanelEffectGrid->RemapSelectedDMXEffectValues(pairs);
+}
+
 void MainSequencer::ConvertSelectedEffectsTo(const std::string& effectName)
 {
     return PanelEffectGrid->ConvertSelectedEffectsTo(effectName);

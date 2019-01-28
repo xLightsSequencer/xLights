@@ -549,6 +549,8 @@
 		<Unit filename="PreviewModels.h" />
 		<Unit filename="PreviewPane.cpp" />
 		<Unit filename="PreviewPane.h" />
+		<Unit filename="RemapDMXChannelsDialog.cpp" />
+		<Unit filename="RemapDMXChannelsDialog.h" />
 		<Unit filename="RenameTextDialog.cpp" />
 		<Unit filename="RenameTextDialog.h" />
 		<Unit filename="Render.cpp" />
@@ -1174,6 +1176,7 @@
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/PreviewPane.wxs" />
+		<Unit filename="wxsmith/RemapDMXChannelsDialog.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
@@ -1399,6 +1402,7 @@
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="RemapDMXChannelsDialog.cpp" hdr="RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

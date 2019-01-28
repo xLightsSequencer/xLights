@@ -12,6 +12,7 @@
 #include "xLightsMain.h"
 
 #include <log4cpp/Category.hh>
+#include "effects/DMXEffect.h"
 
 std::atomic_int EffectLayer::exclusive_index(0);
 const std::string NamedLayer::NO_NAME("");
@@ -625,7 +626,7 @@ void EffectLayer::SelectAllEffects()
     }
 }
 
-Element* EffectLayer::GetParentElement()
+Element* EffectLayer::GetParentElement() const
 {
     return mParentElement;
 }
@@ -1133,6 +1134,27 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
         {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             mEffects[i]->ApplySetting(id, value, vc, vcid);
+
+            rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
+        }
+    }
+}
+
+void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::pair<int, int>>& pairs, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
+{
+    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
+
+    for (int i = 0; i < mEffects.size(); i++)
+    {
+        if (mEffects[i]->GetEffectName() == "DMX" &&
+            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+        {
+            undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
+            dmx->RemapSelectedDMXEffectValues(mEffects[i], pairs);
 
             rangeAccumulator.Add(mEffects[i]->GetStartTimeMS(), mEffects[i]->GetEndTimeMS());
         }

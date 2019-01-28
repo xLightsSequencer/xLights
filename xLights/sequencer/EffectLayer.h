@@ -75,7 +75,7 @@ class EffectLayer
         void UnSelectAllEffects();
         void SelectAllEffects();
 
-        Element* GetParentElement();
+        Element* GetParentElement() const;
         void SetParentElement(Element* parent);
         int GetSelectedEffectCount();
         int GetTaggedEffectCount();
@@ -86,12 +86,13 @@ class EffectLayer
         void TagAllSelectedEffects();
         int GetSelectedEffectCount(const std::string effectName);
         void ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
+        void RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::pair<int, int>>& pairs, const EffectManager& effect_manager, RangeAccumulator& range_accumulator);
         void ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator);
         void UnTagAllEffects();
         void DeleteSelectedEffects(UndoManager& undo_mgr);
         void DeleteEffect(int id);
         void DeleteEffectByIndex(int idx);
-        static bool ShouldDeleteSelected(Effect *eff);
+    static bool ShouldDeleteSelected(Effect *eff);
         static bool SortEffectByStartTime(Effect* e1,Effect* e2);
         void UpdateAllSelectedEffects(const std::string& palette);
 

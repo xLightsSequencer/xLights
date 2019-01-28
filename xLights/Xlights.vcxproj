@@ -435,6 +435,7 @@
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
+    <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RenderBuffer.cpp" />
@@ -795,6 +796,7 @@
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
+    <ClInclude Include="RemapDMXChannelsDialog.h" />
     <ClInclude Include="RenameTextDialog.h" />
     <ClInclude Include="RenderBuffer.h" />
     <ClInclude Include="RenderCache.h" />

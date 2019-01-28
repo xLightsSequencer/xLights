@@ -1,11 +1,16 @@
 #include "DMXPanel.h"
 #include "DMXEffect.h"
+#include "../xLightsMain.h"
+#include "../sequencer/MainSequencer.h"
+#include "../sequencer/EffectLayer.h"
+#include "../sequencer/Effect.h"
 
 #include "EffectPanelUtils.h"
 //(*InternalHeaders(DMXPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/image.h>
 #include <wx/intl.h>
 #include <wx/notebook.h>
@@ -14,6 +19,8 @@
 #include <wx/stattext.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
+#include "RemapDMXChannelsDialog.h"
+#include "xLightsApp.h"
 //*)
 
 //(*IdInit(DMXPanel)
@@ -182,6 +189,7 @@ const long DMXPanel::ID_VALUECURVE_DMX40 = wxNewId();
 const long DMXPanel::IDD_TEXTCTRL_DMX40 = wxNewId();
 const long DMXPanel::ID_PANEL3 = wxNewId();
 const long DMXPanel::ID_NOTEBOOK1 = wxNewId();
+const long DMXPanel::ID_BUTTON1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(DMXPanel,wxPanel)
@@ -586,6 +594,8 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	Notebook7->AddPage(ChannelPanel3, _("Channels 21-30"), false);
 	Notebook7->AddPage(ChannelPanel4, _("Channels 31-40"), false);
 	FlexGridSizer_Main->Add(Notebook7, 1, wxALL|wxEXPAND, 2);
+	ButtonRemap = new wxButton(this, ID_BUTTON1, _("Remap Channels"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer_Main->Add(ButtonRemap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer_Main);
 	FlexGridSizer_Main->Fit(this);
 	FlexGridSizer_Main->SetSizeHints(this);
@@ -630,10 +640,12 @@ DMXPanel::DMXPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_DMX38,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_DMX39,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_DMX40,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnVCButtonClick);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&DMXPanel::OnButtonRemapClick);
 	//*)
     SetName("ID_PANEL_DMX");
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&DMXPanel::OnVCChanged, 0, this);
+    Connect(ID_BUTTON1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&DMXPanel::OnButtonRemapRClick);
 
     ValueCurve_DMX1->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
     ValueCurve_DMX2->GetValue()->SetLimits(DMX_MIN, DMX_MAX);
@@ -684,3 +696,99 @@ DMXPanel::~DMXPanel()
 }
 
 PANEL_EVENT_HANDLERS(DMXPanel)
+
+void DMXPanel::OnButtonRemapClick(wxCommandEvent& event)
+{
+    RemapDMXChannelsDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        std::vector<int> sliders(40);
+        std::vector<std::string> curves(40);
+
+        // save the current values
+        for (int i = 0; i < 40; i++)
+        {
+            wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", i+1);
+            wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
+            wxASSERT(slider != nullptr);
+            wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", i+1);
+            ValueCurveButton* curve = (ValueCurveButton*)(this->FindWindowByName(vc_ctrl));
+            wxASSERT(curve != nullptr);
+            sliders[i] = slider->GetValue();
+            curves[i] = curve->GetValue()->Serialise();
+        }
+
+        for (int i = 0; i < 40; i++)
+        {
+            if (dlg.Grid1->GetCellValue(i, 0) != dlg.Grid1->GetCellValue(i, 1))
+            {
+                int from = i;
+                int to = wxAtoi(dlg.Grid1->GetCellValue(i, 1).AfterLast(' '));
+                wxString slider_ctrl = wxString::Format("ID_SLIDER_DMX%d", to);
+                wxSlider* slider = (wxSlider*)(this->FindWindowByName(slider_ctrl));
+                wxASSERT(slider != nullptr);
+                wxString vc_ctrl = wxString::Format("ID_VALUECURVE_DMX%d", to);
+                ValueCurveButton* curve = (ValueCurveButton*)(this->FindWindowByName(vc_ctrl));
+                wxASSERT(curve != nullptr);
+                wxString text_ctrl = wxString::Format("IDD_TEXTCTRL_DMX%d", to);
+                wxTextCtrl* text = (wxTextCtrl*)(this->FindWindowByName(text_ctrl));
+                wxASSERT(text != nullptr);
+
+                text->SetValue(wxString::Format("%d", sliders[from]));
+                slider->SetValue(sliders[from]);
+                curve->GetValue()->Deserialise(curves[from]);
+                wxCommandEvent vcevent;
+                vcevent.SetEventObject(curve);
+                OnVCChanged(vcevent);
+                curve->UpdateState();
+            }
+        }
+    }
+}
+
+void DMXPanel::OnButtonRemapRClick(wxCommandEvent& event)
+{
+    if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) {
+        return;
+    }
+
+    // i should only display the menu if at least one effect is selected
+    int alleffects = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffectCount("");
+    if (alleffects < 1)
+    {
+        return;
+    }
+
+    wxMenu mnu;
+    mnu.Append(wxID_ANY, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&DMXPanel::OnChoicePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void DMXPanel::OnChoicePopup(wxCommandEvent& event)
+{
+    RemapDMXChannelsDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        std::vector<std::pair<int, int>> fromto;
+
+        for (int i = 0; i < 40; i++)
+        {
+            if (dlg.Grid1->GetCellValue(i, 0) != dlg.Grid1->GetCellValue(i, 1))
+            {
+                fromto.push_back({ i + 1,wxAtoi(dlg.Grid1->GetCellValue(i, 1).AfterLast(' ')) });
+            }
+        }
+
+        if (fromto.size() > 0)
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->RemapSelectedDMXEffectValues(fromto);
+            // unselect and select effect to update the panel
+            auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+            if (effect != nullptr)
+            {
+                xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->RaiseSelectedEffectChanged(effect, true, true);
+            }
+        }
+    }
+}
