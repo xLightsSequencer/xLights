@@ -749,7 +749,8 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                 {
                     // wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
 
-                    uint32_t posDiff = std::abs((long)(pli->GetFrameMS() - ms));
+                    //uint32_t posDiff = std::abs((long)(pli->GetFrameMS() - ms));
+                    uint32_t posDiff = std::abs((long)(pli->GetPositionMS() - ms)); // Stephen Morgan - Wrong Variable?
                     if (posDiff > acceptableJitter)
                     {
                         int frame = ms / pli->GetFrameMS();
@@ -794,7 +795,8 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                 {
                     //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
 
-                    uint32_t posDiff = std::abs((long)(pli->GetFrameMS() - ms));
+                    //uint32_t posDiff = std::abs((long)(pli->GetFrameMS() - ms));
+                    uint32_t posDiff = std::abs((long)(pli->GetPositionMS() - ms)); // Stephen Morgan - Wrong Variable?
                     if (posDiff > acceptableJitter)
                     {
                         int frame = ms / pli->GetFrameMS();
