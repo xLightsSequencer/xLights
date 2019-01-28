@@ -36,7 +36,7 @@ namespace DrawGLUtils
         void calcProgram();
         
         std::vector<GLfloat> vertices;
-        std::vector<GLbyte> colors;
+        std::vector<GLubyte> colors;
         std::vector<GLfloat> texCoords;
         std::vector<GLfloat> normals;
         std::vector<GLfloat> wireframe;
@@ -48,6 +48,7 @@ namespace DrawGLUtils
             int startIdx;
             int count;
             GLint image;
+            bool transparent;
         };
         std::vector<PType> programTypes;
     };
@@ -469,7 +470,13 @@ namespace DrawGLUtils
 		virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
 		virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
-        virtual void Draw(xlAccumulator &va) = 0;
+        
+        enum DrawType {
+            ALL,
+            SOLIDS,
+            TRANSPARENTS
+        };
+        virtual void Draw(xlAccumulator &va, DrawType dt = ALL) = 0;
         
         virtual xl3DMesh *createMesh() = 0;
 
@@ -537,8 +544,8 @@ namespace DrawGLUtils
     bool IsCoreProfile();
     int NextTextureIdx();
 
-    void Draw(xlAccumulator &va);
-    void Draw(xl3Accumulator &va);
+    void Draw(xlAccumulator &va, xlGLCacheInfo::DrawType dt = xlGLCacheInfo::DrawType::ALL);
+    void Draw(xl3Accumulator &va, xlGLCacheInfo::DrawType dt = xlGLCacheInfo::DrawType::ALL);
     void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0);
     void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0);
     void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0);

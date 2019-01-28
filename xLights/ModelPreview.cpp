@@ -901,8 +901,9 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
         if (accumulator3d.count > maxVertexCount) {
             maxVertexCount = accumulator3d.count;
         }
+        DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
         DrawGLUtils::Draw(accumulator3d);
-        DrawGLUtils::Draw(view_object_accumulator);
+        DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
     } else {
         if (accumulator.count > maxVertexCount) {
             maxVertexCount = accumulator.count;

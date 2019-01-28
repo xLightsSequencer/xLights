@@ -455,6 +455,7 @@
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
 		67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50A2045B96000F5B99D /* SequenceVideoPreview.cpp */; };
 		67B5F50F2045B96100F5B99D /* SequenceVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */; };
+		67B61E8021FEF3A900BCB000 /* RemapDMXChannelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */; };
 		67B6F3252040BF6C00B847E0 /* PixelTestDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */; };
 		67B6F3332040F59500B847E0 /* ListenerMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3302040F59400B847E0 /* ListenerMIDI.cpp */; };
 		67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B6F3312040F59500B847E0 /* EventMIDI.cpp */; };
@@ -1559,6 +1560,8 @@
 		67B5F50B2045B96000F5B99D /* SequenceVideoPreview.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceVideoPreview.h; sourceTree = "<group>"; };
 		67B5F50C2045B96000F5B99D /* SequenceVideoPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SequenceVideoPanel.h; sourceTree = "<group>"; };
 		67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SequenceVideoPanel.cpp; sourceTree = "<group>"; };
+		67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RemapDMXChannelsDialog.cpp; sourceTree = "<group>"; };
+		67B61E7F21FEF3A900BCB000 /* RemapDMXChannelsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemapDMXChannelsDialog.h; sourceTree = "<group>"; };
 		67B6F3232040BF6C00B847E0 /* PixelTestDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelTestDialog.h; sourceTree = "<group>"; };
 		67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelTestDialog.cpp; sourceTree = "<group>"; };
 		67B6F32F2040F59400B847E0 /* ListenerMIDI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ListenerMIDI.h; path = events/ListenerMIDI.h; sourceTree = "<group>"; };
@@ -2893,6 +2896,8 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
+				67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */,
+				67B61E7F21FEF3A900BCB000 /* RemapDMXChannelsDialog.h */,
 				674623C321E1A888005AE464 /* PathGenerationDialog.cpp */,
 				674623C221E1A888005AE464 /* PathGenerationDialog.h */,
 				6794272221CC075B00F7ED59 /* FSEQFile.cpp */,
@@ -3996,6 +4001,7 @@
 				670827F92024C19D0002B617 /* LorControllerDialog.cpp in Sources */,
 				67BBF2A91E0C147D0054D264 /* BufferSizeDialog.cpp in Sources */,
 				6780E7EA1F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp in Sources */,
+				67B61E8021FEF3A900BCB000 /* RemapDMXChannelsDialog.cpp in Sources */,
 				6718EE731CDA4BD400A6E842 /* SubBufferPanel.cpp in Sources */,
 				676AE41C201BDB6200EA14F8 /* SelectTimingsDialog.cpp in Sources */,
 				673C925320A47C4C00E59F5D /* VendorMusicHelpers.cpp in Sources */,

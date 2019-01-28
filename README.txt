@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   Draw solid parts of mesh before lights, allows lights to blend onto them. (OpenGL 3.3 only)
+   -- bug (dkulp)   In 3d, if a grid or image object wasn't also present, mesh would not appear.
    -- enh (scott)   Added rotation to the Shape Effect
 2019.07 January 27, 2019
    -- enh (tyler)   Add inside/outside ration to star model

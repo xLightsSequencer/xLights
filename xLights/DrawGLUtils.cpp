@@ -116,7 +116,7 @@ void DrawGLUtils::xl3DMesh::addSurface(const float vert[3][3], const float uv[3]
         colors.push_back(clr[v][3]);
         images.push_back(imageId);
     }
-    
+
     wireframe.push_back(vert[0][0]);
     wireframe.push_back(vert[0][1]);
     wireframe.push_back(vert[0][2]);
@@ -143,6 +143,10 @@ void DrawGLUtils::xl3DMesh::addLine(float vert[2][3]) {
         lines.push_back(vert[v][2]);
     }
 }
+inline bool hasTransparent(int idx, const std::vector<GLubyte> &colors) {
+    static const GLubyte SOLID = 255;
+    return colors[idx*4 + 3] != SOLID;
+}
 void DrawGLUtils::xl3DMesh::calcProgram() {
     if (!images.empty()) {
         programTypes.push_back(PType());
@@ -150,14 +154,17 @@ void DrawGLUtils::xl3DMesh::calcProgram() {
         programTypes[curIdx].image = images[0];
         programTypes[curIdx].startIdx = 0;
         programTypes[curIdx].count = 1;
+        programTypes[curIdx].transparent = hasTransparent(0, colors);
         for (int x = 1; x < images.size(); x++) {
-            if (images[x] != programTypes[curIdx].image) {
+            if (images[x] != programTypes[curIdx].image
+                || hasTransparent(x, colors) != programTypes[curIdx].transparent) {
                 //changing image
                 programTypes.push_back(PType());
                 curIdx++;
                 programTypes[curIdx].image = images[x];
                 programTypes[curIdx].startIdx = x;
                 programTypes[curIdx].count = 1;
+                programTypes[curIdx].transparent = hasTransparent(x, colors);
             } else {
                 programTypes[curIdx].count++;
             }
@@ -190,8 +197,9 @@ public:
         data.Reset();
     }
 
-    void Draw(DrawGLUtils::xlAccumulator &va) override {
-        if (va.count == 0) {
+    void Draw(DrawGLUtils::xlAccumulator &va, DrawType dt) override {
+        if (va.count == 0 || dt == DrawType::SOLIDS) {
+            //we cannot determine transparent vs solid right now so draw everything when transparents are asked
             return;
         }
         bool textsBound = false;
@@ -502,12 +510,12 @@ void DrawGLUtils::Scale(float w, float h, float z) {
     currentCache->Scale(w, h, z);
 }
 
-void DrawGLUtils::Draw(xlAccumulator &va) {
-    currentCache->Draw(va);
+void DrawGLUtils::Draw(xlAccumulator &va, DrawGLUtils::xlGLCacheInfo::DrawType dt) {
+    currentCache->Draw(va, dt);
 }
 
-void DrawGLUtils::Draw(xl3Accumulator &va) {
-    currentCache->Draw(va);
+void DrawGLUtils::Draw(xl3Accumulator &va, DrawGLUtils::xlGLCacheInfo::DrawType dt) {
+    currentCache->Draw(va, dt);
 }
 
 void DrawGLUtils::Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability) {

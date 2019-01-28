@@ -324,8 +324,9 @@ public:
     }
 
 
-    void Draw(DrawGLUtils::xlAccumulator &va) override {
-        if (va.count == 0) {
+    void Draw(DrawGLUtils::xlAccumulator &va, DrawType dt) override {
+        if (va.count == 0 || dt == DrawType::SOLIDS) {
+            //we cannot determine transparent vs solid right now so draw everything when transparents are asked
             return;
         }
         bool intelMapped = false;
