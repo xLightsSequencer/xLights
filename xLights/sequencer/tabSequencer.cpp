@@ -2431,7 +2431,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     colorPanel->ValidateWindow();
 }
 
-std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
+std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
 {
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
     if (eff == nullptr)

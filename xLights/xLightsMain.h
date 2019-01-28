@@ -1484,7 +1484,6 @@ private:
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
 
-    std::string GetEffectTextFromWindows(std::string &palette);
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);
 
@@ -1589,6 +1588,8 @@ public:
     std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory);
     bool IsInShowFolder(const std::string & file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
+
+    std::string GetEffectTextFromWindows(std::string &palette) const;
 
 	void DoPlaySequence();
     void RecalcModels(bool force = false);

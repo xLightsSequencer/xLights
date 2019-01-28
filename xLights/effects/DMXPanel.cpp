@@ -2,7 +2,6 @@
 #include "DMXEffect.h"
 #include "../xLightsMain.h"
 #include "../sequencer/MainSequencer.h"
-#include "../sequencer/EffectLayer.h"
 #include "../sequencer/Effect.h"
 
 #include "EffectPanelUtils.h"

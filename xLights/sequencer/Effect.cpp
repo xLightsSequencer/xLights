@@ -10,6 +10,7 @@
 #include "../RenderCache.h"
 #include "../models/Model.h"
 #include "../xLightsMain.h"
+#include "../xLightsApp.h"
 
 #include <unordered_map>
 
@@ -343,6 +344,22 @@ void Effect::ConvertTo(int effectIndex)
             }
         }
         mSettings = newSettings;
+
+        std::string palette;
+        std::string effectText = xLightsApp::GetFrame()->GetEffectTextFromWindows(palette);
+
+        auto es = wxSplit(effectText, ',');
+        for (auto it: es)
+        {
+            if (StartsWith(it, "E_"))
+            {
+                auto sv = wxSplit(it, '=');
+                if (sv.size()==2)
+                {
+                    mSettings[sv[0]] = sv[1];
+                }
+            }
+        }
     }
 }
 

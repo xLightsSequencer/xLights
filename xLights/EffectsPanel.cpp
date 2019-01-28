@@ -296,6 +296,12 @@ void EffectsPanel::OnChoicePopup(wxCommandEvent& event)
         SetDefaultEffectValues(nullptr, nullptr, dlg.GetStringSelection());
 
         xLightsApp::GetFrame()->GetMainSequencer()->ConvertSelectedEffectsTo(dlg.GetStringSelection());
+
+        auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (effect != nullptr)
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->RaiseSelectedEffectChanged(effect, true, true);
+        }
     }
 }
 
