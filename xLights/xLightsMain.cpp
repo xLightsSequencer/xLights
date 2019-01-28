@@ -69,6 +69,7 @@
 #include "LyricUserDictDialog.h"
 #include "models/ViewObject.h"
 #include "models/SubModel.h"
+#include "controllers/EasyLights_Utils/EasyLights_StandAlone_Dialog.h"
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -315,6 +316,7 @@ const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
+const long xLightsFrame::MenuItem_Controller_Connect = wxNewId();
 const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_AUTOSHOWHOUSEPREVIEW = wxNewId();
 const long xLightsFrame::ID_MENUITEM_AUTOSAVE_0 = wxNewId();
@@ -353,6 +355,7 @@ const long xLightsFrame::ID_MNU_UPDATE = wxNewId();
 const long xLightsFrame::ID_TIMER1 = wxNewId();
 const long xLightsFrame::ID_TIMER2 = wxNewId();
 const long xLightsFrame::ID_TIMER_EFFECT_SETTINGS = wxNewId();
+const long xLightsFrame::ID_MENU_EASYLIGHTS_STANDALONE = wxNewId();
 //*)
 
 // For new sequencer
@@ -865,8 +868,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Menu1->Append(mExportModelsMenuItem);
     MenuItem_ExportEffects = new wxMenuItem(Menu1, ID_MNU_EXPORT_EFFECTS, _("Export &Effects"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ExportEffects);
-    MenuItem_FPP_Connect = new wxMenuItem(Menu1, ID_MENU_FPP_CONNECT, _("&FPP Connect"), wxEmptyString, wxITEM_NORMAL);
-    Menu1->Append(MenuItem_FPP_Connect);
+	ControllerConnectMenu = new wxMenu();
+	MenuItem_FPP_Connect = new wxMenuItem(ControllerConnectMenu, ID_MENU_FPP_CONNECT, _("&FPP Connect"), wxEmptyString, wxITEM_NORMAL);
+	ControllerConnectMenu->Append(MenuItem_FPP_Connect);
+	MenuItem_EasyLights_Stand_Alone = new wxMenuItem(Menu1, ID_MENU_EASYLIGHTS_STANDALONE, _("&EasyLights StandAlone"), wxEmptyString, wxITEM_NORMAL);
+	ControllerConnectMenu->Append(MenuItem_EasyLights_Stand_Alone);
+	Menu1->Append(MenuItem_Controller_Connect, _("Controller Connect"), ControllerConnectMenu, wxEmptyString);
     MenuItem_PackageSequence = new wxMenuItem(Menu1, ID_MNU_PACKAGESEQUENCE, _("Package &Sequence"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_PackageSequence);
     MenuItemUserDict = new wxMenuItem(Menu1, ID_MENU_USER_DICT, _("User Lyric Dictionary"), wxEmptyString, wxITEM_NORMAL);
@@ -1391,6 +1398,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(wxID_ANY,wxEVT_CLOSE_WINDOW,(wxObjectEventFunction)&xLightsFrame::OnClose);
     Connect(wxEVT_CHAR,(wxObjectEventFunction)&xLightsFrame::OnChar);
     Connect(wxEVT_SIZE,(wxObjectEventFunction)&xLightsFrame::OnResize);
+	Connect(ID_MENU_EASYLIGHTS_STANDALONE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_EasyLights_StandAloneSelected);
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(xLightsFrame::OnCharHook), nullptr, this);
@@ -6709,6 +6717,23 @@ void xLightsFrame::OnMenuItem_FPP_ConnectSelected(wxCommandEvent& event)
 
     dlg.ShowModal();
 }
+
+void xLightsFrame::OnMenuItem_EasyLights_StandAloneSelected(wxCommandEvent& event)
+{
+	// make sure everything is up to date
+	if(Notebook1->GetSelection() != LAYOUTTAB)
+		layoutPanel->UnSelectAllModels();
+	RecalcModels();
+
+	EasyLights_StandAlone_Dialog dlg(this);
+
+	dlg.FseqDirectory = fseqDirectory;
+	dlg.ShowDirectory = showDirectory;
+	dlg.OutPutMgr = &_outputManager;
+
+	dlg.ShowModal();
+}
+
 
 void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 {

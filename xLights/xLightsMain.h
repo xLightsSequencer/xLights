@@ -559,6 +559,7 @@ public:
     void OnMenuItemFSEQV2Selected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
+	void OnMenuItem_EasyLights_StandAloneSelected(wxCommandEvent& event);
 private:
 
     //void OnMenuItem53Selected(wxCommandEvent& event);
@@ -774,6 +775,7 @@ public:
     static const long ID_MENU_OPENGL_3;
     static const long ID_MENU_OPENGL_2;
     static const long ID_MENU_OPENGL_1;
+	static const long  MenuItem_Controller_Connect;
     static const long ID_MENUITEM19;
     static const long ID_MNU_PLAYCONTROLSONPREVIEW;
     static const long ID_MNU_AUTOSHOWHOUSEPREVIEW;
@@ -813,6 +815,7 @@ public:
     static const long ID_TIMER1;
     static const long ID_TIMER2;
     static const long ID_TIMER_EFFECT_SETTINGS;
+	static const long ID_MENU_EASYLIGHTS_STANDALONE;
     //*)
 
     static const long ID_PANEL_EFFECTS1;
@@ -874,6 +877,7 @@ public:
     wxMenu* MenuSettings;
     wxMenu* MenuView;
     wxMenu* OpenGLMenu;
+	wxMenu* ControllerConnectMenu;
     wxMenu* ToolIconSizeMenu;
     wxMenuBar* MenuBar;
     wxMenuItem* ActionTestMenuItem;
@@ -993,6 +997,7 @@ public:
     wxMenuItem* mExportModelsMenuItem;
     wxMenuItem* mRenderOnSaveMenuItem;
     wxMenuItem* mSaveFseqOnSaveMenuItem;
+	wxMenuItem* MenuItem_EasyLights_Stand_Alone;
     wxPanel* AUIStatusBar;
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
