@@ -15,10 +15,7 @@ class PolyLineModel : public ModelWithScreenLocation<PolyPointScreenLocation>
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
 
-        int GetPolyLineSize(int polyLineLayer) const {
-			if (polyLineLayer >= polyLineSizes.size()) return 0;
-            return polyLineSizes[polyLineLayer];
-        }
+        int GetPolyLineSize(int polyLineLayer) const;
         virtual bool SupportsExportAsCustom() const override { return false; }
         virtual bool SupportsWiringView() const override { return false; }
         virtual int GetNumStrands() const override;

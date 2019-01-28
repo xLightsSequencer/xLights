@@ -93,6 +93,13 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::st
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
+int PolyLineModel::GetPolyLineSize(int polyLineLayer) const {
+    if (polyLineLayer >= polyLineSizes.size()) return 0;
+    if (polyLineSegDropSizes[polyLineLayer]) {
+        return polyLineSegDropSizes[polyLineLayer];
+    }
+    return polyLineSizes[polyLineLayer];
+}
 
 int PolyLineModel::GetStrandLength(int strand) const {
     return SingleNode ? 1 : GetPolyLineSize(strand);
@@ -597,12 +604,12 @@ void PolyLineModel::InitModel() {
                     c++;
                 } else {
                     c = 0;
-                    if (!SingleNode)
-                    {
+                    if (!SingleNode) {
                         IsLtoR ? idx++ : idx--;
                     }
                 }
             }
+            polyLineSegDropSizes[segment] += drops_this_node;
             drop_index %= dropSizes.size();
             current_pos += offset;
         }
