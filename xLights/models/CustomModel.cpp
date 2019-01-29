@@ -963,7 +963,7 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager) {
         html += "<tr>";
         for (int l = 0; l < _depth; l++)
         {
-            for (int c = 0; c < parm2; c++)
+            for (int c = 0; c < parm1; c++)
             {
                 wxString value = _data[l][r][c];
                 if (!value.IsEmpty() && value != "0")
