@@ -11,6 +11,9 @@
 #define RIPPLE_THICKNESS_MIN 1
 #define RIPPLE_THICKNESS_MAX 100
 
+#define RIPPLE_ROTATION_MIN 0
+#define RIPPLE_ROTATION_MAX 360
+
 class RippleEffect : public RenderableEffect
 {
     public:
