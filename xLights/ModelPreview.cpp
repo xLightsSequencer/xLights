@@ -483,7 +483,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
     allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr), xlights(xlights_), currentModel("&---none---&"),
     currentLayoutGroup("Default"), additionalModel(nullptr),  is_3d(false), m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1),
-    camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
+    camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000), _display2DBox(false), _center2D0(false)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -499,7 +499,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
     allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr), xlights(xl), is_3d(false),
     m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
-    currentLayoutGroup("Default"), currentModel(""), additionalModel(nullptr)
+    currentLayoutGroup("Default"), currentModel(""), additionalModel(nullptr), _display2DBox(false), _center2D0(false)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -539,8 +539,9 @@ void ModelPreview::SetVirtualCanvasSize(int width, int height) {
     virtualHeight = height;
 }
 
-void ModelPreview::InitializePreview(wxString img, int brightness, int alpha)
+void ModelPreview::InitializePreview(wxString img, int brightness, int alpha, bool center2d0)
 {
+    _center2D0 = center2d0;
     if (img != mBackgroundImage) {
         if (image) {
             if (cache) {
@@ -805,6 +806,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(camera2d->GetZoom() * scale2d, camera2d->GetZoom() * scale2d, 1.0f));
         glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(camera2d->GetPanX()*camera2d->GetZoom() - camera2d->GetZoomCorrX() + scale_corrx, camera2d->GetPanY()*camera2d->GetZoom() - camera2d->GetZoomCorrY() + scale_corry, 0.0f));
         ViewMatrix = ViewTranslate * ViewScale;
+        if (_center2D0) {
+            glm::mat4 cTranslate =  glm::translate(glm::mat4(1.0f), glm::vec3(((float)virtualWidth) / 2.0f, 0.0f, 0.0f));
+            ViewMatrix = ViewTranslate * ViewScale * cTranslate;
+        }
         ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);  // this must match prepare2DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;
 
@@ -888,7 +893,13 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 
     // Draw a box around the default area in 2D
     if (!is_3d && allowSelected && _display2DBox) {
-        accumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+        if (_center2D0) {
+            float x = -virtualWidth;
+            x /= 2.0f;
+            accumulator.AddLinesRect(x, 0, x + virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+        } else {
+            accumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+        }
         accumulator.Finish(GL_LINES);
     }
 

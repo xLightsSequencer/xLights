@@ -724,13 +724,15 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
         xlights->SetPreviewSize(modelPreview->GetVirtualCanvasWidth(), event.GetValue().GetLong());
         xlights->UpdateModelsList();
     }
-    else if (name == "BoundingBox")
-    {
+    else if (name == "BoundingBox") {
         modelPreview->SetDisplay2DBoundingBox(event.GetValue().GetBool());
         xlights->SetDisplay2DBoundingBox(event.GetValue().GetBool());
         xlights->MarkEffectsFileDirty(false);
-    }
-    else if (name == "BkgImage") {
+    } else if (name == "2DXZeroIsCenter") {
+        modelPreview->SetDisplay2DCenter0(event.GetValue().GetBool());
+        xlights->SetDisplay2DCenter0(event.GetValue().GetBool());
+        xlights->MarkEffectsFileDirty(false);
+    } else if (name == "BkgImage") {
         if (currentLayoutGroup == "Default" || currentLayoutGroup == "All Models" || currentLayoutGroup == "Unassigned") {
             xlights->SetPreviewBackgroundImage(event.GetValue().GetString());
         }
@@ -834,6 +836,10 @@ void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
 {
     modelPreview->SetDisplay2DBoundingBox(bb);
 }
+void LayoutPanel::SetDisplay2DCenter0(bool bb) {
+    modelPreview->SetDisplay2DBoundingBox(bb);
+}
+
 
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
@@ -1751,6 +1757,9 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         prop->SetEditor("SpinCtrl");
 
         prop = propertyEditor->Append(new wxBoolProperty("2D Bounding Box", "BoundingBox", xlights->GetDisplay2DBoundingBox()));
+        prop->SetAttribute("UseCheckbox", true);
+
+        prop = propertyEditor->Append(new wxBoolProperty("X0 Is Center", "2DXZeroIsCenter", xlights->GetDisplay2DCenter0()));
         prop->SetAttribute("UseCheckbox", true);
 
         propertyEditor->Thaw();
@@ -5052,6 +5061,7 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         UpdateModelList(true);
     }
     modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+    modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
     modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
     modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
     modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
@@ -5183,6 +5193,7 @@ void LayoutPanel::AddPreviewChoice(const std::string &name)
                 SetCurrentLayoutGroup(storedLayoutGroup);
                 ChoiceLayoutGroups->SetSelection(i);
                 modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+                modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
                 modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
                 modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
                 modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());
@@ -5279,6 +5290,7 @@ void LayoutPanel::DeleteCurrentPreview()
 
         UpdateModelList(true);
         modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
+        modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
         modelPreview->SetbackgroundImage(GetBackgroundImageForSelectedPreview());
         modelPreview->SetScaleBackgroundImage(GetBackgroundScaledForSelectedPreview());
         modelPreview->SetBackgroundBrightness(GetBackgroundBrightnessForSelectedPreview(), GetBackgroundAlphaForSelectedPreview());

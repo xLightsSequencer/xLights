@@ -1375,6 +1375,8 @@ public:
     void SetPreviewBackgroundImage(const wxString &filename);
     void SetDisplay2DBoundingBox(bool bb);
     bool GetDisplay2DBoundingBox() const;
+    void SetDisplay2DCenter0(bool bb);
+    bool GetDisplay2DCenter0() const;
     const wxString & GetDefaultPreviewBackgroundImage();
     bool GetDefaultPreviewBackgroundScaled();
     int GetDefaultPreviewBackgroundBrightness();

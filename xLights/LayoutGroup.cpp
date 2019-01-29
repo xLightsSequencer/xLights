@@ -187,7 +187,7 @@ void LayoutGroup::ShowPreview(bool show)
         }
         preview->SetSize(mPosX, mPosY, mPaneWidth, mPaneHeight);
         xlights->PreviewWindows.push_back(new_preview);
-        new_preview->InitializePreview(mBackgroundImage, mBackgroundBrightness, mBackgroundAlpha);
+        new_preview->InitializePreview(mBackgroundImage, mBackgroundBrightness, mBackgroundAlpha, xlights->GetDisplay2DCenter0());
         new_preview->SetScaleBackgroundImage(mScaleBackgroundImage);
         new_preview->SetCanvasSize(modelPreview->GetVirtualCanvasWidth(), modelPreview->GetVirtualCanvasHeight());
         mPreviewCreated = true;

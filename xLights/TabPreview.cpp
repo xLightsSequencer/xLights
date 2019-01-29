@@ -74,6 +74,18 @@ bool xLightsFrame::GetDisplay2DBoundingBox() const
     return (GetXmlSetting("Display2DBoundingBox", "0") == "1");
 }
 
+void xLightsFrame::SetDisplay2DCenter0(bool bb) {
+    if (bb != GetDisplay2DCenter0())
+    {
+        SetXmlSetting("Display2DCenter0", bb ? "1" : "0");
+        UnsavedRgbEffectsChanges = true;
+        UpdatePreview();
+    }
+}
+bool xLightsFrame::GetDisplay2DCenter0() const {
+    return (GetXmlSetting("Display2DCenter0", "0") == "1");
+}
+
 const wxString & xLightsFrame::GetDefaultPreviewBackgroundImage()
 {
     return mBackgroundImage;

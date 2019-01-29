@@ -34,7 +34,7 @@ public:
 	virtual ~ModelPreview();
 
     // Public Methods
-	void InitializePreview(wxString img,int brightness,int alpha);
+	void InitializePreview(wxString img,int brightness,int alpha, bool center2d0);
     bool StartDrawing(wxDouble pointSize, bool fromPaint = false);
     void SetPointSize(wxDouble pointSize);
     void Reset();
@@ -103,6 +103,7 @@ public:
     void SetCamera2D(int i);
     void SetCamera3D(int i);
     void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
+    void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
 
 protected:
     virtual void InitializeGLCanvas() override;
@@ -142,6 +143,7 @@ private:
     int virtualWidth, virtualHeight;
 
     bool _display2DBox;
+    bool _center2D0;
     Image* image;
     bool scaleImage = false;
     xLightsDrawable* sprite;

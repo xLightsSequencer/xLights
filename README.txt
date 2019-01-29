@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   Add an option for 2D preview to move the 0.0 location to the middle bottom
    -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for various buffer styles
    -- enh (dkulp)   Draw solid parts of mesh before lights, allows lights to blend onto them. (OpenGL 3.3 only)
    -- bug (dkulp)   In 3d, if a grid or image object wasn't also present, mesh would not appear.
