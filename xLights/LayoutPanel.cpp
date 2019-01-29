@@ -4174,11 +4174,112 @@ void LayoutPanel::Nudge(int key)
                 deltax *= lastDelta;
                 deltay *= lastDelta;
 
-                // FIXME:  Only nudges in X/Z plane currently
                 if (is_3d)
                 {
                     deltay *= -1;
-                    it->AddOffset(deltax, 0.0, deltay);
+                    int x = modelPreview->GetCameraRotationX();
+                    int y = modelPreview->GetCameraRotationY();
+
+                    // round to nearest 90 degrees
+                    x += 45;
+                    x /= 90;
+                    x *= 90;
+                    y += 45;
+                    y /= 90;
+                    y *= 90;
+
+                    float xx = 0.0;
+                    float yy = 0.0;
+                    float zz = 0.0;
+
+                    if (x == 0 || x == 360)
+                    {
+                        yy = -deltay;
+                        if (y == 0 || y == 360)
+                        {
+                            xx = deltax;
+                        }
+                        else if (y == 90)
+                        {
+                            zz = deltax;
+                        }
+                        else if (y == 180)
+                        {
+                            xx = -deltax;
+                        }
+                        else if (y == 270)
+                        {
+                            zz = -deltax;
+                        }
+                    }
+                    else if (x == 90)
+                    {
+                        if (y == 0 || y == 360)
+                        {
+                            xx = deltax;
+                            zz = deltay;
+                        }
+                        else if (y == 90)
+                        {
+                            zz = deltax;
+                            xx = -deltay;
+                        }
+                        else if (y == 180)
+                        {
+                            xx = -deltax;
+                            zz = -deltay;
+                        }
+                        else if (y == 270)
+                        {
+                            zz = -deltax;
+                            xx = deltay;
+                        }
+                    }
+                    else if (x == 180)
+                    {
+                        yy = deltay;
+                        if (y == 0 || y == 360)
+                        {
+                            xx = deltax;
+                        }
+                        else if (y == 90)
+                        {
+                            zz = deltax;
+                        }
+                        else if (y == 180)
+                        {
+                            xx = -deltax;
+                        }
+                        else if (y == 270)
+                        {
+                            zz = -deltax;
+                        }
+                    }
+                    else if (x == 270)
+                    {
+                        if (y == 0 || y == 360)
+                        {
+                            xx = deltax;
+                            zz = -deltay;
+                        }
+                        else if (y == 90)
+                        {
+                            zz = deltax;
+                            xx = deltay;
+                        }
+                        else if (y == 180)
+                        {
+                            xx = -deltax;
+                            zz = deltay;
+                        }
+                        else if (y == 270)
+                        {
+                            zz = -deltax;
+                            xx = -deltay;
+                        }
+                    }
+
+                    it->AddOffset(xx, yy, zz);
                 }
                 else
                 {

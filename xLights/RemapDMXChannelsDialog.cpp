@@ -55,6 +55,8 @@ RemapDMXChannelsDialog::RemapDMXChannelsDialog(wxWindow* parent, wxWindowID id,c
 	FlexGridSizer1->SetSizeHints(this);
 	//*)
 
+    SetEscapeId(wxID_CANCEL);
+
     wxGridCellAttr *ca = new wxGridCellAttr();
     ca->SetKind(wxGridCellAttr::wxAttrKind::Col);
     ca->SetReadOnly();
