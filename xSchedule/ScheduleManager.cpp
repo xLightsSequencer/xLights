@@ -865,6 +865,13 @@ int ScheduleManager::Frame(bool outputframe)
                 if (running->GetRunningStep() != nullptr)
                 {
                     size_t fms;
+                    std::string tsn = "";
+                    auto ts = running->GetRunningStep()->GetTimeSource(fms);
+                    if (ts != nullptr)
+                    {
+                        tsn = running->GetRunningStep()->GetTimeSource(fms)->GetNameNoTime();
+                    }
+
                     _syncManager->SendSync(rate , 
                         running->GetRunningStep()->GetLengthMS(), 
                         running->GetRunningStep()->GetPosition(), 
@@ -872,7 +879,7 @@ int ScheduleManager::Frame(bool outputframe)
                         fseq, 
                         media, 
                         running->GetRunningStep()->GetNameNoTime(), 
-                        running->GetRunningStep()->GetTimeSource(fms)->GetNameNoTime());
+                        tsn);
                 }
 
                 // for queued songs we must remove the queued song when it finishes
@@ -1158,7 +1165,11 @@ int ScheduleManager::Frame(bool outputframe)
 
 bool ScheduleManager::IsSlave() const
 {
-    return _syncManager->IsSlave();
+    if (_syncManager != nullptr)
+    {
+        return _syncManager->IsSlave();
+    }
+    return false;
 }
 
 void ScheduleManager::CreateBrightnessArray()
