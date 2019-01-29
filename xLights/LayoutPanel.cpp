@@ -837,7 +837,7 @@ void LayoutPanel::SetDisplay2DBoundingBox(bool bb)
     modelPreview->SetDisplay2DBoundingBox(bb);
 }
 void LayoutPanel::SetDisplay2DCenter0(bool bb) {
-    modelPreview->SetDisplay2DBoundingBox(bb);
+    modelPreview->SetDisplay2DCenter0(bb);
 }
 
 
