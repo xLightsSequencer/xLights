@@ -47,6 +47,17 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
+std::list<std::string> StateEffect::GetStatesUsed(const SettingsMap& SettingsMap)
+{
+    std::list<std::string> res;
+    auto state = SettingsMap.Get("E_CHOICE_State_StateDefinition", "");
+    if (state != "")
+    {
+        res.emplace_back(state);
+    }
+    return res;
+}
+
 void StateEffect::SetPanelStatus(Model *cls) {
     StatePanel *fp = (StatePanel*)panel;
     if (fp == nullptr) {

@@ -69,6 +69,8 @@
 #include "LyricUserDictDialog.h"
 #include "models/ViewObject.h"
 #include "models/SubModel.h"
+#include "effects/FacesEffect.h"
+#include "effects/StateEffect.h"
 
 // image files
 #include "../include/control-pause-blue-icon.xpm"
@@ -5735,12 +5737,15 @@ void xLightsFrame::CheckSequence(bool display)
 
         // check all effects
         bool videoCacheWarning = false;
+        std::list<std::pair<std::string, std::string>> faces;
+        std::list<std::pair<std::string, std::string>> states;
+        std::list<std::string> viewPoints;
         for (int i = 0; i < mSequenceElements.GetElementCount(MASTER_VIEW); i++)
         {
             Element* e = mSequenceElements.GetElement(i);
             if (e->GetType() != ELEMENT_TYPE_TIMING)
             {
-                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning);
+                CheckElement(e, f, errcount, warncount, e->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
 
                 if (e->GetType() == ELEMENT_TYPE_MODEL)
                 {
@@ -5749,7 +5754,7 @@ void xLightsFrame::CheckSequence(bool display)
                     for (int j = 0; j < me->GetStrandCount(); ++j)
                     {
                         StrandElement* se = me->GetStrand(j);
-                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning);
+                        CheckElement(se, f, errcount, warncount, se->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
 
                         for(int k = 0; k < se->GetNodeLayerCount(); ++k)
                         {
@@ -5757,7 +5762,7 @@ void xLightsFrame::CheckSequence(bool display)
                             for (int l = 0; l < nl->GetEffectCount(); l++)
                             {
                                 Effect* ef = nl->GetEffect(l);
-                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning);
+                                CheckEffect(ef, f, errcount, warncount, wxString::Format("%sStrand %d/Node %d", se->GetFullName(), j+1, l+1).ToStdString(), e->GetName(), true, videoCacheWarning, faces, states, viewPoints);
                             }
                         }
                     }
@@ -5766,7 +5771,7 @@ void xLightsFrame::CheckSequence(bool display)
                         Element* sme = me->GetSubModel(j);
                         if (sme->GetType() == ELEMENT_TYPE_SUBMODEL)
                         {
-                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning);
+                            CheckElement(sme, f, errcount, warncount, sme->GetFullName(), e->GetName(), videoCacheWarning, faces, states, viewPoints);
                         }
                     }
                 }
@@ -5778,6 +5783,28 @@ void xLightsFrame::CheckSequence(bool display)
             wxString msg = wxString::Format("    WARN: Seqeuence has one or more video effects where render caching is turned off. This will render slowly.");
             LogAndWrite(f, msg.ToStdString());
             warncount++;
+        }
+
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model Faces used by this sequence:");
+        for (auto it : faces)
+        {
+            wxString msg = wxString::Format("        Model %s, Face %s.", it.first, it.second);
+            LogAndWrite(f, msg.ToStdString());
+        }
+        LogAndWrite(f, "");
+        LogAndWrite(f, "Model States used by this sequence:");
+        for (auto it : states)
+        {
+            wxString msg = wxString::Format("        Model %s, Face %s.", it.first, it.second);
+            LogAndWrite(f, msg.ToStdString());
+        }
+        LogAndWrite(f, "");
+        LogAndWrite(f, "View Points used by this sequence:");
+        for (auto it : viewPoints)
+        {
+            wxString msg = wxString::Format("        Viewpoint %s.", it);
+            LogAndWrite(f, msg.ToStdString());
         }
 
         if (errcount + warncount == errcountsave + warncountsave)
@@ -5825,7 +5852,7 @@ void xLightsFrame::CheckSequence(bool display)
     }
 }
 
-void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning)
+void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
 {
     EffectManager& em = mSequenceElements.GetEffectManager();
     SettingsMap& sm = ef->GetSettings();
@@ -5945,10 +5972,66 @@ void xLightsFrame::CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warnco
                 errcount++;
             }
         }
+
+        if (ef->GetEffectName() == "Faces")
+        {
+            for (auto it : static_cast<FacesEffect*>(re)->GetFacesUsed(sm))
+            {
+                bool found = false;
+                for (auto it2 : faces)
+                {
+                    if (it2.first == modelName && it2.second == it)
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    faces.push_back({ modelName, it });
+                }
+            }
+        }
+        else if (ef->GetEffectName() == "State")
+        {
+            for (auto it : static_cast<StateEffect*>(re)->GetStatesUsed(sm))
+            {
+                bool found = false;
+                for (auto it2 : states)
+                {
+                    if (it2.first == modelName && it2.second == it)
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    states.push_back({ modelName, it });
+                }
+            }
+        }
+
+        for (auto it : sm)
+        {
+            if (it.first == "B_CHOICE_PerPreviewCamera")
+            {
+                bool found = false;
+                for (auto it2 : viewPoints)
+                {
+                    if (it2 == it.second)
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    viewPoints.push_back(it.second);
+                }
+            }
+        }
     }
 }
 
-void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning)
+void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints)
 {
     for (int j = 0; j < e->GetEffectLayerCount(); j++)
     {
@@ -6002,7 +6085,7 @@ void xLightsFrame::CheckElement(Element* e, wxFile& f, int& errcount, int& warnc
                 }
             }
 
-            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning);
+            CheckEffect(ef, f, errcount, warncount, name, modelName, false, videoCacheWarning, faces, states, viewPoints);
         }
 
         // This assumes effects are stored in start time order per layer
