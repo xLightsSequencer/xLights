@@ -11,8 +11,18 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.08 January 30, 2019
+   -- enh (keith)   Add to check sequence the listing of faces, states and view points a sequence relies 
+			        upon to help preparing for imports
+   -- enh (keith)   In layout mode adapt the axis of movement using the keyboard based on camera position
+   -- enh (keith)   Add channel remapping to the DMX effect
+   -- enh (keith)   Add the selected effect time to the waveform for easier alignment
+   -- bug (keith)   Fix model per strand render buffers when group contains a custom model
+   -- bug (keith)   Fix node layout on custom models when not square
+   -- bug (keith)   Fix effect type bulk edit doesnt always initialise effect settings
    -- enh (dkulp)   Add an option for 2D preview to move the 0.0 location to the middle bottom
-   -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for various buffer styles
+   -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for 
+                    various buffer styles
    -- enh (dkulp)   Draw solid parts of mesh before lights, allows lights to blend onto them. (OpenGL 3.3 only)
    -- bug (dkulp)   In 3d, if a grid or image object wasn't also present, mesh would not appear.
    -- enh (scott)   Added rotation to the Shape Effect
