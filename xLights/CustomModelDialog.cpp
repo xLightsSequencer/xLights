@@ -1570,10 +1570,25 @@ void CustomModelDialog::AddPage()
     grid->CreateGrid(1, 1);
     grid->EnableEditing(true);
     grid->EnableGridLines(true);
-    grid->SetColLabelSize(20);
-    grid->SetRowLabelSize(30);
-    grid->SetDefaultColSize(30, true);
-    grid->SetDefaultCellFont(grid->GetFont());
+
+    if (_grids.size() == 0)
+    {
+        grid->SetColLabelSize(20);
+        grid->SetRowLabelSize(30);
+        grid->SetDefaultColSize(30, true);
+        grid->SetDefaultCellFont(grid->GetFont());
+    }
+    else
+    {
+        grid->SetDefaultCellFont(_grids[0]->GetCellFont(0, 0));
+        grid->SetCellFont(0, 0, _grids[0]->GetCellFont(0, 0));
+        grid->SetLabelFont(_grids[0]->GetLabelFont());
+        grid->SetColLabelSize(_grids[0]->GetColLabelSize());
+        grid->SetRowLabelSize(_grids[0]->GetRowLabelSize());
+        grid->SetDefaultColSize(_grids[0]->GetColSize(0), true);
+        grid->SetDefaultRowSize(_grids[0]->GetRowSize(0), true); // for some reason this does not actually work
+    }
+
     grid->SetDefaultCellTextColour(grid->GetForegroundColour());
     sizer->Add(grid, 0, wxEXPAND, 0);
     p->SetSizer(sizer);

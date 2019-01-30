@@ -5786,24 +5786,26 @@ void xLightsFrame::CheckSequence(bool display)
         }
 
         LogAndWrite(f, "");
+        LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
+        LogAndWrite(f, "");
         LogAndWrite(f, "Model Faces used by this sequence:");
         for (auto it : faces)
         {
-            wxString msg = wxString::Format("        Model %s, Face %s.", it.first, it.second);
+            wxString msg = wxString::Format("        Model: %s, Face: %s.", it.first, it.second);
             LogAndWrite(f, msg.ToStdString());
         }
         LogAndWrite(f, "");
         LogAndWrite(f, "Model States used by this sequence:");
         for (auto it : states)
         {
-            wxString msg = wxString::Format("        Model %s, Face %s.", it.first, it.second);
+            wxString msg = wxString::Format("        Model: %s, State: %s.", it.first, it.second);
             LogAndWrite(f, msg.ToStdString());
         }
         LogAndWrite(f, "");
         LogAndWrite(f, "View Points used by this sequence:");
         for (auto it : viewPoints)
         {
-            wxString msg = wxString::Format("        Viewpoint %s.", it);
+            wxString msg = wxString::Format("        Viewpoint: %s.", it);
             LogAndWrite(f, msg.ToStdString());
         }
 
