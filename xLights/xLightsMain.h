@@ -772,7 +772,6 @@ public:
     static const long ID_MENUITEM_Timing_DClick_Mode;
     static const long ID_MENU_OPENGL_AUTO;
     static const long ID_MENU_OPENGL_3;
-    static const long ID_MENU_OPENGL_2;
     static const long ID_MENU_OPENGL_1;
     static const long ID_MENUITEM19;
     static const long ID_MNU_PLAYCONTROLSONPREVIEW;
@@ -889,7 +888,6 @@ public:
     wxMenuItem* MenuItem3;
     wxMenuItem* MenuItem40;
     wxMenuItem* MenuItem41;
-    wxMenuItem* MenuItem42;
     wxMenuItem* MenuItem43;
     wxMenuItem* MenuItem49;
     wxMenuItem* MenuItem50;

@@ -314,7 +314,6 @@ const long xLightsFrame::ID_MENU_TIMING_PLAY_MODE = wxNewId();
 const long xLightsFrame::ID_MENUITEM_Timing_DClick_Mode = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_AUTO = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
-const long xLightsFrame::ID_MENU_OPENGL_2 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
@@ -1085,9 +1084,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     OpenGLMenu->Append(MenuItem40);
     MenuItem41 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_3, _("3.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem41);
-    MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_2, _("2.x"), wxEmptyString, wxITEM_RADIO);
-    OpenGLMenu->Append(MenuItem42);
-    MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x"), wxEmptyString, wxITEM_RADIO);
+    MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x/2.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem43);
     MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), OpenGLMenu, wxEmptyString);
     MenuItem_PlayControlsOnPreview = new wxMenuItem(MenuSettings, ID_MNU_PLAYCONTROLSONPREVIEW, _("Play Controls On Preview"), wxEmptyString, wxITEM_CHECK);
@@ -1353,7 +1350,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENU_TIMING_PLAY_MODE,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemTimingPlayOnDClick);
     Connect(ID_MENU_OPENGL_AUTO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
-    Connect(ID_MENU_OPENGL_2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MNU_PLAYCONTROLSONPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected);
     Connect(ID_MNU_AUTOSHOWHOUSEPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_AutoShowHousePreviewSelected);
@@ -1909,10 +1905,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     config->Write("LastOpenGLVer", glVer);
     switch (glVer) {
         case 1:
+            case 2:
             OpenGLMenu->Check(ID_MENU_OPENGL_1, true);
-            break;
-        case 2:
-            OpenGLMenu->Check(ID_MENU_OPENGL_2, true);
             break;
         case 3:
             OpenGLMenu->Check(ID_MENU_OPENGL_3, true);
@@ -4027,15 +4021,12 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
     wxConfigBase* config = wxConfigBase::Get();
     OpenGLMenu->Check(ID_MENU_OPENGL_AUTO, false);
     OpenGLMenu->Check(ID_MENU_OPENGL_3, false);
-    OpenGLMenu->Check(ID_MENU_OPENGL_2, false);
     OpenGLMenu->Check(ID_MENU_OPENGL_1, false);
 
     if (event.GetId() == ID_MENU_OPENGL_AUTO) {
         config->Write("ForceOpenGLVer", 99);
     } else if (event.GetId() == ID_MENU_OPENGL_3) {
         config->Write("ForceOpenGLVer", 3);
-    } else if (event.GetId() == ID_MENU_OPENGL_2) {
-        config->Write("ForceOpenGLVer", 2);
     } else if (event.GetId() == ID_MENU_OPENGL_1) {
         config->Write("ForceOpenGLVer", 1);
     }

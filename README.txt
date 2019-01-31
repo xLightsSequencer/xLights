@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (dkulp)   Update OpenGL 1.1/2.1 render routines to peform better with Mesh objects
 2019.08 January 30, 2019
    -- enh (keith)   Add to check sequence the listing of faces, states and view points a sequence relies 
 			        upon to help preparing for imports

@@ -366,7 +366,6 @@ void AddDebugLog(xlGLCanvas *c) {
 
 
 DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
-DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
 void xlGLCanvas::DisplayWarning(const wxString &msg) {
@@ -515,11 +514,6 @@ void xlGLCanvas::SetCurrentGLContext() {
                 UsesVertex3Accumulator(),
                 UsesVertex3TextureAccumulator(),
                 UsesVertex3ColorAccumulator()));
-        }
-        if (cache == nullptr && ver >=2
-            && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {
-            logger_opengl.info("Try creating 2.1 Cache");
-            LOG_GL_ERRORV(cache = Create21Cache());
         }
         if (cache == nullptr) {
             logger_opengl.info("Try creating 1.1 Cache");

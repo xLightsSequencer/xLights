@@ -1576,13 +1576,8 @@
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_2" variable="MenuItem42" member="yes">
-						<label>2.x</label>
-						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
-						<radio>1</radio>
-					</object>
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="yes">
-						<label>1.x</label>
+						<label>1.x/2.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>

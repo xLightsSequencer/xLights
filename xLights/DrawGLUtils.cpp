@@ -38,7 +38,7 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     static bool isTraceDebugEnabled = logger_opengl_trace.isDebugEnabled();
-    static bool isDebugEnabled = logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
+    static bool isDebugEnabled = true; //logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
     if (isDebugEnabled) {
         int er = glGetError();
         if (er || isTraceDebugEnabled) {
@@ -148,6 +148,7 @@ inline bool hasTransparent(int idx, const std::vector<GLubyte> &colors) {
     return colors[idx*4 + 3] != SOLID;
 }
 void DrawGLUtils::xl3DMesh::calcProgram() {
+    programTypes.clear();
     if (!images.empty()) {
         programTypes.push_back(PType());
         int curIdx = 0;
@@ -171,6 +172,172 @@ void DrawGLUtils::xl3DMesh::calcProgram() {
         }
     }
 }
+class GL1Mesh : public DrawGLUtils::xl3DMesh {
+    
+public:
+    GL1Mesh() : DrawGLUtils::xl3DMesh(), lastBrightness(-1), wfList(0), mList(0) {
+    }
+    virtual ~GL1Mesh() {
+        if (wfList) {
+            glDeleteLists(wfList, 1);
+        }
+        if (lList) {
+            glDeleteLists(lList, 1);
+        }
+        if (mList) {
+            glDeleteLists(mList, 2);
+        }
+    }
+
+    void Draw(bool wf, float brightness, DrawGLUtils::xlGLCacheInfo::DrawType dt) {
+        if (programTypes.empty()) {
+            calcProgram();
+            wfList = glGenLists(1);
+            lList = glGenLists(1);
+            mList = glGenLists(2);
+            
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &wireframe[0]));
+            glNewList(wfList, GL_COMPILE);
+            LOG_GL_ERRORV(glColor4f(0.0, 1.0, 0.0, 1.0));
+            glBegin(GL_LINES);
+            for (int x = 0; x < wireframe.size(); x += 3) {
+                glVertex3f(wireframe[x], wireframe[x + 1], wireframe[x + 2]);
+            }
+            glEnd();
+            glEndList();
+            
+            glNewList(lList, GL_COMPILE);
+            LOG_GL_ERRORV(glColor4f(0.0, 0.0, 0.0, 1.0));
+            glEnable(GL_LINE_SMOOTH);
+            glBegin(GL_LINES);
+            for (int x = 0; x < lines.size(); x += 3) {
+                glVertex3f(lines[x], lines[x + 1], lines[x + 2]);
+            }
+            glEnd();
+            glDisable(GL_LINE_SMOOTH);
+            glEndList();
+        }
+        if (lastBrightness != brightness) {
+            if (mList) {
+                glDeleteLists(mList, 2);
+            }
+            mList = glGenLists(2);
+
+            dimColors.resize(colors.size());
+            for (int x = 0; x < colors.size(); x += 4) {
+                for (int y = 0; y < 3; y++) {
+                    float t = colors[x + y] * brightness;
+                    t /= 100.0f;
+                    t /= 255.0f;
+                    dimColors[x + y] = t;
+                }
+                float t = colors[x + 3];
+                t /= 255.0f;
+                dimColors[x + 3] = t;
+            }
+            lastBrightness = brightness;
+            
+            float bri = brightness;
+            bri /= 100.0f;
+            LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+            LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &vertices[0]));
+            LOG_GL_ERRORV(glColorPointer(4, GL_FLOAT, 0, &dimColors[0]));
+            LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, &texCoords[0]));
+            LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+            glNewList(mList, GL_COMPILE);
+            for (auto & pt : programTypes) {
+                if (pt.transparent == false) {
+                    if (pt.image == -1) {
+                        LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                    } else {
+                        LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                        LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                        LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                        LOG_GL_ERRORV(glColor4f(bri, bri, bri, 1.0f));
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                    }
+                    LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                    if (pt.image != -1) {
+                        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                        LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                        LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                    }
+                }
+            }
+            glEndList();
+            glNewList(mList + 1, GL_COMPILE);
+            for (auto & pt : programTypes) {
+                if (pt.transparent == true) {
+                    if (pt.image == -1) {
+                        LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                    } else {
+                        LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                        LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                        LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                        LOG_GL_ERRORV(glColor4f(bri, bri, bri, 1.0f));
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                    }
+                    LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                    if (pt.image != -1) {
+                        LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                        LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                        LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                    }
+                }
+            }
+            glEndList();
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &lines[0]));
+
+            LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+            LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, 0));
+            LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0));
+            LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, 0));
+        }
+        bool ttype = dt == DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS;
+        glm::mat4 curMatrix;
+        glGetFloatv(GL_MODELVIEW_MATRIX, glm::value_ptr(curMatrix));
+        glm::mat4 mat = curMatrix * matrix;
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(mat)));
+        float bri = brightness;
+        bri /= 100.0f;
+
+        if (wf) {
+            if (!ttype) {
+                glCallList(wfList);
+            }
+        } else {
+            if (ttype) {
+                glCallList(mList + 1);
+            } else {
+                glCallList(mList);
+                if (!lines.empty()) {
+                    glCallList(lList);
+                }
+            }
+        }
+        LOG_GL_ERRORV(glColor4f(1, 1, 1, 1));
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(curMatrix)));
+    }
+    private:
+    std::vector<GLfloat> dimColors;
+    int lastBrightness;
+    GLint wfList;
+    GLint lList;
+    GLint mList;
+
+};
 
 class OpenGL11Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
@@ -198,10 +365,17 @@ public:
     }
 
     void Draw(DrawGLUtils::xlAccumulator &va, DrawType dt) override {
-        if (va.count == 0 || dt == DrawType::SOLIDS) {
-            //we cannot determine transparent vs solid right now so draw everything when transparents are asked
-            return;
+        if (va.count == 0) {
+            bool hasMesh = false;
+            for (auto &a : va.types) {
+                hasMesh |= a.mesh != nullptr;
+            }
+            if (!hasMesh) {
+                return;
+            }
         }
+        bool ttype = dt == DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS;
+
         bool textsBound = false;
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
@@ -210,39 +384,57 @@ public:
         LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
 
         for (auto it = va.types.begin(); it != va.types.end(); ++it) {
-            if (it->textureId != -1) {
-                LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-                if (!textsBound) {
-                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
-                    textsBound = true;
-                }
-                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
-                LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
-                float trans = it->textureAlpha;
-                trans /= 255.0f;
-                float bri = it->textureBrightness;
-                LOG_GL_ERRORV(glColor4f(bri/100.0f, bri/100.0f, bri/100.0f, trans));
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            }
-            if (it->type == GL_POINTS) {
-                LOG_GL_ERRORV(glPointSize(it->extra));
-            } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
-                DrawGLUtils::SetLineWidth(it->extra);
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glEnable(it->enableCapability));
-            }
-            LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
-            if (it->textureId != -1) {
+            if (it->mesh != nullptr) {
+                GL1Mesh *mesh = (GL1Mesh*)it->mesh;
+                mesh->Draw(it->extra == 1, it->textureBrightness, dt);
+                
+                LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
                 LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-                LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-                LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glDisable(it->enableCapability));
+                
+                LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+                LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+                textsBound = false;
+            } else {
+                bool doDraw = !ttype;
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                    if (!textsBound) {
+                        LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
+                        textsBound = true;
+                    }
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                    LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                    if (it->textureAlpha != 255) {
+                        doDraw = !ttype;
+                    }
+                    float trans = it->textureAlpha;
+                    trans /= 255.0f;
+                    float bri = it->textureBrightness;
+                    LOG_GL_ERRORV(glColor4f(bri/100.0f, bri/100.0f, bri/100.0f, trans));
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                }
+                if (it->type == GL_POINTS) {
+                    LOG_GL_ERRORV(glPointSize(it->extra));
+                } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
+                    DrawGLUtils::SetLineWidth(it->extra);
+                }
+                if (it->enableCapability != 0) {
+                    LOG_GL_ERRORV(glEnable(it->enableCapability));
+                }
+                if (doDraw) {
+                    LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+                }
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
+                }
+                if (it->enableCapability != 0) {
+                    LOG_GL_ERRORV(glDisable(it->enableCapability));
+                }
             }
         }
 
@@ -366,7 +558,7 @@ public:
     }
 
     virtual DrawGLUtils::xl3DMesh *createMesh() override {
-        return nullptr;
+        return new GL1Mesh();
     }
     
     virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {

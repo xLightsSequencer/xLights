@@ -81,7 +81,6 @@
 		670E473F1C62A901008F4C60 /* ModelGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E473E1C62A901008F4C60 /* ModelGroup.cpp */; };
 		670E47421C62F4AD008F4C60 /* CircleModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670E47411C62F4AD008F4C60 /* CircleModel.cpp */; };
 		670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */ = {isa = PBXBuildFile; fileRef = 670F163E1CDBC53F0039D4DB /* xlights.mac.properties */; };
-		670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 670F23651CCE664500A09765 /* DrawGLUtils21.cpp */; };
 		671130AD1E4EB13B00AF09A7 /* ServoEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130A91E4EB13B00AF09A7 /* ServoEffect.cpp */; };
 		671130AE1E4EB13B00AF09A7 /* ServoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130AB1E4EB13B00AF09A7 /* ServoPanel.cpp */; };
 		671130B31E4EB18100AF09A7 /* VSAFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671130AF1E4EB18100AF09A7 /* VSAFile.cpp */; };
@@ -906,7 +905,6 @@
 		670E47401C62F4AD008F4C60 /* CircleModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CircleModel.h; path = models/CircleModel.h; sourceTree = "<group>"; };
 		670E47411C62F4AD008F4C60 /* CircleModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CircleModel.cpp; path = models/CircleModel.cpp; sourceTree = "<group>"; };
 		670F163E1CDBC53F0039D4DB /* xlights.mac.properties */ = {isa = PBXFileReference; lastKnownFileType = text; name = xlights.mac.properties; path = bin/xlights.mac.properties; sourceTree = "<group>"; };
-		670F23651CCE664500A09765 /* DrawGLUtils21.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DrawGLUtils21.cpp; sourceTree = "<group>"; };
 		671130A91E4EB13B00AF09A7 /* ServoEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServoEffect.cpp; path = effects/ServoEffect.cpp; sourceTree = "<group>"; };
 		671130AA1E4EB13B00AF09A7 /* ServoEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ServoEffect.h; path = effects/ServoEffect.h; sourceTree = "<group>"; };
 		671130AB1E4EB13B00AF09A7 /* ServoPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ServoPanel.cpp; path = effects/ServoPanel.cpp; sourceTree = "<group>"; };
@@ -2965,7 +2963,6 @@
 				674E3EEB20CEB6000087FDA1 /* DissolveTransitionPattern.h */,
 				671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */,
 				67A260EC1AB71EE3006B140D /* DrawGLUtils.cpp */,
-				670F23651CCE664500A09765 /* DrawGLUtils21.cpp */,
 				67276C471CB424B300A245CA /* DrawGLUtils31.cpp */,
 				6778F3E31A601CA7008C2086 /* Effect.cpp */,
 				675DE2551B53381800A9BB44 /* EffectAssist.cpp */,
@@ -3955,7 +3952,6 @@
 				6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */,
 				6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */,
 				67B2CFE51C3A186A003C17CA /* PicturesEffect.cpp in Sources */,
-				670F23661CCE664500A09765 /* DrawGLUtils21.cpp in Sources */,
 				67A61A3317B51C0F008E95BB /* PixelBuffer.cpp in Sources */,
 				679DD28E1DDE493900A389E6 /* TouchBars.cpp in Sources */,
 				67FA9FD31C67837500FED13B /* AudioManager.cpp in Sources */,
