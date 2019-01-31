@@ -41,93 +41,195 @@ wxPanel *FireworksEffect::CreatePanel(wxWindow *parent) {
     return new FireworksPanel(parent);
 }
 
-//Max of 50 explosions * 100 particles
-static const int maxFlakes = 5000;
-
-class RgbFireworks
+class FireworkParticle
 {
+    const int _maxFade = 100;
+    double _x;
+    double _y;
+    double _vx;
+    double _vy;
+    int _fade;
+    bool _gravity;
+    HSVValue _startColour;
+    int _colourIndex;
+    bool _holdColour;
+    int _width;
+    int _height;
+    double _fps;
+    int _age = 0;
+
 public:
-    //static const float velocity = 2.5;
-    static const int maxCycle = 4096;
-    static const int maxNewBurstFlakes = 10;
-    float _x;
-    float _y;
-    float _dx;
-    float _dy;
-    float vel;
-    float angle;
-    bool _bActive;
-    int _cycles;
-    int _colorindex;
-    int startPeriod;
-    float orig_x;
-    float orig_y;
-    float orig_dx;
-    float orig_dy;
-    float orig_vel;
-    float orig_angle;
-    HSVValue _hsv;
-
-    void Reset()
+    FireworkParticle(int x, int y, double vx, double vy, int fade, bool gravity, int colourIndex, bool holdColour, double velocity, int width, int height, int frameMS, const PaletteClass& palette)
     {
-        _x = orig_x;
-        _y = orig_y;
-        vel = orig_vel;
-        angle = orig_angle;
-        _dx = orig_dx;
-        _dy = orig_dy;
+        _width = width;
+        _height = height;
+        _x = x;
+        _y = y;
+        _fade = fade;
+        _gravity = gravity;
+        _colourIndex = colourIndex;
+        _holdColour = holdColour;
+
+        if (_holdColour)
+        {
+            palette.GetHSV(_colourIndex, _startColour);
+        }
+
+        _fps = 1000.0 / frameMS;
+
+        double explosionVelocity = (rand() - RAND_MAX / 2)*velocity / (RAND_MAX / 2);
+        double angle = 2 * M_PI*rand() / RAND_MAX;
+        _vx = 3.0 * vx / 100 + explosionVelocity * cos(angle);
+        _vy = 3.0 * -vy / 100 + explosionVelocity * sin(angle);
+    }
+
+    virtual ~FireworkParticle() {}
+
+    bool Done() const
+    {
+        return (_fade < _age * 2 || _x < 0 || _y < 0 || _x > _width || (!_gravity && _y > _height));
+    }
+
+    void Advance()
+    {
+        _x += _vx;
+        if (_gravity)
+        {
+            _vy += 0.98 / _fps;
+        }
+        _y += -_vy;
+        _age++;
+    }
+
+    int GetX() const { return _x; }
+    int GetY() const { return _y; }
+
+    xlColor GetColour(const PaletteClass& palette, bool alpha) const
+    {
+        double v = ((10.0*_fade) - _age * 20.0) / (10.0*_fade);
+        if (v < 0.0) v = 0.0;
+
+        HSVValue cv = _startColour;
+        if (_holdColour)
+        {
+            if (alpha)
+            {
+                xlColor c(cv);
+                c.alpha = 255.0 *v;
+                return c;
+            }
+            else
+            {
+                cv.value = v;
+                return xlColor(cv);
+            }
+        }
+        else
+        {
+            palette.GetHSV(_colourIndex, cv);
+            if (alpha)
+            {
+                xlColor c(cv);
+                c.alpha = 255.0 * v;
+                return c;
+            }
+            else
+            {
+                cv.value = v;
+                return xlColor(cv);
+            }
+        }
+    }
+};
+
+class Firework
+{
+    const int _maxCycles = 500;
+    int _cycles = 0;
+    mutable bool _done = false;
+    std::vector<FireworkParticle> _particles;
+
+public:
+    Firework(int particles, int x, int y, double vx, double vy, int fade, bool gravity, int colourIndex, bool holdColour, double velocity, int width, int height, int frameMS, const PaletteClass& palette)
+    {
         _cycles = 0;
-        _bActive = false;
+        for (int i = 0; i < particles; i++)
+        {
+            _particles.push_back(FireworkParticle(x, y, vx, vy, fade, gravity, colourIndex, holdColour, velocity, width, height, frameMS, palette));
+        }
     }
 
-    void Reset(int x, int y, bool active, float velocity, int colorindex, int start)
-    {
-        _x       = x;
-        orig_x = x;
-        _y       = y;
-        orig_y = y;
-        vel      = (rand()-RAND_MAX/2)*velocity/(RAND_MAX/2);
-        orig_vel = vel;
-        angle    = 2*M_PI*rand()/RAND_MAX;
-        orig_angle = angle;
-        _dx      = vel*cos(angle);
-        orig_dx = _dx;
-        _dy      = vel*sin(angle);
-        orig_dy = _dy;
-        _cycles  = 0;
-        _colorindex = colorindex;
-        startPeriod = start;
-        _bActive = false;
+    const std::vector<FireworkParticle>& GetParticles() const {
+        return _particles;
     }
-protected:
-private:
+
+    void Advance()
+    {
+        _cycles++;
+
+        for (auto& it : _particles)
+        {
+            it.Advance();
+        }
+
+        if (Done()) _particles.clear();
+    }
+
+    bool AllGone() const
+    {
+        for (auto it : _particles)
+        {
+            if (!it.Done()) return false;
+        }
+
+        _done = true;
+        return true;
+    }
+
+    bool Done() const
+    {
+        return _done || _cycles >= _maxCycles || AllGone();
+    }
 };
 
 class FireworksRenderCache : public EffectRenderCache {
 public:
-    FireworksRenderCache() : fireworkBursts(maxFlakes), sincelasttriggered(0), next(0) {};
+    FireworksRenderCache() {};
     virtual ~FireworksRenderCache() {};
-    int next;
-    int sincelasttriggered;
-    std::vector<RgbFireworks> fireworkBursts;
+    int _sinceLastTriggered = 0;
+    std::list<Firework> _fireworks;
+    std::vector<int> _firePeriods;
 };
 
 #define REPEATTRIGGER 20
 
 void FireworksEffect::SetDefaultParameters() {
-    FireworksPanel *fp = (FireworksPanel*)panel;
+    FireworksPanel *fp = static_cast<FireworksPanel*>(panel);
     if (fp == nullptr) {
         return;
     }
+
+    fp->BitmapButton_Fireworks_Count->SetActive(false);
+    fp->BitmapButton_Fireworks_Velocity->SetActive(false);
+    fp->BitmapButton_Fireworks_XVelocity->SetActive(false);
+    fp->BitmapButton_Fireworks_YVelocity->SetActive(false);
+    fp->BitmapButton_Fireworks_XLocation->SetActive(false);
+    fp->BitmapButton_Fireworks_YLocation->SetActive(false);
 
     SetSliderValue(fp->Slider_Fireworks_Num_Explosions, 16);
     SetSliderValue(fp->Slider_Fireworks_Count, 50);
     SetSliderValue(fp->Slider_Fireworks_Velocity, 2);
     SetSliderValue(fp->Slider_Fireworks_Fade, 50);
     SetSliderValue(fp->Slider_Fireworks_Sensitivity, 50);
+    SetSliderValue(fp->Slider_Fireworks_XVelocity, 0);
+    SetSliderValue(fp->Slider_Fireworks_YVelocity, 0);
+    SetSliderValue(fp->Slider_Fireworks_XLocation, -1);
+    SetSliderValue(fp->Slider_Fireworks_YLocation, -1);
 
     SetCheckBoxValue(fp->CheckBox_Fireworks_UseMusic, false);
     SetCheckBoxValue(fp->CheckBox_FireTiming, false);
+    SetCheckBoxValue(fp->CheckBox_Fireworks_Gravity, true);
+    SetCheckBoxValue(fp->CheckBox_Fireworks_HoldColor, true);
 
     SetPanelTimingTracks();
 }
@@ -135,6 +237,24 @@ void FireworksEffect::SetDefaultParameters() {
 void FireworksEffect::SetPanelStatus(Model *cls)
 {
     SetPanelTimingTracks();
+}
+
+bool FireworksEffect::needToAdjustSettings(const std::string &version)
+{
+    return IsVersionOlder("2019.9", version);
+}
+
+void FireworksEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
+{
+    SettingsMap &settings = effect->GetSettings();
+    bool gravity = settings.GetBool("E_CHECKBOX_Fireworks_Gravity", false);
+    settings["E_CHECKBOX_Fireworks_Gravity"] = gravity ? "1" : "0";
+
+    // also give the base class a chance to adjust any settings
+    if (RenderableEffect::needToAdjustSettings(version))
+    {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
 }
 
 void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
@@ -149,9 +269,9 @@ void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname
     SetPanelTimingTracks();
 }
 
-void FireworksEffect::SetPanelTimingTracks()
+void FireworksEffect::SetPanelTimingTracks() const
 {
-    FireworksPanel *fp = (FireworksPanel*)panel;
+    FireworksPanel *fp = static_cast<FireworksPanel*>(panel);
     if (fp == nullptr)
     {
         return;
@@ -179,15 +299,38 @@ void FireworksEffect::SetPanelTimingTracks()
     wxPostEvent(fp, event);
 }
 
+std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, int overridex, int overridey)
+{
+    if (overridex >= 0 && overridey >= 0) return { overridex * width / 100, overridey * height / 100 };
+
+    int x25 = static_cast<int>(0.25f * width);
+    int x75 = static_cast<int>(0.75f * width);
+    int y25 = static_cast<int>(0.25f * height);
+    int y75 = static_cast<int>(0.75f * height);
+    int startX;
+    int startY;
+    if ((x75 - x25) > 0) startX = x25 + rand() % (x75 - x25); else startX = 0;
+    if ((y75 - y25) > 0) startY = y25 + rand() % (y75 - y25); else startY = 0;
+    return { startX, startY };
+}
+
 void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Number_Explosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
-    int Count = SettingsMap.GetInt("SLIDER_Fireworks_Count", 50);
-    float Velocity = SettingsMap.GetDouble("SLIDER_Fireworks_Velocity", 2.0f);
-    int Fade = SettingsMap.GetInt("SLIDER_Fireworks_Fade", 50);
+    float offset = buffer.GetEffectTimeIntervalPosition();
+    
+    int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
+    int particleCount = GetValueCurveInt("Fireworks_Count", 50, SettingsMap, offset, FIREWORKSCOUNT_MIN, FIREWORKSCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float particleVelocity = GetValueCurveDouble("Fireworks_Velocity", 2.0, SettingsMap, offset, FIREWORKSVELOCITY_MIN, FIREWORKSVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int fade = SettingsMap.GetInt("SLIDER_Fireworks_Fade", 50);
+    int xVelocity = GetValueCurveInt("Fireworks_XVelocity", 0, SettingsMap, offset, FIREWORKSXVELOCITY_MIN, FIREWORKSXVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yVelocity = GetValueCurveInt("Fireworks_YVelocity", 0, SettingsMap, offset, FIREWORKSYVELOCITY_MIN, FIREWORKSYVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xLocation = GetValueCurveInt("Fireworks_XLocation", -1, SettingsMap, offset, FIREWORKSXLOCATION_MIN, FIREWORKSXLOCATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yLocation = GetValueCurveInt("Fireworks_YLocation", -1, SettingsMap, offset, FIREWORKSYLOCATION_MIN, FIREWORKSYLOCATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool gravity = SettingsMap.GetBool("CHECKBOX_Fireworks_Gravity", false);
+    bool holdColour = SettingsMap.GetBool("CHECKBOX_Fireworks_HoldColour", true);
 
     float f = 0.0;
     bool useMusic = SettingsMap.GetBool("CHECKBOX_Fireworks_UseMusic", false);
-    float sensitivity = (float)SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50) / 100.0;
+    float sensitivity = static_cast<float>(SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50)) / 100.0;
     bool useTiming = SettingsMap.GetBool("CHECKBOX_FIRETIMING", false);
     wxString timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", "");
     if (timing == "") useTiming = false;
@@ -202,48 +345,26 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         }
     }
 
-    FireworksRenderCache *cache = (FireworksRenderCache*)buffer.infoCache[id];
+    FireworksRenderCache *cache = static_cast<FireworksRenderCache*>(buffer.infoCache[id]);
     if (cache == nullptr) {
         cache = new FireworksRenderCache();
         buffer.infoCache[id] = cache;
     }
     
-    int& next = cache->next;
-    int& sincelasttriggered = cache->sincelasttriggered;
-    int x25,x75,y25,y75;
-    //float velocity = 3.5;
-    int ColorIdx;
-    float v;
-    HSVValue hsv;
+    auto& sinceLastTriggered = cache->_sinceLastTriggered;
+    auto& fireworks = cache->_fireworks;
+    auto& firePeriods = cache->_firePeriods;
+
     size_t colorcnt = buffer.GetColorCount();
     
     if (buffer.needToInit) {
-        SetPanelTimingTracks();
-        cache->sincelasttriggered = 0;
-        cache->next = 0;
         buffer.needToInit = false;
-        for(int i=0; i<maxFlakes; i++) {
-            cache->fireworkBursts[i]._bActive = false;
-        }
-        for (int x = 0; x < Number_Explosions; x++) {
-            double start = -1;
-            if (!useMusic)
-            {
-                start = buffer.curEffStartPer + rand01() * (buffer.curEffEndPer - buffer.curEffStartPer);
-            }
-            x25=(int)buffer.BufferWi*0.25;
-            x75=(int)buffer.BufferWi*0.75;
-            y25=(int)buffer.BufferHt*0.25;
-            y75=(int)buffer.BufferHt*0.75;
-            int startX;
-            int startY;
-            if((x75-x25)>0) startX = x25 + rand()%(x75-x25); else startX=0;
-            if((y75-y25)>0) startY = y25 + rand()%(y75-y25); else startY=0;
-            
-            // Create a new burst
-            ColorIdx=rand() % colorcnt; // Select random numbers from 0 up to number of colors the user has checked. 0-5 if 6 boxes checked
-            for(int i=0; i<Count; i++) {
-                cache->fireworkBursts[x * Count + i].Reset(startX, startY, false, Velocity, ColorIdx, start);
+        SetPanelTimingTracks();
+        sinceLastTriggered = 0;
+        if (!useMusic)
+        {
+            for (int i = 0; i < numberOfExplosions; i++) {
+                firePeriods.push_back(buffer.curEffStartPer + rand01() * (buffer.curEffEndPer - buffer.curEffStartPer));
             }
         }
 
@@ -259,35 +380,31 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         if (f > sensitivity)
         {
             // trigger if it was not previously triggered or has been triggered for REPEATTRIGGER frames
-            if (sincelasttriggered == 0 || sincelasttriggered > REPEATTRIGGER)
+            if (sinceLastTriggered == 0 || sinceLastTriggered > REPEATTRIGGER)
             {
-                // activate all the particles in the next firework
-                for (int j = 0; j < Count; j++)
-                {
-                    cache->fireworkBursts[Count*next + j]._bActive = true;
-                    buffer.palette.GetHSV(cache->fireworkBursts[Count*next + j]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
-                    cache->fireworkBursts[Count*next + j]._hsv = hsv;
-                }
-
-                // use the next firework next time
-                next++;
-                if (next == Number_Explosions)
-                {
-                    next = 0;
-                }
+                auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
+                int colourIndex = rand() % colorcnt; 
+                fireworks.push_back(Firework(particleCount,
+                    location.first, location.second,
+                    xVelocity, yVelocity,
+                    fade, gravity,
+                    colourIndex, holdColour,
+                    particleVelocity,
+                    buffer.BufferWi, buffer.BufferHt,
+                    buffer.frameTimeInMs, buffer.palette));
             }
 
             // if music is over the trigger level for REPEATTRIGGER frames then we will trigger another firework
-            sincelasttriggered++;
-            if (sincelasttriggered > REPEATTRIGGER)
+            sinceLastTriggered++;
+            if (sinceLastTriggered > REPEATTRIGGER)
             {
-                sincelasttriggered = 0;
+                sinceLastTriggered = 0;
             }
         }
         else
         {
             // not triggered so clear last triggered counter
-            sincelasttriggered = 0;
+            sinceLastTriggered = 0;
         }
     }
 
@@ -320,27 +437,23 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             }
             else
             {
-                sincelasttriggered = 0;
+                sinceLastTriggered = 0;
                 EffectLayer* el = t->GetEffectLayer(0);
                 for (int j = 0; j < el->GetEffectCount(); j++)
                 {
                     if (buffer.curPeriod == el->GetEffect(j)->GetStartTimeMS() / buffer.frameTimeInMs ||
                         buffer.curPeriod == el->GetEffect(j)->GetEndTimeMS() / buffer.frameTimeInMs)
                     {
-                        // activate all the particles in the next firework
-                        for (int k = 0; k < Count; k++)
-                        {
-                            cache->fireworkBursts[Count*next + k]._bActive = true;
-                            buffer.palette.GetHSV(cache->fireworkBursts[Count*next + k]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
-                            cache->fireworkBursts[Count*next + k]._hsv = hsv;
-                        }
-
-                        // use the next firework next time
-                        next++;
-                        if (next == Number_Explosions)
-                        {
-                            next = 0;
-                        }
+                        auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
+                        int colourIndex = rand() % colorcnt;
+                        fireworks.push_back(Firework(particleCount,
+                            location.first, location.second,
+                            xVelocity, yVelocity,
+                            fade, gravity,
+                            colourIndex, holdColour,
+                            particleVelocity,
+                            buffer.BufferWi, buffer.BufferHt,
+                            buffer.frameTimeInMs, buffer.palette));
                         break;
                     }
                 }
@@ -348,48 +461,36 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         }
     }
 
-    for (int i=0; i<(Count*Number_Explosions); i++) {
-        if (!useMusic && !useTiming)
+    if (firePeriods.size() > 0)
+    {
+        for (auto it : firePeriods)
         {
-            if (cache->fireworkBursts[i].startPeriod == buffer.curPeriod) {
-                cache->fireworkBursts[i]._bActive = true;
-                buffer.palette.GetHSV(cache->fireworkBursts[i]._colorindex, hsv); // Now go and get the hsv value for this ColorIdx
-                cache->fireworkBursts[i]._hsv = hsv;
-            }
-        }
-
-        // ... active flakes:
-        if (cache->fireworkBursts[i]._bActive)
-        {
-            // Update position
-            cache->fireworkBursts[i]._x += cache->fireworkBursts[i]._dx;
-            cache->fireworkBursts[i]._y += (-cache->fireworkBursts[i]._dy - cache->fireworkBursts[i]._cycles*cache->fireworkBursts[i]._cycles/10000000.0);
-            // If this flake run for more than maxCycle or this flake is out of bounds, time to switch it off
-            cache->fireworkBursts[i]._cycles+=20;
-            if (cache->fireworkBursts[i]._cycles >= 10000 || cache->fireworkBursts[i]._y >= buffer.BufferHt || cache->fireworkBursts[i]._y < 0 ||
-                cache->fireworkBursts[i]._x < 0. || cache->fireworkBursts[i]._x >= buffer.BufferWi)
+            if (it == buffer.curPeriod)
             {
-                cache->fireworkBursts[i]._bActive = false;
-                if (useMusic)
-                {
-                    cache->fireworkBursts[i].Reset();
-                }
-                continue;
+                auto location = GetFireworkLocation(buffer.BufferWi, buffer.BufferHt, xLocation, yLocation);
+                int colourIndex = rand() % colorcnt;
+                fireworks.push_back(Firework(particleCount,
+                    location.first, location.second,
+                    xVelocity, yVelocity,
+                    fade, gravity,
+                    colourIndex, holdColour,
+                    particleVelocity,
+                    buffer.BufferWi, buffer.BufferHt,
+                    buffer.frameTimeInMs, buffer.palette));
             }
         }
-        if(cache->fireworkBursts[i]._bActive == true)
+    }
+
+    for (auto& it: fireworks)
+    {
+        if (!it.Done())
         {
-            v = ((Fade*10.0)-cache->fireworkBursts[i]._cycles)/(Fade*10.0);
-            if (v<0) v=0.0;
-            if (buffer.allowAlpha) {
-                xlColor c(cache->fireworkBursts[i]._hsv);
-                c.alpha = 255.0 * v;
-                buffer.SetPixel(cache->fireworkBursts[i]._x, cache->fireworkBursts[i]._y, c);
-            } else {
-                hsv=cache->fireworkBursts[i]._hsv;
-                hsv.value=v;
-                buffer.SetPixel(cache->fireworkBursts[i]._x, cache->fireworkBursts[i]._y, hsv);
+            for (auto p : it.GetParticles())
+            {
+                buffer.SetPixel(p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha));
             }
+
+            it.Advance();
         }
     }
 }

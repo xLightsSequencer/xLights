@@ -3,6 +3,23 @@
 
 #include "RenderableEffect.h"
 
+#define FIREWORKSCOUNT_MIN 1
+#define FIREWORKSCOUNT_MAX 100
+
+#define FIREWORKSVELOCITY_MIN 1
+#define FIREWORKSVELOCITY_MAX 10
+
+#define FIREWORKSXVELOCITY_MIN -100
+#define FIREWORKSXVELOCITY_MAX 100
+
+#define FIREWORKSYVELOCITY_MIN -100
+#define FIREWORKSYVELOCITY_MAX 100
+
+#define FIREWORKSXLOCATION_MIN -1
+#define FIREWORKSXLOCATION_MAX 100
+
+#define FIREWORKSYLOCATION_MIN -1
+#define FIREWORKSYLOCATION_MAX 100
 
 class FireworksEffect : public RenderableEffect
 {
@@ -17,7 +34,9 @@ class FireworksEffect : public RenderableEffect
         virtual bool AppropriateOnNodes() const override { return false; }
 protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
-        void SetPanelTimingTracks();
+        void SetPanelTimingTracks() const;
+        static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
+        virtual bool needToAdjustSettings(const std::string &version) override;
+        virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
 };
-
 #endif // FIREWORKSEFFECT_H
