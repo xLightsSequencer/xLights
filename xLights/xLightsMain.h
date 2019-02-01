@@ -557,6 +557,7 @@ public:
     void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
     void OnMenuItemFSEQV1Selected(wxCommandEvent& event);
     void OnMenuItemFSEQV2Selected(wxCommandEvent& event);
+    void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -670,6 +671,7 @@ public:
     static const long ID_MENUITEM_GenerateCustomModel;
     static const long ID_MNU_GENERATELYRICS;
     static const long ID_MENU_GENERATE2DPATH;
+    static const long ID_MNU_PREPAREAUDIO;
     static const long ID_MNU_CHECKSEQ;
     static const long ID_MNU_CLEANUPFILE;
     static const long ID_MENU_VIEW_LOG;
@@ -957,6 +959,7 @@ public:
     wxMenuItem* MenuItem_PackageSequence;
     wxMenuItem* MenuItem_PerspectiveAutosave;
     wxMenuItem* MenuItem_PlayControlsOnPreview;
+    wxMenuItem* MenuItem_PrepareAudio;
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;

@@ -2910,3 +2910,24 @@ std::list<std::string> AudioManager::GetAudioDevices()
 {
     return __sdl.GetAudioDevices();
 }
+
+void AudioManager::CreateMP3File(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate)
+{
+    memset(&m_Packet, 0, sizeof(m_Packet));
+    memset(&m_Frame, 0, sizeof(m_Frame));
+
+    av_init_packet(&m_Packet);
+
+    m_Packet.data = dst;
+    m_Packet.size = sizeBytes;
+
+    m_Frame->nb_samples = //you need to get this value from somewhere, it is the number of samples (per channel) this frame represents
+        avcodec_fill_audio_frame(m_Frame, m_handle->channels, m_handle->sample_fmt,
+            buffer,
+            sizeBytes, 1);
+
+
+    int gotPack = 1;
+
+    avcodec_encode_audio2(m_handle, &m_Packet, &m_Frame, &gotPack);
+}
