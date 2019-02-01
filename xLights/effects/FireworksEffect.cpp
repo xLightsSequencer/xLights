@@ -215,6 +215,7 @@ void FireworksEffect::SetDefaultParameters() {
     fp->BitmapButton_Fireworks_YVelocity->SetActive(false);
     fp->BitmapButton_Fireworks_XLocation->SetActive(false);
     fp->BitmapButton_Fireworks_YLocation->SetActive(false);
+    fp->BitmapButton_Fireworks_Fade->SetActive(false);
 
     SetSliderValue(fp->Slider_Fireworks_Num_Explosions, 16);
     SetSliderValue(fp->Slider_Fireworks_Count, 50);
@@ -320,7 +321,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", 16);
     int particleCount = GetValueCurveInt("Fireworks_Count", 50, SettingsMap, offset, FIREWORKSCOUNT_MIN, FIREWORKSCOUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     float particleVelocity = GetValueCurveDouble("Fireworks_Velocity", 2.0, SettingsMap, offset, FIREWORKSVELOCITY_MIN, FIREWORKSVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int fade = SettingsMap.GetInt("SLIDER_Fireworks_Fade", 50);
+    int fade = GetValueCurveInt("Fireworks_Fade", 50, SettingsMap, offset, FIREWORKSFADE_MIN, FIREWORKSFADE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int xVelocity = GetValueCurveInt("Fireworks_XVelocity", 0, SettingsMap, offset, FIREWORKSXVELOCITY_MIN, FIREWORKSXVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int yVelocity = GetValueCurveInt("Fireworks_YVelocity", 0, SettingsMap, offset, FIREWORKSYVELOCITY_MIN, FIREWORKSYVELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int xLocation = GetValueCurveInt("Fireworks_XLocation", -1, SettingsMap, offset, FIREWORKSXLOCATION_MIN, FIREWORKSXLOCATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

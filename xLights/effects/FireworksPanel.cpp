@@ -56,6 +56,7 @@ const long FireworksPanel::ID_CHECKBOX_Fireworks_HoldColour = wxNewId();
 const long FireworksPanel::ID_CHECKBOX_Fireworks_Gravity = wxNewId();
 const long FireworksPanel::ID_STATICTEXT_Fireworks_Fade = wxNewId();
 const long FireworksPanel::ID_SLIDER_Fireworks_Fade = wxNewId();
+const long FireworksPanel::ID_VALUECURVE_Fireworks_Fade = wxNewId();
 const long FireworksPanel::IDD_TEXTCTRL_Fireworks_Fade = wxNewId();
 const long FireworksPanel::ID_BITMAPBUTTON_SLIDER_Fireworks_Fade = wxNewId();
 const long FireworksPanel::ID_CHECKBOX_Fireworks_UseMusic = wxNewId();
@@ -86,6 +87,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
 	wxFlexGridSizer* FlexGridSizer73;
+	wxFlexGridSizer* FlexGridSizer7;
 
 	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
 	FlexGridSizer73 = new wxFlexGridSizer(0, 4, 0, 0);
@@ -168,7 +170,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	TextCtrl_Fireworks_XLocation = new BulkEditTextCtrl(this, ID_TEXTCTRL_Fireworks_XLocation, _("-1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fireworks_XLocation"));
 	TextCtrl_Fireworks_XLocation->SetMaxLength(3);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_XLocation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer73->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText6 = new wxStaticText(this, ID_STATICTEXT4, _("Y Location"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
 	FlexGridSizer73->Add(StaticText6, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -181,7 +183,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	TextCtrl_Fireworks_YLocation = new BulkEditTextCtrl(this, ID_TEXTCTRL_Fireworks_YLocation, _("-1"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Fireworks_YLocation"));
 	TextCtrl_Fireworks_YLocation->SetMaxLength(3);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_YLocation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer73->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer73->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBox_Fireworks_HoldColor = new BulkEditCheckBox(this, ID_CHECKBOX_Fireworks_HoldColour, _("Hold color"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fireworks_HoldColour"));
 	CheckBox_Fireworks_HoldColor->SetValue(true);
@@ -196,8 +198,13 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	FlexGridSizer73->Add(-1,-1,1, wxALL, 5);
 	StaticText95 = new wxStaticText(this, ID_STATICTEXT_Fireworks_Fade, _("Particle Fade"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Fireworks_Fade"));
 	FlexGridSizer73->Add(StaticText95, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer7->AddGrowableCol(0);
 	Slider_Fireworks_Fade = new BulkEditSlider(this, ID_SLIDER_Fireworks_Fade, 50, 1, 100, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Fireworks_Fade"));
-	FlexGridSizer73->Add(Slider_Fireworks_Fade, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer7->Add(Slider_Fireworks_Fade, 1, wxALL|wxEXPAND, 5);
+	BitmapButton_Fireworks_Fade = new BulkEditValueCurveButton(this, ID_VALUECURVE_Fireworks_Fade, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Fireworks_Fade"));
+	FlexGridSizer7->Add(BitmapButton_Fireworks_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer73->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	TextCtrl_Fireworks_Fade = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Fireworks_Fade, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Fireworks_Fade"));
 	TextCtrl_Fireworks_Fade->SetMaxLength(3);
 	FlexGridSizer73->Add(TextCtrl_Fireworks_Fade, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -250,6 +257,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Fireworks_YVelocity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Fireworks_XLocation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
 	Connect(ID_VALUECURVE_Fireworks_YLocation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
+	Connect(ID_VALUECURVE_Fireworks_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Fireworks_Fade,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
 	Connect(ID_CHECKBOX_Fireworks_UseMusic,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnCheckBox_Fireworks_UseMusicClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_Fireworks_UseMusic,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&FireworksPanel::OnLockButtonClick);
@@ -269,6 +277,7 @@ FireworksPanel::FireworksPanel(wxWindow* parent)
     BitmapButton_Fireworks_YVelocity->GetValue()->SetLimits(FIREWORKSXVELOCITY_MIN, FIREWORKSYVELOCITY_MAX);
     BitmapButton_Fireworks_XLocation->GetValue()->SetLimits(FIREWORKSXLOCATION_MIN, FIREWORKSXLOCATION_MAX);
     BitmapButton_Fireworks_YLocation->GetValue()->SetLimits(FIREWORKSXLOCATION_MIN, FIREWORKSYLOCATION_MAX);
+    BitmapButton_Fireworks_Fade->GetValue()->SetLimits(FIREWORKSFADE_MIN, FIREWORKSFADE_MAX);
 
     ValidateWindow();
 }
@@ -324,12 +333,12 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
 
     // check if anything has been removed ... if it has clear the list and we will have to rebuild it as you cant delete items from a combo box
     bool removed = false;
-    for (int i = 0; i < Choice_TimingTrack->GetCount(); i++)
+    for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
     {
         bool found = false;
-        for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
+        for (auto it : timingtracks)
         {
-            if (*it == Choice_TimingTrack->GetString(i))
+            if (it == Choice_TimingTrack->GetString(i))
             {
                 found = true;
                 break;
@@ -344,12 +353,12 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
+    for (auto it : timingtracks)
     {
         bool found = false;
-        for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
+        for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
         {
-            if (*it == Choice_TimingTrack->GetString(i))
+            if (it == Choice_TimingTrack->GetString(i))
             {
                 found = true;
                 break;
@@ -357,7 +366,7 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
         }
         if (!found)
         {
-            Choice_TimingTrack->Append(*it);
+            Choice_TimingTrack->Append(it);
         }
     }
 
@@ -365,7 +374,7 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
     {
         // go through the list and see if our selected item is there
         bool found = false;
-        for (size_t i = 0; i < Choice_TimingTrack->GetCount(); i++)
+        for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
         {
             if (selection == Choice_TimingTrack->GetString(i))
             {

@@ -49,6 +49,7 @@ class FireworksPanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Fireworks_XLocation;
 		BulkEditTextCtrl* TextCtrl_Fireworks_YLocation;
 		BulkEditValueCurveButton* BitmapButton_Fireworks_Count;
+		BulkEditValueCurveButton* BitmapButton_Fireworks_Fade;
 		BulkEditValueCurveButton* BitmapButton_Fireworks_Velocity;
 		BulkEditValueCurveButton* BitmapButton_Fireworks_XLocation;
 		BulkEditValueCurveButton* BitmapButton_Fireworks_XVelocity;
@@ -110,6 +111,7 @@ class FireworksPanel: public wxPanel
 		static const long ID_CHECKBOX_Fireworks_Gravity;
 		static const long ID_STATICTEXT_Fireworks_Fade;
 		static const long ID_SLIDER_Fireworks_Fade;
+		static const long ID_VALUECURVE_Fireworks_Fade;
 		static const long IDD_TEXTCTRL_Fireworks_Fade;
 		static const long ID_BITMAPBUTTON_SLIDER_Fireworks_Fade;
 		static const long ID_CHECKBOX_Fireworks_UseMusic;

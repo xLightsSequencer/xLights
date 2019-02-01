@@ -421,9 +421,28 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" subclass="BulkEditSlider" variable="Slider_Fireworks_Fade" member="yes">
-					<value>50</value>
-					<min>1</min>
+				<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Fireworks_Fade" subclass="BulkEditSlider" variable="Slider_Fireworks_Fade" member="yes">
+							<value>50</value>
+							<min>1</min>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Fireworks_Fade" subclass="BulkEditValueCurveButton" variable="BitmapButton_Fireworks_Fade" member="yes">
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>
