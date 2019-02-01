@@ -1099,7 +1099,10 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
         Effect *ef = src->GetEffect(x);
         if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS()))
         {
-            target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
+            auto settings = ef->GetSettingsAsString();
+            // remove lock if it is there
+            Replace(settings, ",X_Effect_Locked=True", "");
+            target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
                 ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
         }
     }
