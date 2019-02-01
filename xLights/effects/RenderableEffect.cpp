@@ -137,8 +137,7 @@ bool RenderableEffect::IsVersionOlder(const std::string& compare, const std::str
 // this is recursive
 static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
 {
-    wxString s,ChildName,AttrName;
-    int i;
+    wxString s;
     wxWindowList &ChildList = ParentWin->GetChildren();
     for ( wxWindowList::iterator it = ChildList.begin(); it != ChildList.end(); ++it )
     {
@@ -146,8 +145,8 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
         if (!ChildWin->IsEnabled()) {
             continue;
         }
-        ChildName=ChildWin->GetName();
-        AttrName = "E_" + ChildName.Mid(3);
+        wxString ChildName = ChildWin->GetName();
+        wxString AttrName = "E_" + ChildName.Mid(3);
         if (ChildName.StartsWith("ID_SLIDER"))
         {
             wxSlider* ctrl=(wxSlider*)ChildWin;
@@ -212,7 +211,7 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
                 s+=ctrl->GetPageText(ctrl->GetSelection());
                 s+=",";
             }
-            for(i=0; i<ctrl->GetPageCount(); i++)
+            for(int i = 0; i<ctrl->GetPageCount(); i++)
             {
                 wxString pageString = GetEffectStringFromWindow(ctrl->GetPage(i));
                 if (pageString.size() > 0) {
@@ -241,6 +240,26 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
 
 std::string RenderableEffect::GetEffectString() {
     return GetEffectStringFromWindow(panel);
+}
+
+bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
+{
+    for (auto it : settings)
+    {
+        // we want to cache blur because of compute cost
+        if (Contains(it.first, "SLIDER_Blur") ||
+            Contains(it.first, "VALUECURVE_Blur"))
+        {
+            return true;
+        }
+        
+        // we want to cache rotations because of compute cost
+        if (Contains(it.first, "Rotation"))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {

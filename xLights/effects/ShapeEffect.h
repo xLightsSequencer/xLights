@@ -40,7 +40,7 @@ class ShapeEffect : public RenderableEffect
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual bool AppropriateOnNodes() const override { return false; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false; };
 #endif

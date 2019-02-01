@@ -155,20 +155,20 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 
     bool locked = false;
 
-    for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it) {
+    for (auto it : effect->GetSettings()) {
         // we cant cache effects with canvas turned on
-        if (it->first == "T_CHECKBOX_Canvas" && it->second == "1") {
+        if (it.first == "T_CHECKBOX_Canvas" && it.second == "1") {
             return false;
         }
 
         // we also shouldnt cache effects with persistent turned on
-        if (it->first == "B_CHECKBOX_OverlayBkg" && it->second == "1") {
+        if (it.first == "B_CHECKBOX_OverlayBkg" && it.second == "1") {
             return false;
         }
 
         if (_enabled == "Locked Only")
         {
-            if (it->first == "X_Effect_Locked" && it->second == "True") {
+            if (it.first == "X_Effect_Locked" && it.second == "True") {
                 locked = true;
             }
         }

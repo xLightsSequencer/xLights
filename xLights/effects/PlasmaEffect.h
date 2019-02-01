@@ -14,7 +14,7 @@ class PlasmaEffect : public RenderableEffect
         virtual void SetDefaultParameters() override;
         virtual void Render(Effect *effect, SettingsMap &settings, RenderBuffer &buffer) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
     private:
