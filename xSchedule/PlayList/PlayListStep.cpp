@@ -757,8 +757,31 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                         if (force)
                         {
                             long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
-                            pli->SetPosition(frame, ms);
+							
+                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
+
+                            if (posDiff > (acceptableJitter*2)) {
+                                pli->SetPosition(frame, ms);
+			        logger_base.debug("Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
+			    }
+			    else {
+				long mscorrection = 0;
+                                int  fcorrection = 0; 
+				if (timeDiff > 0) {		// Ahead or Behind? 
+					mscorrection = (long)(acceptableJitter / 20);
+                                        fcorrection = 1;
+					logger_base.debug("Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff,mscorrection); // Add time to current position
+				}
+				else {
+					mscorrection = -(long)(acceptableJitter / 20);
+                                        fcorrection = -1;
+					logger_base.debug("Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff,mscorrection); // Subtract time from current position
+				}
+
+				//pli->SetPosition(frame, pli->GetPositionMS() + mscorrection);
+				pli->SetPosition(pli->GetCurrentFrame() + fcorrection, pli->GetPositionMS() + mscorrection);
+			    }
+
                             if (xScheduleFrame::GetScheduleManager() != nullptr)
                                 xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                         }
@@ -768,10 +791,7 @@ void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool forc
                             // only adjust position if we are more that one frame out of sync
 
                             int adjustment = 0;
-                            if (timeDiff == 0)
-                            {
-                            }
-                            else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                            if (abs(timeDiff) > pli->GetFrameMS() * 2)
                             {
                                 adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
                             }
