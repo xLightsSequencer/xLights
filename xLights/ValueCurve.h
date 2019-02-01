@@ -92,7 +92,7 @@ class ValueCurve
     float Safe01(float v);
     void ConvertToRealValues(float oldmin, float oldmax);
     float Normalise(int parm, float value);
-    float Denormalise(int parm, float value);
+    float Denormalise(int parm, float value) const;
 
 public:
 

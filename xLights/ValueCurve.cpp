@@ -54,7 +54,7 @@ void ValueCurve::GetRangeParm(int parm, const std::string& type, float& low, flo
     }
 }
 
-float ValueCurve::Denormalise(int parm, float value)
+float ValueCurve::Denormalise(int parm, float value) const
 {
     float low;
     float high;
@@ -158,6 +158,11 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
         low = MINVOID;
         high = MAXVOID;
     }
+    else if (type == "Inverted Music")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
     else if (type == "Music Trigger Fade")
     {
         low = MINVOID;
@@ -219,6 +224,11 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
         high = MAXVOID;
     }
     else if (type == "Ramp Up/Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Inverted Music")
     {
         low = MINVOID;
         high = MAXVOID;
@@ -552,6 +562,7 @@ void ValueCurve::Flip()
     else if (_type == "Logarithmic Up") {}
     else if (_type == "Logarithmic Down") {}
     else if (_type == "Music") {}
+    else if (_type == "Inverted Music") {}
     else if (_type == "Music Trigger Fade") {}
     else if (_type == "Decaying Sine") {}
     else if (_type == "Abs Sine") {}
@@ -768,6 +779,10 @@ void ValueCurve::RenderType()
         }
     }
     else if (_type == "Music")
+    {
+        // ???
+    }
+    else if (_type == "Inverted Music")
     {
         // ???
     }
@@ -1568,7 +1583,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             long time = (float)startMS + offset * (endMS - startMS);
 
             float last = -1000.0;
-            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)) ; cur <= time + frameMS; cur += step)
+            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)); cur <= time + frameMS; cur += step)
             {
                 float x = (float)(cur - startMS) / (float)(endMS - startMS);
                 float f = 0.0;
@@ -1599,7 +1614,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         }
     }
 
-    if (_type == "Music")
+    if (_type == "Music" || _type == "Inverted Music")
     {
         if (__audioManager != nullptr)
         {
@@ -1609,6 +1624,10 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             if (pf != nullptr)
             {
                 f = *pf->begin();
+                if (_type == "Inverted Music")
+                {
+                    f = 1.0 - f;
+                }
             }
 
             float min = (GetParameter1() - _min) / (_max - _min);
@@ -1832,7 +1851,7 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
     dc.SetPen(*wxBLACK_PEN);
     float lastY = height - 1 - (GetValueAt(0, 0, 1)) * height;
 
-    if (_type == "Music" || _type == "Music Trigger Fade")
+    if (_type == "Music" || _type == "Inverted Music" || _type == "Music Trigger Fade")
     {
         dc.DrawCircle(width / 4, height - height / 4, wxCoord(std::min(width / 5, height / 5)));
         dc.DrawLine(width / 4 + width / 5, height - height / 4, width / 4 + width / 5, height / 5);
