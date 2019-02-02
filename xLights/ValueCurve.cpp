@@ -368,6 +368,16 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
     else if (type == "Music Trigger Fade")
     {
     }
+    else if (type == "Music")
+    {
+        low = -100;
+        high = 100;
+    }
+    else if (type == "Inverted Music")
+    {
+        low = -100;
+        high = 100;
+    }
 }
 
 void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
@@ -1564,6 +1574,13 @@ float ValueCurve::GetOutputValueAtDivided(float offset, long startMS, long endMS
     return (_min + (_max - _min) * GetValueAt(offset, startMS, endMS)) / _divisor;
 }
 
+float ValueCurve::ApplyGain(float value, int gain) const
+{
+    float v = (100.0 + gain) * value / 100.0;
+    if (v > 1.0) v = 1.0;
+    return v;
+}
+
 float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
@@ -1623,7 +1640,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", time);
             if (pf != nullptr)
             {
-                f = *pf->begin();
+                f = ApplyGain(*pf->begin(), GetParameter3());
                 if (_type == "Inverted Music")
                 {
                     f = 1.0 - f;

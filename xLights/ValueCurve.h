@@ -93,6 +93,7 @@ class ValueCurve
     void ConvertToRealValues(float oldmin, float oldmax);
     float Normalise(int parm, float value);
     float Denormalise(int parm, float value) const;
+    float ApplyGain(float value, int gain) const;
 
 public:
 

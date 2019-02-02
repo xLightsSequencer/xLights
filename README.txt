@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (keith)   Add tool for applying reaper or xAudio edits to one or more audio files and generate a new audio file
+   == enh (keith)   Refactor the fireworks effect including new settings and new value curves
+   -- enh (keith)   Add gain to VUMeter
+   -- enh (keith)   Add an inverted music value curve
+   -- enh (keith)   Add gain to music value curve
+   -- enh (keith)   Render cache effects which have blur or rotation applied
    -- enh (dkulp)   Update OpenGL 1.1/2.1 render routines to peform better with Mesh objects
 2019.08 January 30, 2019
    -- enh (keith)   Add to check sequence the listing of faces, states and view points a sequence relies 
