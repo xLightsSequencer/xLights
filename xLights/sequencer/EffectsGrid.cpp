@@ -4529,8 +4529,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
     logger_base.info("mPartialCellSelected %d,   OneCellSelected: %d    paste_by_cell:  %d", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
-    if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive()) {
-        if( ((number_of_timings + number_of_effects) > 1) || row_paste || xlights->IsACActive() )  // multi-effect paste or row_paste
+    if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive() || row_paste ) {
+        if( ((number_of_timings + number_of_effects) > 1) || xlights->IsACActive() )  // multi-effect paste or row_paste
         {
             std::set<std::string> modelsToRender;
 

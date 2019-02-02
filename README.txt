@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (kevin)   Fix model/row copy effects from one sequence and pasting in another. Fixes #1450
    -- enh (kevin)   Enable timeline icon for galaxy effect
 2019.09 February 2, 2019
    -- enh (keith)   Add movement to shapes effect
