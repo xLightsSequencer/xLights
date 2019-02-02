@@ -76,6 +76,14 @@ const long ShapePanel::ID_SLIDER_Shape_StartSize = wxNewId();
 const long ShapePanel::ID_VALUECURVE_Shape_StartSize = wxNewId();
 const long ShapePanel::IDD_TEXTCTRL_Shape_StartSize = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_RandomInitial = wxNewId();
+const long ShapePanel::ID_STATICTEXT3 = wxNewId();
+const long ShapePanel::ID_SLIDER_Shapes_Velocity = wxNewId();
+const long ShapePanel::ID_VALUECURVE_Shapes_Velocity = wxNewId();
+const long ShapePanel::ID_TEXTCTRL_Shapes_Velocity = wxNewId();
+const long ShapePanel::ID_STATICTEXT4 = wxNewId();
+const long ShapePanel::ID_SLIDER_Shapes_Direction = wxNewId();
+const long ShapePanel::ID_VALUECURVE_Shapes_Direction = wxNewId();
+const long ShapePanel::ID_TEXTCTRL_Shapes_Direction = wxNewId();
 const long ShapePanel::ID_STATICTEXT_Shape_Lifetime = wxNewId();
 const long ShapePanel::ID_SLIDER_Shape_Lifetime = wxNewId();
 const long ShapePanel::ID_VALUECURVE_Shape_Lifetime = wxNewId();
@@ -100,6 +108,7 @@ const long ShapePanel::ID_SLIDER_Shape_Rotation = wxNewId();
 const long ShapePanel::ID_VALUECURVE_Shape_Rotation = wxNewId();
 const long ShapePanel::IDD_TEXTCTRL_Shape_Rotation = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_RandomLocation = wxNewId();
+const long ShapePanel::ID_CHECKBOX_Shapes_RandomMovement = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_FadeAway = wxNewId();
 const long ShapePanel::ID_CHECKBOX_Shape_UseMusic = wxNewId();
 const long ShapePanel::ID_STATICTEXT_Shape_Sensitivity = wxNewId();
@@ -123,6 +132,8 @@ ShapePanel::ShapePanel(wxWindow* parent)
     BulkEditTextCtrl* TextCtrl34;
     BulkEditTextCtrl* TextCtrl_Shape_Growth;
     BulkEditTextCtrl* TextCtrl_Shape_StartSize;
+    wxFlexGridSizer* FlexGridSizer10;
+    wxFlexGridSizer* FlexGridSizer11;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
@@ -214,6 +225,30 @@ ShapePanel::ShapePanel(wxWindow* parent)
     CheckBox_Shape_RandomInitial->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shape_RandomInitial, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText12 = new wxStaticText(this, ID_STATICTEXT3, _("Velocity"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+    FlexGridSizer57->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer10->AddGrowableCol(0);
+    Slider_Shapes_Velocity = new BulkEditSlider(this, ID_SLIDER_Shapes_Velocity, 0, 0, 20, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shapes_Velocity"));
+    FlexGridSizer10->Add(Slider_Shapes_Velocity, 1, wxALL|wxEXPAND, 2);
+    BitmapButton_Shapes_Velocity = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shapes_Velocity, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shapes_Velocity"));
+    FlexGridSizer10->Add(BitmapButton_Shapes_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
+    TextCtrl_Shapes_Velocity = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shapes_Velocity, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shapes_Velocity"));
+    TextCtrl_Shapes_Velocity->SetMaxLength(3);
+    FlexGridSizer57->Add(TextCtrl_Shapes_Velocity, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText13 = new wxStaticText(this, ID_STATICTEXT4, _("Direction"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+    FlexGridSizer57->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer11 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer11->AddGrowableCol(0);
+    Slider_Shapes_Direction = new BulkEditSlider(this, ID_SLIDER_Shapes_Direction, 90, 0, 359, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_SLIDER_Shapes_Direction"));
+    FlexGridSizer11->Add(Slider_Shapes_Direction, 1, wxALL|wxEXPAND, 2);
+    BitmapButton_Shapes_Direction = new BulkEditValueCurveButton(this, ID_VALUECURVE_Shapes_Direction, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_valuecurve_notselected")),wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Shapes_Direction"));
+    FlexGridSizer11->Add(BitmapButton_Shapes_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(FlexGridSizer11, 1, wxALL|wxEXPAND, 0);
+    TextCtrl_Shapes_Direction = new BulkEditTextCtrl(this, ID_TEXTCTRL_Shapes_Direction, _("90"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Shapes_Direction"));
+    TextCtrl_Shapes_Direction->SetMaxLength(3);
+    FlexGridSizer57->Add(TextCtrl_Shapes_Direction, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticText2 = new wxStaticText(this, ID_STATICTEXT_Shape_Lifetime, _("Lifetime"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Lifetime"));
     FlexGridSizer57->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -286,15 +321,20 @@ ShapePanel::ShapePanel(wxWindow* parent)
     CheckBox_Shape_RandomLocation->SetValue(false);
     FlexGridSizer57->Add(CheckBox_Shape_RandomLocation, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_Shapes_RandomMovement = new BulkEditCheckBox(this, ID_CHECKBOX_Shapes_RandomMovement, _("Random movement"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shapes_RandomMovement"));
+    CheckBox_Shapes_RandomMovement->SetValue(false);
+    FlexGridSizer57->Add(CheckBox_Shapes_RandomMovement, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Shape_FadeAway = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_FadeAway, _("Fade Away"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_FadeAway"));
     CheckBox_Shape_FadeAway->SetValue(false);
-    FlexGridSizer57->Add(CheckBox_Shape_FadeAway, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(CheckBox_Shape_FadeAway, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     CheckBox_Shape_UseMusic = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_UseMusic, _("Fire with music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_UseMusic"));
     CheckBox_Shape_UseMusic->SetValue(false);
-    FlexGridSizer57->Add(CheckBox_Shape_UseMusic, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(CheckBox_Shape_UseMusic, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     StaticText7 = new wxStaticText(this, ID_STATICTEXT_Shape_Sensitivity, _("Trigger level"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_Sensitivity"));
     FlexGridSizer57->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -306,7 +346,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     CheckBox_Shape_FireTiming = new BulkEditCheckBox(this, ID_CHECKBOX_Shape_FireTiming, _("Fire with timing track"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Shape_FireTiming"));
     CheckBox_Shape_FireTiming->SetValue(false);
-    FlexGridSizer57->Add(CheckBox_Shape_FireTiming, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+    FlexGridSizer57->Add(CheckBox_Shape_FireTiming, 1, wxALL|wxEXPAND, 2);
     FlexGridSizer57->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
     StaticText8 = new wxStaticText(this, ID_STATICTEXT_Shape_FireTimingTrack, _("Timing Track"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_Shape_FireTimingTrack"));
     FlexGridSizer57->Add(StaticText8, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -323,12 +363,15 @@ ShapePanel::ShapePanel(wxWindow* parent)
     Connect(ID_VALUECURVE_Shape_Thickness,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_Count,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_StartSize,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Shapes_Velocity,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
+    Connect(ID_VALUECURVE_Shapes_Direction,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_Lifetime,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_Growth,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_CentreX,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_CentreY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_VALUECURVE_Shape_Rotation,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ShapePanel::OnVCButtonClick);
     Connect(ID_CHECKBOX_Shape_RandomLocation,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shape_RandomLocationClick);
+    Connect(ID_CHECKBOX_Shapes_RandomMovement,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shapes_RandomMovementClick);
     Connect(ID_CHECKBOX_Shape_UseMusic,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shape_UseMusicClick);
     Connect(ID_CHECKBOX_Shape_FireTiming,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&ShapePanel::OnCheckBox_Shape_FireTimingClick);
     Connect(ID_CHOICE_Shape_FireTimingTrack,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&ShapePanel::OnChoice_Shape_TimingTrackSelect);
@@ -345,6 +388,8 @@ ShapePanel::ShapePanel(wxWindow* parent)
     BitmapButton_Shape_CountVC->GetValue()->SetLimits(SHAPE_COUNT_MIN, SHAPE_COUNT_MAX);
     BitmapButton_Shape_StartSizeVC->GetValue()->SetLimits(SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX);
     BitmapButton_Shape_RotationVC->GetValue()->SetLimits(SHAPE_ROTATION_MIN, SHAPE_ROTATION_MAX);
+    BitmapButton_Shapes_Velocity->GetValue()->SetLimits(SHAPE_VELOCITY_MIN, SHAPE_VELOCITY_MAX);
+    BitmapButton_Shapes_Direction->GetValue()->SetLimits(SHAPE_DIRECTION_MIN, SHAPE_DIRECTION_MAX);
 
     wxFont f = FontPickerCtrl_Font->GetSelectedFont();
     f.SetPixelSize(wxSize(20, 20));
@@ -495,6 +540,25 @@ void ShapePanel::ValidateWindow()
         BitmapButton_Shape_RotationVC->Disable();
     }
 
+    if (CheckBox_Shapes_RandomMovement->IsChecked())
+    {
+        Slider_Shapes_Direction->Disable();
+        Slider_Shapes_Velocity->Disable();
+        TextCtrl_Shapes_Direction->Disable();
+        TextCtrl_Shapes_Velocity->Disable();
+        BitmapButton_Shapes_Direction->Disable();
+        BitmapButton_Shapes_Velocity->Disable();
+    }
+    else
+    {
+        Slider_Shapes_Direction->Enable();
+        Slider_Shapes_Velocity->Enable();
+        TextCtrl_Shapes_Direction->Enable();
+        TextCtrl_Shapes_Velocity->Enable();
+        BitmapButton_Shapes_Direction->Enable();
+        BitmapButton_Shapes_Velocity->Enable();
+    }
+
     if (CheckBox_Shape_RandomLocation->IsChecked())
     {
         Slider_Shape_CentreX->Disable();
@@ -588,12 +652,12 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
     }
 
     // add any new timing tracks
-    for (auto it = timingtracks.begin(); it != timingtracks.end(); ++it)
+    for (auto it : timingtracks)
     {
         bool found = false;
         for (size_t i = 0; i < Choice_Shape_TimingTrack->GetCount(); i++)
         {
-            if (*it == Choice_Shape_TimingTrack->GetString(i))
+            if (it == Choice_Shape_TimingTrack->GetString(i))
             {
                 found = true;
                 break;
@@ -601,7 +665,7 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
         }
         if (!found)
         {
-            Choice_Shape_TimingTrack->Append(*it);
+            Choice_Shape_TimingTrack->Append(it);
         }
     }
 
@@ -629,9 +693,9 @@ void ShapePanel::SetTimingTracks(wxCommandEvent& event)
 void ShapePanel::EmojiMenu(wxContextMenuEvent& event)
 {
     wxMenu mnuEmoji;
-    for (auto it = _emojis.begin(); it != _emojis.end(); ++it)
+    for (auto it : _emojis)
     {
-        mnuEmoji.Append(wxNewId(), (*it)->GetName());
+        mnuEmoji.Append(wxNewId(), it->GetName());
     }
     mnuEmoji.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ShapePanel::OnPopupEmoji, nullptr, this);
     PopupMenu(&mnuEmoji);
@@ -642,16 +706,16 @@ void ShapePanel::OnPopupEmoji(wxCommandEvent& event)
     wxMenu* eo = (wxMenu*)event.GetEventObject();
     auto item = eo->GetLabelText(event.GetId());
 
-    for (auto it = _emojis.begin(); it != _emojis.end(); ++it)
+    for (auto it : _emojis)
     {
-        if ((*it)->GetName() == item)
+        if (it->GetName() == item)
         {
             wxFont f;
-            f.Create(10, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, (*it)->GetFont(), wxFONTENCODING_DEFAULT);
+            f.Create(10, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, it->GetFont(), wxFONTENCODING_DEFAULT);
             if (f.IsOk())
             {
                 FontPickerCtrl_Font->SetSelectedFont(f);
-                SpinCtrl_CharCode->SetValue((*it)->GetChar());
+                SpinCtrl_CharCode->SetValue(it->GetChar());
                 ValidateWindow();
                 break;
             }
@@ -670,5 +734,10 @@ void ShapePanel::OnFontPickerCtrl_FontFontChanged(wxFontPickerEvent& event)
 void ShapePanel::OnSpinCtrl_CharCodeChange(wxSpinEvent& event)
 {
     //StaticText10->SetLabel(wxString(wxChar(event.GetValue())));
+    ValidateWindow();
+}
+
+void ShapePanel::OnCheckBox_Shapes_RandomMovementClick(wxCommandEvent& event)
+{
     ValidateWindow();
 }

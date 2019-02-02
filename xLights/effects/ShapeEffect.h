@@ -29,6 +29,12 @@
 #define SHAPE_ROTATION_MIN 0
 #define SHAPE_ROTATION_MAX 360
 
+#define SHAPE_VELOCITY_MIN 0
+#define SHAPE_VELOCITY_MAX 20
+
+#define SHAPE_DIRECTION_MIN 0
+#define SHAPE_DIRECTION_MAX 359
+
 class ShapeEffect : public RenderableEffect
 {
     public:
