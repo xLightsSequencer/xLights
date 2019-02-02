@@ -70,6 +70,9 @@
 #include "effects/FacesEffect.h"
 #include "effects/StateEffect.h"
 
+// Linux needs this
+#include <wx/stdpaths.h>
+
 // image files
 #include "../include/control-pause-blue-icon.xpm"
 #include "../include/control-play-blue-icon.xpm"
