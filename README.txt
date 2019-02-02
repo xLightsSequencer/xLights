@@ -11,8 +11,10 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.09 February 2, 2019
+   -- enh (keith)   Add movement to shapes effect
    -- enh (keith)   Add tool for applying reaper or xAudio edits to one or more audio files and generate a new audio file
-   == enh (keith)   Refactor the fireworks effect including new settings and new value curves
+   -- enh (keith)   Refactor the fireworks effect including new settings and new value curves
    -- enh (keith)   Add gain to VUMeter
    -- enh (keith)   Add an inverted music value curve
    -- enh (keith)   Add gain to music value curve
