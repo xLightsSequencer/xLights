@@ -699,7 +699,7 @@ bool ConvertDialog::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vi
                         }
                         else
                         {
-                            if (p->GetChildren() != NULL) {
+                            if (p->GetChildren() != nullptr) {
                                 VixChannelNames.push_back(p->GetChildren()->GetContent());
                             }
                             else {

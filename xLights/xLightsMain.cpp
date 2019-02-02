@@ -25,7 +25,6 @@
 #include <wx/mimetype.h>
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
-#include <wx/stdpaths.h>
 
 #include <cctype>
 
@@ -51,9 +50,7 @@
 #include "HousePreviewPanel.h"
 #include "BatchRenderDialog.h"
 #include "VideoExporter.h"
-#include "SequenceVideoPanel.h"
 #include "FolderSelection.h"
-#include "EffectIconPanel.h"
 #include "JukeboxPanel.h"
 #include "EffectAssist.h"
 #include "EffectsPanel.h"
@@ -67,6 +64,7 @@
 #include "ModelPreview.h"
 #include "TopEffectsPanel.h"
 #include "LyricUserDictDialog.h"
+#include "EffectIconPanel.h"
 #include "models/ViewObject.h"
 #include "models/SubModel.h"
 #include "effects/FacesEffect.h"
@@ -2243,9 +2241,9 @@ void xLightsFrame::LogPerspective(const wxString & perspective) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxArrayString entries = wxSplit(perspective, '|');
-    for (auto it = entries.begin(); it != entries.end(); ++it)
+    for (auto it : entries)
     {
-        logger_base.debug("    %s", (const char *)it->c_str());
+        logger_base.debug("    %s", (const char *)it.c_str());
     }
 }
 
@@ -9159,149 +9157,330 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString filename = wxFileSelector("Choose reaper file describing the changes required to the audio.",
-        CurrentDir, wxEmptyString, "*.rrp", 
-        "Reaper files (*.rpp)|*.rpp|All files (*.*)|*.*", 
+        CurrentDir, wxEmptyString, "*.rrp",
+        "Reaper files (*.rpp)|*.rpp|xAudio files (*.xaudio)|*.xaudio|All files (*.*)|*.*",
         wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if (filename != "")
     {
         logger_base.debug("Prepare audio: %s.", (const char *)filename.c_str());
-        wxFile reaper;
-        if (reaper.Open(filename))
+
+        struct musicEdit
         {
-            wxString reaperContent;
-            reaper.ReadAll(&reaperContent);
-
-            std::string targetFile = "";
-            wxRegEx regexTgt("RENDER_FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
-            if (regexTgt.Matches(reaperContent))
+            std::string file;
+            double start;
+            double length;
+            double sourceoffset;
+            double fadein;
+            double fadeout;
+            double volume;
+            bool crossfadein;
+            bool crossfadeout;
+            musicEdit(const std::string& f, double s, double l, double so, double fi, double fo, double v, bool cfi, bool cfo) :
+                file(f), start(s), length(l), sourceoffset(so), fadein(fi), fadeout(fo), volume(v), crossfadein(cfi), crossfadeout(cfo)
             {
-                targetFile = regexTgt.GetMatch(reaperContent, 1);
-                logger_base.debug("    Target file: %s", (const char *)targetFile.c_str());
+                static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+                logger_base.debug("        Source file: %s Source Pos: %0.3f Length: %0.3f Target Pos: %0.3f Fade In: %0.3f Fade Out: %0.3f Volume: %0.3f",
+                    (const char *)file.c_str(), sourceoffset, length, start, fadein, fadeout, volume);
             }
+        };
 
-            struct musicEdit
+        std::list<musicEdit> edits;
+        wxFileName targetFile;
+        targetFile.SetPath(CurrentDir);
+
+        if (filename.Lower().EndsWith(".rpp"))
+        {
+            wxFile reaper;
+            if (reaper.Open(filename))
             {
-                std::string file;
-                double start;
-                double length;
-                double sourceoffset;
-                double fadein;
-                double fadeout;
-                double volume;
-                musicEdit(const std::string& f, double s, double l, double so, double fi, double fo, double v) :
-                file(f), start(s), length(l), sourceoffset(so), fadein(fi), fadeout(fo), volume(v)
-                {
-                    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-                    logger_base.debug("        Source file: %s Source Pos: %0.3f Length: %0.3f Target Pos: %0.3f Fade In: %0.3f Fade Out: %0.3f Volume: %0.3f", 
-                        (const char *)file.c_str(), sourceoffset, length, start, fadein, fadeout, volume);
-                }
-            };
+                wxString reaperContent;
+                reaper.ReadAll(&reaperContent);
 
-            std::list<musicEdit> edits;
+                wxRegEx regexTgt("RENDER_FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
+                if (regexTgt.Matches(reaperContent))
+                {
+                    targetFile.SetName(regexTgt.GetMatch(reaperContent, 1));
+                    logger_base.debug("    Target file: %s", (const char *)targetFile.GetFullPath().c_str());
+                }
 
-            wxRegEx regexPosition("POSITION ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexLength("LENGTH ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexSourceOffset("SOFFS ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexFadeIn1("FADEIN [0-9\\.]* ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexFadeIn2("FADEIN [0-9\\.]* [0-9\\.]* ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexFadeOut1("FADEOUT [0-9\\.]* ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexFadeOut2("FADEOUT [0-9\\.]* [0-9\\.]* ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexVolume("VOLPAN [0-9\\.]* [0-9\\.]* ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
-            wxRegEx regexSourceFile(" FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexPosition("POSITION ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexLength("LENGTH ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexSourceOffset("SOFFS ([0-9\\.]*)", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeIn1("FADEIN [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeIn2("FADEIN [0-9\\.]* [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeOut1("FADEOUT [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexFadeOut2("FADEOUT [0-9\\.]* [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexVolume("VOLPAN [0-9\\.]* [0-9\\.]* ([0-9\\.]*) ", wxRE_ADVANCED | wxRE_NEWLINE);
+                wxRegEx regexSourceFile(" FILE \\\"[^\\\"]*?\\/([^\\\"\\/]*)\\\"", wxRE_ADVANCED | wxRE_NEWLINE);
 
-            logger_base.debug("    Items %d", regexPosition.GetMatchCount());
+                while (regexPosition.Matches(reaperContent))
+                {
+                    regexLength.Matches(reaperContent);
+                    regexSourceOffset.Matches(reaperContent);
+                    regexFadeIn1.Matches(reaperContent);
+                    regexFadeIn2.Matches(reaperContent);
+                    regexFadeOut1.Matches(reaperContent);
+                    regexFadeOut2.Matches(reaperContent);
+                    regexVolume.Matches(reaperContent);
+                    regexSourceFile.Matches(reaperContent);
 
-            while (regexPosition.Matches(reaperContent))
-            {
-                regexLength.Matches(reaperContent);
-                regexSourceOffset.Matches(reaperContent);
-                regexFadeIn1.Matches(reaperContent);
-                regexFadeIn2.Matches(reaperContent);
-                regexFadeOut1.Matches(reaperContent);
-                regexFadeOut2.Matches(reaperContent);
-                regexVolume.Matches(reaperContent);
-                regexSourceFile.Matches(reaperContent);
+                    std::string sourcefile = "";
+                    double start = 0;
+                    double length = 0;
+                    double sourceoffset = 0;
+                    double fadein1 = 0;
+                    double fadein2 = 0;
+                    double fadeout1 = 0;
+                    double fadeout2 = 0;
+                    double volume = 1;
 
-                std::string sourcefile;
-                double start;
-                double length;
-                double sourceoffset;
-                double fadein1;
-                double fadein2;
-                double fadeout1;
-                double fadeout2;
-                double volume;
-
-                if (regexPosition.GetMatchCount() > 1)
-                {
-                    start = std::atof(regexPosition.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexLength.GetMatchCount() > 1)
-                {
-                    length = std::atof(regexLength.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexSourceOffset.GetMatchCount() > 1)
-                {
-                    sourceoffset = std::atof(regexSourceOffset.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexFadeIn1.GetMatchCount() > 1)
-                {
-                    fadein1 = std::atof(regexFadeIn1.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexFadeIn2.GetMatchCount() > 1)
-                {
-                    fadein2 = std::atof(regexFadeIn2.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexFadeOut1.GetMatchCount() > 1)
-                {
-                    fadeout1 = std::atof(regexFadeOut1.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexFadeOut2.GetMatchCount() > 1)
-                {
-                    fadeout2 = std::atof(regexFadeOut2.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexVolume.GetMatchCount() > 1)
-                {
-                    volume = std::atof(regexVolume.GetMatch(reaperContent, 1).c_str());
-                }
-                if (regexSourceFile.GetMatchCount() > 1)
-                {
-                    size_t s, l;
-                    regexSourceFile.GetMatch(&s, &l, 0);
-                    sourcefile = regexSourceFile.GetMatch(reaperContent, 1).c_str();
-                    reaperContent = reaperContent.Mid(s + l);
-                }
-                edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, std::max(fadein1, fadein2), std::max(fadeout1, fadeout2), volume));
-            }
-
-            // load the audio files
-            std::map<std::string, AudioManager*> sourceSongs;
-            double outputLength = 0;
-            for (auto it : edits)
-            {
-                outputLength = std::max(outputLength, it.start + it.length);
-
-                if (sourceSongs.find(it.file) == sourceSongs.end())
-                {
-                    wxString music = wxFileSelector("Choose your copy of "+it.file+".",
-                        CurrentDir, wxEmptyString, wxEmptyString, 
-                        "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
-                        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
-
-                    if (music != "")
+                    if (regexPosition.GetMatchCount() > 1)
                     {
-                        sourceSongs[it.file] = new AudioManager(music);
+                        start = std::atof(regexPosition.GetMatch(reaperContent, 1).c_str());
                     }
-                    else
+                    if (regexLength.GetMatchCount() > 1)
                     {
-                        sourceSongs[it.file] = nullptr;
+                        length = std::atof(regexLength.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexSourceOffset.GetMatchCount() > 1)
+                    {
+                        sourceoffset = std::atof(regexSourceOffset.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeIn1.GetMatchCount() > 1)
+                    {
+                        fadein1 = std::atof(regexFadeIn1.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeIn2.GetMatchCount() > 1)
+                    {
+                        fadein2 = std::atof(regexFadeIn2.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeOut1.GetMatchCount() > 1)
+                    {
+                        fadeout1 = std::atof(regexFadeOut1.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexFadeOut2.GetMatchCount() > 1)
+                    {
+                        fadeout2 = std::atof(regexFadeOut2.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexVolume.GetMatchCount() > 1)
+                    {
+                        volume = std::atof(regexVolume.GetMatch(reaperContent, 1).c_str());
+                    }
+                    if (regexSourceFile.GetMatchCount() > 1)
+                    {
+                        size_t s, l;
+                        regexSourceFile.GetMatch(&s, &l, 0);
+                        sourcefile = regexSourceFile.GetMatch(reaperContent, 1).c_str();
+                        reaperContent = reaperContent.Mid(s + l);
+                    }
+                    edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, std::max(fadein1, fadein2), std::max(fadeout1, fadeout2), volume, fadein1 < fadein2, fadeout1 < fadeout2));
+                }
+
+                if (edits.size() == 0)
+                {
+                    SetStatusText("No edits found in RPP file.");
+                    return;
+                }
+            }
+        }
+        else if (filename.Lower().EndsWith(".xaudio"))
+        {
+            // Sample
+            //
+            // <xaudio>
+            //    <targetfile>01 The Greatest Show Amazon Edited.mp3</targetfile>
+            //    <items>
+            //       <item>
+            //          <targettime>0.0</targettime>    : in seconds
+            //          <length>5.5</length>            : in seconds
+            //          <sourcetime>1.0</sourcetime>    : in seconds
+            //          <fadeinsecs>0.75</fadeinsecs>   : in seconds
+            //          <fadeoutsecs>0.5</fadeoutsecs>  : in seconds
+            //          <fadeoutcrossfade/>             
+            //          <gain>0.787367</gain>           : 1.0 = no change 0.0 = silence > 1.0 is amplification
+            //          <file>01 - The Greatest Show amazon.mp3</file>
+            //       </item>
+            //       <item>
+            //          <targettime>5</targettime>
+            //          <length>3</length>
+            //          <sourcetime>13.8</sourcetime>
+            //          <fadeinsecs>0.5</fadeinsecs>
+            //          <fadeincrossfade/>
+            //          <fadeoutsecs>0.5</fadeoutsecs>
+            //          <gain>0.787367</gain>
+            //          <file>01 - The Greatest Show amazon.mp3</file>
+            //       </item>
+            //    </items>
+            // </xaudio>
+
+            wxXmlDocument doc(filename);
+
+            if (doc.IsOk())
+            {
+                for (wxXmlNode* r = doc.GetRoot(); r != nullptr; r = r->GetNext())
+                {
+                    for (wxXmlNode* n = r->GetChildren(); n != nullptr; n = n->GetNext())
+                    {
+                        auto name = n->GetName().Lower();
+                        if (name == "targetfile")
+                        {
+                            if (n->GetChildren() != nullptr) {
+                                targetFile.SetName(n->GetChildren()->GetContent());
+                            }
+                        }
+                        else if (name == "items")
+                        {
+                            for (wxXmlNode* nn = n->GetChildren(); nn != nullptr; nn = nn->GetNext())
+                            {
+                                name = nn->GetName().Lower();
+                                if (name == "item")
+                                {
+                                    std::string sourcefile = "";
+                                    double start = 0;
+                                    double length = 0;
+                                    double sourceoffset = 0;
+                                    double fadein = 0;
+                                    bool fadeincrossfade = false;
+                                    double fadeout = 0;
+                                    bool fadeoutcrossfade = false;
+                                    double volume = 1;
+
+                                    for (wxXmlNode* nnn = nn->GetChildren(); nnn != nullptr; nnn = nnn->GetNext())
+                                    {
+                                        name = nnn->GetName().Lower();
+                                        if (name == "file")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                sourcefile = nnn->GetChildren()->GetContent();
+                                            }
+                                        }
+                                        else if (name == "targettime")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                start = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "length")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                length = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "sourcetime")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                sourceoffset = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "fadeinsecs")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                fadein = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "fadeoutsecs")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                fadeout = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                        else if (name == "fadeincrossfade")
+                                        {
+                                            fadeincrossfade = true;
+                                        }
+                                        else if (name == "fadeoutcrossfade")
+                                        {
+                                            fadeoutcrossfade = true;
+                                        }
+                                        else if (name == "gain")
+                                        {
+                                            if (nnn->GetChildren() != nullptr) {
+                                                volume = std::atof(nnn->GetChildren()->GetContent().c_str());
+                                            }
+                                        }
+                                    }
+                                    edits.push_back(musicEdit(sourcefile, start, length, sourceoffset, fadein, fadeout, volume, fadeincrossfade, fadeoutcrossfade));
+                                }
+                            }
+                        }
+                    }
+                }
+                if (edits.size() == 0)
+                {
+                    SetStatusText("No edits found in xAudio file.");
+                    return;
+                }
+            }
+            else
+            {
+                SetStatusText("Invalid xAudio file.");
+                return;
+            }
+        }
+
+        SetStatusText("Loading audio files.");
+
+        // load the audio files
+        std::map<std::string, AudioManager*> sourceSongs;
+        double outputLength = 0;
+        for (auto it : edits)
+        {
+            outputLength = std::max(outputLength, it.start + it.length);
+
+            if (sourceSongs.find(it.file) == sourceSongs.end())
+            {
+                wxString music = wxFileSelector("Choose your copy of " + it.file + ".",
+                    CurrentDir, wxEmptyString, wxEmptyString,
+                    "Audio files|*.mp3;*.ogg;*.m4p;*.mp4;*.avi;*.wma;*.au;*.wav;*.m4a;*.mid;*.mkv;*.mov;*.mpg;*.asf;*.flv;*.mpeg",
+                    wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+
+                if (music != "")
+                {
+                    sourceSongs[it.file] = new AudioManager(music);
+                }
+                else
+                {
+                    sourceSongs[it.file] = nullptr;
+                }
+            }
+        }
+
+        bool ok = true;
+
+        long outputRate = -1;
+        for (auto it : sourceSongs)
+        {
+            if (it.second != nullptr)
+            {
+                if (outputRate == -1)
+                {
+                    outputRate = it.second->GetRate();
+                }
+                else
+                {
+                    if (ok && outputRate != it.second->GetRate())
+                    {
+                        logger_base.debug("Songs do not all have the same bitrate ... unable to do the required mixing.");
+                        wxMessageBox("In order to preapre the audio all the input songs must have the same bitrate.");
+                        ok = false;
                     }
                 }
             }
+        }
 
-            const long outputRate = 44100;
+        if (outputRate == -1)
+        {
+            SetStatusText("Audio file creation failed - No input audio.");
+            ok = false;
+        }
+
+        if (ok)
+        {
             long totalSamples = outputRate * outputLength;
+            logger_base.debug("    New file will:");
+            logger_base.debug("        have %ld samples.", totalSamples);
+            logger_base.debug("        be %0.3f seconds long.", outputLength);
             std::vector<float> left(totalSamples);
             std::vector<float> right(totalSamples);
 
@@ -9310,32 +9489,88 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 auto audio = sourceSongs[it.file];
                 if (audio != nullptr)
                 {
-                    long startOutput = outputRate * it.start;
-                    long startSample = audio->GetRate() * it.sourceoffset;
-                    long samples = audio->GetRate() * it.length;
-
                     // check the data is actually loaded
-                    audio->GetLeftData(startSample + samples - 1);
+                    audio->GetLeftData(audio->GetTrackSize() - 1);
 
-                    auto lsource = audio->GetLeftDataPtr(startSample);
-                    auto rsource = audio->GetRightDataPtr(startSample);
+                    SetStatusText("Combining audio clips.");
+
+                    logger_base.debug("Processing sample from %s.", (const char *)it.file.c_str());
+                    long startOutput = outputRate * it.start;
+                    long outputSamples = outputRate * it.length;
+                    //logger_base.debug("    Sample Output Start %ld-%ld [%ld].", startOutput, startOutput + outputSamples - 1, outputSamples);
+                    wxASSERT(startOutput + outputSamples - 1 <= totalSamples);
+                    long startSample = audio->GetRate() * it.sourceoffset;
+                    long inputSamples = audio->GetRate() * it.length;
+                    //logger_base.debug("    Input file samples %ld", audio->GetTrackSize());
+                    //logger_base.debug("    Sample Input Start %ld-%ld [%ld].", startSample, startSample + inputSamples - 1, inputSamples);
+                    wxASSERT(startSample + inputSamples - 1 < audio->GetTrackSize());
+
+                    // this code does not handle mixed sample rates
+                    wxASSERT(inputSamples == outputSamples);
+
+                    float* lsource = audio->GetLeftDataPtr(startSample);
+                    float* rsource = audio->GetRightDataPtr(startSample);
                     long fadeinsamples = it.fadein * audio->GetRate();
                     long fadeoutsamples = it.fadeout * audio->GetRate();
-                    long fadeoutstart = samples - fadeoutsamples;
+                    long fadeoutstart = inputSamples - fadeoutsamples;
 
-                    for (long i = 0; i < samples; i++)
+                    for (long i = 0; i < inputSamples; i++)
                     {
-                        float l = lsource[startSample + i] * it.volume;
-                        float r = rsource[startSample + i] * it.volume;
+                        float l = lsource[i] * it.volume;
+                        float r = rsource[i] * it.volume;
                         if (i < fadeinsamples)
                         {
-                            l *= i / fadeinsamples; // linear fade for now
-                            r *= i / fadeinsamples; // linear fade for now
+                            // Linear
+                            //l *= (double)i / fadeinsamples; // linear fade for now
+                            //r *= (double)i / fadeinsamples; // linear fade for now
+
+                            if (it.crossfadein)
+                            {
+                                // cross fade in
+                                // log10(x/fadeinsamples+.1)*10/11
+                                double f = log10((double)i / fadeinsamples + 0.1)*10.0 / 11.0;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
+                            else
+                            {
+                                // exponent in
+                                //(10 ^ (x/fadeinsamples - 1)-.1) * 1.1
+                                double f = pow(10.0, ((double)i / fadeinsamples - 1.0) - 0.1) * 1.1;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
                         }
                         if (i > fadeoutstart)
                         {
-                            l *= (samples - i) / fadeoutsamples; // linear fade for now
-                            r *= (samples - i) / fadeoutsamples; // linear fade for now
+                            // Linear
+                            //l *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
+                            //r *= (double)(inputSamples - i) / fadeoutsamples; // linear fade for now
+
+                            if (it.crossfadeout)
+                            {
+                                // cross fade out
+                                //  1 - 10 ^ (x/fadeoutsamples - .95) + .1
+                                double f = 1.0 - log10((double)(inputSamples - i) / fadeinsamples + 0.1)*10.0 / 11.0;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
+                            else
+                            {
+                                // exponent out
+                                // 1 - log 10 (x/fadeoutsamples +.1)
+                                double f = 1.0 - pow(10.0, ((double)(inputSamples - i) / fadeinsamples - 1.0) - 0.1) * 1.1;
+                                if (f < 0) f = 0.0;
+                                if (f > 1) f = 1.0;
+                                l *= f;
+                                r *= f;
+                            }
                         }
                         left[startOutput + i] += l;
                         right[startOutput + i] += r;
@@ -9353,7 +9588,48 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
                 if (it > 1.0) it = 1.0;
             }
 
-            AudioManager::CreateMP3File(left, right, targetFile, outputRate);
+            if (targetFile.Exists())
+            {
+                if (wxMessageBox(targetFile.GetFullPath() + " already exists. Do you want to overwrite it?", "Replace", wxYES_NO | wxCENTRE, this) == wxNO)
+                {
+                    wxFileDialog fd(this,
+                        "Choose filename to save the audio as.",
+                        targetFile.GetPath(),
+                        targetFile.GetName(),
+                        "MP3 Files|*.mp3",
+                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+                    if (fd.ShowModal() == wxID_OK)
+                    {
+                        targetFile.SetPath(fd.GetDirectory());
+                        targetFile.SetName(fd.GetFilename());
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
+            SetStatusText("Saving output file.");
+
+            if (!AudioManager::CreateAudioFile(left, right, targetFile.GetFullPath(), outputRate))
+            {
+                wxMessageBox("Error creating audio file. See log for details.");
+                SetStatusText("Audio file creation failed.");
+            }
+            else
+            {
+                SetStatusText("Audio file created: " + targetFile.GetFullPath());
+            }
+        }
+        else
+        {
+            SetStatusText("Audio file creation failed.");
+        }
+
+        for (auto it : sourceSongs)
+        {
+            delete it.second;
         }
     }
 }
