@@ -319,7 +319,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     std::string font = SettingsMap["FONTPICKER_Shape_Font"];
     int direction = GetValueCurveInt("Shapes_Direction", 90, SettingsMap, oset, SHAPE_DIRECTION_MIN, SHAPE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int velocity = GetValueCurveInt("Shapes_Velocity", 0, SettingsMap, oset, SHAPE_VELOCITY_MIN, SHAPE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool randomMovement = SettingsMap.GetBool("CHECKBOX_Shapes_RandomMovement", true);
+    bool randomMovement = SettingsMap.GetBool("CHECKBOX_Shapes_RandomMovement", false);
 
     int rotation = GetValueCurveInt("Shape_Rotation", 0, SettingsMap, oset, SHAPE_ROTATION_MIN, SHAPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
