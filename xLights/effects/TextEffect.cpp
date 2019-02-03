@@ -24,7 +24,7 @@
 #include "../../include/text-64.xpm"
 #include <log4cpp/Category.hh>
 
-#define MAXTEXTLINES 5
+#define MAXTEXTLINES 20
 
 TextEffect::TextEffect(int id) : RenderableEffect(id, "Text", text_16, text_24, text_32, text_48, text_64), font_mgr(FontManager::instance())
 {
@@ -1142,13 +1142,13 @@ void TextEffect::FormatCountdown(int Countdown, int state, wxString& Line, Rende
                 wxTimeSpan format chars are described at:
                 http://docs.wxwidgets.org/trunk/classwx_time_span.html
                 The following format specifiers are allowed after %:
-                ÔH - Number of Hours
-                ÔM - Number of Minutes
-                ÔS - Number of Seconds
-                Ôl - Number of Milliseconds
-                ÔD - Number of Days
-                ÔE - Number of Weeks
-                Ô% - The percent character
+                √ØH - Number of Hours
+                √ØM - Number of Minutes
+                √ØS - Number of Seconds
+                √Øl - Number of Milliseconds
+                √ØD - Number of Days
+                √ØE - Number of Weeks
+                √Ø% - The percent character
 
                 //Format Characters are described at: http://www.cplusplus.com/reference/ctime/strftime/
                 TIME FORMAT CHARACTERS:
