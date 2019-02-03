@@ -59,7 +59,7 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
             backgrounds.AddHBlendedRectangle(c1, c2, cx1, y1+4, cx1+color_length, y2-4);
         }
     }
-    return 1; // draw icon
+    return 2; // draw small icon
 }
 
 void GalaxyEffect::SetDefaultParameters() {
