@@ -167,7 +167,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	FlexGridSizer31->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 2);
 	TextCtrl_VUMeter_Gain = new BulkEditTextCtrl(this, ID_TEXTCTRL_VUMeter_Gain, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_VUMeter_Gain"));
 	FlexGridSizer31->Add(TextCtrl_VUMeter_Gain, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer31->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Shape, _("Shape"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Shape"));
 	FlexGridSizer31->Add(StaticText7, 1, wxALL, 2);
 	Choice_VUMeter_Shape = new BulkEditChoice(this, ID_CHOICE_VUMeter_Shape, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Shape"));
@@ -313,11 +313,13 @@ void VUMeterPanel::ValidateWindow()
     {
         Slider_VUMeter_Gain->Enable();
         TextCtrl_VUMeter_Gain->Enable();
+        BitmapButton_VUMeter_Gain->Enable();
     }
     else
     {
         Slider_VUMeter_Gain->Disable();
         TextCtrl_VUMeter_Gain->Disable();
+        BitmapButton_VUMeter_Gain->Disable();
     }
 
     if (type == "Timing Event Spike" ||
@@ -370,8 +372,10 @@ void VUMeterPanel::ValidateWindow()
     if (type == "Level Shape")
     {
         Choice_VUMeter_Shape->Enable();
-        if (Choice_VUMeter_Shape->GetStringSelection() == "Star" || Choice_VUMeter_Shape->GetStringSelection() == "Filled Star" || 
-			Choice_VUMeter_Shape->GetStringSelection() == "Snowflake")
+        auto shape = Choice_VUMeter_Shape->GetStringSelection();
+        if (shape == "Star" || 
+            shape == "Filled Star" || 
+			shape == "Snowflake")
         {
             // we use bars to set number of points
             Slider_VUMeter_Bars->Enable();
@@ -444,9 +448,9 @@ void VUMeterPanel::ValidateWindow()
     }
     else
     {
+        BitmapButton_VUMeter_YOffsetVC->Disable();
         Slider_VUMeter_YOffset->Disable();
         TextCtrl_VUMeter_YOffset->Disable();
-        BitmapButton_VUMeter_YOffsetVC->Disable();
     }
 
     Slider_VUMeter_StartNote->SetToolTip(wxString(DecodeMidi(Slider_VUMeter_StartNote->GetValue()).c_str()));

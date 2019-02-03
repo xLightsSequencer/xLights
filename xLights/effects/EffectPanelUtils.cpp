@@ -166,13 +166,16 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
     }
     else
     {
-        if (slider != nullptr)
+        if (vcb->IsEnabled())
         {
-            slider->Enable();
-        }
-        if (textctrl != nullptr)
-        {
-            textctrl->Enable();
+            if (slider != nullptr)
+            {
+                slider->Enable();
+            }
+            if (textctrl != nullptr)
+            {
+                textctrl->Enable();
+            }
         }
     }
 }

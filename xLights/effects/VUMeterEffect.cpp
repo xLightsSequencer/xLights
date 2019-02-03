@@ -143,6 +143,7 @@ void VUMeterEffect::SetPanelStatus(Model* cls)
     vp->Choice_VUMeter_TimingTrack->Clear();
     if (mSequenceElements == nullptr)
     {
+        vp->ValidateWindow();
         return;
     }
 
@@ -185,6 +186,7 @@ void VUMeterEffect::SetDefaultParameters()
     SetSliderValue(vp->Slider_VUMeter_Gain, 0);
     vp->BitmapButton_VUMeter_YOffsetVC->SetActive(false);
     vp->BitmapButton_VUMeter_Gain->SetActive(false);
+    vp->ValidateWindow();
 }
 
 void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
