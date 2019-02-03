@@ -38,7 +38,7 @@ void DrawGLUtils::LogGLError(const char * file, int line, const char *msg) {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     static bool isTraceDebugEnabled = logger_opengl_trace.isDebugEnabled();
-    static bool isDebugEnabled = true; //logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
+    static bool isDebugEnabled = logger_opengl.isDebugEnabled() | isTraceDebugEnabled;
     if (isDebugEnabled) {
         int er = glGetError();
         if (er || isTraceDebugEnabled) {

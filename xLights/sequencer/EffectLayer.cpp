@@ -1142,16 +1142,14 @@ void EffectLayer::ApplyEffectSettingToSelected(EffectsGrid* grid, UndoManager& u
 
 void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoManager& undo_manager, const std::vector<std::pair<int, int>>& pairs, const EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     DMXEffect* dmx = static_cast<DMXEffect*>(effectManager.GetEffect("DMX"));
 
     for (int i = 0; i < mEffects.size(); i++)
     {
         if (mEffects[i]->GetEffectName() == "DMX" &&
-            (mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
+            ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||
             (mEffects[i]->GetSelected() == EFFECT_RT_SELECTED) ||
-            (mEffects[i]->GetSelected() == EFFECT_SELECTED))
+            (mEffects[i]->GetSelected() == EFFECT_SELECTED)))
         {
             undo_manager.CaptureModifiedEffect(GetParentElement()->GetName(), GetIndex(), mEffects[i]->GetID(), mEffects[i]->GetSettingsAsString(), mEffects[i]->GetPaletteAsString());
             dmx->RemapSelectedDMXEffectValues(mEffects[i], pairs);
@@ -1163,8 +1161,6 @@ void EffectLayer::RemapSelectedDMXEffectValues(EffectsGrid* effects_grid, UndoMa
 
 void EffectLayer::ConvertSelectedEffectsTo(EffectsGrid* grid, UndoManager& undo_manager, const std::string& effectName, EffectManager& effectManager, RangeAccumulator& rangeAccumulator)
 {
-    log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     for (int i = 0; i<mEffects.size(); i++)
     {
         if ((mEffects[i]->GetSelected() == EFFECT_LT_SELECTED) ||

@@ -495,44 +495,42 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                     }
 
                     float tc[3][2];
-                    if (!mesh_only || mesh3d) {
-                        if (attrib.texcoords.size() > 0) {
-                            if ((idx0.texcoord_index < 0) || (idx1.texcoord_index < 0) ||
-                                (idx2.texcoord_index < 0)) {
-                                // face does not contain valid uv index.
-                                tc[0][0] = 0.0f;
-                                tc[0][1] = 0.0f;
-                                tc[1][0] = 0.0f;
-                                tc[1][1] = 0.0f;
-                                tc[2][0] = 0.0f;
-                                tc[2][1] = 0.0f;
-                            } else {
-                                assert(attrib.texcoords.size() >
-                                    size_t(2 * idx0.texcoord_index + 1));
-                                assert(attrib.texcoords.size() >
-                                    size_t(2 * idx1.texcoord_index + 1));
-                                assert(attrib.texcoords.size() >
-                                    size_t(2 * idx2.texcoord_index + 1));
-
-                                tc[0][0] = attrib.texcoords[2 * idx0.texcoord_index];
-                                tc[0][1] = attrib.texcoords[2 * idx0.texcoord_index + 1];
-                                tc[1][0] = attrib.texcoords[2 * idx1.texcoord_index];
-                                tc[1][1] = attrib.texcoords[2 * idx1.texcoord_index + 1];
-                                tc[2][0] = attrib.texcoords[2 * idx2.texcoord_index];
-                                tc[2][1] = attrib.texcoords[2 * idx2.texcoord_index + 1];
-
-                                //tc[0][1] = 1.0f - attrib.texcoords[2 * idx0.texcoord_index + 1];
-                                //tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
-                                //tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
-                            }
-                        } else {
+                    if (attrib.texcoords.size() > 0) {
+                        if ((idx0.texcoord_index < 0) || (idx1.texcoord_index < 0) ||
+                            (idx2.texcoord_index < 0)) {
+                            // face does not contain valid uv index.
                             tc[0][0] = 0.0f;
                             tc[0][1] = 0.0f;
                             tc[1][0] = 0.0f;
                             tc[1][1] = 0.0f;
                             tc[2][0] = 0.0f;
                             tc[2][1] = 0.0f;
+                        } else {
+                            assert(attrib.texcoords.size() >
+                                size_t(2 * idx0.texcoord_index + 1));
+                            assert(attrib.texcoords.size() >
+                                size_t(2 * idx1.texcoord_index + 1));
+                            assert(attrib.texcoords.size() >
+                                size_t(2 * idx2.texcoord_index + 1));
+
+                            tc[0][0] = attrib.texcoords[2 * idx0.texcoord_index];
+                            tc[0][1] = attrib.texcoords[2 * idx0.texcoord_index + 1];
+                            tc[1][0] = attrib.texcoords[2 * idx1.texcoord_index];
+                            tc[1][1] = attrib.texcoords[2 * idx1.texcoord_index + 1];
+                            tc[2][0] = attrib.texcoords[2 * idx2.texcoord_index];
+                            tc[2][1] = attrib.texcoords[2 * idx2.texcoord_index + 1];
+
+                            //tc[0][1] = 1.0f - attrib.texcoords[2 * idx0.texcoord_index + 1];
+                            //tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
+                            //tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
                         }
+                    } else {
+                        tc[0][0] = 0.0f;
+                        tc[0][1] = 0.0f;
+                        tc[1][0] = 0.0f;
+                        tc[1][1] = 0.0f;
+                        tc[2][0] = 0.0f;
+                        tc[2][1] = 0.0f;
                     }
 
                     float v[3][3];
@@ -546,140 +544,100 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         v[2][k] = attrib.vertices[3 * f2 + k];
                     }
 
-                    if (!mesh3d) {
-                        for (int k = 0; k < 3; k++) {
-                            GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
-                        }
-                    }
-
                     float n[3][3];
-                    if (!mesh_only || mesh3d) {
-                        bool invalid_normal_index = false;
-                        if (attrib.normals.size() > 0) {
-                            int nf0 = idx0.normal_index;
-                            int nf1 = idx1.normal_index;
-                            int nf2 = idx2.normal_index;
+                    bool invalid_normal_index = false;
+                    if (attrib.normals.size() > 0) {
+                        int nf0 = idx0.normal_index;
+                        int nf1 = idx1.normal_index;
+                        int nf2 = idx2.normal_index;
 
-                            if ((nf0 < 0) || (nf1 < 0) || (nf2 < 0)) {
-                                // normal index is missing from this face.
-                                invalid_normal_index = true;
-                            } else {
-                                for (int k = 0; k < 3; k++) {
-                                    assert(size_t(3 * nf0 + k) < attrib.normals.size());
-                                    assert(size_t(3 * nf1 + k) < attrib.normals.size());
-                                    assert(size_t(3 * nf2 + k) < attrib.normals.size());
-                                    n[0][k] = attrib.normals[3 * nf0 + k];
-                                    n[1][k] = attrib.normals[3 * nf1 + k];
-                                    n[2][k] = attrib.normals[3 * nf2 + k];
-                                }
-                            }
-                        } else {
+                        if ((nf0 < 0) || (nf1 < 0) || (nf2 < 0)) {
+                            // normal index is missing from this face.
                             invalid_normal_index = true;
-                        }
-
-                        if (invalid_normal_index && !smoothVertexNormals.empty()) {
-                            // Use smoothing normals
-                            int f0 = idx0.vertex_index;
-                            int f1 = idx1.vertex_index;
-                            int f2 = idx2.vertex_index;
-
-                            if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
-                                n[0][0] = smoothVertexNormals[f0].v[0];
-                                n[0][1] = smoothVertexNormals[f0].v[1];
-                                n[0][2] = smoothVertexNormals[f0].v[2];
-
-                                n[1][0] = smoothVertexNormals[f1].v[0];
-                                n[1][1] = smoothVertexNormals[f1].v[1];
-                                n[1][2] = smoothVertexNormals[f1].v[2];
-
-                                n[2][0] = smoothVertexNormals[f2].v[0];
-                                n[2][1] = smoothVertexNormals[f2].v[1];
-                                n[2][2] = smoothVertexNormals[f2].v[2];
-
-                                invalid_normal_index = false;
-                            }
-                        }
-
-                        if (invalid_normal_index) {
-                            // compute geometric normal
-                            CalcNormal(n[0], v[0], v[1], v[2]);
-                            n[1][0] = n[0][0];
-                            n[1][1] = n[0][1];
-                            n[1][2] = n[0][2];
-                            n[2][0] = n[0][0];
-                            n[2][1] = n[0][1];
-                            n[2][2] = n[0][2];
-                        }
-                        
-                        uint8_t colors[3][4];
-                        for (int k = 0; k < 3; k++) {
-
-                            // Combine normal and diffuse to get color.
-                            float normal_factor = 0.2f;
-                            float diffuse_factor = 1 - normal_factor;
-                            float c[3] = { n[k][0] * normal_factor + diffuse[0] * diffuse_factor,
-                                n[k][1] * normal_factor + diffuse[1] * diffuse_factor,
-                                n[k][2] * normal_factor + diffuse[2] * diffuse_factor };
-                            float len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
-                            if (len2 > 0.0f) {
-                                float len = sqrtf(len2);
-
-                                c[0] /= len;
-                                c[1] /= len;
-                                c[2] /= len;
-                            }
-                            float red = c[0] * 0.5 + 0.5;
-                            float green = c[1] * 0.5 + 0.5;
-                            float blue = c[2] * 0.5 + 0.5;
-
-                            if (diffuse_colors) {
-                                // just use diffuse color for now
-                                red = diffuse[0];
-                                green = diffuse[1];
-                                blue = diffuse[2];
-                            }
-                            float trans = materials[current_material_id].dissolve * 255.0f;
-                            if (!mesh3d) {
-                                red *= brightness / 100.f;
-                                green *= brightness / 100.f;
-                                blue *= brightness / 100.f;
-                            }
-                            xlColor color(red * 255, green * 255, blue * 255, trans);
-                            colors[k][0] = color.red;
-                            colors[k][1] = color.green;
-                            colors[k][2] = color.blue;
-                            colors[k][3] = trans;
-
-                            if (!mesh3d) {
-                                if (image_id == -1) {
-                                    va3.AddVertex(v[k][0], v[k][1], v[k][2], color);
-                                } else {
-                                    va3.AddTextureVertex(v[k][0], v[k][1], v[k][2], tc[k][0], tc[k][1]);
-                                }
-                            }
-                        }
-                        if (mesh3d) {
-                            mesh3d->addSurface(v, tc, n, colors, image_id);
                         } else {
-                            if (image_id == -1) {
-                                va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
-                            } else {
-                                va3.FinishTextures(GL_TRIANGLES, image_id, 255, (float)brightness);
+                            for (int k = 0; k < 3; k++) {
+                                assert(size_t(3 * nf0 + k) < attrib.normals.size());
+                                assert(size_t(3 * nf1 + k) < attrib.normals.size());
+                                assert(size_t(3 * nf2 + k) < attrib.normals.size());
+                                n[0][k] = attrib.normals[3 * nf0 + k];
+                                n[1][k] = attrib.normals[3 * nf1 + k];
+                                n[2][k] = attrib.normals[3 * nf2 + k];
                             }
                         }
                     } else {
-                        // Mesh Lines
-                        va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
-                        va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxGREEN);
-                        va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxGREEN);
-                        va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
-                        va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
-                        va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
+                        invalid_normal_index = true;
                     }
+
+                    if (invalid_normal_index && !smoothVertexNormals.empty()) {
+                        // Use smoothing normals
+                        int f0 = idx0.vertex_index;
+                        int f1 = idx1.vertex_index;
+                        int f2 = idx2.vertex_index;
+
+                        if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
+                            n[0][0] = smoothVertexNormals[f0].v[0];
+                            n[0][1] = smoothVertexNormals[f0].v[1];
+                            n[0][2] = smoothVertexNormals[f0].v[2];
+
+                            n[1][0] = smoothVertexNormals[f1].v[0];
+                            n[1][1] = smoothVertexNormals[f1].v[1];
+                            n[1][2] = smoothVertexNormals[f1].v[2];
+
+                            n[2][0] = smoothVertexNormals[f2].v[0];
+                            n[2][1] = smoothVertexNormals[f2].v[1];
+                            n[2][2] = smoothVertexNormals[f2].v[2];
+
+                            invalid_normal_index = false;
+                        }
+                    }
+
+                    if (invalid_normal_index) {
+                        // compute geometric normal
+                        CalcNormal(n[0], v[0], v[1], v[2]);
+                        n[1][0] = n[0][0];
+                        n[1][1] = n[0][1];
+                        n[1][2] = n[0][2];
+                        n[2][0] = n[0][0];
+                        n[2][1] = n[0][1];
+                        n[2][2] = n[0][2];
+                    }
+                    
+                    uint8_t colors[3][4];
+                    for (int k = 0; k < 3; k++) {
+
+                        // Combine normal and diffuse to get color.
+                        float normal_factor = 0.2f;
+                        float diffuse_factor = 1 - normal_factor;
+                        float c[3] = { n[k][0] * normal_factor + diffuse[0] * diffuse_factor,
+                            n[k][1] * normal_factor + diffuse[1] * diffuse_factor,
+                            n[k][2] * normal_factor + diffuse[2] * diffuse_factor };
+                        float len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
+                        if (len2 > 0.0f) {
+                            float len = sqrtf(len2);
+
+                            c[0] /= len;
+                            c[1] /= len;
+                            c[2] /= len;
+                        }
+                        float red = c[0] * 0.5 + 0.5;
+                        float green = c[1] * 0.5 + 0.5;
+                        float blue = c[2] * 0.5 + 0.5;
+
+                        if (diffuse_colors) {
+                            // just use diffuse color for now
+                            red = diffuse[0];
+                            green = diffuse[1];
+                            blue = diffuse[2];
+                        }
+                        float trans = materials[current_material_id].dissolve * 255.0f;
+                        xlColor color(red * 255, green * 255, blue * 255, trans);
+                        colors[k][0] = color.red;
+                        colors[k][1] = color.green;
+                        colors[k][2] = color.blue;
+                        colors[k][3] = trans;
+                    }
+                    mesh3d->addSurface(v, tc, n, colors, image_id);
                 }
-            }
-            if (mesh_only && !mesh3d) {
-                va3.Finish(GL_LINES, GL_LINE_SMOOTH, 1.0f);
             }
 
             // process any edge lines
@@ -693,29 +651,12 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         v[0][k] = attrib.vertices[3 * f0 + k];
                         v[1][k] = attrib.vertices[3 * f1 + k];
                     }
-                    if (!mesh3d) {
-                        for (int k = 0; k < 2; k++) {
-                            GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
-                        }
-                        va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxBLACK);
-                        va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxBLACK);
-                    } else {
-                        mesh3d->addLine(v);
-                    }
-                }
-                if (!mesh3d) {
-                    va3.Finish(GL_LINES, GL_LINE_SMOOTH, 0.75f);
+                    mesh3d->addLine(v);
                 }
             }
-            
-            if (mesh3d) {
-                mesh3d->setMatrix(m);
-                va3.AddMesh(mesh3d, mesh_only, brightness);
-            }
-        } else {
-            mesh3d->setMatrix(m);
-            va3.AddMesh(mesh3d, mesh_only, brightness);
         }
+        mesh3d->setMatrix(m);
+        va3.AddMesh(mesh3d, mesh_only, brightness);
     }
 
     if ((Selected || Highlighted) && allowSelected) {
