@@ -48,6 +48,10 @@ int AudioData::__nextId = 0;
 #define CODEC_CAP_DELAY AV_CODEC_CAP_DELAY
 #endif
 
+#ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
+#define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+#endif
+
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0
