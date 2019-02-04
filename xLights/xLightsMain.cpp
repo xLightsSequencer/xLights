@@ -5782,6 +5782,13 @@ void xLightsFrame::CheckSequence(bool display)
             warncount++;
         }
 
+        if (errcount + warncount == errcountsave + warncountsave)
+        {
+            LogAndWrite(f, "    No problems found");
+        }
+        errcountsave = errcount;
+        warncountsave = warncount;
+
         LogAndWrite(f, "");
         LogAndWrite(f, "If you are planning on importing this sequence be aware the sequence relies on the following items that will not be imported.");
         LogAndWrite(f, "");
@@ -5805,13 +5812,6 @@ void xLightsFrame::CheckSequence(bool display)
             wxString msg = wxString::Format("        Viewpoint: %s.", it);
             LogAndWrite(f, msg.ToStdString());
         }
-
-        if (errcount + warncount == errcountsave + warncountsave)
-        {
-            LogAndWrite(f, "    No problems found");
-        }
-        errcountsave = errcount;
-        warncountsave = warncount;
     }
     else
     {
