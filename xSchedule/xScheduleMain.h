@@ -65,6 +65,7 @@ wxDECLARE_EVENT(EVT_QUIT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_XYZZYEVENT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_RUNACTION, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
 
 class xScheduleFrame : public wxFrame
 {
@@ -212,6 +213,7 @@ public:
         void RateNotification(wxCommandEvent& event);
         void StatusMsgNotification(wxCommandEvent& event);
         void RunAction(wxCommandEvent& event);
+        void ChangeShowFolder(wxCommandEvent& event);
         void ScheduleChange(wxCommandEvent& event);
         void DoCheckSchedule(wxCommandEvent& event);
         void Sync(wxCommandEvent& event);

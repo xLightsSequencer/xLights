@@ -320,6 +320,7 @@ END_EVENT_TABLE()
 wxDEFINE_EVENT(EVT_FRAMEMS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_STATUSMSG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_RUNACTION, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CHANGESHOWFOLDER, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SCHEDULECHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SYNC, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOCHECKSCHEDULE, wxCommandEvent);
@@ -335,6 +336,7 @@ BEGIN_EVENT_TABLE(xScheduleFrame,wxFrame)
     EVT_COMMAND(wxID_ANY, EVT_FRAMEMS, xScheduleFrame::RateNotification)
     EVT_COMMAND(wxID_ANY, EVT_STATUSMSG, xScheduleFrame::StatusMsgNotification)
     EVT_COMMAND(wxID_ANY, EVT_RUNACTION, xScheduleFrame::RunAction)
+    EVT_COMMAND(wxID_ANY, EVT_CHANGESHOWFOLDER, xScheduleFrame::ChangeShowFolder)
     EVT_COMMAND(wxID_ANY, EVT_SCHEDULECHANGED, xScheduleFrame::ScheduleChange)
     EVT_COMMAND(wxID_ANY, EVT_SYNC, xScheduleFrame::Sync)
     EVT_COMMAND(wxID_ANY, EVT_DOCHECKSCHEDULE, xScheduleFrame::DoCheckSchedule)
@@ -663,6 +665,7 @@ xScheduleFrame::xScheduleFrame(wxWindow* parent, const std::string& showdir, con
     Connect(wxID_ANY, EVT_FRAMEMS, (wxObjectEventFunction)&xScheduleFrame::RateNotification);
     Connect(wxID_ANY, EVT_STATUSMSG, (wxObjectEventFunction)&xScheduleFrame::StatusMsgNotification);
     Connect(wxID_ANY, EVT_RUNACTION, (wxObjectEventFunction)&xScheduleFrame::RunAction);
+    Connect(wxID_ANY, EVT_CHANGESHOWFOLDER, (wxObjectEventFunction)&xScheduleFrame::ChangeShowFolder);
     Connect(wxID_ANY, EVT_SCHEDULECHANGED, (wxObjectEventFunction)&xScheduleFrame::ScheduleChange);
     Connect(wxID_ANY, EVT_SYNC, (wxObjectEventFunction)&xScheduleFrame::Sync);
     Connect(wxID_ANY, EVT_DOCHECKSCHEDULE, (wxObjectEventFunction)&xScheduleFrame::DoCheckSchedule);
@@ -1230,6 +1233,7 @@ void xScheduleFrame::OnMenuItem_ShowFolderSelected(wxCommandEvent& event)
         _timerSchedule.Stop();
         _timer.Stop();
         LoadSchedule();
+        wxASSERT(__schedule != nullptr);
         _timer.Start(50 / 2, false);
         _timerSchedule.Start(500, false);
     }
@@ -1660,6 +1664,27 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
             SetTempMessage(msg);
         }
     }
+}
+
+void xScheduleFrame::ChangeShowFolder(wxCommandEvent& event)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    auto newShowFolder = event.GetString();
+
+    if (newShowFolder == "")
+    {
+        newShowFolder = __schedule->GetShowDir();
+    }
+
+    logger_base.debug("Changing show folder to %s.", (const char *)newShowFolder.c_str());
+    _showDir = newShowFolder.ToStdString();
+    SaveShowDir();
+    _timerSchedule.Stop();
+    _timer.Stop();
+    LoadSchedule();
+    _timer.Start(50 / 2, false);
+    _timerSchedule.Start(500, false);
+    ValidateWindow();
 }
 
 void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
