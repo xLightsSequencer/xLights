@@ -447,36 +447,38 @@ void xLightsFrame::UpdateChannelNames()
     // KW left as some of the conversions seem to use this
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
         Model *model = it->second;
-        NodeCount = model->GetNodeCount();
-        ChanPerNode = model->GetChanCountPerNode();
-        FormatSpec = "Ch %ld: " + model->name + " #%d";
-        for (n = 0; n < NodeCount; n++)
-        {
-            ChannelNum = model->NodeStartChannel(n);
+        if (model->GetDisplayAs() != "ModelGroup") {
+            NodeCount = model->GetNodeCount();
+            ChanPerNode = model->GetChanCountPerNode();
+            FormatSpec = "Ch %ld: " + model->name + " #%d";
+            for (n = 0; n < NodeCount; n++)
+            {
+                ChannelNum = model->NodeStartChannel(n);
 
-            NodeNum = n + 1;
-            if (ChanPerNode == 1)
-            {
-                if (ChannelNum < ChNames.Count())
-                {
-                    if (ChNames[ChannelNum] == "")
-                    {
-                        ChNames[ChannelNum] = wxString::Format(FormatSpec, ChannelNum + 1, NodeNum);
-                    }
-                }
-            }
-            else
-            {
-                for (c = 0; c < ChanPerNode; c++)
+                NodeNum = n + 1;
+                if (ChanPerNode == 1)
                 {
                     if (ChannelNum < ChNames.Count())
                     {
                         if (ChNames[ChannelNum] == "")
                         {
-                            ChNames[ChannelNum] = wxString::Format(FormatSpec, ChannelNum + 1, NodeNum) + model->GetChannelColorLetter(c);
+                            ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, NodeNum);
                         }
                     }
-                    ChannelNum++;
+                }
+                else
+                {
+                    for (c = 0; c < ChanPerNode; c++)
+                    {
+                        if (ChannelNum < ChNames.Count())
+                        {
+                            if (ChNames[ChannelNum] == "")
+                            {
+                                ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, NodeNum) + model->GetChannelColorLetter(c);
+                            }
+                        }
+                        ChannelNum++;
+                    }
                 }
             }
         }

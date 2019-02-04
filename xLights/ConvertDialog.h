@@ -5,14 +5,14 @@ class xLightsFrame;
 class SP_XmlStartTagEvent;
 
 //(*Headers(ConvertDialog)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/dialog.h>
+#include <wx/filedlg.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checkbox.h>
-#include <wx/filedlg.h>
-#include <wx/choice.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
 //*)
 
 #include <set>
@@ -39,6 +39,7 @@ class ConvertDialog: public wxDialog
     bool mapEmptyChannels();
     bool showChannelMapping();
     bool isSetOffAtEnd();
+    bool WriteLedBlinkyFile(const wxString& filename);
     bool WriteVixenFile(const wxString& filename);
     void WriteVirFile(const wxString& filename);
     void WriteHLSFile(const wxString& filename);
@@ -67,29 +68,29 @@ class ConvertDialog: public wxDialog
 		virtual ~ConvertDialog();
 
 		//(*Declarations(ConvertDialog)
-		wxStaticText* StaticText10;
-		wxStaticText* StaticText9;
-		wxTextCtrl* TextCtrlFilename;
-		wxChoice* LORImportTimeResolution;
-		wxButton* ButtonClose;
-		wxStaticText* StaticText2;
-		wxFileDialog* FileDialogConvert;
-		wxChoice* ChoiceOutputFormat;
-		wxStaticText* StaticText6;
-		wxStaticText* StaticTextStatus;
-		wxStaticText* StaticText8;
-		wxButton* ButtonStartConversion;
-		wxStaticText* StaticText11;
-		wxCheckBox* CheckBoxMapEmptyChannels;
-		wxStaticText* StaticText3;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText7;
-		wxCheckBox* CheckBoxShowChannelMapping;
-		wxTextCtrl* TextCtrlConversionStatus;
-		wxCheckBox* MapLORChannelsWithNoNetwork;
 		wxButton* ButtonChooseFile;
-		wxStaticText* StaticText4;
+		wxButton* ButtonClose;
+		wxButton* ButtonStartConversion;
+		wxCheckBox* CheckBoxMapEmptyChannels;
 		wxCheckBox* CheckBoxOffAtEnd;
+		wxCheckBox* CheckBoxShowChannelMapping;
+		wxCheckBox* MapLORChannelsWithNoNetwork;
+		wxChoice* ChoiceOutputFormat;
+		wxChoice* LORImportTimeResolution;
+		wxFileDialog* FileDialogConvert;
+		wxStaticText* StaticText10;
+		wxStaticText* StaticText11;
+		wxStaticText* StaticText2;
+		wxStaticText* StaticText3;
+		wxStaticText* StaticText4;
+		wxStaticText* StaticText5;
+		wxStaticText* StaticText6;
+		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
+		wxStaticText* StaticTextStatus;
+		wxTextCtrl* TextCtrlConversionStatus;
+		wxTextCtrl* TextCtrlFilename;
 		//*)
 
 	protected:

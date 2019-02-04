@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- enh (gil)     Add option to convert tool for creating LEDBlinky animation files.
    -- bug (kevin)   Fix model/row copy effects from one sequence and pasting in another. Fixes #1450
    -- enh (kevin)   Enable timeline icons for fan and galaxy effects
 2019.09 February 2, 2019
@@ -23,7 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith)   Render cache effects which have blur or rotation applied
    -- enh (dkulp)   Update OpenGL 1.1/2.1 render routines to peform better with Mesh objects
 2019.08 January 30, 2019
-   -- enh (keith)   Add to check sequence the listing of faces, states and view points a sequence relies 
+   -- enh (keith)   Add to check sequence the listing of faces, states and view points a sequence relies
 			        upon to help preparing for imports
    -- enh (keith)   In layout mode adapt the axis of movement using the keyboard based on camera position
    -- enh (keith)   Add channel remapping to the DMX effect
@@ -32,7 +33,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Fix node layout on custom models when not square
    -- bug (keith)   Fix effect type bulk edit doesnt always initialise effect settings
    -- enh (dkulp)   Add an option for 2D preview to move the 0.0 location to the middle bottom
-   -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for 
+   -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for
                     various buffer styles
    -- enh (dkulp)   Draw solid parts of mesh before lights, allows lights to blend onto them. (OpenGL 3.3 only)
    -- bug (dkulp)   In 3d, if a grid or image object wasn't also present, mesh would not appear.
