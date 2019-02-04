@@ -1541,15 +1541,10 @@ std::string FindHLSStrandName(const std::string &ccrName, int node, const std::v
     return "";
 }
 
-bool EndsWith(const std::string &fullString, const std::string &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    }
-    return false;
-}
 bool Contains(const std::vector<std::string> &array, const std::string &str) {
     return std::find(array.begin(), array.end(), str) != array.end();
 }
+
 int Index(const std::vector<std::string> &array, const std::string &str) {
     auto it = std::find(array.begin(), array.end(), str);
     if (it == array.end()) {

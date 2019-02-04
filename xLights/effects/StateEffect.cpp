@@ -289,7 +289,20 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         while (tkz.HasMoreTokens())
         {
             wxString token = tkz.GetNextToken();
-            sstates.push_back(token.Lower().ToStdString());
+            if (token == "*")
+            {
+                for (auto it2 : model_info->stateInfo[definition])
+                {
+                    if (EndsWith(it2.first, "-Name") && it2.second != "")
+                    {
+                        sstates.push_back(Lower(it2.second));
+                    }
+                }
+            }
+            else
+            {
+                sstates.push_back(token.Lower().ToStdString());
+            }
         }
     }
     else if (mode == "Countdown")
