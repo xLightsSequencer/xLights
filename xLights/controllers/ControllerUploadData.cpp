@@ -766,6 +766,7 @@ void UDControllerPort::CreateVirtualStrings()
         _virtualStrings.pop_front();
     }
 
+    long lastEndChannel = -1000;
     UDVirtualString* current = nullptr;
     for (auto it : _models)
     {
@@ -783,6 +784,7 @@ void UDControllerPort::CreateVirtualStrings()
             current = new UDVirtualString();
             _virtualStrings.push_back(current);
             first = true;
+            lastEndChannel = it->GetEndChannel();
         }
         else
         {
@@ -791,12 +793,14 @@ void UDControllerPort::CreateVirtualStrings()
                 (reverse != "unknown" && current->_reverse != reverse) ||
                 (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
                 (gamma != -9999 && current->_gamma != gamma) ||
-                (groupCount != -9999 && current->_groupCount != groupCount))
+                (groupCount != -9999 && current->_groupCount != groupCount) ||
+                lastEndChannel + 1 != it->GetStartChannel())
             {
                 current = new UDVirtualString();
                 _virtualStrings.push_back(current);
                 first = true;
             }
+            lastEndChannel = it->GetEndChannel();
         }
 
         current->_endChannel = it->GetEndChannel();
