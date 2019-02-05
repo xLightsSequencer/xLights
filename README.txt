@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.10 February 5, 2019
+   -- enh (keith)   Add an <ALL> state to state effect that activates all states. Also recognise * in timing track as well
+   -- bug (keith)   Fix custom models load with zero layers if depth not set correctly in the file
+   -- bug (keith)   Fix falcon upload with virtual strings miscalculates number of nodes on a port
+   -- enh (keith)   If models on a port are not using contiguous channels put them on virtual strings
+   -- enh (keith)   Add an xSchedule API to change/reload showfolder
+   -- enh (keith)   Include xmap files in the backup
+   -- enh (keith)   Increase maximum lines read from file to 20 for text effect
+   -- bug (keith)   Fix disabled effect options with valuecurves dont disable correctly
+   -- bug (keith)   Fix shape effect movement defaults to on when loading old sequences
    -- enh (gil)     Add option to convert tool for creating LEDBlinky animation files.
    -- bug (kevin)   Fix model/row copy effects from one sequence and pasting in another. Fixes #1450
    -- enh (kevin)   Enable timeline icons for fan and galaxy effects
