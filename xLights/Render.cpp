@@ -1850,7 +1850,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, b)) {
                 wxStopWatch sw;
 
-                if (effectObj != nullptr && reff->SupportsRenderCache()) {
+                if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
                     if (!effectObj->GetFrame(b, _renderCache)) {
                         reff->Render(effectObj, SettingsMap, b);
                         effectObj->AddFrame(b, _renderCache);

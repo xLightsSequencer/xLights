@@ -65,15 +65,15 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
     _parent = (xLightsFrame*)parent;
 
 	//(*Initialize(ConvertDialog)
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxStaticBoxSizer* StaticBoxSizer1;
 	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
+	wxFlexGridSizer* FlexGridSizer4;
+	wxFlexGridSizer* FlexGridSizer5;
+	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
 	wxFlexGridSizer* FlexGridSizerConvert;
+	wxStaticBoxSizer* StaticBoxSizer1;
 
 	Create(parent, id, _("xLights File Conversion"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -106,6 +106,7 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
 	ChoiceOutputFormat->Append(_("Glediator Record File *.gled"));
 	ChoiceOutputFormat->Append(_("Lcb, LOR clipboard *.lcb"));
 	ChoiceOutputFormat->Append(_("HLS *.hlsnc"));
+	ChoiceOutputFormat->Append(_("LedBlinky Animation *.lwax"));
 	FlexGridSizer4->Add(ChoiceOutputFormat, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT8, _("All channels off at end:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
 	FlexGridSizer4->Add(StaticText7, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
@@ -426,6 +427,48 @@ void ConvertDialog::WriteHLSFile(const wxString& filename)
     _parent->WriteHLSFile(filename, SeqData.NumChannels(), SeqData.NumFrames(), &SeqData);
 }
 
+bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
+{
+    wxString ChannelName, TestName;
+    int32_t ChannelColor;
+    long TotalTime = SeqData.TotalTime();
+    wxXmlDocument doc;
+    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "LEDAnimation");
+    doc.SetRoot(root);
+
+    int frame = 1;
+
+    for (int frame = 1; frame <= SeqData.NumFrames(); frame++) {
+        wxXmlNode *fr_node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Frame");
+        fr_node->AddAttribute("Number", string_format("%d", frame));
+        fr_node->AddAttribute("Duration", string_format("%d", SeqData.FrameTime()));
+
+        wxXmlNode *int_node = new wxXmlNode(fr_node, wxXML_ELEMENT_NODE, "Intensity");
+        int_node->AddAttribute("LedHwType", "6");
+        int_node->AddAttribute("Id", "1");
+        wxXmlNode *st_node = new wxXmlNode(fr_node, wxXML_ELEMENT_NODE, "State");
+        st_node->AddAttribute("LedHwType", "6");
+        st_node->AddAttribute("Id", "1");
+        wxString intensity_values = "";
+        wxString state_values = "";
+        for (int ch = 0; ch < SeqData.NumChannels(); ch++) {
+            int data = (int)((float)SeqData[frame][ch] * 48.0f / 255.0f);
+            int state = data > 0 ? 1 : 0;
+            if (ch == SeqData.NumChannels() - 1) {
+                intensity_values += string_format("%d", data);
+                state_values += string_format("%d", state);
+            } else {
+                intensity_values += string_format("%d", data) + ",";
+                state_values += string_format("%d", 1) + ",";
+            }
+        }
+        int_node->AddAttribute("Value", intensity_values);
+        st_node->AddAttribute("Value", state_values);
+    }
+
+    return doc.Save(filename);
+}
+
 void ConvertDialog::WriteXLightsFile(const wxString& filename)
 {
     wxFile file;
@@ -699,7 +742,7 @@ bool ConvertDialog::LoadVixenProfile(const wxString& ProfileName, wxArrayInt& Vi
                         }
                         else
                         {
-                            if (p->GetChildren() != NULL) {
+                            if (p->GetChildren() != nullptr) {
                                 VixChannelNames.push_back(p->GetChildren()->GetContent());
                             }
                             else {
@@ -2074,6 +2117,20 @@ void ConvertDialog::DoConversion(const wxString& Filename, const wxString& Outpu
         fullpath = oName.GetFullPath();
         AppendConvertStatus(wxString("Writing HLS routine\n"));
         WriteHLSFile(fullpath);
+    }
+    else if (Out3 == "Led")
+    {
+        oName.SetExt(wxString("lwax"));
+        fullpath = oName.GetFullPath();
+        AppendConvertStatus(wxString("Writing LedBlinky sequence\n"));
+        if (WriteLedBlinkyFile(fullpath))
+        {
+            AppendConvertStatus(wxString("Finished writing new file: ") + fullpath + wxString("\n"));
+        }
+        else
+        {
+            _parent->ConversionError(wxString("Unable to save: ") + fullpath + wxString("\n"));
+        }
     }
     else if (Out3 == "LOR")
     {

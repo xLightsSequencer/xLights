@@ -314,11 +314,9 @@ static wxArrayString NODE_TYPES;
 static wxArrayString RGBW_HANDLING;
 static wxArrayString PIXEL_STYLES;
 static wxArrayString LAYOUT_GROUPS;
-static wxArrayString CONTROLLER_PORTS;
 static wxArrayString CONTROLLER_PROTOCOLS;
 static wxArrayString CONTROLLER_DIRECTION;
 static wxArrayString CONTROLLER_COLORORDER;
-
 
 wxArrayString Model::GetLayoutGroups(const ModelManager& mm)
 {
@@ -583,14 +581,6 @@ static inline void setupProtocolList() {
         CONTROLLER_COLORORDER.push_back("WBRG");
         CONTROLLER_COLORORDER.push_back("WBGR");
     }
-
-    if (CONTROLLER_PORTS.IsEmpty()) {
-        //not ideal.  Would like to be able to limit to what the controller supports
-        CONTROLLER_PORTS.push_back("");
-        for (int x = 1; x <= 48; x++) {
-            CONTROLLER_PORTS.push_back(wxString::Format("%d", x));
-        }
-    }
 }
 
 void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
@@ -599,7 +589,10 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
-    wxPGProperty *sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", CONTROLLER_PORTS, wxArrayInt(), GetPort(1)));
+    wxPGProperty *sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetPort(1)));
+    sp->SetAttribute("Min", 0);
+    sp->SetAttribute("Max", 48);
+    sp->SetEditor("SpinCtrl");
     wxString protocol = GetProtocol();
     protocol.LowerCase();
     int idx = -1;
@@ -767,7 +760,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
         GetControllerConnection()->DeleteAttribute("Port");
         if (event.GetValue().GetLong() > 0) {
-            GetControllerConnection()->AddAttribute("Port", CONTROLLER_PORTS[event.GetValue().GetLong()]);
+            GetControllerConnection()->AddAttribute("Port", wxString::Format("%ld", event.GetValue().GetLong()));
 
             if (GetProtocol() == "")
             {
@@ -1805,7 +1798,11 @@ std::string Model::GetControllerConnectionRangeString() const
 {
     if (GetProtocol() == "") return "";
     std::string ret = wxString::Format("%s:%d", GetProtocol(), GetPort(1)).ToStdString();
-    if (GetNumPhysicalStrings() > 1)
+    if (GetPort(1) == 0)
+    {
+        ret = wxString::Format("%s", GetProtocol()).ToStdString();
+    }
+    if (GetNumPhysicalStrings() > 1 && GetPort(1) != 0)
     {
         ret = wxString::Format("%s-%d", ret, GetPort() + GetNumPhysicalStrings() - 1).ToStdString();
     }

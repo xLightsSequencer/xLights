@@ -18,7 +18,7 @@ class VideoEffect : public RenderableEffect
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         virtual bool AppropriateOnNodes() const override { return false; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
         static bool IsVideoFile(std::string filename);
 
         // Currently not possible but I think changes could be made to make it support partial

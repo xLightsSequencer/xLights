@@ -15,6 +15,7 @@
 
 CustomModel::CustomModel(wxXmlNode *node, const ModelManager &manager,  bool zeroBased) : ModelWithScreenLocation(manager)
 {
+    _depth = 1;
     _strings = 1;
     screenLocation.SetSupportsZScaling(true);
     SetFromXml(node, zeroBased);
@@ -243,6 +244,7 @@ void CustomModel::InitModel() {
     custom_background = ModelXml->GetAttribute("CustomBkgImage").ToStdString();
     _strings = wxAtoi(ModelXml->GetAttribute("CustomStrings", "1"));
     _depth = wxAtoi(ModelXml->GetAttribute("Depth", "1"));
+    if (_depth < 1) _depth = 1;
 
     screenLocation.SetRenderSize(parm1, parm2, _depth);
     screenLocation.SetPerspective2D(0.1f); // if i dont do this you cant see the back nodes in 2D

@@ -344,7 +344,7 @@ public:
         }
     }
 
-    void GetHSV(size_t idx, HSVValue& c)
+    void GetHSV(size_t idx, HSVValue& c) const
     {
         if (hsv.size() == 0)
         {
@@ -355,10 +355,11 @@ public:
         }
         else
         {
-                c = hsv[idx % hsv.size()];
+            c = hsv[idx % hsv.size()];
         }
     }
-    void GetHSV(size_t idx, HSVValue& c, float progress)
+
+    void GetHSV(size_t idx, HSVValue& c, float progress) const
     {
         if (hsv.size() == 0)
         {

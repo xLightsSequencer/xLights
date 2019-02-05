@@ -1625,6 +1625,20 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     }
                     scheduleChanged = true;
                 }
+                else if (command == "Change show folder")
+                {
+                    if (parameters == "" || wxDir::Exists(parameters))
+                    {
+                        wxCommandEvent event(EVT_CHANGESHOWFOLDER);
+                        event.SetString(parameters);
+                        wxPostEvent(wxGetApp().GetTopWindow(), event);
+                    }
+                    else
+                    {
+                        msg = "Change show folder: Folder does not exist '" + parameters + "'";
+                        result = false;
+                    }
+                }
                 else if (command == "Play specified playlist if nothing running")
                 {
                     PlayList* running = GetRunningPlayList();

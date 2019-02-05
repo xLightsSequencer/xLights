@@ -156,6 +156,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     Choice1->Append(_("Square"));
     Choice1->Append(_("Random"));
     Choice1->Append(_("Music"));
+    Choice1->Append(_("Inverted Music"));
     Choice1->Append(_("Music Trigger Fade"));
     Choice1->Append(_("Custom"));
     FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 2);
@@ -471,10 +472,11 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event)
         SetParameter100(2, 100);
         SetParameter100(3, 0);
     }
-    else if (type == "Music")
+    else if (type == "Music" || type == "Inverted Music")
     {
         SetParameter100(1, 0);
         SetParameter100(2, 100);
+        SetParameter100(3, 50);
     }
     else if (type == "Music Trigger Fade")
     {
@@ -1110,7 +1112,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down" || type == "Music")
+    else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1121,7 +1123,7 @@ void ValueCurveDialog::ValidateWindow()
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
     }
-    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random")
+    else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random" || type == "Music" || type == "Inverted Music")
     {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1163,13 +1165,12 @@ void ValueCurveDialog::ValidateWindow()
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
-    else if (type == "Music")
+    else if (type == "Music" || type == "Inverted Music")
     {
         StaticText_P1->SetLabel("Low");
         StaticText_P2->SetLabel("High");
-        StaticText_P3->SetLabel("N/A");
+        StaticText_P3->SetLabel("Gain");
         StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter3(0);
         _vc->SetParameter4(0);
     }
     else if (type == "Music Trigger Fade")
@@ -1307,6 +1308,7 @@ void ValueCurveDialog::ValidateWindow()
         type == "Exponential Up" ||
         type == "Random" ||
         type == "Music" ||
+        type == "Inverted Music" ||
         type == "Music Trigger Fade" ||
         type == "Exponential Down")
     {
@@ -1321,6 +1323,7 @@ void ValueCurveDialog::ValidateWindow()
         type == "Sine" ||
         type == "Abs Sine" ||
         type == "Music" ||
+        type == "Inverted Music" ||
         type == "Music Trigger Fade" ||
         type == "Decaying Sine"
         )

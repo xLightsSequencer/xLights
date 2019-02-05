@@ -258,6 +258,95 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText12" member="yes">
+					<label>Velocity</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer10" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Shapes_Velocity" subclass="BulkEditSlider" variable="Slider_Shapes_Velocity" member="yes">
+							<max>20</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Shapes_Velocity" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shapes_Velocity" member="yes">
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Shapes_Velocity" subclass="BulkEditTextCtrl" variable="TextCtrl_Shapes_Velocity" member="yes">
+					<value>0</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText13" member="yes">
+					<label>Direction</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="no">
+					<cols>2</cols>
+					<growablecols>0</growablecols>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_Shapes_Direction" subclass="BulkEditSlider" variable="Slider_Shapes_Direction" member="yes">
+							<value>90</value>
+							<max>359</max>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxBitmapButton" name="ID_VALUECURVE_Shapes_Direction" subclass="BulkEditValueCurveButton" variable="BitmapButton_Shapes_Direction" member="yes">
+							<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+							<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxTextCtrl" name="ID_TEXTCTRL_Shapes_Direction" subclass="BulkEditTextCtrl" variable="TextCtrl_Shapes_Direction" member="yes">
+					<value>90</value>
+					<maxlength>3</maxlength>
+					<size>20,-1d</size>
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStaticText" name="ID_STATICTEXT_Shape_Lifetime" variable="StaticText2" member="yes">
 					<label>Lifetime</label>
 				</object>
@@ -528,14 +617,33 @@
 			</object>
 			<object class="spacer">
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Shapes_RandomMovement" subclass="BulkEditCheckBox" variable="CheckBox_Shapes_RandomMovement" member="yes">
+					<label>Random movement</label>
+					<handler function="OnCheckBox_Shapes_RandomMovementClick" entry="EVT_CHECKBOX" />
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX_Shape_FadeAway" subclass="BulkEditCheckBox" variable="CheckBox_Shape_FadeAway" member="yes">
 					<label>Fade Away</label>
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -554,7 +662,7 @@
 					<label>Fire with music</label>
 					<handler function="OnCheckBox_Shape_UseMusicClick" entry="EVT_CHECKBOX" />
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>
@@ -599,7 +707,7 @@
 					<label>Fire with timing track</label>
 					<handler function="OnCheckBox_Shape_FireTimingClick" entry="EVT_CHECKBOX" />
 				</object>
-				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>
 				<option>1</option>
 			</object>

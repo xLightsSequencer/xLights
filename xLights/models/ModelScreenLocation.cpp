@@ -919,8 +919,6 @@ void BoxedScreenLocation::PrepareToDraw(bool is_3d, bool allow_selected) const {
 void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     va.PreAlloc(32 * 5);
 
-    float color1[4] = { 1, 0, 0, 1 };
-
     float sz1 = RenderDp / 2;
     float sz2 =  -RenderDp / 2;
 

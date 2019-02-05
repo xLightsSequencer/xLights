@@ -706,14 +706,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     int maxDaughter1 = 0;
     int maxDaughter2 = 0;
 
-    for (auto i = 0; i < stringData.size(); ++i)
+    for (auto pp = 0; pp < totalPixelPorts; ++pp)
     {
-        int pixels = GetPixelCount(stringData, stringData[i]->port);
-        if (i < GetBank1Threshold())
+        int pixels = GetPixelCount(stringData, pp);
+        if (pp < GetBank1Threshold())
         {
             if (pixels > maxMain) maxMain = pixels;
         }
-        else if (i < GetDaughter2Threshold())
+        else if (pp < GetDaughter2Threshold())
         {
             if (pixels > maxDaughter1) maxDaughter1 = pixels;
         }

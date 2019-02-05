@@ -34,7 +34,7 @@ class PinwheelEffect : public RenderableEffect
         virtual bool needToAdjustSettings(const std::string &version) override;
         virtual void adjustSettings(const std::string &version, Effect *effect, bool removeDefaults = true) override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
     protected:
         enum Pinwheel3DType {

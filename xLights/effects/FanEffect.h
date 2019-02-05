@@ -54,7 +54,7 @@ class FanEffect : public RenderableEffect
                                          DrawGLUtils::xlAccumulator &backgrounds, xlColor* colorMask, bool ramps) override;
         virtual bool SupportsRadialColorCurves(const SettingsMap &SettingsMap) override { return true; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

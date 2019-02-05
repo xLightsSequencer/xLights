@@ -434,7 +434,6 @@
 		<Unit filename="DissolveTransitionPattern.cpp" />
 		<Unit filename="DrawGLUtils.cpp" />
 		<Unit filename="DrawGLUtils.h" />
-		<Unit filename="DrawGLUtils21.cpp" />
 		<Unit filename="DrawGLUtils31.cpp" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />

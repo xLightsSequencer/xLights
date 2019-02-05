@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+﻿xLights is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE & SS),
@@ -11,8 +11,30 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.10 February 5, 2019
+   -- enh (keith)   Add an <ALL> state to state effect that activates all states. Also recognise * in timing track as well
+   -- bug (keith)   Fix custom models load with zero layers if depth not set correctly in the file
+   -- bug (keith)   Fix falcon upload with virtual strings miscalculates number of nodes on a port
+   -- enh (keith)   If models on a port are not using contiguous channels put them on virtual strings
+   -- enh (keith)   Add an xSchedule API to change/reload showfolder
+   -- enh (keith)   Include xmap files in the backup
+   -- enh (keith)   Increase maximum lines read from file to 20 for text effect
+   -- bug (keith)   Fix disabled effect options with valuecurves dont disable correctly
+   -- bug (keith)   Fix shape effect movement defaults to on when loading old sequences
+   -- enh (gil)     Add option to convert tool for creating LEDBlinky animation files.
+   -- bug (kevin)   Fix model/row copy effects from one sequence and pasting in another. Fixes #1450
+   -- enh (kevin)   Enable timeline icons for fan and galaxy effects
+2019.09 February 2, 2019
+   -- enh (keith)   Add movement to shapes effect
+   -- enh (keith)   Add tool for applying reaper or xAudio edits to one or more audio files and generate a new audio file
+   -- enh (keith)   Refactor the fireworks effect including new settings and new value curves
+   -- enh (keith)   Add gain to VUMeter
+   -- enh (keith)   Add an inverted music value curve
+   -- enh (keith)   Add gain to music value curve
+   -- enh (keith)   Render cache effects which have blur or rotation applied
+   -- enh (dkulp)   Update OpenGL 1.1/2.1 render routines to peform better with Mesh objects
 2019.08 January 30, 2019
-   -- enh (keith)   Add to check sequence the listing of faces, states and view points a sequence relies 
+   -- enh (keith)   Add to check sequence the listing of faces, states and view points a sequence relies
 			        upon to help preparing for imports
    -- enh (keith)   In layout mode adapt the axis of movement using the keyboard based on camera position
    -- enh (keith)   Add channel remapping to the DMX effect
@@ -21,7 +43,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Fix node layout on custom models when not square
    -- bug (keith)   Fix effect type bulk edit doesnt always initialise effect settings
    -- enh (dkulp)   Add an option for 2D preview to move the 0.0 location to the middle bottom
-   -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for 
+   -- bug (dkulp)   Fix crashes with PolyLine w/ icicles where strand lengths did not return enough nodes for
                     various buffer styles
    -- enh (dkulp)   Draw solid parts of mesh before lights, allows lights to blend onto them. (OpenGL 3.3 only)
    -- bug (dkulp)   In 3d, if a grid or image object wasn't also present, mesh would not appear.

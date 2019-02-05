@@ -1078,6 +1078,10 @@
 					<label>Generate 2D Path</label>
 					<handler function="OnMenuItem_Generate2DPathSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_PREPAREAUDIO" variable="MenuItem_PrepareAudio" member="yes">
+					<label>Prepare Audio</label>
+					<handler function="OnMenuItem_PrepareAudioSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MNU_CHECKSEQ" variable="MenuItemCheckSequence" member="yes">
 					<label>C&amp;heck Sequence</label>
 					<handler function="OnMenuItemCheckSequenceSelected" entry="EVT_MENU" />
@@ -1576,13 +1580,8 @@
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_2" variable="MenuItem42" member="yes">
-						<label>2.x</label>
-						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
-						<radio>1</radio>
-					</object>
 					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="yes">
-						<label>1.x</label>
+						<label>1.x/2.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>

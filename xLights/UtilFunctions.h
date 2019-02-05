@@ -93,6 +93,11 @@ inline bool StartsWith(const std::string& in, const std::string& startswith) noe
     return in.size() >= startswith.size() && in.substr(0, startswith.size()) == startswith;
 }
 
+inline bool EndsWith(const std::string& in, const std::string& endswith) noexcept
+{
+    return in.size() >= endswith.size() && in.substr(in.size() - endswith.size()) == endswith;
+}
+
 inline void Replace(std::string& in, const std::string& what, const std::string& with)
 {
     auto pos = in.find(what);
@@ -123,6 +128,16 @@ inline std::string Capitalise(const std::string& input) noexcept
         }
 
         last = c;
+    }
+    return res;
+}
+
+inline std::string Lower(const std::string& input) noexcept
+{
+    std::string res = "";
+    for (const auto c : input)
+    {
+        res += ::tolower(c);
     }
     return res;
 }
