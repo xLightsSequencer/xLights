@@ -160,12 +160,11 @@ void StateEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name)
 {
-    for (auto it2 = map.begin(); it2 != map.end(); ++it2)
+    for (auto it2 : map)
     {
-        wxString f(it2->first);
-        if (f.EndsWith("-Name") && it2->second == name)
+        if (EndsWith(it2.first, "-Name") && it2.second == name)
         {
-            return f.SubString(0, f.Length() - 6).ToStdString();
+            return it2.first.substr(0, it2.first.size() - 5);
         }
     }
 
@@ -246,6 +245,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
     int startms = -1;
     int endms = -1;
     int posms = -1;
+
     if (tstates == "") {
 
         // if we dont have a track then exit
@@ -289,7 +289,7 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         while (tkz.HasMoreTokens())
         {
             wxString token = tkz.GetNextToken();
-            if (token == "*")
+            if (token == "*" || token == "<ALL>")
             {
                 for (auto it2 : model_info->stateInfo[definition])
                 {
@@ -442,7 +442,20 @@ void StateEffect::RenderState(RenderBuffer &buffer,
         while (tkz.HasMoreTokens())
         {
             wxString token = tkz.GetNextToken();
-            tmpstates.push_back(token.Lower().ToStdString());
+            if (token == "*" || token == "<ALL>")
+            {
+                for (auto it2 : model_info->stateInfo[definition])
+                {
+                    if (EndsWith(it2.first, "-Name") && it2.second != "")
+                    {
+                        sstates.push_back(Lower(it2.second));
+                    }
+                }
+            }
+            else
+            {
+                tmpstates.push_back(token.Lower().ToStdString());
+            }
         }
 
         int which = tmpstates.size() * progressthroughtimeinterval;
