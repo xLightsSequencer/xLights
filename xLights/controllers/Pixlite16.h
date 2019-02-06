@@ -13,12 +13,10 @@ class Pixlite16
     wxByte _pixliteData[338];
 	std::string _ip;
     bool _connected;
-    bool SendConfig(bool logresult = false);
-    int DecodeStringPortProtocol(std::string protocol);
-    int DecodeSerialOutputProtocol(std::string protocol);
-    void UploadSerialOutput(int output, int protocol, int portstart, wxWindow* parent);
-    int GetMaxStringOutputs() const;
-    int GetMaxSerialOutputs() const;
+    bool SendConfig(bool logresult = false) const;
+    static int DecodeStringPortProtocol(std::string protocol);
+    static int DecodeSerialOutputProtocol(std::string protocol);
+    //void UploadSerialOutput(int output, int protocol, int portstart, wxWindow* parent);
 
 public:
     Pixlite16(const std::string& ip);

@@ -99,6 +99,7 @@ public:
     {
         return true;
     }
+    virtual bool SupportsMultipleInputProtocols() const override { return true; }
     virtual bool AllUniversesSameSize() const override
     {
         return false;

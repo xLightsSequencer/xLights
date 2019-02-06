@@ -5,8 +5,57 @@
 #include <log4cpp/Category.hh>
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
-#include "outputs/IPOutput.h"
 #include "UtilFunctions.h"
+#include "ControllerUploadData.h"
+
+class PixLite16ControllerRules : public ControllerRules
+{
+public:
+    PixLite16ControllerRules() : ControllerRules() {}
+    virtual ~PixLite16ControllerRules() {}
+    virtual int GetMaxPixelPortChannels() const override
+    {
+        return 340 * 3;
+    }
+    virtual int GetMaxPixelPort() const override { return 16; }
+    virtual int GetMaxSerialPortChannels() const override { return 512; }
+    virtual int GetMaxSerialPort() const override { return 4; }
+    virtual bool IsValidPixelProtocol(const std::string protocol) const override
+    {
+        wxString p(protocol);
+        p = p.Lower();
+        return (p == "ws2811" || 
+            p == "tm1803" ||
+            p == "tm1804" ||
+            p == "tm1809" ||
+            p == "tls3001" || 
+            p == "lpd6803" ||
+            p == "sm16716" ||
+            p == "ws2801" ||
+            p == "mb16020" ||
+            p == "my9231" ||
+            p == "apa102" ||
+            p == "my9221" ||
+            p == "sk6812" ||
+            p == "ucs1903");
+    }
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override
+    {
+        wxString p(protocol);
+        p = p.Lower();
+        return (p == "dmx");
+    }
+    virtual bool SupportsMultipleProtocols() const override { return false; }
+    virtual bool SupportsMultipleInputProtocols() const override { return false; }
+    virtual bool AllUniversesSameSize() const override { return false; }
+    virtual std::list<std::string> GetSupportedInputProtocols() const override {
+        std::list<std::string> res;
+        res.push_back("E131");
+        res.push_back("ARTNET");
+        return res;
+    };
+    virtual bool UniversesMustBeSequential() const override { return true; }
+};
 
 Pixlite16::Pixlite16(const std::string& ip)
 {
@@ -117,23 +166,11 @@ Pixlite16::Pixlite16(const std::string& ip)
     delete discovery;
 }
 
-int Pixlite16::GetMaxStringOutputs() const
-{
-    // of course it could be 4 if it was a pixlite 4
-    return 16;
-}
-
-int Pixlite16::GetMaxSerialOutputs() const
-{
-    // and 1 if this was a pixlite 4
-    return 4;
-}
-
 Pixlite16::~Pixlite16()
 {
 }
 
-bool Pixlite16::SendConfig(bool logresult)
+bool Pixlite16::SendConfig(bool logresult) const
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -186,28 +223,25 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 {
     //ResetStringOutputs(); // this shouldnt be used normally
 
-    bool success = true;
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Pixlite Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
-    // build a list of models on this controller
-    std::list<Model*> models;
-    std::string protocol;
-    std::list<Model*> warnedmodels;
-    std::list<int> dmxOutputs;
-    std::list<Model*> dmxModels;
-    int maxport = 0;
+    std::string check;
+    UDController cud(_ip, allmodels, outputManager, &selected, check);
+
+    PixLite16ControllerRules rules;
+    bool success = cud.Check(&rules, check);
+
+    cud.Dump();
+
+    logger_base.debug(check);
 
     // Get universes based on IP
     std::list<Output*> outputs = outputManager->GetAllOutputs(_ip, selected);
 
-    bool isArtNET = false;
-
     if (outputs.size() > 0)
     {
-        isArtNET = outputs.front()->GetType() == "ArtNET";
-
-        if (isArtNET)
+        if (outputs.front()->GetType() == "ArtNET")
         {
             _pixliteData[105] = 0x01;
         }
@@ -217,259 +251,108 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         }
     }
 
-    for (auto ito = outputs.begin(); ito != outputs.end(); ++ito)
+    if (success && cud.GetMaxPixelPort() > 0)
     {
-        // this universe is sent to the Pixlite
-        if (((*ito)->GetType() == "ArtNET") != isArtNET)
-        {
-            logger_base.warn("Pixlite controllers require all output to be e1.31 or ArtNET ... you cant mix them.");
-        }
+        // turn on advanced mode
+        _pixliteData[118] = 0x00;
+        _pixliteData[119] = 0x00;
+        _pixliteData[120] = 0x00;
+        _pixliteData[121] = 0x00;
 
-        // find all the models in this range
-        for (auto it = allmodels->begin(); it != allmodels->end(); ++it)
+        for (int pp = 1; pp <= rules.GetMaxPixelPort(); pp++)
         {
-            if (it->second->GetDisplayAs() != "ModelGroup")
+            if (cud.HasPixelPort(pp))
             {
-                int modelstart = it->second->GetNumberFromChannelString(it->second->ModelStartChannel);
-                int modelend = modelstart + it->second->GetChanCount() - 1;
-                if ((modelstart >= (*ito)->GetStartChannel() && modelstart <= (*ito)->GetEndChannel()) ||
-                    (modelend >= (*ito)->GetStartChannel() && modelend <= (*ito)->GetEndChannel()))
+                UDControllerPort* port = cud.GetControllerPixelPort(pp);
+
+                // update the data
+                _pixliteData[122] = DecodeStringPortProtocol(port->GetProtocol());
+
+                // universe
+                int universe = port->GetUniverse();
+                _pixliteData[0xa6 - 0x2a + pp * 2] = (universe & 0xFF00) >> 8;
+                _pixliteData[0xa6 - 0x2a + pp * 2 + 1] = (universe & 0x00FF);
+
+                // start channel
+                int sc = port->GetUniverseStartChannel();
+                _pixliteData[0xc6 - 0x2a + pp * 2] = ((sc) & 0xFF00) >> 8;
+                _pixliteData[0xc6 - 0x2a + pp * 2 + 1] = ((sc) & 0x00FF);
+
+                // bulbs
+                int bulbs = port->Pixels();
+                _pixliteData[0x71 - 0x2a + pp * 2] = (bulbs & 0xFF00) >> 8;
+                _pixliteData[0x71 - 0x2a + pp * 2 + 1] = (bulbs & 0x00FF);
+
+                // null pixels - e8
+                int nullPixels = port->GetFirstModel()->GetNullPixels(0);
+                _pixliteData[0xe7 - 0x2a + pp] = nullPixels;
+
+                // Group
+                int group = port->GetFirstModel()->GetGroupCount(1);
+                _pixliteData[0x146 - 0x2a + pp * 2] = (group & 0xFF00) >> 8;
+                _pixliteData[0x146 - 0x2a + pp * 2 + 1] = (group & 0xFF);
+
+                // Brightness
+                int brightness = port->GetFirstModel()->GetBrightness(100);
+                _pixliteData[0x167 - 0x2a + pp] = brightness;
+
+                // Reversed
+                if (port->GetFirstModel()->GetDirection("Forward") == "Reverse")
                 {
-                    //logger_base.debug("Model %s start %d end %d found on controller %s output %d start %d end %d.",
-                    //    (const char *)it->first.c_str(), modelstart, modelend,
-                    //    (const char *)_ip.c_str(), node, currentcontrollerstartchannel, currentcontrollerendchannel);
-                    if (!it->second->IsControllerConnectionValid())
-                    {
-                        // only warn if we have not already warned
-                        if (std::find(warnedmodels.begin(), warnedmodels.end(), it->second) == warnedmodels.end())
-                        {
-                            warnedmodels.push_back(it->second);
-                            logger_base.warn("Pixlite Outputs Upload: Model %s on controller %s does not have its Controller Connection details completed. Model ignored.", (const char *)it->first.c_str(), (const char *)_ip.c_str());
-                            wxMessageBox("Model " + it->first + " on controller " + _ip + " does not have its Contoller Connection details completed. Model ignored.", "Model Ignored");
-                        }
-                    }
-                    else
-                    {
-                        // model uses channels in this universe
-                        std::string mp = wxString(it->second->GetProtocol()).Lower().ToStdString();
-
-                        if (mp == "dmx")
-                        {
-                            // check we dont already have this model in our list
-                            if (std::find(dmxModels.begin(), dmxModels.end(), it->second) == dmxModels.end())
-                            {
-                                logger_base.debug("Pixlite DMX Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
-                                dmxModels.push_back(it->second);
-
-                                if (std::find(dmxOutputs.begin(), dmxOutputs.end(), it->second->GetPort()) == dmxOutputs.end())
-                                {
-                                    dmxOutputs.push_back(it->second->GetPort());
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // check we dont already have this model in our list
-                            if (std::find(models.begin(), models.end(), it->second) == models.end())
-                            {
-                                logger_base.debug("Pixlite Outputs Upload: Uploading Model %s.", (const char *)it->first.c_str());
-                                models.push_back(it->second);
-
-                                if (protocol == "")
-                                {
-                                    protocol = mp;
-
-                                    _pixliteData[122] = DecodeStringPortProtocol(protocol);
-                                }
-                                else
-                                {
-                                    if (protocol != it->second->GetProtocol())
-                                    {
-                                        logger_base.warn("Pixlite only supports one bulb protocol.");
-                                    }
-                                }
-                                if (it->second->GetPort() > maxport)
-                                {
-                                    maxport = it->second->GetPort();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (maxport > 16) maxport = 16;
-
-    // sort the models by start channel
-    models.sort(pixlite_compare_startchannel);
-
-    bool portdone[16];
-    memset(&portdone, 0x00, sizeof(portdone)); // all false
-
-    // for each port ... this is the max of any port type but it should be ok
-    for (int i = 1; i <= maxport; i++)
-    {
-        // find the first and last
-        Model* first = nullptr;
-        Model* last = nullptr;
-        int highestend = 0;
-        long loweststart = 999999999;
-
-        for (auto model = models.begin(); model != models.end(); ++model)
-        {
-            if ((*model)->GetPort() == i)
-            {
-                int modelstart = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
-                int modelend = modelstart + (*model)->GetChanCount() - 1;
-                if (modelstart < loweststart)
-                {
-                    loweststart = modelstart;
-                    first = *model;
-                }
-                if (modelend > highestend)
-                {
-                    highestend = modelend;
-                    last = *model;
-                }
-            }
-        }
-
-        if (first != nullptr)
-        {
-            int portstart = first->GetNumberFromChannelString(first->ModelStartChannel);
-            int portend = last->GetNumberFromChannelString(last->ModelStartChannel) + last->GetChanCount() - 1;
-            int numstrings = first->GetNumPhysicalStrings();
-
-            // upload it
-            if (DecodeStringPortProtocol(protocol) >= 0)
-            {
-                // turn on advanced mode
-                _pixliteData[118] = 0x00;
-                _pixliteData[119] = 0x00;
-                _pixliteData[120] = 0x00;
-                _pixliteData[121] = 0x00;
-
-                if (first == last && numstrings > 1)
-                {
-                    for (int j = 0; j < numstrings; j++)
-                    {
-                        if (portdone[i+j])
-                        {
-                            logger_base.warn("Pixlite Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i +j);
-                            wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i + j));
-                            success = false;
-                        }
-                        else
-                        {
-                            long sc = 1;
-                            Output* o = outputManager->GetOutput(portstart + j * (portend - portstart + 1) / numstrings, sc);
-
-                            portdone[i + j] = true;
-
-                            // universe
-                            int universe = o->GetUniverse();
-                            _pixliteData[124 + (i + j) * 2] = (universe & 0xFF00) >> 8;
-                            _pixliteData[124 + (i + j) * 2 + 1] = (universe & 0x00FF);
-
-                            // start channel
-                            _pixliteData[156 + (i + j) * 2] = ((sc) & 0xFF00) >> 8;
-                            _pixliteData[156 + (i + j) * 2 + 1] = ((sc) & 0x00FF);
-
-                            // bulbs
-                            int bulbs = (portend - portstart + 1) / numstrings / 3;
-                            _pixliteData[71 + (i + j) * 2] = (bulbs & 0xFF00) >> 8;
-                            _pixliteData[71 + (i + j) * 2 + 1] = (bulbs & 0x00FF);
-
-                            logger_base.debug("Uploading to Pixlite %s output %d, universe %d, start channel %d, bulbs %d.", (const char *)_ip.c_str(), i + j, universe, sc, bulbs);
-                        }
-                    }
+                    _pixliteData[0x117 - 0x2a + pp] = 1;
                 }
                 else
                 {
-                    if (portdone[i])
-                    {
-                        logger_base.warn("Pixlite Outputs Upload: Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str() , i);
-                        wxMessageBox(wxString::Format("Attempt to upload model %s to string port %d but this string port already has a model on it.", (const char *)first->GetName().c_str(), i));
-                        success = false;
-                    }
-                    else
-                    {
-                        portdone[i] = true;
+                    _pixliteData[0x117 - 0x2a + pp] = 0;
+                }
 
-                        long sc = 1;
-                        Output* o = outputManager->GetOutput(portstart, sc);
-
-                        // universe
-                        int universe = o->GetUniverse();
-                        _pixliteData[124 + i * 2] = (universe & 0xFF00) >> 8;
-                        _pixliteData[124 + i * 2 + 1] = (universe & 0x00FF);
-
-                        // start channel
-                        _pixliteData[156 + i * 2] = ((sc) & 0xFF00) >> 8;
-                        _pixliteData[156 + i * 2 + 1] = ((sc) & 0x00FF);
-
-                        // bulbs
-                        int bulbs = (portend - portstart + 1) / 3;
-                        _pixliteData[71 + i * 2] = (bulbs & 0xFF00) >> 8;
-                        _pixliteData[71 + i * 2 + 1] = (bulbs & 0x00FF);
-
-                        logger_base.debug("Uploading to Pixlite %s output %d, universe %d, start channel %d, bulbs %d.", (const char *)_ip.c_str(), i, universe, sc, bulbs);
-                    }
-                }                    
-            }
-            else
-            {
-                logger_base.warn("Pixlite Outputs Upload: Controller %s protocol %s not supported by this controller.",
-                    (const char *)_ip.c_str(), (const char *)protocol.c_str());
-                wxMessageBox("Controller " + _ip + " protocol " + (protocol) + " not supported by this controller.", "Protocol Ignored");
-                success = false;
-            }
-        }
-        else
-        {
-            // nothing on this port ... ignore it
-        }
-    }
-
-    for (int i = 0; i < GetMaxSerialOutputs(); ++i)
-    {
-        _pixliteData[256 + i] = 0x00; // turn it off
-    }
-
-    for (auto it = dmxOutputs.begin(); it != dmxOutputs.end(); ++it)
-    {
-        if (*it > 0 && *it <= GetMaxSerialOutputs())
-        {
-            // find a model using this port
-            Model* first = nullptr;
-            long start = 0;
-
-            for (auto model = dmxModels.begin(); model != dmxModels.end(); ++model)
-            {
-                if ((*model)->GetPort() == *it)
+                port->CreateVirtualStrings();
+                if (port->GetVirtualStringCount() > 1)
                 {
-                    first = *model;
-                    start = (*model)->GetNumberFromChannelString((*model)->ModelStartChannel);
-                    break;
+                    check += wxString::Format("WARN: String port %d has model settings that can't be uploaded.\n", pp);
                 }
             }
+        }
+    }
 
-            if (first != nullptr)
+    if (success)
+    {
+        if (cud.GetMaxSerialPort() > 0)
+        {
+            for (int sp = 1; sp <= rules.GetMaxSerialPort(); sp++)
             {
-                long sc = 1;
-                Output* o = outputManager->GetOutput(start, sc);
-                int universe = o->GetUniverse();
-                _pixliteData[259 + *it * 2] = (universe & 0xFF00) >> 8;
-                _pixliteData[259 + *it * 2 + 1] = (universe & 0x00FF);
-                _pixliteData[256 + *it] = 0x01; // turn it on
-                logger_base.debug("Uploading to Pixlite %s dmx output %d, universe %d.", (const char *)_ip.c_str(), *it, universe);
+                if (cud.HasSerialPort(sp))
+                {
+                    UDControllerPort* port = cud.GetControllerSerialPort(sp);
+
+                    int universe = port->GetUniverse();
+                    _pixliteData[259 + sp * 2] = (universe & 0xFF00) >> 8;
+                    _pixliteData[259 + sp * 2 + 1] = (universe & 0x00FF);
+                    _pixliteData[256 + sp] = 0x01; // turn it on
+
+                    port->CreateVirtualStrings();
+                    if (port->GetVirtualStringCount() > 1)
+                    {
+                        check += wxString::Format("WARN: Serial port %d has model settings that can't be uploaded.\n", sp);
+                    }
+                }
             }
         }
     }
 
-    return SendConfig(false);
+    if (success)
+    {
+        if (check != "")
+        {
+            DisplayWarning("Upload warnings:\n" + check);
+        }
+
+        return SendConfig(false);
+    }
+
+    DisplayError("Not uploaded due to errors.\n" + check);
+
+    return false;
 }
 
 int Pixlite16::DecodeStringPortProtocol(std::string protocol)
@@ -502,4 +385,3 @@ int Pixlite16::DecodeSerialOutputProtocol(std::string protocol)
     if (p == "dmx") return 0;
     return -1;
 }
-
