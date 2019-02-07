@@ -158,6 +158,9 @@ public:
     void SetSupportsZScaling(bool b) {
         supportsZScaling = b;
     }
+    void SetStartOnXAxis(bool b) {
+        _startOnXAxis = b;
+    }
     glm::vec3 GetWorldPosition() const { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
     glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::vec3 GetScaleMatrix() const { return glm::vec3(scalex, scaley, scalez); }
@@ -202,6 +205,7 @@ protected:
     int active_axis;
     int axis_tool;
     bool supportsZScaling;
+    bool _startOnXAxis;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
