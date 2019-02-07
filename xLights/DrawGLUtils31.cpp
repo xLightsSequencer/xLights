@@ -400,7 +400,15 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * wireframe.size(), &wireframe[0], GL_STATIC_DRAW));
 
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
-            LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * lines.size(), &lines[0], GL_STATIC_DRAW));
+            if (lines.size() > 0)
+            {
+                LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * lines.size(), &lines[0], GL_STATIC_DRAW));
+            }
+            else
+            {
+                LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STATIC_DRAW));
+            }
+
             calcProgram();
         }
         glm::mat4 mat = curMatrix * matrix;

@@ -1973,8 +1973,13 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes, std::vector<int> *l
       if (readMatFn) {
         token += 7;
 
+        // According to https://en.wikipedia.org/wiki/Wavefront_.obj_file
+        // mtllib can only have one file so this code isnt quite right
+        // so i will split on * which is an illegal file name character
+        // that way i dont need to rewrite all of this
+
         std::vector<std::string> filenames;
-        SplitString(std::string(token), ' ', filenames);
+        SplitString(std::string(token), '*', filenames);
 
         if (filenames.empty()) {
           if (err) {
