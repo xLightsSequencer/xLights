@@ -181,7 +181,7 @@ void ListenerMIDI::Poll()
         else
         {
             wxMidiSysExMessage* msg = (wxMidiSysExMessage*)message;
-            //logger_base.debug("MIDI SysEx Message 0x%02x", msg->GetStatus());
+            logger_base.debug("MIDI SysEx Message 0x%02x", msg->GetStatus());
             switch(msg->GetStatus())
             {
             case 0xF0: // Begin System Exclusive	0xF0
@@ -228,7 +228,11 @@ void ListenerMIDI::Poll()
 
 void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     long ms = ((hours * 60 + mins) * 60 + secs) * 1000;
+
+
     switch (mode)
     {
     default:
@@ -251,6 +255,8 @@ void ListenerMIDI::DoSync(int mode, int hours, int mins, int secs, int frames)
     }
 
     ms -= _listenerManager->GetScheduleManager()->GetOptions()->GetMIDITimecodeOffset();
+
+    logger_base.debug("MIDI DoSync MS: %ld, Mode: %d, hours: %d, Mins: %d, Sec: %d, Frames: %d.", ms, mode, hours, mins, secs, frames);
 
     _listenerManager->Sync("", ms, GetType());
 }
