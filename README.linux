@@ -111,7 +111,8 @@ using Code::Blocks, proceed to step 'd'.:
 
      You will need to run 'make' from the command line once to build and
      patch wxwidgets.  Then ensure that the wx-config command is in your
-     PATH so that codeblocks can find it.
+     PATH so that codeblocks can find it. The simplest way to do this is
+     to go into the wxWidgets-3.1.2 directory and run 'sudo make install'
 
      Now you are ready to use Code::Blocks to build xLights
      by double-clicking on the xLights.cbp file.
