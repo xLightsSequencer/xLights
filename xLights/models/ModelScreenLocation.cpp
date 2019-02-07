@@ -118,7 +118,7 @@ ModelScreenLocation::ModelScreenLocation(int sz)
   ModelMatrix(Identity), aabb_min(0.0f), aabb_max(0.0f), saved_intersect(0.0f),
   saved_position(0.0f), saved_size(0.0f), saved_scale(1.0f), saved_rotate(0.0f),
   active_handle(-1), highlighted_handle(-1), active_axis(-1), axis_tool(TOOL_TRANSLATE),
-  supportsZScaling(false)
+  supportsZScaling(false), _startOnXAxis(false)
 {
     mSelectableHandles = 0;
     draw_3d = false;
@@ -803,7 +803,7 @@ wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, cons
     glm::vec3 ray_direction;
     if (preview != nullptr) {
         if (preview->Is3D()) {
-            if (supportsZScaling) {
+            if (supportsZScaling && !_startOnXAxis) {
                 // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
                 // of the mouse click with the ground plane
                 active_axis = Z_AXIS;

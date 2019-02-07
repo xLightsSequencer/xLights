@@ -1163,6 +1163,7 @@ void CustomModelDialog::ShrinkSpace(float min)
             scale = gscale;
             scaleFactor = gscaleFactor;
         }
+        points.push_back(gpoints);
     }
 
 

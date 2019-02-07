@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (scott)   Fixed Custom Model Dialog Shrink Crash
 2019.10 February 5, 2019
    -- enh (keith)   Add an <ALL> state to state effect that activates all states. Also recognise * in timing track as well
    -- bug (keith)   Fix custom models load with zero layers if depth not set correctly in the file

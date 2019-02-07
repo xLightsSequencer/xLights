@@ -295,7 +295,11 @@ std::list<std::string> MeshObject::CheckModelSettings()
                 tex.SetPath(fn.GetPath());
                 if (!tex.Exists())
                 {
-                    res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find texture file '%s'", GetName(), tex.GetFullPath()).ToStdString());
+                    wxFileName tex2(fn.GetPath() + "/" + m.diffuse_texname);
+                    if (!tex2.Exists())
+                    {
+                        res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find texture file '%s'", GetName(), tex.GetFullPath()).ToStdString());
+                    }
                 }
             }
         }
@@ -337,11 +341,20 @@ std::list<std::string> MeshObject::GetFileReferences()
                 {
                     res.push_back(tex.GetFullPath());
                 }
+                else
+                {
+                    wxFileName tex2(fn.GetPath() + "/" + m.diffuse_texname);
+                    if (tex2.Exists())
+                    {
+                        res.push_back(tex2.GetFullPath());
+                    }
+                }
             }
         }
     }
     return res;
 }
+
 void MeshObject::IncrementChangeCount() {
     uncacheDisplayObjects();
     ObjectWithScreenLocation<BoxedScreenLocation>::IncrementChangeCount();
@@ -419,8 +432,11 @@ void MeshObject::loadObject() {
                         fn2.SetPath(fn.GetPath());
                         texture_filename = fn2.GetFullPath();
                         if (!wxFileExists(texture_filename)) {
-                            logger_base.debug("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
-                            continue;
+                            texture_filename = fn.GetPath() + "/" + m.diffuse_texname;
+                            if (!wxFileExists(texture_filename)) {
+                                logger_base.debug("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
+                                continue;
+                            }
                         }
                     }
                     textures[m.diffuse_texname] = new Image(texture_filename, false, true);

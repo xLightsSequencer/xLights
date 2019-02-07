@@ -254,16 +254,36 @@ bool UDController::Check(ControllerRules* rules, std::string& res)
         }
     }
 
+    if (!rules->SupportsMultipleInputProtocols())
+    {
+        std::string protocol = "";
+        for (auto o : _outputs)
+        {
+            if (protocol == "")
+            {
+                protocol = o->GetType();
+            }
+            else
+            {
+                if (o->GetType() != protocol)
+                {
+                    res += wxString::Format("ERROR: Controller only support a single input protocol at a time. %s and %s found.\n", protocol, o->GetType()).ToStdString();
+                    success = false;
+                }
+            }
+        }
+    }
+
     if (!rules->SupportsMultipleProtocols())
     {
         std::string protocol;
-        for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
+        for (auto it : _pixelPorts)
         {
-            if (protocol == "") protocol = it->second->GetProtocol();
+            if (protocol == "") protocol = it.second->GetProtocol();
 
-            if (protocol != it->second->GetProtocol())
+            if (protocol != it.second->GetProtocol())
             {
-                res += wxString::Format("ERROR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it->second->GetProtocol()).ToStdString();
+                res += wxString::Format("ERROR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
                 success = false;
             }
         }
