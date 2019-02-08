@@ -25,6 +25,7 @@ class MorphPanel: public wxPanel
 		virtual ~MorphPanel();
 
 		//(*Declarations(MorphPanel)
+		BulkEditButton* ButtonSwap;
 		BulkEditCheckBox* CheckBox_ShowHeadAtStart;
 		BulkEditSlider* Slider_MorphAccel;
 		BulkEditSlider* Slider_MorphDuration;
@@ -64,7 +65,6 @@ class MorphPanel: public wxPanel
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_X2;
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_Y1;
 		BulkEditValueCurveButton* BitmapButton_Morph_Start_Y2;
-		wxButton* ButtonSwap;
 		wxCheckBox* CheckBox_Morph_End_Link;
 		wxCheckBox* CheckBox_Morph_Start_Link;
 		wxChoice* Choice_Morph_QuickSet;
@@ -187,7 +187,7 @@ class MorphPanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_Morph_Stagger;
 		static const long ID_CHECKBOX_ShowHeadAtStart;
 		static const long ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart;
-		static const long ID_BUTTONSWAP;
+		static const long ID_MORPH_BUTTON_SWAP;
 		static const long ID_PANEL30;
 		static const long ID_NOTEBOOK_Morph;
 		//*)

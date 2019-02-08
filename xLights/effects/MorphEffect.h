@@ -42,6 +42,7 @@ class MorphEffect : public RenderableEffect
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
+        virtual bool PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings) override;
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

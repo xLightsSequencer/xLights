@@ -103,7 +103,7 @@ const long MorphPanel::IDD_TEXTCTRL_Morph_Stagger = wxNewId();
 const long MorphPanel::ID_BITMAPBUTTON_SLIDER_Morph_Stagger = wxNewId();
 const long MorphPanel::ID_CHECKBOX_ShowHeadAtStart = wxNewId();
 const long MorphPanel::ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart = wxNewId();
-const long MorphPanel::ID_BUTTONSWAP = wxNewId();
+const long MorphPanel::ID_MORPH_BUTTON_SWAP = wxNewId();
 const long MorphPanel::ID_PANEL30 = wxNewId();
 const long MorphPanel::ID_NOTEBOOK_Morph = wxNewId();
 //*)
@@ -366,7 +366,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	BitmapButton_ShowHeadAtStart->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer105->Add(BitmapButton_ShowHeadAtStart, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer104->Add(FlexGridSizer105, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
-	ButtonSwap = new wxButton(MorphPanelOptions, ID_BUTTONSWAP, _("Swap Start and End Points"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONSWAP"));
+	ButtonSwap = new BulkEditButton(MorphPanelOptions, ID_MORPH_BUTTON_SWAP, _("Swap Start and End Points"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_MORPH_BUTTON_SWAP"));
 	FlexGridSizer104->Add(ButtonSwap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	MorphPanelOptions->SetSizer(FlexGridSizer104);
 	FlexGridSizer104->Fit(MorphPanelOptions);
@@ -413,7 +413,7 @@ MorphPanel::MorphPanel(wxWindow* parent)
 	Connect(ID_VALUECURVE_Morph_Stagger,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnVCButtonClick);
 	Connect(ID_BITMAPBUTTON_SLIDER_Morph_Stagger,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnLockButtonClick);
 	Connect(ID_BITMAPBUTTON_CHECKBOX_ShowHeadAtStart,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnLockButtonClick);
-	Connect(ID_BUTTONSWAP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnButtonSwapClick);
+	Connect(ID_MORPH_BUTTON_SWAP,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MorphPanel::OnButtonSwapClick);
 	//*)
     SetName("ID_PANEL_MORPH");
 

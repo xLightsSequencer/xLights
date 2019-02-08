@@ -45,6 +45,7 @@ class RenderableEffect
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) { return false; }
         virtual bool AppropriateOnNodes() const { return true; }
         virtual bool CanRenderPartialTimeInterval() const { return false; }
+        virtual bool PressButton(const std::string& id, SettingsMap& paletteMap, SettingsMap& settings) { return false; }
 
         virtual void SetSequenceElements(SequenceElements *els) {mSequenceElements = els;}
 

@@ -11,6 +11,7 @@
 #include "../models/Model.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
+#include "../effects/RenderableEffect.h"
 
 #include <unordered_map>
 
@@ -422,6 +423,21 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
         }
     }
     IncrementChangeCount();
+}
+
+void Effect::PressButton(RenderableEffect* re, const std::string& id)
+{
+    bool changed = false;
+    if (StartsWith(id, "E_"))
+    {
+        changed = re->PressButton(id, mPaletteMap, mSettings);
+    }
+    else
+    {
+        // all other button press changes need to be handled here
+    }
+
+    if (changed) IncrementChangeCount();
 }
 
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)

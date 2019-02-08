@@ -124,7 +124,6 @@ class BulkEditSpinCtrl : public wxSpinCtrl
 {
 protected:
     long ID_SPINCTRL_BULKEDIT;
-    BESLIDERTYPE _type;
     bool _supportsBulkEdit;
 
 public:
@@ -183,7 +182,6 @@ class BulkEditCheckBox : public wxCheckBox
 protected:
     long ID_CHECKBOX_BULKEDIT_CHECKED;
     long ID_CHECKBOX_BULKEDIT_UNCHECKED;
-    BESLIDERTYPE _type;
     bool _supportsBulkEdit;
 
 public:
@@ -196,6 +194,21 @@ public:
     bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
 };
 
+class BulkEditButton : public wxButton
+{
+protected:
+    long ID_BUTTON_BULKEDIT;
+    bool _supportsBulkEdit;
+
+public:
+
+    BulkEditButton(wxWindow *parent, wxWindowID id, const wxString &label, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = 0, const wxValidator &validator = wxDefaultValidator, const wxString &name = wxCheckBoxNameStr);
+    virtual ~BulkEditButton() {}
+    void OnRightDown(wxMouseEvent& event);
+    void OnButtonPopup(wxCommandEvent &event);
+    void SetSupportsBulkEdit(bool supportsBulkEdit) { _supportsBulkEdit = supportsBulkEdit; }
+    bool SupportsBulkEdit() const { return  _supportsBulkEdit; }
+};
 
 
 // Helper functions
