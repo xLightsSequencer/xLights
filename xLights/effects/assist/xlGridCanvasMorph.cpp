@@ -218,17 +218,7 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
             if (y2b < 0) y2b = 0;
             if (y2b >= mRows * mCellSize) y2b = mRows * mCellSize;
 
-            if (x1a / mCellSize != oldx1a ||
-                x1b / mCellSize != oldx1b ||
-                x2a / mCellSize != oldx2a ||
-                x2b / mCellSize != oldx2b ||
-                y1a / mCellSize != oldy1a ||
-                y1b / mCellSize != oldy1b ||
-                y2a / mCellSize != oldy2a ||
-                y2b / mCellSize != oldy2b)
-            {
-                StoreUpdatedMorphPositions();
-            }
+            Refresh(false);
         }
         else
         {
