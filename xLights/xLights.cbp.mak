@@ -3370,7 +3370,7 @@ controllers/Falcon.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h 
 
 controllers/J1Sys.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h models/ModelManager.h UtilFunctions.h
 
-controllers/Pixlite16.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h outputs/IPOutput.h UtilFunctions.h
+controllers/Pixlite16.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h UtilFunctions.h
 
 controllers/SanDevices.cpp: models/Model.h outputs/OutputManager.h outputs/Output.h models/ModelManager.h
 

@@ -12,6 +12,7 @@
 E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
 {
     _numUniverses = wxAtoi(node->GetAttribute("NumUniverses", "1"));
+    _priority = wxAtoi(node->GetAttribute("Priority","100"));
     CreateMultiUniverses(_numUniverses);
     _sequenceNum = 0;
     _datagram = nullptr;
@@ -24,6 +25,7 @@ E131Output::E131Output() : IPOutput()
     _universe = 1;
     _sequenceNum = 0;
     _numUniverses = 1;
+    _priority = E131_DEFAULT_PRIORITY;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
 }
@@ -47,17 +49,22 @@ wxXmlNode* E131Output::Save()
         node->AddAttribute("NumUniverses", wxString::Format(wxT("%i"), _numUniverses));
     }
 
+    if (_priority != E131_DEFAULT_PRIORITY)
+    {
+        node->AddAttribute("Priority",wxString::Format(wxT("%i"), _priority));
+    }
+
     return node;
 }
 
 void E131Output::CreateMultiUniverses(int num)
 {
     _numUniverses = num;
-    
+
     for (auto i : _outputs) {
         delete i;
     }
-    
+
     _outputs.clear();
 
     for (int i = 0; i < _numUniverses; i++)
@@ -68,6 +75,7 @@ void E131Output::CreateMultiUniverses(int num)
         e->SetChannels(_channels);
         e->SetDescription(_description);
         e->SetSuppressDuplicateFrames(_suppressDuplicateFrames);
+        e->SetPriority(_priority);
         _outputs.push_back(e);
     }
 }
@@ -287,7 +295,7 @@ bool E131Output::Open()
         _data[43] = 0x02;
         // Source Name (64 bytes)
         strcpy((char*)&_data[44], GetTag().c_str());
-        _data[108] = 100;  // Priority
+        _data[108] = _priority;  // Priority (Default is 100)
         _data[113] = UnivHi;  // Universe Number (high)
         _data[114] = UnivLo;  // Universe Number (low)
         _data[115] = 0x72;  // DMP Protocol flags and length (high)
@@ -647,6 +655,12 @@ std::string E131Output::GetUniverseString() const
         return IPOutput::GetUniverseString();
     }
 }
+
+void E131Output::SetPriority(int priority)
+{
+    _priority = priority;
+}
+
 #pragma endregion Getters and Setters
 
 #pragma region UI
