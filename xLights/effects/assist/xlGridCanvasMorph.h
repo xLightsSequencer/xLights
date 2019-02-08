@@ -18,7 +18,6 @@ class xlGridCanvasMorph : public xlGridCanvas
         virtual void SetEffect(Effect* effect_);
         virtual void ForceRefresh();
 
-    
         virtual bool UsesVertexTextureAccumulator() {return true;}
         virtual bool UsesVertexColorAccumulator() {return true;}
         virtual bool UsesVertexAccumulator() {return true;}
@@ -29,7 +28,8 @@ class xlGridCanvasMorph : public xlGridCanvas
 
     private:
 
-        int CheckForCornerHit(int x, int y);
+        bool CheckForInsideHit(int x, int y) const;
+        int CheckForCornerHit(int x, int y) const;
         void mouseMoved(wxMouseEvent& event);
         void mouseRightDown(wxMouseEvent& event);
         void mouseLeftDown(wxMouseEvent& event);
@@ -53,6 +53,11 @@ class xlGridCanvasMorph : public xlGridCanvas
         bool mMorphEndLinked;
         wxBitmap corner_1a, corner_1b, corner_2a, corner_2b;
         GLuint mCornerTextures[6];
+        wxPoint _startPoint;
+        wxPoint _starta1;
+        wxPoint _starta2;
+        wxPoint _startb1;
+        wxPoint _startb2;
 
         DECLARE_EVENT_TABLE()
 };

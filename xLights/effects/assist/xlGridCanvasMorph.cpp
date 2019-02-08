@@ -19,6 +19,7 @@ END_EVENT_TABLE()
 #define CORNER_1B_SELECTED      2
 #define CORNER_2A_SELECTED      3
 #define CORNER_2B_SELECTED      4
+#define CORNER_ALL_SELECTED      5
 
 xlGridCanvasMorph::xlGridCanvasMorph(wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,long style, const wxString &name)
     : xlGridCanvas(parent, id, pos, size, style, name),
@@ -49,7 +50,7 @@ void xlGridCanvasMorph::SetEffect(Effect* effect_)
     mEffect = effect_;
 }
 
-int xlGridCanvasMorph::CheckForCornerHit(int x, int y)
+int xlGridCanvasMorph::CheckForCornerHit(int x, int y) const
 {
     int corner_size = std::max(mMinCornerSize, mCellSize);
     int half = corner_size/2;
@@ -78,16 +79,59 @@ void xlGridCanvasMorph::mouseLeftDown(wxMouseEvent& event)
     mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
     if( mSelectedCorner == CORNER_NOT_SELECTED )
     {
-        SetMorphCorner1a(event.GetX(), event.GetY());
-        StoreUpdatedMorphPositions();
-        SetMorphCorner1b(event.GetX(), event.GetY());
-        StoreUpdatedMorphPositions();
-        Update();
+        if (event.ShiftDown())
+        {
+            if (CheckForInsideHit(event.GetX(), event.GetY()))
+            {
+                mSelectedCorner = CORNER_ALL_SELECTED;
+            }
+            else
+            {
+                return;
+            }
+            _startPoint = wxPoint(event.GetX(), event.GetY());
+            _starta1 = wxPoint(x1a, y1a);
+            _startb1 = wxPoint(x1b, y1b);
+            _starta2 = wxPoint(x2a, y2a);
+            _startb2 = wxPoint(x2b, y2b);
+        }
+        else
+        {
+            SetMorphCorner1a(event.GetX(), event.GetY());
+            StoreUpdatedMorphPositions();
+            SetMorphCorner1b(event.GetX(), event.GetY());
+            StoreUpdatedMorphPositions();
+            Update();
+        }
     }
     mDragging = true;
     CaptureMouse();
     SetCursor(wxCURSOR_HAND);
     Refresh(false);
+}
+
+int Cross(int x, int y, int x1, int y1, int x2, int y2)
+{
+    if (y < y1 && y < y2) return 0;
+    if (y > y1 && y > y2) return 0;
+    if (x > x1 && x > x2) return 0;
+    if (x < x1 && x < x2) return 1;
+
+    double slope = static_cast<double>(y2 - y1) / static_cast<double>(x2 - x1);
+    double b = static_cast<double>(y1) - slope * static_cast<double>(x1);
+    int xx = (static_cast<double>(y) - b) / slope;
+    if (xx >= x) return 1;
+    return 0;
+}
+
+// Inside if there are an odd number of crosses
+bool xlGridCanvasMorph::CheckForInsideHit(int x, int y) const
+{
+    int crossings = Cross(x, y, x1a, y1a, x1b, y1b) +
+        Cross(x, y, x1b, y1b, x2b, y2b) +
+        Cross(x, y, x2b, y2b, x2a, y2a) +
+        Cross(x, y, x2a, y2a, x1a, y1a);
+    return crossings % 2 != 0;
 }
 
 void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
@@ -114,9 +158,16 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
 
     if( !mDragging )
     {
-        if( CheckForCornerHit(event.GetX(), event.GetY()) == CORNER_NOT_SELECTED )
+        if (CheckForCornerHit(event.GetX(), event.GetY()) == CORNER_NOT_SELECTED)
         {
-            SetCursor(wxCURSOR_DEFAULT);
+            if (event.ShiftDown() && CheckForInsideHit(event.GetX(), event.GetY()))
+            {
+                SetCursor(wxCURSOR_SIZING);
+            }
+            else
+            {
+                SetCursor(wxCURSOR_DEFAULT);
+            }
         }
         else
         {
@@ -125,8 +176,65 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
     }
     else
     {
-        UpdateSelectedMorphCorner(event.GetX(), event.GetY());
-        StoreUpdatedMorphPositions();
+        if (mSelectedCorner == CORNER_ALL_SELECTED)
+        {
+            int oldx1a = x1a / mCellSize;
+            int oldy1a = y1a / mCellSize;
+            int oldx2a = x2a / mCellSize;
+            int oldy2a = y2a / mCellSize;
+            int oldx1b = x1b / mCellSize;
+            int oldy1b = y1b / mCellSize;
+            int oldx2b = x2b / mCellSize;
+            int oldy2b = y2b / mCellSize;
+
+            int dx = (event.GetX() - _startPoint.x) / mCellSize * mCellSize;
+            int dy = (event.GetY() - _startPoint.y) / mCellSize * mCellSize;
+
+            x1a = _starta1.x + dx;
+            if (x1a < 0) x1a = 0;
+            if (x1a >= mColumns * mCellSize) x1a = mColumns * mCellSize;
+            y1a = _starta1.y + dy;
+            if (y1a < 0) y1a = 0;
+            if (y1a >= mRows * mCellSize) y1a = mRows * mCellSize;
+
+            x1b = _startb1.x + dx;
+            if (x1b < 0) x1b = 0;
+            if (x1b >= mColumns * mCellSize) x1b = mColumns * mCellSize;
+            y1b = _startb1.y + dy;
+            if (y1b < 0) y1b = 0;
+            if (y1b >= mRows * mCellSize) y1b = mRows * mCellSize;
+            
+            x2a = _starta2.x + dx;
+            if (x2a < 0) x2a = 0;
+            if (x2a >= mColumns * mCellSize) x2a = mColumns * mCellSize;
+            y2a = _starta2.y + dy;
+            if (y2a < 0) y2a = 0;
+            if (y2a >= mRows * mCellSize) y2a = mRows * mCellSize;
+
+            x2b = _startb2.x + dx;
+            if (x2b < 0) x2b = 0;
+            if (x2b >= mColumns * mCellSize) x2b = mColumns * mCellSize;
+            y2b = _startb2.y + dy;
+            if (y2b < 0) y2b = 0;
+            if (y2b >= mRows * mCellSize) y2b = mRows * mCellSize;
+
+            if (x1a / mCellSize != oldx1a ||
+                x1b / mCellSize != oldx1b ||
+                x2a / mCellSize != oldx2a ||
+                x2b / mCellSize != oldx2b ||
+                y1a / mCellSize != oldy1a ||
+                y1b / mCellSize != oldy1b ||
+                y2a / mCellSize != oldy2a ||
+                y2b / mCellSize != oldy2b)
+            {
+                StoreUpdatedMorphPositions();
+            }
+        }
+        else
+        {
+            UpdateSelectedMorphCorner(event.GetX(), event.GetY());
+            StoreUpdatedMorphPositions();
+        }
         Update();
     }
 
@@ -291,25 +399,25 @@ void DeactivateValueCurve(SettingsMap& settings, const std::string& setting)
 void xlGridCanvasMorph::StoreUpdatedMorphPositions()
 {
     SettingsMap& settings = mEffect->GetSettings();
-    if( mSelectedCorner == CORNER_1A_SELECTED ) {
+    if( mSelectedCorner == CORNER_1A_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED ) {
         settings["E_SLIDER_Morph_Start_X1"] = wxString::Format("%d", SetColumnCenter(x1a));
         settings["E_SLIDER_Morph_Start_Y1"] = wxString::Format("%d", SetRowCenter(y1a));
         DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_X1");
         DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_Y1");
     }
-    else if( mSelectedCorner == CORNER_1B_SELECTED && !mMorphStartLinked ) {
+    if(( mSelectedCorner == CORNER_1B_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED) && !mMorphStartLinked ) {
         settings["E_SLIDER_Morph_Start_X2"] = wxString::Format("%d", SetColumnCenter(x1b));
         settings["E_SLIDER_Morph_Start_Y2"] = wxString::Format("%d", SetRowCenter(y1b));
         DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_X2");
         DeactivateValueCurve(settings, "E_VALUECURVE_Morph_Start_Y2");
     }
-    else if( mSelectedCorner == CORNER_2A_SELECTED ) {
+    if( mSelectedCorner == CORNER_2A_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED) {
         settings["E_SLIDER_Morph_End_X1"] = wxString::Format("%d", SetColumnCenter(x2a));
         settings["E_SLIDER_Morph_End_Y1"] = wxString::Format("%d", SetRowCenter(y2a));
         DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_X1");
         DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_Y1");
     }
-    else if( mSelectedCorner == CORNER_2B_SELECTED && !mMorphEndLinked ) {
+    if(( mSelectedCorner == CORNER_2B_SELECTED || mSelectedCorner == CORNER_ALL_SELECTED) && !mMorphEndLinked ) {
         settings["E_SLIDER_Morph_End_X2"] = wxString::Format("%d", SetColumnCenter(x2b));
         settings["E_SLIDER_Morph_End_Y2"] = wxString::Format("%d", SetRowCenter(y2b));
         DeactivateValueCurve(settings, "E_VALUECURVE_Morph_End_X2");
@@ -498,4 +606,3 @@ void xlGridCanvasMorph::DrawMorphEffect()
         DrawGLUtils::DrawTexture(mCornerTextures[0], x1a-corner_size/2, y1a-corner_size/2, x1a+corner_size/2, y1a+corner_size/2);
     }
 }
-

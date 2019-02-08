@@ -526,7 +526,6 @@ void xlGLCanvas::SetCurrentGLContext() {
     LOG_GL_ERRORV(DrawGLUtils::SetCurrentCache(cache));
 }
 
-
 void xlGLCanvas::CreateGLContext() {
     static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
     if (m_context == nullptr) {
@@ -606,7 +605,6 @@ double xlGLCanvas::translateToBacking(double x) {
     return xlTranslateToRetina(*this, x);
 }
 
-
 // Inits the OpenGL viewport for drawing in 2D.
 void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y)
 {
@@ -619,4 +617,3 @@ void xlGLCanvas::prepare3DViewport(int topleft_x, int topleft_y, int bottomright
     DrawGLUtils::SetViewport3D(*this, topleft_x, topleft_y, bottomright_x, bottomright_y);
     mWindowResized = false;
 }
-
