@@ -12,13 +12,15 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (scott)   Fixed Custom Model Dialog Shrink Crash
+   -- bug (keith)   Fix 3d obj with space dont load
+   -- bug (keith)   Fix custom models dont draw at z=0 when first created
    -- enh (keith)   Add shift move to morph effect assist
    -- enh (keith)   Upgrade pixlite controller upload for the 16 Long Range
-   -- bug (keith)   Fix 3d obj with space dont load
    -- enh (keith)   Allow material files to be left in a subfolder under obj file location as long as it is referenced in the material file
-   -- bug (keith)   Fix custom models dont draw at z=0 when first created
    -- enh (keith)   Add bulk edit to the morph swap points button
+   -- enh (keith)   Make the row header resizable
    -- enh (smorgan) For timecode slightly outside jitter limit nudge it back into time
+   -- enh (smorgan) Add support for E131 prioritisation
 2019.10 February 5, 2019
    -- enh (keith)   Add an <ALL> state to state effect that activates all states. Also recognise * in timing track as well
    -- bug (keith)   Fix custom models load with zero layers if depth not set correctly in the file
