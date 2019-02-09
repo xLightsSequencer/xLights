@@ -14,6 +14,7 @@
 #define E131_PACKET_LEN (E131_PACKET_HEADERLEN + 512)
 #define E131_SYNCPACKET_LEN 49
 #define E131_PORT 5568
+#define E131_DEFAULT_PRIORITY 100
 #define XLIGHTS_UUID "c0de0080-c69b-11e0-9572-0800200c9a66"
 #pragma endregion E1.31 Constants
 
@@ -22,6 +23,7 @@ class E131Output : public IPOutput
     #pragma region Member Variables
     uint8_t _data[E131_PACKET_LEN];
     uint8_t _sequenceNum;
+    uint8_t _priority;
     wxIPV4address _remoteAddr;
     wxDatagramSocket *_datagram;
 
@@ -36,11 +38,11 @@ public:
     E131Output(wxXmlNode* node);
     E131Output();
     virtual ~E131Output() override;
-    
+
     // this is used to create any sub universes in this output
     void CreateMultiUniverses(int num);
     #pragma endregion Constructors and Destructors
-    
+
     #pragma region Static Functions
     static void SendSync(int syncUniverse);
     static std::string GetTag();
@@ -61,6 +63,8 @@ public:
     virtual int GetUniverses() const override { return _numUniverses; }
     virtual void SetTransientData(int on, long startChannel, int nullnumber) override;
     virtual Output* GetActualOutput(long startChannel) override;
+    virtual int GetPriority() const {return _priority; }
+    virtual void SetPriority(int priority);
     #pragma region Getters and Setters
 
     virtual wxXmlNode* Save() override;
@@ -70,19 +74,19 @@ public:
     virtual void Close() override;
     void OpenDatagram();
     #pragma endregion Start and Stop
-    
+
     #pragma region Frame Handling
     virtual void StartFrame(long msec) override;
     virtual void EndFrame(int suppressFrames) override;
     virtual void ResetFrame() override;
     #pragma endregion Frame Handling
-    
+
     #pragma region Data Setting
     virtual void SetOneChannel(long channel, unsigned char data) override;
     virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
-    
+
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
     virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
