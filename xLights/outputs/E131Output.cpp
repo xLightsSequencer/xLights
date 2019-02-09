@@ -13,7 +13,10 @@ E131Output::E131Output(wxXmlNode* node) : IPOutput(node)
 {
     _numUniverses = wxAtoi(node->GetAttribute("NumUniverses", "1"));
     _priority = wxAtoi(node->GetAttribute("Priority","100"));
-    CreateMultiUniverses(_numUniverses);
+    if (_numUniverses > 1)
+    {
+        CreateMultiUniverses(_numUniverses);
+    }
     _sequenceNum = 0;
     _datagram = nullptr;
     memset(_data, 0, sizeof(_data));
@@ -64,8 +67,9 @@ void E131Output::CreateMultiUniverses(int num)
     for (auto i : _outputs) {
         delete i;
     }
-
     _outputs.clear();
+
+    if (_numUniverses < 2) return;
 
     for (int i = 0; i < _numUniverses; i++)
     {

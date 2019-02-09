@@ -22,13 +22,13 @@ class E131Output : public IPOutput
 {
     #pragma region Member Variables
     uint8_t _data[E131_PACKET_LEN];
-    uint8_t _sequenceNum;
-    uint8_t _priority;
+    uint8_t _sequenceNum = 0;
+    uint8_t _priority = E131_DEFAULT_PRIORITY;
     wxIPV4address _remoteAddr;
-    wxDatagramSocket *_datagram;
+    wxDatagramSocket *_datagram = nullptr;
 
     // in case it is a multi universe e131
-    int _numUniverses;
+    int _numUniverses = 1;
     std::list<Output*> _outputs;
     #pragma endregion Member Variables
 
@@ -37,6 +37,15 @@ public:
     #pragma region Constructors and Destructors
     E131Output(wxXmlNode* node);
     E131Output();
+    E131Output(E131Output* output) : IPOutput(output)
+    {
+        _numUniverses = output->_numUniverses;
+        if (_numUniverses > 1)
+        {
+            CreateMultiUniverses(_numUniverses);
+        }
+        _priority = output->_priority;
+    };
     virtual ~E131Output() override;
 
     // this is used to create any sub universes in this output
