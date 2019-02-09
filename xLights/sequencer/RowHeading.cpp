@@ -191,7 +191,7 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
     {
         auto size = GetSize();
         wxConfigBase* config = wxConfigBase::Get();
-        int w = config->Write("xLightsRowHeaderWidth", size.GetWidth());
+        config->Write("xLightsRowHeaderWidth", size.GetWidth());
         ReleaseMouse();
         _dragging = false;
     }

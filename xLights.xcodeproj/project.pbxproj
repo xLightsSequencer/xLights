@@ -225,6 +225,12 @@
 		6764010C1C8FBFC30079A4CF /* LayoutPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6764010B1C8FBFC30079A4CF /* LayoutPanel.cpp */; };
 		676507CD20D185F200532BA9 /* xlLockButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676507CB20D185F100532BA9 /* xlLockButton.cpp */; };
 		67653D5C1CA589830026A30B /* ModelScreenLocation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */; };
+		6765DD24220F2029007C8180 /* SyncArtNet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6765DD18220F2027007C8180 /* SyncArtNet.cpp */; };
+		6765DD25220F2029007C8180 /* SyncFPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6765DD1B220F2028007C8180 /* SyncFPP.cpp */; };
+		6765DD26220F2029007C8180 /* SyncOSC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6765DD1C220F2028007C8180 /* SyncOSC.cpp */; };
+		6765DD27220F2029007C8180 /* SyncMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6765DD1F220F2028007C8180 /* SyncMIDI.cpp */; };
+		6765DD28220F2029007C8180 /* RemoteModeConfigDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6765DD21220F2029007C8180 /* RemoteModeConfigDialog.cpp */; };
+		6765DD29220F2029007C8180 /* SyncManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6765DD22220F2029007C8180 /* SyncManager.cpp */; };
 		6766038E1D01CA0800589601 /* FillEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038C1D01CA0800589601 /* FillEffect.cpp */; };
 		676603911D01CA2400589601 /* FillPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6766038F1D01CA2400589601 /* FillPanel.cpp */; };
 		676639D22090B50F009D2401 /* IPEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67E8F64E1E513B380096546A /* IPEntryDialog.cpp */; };
@@ -1184,6 +1190,18 @@
 		676507CC20D185F100532BA9 /* xlLockButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xlLockButton.h; sourceTree = "<group>"; };
 		67653D5A1CA589830026A30B /* ModelScreenLocation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelScreenLocation.cpp; path = models/ModelScreenLocation.cpp; sourceTree = "<group>"; };
 		67653D5B1CA589830026A30B /* ModelScreenLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelScreenLocation.h; path = models/ModelScreenLocation.h; sourceTree = "<group>"; };
+		6765DD18220F2027007C8180 /* SyncArtNet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SyncArtNet.cpp; sourceTree = "<group>"; };
+		6765DD19220F2027007C8180 /* SyncManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SyncManager.h; sourceTree = "<group>"; };
+		6765DD1A220F2028007C8180 /* SyncMIDI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SyncMIDI.h; sourceTree = "<group>"; };
+		6765DD1B220F2028007C8180 /* SyncFPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SyncFPP.cpp; sourceTree = "<group>"; };
+		6765DD1C220F2028007C8180 /* SyncOSC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SyncOSC.cpp; sourceTree = "<group>"; };
+		6765DD1D220F2028007C8180 /* SyncArtNet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SyncArtNet.h; sourceTree = "<group>"; };
+		6765DD1E220F2028007C8180 /* SyncOSC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SyncOSC.h; sourceTree = "<group>"; };
+		6765DD1F220F2028007C8180 /* SyncMIDI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SyncMIDI.cpp; sourceTree = "<group>"; };
+		6765DD20220F2028007C8180 /* SyncFPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SyncFPP.h; sourceTree = "<group>"; };
+		6765DD21220F2029007C8180 /* RemoteModeConfigDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RemoteModeConfigDialog.cpp; sourceTree = "<group>"; };
+		6765DD22220F2029007C8180 /* SyncManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SyncManager.cpp; sourceTree = "<group>"; };
+		6765DD23220F2029007C8180 /* RemoteModeConfigDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemoteModeConfigDialog.h; sourceTree = "<group>"; };
 		6766038C1D01CA0800589601 /* FillEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FillEffect.cpp; path = effects/FillEffect.cpp; sourceTree = "<group>"; };
 		6766038D1D01CA0800589601 /* FillEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FillEffect.h; path = effects/FillEffect.h; sourceTree = "<group>"; };
 		6766038F1D01CA2400589601 /* FillPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FillPanel.cpp; path = effects/FillPanel.cpp; sourceTree = "<group>"; };
@@ -2894,30 +2912,6 @@
 		67E7087617B51AB400A22034 /* xLights */ = {
 			isa = PBXGroup;
 			children = (
-				67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */,
-				67B61E7F21FEF3A900BCB000 /* RemapDMXChannelsDialog.h */,
-				674623C321E1A888005AE464 /* PathGenerationDialog.cpp */,
-				674623C221E1A888005AE464 /* PathGenerationDialog.h */,
-				6794272221CC075B00F7ED59 /* FSEQFile.cpp */,
-				6794272321CC075B00F7ED59 /* FSEQFile.h */,
-				67CE25942138235500ADF180 /* ViewObjectPanel.cpp */,
-				67CE25932138235500ADF180 /* ViewObjectPanel.h */,
-				67C9E65C211FC07E00379E2A /* ViewpointDialog.cpp */,
-				67C9E65F211FC07E00379E2A /* ViewpointDialog.h */,
-				67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */,
-				67C9E65E211FC07E00379E2A /* ViewpointMgr.h */,
-				679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */,
-				679F8FCB218C891400CAC546 /* wxModelGridCellRenderer.h */,
-				678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */,
-				678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */,
-				67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */,
-				67AAC48C214199A7005D55A9 /* NodeSelectGrid.h */,
-				67CE7B502111E02D004005BC /* RenderCache.cpp */,
-				67CE7B512111E02D004005BC /* RenderCache.h */,
-				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
-				6785922620F02CD9001C2929 /* LyricUserDictDialog.h */,
-				676507CB20D185F100532BA9 /* xlLockButton.cpp */,
-				676507CC20D185F100532BA9 /* xlLockButton.h */,
 				67FA9FD21C67837500FED13B /* AudioManager.cpp */,
 				67FA9FD11C67837500FED13B /* AudioManager.h */,
 				6760D8541FA3C6AD00458894 /* BatchRenderDialog.cpp */,
@@ -2985,6 +2979,8 @@
 				6730747B208E737800D57F99 /* FolderSelection.h */,
 				6755B8671F75D303005EEEF5 /* FontManager.cpp */,
 				6755B8681F75D304005EEEF5 /* FontManager.h */,
+				6794272221CC075B00F7ED59 /* FSEQFile.cpp */,
+				6794272321CC075B00F7ED59 /* FSEQFile.h */,
 				679484A91CD8E998001A7B4F /* GenerateCustomModelDialog.cpp */,
 				679484AA1CD8E998001A7B4F /* GenerateCustomModelDialog.h */,
 				6780E7E91F6EAE81002A8EC9 /* GenerateLyricsDialog.cpp */,
@@ -3012,6 +3008,8 @@
 				6781B1D71AF407A300A75E59 /* LMSImportChannelMapDialog.cpp */,
 				676DCBFB1A98E53800FBA86B /* LorConvertDialog.cpp */,
 				67AAF8FC1B642E6C00585431 /* LyricsDialog.cpp */,
+				6785922520F02CD8001C2929 /* LyricUserDictDialog.cpp */,
+				6785922620F02CD9001C2929 /* LyricUserDictDialog.h */,
 				6784F9231A5653670018EC0C /* MainSequencer.cpp */,
 				670827FB2024C2D40002B617 /* MatrixFaceDownloadDialog.cpp */,
 				670827FC2024C2D40002B617 /* MatrixFaceDownloadDialog.h */,
@@ -3024,9 +3022,13 @@
 				670C827C1C44554E000AA5D8 /* Models */,
 				67BC8BB61D2152EC009B660F /* ModelStateDialog.cpp */,
 				67BC8BB81D2152EC009B660F /* ModelStateDialog.h */,
+				678058C92176600500BFD388 /* MultiControllerUploadDialog.cpp */,
+				678058CA2176600500BFD388 /* MultiControllerUploadDialog.h */,
 				67FF398E1D57F5C000290DB4 /* MusicXML.cpp */,
 				67FF39901D57F5D000290DB4 /* MusicXML.h */,
 				677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */,
+				67AAC48D214199A7005D55A9 /* NodeSelectGrid.cpp */,
+				67AAC48C214199A7005D55A9 /* NodeSelectGrid.h */,
 				67BC8BB71D2152EC009B660F /* NodesGridCellEditor.cpp */,
 				67BC8BB91D2152EC009B660F /* NodesGridCellEditor.h */,
 				67FF39911D57F5D000290DB4 /* NoteImportDialog.cpp */,
@@ -3035,6 +3037,10 @@
 				67582EC61C7363FF00850363 /* osx_utils */,
 				67B2B1F51E19478D0024F0BB /* Outputs */,
 				67A619D417B51C0F008E95BB /* PaletteMgmtDialog.cpp */,
+				674C7C7921132E3E0056FB9D /* Parallel.cpp */,
+				674C7C7A21132E3E0056FB9D /* Parallel.h */,
+				674623C321E1A888005AE464 /* PathGenerationDialog.cpp */,
+				674623C221E1A888005AE464 /* PathGenerationDialog.h */,
 				67E36FA51A77D017007FFC9E /* PerspectivesPanel.cpp */,
 				67AAF8F01B63767B00585431 /* PhonemeDictionary.cpp */,
 				67B6F3242040BF6C00B847E0 /* PixelTestDialog.cpp */,
@@ -3042,7 +3048,11 @@
 				67694F191A069BBE0030D020 /* PreviewModels.cpp */,
 				675D1E921D0B54B800CC6C02 /* PreviewPane.cpp */,
 				675D1E941D0B54B800CC6C02 /* PreviewPane.h */,
+				67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */,
+				67B61E7F21FEF3A900BCB000 /* RemapDMXChannelsDialog.h */,
 				677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */,
+				67CE7B502111E02D004005BC /* RenderCache.cpp */,
+				67CE7B512111E02D004005BC /* RenderCache.h */,
 				6701999D1CE5A03200AE9B7E /* RenderProgressDialog.cpp */,
 				6701999E1CE5A03200AE9B7E /* RenderProgressDialog.h */,
 				671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */,
@@ -3111,6 +3121,12 @@
 				67C31166200506B2005A12D0 /* VideoExporter.h */,
 				679484AB1CD8E998001A7B4F /* VideoReader.cpp */,
 				679484AC1CD8E998001A7B4F /* VideoReader.h */,
+				67CE25942138235500ADF180 /* ViewObjectPanel.cpp */,
+				67CE25932138235500ADF180 /* ViewObjectPanel.h */,
+				67C9E65C211FC07E00379E2A /* ViewpointDialog.cpp */,
+				67C9E65F211FC07E00379E2A /* ViewpointDialog.h */,
+				67C9E65D211FC07E00379E2A /* ViewpointMgr.cpp */,
+				67C9E65E211FC07E00379E2A /* ViewpointMgr.h */,
 				67FE98531EB8C9BF00C5E804 /* ViewsModelsPanel.cpp */,
 				67FE98541EB8C9BF00C5E804 /* ViewsModelsPanel.h */,
 				671130AF1E4EB18100AF09A7 /* VSAFile.cpp */,
@@ -3121,6 +3137,8 @@
 				67AB29491D649008007F7CF3 /* WiringDialog.cpp */,
 				67AB294A1D649008007F7CF3 /* WiringDialog.h */,
 				67B845041A9C0E7500564051 /* wxCheckedListCtrl.cpp */,
+				679F8FCA218C891400CAC546 /* wxModelGridCellRenderer.cpp */,
+				679F8FCB218C891400CAC546 /* wxModelGridCellRenderer.h */,
 				675DE2591B53381800A9BB44 /* xlColorCanvas.cpp */,
 				675DE25B1B53381800A9BB44 /* xlColorPicker.cpp */,
 				675DE25D1B53381800A9BB44 /* xlColorPickerFields.cpp */,
@@ -3137,9 +3155,9 @@
 				67BCD1531E6DAF9100F99935 /* xLightsVersion.cpp */,
 				67BCD1541E6DAF9100F99935 /* xLightsVersion.h */,
 				6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */,
+				676507CB20D185F100532BA9 /* xlLockButton.cpp */,
+				676507CC20D185F100532BA9 /* xlLockButton.h */,
 				675DE2651B53381800A9BB44 /* xlSlider.cpp */,
-				674C7C7921132E3E0056FB9D /* Parallel.cpp */,
-				674C7C7A21132E3E0056FB9D /* Parallel.h */,
 			);
 			path = xLights;
 			sourceTree = "<group>";
@@ -3222,19 +3240,6 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
-				67A54DB221DCF8030021B17B /* ConfigureTest.cpp */,
-				67A54DB321DCF8030021B17B /* ConfigureTest.h */,
-				675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */,
-				675081EE21B80F0400A48CD1 /* EventStatePanel.h */,
-				670B171421973D06004F0993 /* ExtraIPDialog.cpp */,
-				670B171621973D07004F0993 /* ExtraIPDialog.h */,
-				670B171521973D07004F0993 /* ExtraIPsDialog.cpp */,
-				670B171721973D07004F0993 /* ExtraIPsDialog.h */,
-				678058D4217A4ED900BFD388 /* xSchedule.entitlements */,
-				670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */,
-				670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */,
-				670E0C2B20B641D70055F891 /* City.cpp */,
-				670E0C2A20B641D60055F891 /* City.h */,
 				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
 				67C581471E4B95A400932DFA /* AddReverseDialog.h */,
 				67F23F291E32994400F8B985 /* Assets.xcassets */,
@@ -3244,12 +3249,18 @@
 				67BCD14E1E6DADFC00F99935 /* Blend.h */,
 				67F23F401E329AD800F8B985 /* ButtonDetailsDialog.cpp */,
 				67F23F4A1E329AD800F8B985 /* ButtonDetailsDialog.h */,
+				670E0C2B20B641D70055F891 /* City.cpp */,
+				670E0C2A20B641D60055F891 /* City.h */,
 				67C581381E4B95A400932DFA /* ColourOrderDialog.cpp */,
 				67C581481E4B95A400932DFA /* ColourOrderDialog.h */,
 				67F23F411E329AD800F8B985 /* CommandManager.cpp */,
 				67F23F4B1E329AD800F8B985 /* CommandManager.h */,
+				670B31BC2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp */,
+				670B31BB2162570400591A3E /* ConfigureMIDITimecodeDialog.h */,
 				1ECB4F711FF635D5006D57AA /* ConfigureOSC.cpp */,
 				1ECB4F731FF635D6006D57AA /* ConfigureOSC.h */,
+				67A54DB221DCF8030021B17B /* ConfigureTest.cpp */,
+				67A54DB321DCF8030021B17B /* ConfigureTest.h */,
 				67FFB8171FA3F65D007F9FBB /* Control.h */,
 				67FFB81B1FA3F65E007F9FBB /* DeadChannelDialog.cpp */,
 				67FFB8191FA3F65E007F9FBB /* DeadChannelDialog.h */,
@@ -3279,6 +3290,12 @@
 				67D75E292020ED19005BAC6E /* EventsDialog.h */,
 				67D75E2C2020ED1A005BAC6E /* EventSerialPanel.cpp */,
 				67D75E252020ED19005BAC6E /* EventSerialPanel.h */,
+				675081EF21B80F0500A48CD1 /* EventStatePanel.cpp */,
+				675081EE21B80F0400A48CD1 /* EventStatePanel.h */,
+				670B171421973D06004F0993 /* ExtraIPDialog.cpp */,
+				670B171621973D07004F0993 /* ExtraIPDialog.h */,
+				670B171521973D07004F0993 /* ExtraIPsDialog.cpp */,
+				670B171721973D07004F0993 /* ExtraIPsDialog.h */,
 				6725FAE51F943AD7007F2D7C /* FPPRemotesDialog.cpp */,
 				6725FAE71F943AD8007F2D7C /* FPPRemotesDialog.h */,
 				6725FAE61F943AD7007F2D7C /* GammaDialog.cpp */,
@@ -3326,6 +3343,8 @@
 				67F23FA91E329E6100F8B985 /* PlayList */,
 				67DA0B001E39C96F00E2A859 /* RemapDialog.cpp */,
 				67DA0B011E39C96F00E2A859 /* RemapDialog.h */,
+				6765DD21220F2029007C8180 /* RemoteModeConfigDialog.cpp */,
+				6765DD23220F2029007C8180 /* RemoteModeConfigDialog.h */,
 				67F23F441E329AD800F8B985 /* RunningSchedule.cpp */,
 				67F23F451E329AD800F8B985 /* RunningSchedule.h */,
 				67F23F461E329AD800F8B985 /* Schedule.cpp */,
@@ -3342,6 +3361,16 @@
 				67F23F261E32994400F8B985 /* Supporting Files */,
 				67B022FD204A794200639D21 /* SustainDialog.cpp */,
 				67B022FE204A794200639D21 /* SustainDialog.h */,
+				6765DD18220F2027007C8180 /* SyncArtNet.cpp */,
+				6765DD1D220F2028007C8180 /* SyncArtNet.h */,
+				6765DD1B220F2028007C8180 /* SyncFPP.cpp */,
+				6765DD20220F2028007C8180 /* SyncFPP.h */,
+				6765DD22220F2029007C8180 /* SyncManager.cpp */,
+				6765DD19220F2027007C8180 /* SyncManager.h */,
+				6765DD1F220F2028007C8180 /* SyncMIDI.cpp */,
+				6765DD1A220F2028007C8180 /* SyncMIDI.h */,
+				6765DD1C220F2028007C8180 /* SyncOSC.cpp */,
+				6765DD1E220F2028007C8180 /* SyncOSC.h */,
 				67F4145A1FFEE239009F2E74 /* ThreeToFourDialog.cpp */,
 				67F414591FFEE238009F2E74 /* ThreeToFourDialog.h */,
 				1E3E24F61E371555001D48E3 /* UserButton.cpp */,
@@ -3359,6 +3388,7 @@
 				67F23F531E329AD800F8B985 /* WebServer.h */,
 				67F23F941E329E1700F8B985 /* wxHTTPServer */,
 				67B6F3382040F63E00B847E0 /* wxMIDI */,
+				678058D4217A4ED900BFD388 /* xSchedule.entitlements */,
 				67F23F3C1E329AD800F8B985 /* xScheduleApp.cpp */,
 				67F23F3D1E329AD800F8B985 /* xScheduleApp.h */,
 				67F23F3E1E329AD800F8B985 /* xScheduleMain.cpp */,
@@ -4247,12 +4277,14 @@
 				67D75E342020ED1B005BAC6E /* EventSerialPanel.cpp in Sources */,
 				67F2402C1E32A0C900F8B985 /* kiss_fft.c in Sources */,
 				67C78D0B1FBA2A4A00B82E48 /* VideoCache.cpp in Sources */,
+				6765DD28220F2029007C8180 /* RemoteModeConfigDialog.cpp in Sources */,
 				67C5814C1E4B95A400932DFA /* MatrixDialog.cpp in Sources */,
 				67D75E332020ED1B005BAC6E /* EventsDialog.cpp in Sources */,
 				67DA0B061E39C96F00E2A859 /* RemapDialog.cpp in Sources */,
 				67D75E582020ED60005BAC6E /* ListenerARTNet.cpp in Sources */,
 				1ECB4F7F1FF63621006D57AA /* Pinger.cpp in Sources */,
 				670B31BD2162570500591A3E /* ConfigureMIDITimecodeDialog.cpp in Sources */,
+				6765DD27220F2029007C8180 /* SyncMIDI.cpp in Sources */,
 				67D640F11E41169F00381DDA /* PlayListItemFSEQVideo.cpp in Sources */,
 				67D75E5A2020ED60005BAC6E /* ListenerOSC.cpp in Sources */,
 				67D75E2E2020ED1B005BAC6E /* EventDialog.cpp in Sources */,
@@ -4339,7 +4371,9 @@
 				67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
 				67B6F33D2040F66500B847E0 /* wxMidi.cpp in Sources */,
+				6765DD24220F2029007C8180 /* SyncArtNet.cpp in Sources */,
 				67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */,
+				6765DD29220F2029007C8180 /* SyncManager.cpp in Sources */,
 				671142E9207BAB9D00F45296 /* PlayListItemSetColourPanel.cpp in Sources */,
 				6725FAEC1F943B1A007F2D7C /* OutputProcessGamma.cpp in Sources */,
 				67C581521E4B95A400932DFA /* MatrixMapper.cpp in Sources */,
@@ -4394,6 +4428,7 @@
 				67F23FF11E329E7400F8B985 /* PlayListItemESEQPanel.cpp in Sources */,
 				67F23FA31E329E3300F8B985 /* pages.cpp in Sources */,
 				67DA0AF81E39C8EB00E2A859 /* DimDialog.cpp in Sources */,
+				6765DD25220F2029007C8180 /* SyncFPP.cpp in Sources */,
 				67F23FA11E329E3300F8B985 /* context.cpp in Sources */,
 				67F23F631E329AD800F8B985 /* ScheduleOptions.cpp in Sources */,
 				67D75E572020ED60005BAC6E /* ListenerBase.cpp in Sources */,
@@ -4427,6 +4462,7 @@
 				67F23FEE1E329E7400F8B985 /* PlayListItemDelay.cpp in Sources */,
 				67B6F33C2040F66500B847E0 /* wxMidiDatabase.cpp in Sources */,
 				67F23FA81E329E3300F8B985 /* status.cpp in Sources */,
+				6765DD26220F2029007C8180 /* SyncOSC.cpp in Sources */,
 				1ECB4F7B1FF635EE006D57AA /* PlayListItemOSC.cpp in Sources */,
 				678058D02176619800BFD388 /* PlayListItemFadePanel.cpp in Sources */,
 				674B81532028EDA3002A97A6 /* PlayListItemScreenMapPanel.cpp in Sources */,

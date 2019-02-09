@@ -15,6 +15,7 @@
 #ifdef _MSC_VER
 #define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
 #elif defined(__WXWINDOWS__)
+#pragma pack(push)
 #pragma pack(1)
 #define PACK( __Declaration__ ) __Declaration__
 #else
@@ -35,4 +36,7 @@ PACK( typedef struct { char fppd[4]; uint8_t pktType; uint16_t extraDataLen; } C
 
 PACK( typedef struct { uint8_t  pktType; uint8_t  fileType; uint32_t frameNumber; float secondsElapsed; char filename[1]; } SyncPkt);
 
+#if defined(__WXWINDOWS__)
+#pragma pack(pop)
+#endif
 #endif /* _CONTROL_H */

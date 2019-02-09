@@ -430,13 +430,9 @@ void ConvertDialog::WriteHLSFile(const wxString& filename)
 bool ConvertDialog::WriteLedBlinkyFile(const wxString& filename)
 {
     wxString ChannelName, TestName;
-    int32_t ChannelColor;
-    long TotalTime = SeqData.TotalTime();
     wxXmlDocument doc;
     wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "LEDAnimation");
     doc.SetRoot(root);
-
-    int frame = 1;
 
     for (int frame = 1; frame <= SeqData.NumFrames(); frame++) {
         wxXmlNode *fr_node = new wxXmlNode(root, wxXML_ELEMENT_NODE, "Frame");
