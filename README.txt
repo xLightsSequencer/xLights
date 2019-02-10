@@ -12,6 +12,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- enh (scott)   Timing Tracks will persist the collapsed flag
+   -- enh (scott)   Added Subfolder Selection to Batch Render Dialog
 2019.11 February 9, 2019
    -- bug (scott)   Fixed Custom Model Dialog Shrink Crash
    -- bug (keith)   Fix 3d obj with space dont load
