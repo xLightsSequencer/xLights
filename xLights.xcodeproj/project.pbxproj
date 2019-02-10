@@ -263,6 +263,7 @@
 		677421DA1A6A8FBE0082DA5B /* EffectIconPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */; };
 		677421DB1A6A8FBE0082DA5B /* NewTimingDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */; };
 		677421DD1A6A8FF30082DA5B /* RenameTextDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */; };
+		67755B32220FD7C100482D27 /* palettes in Resources */ = {isa = PBXBuildFile; fileRef = 67755B31220FD7C100482D27 /* palettes */; };
 		677674491B38E7F70018E14B /* OptionChooser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 677674481B38E7F70018E14B /* OptionChooser.cpp */; };
 		6778F3E61A601CA7008C2086 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E31A601CA7008C2086 /* Effect.cpp */; };
 		6778F3E71A601CA7008C2086 /* EffectLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6778F3E41A601CA7008C2086 /* EffectLayer.cpp */; };
@@ -1249,6 +1250,7 @@
 		677421D81A6A8FBE0082DA5B /* EffectIconPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffectIconPanel.cpp; sourceTree = "<group>"; };
 		677421D91A6A8FBE0082DA5B /* NewTimingDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NewTimingDialog.cpp; sourceTree = "<group>"; };
 		677421DC1A6A8FF30082DA5B /* RenameTextDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RenameTextDialog.cpp; sourceTree = "<group>"; };
+		67755B31220FD7C100482D27 /* palettes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = palettes; sourceTree = "<group>"; };
 		677674481B38E7F70018E14B /* OptionChooser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OptionChooser.cpp; sourceTree = "<group>"; };
 		6778F3E31A601CA7008C2086 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = sequencer/Effect.cpp; sourceTree = "<group>"; };
 		6778F3E41A601CA7008C2086 /* EffectLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectLayer.cpp; path = sequencer/EffectLayer.cpp; sourceTree = "<group>"; };
@@ -2580,6 +2582,7 @@
 		67AAF8F31B63782F00585431 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				67755B31220FD7C100482D27 /* palettes */,
 				67B2B23B1E194D120024F0BB /* controllers */,
 				670F163E1CDBC53F0039D4DB /* xlights.mac.properties */,
 				67AAF8F41B63785900585431 /* user_dictionary */,
@@ -3737,6 +3740,7 @@
 			files = (
 				677989A11F321BC200A26FA9 /* valuecurves in Resources */,
 				67B2B23C1E194D120024F0BB /* controllers in Resources */,
+				67755B32220FD7C100482D27 /* palettes in Resources */,
 				67D2B04C1D54CCA4006D324F /* colorcurves in Resources */,
 				670F163F1CDBC53F0039D4DB /* xlights.mac.properties in Resources */,
 				67AAF8F81B63785900585431 /* user_dictionary in Resources */,
