@@ -116,6 +116,9 @@ Source: "colorcurves\*.*"; DestDir: "{app}/colorcurves"   ; Flags: replacesameve
 ; Value Curves
 Source: "valuecurves\*.*"; DestDir: "{app}/valuecurves"   ; Flags: replacesameversion recursesubdirs
 
+; Palettes
+Source: "palettes\*.*"; DestDir: "{app}/palettes"   ; Flags: replacesameversion recursesubdirs
+
 ; controllers
 ; Source: "controllers\*.*"; DestDir: "{app}/controllers"   ; Flags: replacesameversion recursesubdirs
 
