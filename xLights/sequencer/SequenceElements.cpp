@@ -775,7 +775,7 @@ bool SequenceElements::LoadSequencerFile(xLightsXmlFile& xml_file, const wxStrin
                 {
                     active = element->GetAttribute("active") == '1' ? true : false;
                 }
-                else
+                if(element->HasAttribute("collapsed"))
                 {
                     collapsed = element->GetAttribute("collapsed") == '1' ? true : false;
                 }
