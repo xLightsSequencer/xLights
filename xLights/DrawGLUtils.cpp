@@ -406,7 +406,7 @@ public:
                     LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
                     LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
                     if (it->textureAlpha != 255) {
-                        doDraw = !ttype;
+                        doDraw = ttype;
                     }
                     float trans = it->textureAlpha;
                     trans /= 255.0f;

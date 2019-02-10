@@ -951,7 +951,7 @@ public:
                         texturep->SetRenderType(1);
                     } else {
                         if (brt.textureAlpha != 255) {
-                            doDraw = !ttype;
+                            doDraw = ttype;
                         }
                         float alpha = ((float)brt.textureAlpha)/255.0;
                         float brightness = brt.textureBrightness / 100.0f;
