@@ -95,12 +95,11 @@ public:
     virtual void SetManyChannels(long channel, unsigned char* data, long size) override;
     virtual void AllOff() override;
     #pragma endregion Data Setting
-
+	
     #pragma region UI
 #ifndef EXCLUDENETWORKUI
     virtual Output* Configure(wxWindow* parent, OutputManager* outputManager) override;
 #endif
     #pragma endregion UI
 };
-
- #endif
+#endif
