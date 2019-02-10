@@ -1,18 +1,20 @@
-#include "DmxModel.h"
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
-#include "ModelScreenLocation.h"
-#include "../ModelPreview.h"
-#include "../RenderBuffer.h"
+#include <wx/log.h>
+#include <wx/filedlg.h>
+#include <wx/msgdlg.h>
+
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <wx/log.h>
-#include <wx/filedlg.h>
+
+#include "DmxModel.h"
+#include "ModelScreenLocation.h"
+#include "../ModelPreview.h"
+#include "../RenderBuffer.h"
 #include "../xLightsVersion.h"
-#include <wx/msgdlg.h>
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 
@@ -414,7 +416,7 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     } else if ("DmxChannelCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
+        //SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("DmxPanChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanChannel");

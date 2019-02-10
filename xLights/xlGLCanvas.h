@@ -20,8 +20,8 @@ class xlGLCanvas
 
         void SetCurrentGLContext();
 
-        int getWidth() { return mWindowWidth; }
-        int getHeight() { return mWindowHeight; }
+        int getWidth() const { return mWindowWidth; }
+        int getHeight() const { return mWindowHeight; }
 
         double translateToBacking(double x);
 

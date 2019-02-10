@@ -514,19 +514,19 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
             }
         } else {
             int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
-            if (i & Model::GRIDCHANGE_REFRESH_DISPLAY) {
+            if (i & GRIDCHANGE_REFRESH_DISPLAY) {
                 layoutPanel->xlights->UpdatePreview();
             }
-            if (i & Model::GRIDCHANGE_MARK_DIRTY) {
+            if (i & GRIDCHANGE_MARK_DIRTY) {
                 layoutPanel->xlights->MarkEffectsFileDirty(true);
             }
-            if (i & Model::GRIDCHANGE_REBUILD_PROP_GRID) {
+            if (i & GRIDCHANGE_REBUILD_PROP_GRID) {
                 CallAfter(&LayoutPanel::resetPropertyGrid);
             }
-            if (i & Model::GRIDCHANGE_REBUILD_MODEL_LIST) {
+            if (i & GRIDCHANGE_REBUILD_MODEL_LIST) {
                 CallAfter(&ViewObjectPanel::refreshObjectList);
             }
-            if (i & Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
+            if (i & GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
                 // Preview assignment change so model may not exist in current preview anymore
                 CallAfter(&LayoutPanel::RefreshLayout);
             }

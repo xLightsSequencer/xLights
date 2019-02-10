@@ -1,10 +1,3 @@
-#include "DMXPanel.h"
-#include "DMXEffect.h"
-#include "../xLightsMain.h"
-#include "../sequencer/MainSequencer.h"
-#include "../sequencer/Effect.h"
-
-#include "EffectPanelUtils.h"
 //(*InternalHeaders(DMXPanel)
 #include <wx/artprov.h>
 #include <wx/bitmap.h>
@@ -18,9 +11,16 @@
 #include <wx/stattext.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
+//*)
+
+#include "DMXPanel.h"
+#include "DMXEffect.h"
+#include "../xLightsMain.h"
+#include "../sequencer/MainSequencer.h"
+#include "../sequencer/Effect.h"
 #include "RemapDMXChannelsDialog.h"
 #include "xLightsApp.h"
-//*)
+#include "EffectPanelUtils.h"
 
 //(*IdInit(DMXPanel)
 const long DMXPanel::ID_STATICTEXT_DMX1 = wxNewId();

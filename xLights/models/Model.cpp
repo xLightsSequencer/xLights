@@ -730,25 +730,25 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         ModelXml->DeleteAttribute("PixelSize");
         ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
         IncrementChangeCount();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelPixelStyle") {
         pixelStyle = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
         ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
         IncrementChangeCount();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
         IncrementChangeCount();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
         ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
         IncrementChangeCount();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
@@ -756,7 +756,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     } else if (event.GetPropertyName() == "ModelDimmingCurves") {
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 2;
+        return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
         GetControllerConnection()->DeleteAttribute("Port");
         if (event.GetValue().GetLong() > 0) {
@@ -915,7 +915,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             ModelXml->AddAttribute("Description", XmlSafe(description));
         }
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelFaces") {
         wxXmlNode *f = ModelXml->GetChildren();
@@ -929,7 +929,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteFaceInfo(ModelXml, faceInfo);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelStates") {
         wxXmlNode *f = ModelXml->GetChildren();
@@ -944,7 +944,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteStateInfo(ModelXml, stateInfo);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType"
@@ -976,7 +976,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->AddAttribute("RGBWHandling", RGBW_HANDLING[p2->GetValue().GetLong()]);
         }
         SetFromXml(ModelXml, zeroBased);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | ((event.GetPropertyName() == "ModelStringType" ) ? GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST : 0);
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
 
@@ -994,8 +994,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->DeleteAttribute(StartChanAttrName(0));
             ModelXml->AddAttribute(StartChanAttrName(0), val);
         }
-        RecalcStartChannels();
-        IncrementChangeCount();
+        //RecalcStartChannels();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
@@ -1017,7 +1017,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         RecalcStartChannels();
         AdjustStringProperties(grid, parm1);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
         wxString str = event.GetPropertyName();
@@ -1032,14 +1032,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, val);
-        RecalcStartChannels();
-        IncrementChangeCount();
+        //RecalcStartChannels();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelLayoutGroup") {
         layout_group = LAYOUT_GROUPS[event.GetValue().GetLong()];
         ModelXml->DeleteAttribute("LayoutGroup");
         ModelXml->AddAttribute("LayoutGroup", layout_group);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_UPDATE_ALL_MODEL_LISTS;
     }
 
@@ -1048,14 +1048,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     if (i & GRIDCHANGE_MARK_DIRTY) {
         GetModelScreenLocation().Write(ModelXml);
         SetFromXml(ModelXml, zeroBased);
-        IncrementChangeCount();
+        //IncrementChangeCount();
     }
 
     return i;
 }
 
 void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
-    wxPropertyGrid *pg = (wxPropertyGrid*)grid;
+    wxPropertyGrid *pg = static_cast<wxPropertyGrid*>(grid);
     wxPGProperty *p = grid->GetPropertyByName("ModelIndividualStartChannels");
     if (p != nullptr) {
         pg->Freeze();

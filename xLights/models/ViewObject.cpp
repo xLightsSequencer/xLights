@@ -3,6 +3,7 @@
 #include <wx/propgrid/advprops.h>
 
 #include "ViewObject.h"
+#include "Model.h"
 
 ViewObject::ViewObject(const ObjectManager &manger)
 : only_3d(true), active(true)
@@ -69,16 +70,16 @@ int ViewObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         {
             ModelXml->AddAttribute("Active", "0");
         }
-        IncrementChangeCount();
-        return 3 | 0x0008;
+        //IncrementChangeCount();
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
 
     int i = GetObjectScreenLocation().OnPropertyGridChange(grid, event);
 
-    if (i & 0x2) {
+    if (i & GRIDCHANGE_MARK_DIRTY) {
         GetObjectScreenLocation().Write(ModelXml);
         SetFromXml(ModelXml);
-        IncrementChangeCount();
+        //IncrementChangeCount();
     }
 
     return i;

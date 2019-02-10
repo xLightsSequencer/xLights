@@ -789,24 +789,24 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 }
                 else {
                     int i = selectedModel->OnPropertyGridChange(propertyEditor, event);
-                    if (i & Model::GRIDCHANGE_REFRESH_DISPLAY) {
+                    if (i & GRIDCHANGE_REFRESH_DISPLAY) {
                         xlights->UpdatePreview();
                     }
-                    if (i & Model::GRIDCHANGE_MARK_DIRTY) {
+                    if (i & GRIDCHANGE_MARK_DIRTY) {
                         xlights->MarkEffectsFileDirty(true);
                     }
-                    if (i & Model::GRIDCHANGE_REBUILD_PROP_GRID) {
+                    if (i & GRIDCHANGE_REBUILD_PROP_GRID) {
                         CallAfter(&LayoutPanel::resetPropertyGrid);
                     }
-                    if (i & (Model::GRIDCHANGE_REBUILD_MODEL_LIST | Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS))
+                    if (i & (GRIDCHANGE_REBUILD_MODEL_LIST | GRIDCHANGE_UPDATE_ALL_MODEL_LISTS))
                     {
                         // if these values were returned then some absolute start channels may have changed
                         xlights->RecalcModels(true);
                     }
-                    if (i & Model::GRIDCHANGE_REBUILD_MODEL_LIST) {
+                    if (i & GRIDCHANGE_REBUILD_MODEL_LIST) {
                         CallAfter(&LayoutPanel::refreshModelList);
                     }
-                    if (i & Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
+                    if (i & GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
                         // Preview assignment change so model may not exist in current preview anymore
                         CallAfter(&LayoutPanel::RefreshLayout);
                     }

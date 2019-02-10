@@ -152,7 +152,7 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if ("WhiteAsAlpha" == event.GetPropertyName()) {
         _whiteAsAlpha = event.GetValue();
@@ -164,14 +164,14 @@ int ImageModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
         ModelXml->DeleteAttribute("WhiteAsAlpha");
         ModelXml->AddAttribute("WhiteAsAlpha", _whiteAsAlpha ? "True" : "False");
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if ("OffBrightness" == event.GetPropertyName()) {
         _offBrightness = event.GetValue().GetInteger();
         ModelXml->DeleteAttribute("OffBrightness");
         ModelXml->AddAttribute("OffBrightness", wxString::Format("%d", _offBrightness));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return Model::OnPropertyGridChange(grid, event);

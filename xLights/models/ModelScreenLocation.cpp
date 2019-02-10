@@ -6,6 +6,7 @@
 
 #include <glm/glm.hpp>
 
+#include "Model.h"
 #include "../ModelPreview.h"
 #include "../DrawGLUtils.h"
 #include "Shapes.h"
@@ -367,6 +368,9 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
             normal = glm::vec3(0.0f, 0.0f, saved_position.z + AXIS_ARROW_LENGTH);
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
             break;
+        default:
+            wxASSERT(false);
+            break;
         }
     }
     else {
@@ -380,6 +384,9 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
         case Y_AXIS:
             normal = glm::vec3(0.0f, 0.0f, saved_position.z + AXIS_ARROW_LENGTH);
             point = glm::vec3(0.0f, 0.0f, saved_position.z);
+            break;
+        default:
+            wxASSERT(false);
             break;
         }
     }
@@ -410,7 +417,6 @@ bool ModelScreenLocation::DragHandle(ModelPreview* preview, int mouseX, int mous
 
 wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const
 {
-    wxCursor return_value = wxCURSOR_DEFAULT;
     handle = NO_HANDLE;
 
     if (_locked)
@@ -418,7 +424,7 @@ wxCursor ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::v
         return wxCURSOR_DEFAULT;
     }
 
-    return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle);
+    wxCursor return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle);
 
     if (handle == NO_HANDLE) {
         float distance = 1000000000.0f;
@@ -553,7 +559,7 @@ void ModelScreenLocation::UpdateBoundingBox(float width, float height)
 }
 
 BoxedScreenLocation::BoxedScreenLocation()
-: ModelScreenLocation(10), perspective(0.0f)
+: ModelScreenLocation(10), perspective(0.0f), centerx(0.0), centery(0.0)
 {
     mSelectableHandles = 1;
     handle_aabb_min.push_back(glm::vec3(0.0f));
@@ -799,8 +805,6 @@ wxCursor BoxedScreenLocation::CheckIfOverHandles(ModelPreview* preview, int &han
 }
 
 wxCursor BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) {
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
     if (preview != nullptr) {
         if (preview->Is3D()) {
             if (supportsZScaling && !_startOnXAxis) {
@@ -927,8 +931,6 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
     {
         handleColor = xlREDTRANSLUCENT;
     }
-
-    xlColor color = handleColor;
 
     // Upper Left Handle
     float sx1 = (-RenderWi / 2) - BOUNDING_RECT_OFFSET / scalex;
@@ -1066,6 +1068,9 @@ void BoxedScreenLocation::DrawHandles(DrawGLUtils::xl3Accumulator &va) const {
                 va.AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
                 va.AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
                 break;
+            default:
+                wxASSERT(false);
+                break;
             }
             va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
         }
@@ -1194,7 +1199,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     std::string name = event.GetPropertyName().ToStdString();
     if (!_locked && "ScaleX" == name) {
         scalex = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ScaleX" == name) {
         event.Veto();
@@ -1202,7 +1207,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ScaleY" == name) {
         scaley = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ScaleY" == name) {
         event.Veto();
@@ -1210,7 +1215,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ScaleZ" == name) {
         scalez = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ScaleZ" == name) {
         event.Veto();
@@ -1218,7 +1223,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ModelX" == name) {
         worldPos_x = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelX" == name) {
         event.Veto();
@@ -1226,7 +1231,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ModelY" == name) {
         worldPos_y = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelY" == name) {
         event.Veto();
@@ -1234,7 +1239,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "ModelZ" == name) {
         worldPos_z = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelZ" == name) {
         event.Veto();
@@ -1242,7 +1247,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "RotateX" == name) {
         rotatex = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "RotateX" == name) {
         event.Veto();
@@ -1250,7 +1255,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "RotateY" == name) {
         rotatey = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "RotateY" == name) {
         event.Veto();
@@ -1258,7 +1263,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     }
     else if (!_locked && "RotateZ" == name) {
         rotatez = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "RotateZ" == name) {
         event.Veto();
@@ -1267,7 +1272,7 @@ int BoxedScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, wxP
     else if ("Locked" == name)
     {
         _locked = event.GetValue().GetBool();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return 0;
@@ -1328,7 +1333,6 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
             }
         }
         else if (axis_tool == TOOL_ROTATE) {
-            double angle = 0.0f;
             glm::vec3 start_vector = saved_intersect - saved_position;
             glm::vec3 end_vector = start_vector + drag_delta;
             switch (active_axis)
@@ -1337,7 +1341,7 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
             {
                 double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
-                angle = end_angle - start_angle;
+                double angle = end_angle - start_angle;
                 rotatex = saved_rotate.x + angle;
             }
                 break;
@@ -1345,7 +1349,7 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
             {
                 double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
-                angle = end_angle - start_angle;
+                double angle = end_angle - start_angle;
                 rotatey = saved_rotate.y - angle;
             }
                 break;
@@ -1353,7 +1357,7 @@ int BoxedScreenLocation::MoveHandle3D(ModelPreview* preview, int handle, bool Sh
             {
                 double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
                 double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
-                angle = end_angle - start_angle;
+                double angle = end_angle - start_angle;
                 rotatez = saved_rotate.z + angle;
             }
                 break;
@@ -2343,7 +2347,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     std::string name = event.GetPropertyName().ToStdString();
     if (!_locked && "WorldX" == name) {
         worldPos_x = event.GetValue().GetDouble();
-        return 7;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (_locked && "WorldX" == name) {
         event.Veto();
@@ -2351,7 +2355,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "WorldY" == name) {
         worldPos_y = event.GetValue().GetDouble();
-        return 7;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (_locked && "WorldY" == name) {
         event.Veto();
@@ -2359,7 +2363,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "WorldZ" == name) {
         worldPos_z = event.GetValue().GetDouble();
-        return 7;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (_locked && "WorldZ" == name) {
         event.Veto();
@@ -2369,7 +2373,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_x = worldPos_x;
         worldPos_x = event.GetValue().GetDouble();
         x2 += old_world_x - worldPos_x;
-        return 7;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (_locked && "ModelX1" == name) {
         event.Veto();
@@ -2379,7 +2383,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_y = worldPos_y;
         worldPos_y = event.GetValue().GetDouble();
         y2 += old_world_y - worldPos_y;
-        return 7;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (_locked && "ModelY1" == name) {
         event.Veto();
@@ -2389,7 +2393,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
         float old_world_z = worldPos_z;
         worldPos_z = event.GetValue().GetDouble();
         z2 += old_world_z - worldPos_z;
-        return 7;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID;
     }
     else if (_locked && "ModelZ1" == name) {
         event.Veto();
@@ -2397,7 +2401,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "ModelX2" == name) {
         x2 = event.GetValue().GetDouble() - worldPos_x;
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelX2" == name) {
         event.Veto();
@@ -2405,7 +2409,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "ModelY2" == name) {
         y2 = event.GetValue().GetDouble() - worldPos_y;
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelY2" == name) {
         event.Veto();
@@ -2413,7 +2417,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "ModelZ2" == name) {
         z2 = event.GetValue().GetDouble() - worldPos_z;
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelZ2" == name) {
         event.Veto();
@@ -2421,7 +2425,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     }
     else if (!_locked && "RotateX" == name) {
         rotatex = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "RotateX" == name) {
         event.Veto();
@@ -2430,7 +2434,7 @@ int TwoPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid, 
     else if ("Locked" == name)
     {
         _locked = event.GetValue().GetBool();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return 0;
@@ -2697,7 +2701,7 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
                 height = 0.01f;
             }
         }
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelHeight" == name) {
         event.Veto();
@@ -2705,7 +2709,7 @@ int ThreePointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid
     }
     else if (!_locked && "ModelShear" == name) {
         shear = event.GetValue().GetDouble();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     else if (_locked && "ModelShear" == name) {
         event.Veto();
@@ -4999,7 +5003,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         selected_segment = -1;
         if (!_locked && name.find("ModelX") != std::string::npos) {
             mPos[selected_handle].x = event.GetValue().GetDouble() / 100.0;
-            return 3;
+            return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
         }
         else if (_locked && name.find("ModelX") != std::string::npos) {
             event.Veto();
@@ -5007,7 +5011,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         }
         else if (!_locked && name.find("ModelY") != std::string::npos) {
             mPos[selected_handle].y = event.GetValue().GetDouble() / 100.0;
-            return 3;
+            return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
         }
         else if (_locked && name.find("ModelY") != std::string::npos) {
             event.Veto();
@@ -5015,7 +5019,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
         }
         else if (!_locked && name.find("ModelZ") != std::string::npos) {
             mPos[selected_handle].z = event.GetValue().GetDouble() / 100.0;
-            return 3;
+            return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
         }
         else if (_locked && name.find("ModelZ") != std::string::npos) {
             event.Veto();
@@ -5025,7 +5029,7 @@ int PolyPointScreenLocation::OnPropertyGridChange(wxPropertyGridInterface *grid,
     else if ("Locked" == name)
     {
         _locked = event.GetValue().GetBool();
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return 0;

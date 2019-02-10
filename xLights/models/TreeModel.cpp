@@ -244,6 +244,9 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
             case 2:
                 ModelXml->AddAttribute("DisplayAs", "Tree Ribbon");
                 break;
+            default:
+                wxASSERT(false);
+                break;
         }
         SetFromXml(ModelXml, zeroBased);
         if (p != nullptr) {
@@ -253,35 +256,36 @@ int TreeModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         if (p != nullptr) {
             p->Enable(treeType == 0);
         }
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "TreeDegrees") {
         ModelXml->DeleteAttribute("DisplayAs");
         ModelXml->AddAttribute("DisplayAs", wxString::Format("Tree %d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "TreeRotation") {
         ModelXml->DeleteAttribute("TreeRotation");
         ModelXml->AddAttribute("TreeRotation", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "TreeSpiralRotations") {
         ModelXml->DeleteAttribute("TreeSpiralRotations");
         ModelXml->AddAttribute("TreeSpiralRotations", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "TreeBottomTopRatio") {
         ModelXml->DeleteAttribute("TreeBottomTopRatio");
         ModelXml->AddAttribute("TreeBottomTopRatio", wxString::Format("%f", (float)event.GetPropertyValue().GetDouble()));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if (event.GetPropertyName() == "TreePerspective") {
         ModelXml->DeleteAttribute("TreePerspective");
         ModelXml->AddAttribute("TreePerspective", wxString::Format("%f", (float)(event.GetPropertyValue().GetDouble()/10.0)));
         SetFromXml(ModelXml, zeroBased);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
     return MatrixModel::OnPropertyGridChange(grid, event);
 }
+
 static wxPGChoices TREE_STYLES;
 
 void TreeModel::AddStyleProperties(wxPropertyGridInterface *grid) {

@@ -222,6 +222,7 @@
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
+    <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
@@ -394,7 +395,6 @@
     <ClCompile Include="models\StarModel.cpp" />
     <ClCompile Include="models\SubModel.cpp" />
     <ClCompile Include="models\TreeModel.cpp" />
-    <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="models\WindowFrameModel.cpp" />
     <ClCompile Include="models\WreathModel.cpp" />
     <ClCompile Include="MusicXML.cpp" />
@@ -584,6 +584,7 @@
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
+    <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
@@ -753,7 +754,6 @@
     <ClInclude Include="models\StarModel.h" />
     <ClInclude Include="models\SubModel.h" />
     <ClInclude Include="models\TreeModel.h" />
-    <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="models\WindowFrameModel.h" />
     <ClInclude Include="models\WreathModel.h" />
     <ClInclude Include="MusicXML.h" />

@@ -15,8 +15,6 @@ IciclesModel::~IciclesModel()
 {
 }
 
-
-
 void IciclesModel::InitModel() {
     wxString dropPattern = GetModelXml()->GetAttribute("DropPattern", "3,4,5,4");
     wxArrayString pat = wxSplit(dropPattern, ',');
@@ -114,12 +112,12 @@ int IciclesModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxProperty
     if ("IciclesStrings" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
+        //SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("IciclesLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
         ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
+        //SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
