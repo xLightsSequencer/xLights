@@ -1247,7 +1247,7 @@ m_handler(nullptr)
 
         m_compressionType = CompressionType::none;
         //ESEQ files use 1 based start channels, we need 0 based
-        m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(modelStart - 1, modelLen));
+        m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(modelStart ? modelStart - 1 : modelStart, modelLen));
     } else {
         //24-31 - timestamp/uuid/identifier
         uint64_t *a = (uint64_t*)&header[24];
