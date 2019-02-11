@@ -31,6 +31,7 @@ PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node)
     _lastLoop = false;
     _looping = false;
     _random = false;
+    _alwaysShuffle = false;
     _loopStep = false;
     _pauseTime.Set((time_t)0);
     _suspendTime.Set((time_t)0);
@@ -70,6 +71,7 @@ PlayList& PlayList::operator=(PlayList& playlist)
     _changeCount = playlist._changeCount;
     _firstOnlyOnce = playlist._firstOnlyOnce;
     _lastOnlyOnce = playlist._lastOnlyOnce;
+    _alwaysShuffle = playlist._alwaysShuffle;
     _name = playlist._name;
     _loops = playlist._loops;
     _id = playlist._id;
@@ -114,6 +116,7 @@ PlayList::PlayList(PlayList& playlist, bool newid)
     _loopStep = false;
     _lastLoop = false;
     _random = false;
+    _alwaysShuffle = playlist._alwaysShuffle;
     _looping = false;
     _lastSavedChangeCount = playlist._lastSavedChangeCount;
     _changeCount = playlist._changeCount;
@@ -160,6 +163,7 @@ PlayList::PlayList()
     _loopStep = false;
     _lastLoop = false;
     _random = false;
+    _alwaysShuffle = false;
     _looping = false;
     _pauseTime.Set((time_t)0);
     _suspendTime.Set((time_t)0);
@@ -248,6 +252,11 @@ wxXmlNode* PlayList::Save()
         res->AddAttribute("LastOnce", "TRUE");
     }
 
+    if (_alwaysShuffle)
+    {
+        res->AddAttribute("AlwaysShuffle", "TRUE");
+    }
+
     res->AddAttribute("Name", _name);
 
     {
@@ -290,6 +299,7 @@ void PlayList::Load(OutputManager* outputManager, wxXmlNode* node)
 
     _firstOnlyOnce = (node->GetAttribute("FirstOnce", "FALSE") == "TRUE");
     _lastOnlyOnce = (node->GetAttribute("LastOnce", "FALSE") == "TRUE");
+    _alwaysShuffle = (node->GetAttribute("AlwaysShuffle", "FALSE") == "TRUE");
     _name = node->GetAttribute("Name", "");
 
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
@@ -609,7 +619,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         logger_base.info("******** Playlist %s starting to play.", (const char*)GetName().c_str());
         logger_base.info("********     %s %s %s",
             (const char*)(_looping ? ("LOOPING" + (_loops > 0 ? wxString::Format(" Loops %d", _loops).c_str() : wxString("").c_str())).c_str() : wxString("").c_str()),
-            (const char*)(_random ? "RANDOM" : ""),
+            (const char*)(IsRandom() ? "RANDOM" : ""),
             (const char*)(step == "" ? step.c_str() : wxString::Format("Step: %s", step).c_str())
         );
 
@@ -623,7 +633,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
 
         if (step == "")
         {
-            if (_random && !_firstOnlyOnce)
+            if (IsRandom() && !_firstOnlyOnce)
             {
                 _currentStep = GetRandomStep();
             }
@@ -637,7 +647,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
             _currentStep = GetStep(step);
             if (_currentStep == nullptr)
             {
-                if (_random && !_firstOnlyOnce)
+                if (IsRandom() && !_firstOnlyOnce)
                 {
                     _currentStep = GetRandomStep();
                 }
@@ -720,7 +730,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
         // get the last step in the playlist
         PlayListStep* last = _steps.back();
 
-        if (_random && !_lastLoop)
+        if (IsRandom() && !_lastLoop)
         {
             return GetRandomStep();
         }
@@ -1180,9 +1190,13 @@ PlayListStep* PlayList::GetRandomStep()
             logger_base.info("Playlist %s random wont work as there are not at least 4 eligible steps. Just taking next available.", (const char*)GetName().c_str());
             bool didloop;
             bool oldrandom = _random;
+            bool oldAlwaysShuffle = _alwaysShuffle;
             _random = false;
+            _alwaysShuffle = false;
             PlayListStep* next = GetNextStep(didloop);
+            if (next == nullptr) next = _steps.front();
             _random = oldrandom;
+            _alwaysShuffle = oldAlwaysShuffle;
             return next;
         }
     }

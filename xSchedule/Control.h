@@ -36,7 +36,8 @@ PACK( typedef struct { char fppd[4]; uint8_t pktType; uint16_t extraDataLen; } C
 
 PACK( typedef struct { uint8_t  pktType; uint8_t  fileType; uint32_t frameNumber; float secondsElapsed; char filename[1]; } SyncPkt);
 
-#if defined(__WXWINDOWS__)
+#ifdef _MSC_VER
+#elif defined(__WXWINDOWS__)
 #pragma pack(pop)
 #endif
 #endif /* _CONTROL_H */

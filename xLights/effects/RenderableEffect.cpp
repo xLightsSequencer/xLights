@@ -237,7 +237,6 @@ static std::string GetEffectStringFromWindow(wxWindow *ParentWin)
     return s.ToStdString();
 }
 
-
 std::string RenderableEffect::GetEffectString() {
     return GetEffectStringFromWindow(panel);
 }
