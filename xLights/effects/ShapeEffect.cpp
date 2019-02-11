@@ -997,7 +997,7 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     
     context->SetFont(fi, color);
 
-    wchar_t ch = emoji;
+    wxUniChar ch = emoji;
 
     auto text = wxString(ch);
 

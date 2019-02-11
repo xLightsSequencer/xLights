@@ -395,7 +395,7 @@ ShapePanel::ShapePanel(wxWindow* parent)
     f.SetPixelSize(wxSize(20, 20));
 
     StaticText10->SetFont(f);
-    StaticText10->SetLabel(wxString(wxChar(SpinCtrl_CharCode->GetValue())));
+    StaticText10->SetLabel(wxString(wxUniChar(SpinCtrl_CharCode->GetValue())));
 
     // get all the fonts
     MyFontEnumerator fontEnumerator;
@@ -500,7 +500,7 @@ void ShapePanel::ValidateWindow()
         f.SetPixelSize(wxSize(20, 20));
 
         StaticText10->SetFont(f);
-        StaticText10->SetLabel(wxString(wxChar(SpinCtrl_CharCode->GetValue())));
+        StaticText10->SetLabel(wxString(wxUniChar(SpinCtrl_CharCode->GetValue())));
     }
     else
     {
@@ -733,7 +733,7 @@ void ShapePanel::OnFontPickerCtrl_FontFontChanged(wxFontPickerEvent& event)
 
 void ShapePanel::OnSpinCtrl_CharCodeChange(wxSpinEvent& event)
 {
-    //StaticText10->SetLabel(wxString(wxChar(event.GetValue())));
+    //StaticText10->SetLabel(wxString(wxUniChar(event.GetValue())));
     ValidateWindow();
 }
 
