@@ -1,8 +1,10 @@
 #include "xlGridCanvasMorph.h"
 #include "../../BitmapCache.h"
 #include "../../DrawGLUtils.h"
-
+#include "xLightsApp.h"
+#include "xLightsMain.h"
 #include "../../ValueCurveButton.h"
+
 #include <log4cpp/Category.hh>
 
 BEGIN_EVENT_TABLE(xlGridCanvasMorph, xlGridCanvas)
@@ -79,35 +81,25 @@ void xlGridCanvasMorph::mouseLeftDown(wxMouseEvent& event)
     mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
     if( mSelectedCorner == CORNER_NOT_SELECTED )
     {
-        if (event.ShiftDown())
+        if (CheckForInsideHit(event.GetX(), event.GetY()))
         {
-            if (CheckForInsideHit(event.GetX(), event.GetY()))
-            {
-                mSelectedCorner = CORNER_ALL_SELECTED;
-            }
-            else
-            {
-                return;
-            }
-            _startPoint = wxPoint(event.GetX(), event.GetY());
-            _starta1 = wxPoint(x1a, y1a);
-            _startb1 = wxPoint(x1b, y1b);
-            _starta2 = wxPoint(x2a, y2a);
-            _startb2 = wxPoint(x2b, y2b);
+            mSelectedCorner = CORNER_ALL_SELECTED;
         }
         else
         {
-            SetMorphCorner1a(event.GetX(), event.GetY());
-            StoreUpdatedMorphPositions();
-            SetMorphCorner1b(event.GetX(), event.GetY());
-            StoreUpdatedMorphPositions();
-            Update();
+            return;
         }
+        _startPoint = wxPoint(event.GetX(), event.GetY());
+        _starta1 = wxPoint(x1a, y1a);
+        _startb1 = wxPoint(x1b, y1b);
+        _starta2 = wxPoint(x2a, y2a);
+        _startb2 = wxPoint(x2b, y2b);
     }
     mDragging = true;
     CaptureMouse();
     SetCursor(wxCURSOR_HAND);
     Refresh(false);
+    SetUndoPoint();
 }
 
 int Cross(int x, int y, int x1, int y1, int x2, int y2)
@@ -136,20 +128,44 @@ bool xlGridCanvasMorph::CheckForInsideHit(int x, int y) const
 
 void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
 {
-    if( mEffect == nullptr ) return;
+    if (mEffect == nullptr) return;
+ 
     mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
-    if( mSelectedCorner == CORNER_NOT_SELECTED )
+    if (mSelectedCorner == CORNER_NOT_SELECTED)
     {
-        SetMorphCorner2a(event.GetX(), event.GetY());
-        StoreUpdatedMorphPositions();
-        SetMorphCorner2b(event.GetX(), event.GetY());
-        StoreUpdatedMorphPositions();
-        Update();
+        if (event.ControlDown() || event.CmdDown())
+        {
+            // dragging out end
+            SetMorphCorner2a(event.GetX(), event.GetY());
+            StoreUpdatedMorphPositions();
+            SetMorphCorner2b(event.GetX(), event.GetY());
+            StoreUpdatedMorphPositions();
+            Update();
+        }
+        else
+        {
+            // dragging out start
+            SetMorphCorner1a(event.GetX(), event.GetY());
+            StoreUpdatedMorphPositions();
+            SetMorphCorner1b(event.GetX(), event.GetY());
+            StoreUpdatedMorphPositions();
+            Update();
+        }
+        mDragging = true;
+        CaptureMouse();
+        SetCursor(wxCURSOR_HAND);
+        Refresh(false);
+        SetUndoPoint();
     }
-    mDragging = true;
-    CaptureMouse();
-    SetCursor(wxCURSOR_HAND);
-    Refresh(false);
+}
+
+void xlGridCanvasMorph::SetUndoPoint() const
+{
+    if (mEffect == nullptr) return;
+    auto& undoManager = xLightsApp::GetFrame()->GetSequenceElements().get_undo_mgr();
+    undoManager.CreateUndoStep();
+    undoManager.CaptureModifiedEffect(mEffect->GetParentEffectLayer()->GetParentElement()->GetName(),
+        mEffect->GetParentEffectLayer()->GetIndex(), mEffect->GetID(), mEffect->GetSettingsAsString(), mEffect->GetPaletteAsString());
 }
 
 void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
@@ -160,9 +176,23 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
     {
         if (CheckForCornerHit(event.GetX(), event.GetY()) == CORNER_NOT_SELECTED)
         {
-            if (event.ShiftDown() && CheckForInsideHit(event.GetX(), event.GetY()))
+            if (CheckForInsideHit(event.GetX(), event.GetY()))
             {
-                SetCursor(wxCURSOR_SIZING);
+                if (event.ControlDown() || event.CmdDown())
+                {
+                    if (event.ShiftDown())
+                    {
+                        SetCursor(wxCURSOR_SIZENS);
+                    }
+                    else
+                    {
+                        SetCursor(wxCURSOR_SIZEWE);
+                    }
+                }
+                else
+                {
+                    SetCursor(wxCURSOR_SIZING);
+                }
             }
             else
             {
@@ -189,6 +219,20 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
 
             int dx = (event.GetX() - _startPoint.x) / mCellSize * mCellSize;
             int dy = (event.GetY() - _startPoint.y) / mCellSize * mCellSize;
+
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // only move in y direction
+                    dx = 0;
+                }
+                else
+                {
+                    // only move in x direction
+                    dy = 0;
+                }
+            }
 
             x1a = _starta1.x + dx;
             if (x1a < 0) x1a = 0;

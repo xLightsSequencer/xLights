@@ -25,6 +25,7 @@ class xlGridCanvasMorph : public xlGridCanvas
 
     protected:
         virtual void InitializeGLCanvas();
+        void SetUndoPoint() const;
 
     private:
 
