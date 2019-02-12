@@ -816,7 +816,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
     if(mResizing)
     {
-        logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
+        //logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Refresh(false);
         Update();
@@ -864,7 +864,8 @@ void EffectsGrid::mouseLeftWindow(wxMouseEvent& event)
     UpdateMousePosition(-1);
 }
 
-int EffectsGrid::GetClippedPositionFromTimeMS(int ms) {
+int EffectsGrid::GetClippedPositionFromTimeMS(int ms) const
+{
     int i = mTimeline->GetPositionFromTimeMS(ms);
     if (i < -10) {
         i = -10;
@@ -3234,7 +3235,7 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
     // If we encounter scenarios where it isnt it would be better to send the render dirty
     // event from the calling functions. I have temporarily added logging for all click and
     // drag events to try to help us identify why we miss rendering when we do
-    logger_base.debug("EffectsGrid::Resize would have sent render dirty event");
+    //logger_base.debug("EffectsGrid::Resize would have sent render dirty event");
     //sendRenderDirtyEvent();
 }
 
@@ -5115,7 +5116,7 @@ void EffectsGrid::ResizeSingleEffectMS(int timems)
 
     if (mEffectLayer->GetEffect(mResizeEffectIndex)->IsLocked() || mEffectLayer->IsFixedTimingLayer()) return;
 
-    logger_base.debug("EffectsGrid::ResizeSingleEffect.");
+    //logger_base.debug("EffectsGrid::ResizeSingleEffect.");
 
     int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
     if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)

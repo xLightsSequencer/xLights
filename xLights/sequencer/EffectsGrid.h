@@ -134,11 +134,11 @@ public:
     void sendRenderDirtyEvent();
     void UnselectEffect(bool force = false);
 protected:
-    virtual void InitializeGLCanvas();
+    void InitializeGLCanvas() override;
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
-    int GetClippedPositionFromTimeMS(int ms);
+    int GetClippedPositionFromTimeMS(int ms) const;
 
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);
