@@ -148,6 +148,8 @@
 		67447D9C1C6666A00095CDB5 /* SphereModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67447D9B1C6666A00095CDB5 /* SphereModel.cpp */; };
 		674623C421E1A889005AE464 /* PathGenerationDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674623C321E1A888005AE464 /* PathGenerationDialog.cpp */; };
 		6747107E1A65464C0086C35C /* xLightsXmlFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */; };
+		67476D21221313990071492C /* LinesPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67476D1E221313980071492C /* LinesPanel.cpp */; };
+		67476D22221313990071492C /* LinesEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67476D1F221313990071492C /* LinesEffect.cpp */; };
 		67480D122072575600B3ED60 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67480D112072575600B3ED60 /* Assets.xcassets */; };
 		67480D242072578700B3ED60 /* xCaptureMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D1E2072578600B3ED60 /* xCaptureMain.cpp */; };
 		67480D252072578700B3ED60 /* UniverseEntryDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67480D1F2072578600B3ED60 /* UniverseEntryDialog.cpp */; };
@@ -1053,6 +1055,10 @@
 		674623C221E1A888005AE464 /* PathGenerationDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathGenerationDialog.h; sourceTree = "<group>"; };
 		674623C321E1A888005AE464 /* PathGenerationDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PathGenerationDialog.cpp; sourceTree = "<group>"; };
 		6747107D1A65464C0086C35C /* xLightsXmlFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xLightsXmlFile.cpp; sourceTree = "<group>"; };
+		67476D1D221313980071492C /* LinesPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LinesPanel.h; path = effects/LinesPanel.h; sourceTree = "<group>"; };
+		67476D1E221313980071492C /* LinesPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LinesPanel.cpp; path = effects/LinesPanel.cpp; sourceTree = "<group>"; };
+		67476D1F221313990071492C /* LinesEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LinesEffect.cpp; path = effects/LinesEffect.cpp; sourceTree = "<group>"; };
+		67476D20221313990071492C /* LinesEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LinesEffect.h; path = effects/LinesEffect.h; sourceTree = "<group>"; };
 		67480D0C2072575400B3ED60 /* xCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67480D112072575600B3ED60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		67480D162072575600B3ED60 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -2449,6 +2455,10 @@
 				67B2CFC31C3A186A003C17CA /* LightningEffect.h */,
 				67B2CF371C39D98A003C17CA /* LightningPanel.cpp */,
 				67B2CF381C39D98A003C17CA /* LightningPanel.h */,
+				67476D1F221313990071492C /* LinesEffect.cpp */,
+				67476D20221313990071492C /* LinesEffect.h */,
+				67476D1E221313980071492C /* LinesPanel.cpp */,
+				67476D1D221313980071492C /* LinesPanel.h */,
 				675D40471E896AFD0033C950 /* LiquidEffect.cpp */,
 				675D40481E896AFD0033C950 /* LiquidEffect.h */,
 				675D40491E896AFD0033C950 /* LiquidPanel.cpp */,
@@ -3944,9 +3954,11 @@
 				67B2CF901C39D98A003C17CA /* ColorWashPanel.cpp in Sources */,
 				67694F1C1A069BBE0030D020 /* PreviewModels.cpp in Sources */,
 				67CA858018BE86B800A6268C /* heartbeat.cpp in Sources */,
+				67476D22221313990071492C /* LinesEffect.cpp in Sources */,
 				679484AD1CD8E998001A7B4F /* GenerateCustomModelDialog.cpp in Sources */,
 				675D404C1E896AFD0033C950 /* LiquidPanel.cpp in Sources */,
 				67B2CFD71C3A186A003C17CA /* SnowstormEffect.cpp in Sources */,
+				67476D21221313990071492C /* LinesPanel.cpp in Sources */,
 				67B2CF871C39D98A003C17CA /* SnowstormPanel.cpp in Sources */,
 				67FB9D1C1F4D21EB00983072 /* ShapeEffect.cpp in Sources */,
 				67DAFDDD1CA1A63C004B3237 /* MidiEvent.cpp in Sources */,

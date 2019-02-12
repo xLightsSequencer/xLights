@@ -11,8 +11,8 @@
 			<growablerows>0</growablerows>
 			<object class="sizeritem">
 				<object class="wxSplitterWindow" name="ID_SPLITTERWINDOW1" variable="SplitterWindow1" member="yes">
-					<minpanesize>150</minpanesize>
-					<minsize>550,350d</minsize>
+					<minpanesize>200</minpanesize>
+					<minsize>550,-1d</minsize>
 					<style>wxSP_3D|wxSP_3DSASH</style>
 					<object class="wxScrolledWindow" name="ID_SCROLLEDWINDOW1" variable="FPPInstanceList" member="yes">
 						<minsize>-1,150d</minsize>
