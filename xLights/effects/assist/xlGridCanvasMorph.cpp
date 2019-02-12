@@ -133,13 +133,15 @@ void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
     mSelectedCorner = CheckForCornerHit(event.GetX(), event.GetY());
     if (mSelectedCorner == CORNER_NOT_SELECTED)
     {
+        mRightDragging = true;
+        SetUndoPoint();
         if (event.ControlDown() || event.CmdDown())
         {
             // dragging out end
             SetMorphCorner2a(event.GetX(), event.GetY());
             StoreUpdatedMorphPositions();
             SetMorphCorner2b(event.GetX(), event.GetY());
-            StoreUpdatedMorphPositions();
+            //StoreUpdatedMorphPositions();
             Update();
         }
         else
@@ -148,14 +150,12 @@ void xlGridCanvasMorph::mouseRightDown(wxMouseEvent& event)
             SetMorphCorner1a(event.GetX(), event.GetY());
             StoreUpdatedMorphPositions();
             SetMorphCorner1b(event.GetX(), event.GetY());
-            StoreUpdatedMorphPositions();
+            //StoreUpdatedMorphPositions();
             Update();
         }
-        mDragging = true;
         CaptureMouse();
         SetCursor(wxCURSOR_HAND);
         Refresh(false);
-        SetUndoPoint();
     }
 }
 
@@ -172,7 +172,7 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
 {
     if( mEffect == nullptr ) return;
 
-    if( !mDragging )
+    if( !mDragging && !mRightDragging )
     {
         if (CheckForCornerHit(event.GetX(), event.GetY()) == CORNER_NOT_SELECTED)
         {
@@ -267,7 +267,10 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
         else
         {
             UpdateSelectedMorphCorner(event.GetX(), event.GetY());
-            StoreUpdatedMorphPositions();
+            if (!mRightDragging)
+            {
+                StoreUpdatedMorphPositions();
+            }
         }
         Update();
     }
@@ -292,12 +295,12 @@ void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
 {
     SetTooltip(-1, -1);
     if( mEffect == nullptr ) return;
-    if( mDragging )
+    if( mRightDragging )
     {
         StoreUpdatedMorphPositions();
         mSelectedCorner = CORNER_NOT_SELECTED;
         ReleaseMouse();
-        mDragging = false;
+        mRightDragging = false;
     }
 }
 
@@ -589,7 +592,7 @@ void xlGridCanvasMorph::UpdateMorphPositionsFromEffect()
 
 void xlGridCanvasMorph::DrawMorphEffect()
 {
-    if( !mDragging )
+    if( !mDragging && !mRightDragging)
     {
         UpdateMorphPositionsFromEffect();
     }
