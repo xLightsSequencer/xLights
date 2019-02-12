@@ -744,6 +744,10 @@
 		<Unit filename="effects/LightningEffect.h" />
 		<Unit filename="effects/LightningPanel.cpp" />
 		<Unit filename="effects/LightningPanel.h" />
+		<Unit filename="effects/LinesEffect.cpp" />
+		<Unit filename="effects/LinesEffect.h" />
+		<Unit filename="effects/LinesPanel.cpp" />
+		<Unit filename="effects/LinesPanel.h" />
 		<Unit filename="effects/LiquidEffect.cpp" />
 		<Unit filename="effects/LiquidEffect.h" />
 		<Unit filename="effects/LiquidPanel.cpp" />
@@ -1140,6 +1144,7 @@
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
+		<Unit filename="wxsmith/LinesPanel.wxs" />
 		<Unit filename="wxsmith/LinkJukeboxButtonDialog.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
 		<Unit filename="wxsmith/LorControllerDialog.wxs" />
@@ -1318,6 +1323,7 @@
 					<wxPanel wxs="wxsmith/GlediatorPanel.wxs" src="effects/GlediatorPanel.cpp" hdr="effects/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LifePanel.wxs" src="effects/LifePanel.cpp" hdr="effects/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LightningPanel.wxs" src="effects/LightningPanel.cpp" hdr="effects/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LinesPanel.wxs" src="effects/LinesPanel.cpp" hdr="effects/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MarqueePanel.wxs" src="effects/MarqueePanel.cpp" hdr="effects/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MeteorsPanel.wxs" src="effects/MeteorsPanel.cpp" hdr="effects/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MorphPanel.wxs" src="effects/MorphPanel.cpp" hdr="effects/MorphPanel.h" fwddecl="1" i18n="1" name="MorphPanel" language="CPP" />

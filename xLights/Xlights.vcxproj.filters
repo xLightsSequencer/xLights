@@ -367,6 +367,8 @@
     <ClCompile Include="controllers\EasyLights.cpp" />
     <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="models\WholeHouseModel.cpp" />
+    <ClCompile Include="effects\LinesEffect.cpp" />
+    <ClCompile Include="effects\LinesPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -735,6 +737,8 @@
     <ClInclude Include="controllers\EasyLights.h" />
     <ClInclude Include="RemapDMXChannelsDialog.h" />
     <ClInclude Include="models\WholeHouseModel.h" />
+    <ClInclude Include="effects\LinesEffect.h" />
+    <ClInclude Include="effects\LinesPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

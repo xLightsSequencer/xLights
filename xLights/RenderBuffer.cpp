@@ -840,7 +840,7 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
 
 
 // 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
+void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha)
 {
     if (wrap) {
         while (x < 0) {
@@ -860,7 +860,19 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
     // I dont like this ... it should actually never happen
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
-        pixels[y*BufferWi+x] = color;
+        if (useAlpha && color.Alpha() != 255)
+        {
+            xlColor c;
+            c.red = color.red + pixels[y*BufferWi + x].red * (255 - color.alpha) / 255;
+            c.green = color.green + pixels[y*BufferWi + x].green * (255 - color.alpha) / 255;
+            c.blue = color.blue + pixels[y*BufferWi + x].blue * (255 - color.alpha) / 255;
+            c.alpha = color.alpha + pixels[y*BufferWi + x].alpha * (255 - color.alpha) / 255;
+            pixels[y*BufferWi + x] = c;
+        }
+        else
+        {
+            pixels[y*BufferWi + x] = color;
+        }
     }
 }
 
@@ -976,7 +988,7 @@ void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color,
 }
 
 // Bresenham's line algorithm
-void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color )
+void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool useAlpha)
 {
     int x0 = x0_;
     int x1 = x1_;
@@ -985,12 +997,12 @@ void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const 
 
     int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
     int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
-    int err = (dx>dy ? dx : -dy)/2, e2;
+    int err = (dx>dy ? dx : -dy)/2;
 
   for(;;){
-    SetPixel(x0,y0, color);
+    SetPixel(x0,y0, color, false, useAlpha);
     if (x0==x1 && y0==y1) break;
-    e2 = err;
+    int e2 = err;
     if (e2 >-dx) { err -= dy; x0 += sx; }
     if (e2 < dy) { err += dx; y0 += sy; }
   }
