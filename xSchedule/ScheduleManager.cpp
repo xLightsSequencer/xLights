@@ -224,7 +224,7 @@ int ScheduleManager::Sync(const std::string& filename, long ms)
 int ScheduleManager::DoSync(const std::string& filename, long ms)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-logger_base.debug("DoSync Enter");
+    //logger_base.debug("DoSync Enter");
 	
     PlayList* pl = GetRunningPlayList();
     PlayListStep* pls = nullptr;
@@ -366,17 +366,17 @@ logger_base.debug("DoSync Enter");
     if (pls != nullptr)
     {
         _listenerManager->SetFrameMS(pls->GetFrameMS());
-logger_base.debug("DoSync Leave");
+        //logger_base.debug("DoSync Leave");
         return pls->GetFrameMS();
     }
     if (pl != nullptr)
     {
         _listenerManager->SetFrameMS(pl->GetFrameMS());
-logger_base.debug("DoSync Leave");
+        //logger_base.debug("DoSync Leave");
         return pl->GetFrameMS();
     }
     _listenerManager->SetFrameMS(50);
-logger_base.debug("DoSync Leave");
+    //logger_base.debug("DoSync Leave");
     return 50;
 }
 

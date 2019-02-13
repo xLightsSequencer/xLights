@@ -185,6 +185,7 @@ class ScheduleOptions
     bool _parallelTransmission;
     bool _remoteAllOff;
     bool _retryOutputOpen;
+    bool _suppressAudioOnRemotes;
 
     public:
 
@@ -212,12 +213,14 @@ class ScheduleOptions
         void SetParallelTransmission(bool parallel) { if (_parallelTransmission != parallel) { _parallelTransmission = parallel; _changeCount++; } }
         void SetRemoteAllOff(bool remoteAllOff) { if (_remoteAllOff != remoteAllOff) { _remoteAllOff = remoteAllOff; _changeCount++; } }
         void SetRetryOutputOpen(bool retryOpen) { if (_retryOutputOpen != retryOpen) { _retryOutputOpen = retryOpen; _changeCount++; } }
+        void SetSuppressAudioOnRemotes(bool suppressAudio) { if (_suppressAudioOnRemotes != suppressAudio) { _suppressAudioOnRemotes = suppressAudio; _changeCount++; } }
         void SetSync(bool sync) { if (_sync != sync) { _sync = sync; _changeCount++; } }
         void SetSendOffWhenNotRunning(bool send) { if (_sendOffWhenNotRunning != send) { _sendOffWhenNotRunning = send; _changeCount++; } }
         bool IsSendOffWhenNotRunning() const { return _sendOffWhenNotRunning; }
         bool IsParallelTransmission() const { return _parallelTransmission; }
         bool IsRemoteAllOff() const { return _remoteAllOff; }
         bool IsRetryOpen() const { return _retryOutputOpen; }
+        bool IsSuppressAudioOnRemotes() const { return _suppressAudioOnRemotes; }
         void SetSendBackgroundWhenNotRunning(bool send) { if (_sendBackgroundWhenNotRunning != send) { _sendBackgroundWhenNotRunning = send; _changeCount++; } }
         bool IsSendBackgroundWhenNotRunning() const { return _sendBackgroundWhenNotRunning; }
         void SetArtNetTimeCodeFormat(TIMECODEFORMAT artNetTimeCodeFormat) { if (artNetTimeCodeFormat != _artNetTimeCodeFormat) { _artNetTimeCodeFormat = artNetTimeCodeFormat; _changeCount++; } }

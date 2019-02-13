@@ -136,7 +136,7 @@ void PlayListItemFSEQVideo::LoadAudio()
         }
     }
 
-    if (IsInSlaveMode())
+    if (IsInSlaveMode() && IsSuppressAudioOnSlaves())
     {
     }
     else if (wxFile::Exists(af))

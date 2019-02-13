@@ -49,6 +49,7 @@ class OptionsDialog: public wxDialog
 		wxCheckBox* CheckBox_RunBackground;
 		wxCheckBox* CheckBox_SendOffWhenNotRunning;
 		wxCheckBox* CheckBox_SimpleMode;
+		wxCheckBox* CheckBox_SuppressAudioOnRemotes;
 		wxCheckBox* CheckBox_Sync;
 		wxChoice* Choice_ARTNetTimeCodeFormat;
 		wxChoice* Choice_AudioDevice;
@@ -80,6 +81,7 @@ class OptionsDialog: public wxDialog
 		static const long ID_CHECKBOX6;
 		static const long ID_CHECKBOX7;
 		static const long ID_CHECKBOX8;
+		static const long ID_CHECKBOX9;
 		static const long ID_STATICTEXT2;
 		static const long ID_LISTVIEW1;
 		static const long ID_BUTTON5;

@@ -50,6 +50,7 @@ protected:
     PlayListStep* GetPriorStep();
     void ForgetChildren();
     void DeleteChildren();
+    static bool IsInSlaveMode();
 
 public:
 
@@ -127,7 +128,7 @@ public:
     void RemoveAllSteps();
     bool IsPaused() const;
     bool JumpToNextStep();
-    bool MoveToNextStep();
+    bool MoveToNextStep(bool suppressNext);
     bool JumpToPriorStep();
     bool JumpToStep(const std::string& step);
     bool JumpToEndStepsAtEndOfCurrentStep();

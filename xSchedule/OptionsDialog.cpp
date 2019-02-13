@@ -23,6 +23,7 @@ const long OptionsDialog::ID_CHECKBOX2 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX6 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX7 = wxNewId();
 const long OptionsDialog::ID_CHECKBOX8 = wxNewId();
+const long OptionsDialog::ID_CHECKBOX9 = wxNewId();
 const long OptionsDialog::ID_STATICTEXT2 = wxNewId();
 const long OptionsDialog::ID_LISTVIEW1 = wxNewId();
 const long OptionsDialog::ID_BUTTON5 = wxNewId();
@@ -96,6 +97,9 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
 	CheckBox_RemoteAllOff = new wxCheckBox(this, ID_CHECKBOX8, _("When in remote mode turn off lights when master stops"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
 	CheckBox_RemoteAllOff->SetValue(true);
 	FlexGridSizer7->Add(CheckBox_RemoteAllOff, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_SuppressAudioOnRemotes = new wxCheckBox(this, ID_CHECKBOX9, _("Suppress audio on remotes"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX9"));
+	CheckBox_SuppressAudioOnRemotes->SetValue(true);
+	FlexGridSizer7->Add(CheckBox_SuppressAudioOnRemotes, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer5->AddGrowableCol(1);
@@ -219,6 +223,7 @@ OptionsDialog::OptionsDialog(wxWindow* parent, CommandManager* commandManager, S
     CheckBox_SimpleMode->SetValue(options->IsAdvancedMode());
     CheckBox_RetryOpen->SetValue(options->IsRetryOpen());
     CheckBox_RemoteAllOff->SetValue(options->IsRemoteAllOff());
+    CheckBox_SuppressAudioOnRemotes->SetValue(options->IsSuppressAudioOnRemotes());
 
     SpinCtrl_WebServerPort->SetValue(options->GetWebServerPort());
     SpinCtrl_PasswordTimeout->SetValue(options->GetPasswordTimeout());
@@ -301,6 +306,7 @@ void OptionsDialog::OnButton_OkClick(wxCommandEvent& event)
     _options->SetCity(Choice_Location->GetStringSelection().ToStdString());
     _options->SetCrashBehaviour(Choice_OnCrash->GetStringSelection().ToStdString());
     _options->SetRemoteAllOff(CheckBox_RemoteAllOff->GetValue());
+    _options->SetSuppressAudioOnRemotes(CheckBox_SuppressAudioOnRemotes->GetValue());
 
     if (Choice_AudioDevice->GetStringSelection() == "(Default)")
     {

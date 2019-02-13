@@ -42,6 +42,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
     _remoteAllOff = node->GetAttribute("RemoteSustain", "FALSE") == "FALSE";
     _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
+    _suppressAudioOnRemotes = node->GetAttribute("SuppressAudioOnRemotes", "TRUE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -189,6 +190,7 @@ ScheduleOptions::ScheduleOptions()
     _parallelTransmission = false;
     _remoteAllOff = true;
     _retryOutputOpen = false;
+    _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
     _crashBehaviour = "Prompt user";
@@ -266,6 +268,15 @@ wxXmlNode* ScheduleOptions::Save()
     if (IsRetryOpen())
     {
         res->AddAttribute("RetryOutputOpen", "TRUE");
+    }
+
+    if (IsSuppressAudioOnRemotes())
+    {
+        res->AddAttribute("SuppressAudioOnRemotes", "TRUE");
+    }
+    else
+    {
+        res->AddAttribute("SuppressAudioOnRemotes", "FALSE");
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));
