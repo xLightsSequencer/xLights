@@ -400,6 +400,7 @@ public:
     Model* GetPermissiveModel() const; // gets the model even if it is a submodel/strand
     std::string GetModelName() const;
 
+    void AlphaBlend(const RenderBuffer& src);
     bool IsNodeBuffer() const { return _nodeBuffer; }
     void Clear();
     void SetPalette(xlColorVector& newcolors, xlColorCurveVector& newcc);
@@ -414,8 +415,8 @@ public:
     long GetStartTimeMS() const { return curEffStartPer * frameTimeInMs; }
     long GetEndTimeMS() const { return curEffEndPer * frameTimeInMs; }
 
-    const xlColor &GetPixel(int x, int y);
-    void GetPixel(int x, int y, xlColor &color);
+    const xlColor &GetPixel(int x, int y) const;
+    void GetPixel(int x, int y, xlColor &color) const;
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
     void SetNodePixel(int nodeNum, const xlColor &color);
@@ -437,6 +438,7 @@ public:
     void DrawFadingCircle(int x0, int y0, int radius, const xlColor& rgb, bool wrap = false);
     void DrawCircle(int xc, int yc, int r, const xlColor& color, bool filled = false, bool wrap = false);
     void DrawLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool useAlpha = false);
+    void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha = false);
     void DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, bool direction);
 
     //aproximation of sin/cos, but much faster

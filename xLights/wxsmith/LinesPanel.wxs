@@ -107,6 +107,57 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+							<label>Thickness</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_Lines_Thickness" subclass="BulkEditSlider" variable="Slider_Lines_Thickness" member="yes">
+									<value>1</value>
+									<min>1</min>
+									<max>10</max>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_Lines_Thickness" subclass="BulkEditValueCurveButton" variable="BitmapButton_Lines_Thickness" member="yes">
+									<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Lines_Thickness" subclass="BulkEditTextCtrl" variable="TextCtrl_Lines_Thickness" member="yes">
+							<value>1</value>
+							<size>20,-1d</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText15" member="yes">
 							<label>Speed</label>
 						</object>

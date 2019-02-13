@@ -38,6 +38,7 @@ void LinesEffect::SetDefaultParameters()
     SetSliderValue(lp->Slider_Lines_Segments, 3);
     SetSliderValue(lp->Slider_Lines_Speed, 1);
     SetSliderValue(lp->Slider_Lines_Trails, 0);
+    SetSliderValue(lp->Slider_Lines_Thickness, 1);
     SetCheckBoxValue(lp->CheckBox_FadeTrails, true);
     lp->BitmapButton_Lines_Speed->SetActive(false);
     lp->ValidateWindow();
@@ -48,6 +49,7 @@ void LinesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     Render(buffer,
         SettingsMap.GetInt("SLIDER_Lines_Objects", 2),
         SettingsMap.GetInt("SLIDER_Lines_Segments", 3),
+        GetValueCurveInt("Lines_Thickness", 1, SettingsMap, oset, LINES_THICKNESS_MIN, LINES_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         GetValueCurveInt("Lines_Speed", 1, SettingsMap, oset, LINES_SPEED_MIN, LINES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         SettingsMap.GetInt("SLIDER_Lines_Trails", 0),
         SettingsMap.GetBool("CHECKBOX_Lines_FadeTrails", true)
@@ -89,23 +91,23 @@ class LineObject
         return pt;
     }
 
-    static void DrawTrail(const std::list<LinePoint>& t, RenderBuffer& buffer, xlColor c)
+    static void DrawTrail(const std::list<LinePoint>& t, RenderBuffer& buffer, xlColor c, int thickness)
     {
-        auto p1 = t.front();
-        auto p2 = t.back();
-        buffer.DrawLine(p1._x, p1._y, p2._x, p2._y, c, true);
+            auto p1 = t.front();
+            auto p2 = t.back();
+            buffer.DrawThickLine(p1._x, p1._y, p2._x, p2._y, c, thickness, true);
 
-        if (t.size() > 2)
-        {
-            auto it1 = t.begin();
-            auto it2 = std::next(t.begin());
-            while (it2 != t.end())
+            if (t.size() > 2)
             {
-                buffer.DrawLine(it1->_x, it1->_y, it2->_x, it2->_y, c, true);
-                ++it1;
-                ++it2;
+                auto it1 = t.begin();
+                auto it2 = std::next(t.begin());
+                while (it2 != t.end())
+                {
+                    buffer.DrawThickLine(it1->_x, it1->_y, it2->_x, it2->_y, c, thickness, true);
+                    ++it1;
+                    ++it2;
+                }
             }
-        }
     }
 
 public:
@@ -168,19 +170,20 @@ public:
             _points.push_back(last);
         }
     }
-    void Draw(RenderBuffer& buffer, xlColor c, int trails, bool fadeTrails)
+
+    void Draw(RenderBuffer& buffer, xlColor c, int trails, bool fadeTrails, int thickness)
     {
-        int i = trails - 1;
+        int i = 1;
         for (auto t = _points.rbegin(); t != _points.rend(); ++t)
         {
             if (fadeTrails && trails > 0)
             {
-                c.SetAlpha(255 - (255 * i-- / trails));
-                DrawTrail(*t, buffer, c);
+                c.SetAlpha(255 * i++ / _points.size());
+                DrawTrail(*t, buffer, c, thickness);
             }
             else
             {
-                DrawTrail(*t, buffer, c);
+                DrawTrail(*t, buffer, c, thickness);
             }
         }
     }
@@ -217,7 +220,7 @@ public:
     }
 };
 
-void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int speed, int trails, bool fadeTrails)
+void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thickness, int speed, int trails, bool fadeTrails)
 {
 	// Grab our cache
 	LinesRenderCache *cache = static_cast<LinesRenderCache*>(buffer.infoCache[id]);
@@ -237,10 +240,18 @@ void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int spee
     cache->CreateDestroy(objects, points, buffer.BufferWi, buffer.BufferHt);
     cache->Advance(buffer, speed, trails);
 
+    RenderBuffer temp(buffer);
+    temp.SetAllowAlphaChannel(true);
+
     int color = 0;
     for (auto line : _lines)
     {
         xlColor c = buffer.palette.GetColor(color++ % buffer.GetColorCount());
-        line.Draw(buffer, c, trails, fadeTrails);
+
+        // Draw into a temp buffer and then alpha blend that into the main buffer
+        // This minimises artefacts due to over-rendering
+        temp.Clear();
+        line.Draw(temp, c, trails, fadeTrails, thickness);
+        buffer.AlphaBlend(temp);
     }
 }
