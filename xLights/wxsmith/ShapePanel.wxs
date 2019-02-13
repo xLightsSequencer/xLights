@@ -636,12 +636,31 @@
 			</object>
 			<object class="spacer">
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<border>2</border>
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxCheckBox" name="ID_CHECKBOX_Shape_FadeAway" subclass="BulkEditCheckBox" variable="CheckBox_Shape_FadeAway" member="yes">
 					<label>Fade Away</label>
+				</object>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>2</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_Shape_HoldColour" subclass="BulkEditCheckBox" variable="CheckBox_Shape_HoldColour" member="yes">
+					<label>Hold Color</label>
+					<checked>1</checked>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>2</border>

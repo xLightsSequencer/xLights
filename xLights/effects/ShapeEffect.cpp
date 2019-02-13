@@ -138,21 +138,28 @@ void ShapeEffect::SetDefaultParameters() {
     SetCheckBoxValue(sp->CheckBox_Shape_UseMusic, false);
     SetCheckBoxValue(sp->CheckBox_Shape_FireTiming, false);
     SetCheckBoxValue(sp->CheckBox_Shape_RandomInitial, true);
+    SetCheckBoxValue(sp->CheckBox_Shape_HoldColour, true);
 }
 
 struct ShapeData
 {
+private:
+    xlColor _color;
+public:
     wxPoint _centre;
     wxSize _movement;
     float _size;
     int _oset;
-    xlColor _color;
     int _shape;
     float _angle;
     int _speed;
+    int _colourIndex;
+    bool _holdColour;
 
-    ShapeData(wxPoint centre, float size, int oset, xlColor color, int shape, int angle, int speed)
+    ShapeData(wxPoint centre, float size, int oset, xlColor color, int shape, int angle, int speed, bool holdColour, int colourIndex)
     {
+        _holdColour = holdColour;
+        _colourIndex = colourIndex;
         _centre = centre;
         _movement.x = 0;
         _movement.y = 0;
@@ -162,6 +169,18 @@ struct ShapeData
         _shape = shape;
         _angle = toRadians(angle);
         _speed = speed;
+    }
+
+    xlColor GetColour(const PaletteClass& palette)
+    {
+        if (_holdColour)
+        {
+            return _color;
+        }
+        else
+        {
+            return palette.GetColor(_colourIndex);
+        }
     }
 
     void Move()
@@ -201,14 +220,14 @@ public:
     int _sinceLastTriggered;
     wxFontInfo _font;
 
-    void AddShape(wxPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement)
+    void AddShape(wxPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement, bool holdColour, int colourIndex)
     {
         if (randomMovement)
         {
             speed = rand01() * (SHAPE_VELOCITY_MAX - SHAPE_VELOCITY_MIN) - SHAPE_VELOCITY_MIN;
             angle = rand01() * (SHAPE_DIRECTION_MAX - SHAPE_DIRECTION_MIN) - SHAPE_VELOCITY_MIN;
         }
-        _shapes.push_back(new ShapeData(centre, size, oset, color, shape, angle, speed));
+        _shapes.push_back(new ShapeData(centre, size, oset, color, shape, angle, speed, holdColour, colourIndex));
     }
 
     void DeleteShapes()
@@ -309,6 +328,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
     bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", true);
     bool fadeAway = SettingsMap.GetBool("CHECKBOX_Shape_FadeAway", true);
     bool startRandomly = SettingsMap.GetBool("CHECKBOX_Shape_RandomInitial", true);
+    bool holdColour = SettingsMap.GetBool("CHECKBOX_Shape_HoldColour", true);
     int xc = GetValueCurveInt("Shape_CentreX", 50, SettingsMap, oset, SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
     int yc = GetValueCurveInt("Shape_CentreY", 50, SettingsMap, oset, SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
     int lifetime = GetValueCurveInt("Shape_Lifetime", 5, SettingsMap, oset, SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -405,7 +425,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     os = rand01() * lifetimeFrames;
                 }
 
-                cache->AddShape(pt, startSize + os * growthPerFrame, buffer.palette.GetColor(_lastColorIdx), os, Object_To_Draw, direction, velocity, randomMovement);
+                cache->AddShape(pt, startSize + os * growthPerFrame, buffer.palette.GetColor(_lastColorIdx), os, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
             }
             cache->SortShapes();
         }
@@ -465,7 +485,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                             _lastColorIdx = 0;
                         }
 
-                        cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement);
+                        cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
                         break;
                     }
                 }
@@ -497,7 +517,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                     _lastColorIdx = 0;
                 }
 
-                cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement);
+                cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
             }
 
             // if music is over the trigger level for REPEATTRIGGER frames then we will trigger another firework
@@ -534,7 +554,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
                 _lastColorIdx = 0;
             }
 
-            cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement);
+            cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
         }
     }
 
@@ -559,7 +579,7 @@ void ShapeEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffer 
 
         if (it->_size < 0) it->_size = 0;
 
-        xlColor color = it->_color;
+        xlColor color = it->GetColour(buffer.palette);
 
         if (fadeAway)
         {

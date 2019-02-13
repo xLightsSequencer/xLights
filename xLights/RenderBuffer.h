@@ -183,11 +183,9 @@ public:
         }
     }
 
-    size_t Size()
+    size_t Size() const
     {
-        size_t colorcnt=color.size();
-        if (colorcnt < 1) colorcnt=1;
-        return colorcnt;
+        return std::max(1, (int)color.size());
     }
 
     const ColorCurve& GetColorCurve(size_t idx) const
@@ -197,14 +195,16 @@ public:
         }
         return cc[idx];
     }
-    const xlColor &GetColor(size_t idx) {
+
+    const xlColor &GetColor(size_t idx) const {
         if (idx >= color.size()) {
             return xlWHITE;
         }
 
             return color[idx];
     }
-    const xlColor GetColor(size_t idx, float progress) {
+    
+    xlColor GetColor(size_t idx, float progress) const {
         if (idx >= color.size()) {
             return xlWHITE;
         }
@@ -215,7 +215,8 @@ public:
         }
         return color[idx];
     }
-    void GetColor(size_t idx, xlColor& c)
+    
+    void GetColor(size_t idx, xlColor& c) const
     {
         if (idx >= color.size())
         {
@@ -223,7 +224,7 @@ public:
         }
         else
         {
-                c = color[idx];
+            c = color[idx];
         }
     }
 

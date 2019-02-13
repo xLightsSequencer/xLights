@@ -37,6 +37,7 @@ class ShapePanel: public wxPanel
 		//(*Declarations(ShapePanel)
 		BulkEditCheckBox* CheckBox_Shape_FadeAway;
 		BulkEditCheckBox* CheckBox_Shape_FireTiming;
+		BulkEditCheckBox* CheckBox_Shape_HoldColour;
 		BulkEditCheckBox* CheckBox_Shape_RandomInitial;
 		BulkEditCheckBox* CheckBox_Shape_RandomLocation;
 		BulkEditCheckBox* CheckBox_Shape_UseMusic;
@@ -149,6 +150,7 @@ class ShapePanel: public wxPanel
 		static const long ID_CHECKBOX_Shape_RandomLocation;
 		static const long ID_CHECKBOX_Shapes_RandomMovement;
 		static const long ID_CHECKBOX_Shape_FadeAway;
+		static const long ID_CHECKBOX_Shape_HoldColour;
 		static const long ID_CHECKBOX_Shape_UseMusic;
 		static const long ID_STATICTEXT_Shape_Sensitivity;
 		static const long ID_SLIDER_Shape_Sensitivity;
