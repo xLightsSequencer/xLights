@@ -47,9 +47,7 @@ public:
     void Stop()
     {
         _stop = true;
-
-        // give it 100 ms to end ... this is not perfect but as the thread self deletes I cant wait for it.
-        wxMilliSleep(100);
+        Wait();
     }
 
     virtual void* Entry() override;
