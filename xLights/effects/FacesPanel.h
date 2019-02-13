@@ -29,8 +29,8 @@ class FacesPanel: public wxPanel
 		BulkEditChoice* Choice_Faces_Eyes;
 		BulkEditChoice* Choice_Faces_TimingTrack;
 		BulkEditFaceChoice* Face_FaceDefinitonChoice;
-		BulkEditSlider* Slider1;
-		BulkEditTextCtrl* TextCtrl3;
+		BulkEditSlider* Slider_Faces_TransparentBlack;
+		BulkEditTextCtrl* TextCtrl_Faces_TransparentBlack;
 		wxChoice* Choice_Faces_Phoneme;
 		wxRadioButton* RadioButton1;
 		wxRadioButton* RadioButton2;

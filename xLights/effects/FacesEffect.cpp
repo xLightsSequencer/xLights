@@ -228,6 +228,9 @@ void FacesEffect::SetDefaultParameters() {
     }
 
     SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
+    SetCheckBoxValue(fp->CheckBox_SuppressWhenNotSinging, false);
+    SetCheckBoxValue(fp->CheckBox_TransparentBlack, false);
+    SetSliderValue(fp->Slider_Faces_TransparentBlack, 0);
 }
 
 void FacesEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)

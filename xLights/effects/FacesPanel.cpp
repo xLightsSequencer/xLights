@@ -100,10 +100,10 @@ FacesPanel::FacesPanel(wxWindow* parent)
 	CheckBox_TransparentBlack = new BulkEditCheckBox(this, ID_CHECKBOX_Faces_TransparentBlack, _("Transparent Black"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Faces_TransparentBlack"));
 	CheckBox_TransparentBlack->SetValue(false);
 	FlexGridSizer7->Add(CheckBox_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Slider1 = new BulkEditSlider(this, IDD_SLIDER_Faces_TransparentBlack, 0, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Faces_TransparentBlack"));
-	FlexGridSizer7->Add(Slider1, 1, wxALL|wxEXPAND, 5);
-	TextCtrl3 = new BulkEditTextCtrl(this, ID_TEXTCTRL_Faces_TransparentBlack, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Faces_TransparentBlack"));
-	FlexGridSizer7->Add(TextCtrl3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	Slider_Faces_TransparentBlack = new BulkEditSlider(this, IDD_SLIDER_Faces_TransparentBlack, 0, 0, 300, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("IDD_SLIDER_Faces_TransparentBlack"));
+	FlexGridSizer7->Add(Slider_Faces_TransparentBlack, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Faces_TransparentBlack = new BulkEditTextCtrl(this, ID_TEXTCTRL_Faces_TransparentBlack, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(40,-1)), wxTE_RIGHT, wxDefaultValidator, _T("ID_TEXTCTRL_Faces_TransparentBlack"));
+	FlexGridSizer7->Add(TextCtrl_Faces_TransparentBlack, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer47->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
 	SetSizer(FlexGridSizer47);
 	FlexGridSizer47->Fit(this);
