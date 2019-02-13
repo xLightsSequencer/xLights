@@ -131,7 +131,7 @@ void EventOSC::Process(const std::string& path, const std::string& p1, const std
         (const char *)_command.c_str(), (const char *)parameters.c_str());
 
     size_t rate;
-    std::string msg;
+    wxString msg;
     scheduleManager->Action(_command, parameters, "", nullptr, nullptr, rate, msg);
     logger_base.debug("    Event processed.");
 }

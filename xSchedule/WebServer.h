@@ -8,12 +8,12 @@ class WebServer : HttpServer
 
 public:
 
-        WebServer(int port, bool apionly = false, const std::string& password = "", int mins = 30);
+        WebServer(int port, bool apionly = false, const wxString& password = "", int mins = 30);
         virtual ~WebServer();
         void SetAPIOnly(bool apiOnly);
         void SetPasswordTimeout(int mins);
-        void SetPassword(const std::string& password);
-        void SendMessageToAllWebSockets(const std::string& message);
+        void SetPassword(const wxString& password);
+        void SendMessageToAllWebSockets(const wxString& message);
         bool IsSomeoneListening() const;
 };
 

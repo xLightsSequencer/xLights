@@ -980,8 +980,6 @@ bool PlayList::MoveToNextStep(bool suppressNext)
         _commandParametersAtEndOfCurrentStep = "";
     }
 
-    _currentStep = nullptr;
-
     if (!suppressNext)
     {
         bool didloop;
@@ -1011,6 +1009,10 @@ bool PlayList::MoveToNextStep(bool suppressNext)
             _suspendAtEndOfStep = false;
             return false;
         }
+    }
+    else
+    {
+        _currentStep = nullptr;
     }
 
     return success;

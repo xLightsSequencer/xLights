@@ -264,7 +264,7 @@ std::string PlayListItemText::GetTooltip(const std::string& type)
     return tt;
 }
 
-std::string PlayListItemText::GetText(size_t ms)
+wxString PlayListItemText::GetText(size_t ms)
 {
     wxString working = wxString(_format);
 
@@ -374,7 +374,7 @@ std::string PlayListItemText::GetText(size_t ms)
     working.Replace("\\n", "\n");
     working.Replace("!xyzzy!", "\\");
 
-    return working.ToStdString();
+    return working;
 }
 
 wxPoint PlayListItemText::GetLocation(size_t ms, wxSize size)
@@ -435,7 +435,7 @@ void PlayListItemText::Frame(uint8_t* buffer, size_t size, size_t ms, size_t fra
         size_t effms = ms - _delay;
 
         // work out our Text
-        std::string text = GetText(effms);
+        wxString text = GetText(effms);
 
         if (text == "" && !_renderWhenBlank)
         {

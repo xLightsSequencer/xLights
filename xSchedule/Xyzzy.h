@@ -177,9 +177,9 @@ public:
         virtual ~Xyzzy();
         bool Frame(uint8_t* buffer, size_t size, bool outputframe); 
         void DrawBlack(uint8_t* buffer, size_t size);
-        void Initialise(const std::string& parameters, std::string& result, const std::string& reference);
-        void Close(std::string& result, const std::string& reference);
-        bool Action(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference);
+        void Initialise(const wxString& parameters, wxString& result, const wxString& reference);
+        void Close(wxString& result, const wxString& reference);
+        bool Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference);
         bool IsOk() const { return _isOk; }
 };
 

@@ -407,7 +407,7 @@ ScheduleManager::~ScheduleManager()
 
     if (_xyzzy != nullptr)
     {
-        std::string(res);
+        wxString res;
         _xyzzy->Close(res, "");
 
         // clear the screen
@@ -782,7 +782,7 @@ int ScheduleManager::Frame(bool outputframe)
     {
         logger_base.info("Stopping xyzzy due to timeout.");
 
-        std::string msg;
+        wxString msg;
         DoXyzzy("close", "", msg, "");
     }
 
@@ -1503,7 +1503,7 @@ bool ScheduleManager::IsQueuedPlaylistRunning() const
 }
 
 // localhost/xScheduleCommand?Command=<command>&Parameters=<comma separated parameters>
-bool ScheduleManager::Action(const std::string command, const std::string parameters, const std::string& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
+bool ScheduleManager::Action(const wxString command, const wxString parameters, const wxString& data, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -2392,8 +2392,8 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
                     {
                         long start = -1;
                         long end = -1;
-                        std::string data1;
-                        std::string msg1;
+                        wxString data1;
+                        wxString msg1;
                         RetrieveData("GetModels", data1, msg1);
                         wxJSONValue  root;
                         wxJSONReader reader;
@@ -2782,13 +2782,13 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
 
                     if (pliText != nullptr)
                     {
-                        std::string text = "";
+                        wxString text = "";
                         if (split.size() > 1)
                         {
                             text = split[1];
                         }
 
-                        std::string properties = "";
+                        wxString properties = "";
                         if (split.size() > 2)
                         {
                             properties = split[2];
@@ -2940,7 +2940,7 @@ bool ScheduleManager::Action(const std::string command, const std::string parame
     return result;
 }
 
-bool ScheduleManager::Action(const std::string label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, std::string& msg)
+bool ScheduleManager::Action(const wxString label, PlayList* selplaylist, Schedule* selschedule, size_t& rate, wxString& msg)
 {
     UserButton* b = _scheduleOptions->GetButton(label);
 
@@ -3008,7 +3008,7 @@ void ScheduleManager::StopPlayList(PlayList* playlist, bool atendofcurrentstep, 
 // 127.0.0.1/xScheduleQuery?Query=GetPlayingStatus&Parameters=
 // 127.0.0.1/xScheduleQuery?Query=GetButtons&Parameters=
 
-bool ScheduleManager::Query(const std::string command, const std::string parameters, std::string& data, std::string& msg, const std::string& ip, const std::string& reference)
+bool ScheduleManager::Query(const wxString command, const wxString parameters, wxString& data, wxString& msg, const wxString& ip, const wxString& reference)
 {
     bool result = true;
     data = "";
@@ -3413,7 +3413,7 @@ std::string ScheduleManager::GetPingStatus()
     return res;
 }
 
-bool ScheduleManager::StoreData(const std::string& key, const std::string& data, std::string& msg) const
+bool ScheduleManager::StoreData(const wxString& key, const wxString& data, wxString& msg) const
 {
     bool result = true;
 
@@ -3440,7 +3440,7 @@ bool ScheduleManager::StoreData(const std::string& key, const std::string& data,
     return result;
 }
 
-bool ScheduleManager::RetrieveData(const std::string& key, std::string& data, std::string& msg) const
+bool ScheduleManager::RetrieveData(const wxString& key, wxString& data, wxString& msg) const
 {
     bool result = true;
 
@@ -3457,13 +3457,13 @@ bool ScheduleManager::RetrieveData(const std::string& key, std::string& data, st
 
         wxString d = "";
         dataFile.ReadAll(&d);
-        data = d.ToStdString();
+        data = d;
     }
 
     return result;
 }
 
-bool ScheduleManager::ToggleCurrentPlayListRandom(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListRandom(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
 
@@ -3478,7 +3478,7 @@ bool ScheduleManager::ToggleCurrentPlayListRandom(std::string& msg)
     }
 }
 
-bool ScheduleManager::ToggleCurrentPlayListPause(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListPause(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
     if (p != nullptr)
@@ -3494,7 +3494,7 @@ bool ScheduleManager::ToggleCurrentPlayListPause(std::string& msg)
     return true;
 }
 
-bool ScheduleManager::ToggleCurrentPlayListLoop(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListLoop(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
 
@@ -3509,7 +3509,7 @@ bool ScheduleManager::ToggleCurrentPlayListLoop(std::string& msg)
     }
 }
 
-bool ScheduleManager::ToggleCurrentPlayListStepLoop(std::string& msg)
+bool ScheduleManager::ToggleCurrentPlayListStepLoop(wxString& msg)
 {
     PlayList* p = GetRunningPlayList();
 
@@ -3670,7 +3670,7 @@ void ScheduleManager::ManualOutputToLightsClick(xScheduleFrame* frame)
     }
 }
 
-bool ScheduleManager::ToggleOutputToLights(xScheduleFrame* frame, std::string& msg, bool interactive)
+bool ScheduleManager::ToggleOutputToLights(xScheduleFrame* frame, wxString& msg, bool interactive)
 {
     if (_outputManager->IsOutputting())
     {
@@ -3703,12 +3703,14 @@ void ScheduleManager::SetVolume(int volume)
     if (cv > 100) cv = 100;
     AudioManager::SetGlobalVolume(cv);
 }
+
 void ScheduleManager::AdjustVolumeBy(int volume)
 {
     int cv = GetVolume();
     cv += volume;
     SetVolume(cv);
 }
+
 int ScheduleManager::GetVolume() const
 {
     return AudioManager::GetGlobalVolume();
@@ -4758,7 +4760,7 @@ void ScheduleManager::ImportxLightsSchedule(const std::string& filename)
     }
 }
 
-bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference)
+bool ScheduleManager::DoXyzzy(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference)
 {
     _lastXyzzyCommand = wxDateTime::Now();
 
@@ -4799,7 +4801,7 @@ bool ScheduleManager::DoXyzzy(const std::string& command, const std::string& par
     return true;
 }
 
-PixelData::PixelData(size_t startChannel, const std::string& data, APPLYMETHOD blendMode)
+PixelData::PixelData(size_t startChannel, const wxString& data, APPLYMETHOD blendMode)
 {
     _data = nullptr;
     _startChannel = startChannel;
@@ -4857,7 +4859,7 @@ void PixelData::Set(uint8_t* buffer, size_t size)
     }
 }
 
-void PixelData::ExtractData(const std::string& data)
+void PixelData::ExtractData(const wxString& data)
 {
     std::vector<unsigned char> dout;
     base64_decode(data, dout);
@@ -4877,14 +4879,14 @@ void PixelData::ExtractData(const std::string& data)
     }
 }
 
-void PixelData::SetData(const std::string& data, APPLYMETHOD blendMode)
+void PixelData::SetData(const wxString& data, APPLYMETHOD blendMode)
 {
     _blendMode = blendMode;
 
     ExtractData(data);
 }
 
-bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text, const std::string& properties)
+bool ScheduleManager::DoText(PlayListItemText* pliText, const wxString& text, const wxString& properties)
 {
     bool valid = true;
 
@@ -4900,7 +4902,7 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
 
         if (pv.size() == 2)
         {
-            std::string pvl = pv[0].Lower().ToStdString();
+            wxString pvl = pv[0].Lower();
 
             if (pvl == "color" || pvl == "colour")
             {
@@ -4909,8 +4911,8 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
             }
             else if (pvl == "blendmode")
             {
-                std::string vl = pv[1].Lower().ToStdString();
-                pliText->SetBlendMode(pv[1].ToStdString());
+                wxString vl = pv[1].Lower();
+                pliText->SetBlendMode(pv[1]);
             }
             else if (pvl == "speed")
             {
@@ -4918,11 +4920,11 @@ bool ScheduleManager::DoText(PlayListItemText* pliText, const std::string& text,
             }
             else if (pvl == "orientation")
             {
-                pliText->SetOrientation(pv[1].ToStdString());
+                pliText->SetOrientation(pv[1]);
             }
             else if (pvl == "movement")
             {
-                pliText->SetOrientation(pv[1].ToStdString());
+                pliText->SetOrientation(pv[1]);
             }
             else if (pvl == "font")
             {

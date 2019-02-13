@@ -1657,8 +1657,8 @@ void xScheduleFrame::RunAction(wxCommandEvent& event)
     if (a.Count() == 2)
     {
         size_t rate;
-        std::string msg;
-        __schedule->Action(a[0].ToStdString(), a[1].ToStdString(), "", nullptr, nullptr, rate, msg);
+        wxString msg;
+        __schedule->Action(a[0], a[1], "", nullptr, nullptr, rate, msg);
         if (msg != "")
         {
             SetTempMessage(msg);
@@ -1704,8 +1704,8 @@ void xScheduleFrame::OnButton_UserClick(wxCommandEvent& event)
     }
 
     size_t rate = _timer.GetInterval();
-    std::string msg = "";
-    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel().ToStdString(), playlist, schedule, rate, msg);
+    wxString msg = "";
+    __schedule->Action(((wxButton*)event.GetEventObject())->GetLabel(), playlist, schedule, rate, msg);
 
     CorrectTimer(rate);
 
@@ -1824,8 +1824,8 @@ void xScheduleFrame::OnListView_RunningItemActivated(wxListEvent& event)
     if (selected >= 0 && p != nullptr && p->GetRunningStep()->GetNameNoTime() != ListView_Running->GetItemText(selected, 0))
     {
         size_t rate;
-        std::string msg;
-        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0).ToStdString(), "", p, nullptr, rate, msg);
+        wxString msg;
+        __schedule->Action("Jump to specified step in current playlist", ListView_Running->GetItemText(selected, 0), "", p, nullptr, rate, msg);
     }
 }
 
@@ -2175,10 +2175,10 @@ void xScheduleFrame::UpdateStatus(bool force)
 
         if (b != nullptr)
         {
-            std::string command = b->GetCommand();
-            std::string parameters = b->GetParameters();
+            wxString command = b->GetCommand();
+            wxString parameters = b->GetParameters();
             Command* c = b->GetCommandObj();
-            std::string msg;
+            wxString msg;
             if (c != nullptr && c->IsValid(parameters, playlist, schedule, __schedule, msg, __schedule->IsQueuedPlaylistRunning()))
             {
                 (*it)->Enable();
@@ -2213,28 +2213,28 @@ void xScheduleFrame::OnBitmapButton_OutputToLightsClick(wxCommandEvent& event)
 
 void xScheduleFrame::OnBitmapButton_RandomClick(wxCommandEvent& event)
 {
-    std::string msg = "";
+    wxString msg = "";
     __schedule->ToggleCurrentPlayListRandom(msg);
     UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_PlayingClick(wxCommandEvent& event)
 {
-    std::string msg = "";
+    wxString msg = "";
     __schedule->ToggleCurrentPlayListPause(msg);
     UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_PLLoopClick(wxCommandEvent& event)
 {
-    std::string msg = "";
+    wxString msg = "";
     __schedule->ToggleCurrentPlayListLoop(msg);
     UpdateUI();
 }
 
 void xScheduleFrame::OnBitmapButton_StepLoopClick(wxCommandEvent& event)
 {
-    std::string msg = "";
+    wxString msg = "";
     __schedule->ToggleCurrentPlayListStepLoop(msg);
     UpdateUI();
 }
@@ -2383,7 +2383,7 @@ bool xScheduleFrame::HandleHotkeys(wxKeyEvent& event)
             }
 
             size_t rate = _timer.GetInterval();
-            std::string msg = "";
+            wxString msg = "";
             __schedule->Action((*it)->GetLabel(), playlist, schedule, rate, msg);
 
             CorrectTimer(rate);
@@ -2863,7 +2863,7 @@ void xScheduleFrame::DoAction(wxCommandEvent& event)
     }
 
     size_t rate = _timer.GetInterval();
-    std::string msg = "";
+    wxString msg = "";
 
     __schedule->Action(amd->_command, amd->_parameters, amd->_data, playlist, schedule, rate, msg);
 
@@ -3152,14 +3152,14 @@ void xScheduleFrame::SendStatus()
     {
         if (_webServer->IsSomeoneListening())
         {
-            std::string result;
+            wxString result;
             if (__schedule->IsXyzzy())
             {
                 __schedule->DoXyzzy("q", "", result, "");
             }
             else
             {
-                std::string msg;
+                wxString msg;
                 __schedule->Query("GetPlayingStatus", "", result, msg, "", "");
             }
 
@@ -3180,7 +3180,7 @@ void xScheduleFrame::DoXyzzyEvent(wxCommandEvent& event)
 {
     if (_webServer != nullptr && __schedule->IsXyzzy())
     {
-        std::string result = "{\"xyzzyevent\":\"" + event.GetString().ToStdString() + "\"}";
+        wxString result = "{\"xyzzyevent\":\"" + event.GetString().ToStdString() + "\"}";
         _webServer->SendMessageToAllWebSockets(result);
     }
 }

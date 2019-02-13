@@ -69,7 +69,7 @@ std::string Command::GetParametersTip() const
     return tip;
 }
 
-bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg, bool queuedMode) const
+bool Command::IsValid(wxString parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
 
