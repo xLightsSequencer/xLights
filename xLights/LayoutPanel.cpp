@@ -5750,6 +5750,8 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     }
     obj_button->Enable(is_3d);
 
+    UpdatePreview();
+
     wxConfigBase* config = wxConfigBase::Get();
     config->Write("LayoutMode3D", is_3d);
     Refresh();
