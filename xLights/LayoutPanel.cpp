@@ -3182,7 +3182,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
                     need_sep = true;
                 }
                 int sel_hdl = model->GetSelectedHandle();
-                if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (model->GetNumHandles() > 2) ) {
+                if( (sel_hdl != -1) && (sel_hdl < 0x4000) && (sel_hdl < model->GetNumHandles()) && (model->GetNumHandles() > 2) ) {
                     mnu.Append(ID_PREVIEW_MODEL_DELETEPOINT,"Delete Point");
                     need_sep = true;
                 }
