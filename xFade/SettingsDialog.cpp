@@ -386,10 +386,9 @@ void SettingsDialog::PopulateFields()
     LoadUniverses();
     LoadFadeExclude();
 
-    auto devices = GetMIDIDevices();
-    for (auto it = devices.begin(); it != devices.end(); ++it)
+    for (auto device : GetMIDIDevices())
     {
-        Choice1->Append(*it);
+        Choice1->Append(device);
     }
     Choice1->SetSelection(0);
     if (_settings->_midiDevice != "")
