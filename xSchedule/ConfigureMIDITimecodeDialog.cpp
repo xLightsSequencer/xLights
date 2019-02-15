@@ -68,15 +68,14 @@ ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ConfigureMIDITimecodeDialog::OnButtonCancelClick);
 	//*)
 
-    auto devices = EventMIDI::GetDevices();
-    for (auto it = devices.begin(); it != devices.end(); ++it)
+    for (auto device : EventMIDI::GetDevices())
     {
-        Choice1->Append(*it);
+        Choice1->Append(device);
     }
-    auto outputdevices = EventMIDI::GetOutputDevices();
-    for (auto it = outputdevices.begin(); it != outputdevices.end(); ++it)
+
+    for (auto device : EventMIDI::GetOutputDevices())
     {
-        Choice1->Append(*it);
+        Choice1->Append(device);
     }
 
     if (midi == "")
