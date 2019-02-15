@@ -462,18 +462,21 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.AddVertex(play_marker, mWindowHeight-1, color);
     }
 
-    Effect* selectedEffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();    
-    if (selectedEffect != nullptr)
+    if (xLightsApp::GetFrame() != nullptr)
     {
-        color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);
-        int start = mTimeline->GetPositionFromTimeMS(selectedEffect->GetStartTimeMS());
-        int end = mTimeline->GetPositionFromTimeMS(selectedEffect->GetEndTimeMS());
-        vac.AddVertex(start, 1, color);
-        vac.AddVertex(start, (mWindowHeight - 1) / 4, color);
-        vac.AddVertex(end, 1, color);
-        vac.AddVertex(end, (mWindowHeight - 1) / 4, color);
-        vac.AddVertex(start, (mWindowHeight - 1) / 8, color);
-        vac.AddVertex(end, (mWindowHeight - 1) / 8, color);
+        Effect* selectedEffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (selectedEffect != nullptr)
+        {
+            color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);
+            int start = mTimeline->GetPositionFromTimeMS(selectedEffect->GetStartTimeMS());
+            int end = mTimeline->GetPositionFromTimeMS(selectedEffect->GetEndTimeMS());
+            vac.AddVertex(start, 1, color);
+            vac.AddVertex(start, (mWindowHeight - 1) / 4, color);
+            vac.AddVertex(end, 1, color);
+            vac.AddVertex(end, (mWindowHeight - 1) / 4, color);
+            vac.AddVertex(start, (mWindowHeight - 1) / 8, color);
+            vac.AddVertex(end, (mWindowHeight - 1) / 8, color);
+        }
     }
 
     if (vac.HasMoreVertices()) {
