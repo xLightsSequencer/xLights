@@ -122,11 +122,11 @@ std::map<wxString, wxString> ParseURI(wxString uri)
     std::map<wxString, wxString> res;
 
     wxString s(uri);
-    wxArrayString q = wxSplit(s, '?');
+    wxString q = s.AfterFirst('?');
 
-    if (q.Count() > 1)
+    if (q != "")
     {
-        wxArrayString p = wxSplit(q[1], '&');
+        wxArrayString p = wxSplit(q, '&');
 
         for (auto it = p.begin(); it != p.end(); ++it)
         {

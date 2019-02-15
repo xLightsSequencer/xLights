@@ -117,6 +117,20 @@ inline void Replace(std::string& in, const std::string& what, const std::string&
     }
 }
 
+inline void Replace(std::wstring& in, const std::wstring& what, const std::wstring& with)
+{
+    auto pos = in.find(what);
+
+    // Repeat till end is reached
+    while (pos != std::wstring::npos)
+    {
+        // Replace this occurrence of Sub String
+        in.replace(pos, what.size(), with);
+        // Get the next occurrence from the current position
+        pos = in.find(what, pos + with.size());
+    }
+}
+
 inline std::string Capitalise(const std::string& input) noexcept
 {
     std::string res = "";

@@ -102,7 +102,9 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
+				<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+					<cols>1</cols>
+					<rows>1</rows>
 					<growablecols>0</growablecols>
 					<growablerows>0</growablerows>
 					<object class="sizeritem">
@@ -116,16 +118,13 @@
 								<item>Message</item>
 							</collabels>
 						</object>
-						<col>0</col>
-						<row>0</row>
 						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
+						<border>2</border>
 						<option>1</option>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>2</border>
 			</object>
 			<object class="sizeritem">
 				<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
@@ -182,11 +181,6 @@
 					<handler function="OnAbout" entry="EVT_MENU" />
 				</object>
 			</object>
-		</object>
-		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
-			<fields>1</fields>
-			<widths>-1</widths>
-			<styles>wxSB_NORMAL</styles>
 		</object>
 		<object class="wxTimer" name="ID_TIMER1" subclass="xLightsTimer" variable="RetrieveTimer" member="yes">
 			<interval>60000</interval>

@@ -4,6 +4,7 @@
 //(*Headers(SMSSettingsDialog)
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
@@ -27,10 +28,13 @@ class SMSSettingsDialog: public wxDialog
 		wxButton* Button_Ok;
 		wxCheckBox* CheckBox_IgnoreOversized;
 		wxCheckBox* CheckBox_OneWordOnly;
+		wxCheckBox* CheckBox_RejectProfanity;
 		wxCheckBox* CheckBox_UpperCase;
 		wxCheckBox* CheckBox_UseLocalBlacklist;
 		wxCheckBox* CheckBox_UseLocalWhitelist;
+		wxCheckBox* CheckBox_UsePhoneBlacklist;
 		wxCheckBox* CheckBox_UsePurgoMalum;
+		wxChoice* Choice_SMSService;
 		wxSpinCtrl* SpinCtrl_DisplayDuration;
 		wxSpinCtrl* SpinCtrl_MaxMessageAge;
 		wxSpinCtrl* SpinCtrl_MaximumMessageLength;
@@ -40,6 +44,9 @@ class SMSSettingsDialog: public wxDialog
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
+		wxStaticText* StaticText13;
+		wxStaticText* StaticText14;
+		wxStaticText* StaticText15;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -51,7 +58,9 @@ class SMSSettingsDialog: public wxDialog
 		wxStaticText* StaticText9;
 		wxTextCtrl* TextCtrl_DefaultMessage;
 		wxTextCtrl* TextCtrl_Phone;
+		wxTextCtrl* TextCtrl_RejectMessage;
 		wxTextCtrl* TextCtrl_SID;
+		wxTextCtrl* TextCtrl_SuccessMessage;
 		wxTextCtrl* TextCtrl_TargetMatrix;
 		wxTextCtrl* TextCtrl_Token;
 		wxTextCtrl* TextCtrl_User;
@@ -66,6 +75,8 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_SPINCTRL4;
 		static const long ID_STATICTEXT7;
 		static const long ID_TEXTCTRL4;
+		static const long ID_STATICTEXT15;
+		static const long ID_CHOICE1;
 		static const long ID_STATICTEXT2;
 		static const long ID_SPINCTRL1;
 		static const long ID_STATICTEXT3;
@@ -79,8 +90,10 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_STATICTEXT10;
 		static const long ID_TEXTCTRL5;
 		static const long ID_CHECKBOX1;
+		static const long ID_CHECKBOX7;
 		static const long ID_CHECKBOX2;
 		static const long ID_CHECKBOX4;
+		static const long ID_CHECKBOX8;
 		static const long ID_STATICTEXT6;
 		static const long ID_SPINCTRL3;
 		static const long ID_CHECKBOX5;
@@ -92,6 +105,10 @@ class SMSSettingsDialog: public wxDialog
 		static const long ID_SPINCTRL6;
 		static const long ID_STATICTEXT11;
 		static const long ID_TEXTCTRL6;
+		static const long ID_STATICTEXT13;
+		static const long ID_TEXTCTRL8;
+		static const long ID_STATICTEXT14;
+		static const long ID_TEXTCTRL9;
 		static const long ID_BUTTON1;
 		static const long ID_BUTTON2;
 		//*)
@@ -107,6 +124,7 @@ class SMSSettingsDialog: public wxDialog
 		void OnTextCtrl_TwilioTokenText(wxCommandEvent& event);
 		void OnTextCtrl_TwilioPhoneText(wxCommandEvent& event);
 		void OnTextCtrl_UserText(wxCommandEvent& event);
+		void OnCheckBox_UsePurgoMalumClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

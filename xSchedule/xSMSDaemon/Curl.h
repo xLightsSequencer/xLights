@@ -1,6 +1,7 @@
 #ifndef CURL_H
 #define CURL_H
 
+#include <wx/wx.h>
 #include "../../include/curl/curl.h"
 #include <string>
 #include <log4cpp/Category.hh>
@@ -25,6 +26,46 @@ public:
         }
     };
     typedef struct Var Var;
+
+    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "")
+    {
+        CURL* curl = curl_easy_init();
+
+        if (curl != nullptr)
+        {
+            struct curl_slist *headerlist = nullptr;
+            static const char buf[] = "Expect:";
+            headerlist = curl_slist_append(headerlist, buf);
+
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+            if (user != "" || password != "")
+            {
+                std::string sAuth = user + ":" + password;
+                curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                curl_easy_setopt(curl, CURLOPT_USERPWD, sAuth.c_str());
+            }
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+            std::string buffer = "";
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+            curl_easy_setopt(curl, CURLOPT_POST, 1);
+
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)body.size());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)body.c_str());
+
+            CURLcode res = curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(headerlist);
+            if (res == CURLE_OK)
+            {
+                return buffer;
+            }
+        }
+
+        return "";
+    }
 
     static std::string HTTPSPost(const std::string& url, const std::vector<Var>& vars, const std::string& user = "", const std::string& password = "")
     {

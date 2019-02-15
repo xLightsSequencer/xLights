@@ -3,6 +3,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <wx/wx.h>
 
 class SMSDaemonOptions
 {
@@ -16,6 +17,9 @@ class SMSDaemonOptions
 	std::string _token = "";
 	std::string _phone = "";
 	std::string _defaultMessage = "";
+	std::string _smsService = "";
+	wxString _successMessage = "";
+	wxString _rejectMessage = "";
 	int _retrieveInterval = 10;
 	int _displayDuration = 30;
 	int _maximiumMessageLength = 100;
@@ -23,6 +27,8 @@ class SMSDaemonOptions
 	int _maximiumTimesToDisplay = 0;
 	int _xSchedulePort = 80;
 	bool _usePurgoMalum = false;
+	bool _rejectProfanity = true;
+	bool _usePhoneBlacklist = false;
 	bool _useLocalBlacklist = false;
 	bool _useLocalWhitelist = false;
 	bool _acceptOneWordOnly = false;
@@ -43,8 +49,14 @@ class SMSDaemonOptions
         void SetToken(std::string token) { if (token != _token) { _token = token; _changeCount++; } }
 		std::string GetPhone() const { return _phone; }
         void SetPhone(std::string phone) { if (phone != _phone) { _phone = phone; _changeCount++; } }
+		std::string GetSMSService() const { return _smsService; }
+        void SetSMSService(std::string smsService) { if (smsService != _smsService) { _smsService = smsService; _changeCount++; } }
 		std::string GetDefaultMessage() const { return _defaultMessage; }
         void SetDefaultMessage(std::string defaultMessage) { if (defaultMessage != _defaultMessage) { _defaultMessage = defaultMessage; _changeCount++; } }
+		wxString GetSuccessMessage() const { return _successMessage; }
+        void SetSuccessMessage(wxString successMessage) { if (successMessage != _successMessage) { _successMessage = successMessage; _changeCount++; } }
+		wxString GetRejectMessage() const { return _rejectMessage; }
+        void SetRejectMessage(wxString rejectMessage) { if (rejectMessage != _rejectMessage) { _rejectMessage = rejectMessage; _changeCount++; } }
 
 		int GetXSchedulePort() const { return _xSchedulePort; }
         void SetXSchedulePort(int xSchedulePort) { if (xSchedulePort != _xSchedulePort) { _xSchedulePort = xSchedulePort; _changeCount++; } }
@@ -61,6 +73,10 @@ class SMSDaemonOptions
 
 		bool GetUsePurgoMalum() const { return _usePurgoMalum; }
         void SetUsePurgoMalum(bool usePurgoMalum) { if (usePurgoMalum != _usePurgoMalum) { _usePurgoMalum = usePurgoMalum; _changeCount++; } }
+		bool GetRejectProfanity() const { return _rejectProfanity; }
+        void SetRejectProfanity(bool rejectProfanity) { if (rejectProfanity != _rejectProfanity) { _rejectProfanity = rejectProfanity; _changeCount++; } }
+		bool GetUsePhoneBlacklist() const { return _usePhoneBlacklist; }
+        void SetUsePhoneBlacklist(bool usePhoneBlacklist) { if (usePhoneBlacklist != _usePhoneBlacklist) { _usePhoneBlacklist = usePhoneBlacklist; _changeCount++; } }
 		bool GetUseLocalBlacklist() const { return _useLocalBlacklist; }
         void SetUseLocalBlacklist(bool useLocalBlacklist) { if (useLocalBlacklist != _useLocalBlacklist) { _useLocalBlacklist = useLocalBlacklist; _changeCount++; } }
 		bool GetUseLocalWhitelist() const { return _useLocalWhitelist; }

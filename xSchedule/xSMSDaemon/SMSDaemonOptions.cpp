@@ -35,7 +35,10 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _sid = n->GetAttribute("SID", "");
             _token = n->GetAttribute("Token", "");
             _phone = n->GetAttribute("Phone", "");
+            _smsService = n->GetAttribute("SMSService", "Bandwidth");
             _defaultMessage = n->GetAttribute("DefaultMessage", "");
+            _successMessage = n->GetAttribute("SuccessMessage", "");
+            _rejectMessage = n->GetAttribute("RejectMessage", "");
 
             _retrieveInterval = wxAtoi(n->GetAttribute("RetrieveInterval", "10"));
             _displayDuration = wxAtoi(n->GetAttribute("DisplayDuration", "30"));
@@ -44,7 +47,9 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _maximiumMessageAge = wxAtoi(n->GetAttribute("MaxMsgAge", "10"));
             _xSchedulePort = wxAtoi(n->GetAttribute("xSchedulePort", "80"));
 
+            _rejectProfanity = n->GetAttribute("RejectProfanity", "TRUE") == "TRUE";
             _usePurgoMalum = n->GetAttribute("UsePurgoMalum", "FALSE") == "TRUE";
+            _usePhoneBlacklist = n->GetAttribute("UsePhoneBlacklist", "FALSE") == "TRUE";
             _useLocalBlacklist = n->GetAttribute("UseLocalBlacklist", "FALSE") == "TRUE";
             _useLocalWhitelist = n->GetAttribute("UseLocalWhitelist", "FALSE") == "TRUE";
             _acceptOneWordOnly = n->GetAttribute("AcceptOneWordOnly", "FALSE") == "TRUE";
@@ -82,7 +87,10 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     node->AddAttribute("SID", _sid);
     node->AddAttribute("Token", _token);
     node->AddAttribute("Phone", _phone);
+    node->AddAttribute("SMSService", _smsService);
     node->AddAttribute("DefaultMessage", _defaultMessage);
+    node->AddAttribute("SuccessMessage", _successMessage);
+    node->AddAttribute("RejectMessage", _rejectMessage);
 
     node->AddAttribute("RetrieveInterval", wxString::Format("%d", _retrieveInterval));
     node->AddAttribute("DisplayDuration", wxString::Format("%d", _displayDuration));
@@ -91,7 +99,9 @@ void SMSDaemonOptions::Save(const std::string& showDir)
     node->AddAttribute("MaxDisplays", wxString::Format("%d", _maximiumTimesToDisplay));
     node->AddAttribute("xSchedulePort", wxString::Format("%d", _xSchedulePort));
 
+    if (!_rejectProfanity) node->AddAttribute("RejectProfanity", "FALSE");
     if (_usePurgoMalum) node->AddAttribute("UsePurgoMalum", "TRUE");
+    if (_usePhoneBlacklist) node->AddAttribute("UsePhoneBlacklist", "TRUE");
     if (_useLocalBlacklist) node->AddAttribute("UseLocalBlacklist", "TRUE");
     if (_useLocalWhitelist) node->AddAttribute("UseLocalWhitelist", "TRUE");
     if (_acceptOneWordOnly) node->AddAttribute("AcceptOneWordOnly", "TRUE");

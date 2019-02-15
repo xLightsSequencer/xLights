@@ -27,19 +27,17 @@
 //(*Headers(xSMSDaemonFrame)
 #include <wx/button.h>
 #include <wx/frame.h>
-#include <wx/gbsizer.h>
 #include <wx/grid.h>
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/statusbr.h>
 #include <wx/timer.h>
 //*)
 
 #include "../../xLights/xLightsTimer.h"
 #include "SMSDaemonOptions.h"
 
-#include <list>
+#include <memory>
 
 class wxDebugReportCompress;
 
@@ -47,7 +45,7 @@ class xSMSDaemonFrame : public wxFrame
 {
     std::string _showDir;
     SMSDaemonOptions _options;
-    Bandwidth _bandwidth;
+    std::unique_ptr<SMSService> _smsService;
 
     void ValidateWindow();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
@@ -102,7 +100,6 @@ public:
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEWLOG;
         static const long idMenuAbout;
-        static const long ID_STATUSBAR1;
         static const long ID_TIMER1;
         static const long ID_TIMER2;
         //*)
@@ -127,7 +124,6 @@ public:
         wxStaticText* StaticText_LastRetrieved;
         wxStaticText* StaticText_Phone;
         wxStaticText* StaticText_TextItemName;
-        wxStatusBar* StatusBar1;
         xLightsTimer RetrieveTimer;
         xLightsTimer SendTimer;
         //*)

@@ -40,6 +40,7 @@
 #include "SMSSettingsDialog.h"
 #include "SMSDaemonOptions.h"
 #include "SMSService.h"
+#include "Bandwidth.h"
 
 //helper functions
 enum wxbuildinfoformat {
@@ -85,7 +86,6 @@ const long xSMSDaemonFrame::ID_MNU_ShowFolder = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_OPTIONS = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_VIEWLOG = wxNewId();
 const long xSMSDaemonFrame::idMenuAbout = wxNewId();
-const long xSMSDaemonFrame::ID_STATUSBAR1 = wxNewId();
 const long xSMSDaemonFrame::ID_TIMER1 = wxNewId();
 const long xSMSDaemonFrame::ID_TIMER2 = wxNewId();
 //*)
@@ -107,7 +107,7 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     //(*Initialize(xSMSDaemonFrame)
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
-    wxGridBagSizer* GridBagSizer1;
+    wxFlexGridSizer* FlexGridSizer4;
     wxMenu* Menu2;
     wxMenuBar* MenuBar1;
     wxMenuItem* MenuItem2;
@@ -139,9 +139,9 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     StaticText_LastDisplayed = new wxStaticText(this, ID_STATICTEXT8, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, _T("ID_STATICTEXT8"));
     FlexGridSizer2->Add(StaticText_LastDisplayed, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-    GridBagSizer1 = new wxGridBagSizer(0, 0);
-    GridBagSizer1->AddGrowableCol(0);
-    GridBagSizer1->AddGrowableRow(0);
+    FlexGridSizer4 = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizer4->AddGrowableCol(0);
+    FlexGridSizer4->AddGrowableRow(0);
     Grid1 = new wxGrid(this, ID_GRID1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID1"));
     Grid1->CreateGrid(0,3);
     Grid1->EnableEditing(false);
@@ -151,8 +151,8 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     Grid1->SetColLabelValue(2, _("Message"));
     Grid1->SetDefaultCellFont( Grid1->GetFont() );
     Grid1->SetDefaultCellTextColour( Grid1->GetForegroundColour() );
-    GridBagSizer1->Add(Grid1, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
-    FlexGridSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
+    FlexGridSizer4->Add(Grid1, 1, wxALL|wxEXPAND, 2);
+    FlexGridSizer1->Add(FlexGridSizer4, 0, wxEXPAND, 2);
     FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
     Button_Pause = new wxButton(this, ID_BUTTON2, _("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer3->Add(Button_Pause, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -176,12 +176,6 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     Menu2->Append(MenuItem2);
     MenuBar1->Append(Menu2, _("Help"));
     SetMenuBar(MenuBar1);
-    StatusBar1 = new wxStatusBar(this, ID_STATUSBAR1, 0, _T("ID_STATUSBAR1"));
-    int __wxStatusBarWidths_1[1] = { -1 };
-    int __wxStatusBarStyles_1[1] = { wxSB_NORMAL };
-    StatusBar1->SetFieldsCount(1,__wxStatusBarWidths_1);
-    StatusBar1->SetStatusStyles(1,__wxStatusBarStyles_1);
-    SetStatusBar(StatusBar1);
     RetrieveTimer.SetOwner(this, ID_TIMER1);
     RetrieveTimer.Start(60000, false);
     SendTimer.SetOwner(this, ID_TIMER2);
@@ -268,18 +262,6 @@ xSMSDaemonFrame::~xSMSDaemonFrame()
 
 void xSMSDaemonFrame::OnQuit(wxCommandEvent& event)
 {
-//    if (__schedule->IsDirty())
-//    {
-//        if (wxMessageBox("Unsaved changes to the schedule. Save now?", "Unsaved changes", wxYES_NO) == wxYES)
-//        {
-//            __schedule->Save();
-//        }
-//        else
-//        {
-//            __schedule->ClearDirty();
-//        }
-//    }
-
     Stop();
     Close();
 }
@@ -548,10 +530,31 @@ void xSMSDaemonFrame::SaveShowDir() const
 void xSMSDaemonFrame::LoadOptions()
 {
     _options.Load(_showDir);
-    _bandwidth.SetUser(_options.GetUser());
-    _bandwidth.SetSID(_options.GetSID());
-    _bandwidth.SetToken(_options.GetToken());
-    _bandwidth.SetPhone(_options.GetPhone());
+
+    if (_smsService != nullptr)
+    {
+        if (_options.GetSMSService() != _smsService->GetServiceName())
+        {
+            _smsService = nullptr;
+        }
+        else
+        {
+            _smsService->Reset();
+        }
+    }
+
+    if (_smsService == nullptr)
+    {
+        if (_options.GetSMSService() == "Bandwidth")
+        {
+            _smsService = std::make_unique<Bandwidth>();
+        }
+    }
+
+    _smsService->SetUser(_options.GetUser());
+    _smsService->SetSID(_options.GetSID());
+    _smsService->SetToken(_options.GetToken());
+    _smsService->SetPhone(_options.GetPhone());
     StaticText_IPAddress->SetLabel(_options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()));
     StaticText_TextItemName->SetLabel(_options.GetTextItem());
     StaticText_Phone->SetLabel(_options.GetPhone());
@@ -590,20 +593,37 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         wxURI url;
         if (wtext != "")
         {
-            url.Create("http://" + _options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()) + "/xScheduleCommand?Command=Set%20current%20text&Parameters=" + t + "," + wtext + ",");
+            auto wtt = wtext;
+            Replace(wtt, _("%"), _("%25"));
+            Replace(wtt, _(","), _(" "));
+            Replace(wtt, _("&"), _("%26"));
+            Replace(wtt, _("="), _("%3D"));
+            Replace(wtt, _("?"), _("%3F"));
+
+            url.Create("http://" + _options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()) + "/xScheduleCommand?Command=Set%20current%20text&Parameters=" + t + "," + wtt + ",");
         }
         else
         {
-            url.Create("http://" + _options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()) + "/xScheduleCommand?Command=Set%20current%20text&Parameters=" + t + "," + text + ",");
+            auto tt = text;
+            Replace(tt, "%", "%25");
+            Replace(tt, ",", " ");
+            Replace(tt, "&", "%26");
+            Replace(tt, "=", "%3D");
+            Replace(tt, "?", "%3F");
+
+            url.Create("http://" + _options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()) + "/xScheduleCommand?Command=Set%20current%20text&Parameters=" + t + "," + tt + ",");
         }
         auto u = url.BuildURI().ToStdString();
         auto res = Curl::HTTPSGet(u);
-        logger_base.debug("%s", (const char *)u.c_str());
-        logger_base.debug("%s", (const char *)res.c_str());
         if (Contains(res, _("result\":\"ok")) && text != "")
         {
             StaticText_LastDisplayed->SetLabel(wxDateTime::Now().FormatTime());
             ok = true;
+        }
+        else
+        {
+            logger_base.debug("%s", (const char *)u.c_str());
+            logger_base.debug("%s", (const char *)res.c_str());
         }
     }
     else
@@ -615,9 +635,22 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
 
 void xSMSDaemonFrame::OnRetrieveTimerTrigger(wxTimerEvent& event)
 {
-    if (_bandwidth.RetrieveMessages(_options.GetMaxMessageAge(), _options.GetMaxMessageLength(), _options.GetIgnoreOversizedMessages(), _options.GetUseLocalWhitelist(), _options.GetUseLocalBlacklist(), _options.GetAcceptOneWordOnly(), _options.GetUpperCase()))
+    if (_smsService != nullptr)
     {
-        StaticText_LastRetrieved->SetLabel(wxDateTime::Now().FormatTime());
+        if (_smsService->RetrieveMessages(_options.GetMaxMessageAge(),
+            _options.GetMaxMessageLength(),
+            _options.GetIgnoreOversizedMessages(),
+            _options.GetUseLocalWhitelist(),
+            _options.GetUseLocalBlacklist(),
+            _options.GetUsePhoneBlacklist(),
+            _options.GetAcceptOneWordOnly(),
+            _options.GetUpperCase(),
+            _options.GetRejectProfanity(),
+            _options.GetSuccessMessage(),
+            _options.GetRejectMessage()))
+        {
+            StaticText_LastRetrieved->SetLabel(wxDateTime::Now().FormatTime());
+        }
     }
 }
 
@@ -633,68 +666,78 @@ void xSMSDaemonFrame::SetAllText(const std::string& text, const std::wstring wte
 
 void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
 {
-    auto& msgs = _bandwidth.GetMessages(_options.GetMaxMessageAge());
-
-    if (msgs.size() > 0)
+    if (_smsService != nullptr)
     {
-        wxArrayString texts = wxSplit(_options.GetTextItem(), ',');
-
-        int displayed = 0;
-        int i = 0;
-        for (auto it : texts)
+        auto& msgs = _smsService->GetMessages(_options.GetMaxMessageAge());
+        if (msgs.size() > 0)
         {
-            if (msgs.size() > i)
+            wxArrayString texts = wxSplit(_options.GetTextItem(), ',');
+
+            int displayed = 0;
+            int i = 0;
+            for (auto it : texts)
             {
-                auto& msg = msgs[i];
-                if (_options.GetMaxTimesToDisplay() == 0 || msg._displayCount < _options.GetMaxTimesToDisplay())
+                if (msgs.size() > i)
                 {
-                    if (SetText(it, msg._message, msg._wmessage))
+                    auto& msg = msgs[i];
+                    if (_options.GetMaxTimesToDisplay() == 0 || msg._displayCount < _options.GetMaxTimesToDisplay())
                     {
-                        msg._displayCount++;
-                        displayed++;
+                        if (SetText(it, msg._message, msg._wmessage))
+                        {
+                            msg._displayCount++;
+                            displayed++;
+                        }
+                    }
+                    else
+                    {
+                        SetText(it, _options.GetDefaultMessage());
                     }
                 }
                 else
                 {
                     SetText(it, _options.GetDefaultMessage());
                 }
+                i++;
             }
-            else
-            {
-                SetText(it, _options.GetDefaultMessage());
-            }
-            i++;
-        }
 
-        Grid1->Freeze();
-        if (Grid1->GetNumberRows() > 0)
-        {
-            Grid1->DeleteRows(0, Grid1->GetNumberRows());
+            Grid1->Freeze();
+            if (Grid1->GetNumberRows() > 0)
+            {
+                Grid1->DeleteRows(0, Grid1->GetNumberRows());
+            }
+            i = 0;
+            for (auto it : msgs)
+            {
+                Grid1->AppendRows(1);
+                int row = Grid1->GetNumberRows() - 1;
+                Grid1->SetCellValue(row, 0, it._timestamp.FormatTime());
+                Grid1->SetCellValue(row, 1, it.GetStatus());
+                if (it._wmessage != "")
+                {
+                    Grid1->SetCellValue(row, 2, wxString(it._from) + ": " + wxString(it._wmessage));
+                }
+                else
+                {
+                    Grid1->SetCellValue(row, 2, it._from + ": " + it._message);
+                }
+                if (i < displayed)
+                {
+                    Grid1->SetCellBackgroundColour(row, 0, *wxYELLOW);
+                    Grid1->SetCellBackgroundColour(row, 1, *wxYELLOW);
+                    Grid1->SetCellBackgroundColour(row, 2, *wxYELLOW);
+                }
+                i++;
+            }
+            Grid1->Thaw();
         }
-        i = 0;
-        for (auto it : msgs)
+        else
         {
-            Grid1->AppendRows(1);
-            int row = Grid1->GetNumberRows() - 1;
-            Grid1->SetCellValue(row, 0, it._timestamp.FormatTime());
-            Grid1->SetCellValue(row, 1, it.GetStatus());
-            if (it._wmessage != "")
+            if (Grid1->GetNumberRows() > 0)
             {
-                Grid1->SetCellValue(row, 2, wxString(it._from) + ": " + wxString(it._wmessage));
+                Grid1->DeleteRows(0, Grid1->GetNumberRows());
             }
-            else
-            {
-                Grid1->SetCellValue(row, 2, it._from + ": " + it._message);
-            }
-            if (i < displayed)
-            {
-                Grid1->SetCellBackgroundColour(row, 0, *wxYELLOW);
-                Grid1->SetCellBackgroundColour(row, 1, *wxYELLOW);
-                Grid1->SetCellBackgroundColour(row, 2, *wxYELLOW);
-            }
-            i++;
+            SetAllText(_options.GetDefaultMessage());
         }
-        Grid1->Thaw();
     }
     else
     {

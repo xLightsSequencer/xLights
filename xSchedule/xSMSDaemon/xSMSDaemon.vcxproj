@@ -167,6 +167,7 @@
     <ClCompile Include="..\wxJSON\jsonreader.cpp" />
     <ClCompile Include="..\wxJSON\jsonval.cpp" />
     <ClCompile Include="SMSDaemonOptions.cpp" />
+    <ClCompile Include="SMSMessage.cpp" />
     <ClCompile Include="SMSSettingsDialog.cpp" />
     <ClCompile Include="xSMSDaemonApp.cpp" />
     <ClCompile Include="xSMSDaemonMain.cpp" />
@@ -177,8 +178,10 @@
     <ClInclude Include="..\wxJSON\jsonreader.h" />
     <ClInclude Include="..\wxJSON\jsonval.h" />
     <ClInclude Include="..\wxJSON\json_defs.h" />
+    <ClInclude Include="Bandwidth.h" />
     <ClInclude Include="Curl.h" />
     <ClInclude Include="SMSDaemonoptions.h" />
+    <ClInclude Include="SMSMessage.h" />
     <ClInclude Include="SMSService.h" />
     <ClInclude Include="SMSSettingsDialog.h" />
     <ClInclude Include="xSMSDaemonApp.h" />
