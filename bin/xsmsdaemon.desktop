@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Version=1.0
 Type=Application
-Exec=xLights -xsmsdaemon %f
+Exec=xLights -a %f
 Comment=Lighting control and sequencing - SMS Daemon
 Name=xSMSDaemon
 Terminal=false

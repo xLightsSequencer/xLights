@@ -482,6 +482,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
 #ifdef __LINUX__
         { wxCMD_LINE_SWITCH, "x", "xschedule", "run xschedule" },
+        { wxCMD_LINE_SWITCH, "a", "xsmsdaemon", "run xsmsdaemon" },
         { wxCMD_LINE_SWITCH, "c", "xcapture", "run xcapture" },
         { wxCMD_LINE_SWITCH, "f", "xfade", "run xfade" },
 #endif
@@ -491,6 +492,7 @@ bool xLightsApp::OnInit()
 
 // Add option to run xutils via xlights on linux (for AppImage usage)
 #ifdef __LINUX__
+       int run_xsmsdaemon = FALSE;
        int run_xschedule = FALSE;
        int run_xcapture = FALSE;
        int run_xfade= FALSE;
@@ -499,11 +501,14 @@ bool xLightsApp::OnInit()
        wxString cmdlineC(appPath+wxT("/xCapture"));
        wxString cmdlineS(appPath+wxT("/xSchedule"));
        wxString cmdlineF(appPath+wxT("/xFade"));
+       wxString cmdlineM(appPath+wxT("/xSMSDaemon"));
         for (int i=1; i< argc;i++) {
             if (strncmp(argv[i].c_str(), "-x", 2) == 0) {
                 run_xschedule = TRUE;
             } else if (strncmp(argv[i].c_str(), "-c", 2) == 0) {
                 run_xcapture = TRUE;
+            } else if (strncmp(argv[i].c_str(), "-a", 2) == 0) {
+                run_xsmsdaemon = TRUE;
             } else if (strncmp(argv[i].c_str(), "-f", 2) == 0) {
                 run_xfade = TRUE;
             } else {
@@ -523,6 +528,9 @@ bool xLightsApp::OnInit()
             exit(0);
         } else if (run_xfade) {
             wxExecute(cmdlineF, wxEXEC_BLOCK,NULL,NULL);
+            exit(0);
+        } else if (run_xsmsdaemon) {
+            wxExecute(cmdlineM, wxEXEC_BLOCK,NULL,NULL);
             exit(0);
         }
 #endif
