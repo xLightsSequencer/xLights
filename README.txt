@@ -11,8 +11,25 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.12 February 16, 2019
    -- enh (scott)   Timing Tracks will persist the collapsed flag
    -- enh (scott)   Added Subfolder Selection to Batch Render Dialog
+   -- enh (keith)   Add lines effect
+   -- enh (keith)   Make hold colour an option on shapes effect
+   -- enh (keith)   Add xSMSDaemon ... a SMS bridge between bandwidth.com and xschedule
+   -- enh (keith)   Allow shuffle to be set on a playlist - allows a background shuffled playlist
+   -- enh (keith)   Rework morph effect assist gestures to be more like the subbuffer panel
+   -- enh (keith)   Add palettes to the install
+   -- bug (keith)   Fix shapes effect does not support all emoji characters
+   -- bug (keith)   Fix xSchedule text wont display emojis
+   -- bug (keith)   Fix some face effect settings dont reset when another effect is chosen
+   -- bug (keith)   A bunch of tweaks to xSchedule remote mode
+   -- bug (keith)   Fix fireworks fire on music/timing marks still fires randomly as well
+   -- bug (keith)   Fix crash when rightclicking on box handle of polyline and trying to delete node
+   -- bug (keith)   Fix cant open xml from command line
+   -- bug (fbond)   Fix cant rescan midi in xSchedule event setup
+   -- bug (dkulp)   Fix transparent image display problem on layout
+   -- bug (dkulp)   Fix load issue on vixen eseq files
 2019.11 February 9, 2019
    -- bug (scott)   Fixed Custom Model Dialog Shrink Crash
    -- bug (keith)   Fix 3d obj with space dont load
