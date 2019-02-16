@@ -215,6 +215,7 @@ public:
     int BindBuffer(int idx, void *data, int sz) {
         return BindBuffer(idx, buffers[idx], data, sz);
     }
+
     void ReBindBuffer(int idx) {
         LOG_GL_ERRORV(glEnableVertexAttribArray(idx));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[idx]));
@@ -1155,12 +1156,17 @@ public:
         matrix = new glm::mat4(*matrix);
     }
     void PopMatrix() override {
+        static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         if (!matrixStack.empty()) {
             if (matrix != nullptr) {
                 delete matrix;
             }
             matrix = matrixStack.top();
             matrixStack.pop();
+        }
+        else
+        {
+            logger_opengl.error("OpenGL33Cache PopMatrix called but no matrixes in the stack.");
         }
     }
     void Translate(float x, float y, float z) override {

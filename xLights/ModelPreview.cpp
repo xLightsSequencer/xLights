@@ -480,10 +480,10 @@ void ModelPreview::Reset()
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
-    virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
-    allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr), xlights(xlights_), currentModel("&---none---&"),
-    currentLayoutGroup("Default"), additionalModel(nullptr),  is_3d(false), m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1),
-    camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000), _display2DBox(false), _center2D0(false)
+    virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
+    image(nullptr), sprite(nullptr), allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr),
+    xlights(xlights_), currentModel("&---none---&"),  currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -496,10 +496,10 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", false),
-    virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
-    allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr), xlights(xl), is_3d(false),
-    m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
-    currentLayoutGroup("Default"), currentModel(""), additionalModel(nullptr), _display2DBox(false), _center2D0(false)
+    virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
+    image(nullptr), sprite(nullptr), allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr),
+    xlights(xl), currentModel(""), currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -908,6 +908,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (is_3d) {
         if (accumulator3d.count > maxVertexCount) {
             maxVertexCount = accumulator3d.count;
@@ -924,7 +925,9 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     DrawGLUtils::PopMatrix();
     if (swapBuffers)
     {
+        logger_opengl.debug("About to swap buffers in ModelPreview::EndDrawing.");
         LOG_GL_ERRORV(SwapBuffers());
+        logger_opengl.debug("Done swapping buffers in ModelPreview::EndDrawing.");
     }
     view_object_accumulator.Reset();
     accumulator3d.Reset();

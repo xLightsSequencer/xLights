@@ -77,6 +77,7 @@ class xlGLCanvas
         DrawGLUtils::xlGLCacheInfo *cache;
 
     private:
+        wxString _name;
         wxGLContext* m_context;
         bool m_coreProfile;
     

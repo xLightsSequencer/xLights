@@ -180,7 +180,8 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         mIsInitialized(false),
         m_context(nullptr),
         m_coreProfile(true),
-        cache(nullptr)
+        cache(nullptr),
+        _name(name)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
@@ -506,7 +507,7 @@ void xlGLCanvas::SetCurrentGLContext() {
             if (logger_opengl.isDebugEnabled()) {
                 AddDebugLog(this);
             }
-            logger_opengl.info("Try creating 3.3 Cache");
+            logger_opengl.info("Try creating 3.3 Cache for %s", (const char *)_name.c_str());
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                 UsesVertexColorAccumulator(),
                 UsesVertexAccumulator(),
@@ -516,7 +517,7 @@ void xlGLCanvas::SetCurrentGLContext() {
                 UsesVertex3ColorAccumulator()));
         }
         if (cache == nullptr) {
-            logger_opengl.info("Try creating 1.1 Cache");
+            logger_opengl.info("Try creating 1.1 Cache for %s", (const char *)_name.c_str());
             LOG_GL_ERRORV(cache = Create11Cache());
         }
         if (cache == nullptr) {
