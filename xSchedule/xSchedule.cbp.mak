@@ -1568,7 +1568,7 @@ PlayList/PlayListItemDimPanel.cpp: xScheduleMain.h ScheduleManager.h
 
 PlayList/PlayListItemAllOffPanel.cpp: xScheduleMain.h ScheduleManager.h
 
-PlayList/PlayListItem.cpp: xScheduleMain.h ScheduleManager.h RunningSchedule.h
+PlayList/PlayListItem.cpp: xScheduleMain.h ScheduleManager.h ScheduleOptions.h RunningSchedule.h
 
 PlayList/PlayListItemMicrophonePanel.cpp: xScheduleMain.h ScheduleManager.h
 
@@ -1618,7 +1618,7 @@ EventE131Panel.cpp: EventE131Panel.h
 
 PlayList/PlayListDialog.cpp: MyTreeItemData.h
 
-PlayList/PlayList.cpp: Schedule.h xScheduleMain.h xScheduleApp.h ReentrancyCounter.h
+PlayList/PlayList.cpp: Schedule.h xScheduleMain.h xScheduleApp.h ScheduleManager.h ReentrancyCounter.h
 
 Pinger.cpp: Pinger.h
 
