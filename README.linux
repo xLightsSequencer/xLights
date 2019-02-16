@@ -15,12 +15,12 @@ application of a small patch from the end of this file to fix the sizing of
 bitmap buttons.
 SDL2 needs to be 2.0.5 or later.
 A precompiled libliquidfun.a.`uname -p` library and QM Vamp plugins are included for
-i686 and x86_64 - for other platforms it would need to be recompiled from
+i686, x86_64 and aarm64 - for other platforms it would need to be recompiled from
 https://github.com/google/liquidfun
 
 These instructions have been tested on the following distributions:
 
-  - Ubuntu 17.10
+  - Ubuntu 18.10
   - Fedora 24
 
 Instructions for other Linux distributions will vary. 
@@ -41,11 +41,12 @@ Instructions for other Linux distributions will vary.
      liblog4cpp5-dev
      libportmidi-dev
      libzstd-dev
+     libcurl4-openssl-dev
      cbp2make (optional but recommended if compiling from git)
 
      Example command to install packages on Ubuntu
 
-     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev liblog4cpp5-dev libportmidi-dev libzstd-dev cbp2make
+     sudo apt-get install build-essential libgtk2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libmpg123-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev liblog4cpp5-dev libportmidi-dev libzstd-dev libcurl4-openssl-dev cbp2make
 
      Example commands to install packages on Fedora 24
 

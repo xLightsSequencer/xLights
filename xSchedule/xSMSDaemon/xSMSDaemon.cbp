@@ -118,10 +118,10 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-std=c++1z" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -138,6 +138,7 @@
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --libs`" />
 					<Add option="-lexpat" />
 					<Add option="-lporttime -lportmidi" />
 					<Add option="-rdynamic" />
@@ -152,11 +153,11 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=c++1z" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`curl-config --cflags`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -173,6 +174,7 @@
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --libs`" />
 					<Add option="-lexpat" />
 					<Add option="-lporttime -lportmidi" />
 					<Add option="-rdynamic" />

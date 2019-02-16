@@ -16,7 +16,7 @@ SHARE_FILES     = xlights.linux.properties phoneme_mapping extended_dictionary s
 QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 PATH            := $(CURDIR)/wxWidgets-3.1.2:$(PATH)
 
-SUBDIRS         = xLights xSchedule xCapture xFade
+SUBDIRS         = xLights xSchedule xCapture xFade xSchedule/xSMSDaemon
 
 .NOTPARALLEL:
 
@@ -27,7 +27,7 @@ all: wxwidgets31 cbp2make linkliquid makefile subdirs
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS): FORCE
-	@${MAKE} -C $@ -f $@.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
+	@${MAKE} -C $@ -f `basename $@`.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
 
 
 #############################################################################
@@ -64,14 +64,14 @@ wxwidgets31: FORCE
 debug: $(addsuffix _debug,$(SUBDIRS))
 
 $(addsuffix _debug,$(SUBDIRS)):
-	@${MAKE} -C $(subst _debug,,$@) -f $(subst _debug,,$@).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_debug
+	@${MAKE} -C $(subst _debug,,$@) -f $(subst _debug,,`basename $@`).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_debug
 
 #############################################################################
 
 clean: $(addsuffix _clean,$(SUBDIRS))
 
 $(addsuffix _clean,$(SUBDIRS)):
-	@${MAKE} -C $(subst _clean,,$@) -f $(subst _clean,,$@).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
+	@${MAKE} -C $(subst _clean,,$@) -f $(subst _clean,,`basename $@`).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" clean
 	
 
 #############################################################################
@@ -80,10 +80,12 @@ install:
 	@$(CHK_DIR_EXISTS) $(DESTDIR)/${PREFIX}/bin || $(MKDIR) $(DESTDIR)/${PREFIX}/bin
 	-$(INSTALL_PROGRAM) -D bin/xLights $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(INSTALL_PROGRAM) -D bin/xSchedule $(DESTDIR)/${PREFIX}/bin/xSchedule
+	-$(INSTALL_PROGRAM) -D bin/xSMSDaemon $(DESTDIR)/${PREFIX}/bin/xSMSDaemon
 	-$(INSTALL_PROGRAM) -D bin/xCapture $(DESTDIR)/${PREFIX}/bin/xCapture
 	-$(INSTALL_PROGRAM) -D bin/xFade $(DESTDIR)/${PREFIX}/bin/xFade
 	-$(INSTALL_PROGRAM) -D bin/xlights.desktop $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
 	-$(INSTALL_PROGRAM) -D bin/xschedule.desktop $(DESTDIR)/${PREFIX}/share/applications/xschedule.desktop
+	-$(INSTALL_PROGRAM) -D bin/xsmsdaemon.desktop $(DESTDIR)/${PREFIX}/share/applications/xsmsdaemon.desktop
 	-$(INSTALL_PROGRAM) -D bin/xcapture.desktop $(DESTDIR)/${PREFIX}/share/applications/xcapture.desktop
 	-$(INSTALL_PROGRAM) -D bin/xfade.desktop $(DESTDIR)/${PREFIX}/share/applications/xfade.desktop
 	$(foreach share, $(SHARE_FILES), install -D -m 644 bin/$(share) $(DESTDIR)/${PREFIX}/share/xLights/$(share) ;)
@@ -115,10 +117,10 @@ uninstall:
 
 cbp2make:
 	@if test -n "`cbp2make --version`"; \
-		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak; \
+		then $(DEL_FILE) xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak; \
 	fi
 
-makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak
+makefile: xLights/xLights.cbp.mak xSchedule/xSchedule.cbp.mak xCapture/xCapture.cbp.mak xFade/xFade.cbp.mak xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak
 
 xLights/xLights.cbp.mak: xLights/xLights.cbp
 	@cbp2make -in xLights/xLights.cbp -cfg cbp2make.cfg -out xLights/xLights.cbp.mak \
@@ -139,6 +141,16 @@ xSchedule/xSchedule.cbp.mak: xSchedule/xSchedule.cbp
 			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
 			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
 		> xSchedule/xSchedule.cbp.mak
+
+xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak: xSchedule/xSMSDaemon/xSMSDaemon.cbp
+	@cbp2make -in xSchedule/xSMSDaemon/xSMSDaemon.cbp -cfg cbp2make.cfg -out xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak \
+			--with-deps --keep-outdir --keep-objdir
+	@cp xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak.orig
+	@cat xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak.orig \
+		| sed \
+			-e "s/CFLAGS_LINUX_RELEASE = \(.*\)/CFLAGS_LINUX_RELEASE = \1 $(IGNORE_WARNINGS)/" \
+			-e "s/OBJDIR_LINUX_DEBUG = \(.*\)/OBJDIR_LINUX_DEBUG = .objs_debug/" \
+		> xSchedule/xSMSDaemon/xSMSDaemon.cbp.mak
 
 xCapture/xCapture.cbp.mak: xCapture/xCapture.cbp
 	@cbp2make -in xCapture/xCapture.cbp -cfg cbp2make.cfg -out xCapture/xCapture.cbp.mak \
