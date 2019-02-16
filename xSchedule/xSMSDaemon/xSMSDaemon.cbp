@@ -9,7 +9,7 @@
 		<Build>
 			<Target title="MinGW_Debug">
 				<Option platforms="Windows;" />
-				<Option output="../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="../../bin" />
 				<Option object_output=".objs_wd32" />
 				<Option type="0" />
@@ -57,7 +57,7 @@
 			</Target>
 			<Target title="MinGW_Release">
 				<Option platforms="Windows;" />
-				<Option output="../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="../../bin" />
 				<Option object_output=".objs_wr32" />
 				<Option type="0" />
@@ -109,7 +109,7 @@
 			</Target>
 			<Target title="Linux_Debug">
 				<Option platforms="Unix;" />
-				<Option output="../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_ld" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -145,7 +145,7 @@
 			</Target>
 			<Target title="Linux_Release">
 				<Option platforms="Unix;" />
-				<Option output="../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs_lr" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -180,7 +180,7 @@
 			</Target>
 			<Target title="64bit_MinGW_Release">
 				<Option platforms="Windows;" />
-				<Option output="../bin64/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option output="../../bin64/xSMSDaemon" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="../../bin64" />
 				<Option object_output=".objs_wr64" />
 				<Option type="0" />
@@ -213,7 +213,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="-m64" />
-					<Add option="-Wl,-Map=../bin64/xSMSDaemon.map" />
+					<Add option="-Wl,-Map=../../bin64/xSMSDaemon.map" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
 					<Add library="../../lib/windows64/iphlpapi.lib" />
@@ -250,15 +250,25 @@
 		<Unit filename="Curl.h" />
 		<Unit filename="SMSDaemonOptions.cpp" />
 		<Unit filename="SMSDaemonoptions.h" />
+		<Unit filename="SMSMessage.cpp" />
 		<Unit filename="SMSService.h" />
 		<Unit filename="SMSSettingsDialog.cpp" />
 		<Unit filename="SMSSettingsDialog.h" />
+		<Unit filename="TestMessagesDialog.cpp" />
+		<Unit filename="TestMessagesDialog.h" />
 		<Unit filename="wxsmith/SMSSettingsDialog.wxs" />
+		<Unit filename="wxsmith/TestMessagesDialog.wxs" />
 		<Unit filename="wxsmith/xSMSDaemonframe.wxs" />
 		<Unit filename="xSMSDaemonApp.cpp" />
 		<Unit filename="xSMSDaemonApp.h" />
 		<Unit filename="xSMSDaemonMain.cpp" />
 		<Unit filename="xSMSDaemonMain.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="64bit_MinGW_Release" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />
@@ -269,6 +279,7 @@
 				<resources>
 					<wxFrame wxs="wxsmith/xSMSDaemonframe.wxs" src="xSMSDaemonMain.cpp" hdr="xSMSDaemonMain.h" fwddecl="0" i18n="1" name="xSMSDaemonFrame" language="CPP" />
 					<wxDialog wxs="wxsmith/SMSSettingsDialog.wxs" src="SMSSettingsDialog.cpp" hdr="SMSSettingsDialog.h" fwddecl="0" i18n="1" name="SMSSettingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/TestMessagesDialog.wxs" src="TestMessagesDialog.cpp" hdr="TestMessagesDialog.h" fwddecl="0" i18n="1" name="TestMessagesDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

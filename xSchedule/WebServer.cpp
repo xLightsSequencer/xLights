@@ -1,5 +1,5 @@
 #include <wx/wx.h>
-#include <wx/dir.h> // Linus needs this
+#include <wx/dir.h> // Linux needs this
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
 #include <wx/uri.h>

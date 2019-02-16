@@ -1,8 +1,8 @@
 #ifndef CURL_H
 #define CURL_H
 
-#include <wx/wx.h>
 #include "../../include/curl/curl.h"
+#include <wx/wx.h>
 #include <string>
 #include <log4cpp/Category.hh>
 

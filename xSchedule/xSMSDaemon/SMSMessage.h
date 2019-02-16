@@ -26,6 +26,7 @@ class SMSMessage
 	std::wstring _wmessage;
 	std::string _from;
     int _displayCount = 0;
+    bool _displayed = false;
 
     bool Censored() const
     {
@@ -57,7 +58,7 @@ class SMSMessage
 
     wxString GetLog() const
     {
-        return wxString::Format("%s: %s %s", _from, _timestamp.FormatISOCombined(), _rawMessage);
+        return wxString::Format("%s: %s %s", _from, _timestamp.FromTimezone(wxDateTime::TZ::GMT0).FormatISOCombined(), _rawMessage);
     }
 
     std::string GetStatus() const

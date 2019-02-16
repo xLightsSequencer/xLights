@@ -2,7 +2,6 @@
 ; File used for building xLights.exe
 
 ;  SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
-;  oct 27,2017  added xLightsBatchRender.exe to install.
 ; mar 3,2015: added new line for bin/xlights.map
 ; mar 3,2016:  added Source: "bin/avcodec-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; mar 3,2016:  added Source: "bin/avformat-57.dll"; DestDir: "{app}";  Flags: "ignoreversion"
@@ -35,7 +34,7 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 
 AppName={#MyTitleName}
-AppVersion={#Year}.{#Version}
+AppVersion={#Year}.{#Version}{#Other}
 DefaultDirName={pf64}\{#MyTitleName}{#Other}
 DefaultGroupName={#MyTitleName}{#Other}
 SetupIconFile=include\{#MyTitleName}64.ico
@@ -54,7 +53,6 @@ Source: "bin64/xLights.exe"; DestDir: "{app}"
 Source: "bin64/xlights.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xlights.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "include\xlights64.ico"; DestDir: "{app}"
-
 Source: "include\xLights_nutcracker.ico"; DestDir: "{app}"
 
 ; xSchedule
@@ -76,6 +74,12 @@ Source: "bin64/xFade.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xfade.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "include\xfade64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; xSMSDaemon
+Source: "bin64/xSMSDaemon.exe"; DestDir: "{app}"
+Source: "bin64/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "bin/xsmsdaemon.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "include\xsmsdaemon64.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+
 Source: "bin64/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin64/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 ; Take these from the default mingw install directory
@@ -94,6 +98,9 @@ Source: "bin64/swscale-4.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; SDL - audio playing
 Source: "bin64/SDL2.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
+; libcurl
+Source: "bin64/libcurl.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
 ; Added files for doing Papagayo effects
 Source: "bin/extended_dictionary"; DestDir: "{app}"
 Source: "bin/phoneme_mapping";     DestDir: "{app}"
@@ -102,9 +109,6 @@ Source: "bin/user_dictionary";     DestDir: "{app}"
 
 ; Vamp dll's
 Source: "bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-
-; Path editor
-;Source: "bin/PathEditor.exe";      DestDir: "{app}"
 
 ; readmes and licenses
 Source: "License.txt"; DestDir: "{app}";
@@ -136,18 +140,9 @@ Root: HKCU; Subkey: "Software\Xlights"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xSchedule"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xCapture"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\xFade"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\xLightsBatchRender"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\xSMSDaemon"; Flags: uninsdeletekey
 ; set PATH. if it is already there dont add path to our installation. we are doing this so user can run ffmpeg from a cmd prompt
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{pf64}\xLights"; Check: NeedsAddPath ('C:\Program Files\xLights')
-
-; Remove Kieth's Batch Render to prevent confusion
-[InstallDelete]
-Type: files; Name: "{app}\wxmsw310u_gcc_custom.dll"
-Type: files; Name: "{app}\wxmsw310u_gl_gcc_custom.dll"
-Type: files; Name: "{app}\xLightsBatchRenderer.exe"
-Type: files; Name: "{app}\xLightsBatchRenderer.ico"
-Type: files; Name: "{group}\xLightsBatchRender.lnk"
-Type: files; Name: "{commondesktop}\xLightsBatchRender.lnk"
 
 [Code]
 

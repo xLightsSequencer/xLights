@@ -29,17 +29,18 @@
 #include "../../xLights/xLightsVersion.h"
 #include "xSMSDaemonMain.h"
 
-#include "../include/xLights.xpm"
-#include "../include/xLights-16.xpm"
-#include "../include/xLights-32.xpm"
-#include "../include/xLights-64.xpm"
-#include "../include/xLights-128.xpm"
+#include "../../include/xLights.xpm"
+#include "../../include/xLights-16.xpm"
+#include "../../include/xLights-32.xpm"
+#include "../../include/xLights-64.xpm"
+#include "../../include/xLights-128.xpm"
 
 #include <log4cpp/Category.hh>
 #include <wx/filename.h>
 #include "SMSSettingsDialog.h"
 #include "SMSDaemonOptions.h"
 #include "SMSService.h"
+#include "TestMessagesDialog.h"
 #include "Bandwidth.h"
 
 //helper functions
@@ -85,6 +86,7 @@ const long xSMSDaemonFrame::ID_BUTTON1 = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_ShowFolder = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_OPTIONS = wxNewId();
 const long xSMSDaemonFrame::ID_MNU_VIEWLOG = wxNewId();
+const long xSMSDaemonFrame::ID_MNU_TESTMESSAGES = wxNewId();
 const long xSMSDaemonFrame::idMenuAbout = wxNewId();
 const long xSMSDaemonFrame::ID_TIMER1 = wxNewId();
 const long xSMSDaemonFrame::ID_TIMER2 = wxNewId();
@@ -170,6 +172,8 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     Menu1 = new wxMenu();
     MenuItem_ViewLog = new wxMenuItem(Menu1, ID_MNU_VIEWLOG, _("View Log"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItem_ViewLog);
+    MenuItem_InsertTestMessages = new wxMenuItem(Menu1, ID_MNU_TESTMESSAGES, _("Insert Test Messages"), wxEmptyString, wxITEM_NORMAL);
+    Menu1->Append(MenuItem_InsertTestMessages);
     MenuBar1->Append(Menu1, _("Tools"));
     Menu2 = new wxMenu();
     MenuItem2 = new wxMenuItem(Menu2, idMenuAbout, _("About\tF1"), _("Show info about this application"), wxITEM_NORMAL);
@@ -188,6 +192,7 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     Connect(ID_MNU_ShowFolder,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ShowFolderSelected);
     Connect(ID_MNU_OPTIONS,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_OptionsSelected);
     Connect(ID_MNU_VIEWLOG,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_ViewLogSelected);
+    Connect(ID_MNU_TESTMESSAGES,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected);
     Connect(idMenuAbout,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xSMSDaemonFrame::OnAbout);
     Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&xSMSDaemonFrame::OnRetrieveTimerTrigger);
     Connect(ID_TIMER2,wxEVT_TIMER,(wxObjectEventFunction)&xSMSDaemonFrame::OnSendTimerTrigger);
@@ -203,12 +208,11 @@ xSMSDaemonFrame::xSMSDaemonFrame(wxWindow* parent, const std::string& showdir, c
     icons.AddIcon(wxIcon(xlights_xpm));
     SetIcons(icons);
 
-    int x, y, w, h;
     wxConfigBase* config = wxConfigBase::Get();
-    x = config->ReadLong(_("xsmsWindowPosX"), 50);
-    y = config->ReadLong(_("xsmsWindowPosY"), 50);
-    w = config->ReadLong(_("xsmsWindowPosW"), 800);
-    h = config->ReadLong(_("xsmsWindowPosH"), 600);
+    int x = config->ReadLong(_("xsmsWindowPosX"), 50);
+    int y = config->ReadLong(_("xsmsWindowPosY"), 50);
+    int w = config->ReadLong(_("xsmsWindowPosW"), 800);
+    int h = config->ReadLong(_("xsmsWindowPosH"), 600);
 
     // limit weirdness
     if (x < -100) x = 0;
@@ -622,8 +626,11 @@ bool xSMSDaemonFrame::SetText(const std::string& t, const std::string& text, con
         }
         else
         {
-            logger_base.debug("%s", (const char *)u.c_str());
-            logger_base.debug("%s", (const char *)res.c_str());
+            if (text != "")
+            {
+                logger_base.debug("%s", (const char *)u.c_str());
+                logger_base.debug("%s", (const char *)res.c_str());
+            }
         }
     }
     else
@@ -637,19 +644,10 @@ void xSMSDaemonFrame::OnRetrieveTimerTrigger(wxTimerEvent& event)
 {
     if (_smsService != nullptr)
     {
-        if (_smsService->RetrieveMessages(_options.GetMaxMessageAge(),
-            _options.GetMaxMessageLength(),
-            _options.GetIgnoreOversizedMessages(),
-            _options.GetUseLocalWhitelist(),
-            _options.GetUseLocalBlacklist(),
-            _options.GetUsePhoneBlacklist(),
-            _options.GetAcceptOneWordOnly(),
-            _options.GetUpperCase(),
-            _options.GetRejectProfanity(),
-            _options.GetSuccessMessage(),
-            _options.GetRejectMessage()))
+        if (_smsService->RetrieveMessages(_options))
         {
             StaticText_LastRetrieved->SetLabel(wxDateTime::Now().FormatTime());
+            RefreshList();
         }
     }
 }
@@ -668,12 +666,13 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
 {
     if (_smsService != nullptr)
     {
-        auto& msgs = _smsService->GetMessages(_options.GetMaxMessageAge());
+        _smsService->ClearDisplayed();
+        _smsService->PrepareMessages(_options.GetMaxMessageAge());
+        auto& msgs = _smsService->GetMessages();
         if (msgs.size() > 0)
         {
             wxArrayString texts = wxSplit(_options.GetTextItem(), ',');
 
-            int displayed = 0;
             int i = 0;
             for (auto it : texts)
             {
@@ -685,7 +684,7 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
                         if (SetText(it, msg._message, msg._wmessage))
                         {
                             msg._displayCount++;
-                            displayed++;
+                            msg._displayed = true;
                         }
                     }
                     else
@@ -699,18 +698,49 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
                 }
                 i++;
             }
+        }
+        else
+        {
+            SetAllText(_options.GetDefaultMessage());
+        }
+    }
+    else
+    {
+        SetAllText(_options.GetDefaultMessage());
+    }
+    RefreshList();
+}
 
+void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& event)
+{
+    TestMessagesDialog dlg(this);
+
+    if (dlg.ShowModal() == wxID_OK)
+    {
+        auto msgs = dlg.TextCtrl_Messages->GetValue();
+        auto ms = wxSplit(msgs, '\n');
+        _smsService->AddTestMessages(ms, _options);
+        RefreshList();
+    }
+}
+
+void xSMSDaemonFrame::RefreshList()
+{
+    if (_smsService != nullptr)
+    {
+        auto& msgs = _smsService->GetMessages();
+        if (msgs.size() > 0)
+        {
             Grid1->Freeze();
             if (Grid1->GetNumberRows() > 0)
             {
                 Grid1->DeleteRows(0, Grid1->GetNumberRows());
             }
-            i = 0;
             for (auto it : msgs)
             {
                 Grid1->AppendRows(1);
                 int row = Grid1->GetNumberRows() - 1;
-                Grid1->SetCellValue(row, 0, it._timestamp.FormatTime());
+                Grid1->SetCellValue(row, 0, it._timestamp.FromTimezone(wxDateTime::TZ::GMT0).FormatTime());
                 Grid1->SetCellValue(row, 1, it.GetStatus());
                 if (it._wmessage != "")
                 {
@@ -720,13 +750,12 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
                 {
                     Grid1->SetCellValue(row, 2, it._from + ": " + it._message);
                 }
-                if (i < displayed)
+                if (it._displayed)
                 {
                     Grid1->SetCellBackgroundColour(row, 0, *wxYELLOW);
                     Grid1->SetCellBackgroundColour(row, 1, *wxYELLOW);
                     Grid1->SetCellBackgroundColour(row, 2, *wxYELLOW);
                 }
-                i++;
             }
             Grid1->Thaw();
         }
@@ -736,8 +765,8 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
             {
                 Grid1->DeleteRows(0, Grid1->GetNumberRows());
             }
-            SetAllText(_options.GetDefaultMessage());
         }
+
     }
     else
     {
@@ -745,6 +774,5 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
         {
             Grid1->DeleteRows(0, Grid1->GetNumberRows());
         }
-        SetAllText(_options.GetDefaultMessage());
     }
 }

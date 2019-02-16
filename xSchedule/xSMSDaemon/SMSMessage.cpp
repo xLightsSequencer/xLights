@@ -1,4 +1,4 @@
-#include "SMSMessage.h""
+#include "SMSMessage.h"
 
 std::set<std::string> SMSMessage::_phoneBlacklist;
 std::set<std::string> SMSMessage::_blacklist;

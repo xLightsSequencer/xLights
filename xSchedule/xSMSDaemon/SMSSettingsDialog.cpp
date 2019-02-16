@@ -200,6 +200,8 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SMSSettingsDialog::OnButton_CancelClick);
 	//*)
 
+    SetEscapeId(ID_BUTTON2);
+
     Choice_SMSService->AppendString("Bandwidth");
     Choice_SMSService->SetSelection(0);
 

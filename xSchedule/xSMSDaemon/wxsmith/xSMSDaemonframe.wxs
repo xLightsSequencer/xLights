@@ -171,6 +171,10 @@
 					<label>View Log</label>
 					<handler function="OnMenuItem_ViewLogSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_TESTMESSAGES" variable="MenuItem_InsertTestMessages" member="yes">
+					<label>Insert Test Messages</label>
+					<handler function="OnMenuItem_InsertTestMessagesSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu2" member="no">
 				<label>Help</label>

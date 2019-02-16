@@ -47,6 +47,7 @@ class xSMSDaemonFrame : public wxFrame
     SMSDaemonOptions _options;
     std::unique_ptr<SMSService> _smsService;
 
+    void RefreshList();
     void ValidateWindow();
     void SendReport(const wxString &loc, wxDebugReportCompress &report);
     std::string xScheduleShowDir();
@@ -80,6 +81,7 @@ public:
         void OnMenuItem_ShowFolderSelected(wxCommandEvent& event);
         void OnRetrieveTimerTrigger(wxTimerEvent& event);
         void OnSendTimerTrigger(wxTimerEvent& event);
+        void OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& event);
         //*)
 
         //(*Identifiers(xSMSDaemonFrame)
@@ -99,6 +101,7 @@ public:
         static const long ID_MNU_ShowFolder;
         static const long ID_MNU_OPTIONS;
         static const long ID_MNU_VIEWLOG;
+        static const long ID_MNU_TESTMESSAGES;
         static const long idMenuAbout;
         static const long ID_TIMER1;
         static const long ID_TIMER2;
@@ -111,6 +114,7 @@ public:
         wxGrid* Grid1;
         wxMenu* Menu1;
         wxMenu* Menu5;
+        wxMenuItem* MenuItem_InsertTestMessages;
         wxMenuItem* MenuItem_Options;
         wxMenuItem* MenuItem_ShowFolder;
         wxMenuItem* MenuItem_ViewLog;

@@ -169,6 +169,7 @@
     <ClCompile Include="SMSDaemonOptions.cpp" />
     <ClCompile Include="SMSMessage.cpp" />
     <ClCompile Include="SMSSettingsDialog.cpp" />
+    <ClCompile Include="TestMessagesDialog.cpp" />
     <ClCompile Include="xSMSDaemonApp.cpp" />
     <ClCompile Include="xSMSDaemonMain.cpp" />
   </ItemGroup>
@@ -184,6 +185,7 @@
     <ClInclude Include="SMSMessage.h" />
     <ClInclude Include="SMSService.h" />
     <ClInclude Include="SMSSettingsDialog.h" />
+    <ClInclude Include="TestMessagesDialog.h" />
     <ClInclude Include="xSMSDaemonApp.h" />
     <ClInclude Include="xSMSDaemonMain.h" />
   </ItemGroup>
