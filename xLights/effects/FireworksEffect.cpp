@@ -408,7 +408,8 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             sinceLastTriggered = 0;
         }
     }
-    else if (useTiming)
+    
+    if (useTiming)
     {
         if (mSequenceElements == nullptr)
         {
@@ -460,7 +461,8 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
             }
         }
     }
-    else if (firePeriods.size() > 0)
+
+    if (!useTiming && !useMusic && firePeriods.size() > 0)
     {
         for (auto it : firePeriods)
         {

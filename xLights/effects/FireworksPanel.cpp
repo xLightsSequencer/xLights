@@ -306,6 +306,17 @@ void FireworksPanel::ValidateWindow()
     {
         Choice_TimingTrack->Enable(false);
     }
+
+    if (CheckBox_FireTiming->GetValue() || CheckBox_Fireworks_UseMusic->GetValue())
+    {
+        Slider_Fireworks_Num_Explosions->Disable();
+        TextCtrl_Fireworks_Explosions->Disable();
+    }
+    else
+    {
+        Slider_Fireworks_Num_Explosions->Enable();
+        TextCtrl_Fireworks_Explosions->Enable();
+    }
 }
 
 PANEL_EVENT_HANDLERS(FireworksPanel)
