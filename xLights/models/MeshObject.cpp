@@ -80,8 +80,8 @@ int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGr
             if (it->second != nullptr) {
                 delete it->second;
             }
-            textures.clear();
         }
+        textures.clear();
         uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();
         ModelXml->DeleteAttribute("ObjFile");
