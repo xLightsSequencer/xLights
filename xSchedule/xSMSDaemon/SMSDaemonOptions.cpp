@@ -36,6 +36,10 @@ void SMSDaemonOptions::Load(const std::string& showDir)
             _token = n->GetAttribute("Token", "");
             _phone = n->GetAttribute("Phone", "");
             _smsService = n->GetAttribute("SMSService", "Bandwidth");
+            if (_smsService == "")
+            {
+                _smsService = "Bandwidth";
+            }
             _defaultMessage = n->GetAttribute("DefaultMessage", "");
             _successMessage = n->GetAttribute("SuccessMessage", "");
             _rejectMessage = n->GetAttribute("RejectMessage", "");

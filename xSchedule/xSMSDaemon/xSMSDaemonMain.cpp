@@ -555,10 +555,14 @@ void xSMSDaemonFrame::LoadOptions()
         }
     }
 
-    _smsService->SetUser(_options.GetUser());
-    _smsService->SetSID(_options.GetSID());
-    _smsService->SetToken(_options.GetToken());
-    _smsService->SetPhone(_options.GetPhone());
+    if (_smsService != nullptr)
+    {
+        _smsService->SetUser(_options.GetUser());
+        _smsService->SetSID(_options.GetSID());
+        _smsService->SetToken(_options.GetToken());
+        _smsService->SetPhone(_options.GetPhone());
+    }
+
     StaticText_IPAddress->SetLabel(_options.GetXScheduleIP() + ":" + wxString::Format("%d", _options.GetXSchedulePort()));
     StaticText_TextItemName->SetLabel(_options.GetTextItem());
     StaticText_Phone->SetLabel(_options.GetPhone());
@@ -713,14 +717,17 @@ void xSMSDaemonFrame::OnSendTimerTrigger(wxTimerEvent& event)
 
 void xSMSDaemonFrame::OnMenuItem_InsertTestMessagesSelected(wxCommandEvent& event)
 {
-    TestMessagesDialog dlg(this);
-
-    if (dlg.ShowModal() == wxID_OK)
+    if (_smsService != nullptr)
     {
-        auto msgs = dlg.TextCtrl_Messages->GetValue();
-        auto ms = wxSplit(msgs, '\n');
-        _smsService->AddTestMessages(ms, _options);
-        RefreshList();
+        TestMessagesDialog dlg(this);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            auto msgs = dlg.TextCtrl_Messages->GetValue();
+            auto ms = wxSplit(msgs, '\n');
+            _smsService->AddTestMessages(ms, _options);
+            RefreshList();
+        }
     }
 }
 
