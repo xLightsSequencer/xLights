@@ -208,15 +208,6 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
     {
         if (mSelectedCorner == CORNER_ALL_SELECTED)
         {
-            int oldx1a = x1a / mCellSize;
-            int oldy1a = y1a / mCellSize;
-            int oldx2a = x2a / mCellSize;
-            int oldy2a = y2a / mCellSize;
-            int oldx1b = x1b / mCellSize;
-            int oldy1b = y1b / mCellSize;
-            int oldx2b = x2b / mCellSize;
-            int oldy2b = y2b / mCellSize;
-
             int dx = (event.GetX() - _startPoint.x) / mCellSize * mCellSize;
             int dy = (event.GetY() - _startPoint.y) / mCellSize * mCellSize;
 
