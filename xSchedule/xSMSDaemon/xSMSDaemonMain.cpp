@@ -42,6 +42,7 @@
 #include "SMSService.h"
 #include "TestMessagesDialog.h"
 #include "Bandwidth.h"
+#include "Voip_ms.h"
 
 //helper functions
 enum wxbuildinfoformat {
@@ -552,6 +553,10 @@ void xSMSDaemonFrame::LoadOptions()
         if (_options.GetSMSService() == "Bandwidth")
         {
             _smsService = std::make_unique<Bandwidth>();
+        }
+        else if (_options.GetSMSService() == "Voip.ms")
+        {
+            _smsService = std::make_unique<Voip_ms>();
         }
     }
 

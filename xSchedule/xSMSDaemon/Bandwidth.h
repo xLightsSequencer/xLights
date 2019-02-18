@@ -50,8 +50,6 @@ class Bandwidth : public SMSService
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-            auto xx = Curl::HTTPSPost("127.0.0.1:80/xScheduleStash", "body", "", "");
-
             bool added = false;
 
             std::string url = BANDWIDTH_API_URL;

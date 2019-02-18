@@ -203,6 +203,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     SetEscapeId(ID_BUTTON2);
 
     Choice_SMSService->AppendString("Bandwidth");
+    Choice_SMSService->AppendString("Voip.ms");
     Choice_SMSService->SetSelection(0);
 
     TextCtrl_xScheduleIPAddress->SetValue(options->GetXScheduleIP());
@@ -301,17 +302,36 @@ void SMSSettingsDialog::OnTextCtrl_TwilioTokenText(wxCommandEvent& event)
 
 void SMSSettingsDialog::ValidateWindow()
 {
-    if (TextCtrl_TargetMatrix->GetValue() == "" ||
-        TextCtrl_User->GetValue() == "" ||
-        TextCtrl_SID->GetValue() == "" ||
-        TextCtrl_Token->GetValue() == "" ||
-        !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+    if (Choice_SMSService->GetStringSelection() == "Bandwidth")
     {
-        Button_Ok->Disable();
+        TextCtrl_Token->Enable();
+        if (TextCtrl_TargetMatrix->GetValue() == "" ||
+            TextCtrl_User->GetValue() == "" ||
+            TextCtrl_SID->GetValue() == "" ||
+            TextCtrl_Token->GetValue() == "" ||
+            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+        {
+            Button_Ok->Disable();
+        }
+        else
+        {
+            Button_Ok->Enable();
+        }
     }
-    else
+    else if (Choice_SMSService->GetStringSelection() == "Voip.ms")
     {
-        Button_Ok->Enable();
+        TextCtrl_Token->Disable();
+        if (TextCtrl_TargetMatrix->GetValue() == "" ||
+            TextCtrl_User->GetValue() == "" ||
+            TextCtrl_SID->GetValue() == "" ||
+            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+        {
+            Button_Ok->Disable();
+        }
+        else
+        {
+            Button_Ok->Enable();
+        }
     }
 
     if (CheckBox_UsePurgoMalum->GetValue())

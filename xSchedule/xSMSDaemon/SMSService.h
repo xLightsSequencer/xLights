@@ -165,7 +165,10 @@ class SMSService
                                             _messages.push_back(msg);
                                             added = true;
                                             logger_base.info("Accepted Msg: %s", (const char*)msg.GetLog().c_str());
-                                            SendSuccessMessage(msg, options.GetSuccessMessage());
+                                            if (msg._from != _myNumber)
+                                            {
+                                                SendSuccessMessage(msg, options.GetSuccessMessage());
+                                            }
                                         }
                                         else
                                         {

@@ -121,7 +121,15 @@ void SMSDaemonOptions::Save(const std::string& showDir)
 bool SMSDaemonOptions::IsValid() const
 {
     if (!IsIPValid(_xScheduleIP)) return false;
-    if (_sid == "" || _token == "" || _textItem == "" || _user == "") return false;
+
+    if (_smsService == "Bandwidth")
+    {
+        if (_sid == "" || _token == "" || _textItem == "" || _user == "") return false;
+    }
+    else if (_smsService == "Voip.ms")
+    {
+        if (_sid == "" || _textItem == "" || _user == "") return false;
+    }
     return true;
 }
 
