@@ -42,7 +42,7 @@
 #include "SMSService.h"
 #include "TestMessagesDialog.h"
 #include "Bandwidth.h"
-#include "Voip_ms.h"
+#include "voip_ms.h"
 
 //helper functions
 enum wxbuildinfoformat {
