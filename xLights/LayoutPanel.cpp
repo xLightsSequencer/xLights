@@ -950,11 +950,19 @@ void LayoutPanel::UpdatePreview()
 }
 
 void LayoutPanel::resetPropertyGrid() {
+    auto scroll = propertyEditor->GetScrollPos(wxVERTICAL);
+    auto top = propertyEditor->GetItemAtY(0);
     clearPropGrid();
     if (selectedBaseObject != nullptr) {
         SetupPropGrid(selectedBaseObject);
+        propertyEditor->SetScrollPos(wxVERTICAL, scroll - 1, true);
+        wxScrollWinEvent e(wxEVT_SCROLLWIN_THUMBRELEASE);
+        e.SetOrientation(wxVERTICAL);
+        e.SetPosition(scroll);
+        propertyEditor->HandleOnScroll(e);
     }
 }
+
 void LayoutPanel::clearPropGrid() {
     wxPGProperty *p = propertyEditor->GetPropertyByName("ModelAppearance");
     if (p != nullptr) {
@@ -3433,11 +3441,13 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
     {
         LockSelectedModels(true);
         UpdatePreview();
+        resetPropertyGrid();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_UNLOCK)
     {
         LockSelectedModels(false);
         UpdatePreview();
+        resetPropertyGrid();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTASCUSTOM)
     {
@@ -3471,6 +3481,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent &event)
             md->GetBaseObjectScreenLocation().SetMHeight((int)render_ht);
         }
         UpdatePreview();
+        resetPropertyGrid();
     }
     else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL)
     {
@@ -4292,6 +4303,7 @@ void LayoutPanel::Nudge(int key)
 
         xlights->MarkEffectsFileDirty(true);
         UpdatePreview();
+        resetPropertyGrid();
 
         // set last time after everything is done
         lastTime = wxGetUTCTimeMillis();
@@ -5781,11 +5793,13 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event)
         {
             LockSelectedModels(true);
             UpdatePreview();
+            resetPropertyGrid();
         }
         else if (type == "UNLOCK_MODEL")
         {
             LockSelectedModels(false);
             UpdatePreview();
+            resetPropertyGrid();
         }
         else if (type == "GROUP_MODELS")
         {
