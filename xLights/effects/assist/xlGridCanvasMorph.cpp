@@ -257,7 +257,23 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
         }
         else
         {
-            UpdateSelectedMorphCorner(event.GetX(), event.GetY());
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // y only
+                    UpdateSelectedMorphCorner(event.GetX(), event.GetY(), false, true);
+                }
+                else
+                {
+                    // x only
+                    UpdateSelectedMorphCorner(event.GetX(), event.GetY(), true, false);
+                }
+            }
+            else
+            {
+                UpdateSelectedMorphCorner(event.GetX(), event.GetY());
+            }
             if (!mRightDragging)
             {
                 StoreUpdatedMorphPositions();
@@ -295,7 +311,7 @@ void xlGridCanvasMorph::mouseRightUp(wxMouseEvent& event)
     }
 }
 
-void xlGridCanvasMorph::UpdateSelectedMorphCorner(int x, int y)
+void xlGridCanvasMorph::UpdateSelectedMorphCorner(int x, int y, bool updateX, bool updateY)
 {
     if( x < mCellSize ) x = mCellSize;
     if( x > mColumns * mCellSize ) x = mColumns * mCellSize;
@@ -307,33 +323,33 @@ void xlGridCanvasMorph::UpdateSelectedMorphCorner(int x, int y)
 
     if( mSelectedCorner == CORNER_1A_SELECTED )
     {
-        x1a = x_pos;
-        y1a = y_pos;
+        if (updateX) x1a = x_pos;
+        if (updateY) y1a = y_pos;
         if( mMorphStartLinked )
         {
-            x1b = x_pos;
-            y1b = y_pos;
+            if (updateX) x1b = x_pos;
+            if (updateY) y1b = y_pos;
         }
     }
     else if( mSelectedCorner == CORNER_1B_SELECTED )
     {
-        x1b = x_pos;
-        y1b = y_pos;
+        if (updateX) x1b = x_pos;
+        if (updateY) y1b = y_pos;
     }
     else if( mSelectedCorner == CORNER_2A_SELECTED )
     {
-        x2a = x_pos;
-        y2a = y_pos;
+        if (updateX) x2a = x_pos;
+        if (updateY) y2a = y_pos;
         if( mMorphEndLinked )
         {
-            x2b = x_pos;
-            y2b = y_pos;
+            if (updateX) x2b = x_pos;
+            if (updateY) y2b = y_pos;
         }
     }
     else if( mSelectedCorner == CORNER_2B_SELECTED )
     {
-        x2b = x_pos;
-        y2b = y_pos;
+        if (updateX) x2b = x_pos;
+        if (updateY) y2b = y_pos;
     }
     Refresh(false);
 }

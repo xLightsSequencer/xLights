@@ -40,7 +40,7 @@ class xlGridCanvasMorph : public xlGridCanvas
         void DrawMorphEffect();
         void CreateCornerTextures();
         void UpdateMorphPositionsFromEffect();
-        void UpdateSelectedMorphCorner(int x, int y);
+        void UpdateSelectedMorphCorner(int x, int y, bool updateX = true, bool updateY = true);
         void SetMorphCorner1a(int x, int y);
         void SetMorphCorner1b(int x, int y);
         void SetMorphCorner2a(int x, int y);
