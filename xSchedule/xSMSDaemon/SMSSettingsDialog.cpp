@@ -103,16 +103,16 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	SpinCtrl_DisplayDuration = new wxSpinCtrl(this, ID_SPINCTRL2, _T("30"), wxDefaultPosition, wxDefaultSize, 0, 1, 600, 30, _T("ID_SPINCTRL2"));
 	SpinCtrl_DisplayDuration->SetValue(_T("30"));
 	FlexGridSizer3->Add(SpinCtrl_DisplayDuration, 1, wxALL|wxEXPAND, 2);
-	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("User {user}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
-	FlexGridSizer3->Add(StaticText12, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText_User = new wxStaticText(this, ID_STATICTEXT12, _("User"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
+	FlexGridSizer3->Add(StaticText_User, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_User = new wxTextCtrl(this, ID_TEXTCTRL7, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL7"));
 	FlexGridSizer3->Add(TextCtrl_User, 1, wxALL|wxEXPAND, 2);
-	StaticText4 = new wxStaticText(this, ID_STATICTEXT4, _("SID {sid}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer3->Add(StaticText4, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText_SID = new wxStaticText(this, ID_STATICTEXT4, _("SID"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
+	FlexGridSizer3->Add(StaticText_SID, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_SID = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL2"));
 	FlexGridSizer3->Add(TextCtrl_SID, 1, wxALL|wxEXPAND, 2);
-	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Token {token}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-	FlexGridSizer3->Add(StaticText5, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+	StaticText_Token = new wxStaticText(this, ID_STATICTEXT5, _("Token"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer3->Add(StaticText_Token, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	TextCtrl_Token = new wxTextCtrl(this, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD, wxDefaultValidator, _T("ID_TEXTCTRL3"));
 	FlexGridSizer3->Add(TextCtrl_Token, 1, wxALL|wxEXPAND, 2);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Phone"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
@@ -123,7 +123,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	CheckBox_UsePurgoMalum = new wxCheckBox(this, ID_CHECKBOX1, _("Use PurgoMalum online profanity filter"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_UsePurgoMalum->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_UsePurgoMalum, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_RejectProfanity = new wxCheckBox(this, ID_CHECKBOX7, _("Reject messages containing profanity"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX7"));
 	CheckBox_RejectProfanity->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_RejectProfanity, 1, wxALL|wxEXPAND, 2);
@@ -135,7 +135,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 	CheckBox_UseLocalWhitelist = new wxCheckBox(this, ID_CHECKBOX4, _("Use local whitelist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_UseLocalWhitelist->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_UseLocalWhitelist, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	CheckBox_UsePhoneBlacklist = new wxCheckBox(this, ID_CHECKBOX8, _("Use phone blacklist"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX8"));
 	CheckBox_UsePhoneBlacklist->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_UsePhoneBlacklist, 1, wxALL|wxEXPAND, 2);
@@ -304,6 +304,9 @@ void SMSSettingsDialog::ValidateWindow()
 {
     if (Choice_SMSService->GetStringSelection() == "Bandwidth")
     {
+        StaticText_User->SetLabel("User Id");
+        StaticText_SID->SetLabel("API Token");
+        StaticText_Token->SetLabel("API Secret");
         TextCtrl_Token->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
@@ -320,6 +323,10 @@ void SMSSettingsDialog::ValidateWindow()
     }
     else if (Choice_SMSService->GetStringSelection() == "Voip.ms")
     {
+        StaticText_User->SetLabel("Email");
+        StaticText_SID->SetLabel("API Password");
+        StaticText_Token->SetLabel("UNUSED");
+
         TextCtrl_Token->Disable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||

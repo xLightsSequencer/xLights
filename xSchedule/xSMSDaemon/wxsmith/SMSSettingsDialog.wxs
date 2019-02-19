@@ -114,8 +114,8 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
-							<label>User {user}</label>
+						<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText_User" member="yes">
+							<label>User</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -131,8 +131,8 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
-							<label>SID {sid}</label>
+						<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText_SID" member="yes">
+							<label>SID</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
@@ -148,8 +148,8 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
-							<label>Token {token}</label>
+						<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText_Token" member="yes">
+							<label>Token</label>
 						</object>
 						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>2</border>
