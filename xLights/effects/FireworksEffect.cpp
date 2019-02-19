@@ -302,16 +302,29 @@ void FireworksEffect::SetPanelTimingTracks() const
 
 std::pair<int,int> FireworksEffect::GetFireworkLocation(int width, int height, int overridex, int overridey)
 {
-    if (overridex >= 0 && overridey >= 0) return { overridex * width / 100, overridey * height / 100 };
-
-    int x25 = static_cast<int>(0.25f * width);
-    int x75 = static_cast<int>(0.75f * width);
-    int y25 = static_cast<int>(0.25f * height);
-    int y75 = static_cast<int>(0.75f * height);
     int startX;
     int startY;
-    if ((x75 - x25) > 0) startX = x25 + rand() % (x75 - x25); else startX = 0;
-    if ((y75 - y25) > 0) startY = y25 + rand() % (y75 - y25); else startY = 0;
+    if (overridex >= 0)
+    {
+        startX = overridex * width / 100;
+    }
+    else
+    {
+        int x25 = static_cast<int>(0.25f * width);
+        int x75 = static_cast<int>(0.75f * width);
+        if ((x75 - x25) > 0) startX = x25 + rand() % (x75 - x25); else startX = 0;
+    }
+
+    if (overridey >= 0)
+    {
+        startY = overridey * height / 100;
+    }
+    else
+    {
+        int y25 = static_cast<int>(0.25f * height);
+        int y75 = static_cast<int>(0.75f * height);
+        if ((y75 - y25) > 0) startY = y25 + rand() % (y75 - y25); else startY = 0;
+    }
     return { startX, startY };
 }
 
