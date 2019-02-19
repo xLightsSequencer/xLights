@@ -189,6 +189,8 @@
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
+    <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
+    <ClCompile Include="effects\KaleidoscopePanel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
     <ClCompile Include="effects\LinesPanel.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
@@ -560,6 +562,8 @@
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
+    <ClInclude Include="effects\KaleidoscopeEffect.h" />
+    <ClInclude Include="effects\KaleidoscopePanel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
     <ClInclude Include="effects\LinesPanel.h" />
     <ClInclude Include="effects\ShapeEffect.h" />

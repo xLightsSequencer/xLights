@@ -30,6 +30,7 @@ public:
         eff_GALAXY,
         eff_GARLANDS,
         eff_GLEDIATOR,
+        eff_KALEIDOSCOPE,
         eff_LIFE,
         eff_LIGHTNING,
         eff_LINES,

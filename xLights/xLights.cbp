@@ -736,6 +736,10 @@
 		<Unit filename="effects/GlediatorEffect.h" />
 		<Unit filename="effects/GlediatorPanel.cpp" />
 		<Unit filename="effects/GlediatorPanel.h" />
+		<Unit filename="effects/KaleidoscopeEffect.cpp" />
+		<Unit filename="effects/KaleidoscopeEffect.h" />
+		<Unit filename="effects/KaleidoscopePanel.cpp" />
+		<Unit filename="effects/KaleidoscopePanel.h" />
 		<Unit filename="effects/LifeEffect.cpp" />
 		<Unit filename="effects/LifeEffect.h" />
 		<Unit filename="effects/LifePanel.cpp" />
@@ -1142,6 +1146,7 @@
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
+		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
 		<Unit filename="wxsmith/LinesPanel.wxs" />
@@ -1321,6 +1326,7 @@
 					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="effects/GalaxyPanel.cpp" hdr="effects/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GarlandsPanel.wxs" src="effects/GarlandsPanel.cpp" hdr="effects/GarlandsPanel.h" fwddecl="1" i18n="1" name="GarlandsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GlediatorPanel.wxs" src="effects/GlediatorPanel.cpp" hdr="effects/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/KaleidoscopePanel.wxs" src="effects/KaleidoscopePanel.cpp" hdr="effects/KaleidoscopePanel.h" fwddecl="1" i18n="1" name="KaleidoscopePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LifePanel.wxs" src="effects/LifePanel.cpp" hdr="effects/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LightningPanel.wxs" src="effects/LightningPanel.cpp" hdr="effects/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LinesPanel.wxs" src="effects/LinesPanel.cpp" hdr="effects/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
