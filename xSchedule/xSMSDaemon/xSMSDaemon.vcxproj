@@ -186,6 +186,7 @@
     <ClInclude Include="SMSService.h" />
     <ClInclude Include="SMSSettingsDialog.h" />
     <ClInclude Include="TestMessagesDialog.h" />
+    <ClInclude Include="Twilio.h" />
     <ClInclude Include="voip_ms.h" />
     <ClInclude Include="xSMSDaemonApp.h" />
     <ClInclude Include="xSMSDaemonMain.h" />

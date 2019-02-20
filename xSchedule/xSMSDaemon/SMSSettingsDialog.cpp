@@ -203,6 +203,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
     SetEscapeId(ID_BUTTON2);
 
     Choice_SMSService->AppendString("Bandwidth");
+    Choice_SMSService->AppendString("Twilio");
     Choice_SMSService->AppendString("Voip.ms");
     Choice_SMSService->SetSelection(0);
 
@@ -308,6 +309,7 @@ void SMSSettingsDialog::ValidateWindow()
         StaticText_SID->SetLabel("API Token");
         StaticText_Token->SetLabel("API Secret");
         TextCtrl_Token->Enable();
+        TextCtrl_User->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "" ||
@@ -328,8 +330,29 @@ void SMSSettingsDialog::ValidateWindow()
         StaticText_Token->SetLabel("UNUSED");
 
         TextCtrl_Token->Disable();
+        TextCtrl_User->Enable();
         if (TextCtrl_TargetMatrix->GetValue() == "" ||
             TextCtrl_User->GetValue() == "" ||
+            TextCtrl_SID->GetValue() == "" ||
+            !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
+        {
+            Button_Ok->Disable();
+        }
+        else
+        {
+            Button_Ok->Enable();
+        }
+    }
+    else if (Choice_SMSService->GetStringSelection() == "Twilio")
+    {
+        StaticText_User->SetLabel("UNUSED");
+        StaticText_SID->SetLabel("SID");
+        StaticText_Token->SetLabel("Auth Token");
+
+        TextCtrl_User->Disable();
+        TextCtrl_Token->Enable();
+        if (TextCtrl_TargetMatrix->GetValue() == "" ||
+            TextCtrl_Token->GetValue() == "" ||
             TextCtrl_SID->GetValue() == "" ||
             !IsIPValid(TextCtrl_xScheduleIPAddress->GetValue()))
         {

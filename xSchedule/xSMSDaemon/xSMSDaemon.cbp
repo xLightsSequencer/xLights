@@ -249,6 +249,7 @@
 		<Unit filename="../wxJSON/jsonreader.h" />
 		<Unit filename="../wxJSON/jsonval.cpp" />
 		<Unit filename="../wxJSON/jsonval.h" />
+		<Unit filename="Bandwidth.h" />
 		<Unit filename="Curl.h" />
 		<Unit filename="SMSDaemonOptions.cpp" />
 		<Unit filename="SMSDaemonoptions.h" />
@@ -258,6 +259,14 @@
 		<Unit filename="SMSSettingsDialog.h" />
 		<Unit filename="TestMessagesDialog.cpp" />
 		<Unit filename="TestMessagesDialog.h" />
+		<Unit filename="Twilio.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="64bit_MinGW_Release" />
+		</Unit>
+		<Unit filename="voip_ms.h" />
 		<Unit filename="wxsmith/SMSSettingsDialog.wxs" />
 		<Unit filename="wxsmith/TestMessagesDialog.wxs" />
 		<Unit filename="wxsmith/xSMSDaemonframe.wxs" />
@@ -265,12 +274,6 @@
 		<Unit filename="xSMSDaemonApp.h" />
 		<Unit filename="xSMSDaemonMain.cpp" />
 		<Unit filename="xSMSDaemonMain.h" />
-		<Unit filename="resource.rc">
-			<Option compilerVar="WINDRES" />
-			<Option target="MinGW_Debug" />
-			<Option target="MinGW_Release" />
-			<Option target="64bit_MinGW_Release" />
-		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />
