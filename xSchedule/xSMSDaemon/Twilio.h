@@ -43,7 +43,7 @@ class Twilio : public SMSService
             return true;
 		}
 
-        virtual std::string GetServiceName() const override { return "Bandwidth"; }
+        virtual std::string GetServiceName() const override { return "Twilio"; }
         virtual bool RetrieveMessages(const SMSDaemonOptions& options) override
         {
             static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));

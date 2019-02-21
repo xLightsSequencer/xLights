@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (keith)   Fix bandwith.com cant send SMS
+   -- bug (keith)   Fix crash when using large triangles in Kaleidoscope on some models
+   -- bug (keith)   Fix xSchedule cant set text on a text item playing in every step
 2019.13 February 21, 2019
    -- enh (keith)   Add the kaleidoscope effect
    -- enh (keith)   Add voip.ms support to SMS Daemon
@@ -88,7 +91,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (scott)   Added rotation to the Shape Effect
    -- enh (scott)   Added Value Curve to Ripple Rotation Setting
 2019.07 January 27, 2019
-   -- enh (tyler)   Add inside/outside ration to star model
+   -- enh (tyler)   Add inside/outside ratio to star model
    -- enh (dkulp)   Add zoom gesture to Preview Panels.
    -- bug (dkulp)   OpenGL 2.1 - texture/image brightness was always 100%
    -- enh (dkulp)   Add Mac TouchPad/MagicMouse "wheel" event handling to Preview Panels.

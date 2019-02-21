@@ -27,7 +27,7 @@ public:
     };
     typedef struct Var Var;
 
-    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "")
+    static std::string HTTPSPost(const std::string& url, const wxString& body, const std::string& user = "", const std::string& password = "", const std::string& contentType = "")
     {
         CURL* curl = curl_easy_init();
 
@@ -36,6 +36,12 @@ public:
             struct curl_slist *headerlist = nullptr;
             static const char buf[] = "Expect:";
             headerlist = curl_slist_append(headerlist, buf);
+
+            if (contentType == "JSON")
+            {
+                static const char buf2[] = "Content-Type: application/json";
+                headerlist = curl_slist_append(headerlist, buf2);
+            }
 
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             if (user != "" || password != "")

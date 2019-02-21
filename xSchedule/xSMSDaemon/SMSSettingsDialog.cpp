@@ -191,6 +191,7 @@ SMSSettingsDialog::SMSSettingsDialog(wxWindow* parent, SMSDaemonOptions* options
 
 	Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_xScheduleIPAddressText);
 	Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_TargetMatrixText);
+	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SMSSettingsDialog::OnChoice_SMSServiceSelect);
 	Connect(ID_TEXTCTRL7,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_UserText);
 	Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_TwilioSIDText);
 	Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SMSSettingsDialog::OnTextCtrl_TwilioTokenText);
@@ -385,6 +386,11 @@ void SMSSettingsDialog::OnTextCtrl_UserText(wxCommandEvent& event)
 }
 
 void SMSSettingsDialog::OnCheckBox_UsePurgoMalumClick(wxCommandEvent& event)
+{
+    ValidateWindow();
+}
+
+void SMSSettingsDialog::OnChoice_SMSServiceSelect(wxCommandEvent& event)
 {
     ValidateWindow();
 }

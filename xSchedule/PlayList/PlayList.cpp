@@ -1407,7 +1407,17 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
         ReentrancyCounter rec(_reentrancyCounter);
         if (_currentStep == nullptr) return nullptr;
 
-        return _currentStep->GetTextItem(name);
+        auto ti = _currentStep->GetTextItem(name);
+
+        if (ti == nullptr)
+        {
+            for (auto it: _everySteps)
+            {
+                ti = it->GetTextItem(name);
+                if (ti != nullptr) break;
+            }
+        }
+        return ti;
     }
 }
 

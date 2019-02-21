@@ -125,6 +125,7 @@ class SMSSettingsDialog: public wxDialog
 		void OnTextCtrl_TwilioPhoneText(wxCommandEvent& event);
 		void OnTextCtrl_UserText(wxCommandEvent& event);
 		void OnCheckBox_UsePurgoMalumClick(wxCommandEvent& event);
+		void OnChoice_SMSServiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

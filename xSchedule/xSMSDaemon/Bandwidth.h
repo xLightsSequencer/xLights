@@ -38,8 +38,8 @@ class Bandwidth : public SMSService
             b.Replace("{phone}", _myNumber);
             b.Replace("{tophone}", number);
             b.Replace("{message}", message);
+            std::string res = Curl::HTTPSPost(url, b, _sid, _token, "JSON");
 
-            std::string res = Curl::HTTPSPost(url, b, _sid, _token);
             logger_base.debug("%s", (const char*)url.c_str());
             logger_base.debug("%s", (const char*)res.c_str());
             return true;

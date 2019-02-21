@@ -72,7 +72,9 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxChoice" name="ID_CHOICE1" variable="Choice_SMSService" member="yes" />
+						<object class="wxChoice" name="ID_CHOICE1" variable="Choice_SMSService" member="yes">
+							<handler function="OnChoice_SMSServiceSelect" entry="EVT_CHOICE" />
+						</object>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>2</border>
 						<option>1</option>
