@@ -369,6 +369,8 @@
     <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="effects\LinesEffect.cpp" />
     <ClCompile Include="effects\LinesPanel.cpp" />
+    <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
+    <ClCompile Include="effects\KaleidoscopePanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -739,6 +741,8 @@
     <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="effects\LinesEffect.h" />
     <ClInclude Include="effects\LinesPanel.h" />
+    <ClInclude Include="effects\KaleidoscopeEffect.h" />
+    <ClInclude Include="effects\KaleidoscopePanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />
