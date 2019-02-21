@@ -179,9 +179,9 @@ public:
 
     void InitialiseSquare(int size, int rotation, int x, int y, int width, int height)
     {
-        for (int xx = x - size / 2; xx <= x + size / 2; xx++)
+        for (int xx = std::max(0, x - size / 2); xx <= std::min(x + size / 2, width -1); xx++)
         {
-            for (int yy = y - size / 2; yy <= y + size / 2; yy++)
+            for (int yy = std::max(0, y - size / 2); yy <= std::min(y + size / 2, height -1); yy++)
             {
                 if (xx >= 0 && xx < width && yy >= 0 && yy < height)
                 {
@@ -221,9 +221,9 @@ public:
         int maxy = GetPointAfterMove(x, y, 90, radius).second;
         int midx = (maxx + minx) / 2;
 
-        for (int xx = minx; xx < midx; xx++)
+        for (int xx = std::max(0,minx); xx < std::min(midx, width -1); xx++)
         {
-            for (int yy = miny; yy <= maxy; yy++)
+            for (int yy = std::max(0, miny); yy <= std::min(maxy, height - 1); yy++)
             {
                 if (!IsPointAboveLineThroughPoints(xx, yy, minx, miny, midx, maxy))
                 {
@@ -231,9 +231,9 @@ public:
                 }
             }
         }
-        for (int xx = midx; xx <= maxx; xx++)
+        for (int xx = std::max(0,midx); xx <= std::min(maxx, width -1); xx++)
         {
-            for (int yy = miny; yy <= maxy; yy++)
+            for (int yy = std::max(0,miny); yy <= std::min(maxy, height -1); yy++)
             {
                 if (!IsPointAboveLineThroughPoints(xx, yy, midx, maxy, maxx, miny))
                 {
