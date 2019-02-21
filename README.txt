@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.13 February 21, 2019
+   -- enh (keith)   Add the kaleidoscope effect
+   -- enh (keith)   Add voip.ms support to SMS Daemon
+   -- enh (keith)   Add Twilio support to SMS Daemon
+   -- enh (keith)   Add ctrl/ctrl-shift constraints to subbuffer corner moves
+   -- enh (keith)   Add ctrl/ctrl-shift constraints to morph assist panel corner moves
+   -- enh (keith)   Allow fireworks x/y location to work independently. If only one is set only that axis is constrained
+   -- bug (dkulp)   Fix an occasional crash when loading a mesh
 2019.12 February 16, 2019
    -- enh (scott)   Timing Tracks will persist the collapsed flag
    -- enh (scott)   Added Subfolder Selection to Batch Render Dialog

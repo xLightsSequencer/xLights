@@ -1,10 +1,10 @@
 #include <sstream>
 
-#include "../../include/Kaleidoscope-64.xpm"
-#include "../../include/Kaleidoscope-48.xpm"
-#include "../../include/Kaleidoscope-32.xpm"
-#include "../../include/Kaleidoscope-24.xpm"
-#include "../../include/Kaleidoscope-16.xpm"
+#include "../../include/kaleidoscope-64.xpm"
+#include "../../include/kaleidoscope-48.xpm"
+#include "../../include/kaleidoscope-32.xpm"
+#include "../../include/kaleidoscope-24.xpm"
+#include "../../include/kaleidoscope-16.xpm"
 
 #include "KaleidoscopeEffect.h"
 #include "KaleidoscopePanel.h"
