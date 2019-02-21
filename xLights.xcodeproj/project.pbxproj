@@ -461,6 +461,8 @@
 		67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */; };
 		67B31CBA21AC2F0D005ECB82 /* Parallel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 674C7C7921132E3E0056FB9D /* Parallel.cpp */; };
 		67B32DD31A16972000143B0F /* TabPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 673E425717F0D23E00F4BC76 /* TabPreview.cpp */; };
+		67B36550221ECFF900EEE703 /* KaleidoscopePanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B3654C221ECFF800EEE703 /* KaleidoscopePanel.cpp */; };
+		67B36551221ECFF900EEE703 /* KaleidoscopeEffect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B3654F221ECFF900EEE703 /* KaleidoscopeEffect.cpp */; };
 		67B5F50E2045B96100F5B99D /* SequenceVideoPreview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50A2045B96000F5B99D /* SequenceVideoPreview.cpp */; };
 		67B5F50F2045B96100F5B99D /* SequenceVideoPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B5F50D2045B96000F5B99D /* SequenceVideoPanel.cpp */; };
 		67B61E8021FEF3A900BCB000 /* RemapDMXChannelsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 67B61E7E21FEF3A800BCB000 /* RemapDMXChannelsDialog.cpp */; };
@@ -1577,6 +1579,10 @@
 		67B31CB521AC2E5A005ECB82 /* PlayListItemDimPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemDimPanel.cpp; path = PlayList/PlayListItemDimPanel.cpp; sourceTree = "<group>"; };
 		67B31CB621AC2E5A005ECB82 /* PlayListItemDim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlayListItemDim.h; path = PlayList/PlayListItemDim.h; sourceTree = "<group>"; };
 		67B31CB721AC2E5A005ECB82 /* PlayListItemDim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlayListItemDim.cpp; path = PlayList/PlayListItemDim.cpp; sourceTree = "<group>"; };
+		67B3654C221ECFF800EEE703 /* KaleidoscopePanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KaleidoscopePanel.cpp; path = effects/KaleidoscopePanel.cpp; sourceTree = "<group>"; };
+		67B3654D221ECFF800EEE703 /* KaleidoscopeEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KaleidoscopeEffect.h; path = effects/KaleidoscopeEffect.h; sourceTree = "<group>"; };
+		67B3654E221ECFF800EEE703 /* KaleidoscopePanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KaleidoscopePanel.h; path = effects/KaleidoscopePanel.h; sourceTree = "<group>"; };
+		67B3654F221ECFF900EEE703 /* KaleidoscopeEffect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KaleidoscopeEffect.cpp; path = effects/KaleidoscopeEffect.cpp; sourceTree = "<group>"; };
 		67B4C91F17B53D960006B951 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		67B4C92017B53D960006B951 /* CoreMediaIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMediaIO.framework; path = System/Library/Frameworks/CoreMediaIO.framework; sourceTree = SDKROOT; };
 		67B4C92117B53D960006B951 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -2447,6 +2453,10 @@
 				67B2CFC71C3A186A003C17CA /* GlediatorEffect.h */,
 				67B2CF331C39D98A003C17CA /* GlediatorPanel.cpp */,
 				67B2CF341C39D98A003C17CA /* GlediatorPanel.h */,
+				67B3654F221ECFF900EEE703 /* KaleidoscopeEffect.cpp */,
+				67B3654D221ECFF800EEE703 /* KaleidoscopeEffect.h */,
+				67B3654C221ECFF800EEE703 /* KaleidoscopePanel.cpp */,
+				67B3654E221ECFF800EEE703 /* KaleidoscopePanel.h */,
 				67B2CFC41C3A186A003C17CA /* LifeEffect.cpp */,
 				67B2CFC51C3A186A003C17CA /* LifeEffect.h */,
 				67B2CF351C39D98A003C17CA /* LifePanel.cpp */,
@@ -3986,6 +3996,7 @@
 				67B2CF8F1C39D98A003C17CA /* CurtainPanel.cpp in Sources */,
 				67CE25922138234000ADF180 /* ViewObjectManager.cpp in Sources */,
 				67A4E02C1E85AF1E00EBFAD9 /* CustomTimingDialog.cpp in Sources */,
+				67B36550221ECFF900EEE703 /* KaleidoscopePanel.cpp in Sources */,
 				676CFAF5207D2BBE002EB5E7 /* jsonval.cpp in Sources */,
 				67EE95B31C848A3600C62C95 /* VideoEffect.cpp in Sources */,
 				67A61A3217B51C0F008E95BB /* PaletteMgmtDialog.cpp in Sources */,
@@ -4224,6 +4235,7 @@
 				67B2B23A1E1947BE0024F0BB /* TestPreset.cpp in Sources */,
 				670C828A1C45C48B000AA5D8 /* ModelManager.cpp in Sources */,
 				674E3EEC20CEB6010087FDA1 /* DissolveTransitionPattern.cpp in Sources */,
+				67B36551221ECFF900EEE703 /* KaleidoscopeEffect.cpp in Sources */,
 				6701999F1CE5A03200AE9B7E /* RenderProgressDialog.cpp in Sources */,
 				67DAFDE01CA1A63C004B3237 /* MidiMessage.cpp in Sources */,
 				671130BC1E4EB29B00AF09A7 /* FastComboEditor.cpp in Sources */,

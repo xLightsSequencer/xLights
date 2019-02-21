@@ -300,7 +300,7 @@ bool KaleidoscopeEffect::KaleidoscopeDone(const std::vector<std::vector<bool>>& 
 {
     for (const auto& xx : current)
     {
-        for (const auto& yy : xx)
+        for (const auto yy : xx)
         {
             if (!yy) return false;
         }
@@ -334,7 +334,8 @@ void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int heig
         std::string row;
         for (int x = 0; x < width; x++)
         {
-            row += wxString::Format(" %d", current[x][y]);
+            bool b = current[x][y];
+            row += wxString::Format(" %d", (int)b);
         }
         logger_base.debug(row);
     }
@@ -342,7 +343,7 @@ void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int heig
 
 void KaleidoscopeEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    //static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
     std::string type = SettingsMap.Get("CHOICE_Kaleidoscope_Type", "Triangle");
