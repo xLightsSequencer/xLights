@@ -1919,12 +1919,28 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                 std::string effectName = el->GetEffect(j)->GetEffectName();
                 int effectIndex = el->GetEffect(j)->GetEffectIndex();
 
+                auto oldSettings = el->GetEffect(j)->GetSettings();
+
                 std::string settings = EffectsPanel1->GetRandomEffectString(effectIndex).ToStdString();
                 std::string palette = colorPanel->GetRandomColorString().ToStdString();
 
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
                                                                        el->GetEffect(j));
+
+                // Keep canvas mode if it was set as the effect is unlikely to work 
+                // properly without it
+                for (auto it : oldSettings)
+                {
+                    //if (StartsWith(it.first, "B_") || StartsWith(it.first, "T_"))
+                    //{
+                    //    settings += "," + it.first + "=" + it.second;
+                    //}
+                    if (it.first == "T_CHECKBOX_Canvas")
+                    {
+                        settings += "," + it.first + "=" + it.second;
+                    }
+                }
 
                 el->GetEffect(j)->SetSettings(settings, true);
                 el->GetEffect(j)->SetEffectIndex(effectIndex);
