@@ -920,7 +920,8 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
         if (accumulator.count > maxVertexCount) {
             maxVertexCount = accumulator.count;
         }
-        DrawGLUtils::Draw(accumulator);
+        DrawGLUtils::Draw(accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+        DrawGLUtils::Draw(accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
     }
     DrawGLUtils::PopMatrix();
     if (swapBuffers)
