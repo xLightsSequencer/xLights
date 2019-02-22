@@ -1572,9 +1572,11 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
         // If we are a 'Per Model Default' render buffer then we need to ensure we create a full set of pixels
         // so we change the type of the render buffer but just for model initialisation
+        // 2019-02-22 This was "Horizontal Per Model" but it causes DMX Model issues ... 
+        // so I have changed it to "Single Line". In theory both should create all the nodes
         auto tt = type;
         if (StartsWith(type, "Per Model")) {
-            tt = "Horizontal Per Model";
+            tt = "Single Line";
         }
         model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
