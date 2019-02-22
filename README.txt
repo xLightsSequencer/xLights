@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+   -- bug (dkulp)   Fix bug where 2d background image not honoring center is 0 setting
    -- bug (keith)   Fix bandwith.com cant send SMS
    -- bug (keith)   Fix crash when using large triangles in Kaleidoscope on some models
    -- bug (keith)   Fix xSchedule cant set text on a text item playing in every step

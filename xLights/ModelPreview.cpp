@@ -875,15 +875,20 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
             }
         }
         accumulator.PreAllocTexture(6);
+        float x = 0;
+        if (_center2D0) {
+            x = -virtualWidth;
+            x /= 2.0f;
+        }
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
-        accumulator.AddTextureVertex(0, 0, tx1, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        accumulator.AddTextureVertex(x, 0, tx1, -0.5 / (image->textureHeight));
+        accumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+        accumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
 
-        accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
-        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
+        accumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        accumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+        accumulator.AddTextureVertex(x + virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
 
         float i = mBackgroundBrightness;
         float a = mBackgroundAlpha * 255.0f;
@@ -914,7 +919,8 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             maxVertexCount = accumulator3d.count;
         }
         DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-        DrawGLUtils::Draw(accumulator3d);
+        DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+        DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
         DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
     } else {
         if (accumulator.count > maxVertexCount) {
