@@ -182,7 +182,7 @@ void SnowflakesEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBu
     buffer.palette.GetColor(1, color2);
 
     if (buffer.needToInit ||
-        Count != LastSnowflakeCount ||
+        (Count != LastSnowflakeCount && falling == "Driving") ||
         SnowflakeType != LastSnowflakeType ||
         falling != LastFalling) {
 
