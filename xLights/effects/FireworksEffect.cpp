@@ -31,7 +31,12 @@ std::list<std::string> FireworksEffect::CheckEffectSettings(const SettingsMap& s
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Fireworks_UseMusic", false))
     {
-        res.push_back(wxString::Format("    WARN: Fireworks effect cant grow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+        res.push_back(wxString::Format("    ERR: Fireworks effect cant grow to music if there is no music. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
+    }
+
+    if (settings.GetBool("E_CHECKBOX_FIRETIMING", false) && settings.Get("E_CHOICE_FIRETIMINGTRACK","") == "")
+    {
+        res.push_back(wxString::Format("    ERR: Fireworks effect is meant to fire with timing track but no timing track selected. Model '%s', Start %s", model->GetName(), FORMATTIME(eff->GetStartTimeMS())).ToStdString());
     }
 
     return res;
@@ -375,7 +380,7 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
         buffer.needToInit = false;
         SetPanelTimingTracks();
         sinceLastTriggered = 0;
-        if (!useMusic)
+        if (!useMusic && !useTiming)
         {
             for (int i = 0; i < numberOfExplosions; i++) {
                 firePeriods.push_back(buffer.curEffStartPer + rand01() * (buffer.curEffEndPer - buffer.curEffStartPer));
