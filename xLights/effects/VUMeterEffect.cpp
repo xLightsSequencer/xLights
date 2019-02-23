@@ -46,7 +46,8 @@ namespace RenderType
 		TIMING_EVENT_BARS,
         LEVEL_COLOR,
         TIMING_EVENT_PULSE_COLOR,
-        SPECTROGRAM_PEAK
+        SPECTROGRAM_PEAK,
+        SPECTROGRAM_LINE
     };
 }
 
@@ -343,6 +344,10 @@ int VUMeterEffect::DecodeType(const std::string& type)
     {
         return RenderType::SPECTROGRAM_PEAK;
     }
+    else if (type == "Spectrogram Line")
+    {
+        return RenderType::SPECTROGRAM_LINE;
+    }
 
 	// default type is volume bars
 	return RenderType::VOLUME_BARS;
@@ -488,10 +493,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		switch (nType)
 		{
 		case RenderType::SPECTROGRAM:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, false, 0);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, false, 0, false);
 			break;
 		case RenderType::SPECTROGRAM_PEAK:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, true, sensitivity);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, true, sensitivity, false);
+			break;
+		case RenderType::SPECTROGRAM_LINE:
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, true, sensitivity, true);
 			break;
 		case RenderType::VOLUME_BARS:
 			RenderVolumeBarsFrame(buffer, usebars, gain);
@@ -572,7 +580,7 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, bool peak, int peakhold) const
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, bool peak, int peakhold, bool line) const
 {
     if (buffer.GetMedia() == nullptr) return;
 
@@ -700,6 +708,8 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             peakColour = buffer.GetPalette().GetColor(buffer.GetColorCount() - 1);
         }
 
+        int lastColHeight = -1;
+        int lastColX = -1;
 		for (int j = 0; j < usebars; j++)
 		{
 			float f = 0;
@@ -732,31 +742,49 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 			}
 			for (int k = 0; k < cols; k++)
 			{
-				for (int y = 0; y < buffer.BufferHt; y++)
-				{
-					int colheight = buffer.BufferHt * f;
-					if (y < colheight)
-					{
-						xlColor color1;
-						// an alternate colouring
-						buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, peak ? 1 : 0);
-						buffer.SetPixel(x, y, color1);
-					}
-
-                    if (peak)
+                int colheight = buffer.BufferHt * f;
+                if (line)
+                {
+                    // draw lines to mid point of each column
+                    if (x % per == per / 2)
                     {
-                        int peakheight = buffer.BufferHt * p;
-                        if (y >= peakheight)
+                        if (lastColHeight >= 0)
                         {
-                            buffer.SetPixel(x, y, peakColour);
-                            break;
+                            xlColor color = buffer.palette.GetColor(0);
+                            buffer.DrawLine(lastColX, lastColHeight, x, colheight, color);
                         }
+
+                        lastColHeight = colheight;
+                        lastColX = x;
                     }
-                    else
+                }
+                else
+                {
+                    for (int y = 0; y < buffer.BufferHt; y++)
                     {
-                        if (y >= colheight)
+                        if (y < colheight)
                         {
-                            break;
+                            xlColor color1;
+                            // an alternate colouring
+                            buffer.GetMultiColorBlend((double)y / (double)buffer.BufferHt, false, color1, peak ? 1 : 0);
+                            buffer.SetPixel(x, y, color1);
+                        }
+
+                        if (peak)
+                        {
+                            int peakheight = buffer.BufferHt * p;
+                            if (y >= peakheight)
+                            {
+                                buffer.SetPixel(x, y, peakColour);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (y >= colheight)
+                            {
+                                break;
+                            }
                         }
                     }
                 }

@@ -66,33 +66,6 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" subclass="BulkEditChoice" variable="Choice_VUMeter_Type" member="yes">
-							<content>
-								<item>Spectrogram</item>
-								<item>Spectrogram Peak</item>
-								<item>Volume Bars</item>
-								<item>Waveform</item>
-								<item>On</item>
-								<item>Color On</item>
-								<item>Intensity Wave</item>
-								<item>Pulse</item>
-								<item>Level Bar</item>
-								<item>Level Color</item>
-								<item>Level Pulse</item>
-								<item>Level Pulse Color</item>
-								<item>Level Shape</item>
-								<item>Timing Event Bar</item>
-								<item>Timing Event Bars</item>
-								<item>Timing Event Spike</item>
-								<item>Timing Event Sweep</item>
-								<item>Timing Event Color</item>
-								<item>Timing Event Jump</item>
-								<item>Timing Event Jump 100</item>
-								<item>Timing Event Pulse</item>
-								<item>Timing Event Pulse Color</item>
-								<item>Note On</item>
-								<item>Note Level Pulse</item>
-								<item>Note Level Bar</item>
-							</content>
 							<selection>3</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
 						</object>

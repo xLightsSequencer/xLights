@@ -29,7 +29,7 @@ class VUMeterEffect : public RenderableEffect
     static int DecodeType(const std::string&  type);
     static int DecodeShape(const std::string& shape);
 
-        void RenderSpectrogramFrame(RenderBuffer &buffer, int bars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startnote, int endnote, int xoffset, bool peak, int peakhold) const;
+        void RenderSpectrogramFrame(RenderBuffer &buffer, int bars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startnote, int endnote, int xoffset, bool peak, int peakhold, bool line) const;
 		void RenderVolumeBarsFrame(RenderBuffer &buffer, int bars, int gain);
 		void RenderWaveformFrame(RenderBuffer &buffer, int bars, int yoffset, int gain);
 		void RenderTimingEventFrame(RenderBuffer &buffer, int bars, int type, std::string timingtrack, std::list<int> &timingmarks);

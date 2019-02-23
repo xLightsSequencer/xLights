@@ -103,31 +103,6 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT_VUMeter_Type, _("Type"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_Type"));
 	FlexGridSizer31->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	Choice_VUMeter_Type = new BulkEditChoice(this, ID_CHOICE_VUMeter_Type, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VUMeter_Type"));
-	Choice_VUMeter_Type->Append(_("Spectrogram"));
-	Choice_VUMeter_Type->Append(_("Spectrogram Peak"));
-	Choice_VUMeter_Type->Append(_("Volume Bars"));
-	Choice_VUMeter_Type->SetSelection( Choice_VUMeter_Type->Append(_("Waveform")) );
-	Choice_VUMeter_Type->Append(_("On"));
-	Choice_VUMeter_Type->Append(_("Color On"));
-	Choice_VUMeter_Type->Append(_("Intensity Wave"));
-	Choice_VUMeter_Type->Append(_("Pulse"));
-	Choice_VUMeter_Type->Append(_("Level Bar"));
-	Choice_VUMeter_Type->Append(_("Level Color"));
-	Choice_VUMeter_Type->Append(_("Level Pulse"));
-	Choice_VUMeter_Type->Append(_("Level Pulse Color"));
-	Choice_VUMeter_Type->Append(_("Level Shape"));
-	Choice_VUMeter_Type->Append(_("Timing Event Bar"));
-	Choice_VUMeter_Type->Append(_("Timing Event Bars"));
-	Choice_VUMeter_Type->Append(_("Timing Event Spike"));
-	Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
-	Choice_VUMeter_Type->Append(_("Timing Event Color"));
-	Choice_VUMeter_Type->Append(_("Timing Event Jump"));
-	Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
-	Choice_VUMeter_Type->Append(_("Timing Event Pulse"));
-	Choice_VUMeter_Type->Append(_("Timing Event Pulse Color"));
-	Choice_VUMeter_Type->Append(_("Note On"));
-	Choice_VUMeter_Type->Append(_("Note Level Pulse"));
-	Choice_VUMeter_Type->Append(_("Note Level Bar"));
 	FlexGridSizer31->Add(Choice_VUMeter_Type, 1, wxALL|wxEXPAND, 2);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer31->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -275,6 +250,35 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	//*)
     
     SetName("ID_PANEL_VUMeter");
+
+    Choice_VUMeter_Type->Append(_("Spectrogram"));
+    Choice_VUMeter_Type->Append(_("Spectrogram Peak"));
+    Choice_VUMeter_Type->Append(_("Spectrogram Line"));
+    Choice_VUMeter_Type->Append(_("Volume Bars"));
+    Choice_VUMeter_Type->Append(_("Waveform"));
+    Choice_VUMeter_Type->Append(_("On"));
+    Choice_VUMeter_Type->Append(_("Color On"));
+    Choice_VUMeter_Type->Append(_("Intensity Wave"));
+    Choice_VUMeter_Type->Append(_("Pulse"));
+    Choice_VUMeter_Type->Append(_("Level Bar"));
+    Choice_VUMeter_Type->Append(_("Level Color"));
+    Choice_VUMeter_Type->Append(_("Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Level Pulse Color"));
+    Choice_VUMeter_Type->Append(_("Level Shape"));
+    Choice_VUMeter_Type->Append(_("Timing Event Bar"));
+    Choice_VUMeter_Type->Append(_("Timing Event Bars"));
+    Choice_VUMeter_Type->Append(_("Timing Event Spike"));
+    Choice_VUMeter_Type->Append(_("Timing Event Sweep"));
+    Choice_VUMeter_Type->Append(_("Timing Event Color"));
+    Choice_VUMeter_Type->Append(_("Timing Event Jump"));
+    Choice_VUMeter_Type->Append(_("Timing Event Jump 100"));
+    Choice_VUMeter_Type->Append(_("Timing Event Pulse"));
+    Choice_VUMeter_Type->Append(_("Timing Event Pulse Color"));
+    Choice_VUMeter_Type->Append(_("Note On"));
+    Choice_VUMeter_Type->Append(_("Note Level Pulse"));
+    Choice_VUMeter_Type->Append(_("Note Level Bar"));
+
+    Choice_VUMeter_Type->SetStringSelection(_("Waveform"));
 
     Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&VUMeterPanel::OnVCChanged, 0, this);
 
