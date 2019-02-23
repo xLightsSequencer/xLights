@@ -149,7 +149,7 @@ Hangs & Pauses
 
 To capture a log of systems calls
 
-    strace -f -tt <executable> > strace.txt
+    strace -f -tt <executable> > strace.txt 2>&1
     
     you may also consider adding -y or -yy to capture socket and file descriptor information if 
     supported on your system
