@@ -34,13 +34,15 @@ void LinesEffect::SetDefaultParameters()
         return;
     }
 
+    lp->BitmapButton_Lines_Speed->SetActive(false);
+    lp->BitmapButton_Lines_Thickness->SetActive(false);
+
     SetSliderValue(lp->Slider_Lines_Objects, 2);
     SetSliderValue(lp->Slider_Lines_Segments, 3);
     SetSliderValue(lp->Slider_Lines_Speed, 1);
     SetSliderValue(lp->Slider_Lines_Trails, 0);
     SetSliderValue(lp->Slider_Lines_Thickness, 1);
     SetCheckBoxValue(lp->CheckBox_FadeTrails, true);
-    lp->BitmapButton_Lines_Speed->SetActive(false);
     lp->ValidateWindow();
 }
 
