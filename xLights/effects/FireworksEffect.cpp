@@ -352,7 +352,10 @@ void FireworksEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuf
     float sensitivity = static_cast<float>(SettingsMap.GetInt("SLIDER_Fireworks_Sensitivity", 50)) / 100.0;
     bool useTiming = SettingsMap.GetBool("CHECKBOX_FIRETIMING", false);
     wxString timing = SettingsMap.Get("CHOICE_FIRETIMINGTRACK", "");
-    if (timing == "") useTiming = false;
+    if (timing == "")
+    {
+        useTiming = false;
+    }
     if (useMusic)
     {
         if (buffer.GetMedia() != nullptr) {

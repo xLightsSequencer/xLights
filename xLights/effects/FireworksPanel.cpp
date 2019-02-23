@@ -381,23 +381,15 @@ void FireworksPanel::SetTimingTracks(wxCommandEvent& event)
         }
     }
 
-    if (removed && Choice_TimingTrack->GetCount() > 0)
+    if (selection != "")
     {
-        // go through the list and see if our selected item is there
-        bool found = false;
-        for (auto i = 0; i < Choice_TimingTrack->GetCount(); i++)
-        {
-            if (selection == Choice_TimingTrack->GetString(i))
-            {
-                found = true;
-                Choice_TimingTrack->SetSelection(i);
-                break;
-            }
-        }
-        if (!found)
-        {
-            Choice_TimingTrack->SetSelection(0);
-        }
+        Choice_TimingTrack->SetStringSelection(selection);
     }
+
+    if (Choice_TimingTrack->GetStringSelection() == "" && Choice_TimingTrack->GetCount() > 0)
+    {
+        Choice_TimingTrack->SetSelection(0);
+    }
+
     ValidateWindow();
 }
