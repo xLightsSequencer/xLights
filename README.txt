@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.14 February 23, 2019
    -- bug (dkulp)   Fix bug where 2d background image not honoring center is 0 setting
    -- bug (keith)   Fix bandwith.com cant send SMS
    -- bug (keith)   Fix accumulating snowflake does not accumulate if flake count value curve is used
