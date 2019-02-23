@@ -236,6 +236,7 @@ public:
 	std::list<float> _lastvalues;
 	std::list<float> _lastpeaks;
     std::list<int> _pausepeakfall;
+    std::list<std::vector<wxPoint>> _lineHistory;
 	float _lastsize;
     int _colourindex;
 };
@@ -462,11 +463,13 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	std::list<int>& _pausepeakfall = cache->_pausepeakfall;
 	float& _lastsize = cache->_lastsize;
     int & _colourindex = cache->_colourindex;
+    std::list<std::vector<wxPoint>>& _lineHistory = cache->_lineHistory;
 
 	// Check for config changes which require us to reset
 	if (buffer.needToInit)
 	{
         buffer.needToInit = false;
+        _lineHistory.clear();
         _colourindex = -1;
 		_timingmarks.clear();
 		_lasttimingmark = -1;
@@ -499,16 +502,16 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		switch (nType)
 		{
 		case RenderType::SPECTROGRAM:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, false, 0, false, logarithmicX, false, 1);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, false, 0, false, logarithmicX, false, 1, sensitivity, _lineHistory);
 			break;
 		case RenderType::SPECTROGRAM_PEAK:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, false, logarithmicX, false, 1);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, false, logarithmicX, false, 1, sensitivity, _lineHistory);
 			break;
 		case RenderType::SPECTROGRAM_LINE:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, false, 1);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, false, 1, sensitivity, _lineHistory);
 			break;
 		case RenderType::SPECTROGRAM_CIRCLELINE:
-            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, true, gain);
+            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, true, gain, sensitivity, _lineHistory);
 			break;
 		case RenderType::VOLUME_BARS:
 			RenderVolumeBarsFrame(buffer, usebars, gain);
@@ -730,13 +733,18 @@ int GetLogSum(int to)
     return sum;
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain) const
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<wxPoint>>& lineHistory) const
 {
     if (buffer.GetMedia() == nullptr) return;
-
+    
     int truexoffset = xoffset * buffer.BufferWi / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 100;
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
+
+    while (lineHistory.size() > sensitivity / 10)
+    {
+        lineHistory.pop_front();
+    }
 
 	if (pdata != nullptr && pdata->size() != 0)
 	{
@@ -860,10 +868,35 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             peakColour = buffer.GetPalette().GetColor(buffer.GetColorCount() - 1);
         }
 
+        xlColor color = buffer.palette.GetColor(0);
+        int alpha = 255;
+        if (lineHistory.size() > 0)
+        {
+            buffer.SetAllowAlphaChannel(true);
+            for (auto l : lineHistory)
+            {
+                if (l.size() > 1)
+                {
+                    alpha -= 255 / (sensitivity / 10);
+                    color.SetAlpha(alpha);
+                    auto p1 = l.begin();
+                    auto p2 = std::next(p1);
+                    while (p2 != l.end())
+                    {
+                        buffer.DrawLine(p1->x, p1->y, p2->x, p2->y, color, true);
+                        ++p2;
+                        ++p1;
+                    }
+                }
+            }
+        }
+
+        color = buffer.palette.GetColor(0);
         int lastColHeight = -1;
         int lastColX = -1;
         float firstVector = -1;
         float lastVector = -1;
+        std::vector<wxPoint> linePoints;
         for (int j = 0; j < usebars; j++)
         {
             float f = 0;
@@ -911,21 +944,27 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                     if (j == 0) firstVector = vector;
                     float angleper = 360.0 / usebars;
                     float angle = angleper / 2.0 + j * angleper;
-                    if (j != 0)
+                    if (j == 0)
                     {
-                        xlColor color = buffer.palette.GetColor(0);
-
+                        int x1 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
+                        int y1 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
+                        linePoints.push_back(wxPoint(x1, y1));
+                    }
+                    else
+                    {
                         int x1 = buffer.BufferWi /2 + truexoffset + lastVector * sin(toRadians(angle - angleper));
                         int y1 = buffer.BufferHt / 2 + trueyoffset + lastVector * cos(toRadians(angle - angleper));
                         int x2 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
                         int y2 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
                         buffer.DrawLine(x1, y1, x2, y2, color);
+                        linePoints.push_back(wxPoint(x2, y2));
 
                         if (j == usebars - 1)
                         {
                             x1 = buffer.BufferWi / 2 + truexoffset + firstVector * sin(toRadians(angle + angleper));
                             y1 = buffer.BufferHt / 2 + trueyoffset + firstVector * cos(toRadians(angle + angleper));
                             buffer.DrawLine(x2, y2, x1, y1, color);
+                            linePoints.push_back(wxPoint(x1, y1));
                         }
                     }
                     lastVector = vector;
@@ -933,11 +972,11 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                 else
                 {
                     int mid = cols * j + cols / 2.0;
+                    linePoints.push_back(wxPoint(mid, colheight));
 
                     // draw lines to mid point of each column
                     if (lastColHeight >= 0)
                     {
-                        xlColor color = buffer.palette.GetColor(0);
                         buffer.DrawLine(lastColX, lastColHeight, mid, colheight, color);
                     }
 
@@ -981,6 +1020,10 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                 }
             }
 		}
+        if (linePoints.size() > 0)
+        {
+            lineHistory.push_back(linePoints);
+        }
 	}
 }
 
