@@ -56,6 +56,7 @@ const long VUMeterPanel::ID_STATICTEXT_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote = wxNewId();
+const long VUMeterPanel::ID_CHECKBOX_Fireworks_LogarithmicX = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_XOffset = wxNewId();
@@ -198,6 +199,12 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	BitmapButton_VUMeter_EndNote = new xlLockButton(this, ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote, wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_PADLOCK_OPEN")),wxART_BUTTON), wxDefaultPosition, wxSize(14,14), wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote"));
 	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBox_LogarithmicXAxis = new BulkEditCheckBox(this, ID_CHECKBOX_Fireworks_LogarithmicX, _("Logarithmic X axis"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fireworks_LogarithmicX"));
+	CheckBox_LogarithmicXAxis->SetValue(false);
+	FlexGridSizer31->Add(CheckBox_LogarithmicXAxis, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer31->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer31->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText13 = new wxStaticText(this, ID_STATICTEXT_VUMeter_XOffset, _("Horizontal Offset"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_VUMeter_XOffset"));
 	FlexGridSizer31->Add(StaticText13, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -254,6 +261,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Spectrogram"));
     Choice_VUMeter_Type->Append(_("Spectrogram Peak"));
     Choice_VUMeter_Type->Append(_("Spectrogram Line"));
+    Choice_VUMeter_Type->Append(_("Spectrogram Circle Line"));
     Choice_VUMeter_Type->Append(_("Volume Bars"));
     Choice_VUMeter_Type->Append(_("Waveform"));
     Choice_VUMeter_Type->Append(_("On"));
@@ -300,6 +308,18 @@ void VUMeterPanel::ValidateWindow()
 {
     auto type = Choice_VUMeter_Type->GetStringSelection();
 
+    if (type == "Spectrogram" || 
+        type == "Spectrogram Peak" ||
+        type == "Spectrogram Circle Line" ||
+        type == "Spectrogram Line")
+    {
+        CheckBox_LogarithmicXAxis->Enable();
+    }
+    else
+    {
+        CheckBox_LogarithmicXAxis->Disable();
+    }
+
     if (type == "Volume Bars" ||
         type == "Waveform" ||
         type == "On" ||
@@ -313,6 +333,7 @@ void VUMeterPanel::ValidateWindow()
         type == "Note On" ||
         type == "Note Level Bar" ||
         type == "Note Level Pulse" ||
+        type == "Spectrogram Circle Line" ||
         type == "Level Shape")
     {
         Slider_VUMeter_Gain->Enable();
@@ -364,6 +385,8 @@ void VUMeterPanel::ValidateWindow()
 
     if (type == "Level Shape" ||
         type == "Spectrogram" ||
+        type == "Spectrogram Line" ||
+        type == "Spectrogram Circle Line" ||
         type == "Spectrogram Peak")
     {
         CheckBox_VUMeter_SlowDownFalls->Enable();
@@ -412,6 +435,8 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (type == "Spectrogram" ||
+        type == "Spectrogram Line" ||
+        type == "Spectrogram Circle Line" ||
         type == "Spectrogram Peak" ||
         type == "Note On" ||
         type == "Note Level Bar" ||
@@ -431,6 +456,8 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (type == "Spectrogram" || 
+        type == "Spectrogram Line" ||
+        type == "Spectrogram Circle Line" ||
         type == "Spectrogram Peak" ||
         type == "Level Shape")
     {
@@ -444,6 +471,7 @@ void VUMeterPanel::ValidateWindow()
     }
 
     if (type == "Level Shape" ||
+        type == "Spectrogram Circle Line" ||
         type == "Waveform")
     {
         Slider_VUMeter_YOffset->Enable();

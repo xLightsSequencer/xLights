@@ -22,6 +22,7 @@ class VUMeterPanel: public wxPanel
 		virtual ~VUMeterPanel();
 
 		//(*Declarations(VUMeterPanel)
+		BulkEditCheckBox* CheckBox_LogarithmicXAxis;
 		BulkEditCheckBox* CheckBox_VUMeter_SlowDownFalls;
 		BulkEditChoice* Choice_VUMeter_Shape;
 		BulkEditChoice* Choice_VUMeter_TimingTrack;
@@ -108,6 +109,7 @@ class VUMeterPanel: public wxPanel
 		static const long ID_SLIDER_VUMeter_EndNote;
 		static const long IDD_TEXTCTRL_VUMeter_EndNote;
 		static const long ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote;
+		static const long ID_CHECKBOX_Fireworks_LogarithmicX;
 		static const long ID_STATICTEXT_VUMeter_XOffset;
 		static const long ID_SLIDER_VUMeter_XOffset;
 		static const long IDD_TEXTCTRL_VUMeter_XOffset;

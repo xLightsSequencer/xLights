@@ -47,6 +47,7 @@ namespace RenderType
         LEVEL_COLOR,
         TIMING_EVENT_PULSE_COLOR,
         SPECTROGRAM_PEAK,
+        SPECTROGRAM_CIRCLELINE,
         SPECTROGRAM_LINE
     };
 }
@@ -214,8 +215,9 @@ void VUMeterEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         SettingsMap.GetInt("SLIDER_VUMeter_EndNote", 127),
         SettingsMap.GetInt("SLIDER_VUMeter_XOffset", 0),
         GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset, VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("VUMeter_Gain", 0, SettingsMap, oset, VUMETER_GAIN_MIN, VUMETER_GAIN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
-    );
+        GetValueCurveInt("VUMeter_Gain", 0, SettingsMap, oset, VUMETER_GAIN_MIN, VUMETER_GAIN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+        SettingsMap.GetBool("CHECKBOX_Fireworks_LogarithmicX", false)
+        );
 }
 
 class VUMeterRenderCache : public EffectRenderCache 
@@ -348,6 +350,10 @@ int VUMeterEffect::DecodeType(const std::string& type)
     {
         return RenderType::SPECTROGRAM_LINE;
     }
+    else if (type == "Spectrogram Circle Line")
+    {
+        return RenderType::SPECTROGRAM_CIRCLELINE;
+    }
 
 	// default type is volume bars
 	return RenderType::VOLUME_BARS;
@@ -431,7 +437,7 @@ int VUMeterEffect::DecodeShape(const std::string& shape)
 	return ShapeType::CIRCLE;
 }
 
-void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, int gain)
+void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int bars, const std::string& type, const std::string &timingtrack, int sensitivity, const std::string& shape, bool slowdownfalls, int startnote, int endnote, int xoffset, int yoffset, int gain, bool logarithmicX)
 {
     // startnote must be less than or equal to endnote
     if (startnote > endnote)
@@ -493,13 +499,16 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		switch (nType)
 		{
 		case RenderType::SPECTROGRAM:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, false, 0, false);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, false, 0, false, logarithmicX, false, 1);
 			break;
 		case RenderType::SPECTROGRAM_PEAK:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, true, sensitivity, false);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, false, logarithmicX, false, 1);
 			break;
 		case RenderType::SPECTROGRAM_LINE:
-			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, true, sensitivity, true);
+			RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, false, 1);
+			break;
+		case RenderType::SPECTROGRAM_CIRCLELINE:
+            RenderSpectrogramFrame(buffer, bars, _lastvalues, _lastpeaks, _pausepeakfall, slowdownfalls, startnote, endnote, xoffset, yoffset, true, sensitivity, true, logarithmicX, true, gain);
 			break;
 		case RenderType::VOLUME_BARS:
 			RenderVolumeBarsFrame(buffer, usebars, gain);
@@ -580,11 +589,153 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, bool peak, int peakhold, bool line) const
+int GetLogSum(int to)
+{
+    static std::vector<float> logarithmicX = {
+        18.17223207,
+        10.63007432,
+        7.542157755,
+        5.850152051,
+        4.779922266,
+        4.041366691,
+        3.500791064,
+        3.087916561,
+        2.76223549,
+        2.498745944,
+        2.281176321,
+        2.098478794,
+        1.942887898,
+        1.808785359,
+        1.692005705,
+        1.589395049,
+        1.498521512,
+        1.41747975,
+        1.344755739,
+        1.279131202,
+        1.219614742,
+        1.165391374,
+        1.115784947,
+        1.070229785,
+        1.028249009,
+        0.989437767,
+        0.95345013,
+        0.919988749,
+        0.88879661,
+        0.859650427,
+        0.832355277,
+        0.80674024,
+        0.782654809,
+        0.759965938,
+        0.738555574,
+        0.718318607,
+        0.699161143,
+        0.680999044,
+        0.663756696,
+        0.647365955,
+        0.631765247,
+        0.616898794,
+        0.602715949,
+        0.589170617,
+        0.576220758,
+        0.563827948,
+        0.551956999,
+        0.540575628,
+        0.529654157,
+        0.519165264,
+        0.509083745,
+        0.49938632,
+        0.490051447,
+        0.481059168,
+        0.472390962,
+        0.46402962,
+        0.455959129,
+        0.448164573,
+        0.440632038,
+        0.433348529,
+        0.426301898,
+        0.419480775,
+        0.412874503,
+        0.406473089,
+        0.40026715,
+        0.394247867,
+        0.388406942,
+        0.382736565,
+        0.377229373,
+        0.371878421,
+        0.366677153,
+        0.361619376,
+        0.356699232,
+        0.351911178,
+        0.347249965,
+        0.34271062,
+        0.338288424,
+        0.3339789,
+        0.329777796,
+        0.325681071,
+        0.321684884,
+        0.317785577,
+        0.31397967,
+        0.310263847,
+        0.306634947,
+        0.303089955,
+        0.299625994,
+        0.296240317,
+        0.2929303,
+        0.289693435,
+        0.286527323,
+        0.28342967,
+        0.280398278,
+        0.277431045,
+        0.274525954,
+        0.271681075,
+        0.268894553,
+        0.266164612,
+        0.263489545,
+        0.260867715,
+        0.258297548,
+        0.255777532,
+        0.253306213,
+        0.250882193,
+        0.248504127,
+        0.24617072,
+        0.243880727,
+        0.241632946,
+        0.239426222,
+        0.237259439,
+        0.235131523,
+        0.233041437,
+        0.230988182,
+        0.228970792,
+        0.226988336,
+        0.225039915,
+        0.223124658,
+        0.221241727,
+        0.21939031,
+        0.217569623,
+        0.215778906,
+        0.214017426,
+        0.212284472,
+        0.210579358,
+        0.208901417,
+        0.207250005,
+        0.0
+    };
+
+    float sum = 0;
+    for (int i = 0; i < to && i < 127; i++)
+    {
+        sum += logarithmicX[i];
+    }
+
+    return sum;
+}
+
+void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::list<float>& lastvalues, std::list<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain) const
 {
     if (buffer.GetMedia() == nullptr) return;
 
     int truexoffset = xoffset * buffer.BufferWi / 100;
+    int trueyoffset = yoffset * buffer.BufferHt / 100;
 	std::list<float>* pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, FRAMEDATA_VU, "");
 
 	if (pdata != nullptr && pdata->size() != 0)
@@ -676,11 +827,11 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 			usebars = datapoints;
 		}
 
-		int per = datapoints / usebars;
-        int cols = 1;
+		float per = (float)datapoints / (float)usebars;
+        float cols = 1;
         if (xoffset == 0)
         {
-            cols = buffer.BufferWi / usebars;
+            cols = (float)buffer.BufferWi / (float)usebars;
         }
         if (cols < 1)
         {
@@ -688,7 +839,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
         }
 		std::list<float>::iterator it = lastvalues.begin();
 		std::list<float>::iterator itpeak = lastpeaks.begin();
-
+        int midiNote = 0;
         // skip to our start note
         for (int i = 0; i < startNote; i++)
         {
@@ -697,6 +848,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             {
                 ++itpeak;
             }
+            ++midiNote;
         }
 
 		int x = truexoffset;
@@ -710,18 +862,26 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
 
         int lastColHeight = -1;
         int lastColX = -1;
-		for (int j = 0; j < usebars; j++)
-		{
-			float f = 0;
-			float p = 0;
-			for (int k = 0; k < per; k++)
-			{
-				// use the max within the frequency range
-				if (*it > f)
-				{
-					f = *it;
-				}
+        float firstVector = -1;
+        float lastVector = -1;
+        for (int j = 0; j < usebars; j++)
+        {
+            float f = 0;
+            float p = 0;
+            int thisper = per;
+            if (logarithmicX)
+            {
+                thisper = GetLogSum(j + 1) - GetLogSum(j);
+            }
+            for (int k = 0; k < thisper; k++)
+            {
+                // use the max within the frequency range
+                if (*it > f)
+                {
+                    f = *it;
+                }
                 ++it;
+                ++midiNote;
                 if (peak)
                 {
                     if (*itpeak > p)
@@ -733,32 +893,62 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                 // dont let it go off the end
                 if (it == lastvalues.end())
                 {
+                    --midiNote;
                     --it;
                     if (peak)
                     {
                         --itpeak;
                     }
                 }
-			}
-			for (int k = 0; k < cols; k++)
-			{
-                int colheight = buffer.BufferHt * f;
-                if (line)
+            }
+            f = ApplyGain(f, gain);
+            int colheight = buffer.BufferHt * f;
+            if (line)
+            {
+                if (circle)
                 {
-                    // draw lines to mid point of each column
-                    if (x % per == per / 2)
+                    float vector = std::min(buffer.BufferWi, buffer.BufferHt) * f;
+                    if (j == 0) firstVector = vector;
+                    float angleper = 360.0 / usebars;
+                    float angle = angleper / 2.0 + j * angleper;
+                    if (j != 0)
                     {
-                        if (lastColHeight >= 0)
-                        {
-                            xlColor color = buffer.palette.GetColor(0);
-                            buffer.DrawLine(lastColX, lastColHeight, x, colheight, color);
-                        }
+                        xlColor color = buffer.palette.GetColor(0);
 
-                        lastColHeight = colheight;
-                        lastColX = x;
+                        int x1 = buffer.BufferWi /2 + truexoffset + lastVector * sin(toRadians(angle - angleper));
+                        int y1 = buffer.BufferHt / 2 + trueyoffset + lastVector * cos(toRadians(angle - angleper));
+                        int x2 = buffer.BufferWi / 2 + truexoffset + vector * sin(toRadians(angle));
+                        int y2 = buffer.BufferHt / 2 + trueyoffset + vector * cos(toRadians(angle));
+                        buffer.DrawLine(x1, y1, x2, y2, color);
+
+                        if (j == usebars - 1)
+                        {
+                            x1 = buffer.BufferWi / 2 + truexoffset + firstVector * sin(toRadians(angle + angleper));
+                            y1 = buffer.BufferHt / 2 + trueyoffset + firstVector * cos(toRadians(angle + angleper));
+                            buffer.DrawLine(x2, y2, x1, y1, color);
+                        }
                     }
+                    lastVector = vector;
                 }
                 else
+                {
+                    int mid = cols * j + cols / 2.0;
+
+                    // draw lines to mid point of each column
+                    if (lastColHeight >= 0)
+                    {
+                        xlColor color = buffer.palette.GetColor(0);
+                        buffer.DrawLine(lastColX, lastColHeight, mid, colheight, color);
+                    }
+
+                    lastColHeight = colheight;
+                    lastColX = mid;
+                }
+            }
+            else
+            {
+                float limit = j * cols;
+                while (x < limit)
                 {
                     for (int y = 0; y < buffer.BufferHt; y++)
                     {
@@ -787,9 +977,9 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                             }
                         }
                     }
+                    x++;
                 }
-				x++;
-			}
+            }
 		}
 	}
 }

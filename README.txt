@@ -13,8 +13,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
    -- bug (dkulp)   Fix bug where 2d background image not honoring center is 0 setting
    -- bug (keith)   Fix bandwith.com cant send SMS
+   -- bug (keith)   Fix accumulating snowflake does not accumulate if flake count value curve is used
+   -- bug (keith)   Fix DMX effect on a per model group does not work as expected
+   -- bug (keith)   Dont reset canvas mode when randomising effect settings
    -- bug (keith)   Fix crash when using large triangles in Kaleidoscope on some models
    -- bug (keith)   Fix xSchedule cant set text on a text item playing in every step
+   -- enh (keith)   Add logarithmic x axis to spectrogram
+   -- enh (keith)   Add line spectrogram to vu meter
+   -- enh (keith)   Add circle line spectrogram to vu meter
+   -- enh (keith)   Add check sequence warning if firework is to fire with timing track but none is selcected
 2019.13 February 21, 2019
    -- enh (keith)   Add the kaleidoscope effect
    -- enh (keith)   Add voip.ms support to SMS Daemon
