@@ -264,6 +264,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
     Choice_VUMeter_Type->Append(_("Spectrogram Circle Line"));
     Choice_VUMeter_Type->Append(_("Volume Bars"));
     Choice_VUMeter_Type->Append(_("Waveform"));
+    Choice_VUMeter_Type->Append(_("Frame Waveform"));
     Choice_VUMeter_Type->Append(_("On"));
     Choice_VUMeter_Type->Append(_("Color On"));
     Choice_VUMeter_Type->Append(_("Intensity Wave"));
@@ -322,6 +323,7 @@ void VUMeterPanel::ValidateWindow()
 
     if (type == "Volume Bars" ||
         type == "Waveform" ||
+        type == "Frame Waveform" ||
         type == "On" ||
         type == "Color On" ||
         type == "Intensity Wave" ||
@@ -474,6 +476,7 @@ void VUMeterPanel::ValidateWindow()
 
     if (type == "Level Shape" ||
         type == "Spectrogram Circle Line" ||
+        type == "Frame Waveform" ||
         type == "Waveform")
     {
         Slider_VUMeter_YOffset->Enable();
