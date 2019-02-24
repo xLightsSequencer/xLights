@@ -315,13 +315,12 @@ wxThread::ExitCode xlTimerThread::Entry()
     static log4cpp::Category &logger_timer = log4cpp::Category::getInstance(std::string("log_timer"));
 
     bool log = _log;
-    bool stop = _stop;
     bool oneshot = _oneshot;
     int interval = _interval;
     int fudgefactor = _fudgefactor;
     long long last = wxGetLocalTimeMillis().GetValue();
 
-    while (!stop)
+    while (!_stop)
     {
         if (_suspend)
         {
@@ -370,10 +369,9 @@ wxThread::ExitCode xlTimerThread::Entry()
             DoSleep((std::max)(1, (int)toSleep));
 
             last = wxGetLocalTimeMillis().GetValue();
-            stop = _stop;
             bool suspend = _suspend;
             fudgefactor = _fudgefactor;
-            if (!stop && !suspend)
+            if (!_stop && !suspend)
             {
                 logger_timer.debug("THREAD: Timer %s fired.", (const char *)_name.c_str());
                 _timer->Notify();
