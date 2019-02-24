@@ -2009,6 +2009,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             if (el == nullptr)
             {
                 logger_base.crit("OnEffectSettingsTimerTrigger el is nullptr ... this is going to crash.");
+                wxASSERT(false);
             }
 
             Element *elem = el->GetParentElement();
@@ -2017,6 +2018,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             if (elem == nullptr)
             {
                 logger_base.crit("OnEffectSettingsTimerTrigger elem is nullptr ... this is going to crash.");
+                wxASSERT(false);
             }
 
             //check for undo capture
@@ -2052,8 +2054,6 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             {
                 colorPanel->SetSupports(ef->SupportsLinearColorCurves(eff->GetSettings()), ef->SupportsRadialColorCurves(eff->GetSettings()));
             }
-
-            return;
         }
     }
 }

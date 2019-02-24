@@ -1312,9 +1312,10 @@ void xLightsFrame::Render(const std::list<Model*> models,
         for (int f = startFrame; f <= endFrame; f++) {
             for (auto it = ranges.begin(); it != ranges.end(); ++it) {
                 FrameData fd = SeqData[f];
-                for (int x = it->start; x <= it->end; ++x) {
-                    fd[x] = (unsigned char)0;
-                }
+                fd.Zero(it->start, it->end - it->start + 1);
+                //for (int x = it->start; x <= it->end; ++x) {
+                //    fd[x] = (unsigned char)0;
+                //}
             }
         }
     }
