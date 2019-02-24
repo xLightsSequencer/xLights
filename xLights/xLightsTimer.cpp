@@ -321,7 +321,7 @@ wxThread::ExitCode xlTimerThread::Entry()
     int fudgefactor = _fudgefactor;
     long long last = wxGetLocalTimeMillis().GetValue();
 
-    while (!stop)
+    while (!_stop)
     {
         if (_suspend)
         {
