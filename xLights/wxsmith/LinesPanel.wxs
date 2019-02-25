@@ -144,7 +144,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Lines_Thickness" subclass="BulkEditTextCtrl" variable="TextCtrl_Lines_Thickness" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lines_Thickness" subclass="BulkEditTextCtrl" variable="TextCtrl_Lines_Thickness" member="yes">
 							<value>1</value>
 							<size>20,-1d</size>
 						</object>
@@ -195,7 +195,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Lines_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl_Lines_Speed" member="yes">
+						<object class="wxTextCtrl" name="IDD_TEXTCTRL_Lines_Speed" subclass="BulkEditTextCtrl" variable="TextCtrl_Lines_Speed" member="yes">
 							<value>1</value>
 							<size>20,-1d</size>
 						</object>

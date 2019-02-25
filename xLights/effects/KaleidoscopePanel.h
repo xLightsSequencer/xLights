@@ -67,19 +67,19 @@ class KaleidoscopePanel: public wxPanel
 		static const long ID_STATICTEXT10;
 		static const long ID_SLIDER_Kaleidoscope_X;
 		static const long ID_VALUECURVE_Kaleidoscope_X;
-		static const long ID_TEXTCTRL_Kaleidoscope_X;
+		static const long IDD_TEXTCTRL_Kaleidoscope_X;
 		static const long ID_STATICTEXT11;
 		static const long ID_SLIDER_Kaleidoscope_Y;
 		static const long ID_VALUECURVE_Kaleidoscope_Y;
-		static const long ID_TEXTCTRL_Kaleidoscope_Y;
+		static const long IDD_TEXTCTRL_Kaleidoscope_Y;
 		static const long ID_STATICTEXT12;
 		static const long ID_SLIDER_Kaleidoscope_Size;
 		static const long ID_VALUECURVE_Kaleidoscope_Size;
-		static const long ID_TEXTCTRL_Kaleidoscope_Size;
+		static const long IDD_TEXTCTRL_Kaleidoscope_Size;
 		static const long ID_STATICTEXT13;
 		static const long ID_SLIDER_Kaleidoscope_Rotation;
 		static const long ID_VALUECURVE_Kaleidoscope_Rotation;
-		static const long ID_TEXTCTRL_Kaleidoscope_Rotation;
+		static const long IDD_TEXTCTRL_Kaleidoscope_Rotation;
 		//*)
 
 	private:

@@ -58,11 +58,11 @@ class LinesPanel: public wxPanel
 		static const long ID_STATICTEXT2;
 		static const long ID_SLIDER_Lines_Thickness;
 		static const long ID_VALUECURVE_Lines_Thickness;
-		static const long ID_TEXTCTRL_Lines_Thickness;
+		static const long IDD_TEXTCTRL_Lines_Thickness;
 		static const long ID_STATICTEXT1;
 		static const long ID_SLIDER_Lines_Speed;
 		static const long ID_VALUECURVE_Lines_Speed;
-		static const long ID_TEXTCTRL_Lines_Speed;
+		static const long IDD_TEXTCTRL_Lines_Speed;
 		static const long ID_STATICTEXT_Lines_Trails;
 		static const long ID_SLIDER_Lines_Trails;
 		static const long IDD_TEXTCTRL_Lines_Trails;

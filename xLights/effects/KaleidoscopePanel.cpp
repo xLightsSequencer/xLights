@@ -20,19 +20,19 @@ const long KaleidoscopePanel::ID_CHOICE_Kaleidoscope_Type = wxNewId();
 const long KaleidoscopePanel::ID_STATICTEXT10 = wxNewId();
 const long KaleidoscopePanel::ID_SLIDER_Kaleidoscope_X = wxNewId();
 const long KaleidoscopePanel::ID_VALUECURVE_Kaleidoscope_X = wxNewId();
-const long KaleidoscopePanel::ID_TEXTCTRL_Kaleidoscope_X = wxNewId();
+const long KaleidoscopePanel::IDD_TEXTCTRL_Kaleidoscope_X = wxNewId();
 const long KaleidoscopePanel::ID_STATICTEXT11 = wxNewId();
 const long KaleidoscopePanel::ID_SLIDER_Kaleidoscope_Y = wxNewId();
 const long KaleidoscopePanel::ID_VALUECURVE_Kaleidoscope_Y = wxNewId();
-const long KaleidoscopePanel::ID_TEXTCTRL_Kaleidoscope_Y = wxNewId();
+const long KaleidoscopePanel::IDD_TEXTCTRL_Kaleidoscope_Y = wxNewId();
 const long KaleidoscopePanel::ID_STATICTEXT12 = wxNewId();
 const long KaleidoscopePanel::ID_SLIDER_Kaleidoscope_Size = wxNewId();
 const long KaleidoscopePanel::ID_VALUECURVE_Kaleidoscope_Size = wxNewId();
-const long KaleidoscopePanel::ID_TEXTCTRL_Kaleidoscope_Size = wxNewId();
+const long KaleidoscopePanel::IDD_TEXTCTRL_Kaleidoscope_Size = wxNewId();
 const long KaleidoscopePanel::ID_STATICTEXT13 = wxNewId();
 const long KaleidoscopePanel::ID_SLIDER_Kaleidoscope_Rotation = wxNewId();
 const long KaleidoscopePanel::ID_VALUECURVE_Kaleidoscope_Rotation = wxNewId();
-const long KaleidoscopePanel::ID_TEXTCTRL_Kaleidoscope_Rotation = wxNewId();
+const long KaleidoscopePanel::IDD_TEXTCTRL_Kaleidoscope_Rotation = wxNewId();
 //*)
 
 KaleidoscopePreview::KaleidoscopePreview( wxWindow* parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name, bool coreProfile)
@@ -98,7 +98,7 @@ KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer7->Add(Slider_Kaleidoscope_X, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Kaleidoscope_X = new BulkEditValueCurveButton(this, ID_VALUECURVE_Kaleidoscope_X, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Kaleidoscope_X"));
 	FlexGridSizer7->Add(BitmapButton_Kaleidoscope_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Kaleidoscope_X = new BulkEditTextCtrl(this, ID_TEXTCTRL_Kaleidoscope_X, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Kaleidoscope_X"));
+	TextCtrl_Kaleidoscope_X = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Kaleidoscope_X, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Kaleidoscope_X"));
 	FlexGridSizer7->Add(TextCtrl_Kaleidoscope_X, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
 	StaticText11 = new wxStaticText(this, ID_STATICTEXT11, _("Center Y"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT11"));
@@ -109,7 +109,7 @@ KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer8->Add(Slider_Kaleidoscope_Y, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Kaleidoscope_Y = new BulkEditValueCurveButton(this, ID_VALUECURVE_Kaleidoscope_Y, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Kaleidoscope_Y"));
 	FlexGridSizer8->Add(BitmapButton_Kaleidoscope_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Kaleidoscope_Y = new BulkEditTextCtrl(this, ID_TEXTCTRL_Kaleidoscope_Y, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Kaleidoscope_Y"));
+	TextCtrl_Kaleidoscope_Y = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Kaleidoscope_Y, _("50"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Kaleidoscope_Y"));
 	FlexGridSizer8->Add(TextCtrl_Kaleidoscope_Y, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Size"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
@@ -120,7 +120,7 @@ KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer9->Add(Slider_Kaleidoscope_Size, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Kaleidoscope_Size = new BulkEditValueCurveButton(this, ID_VALUECURVE_Kaleidoscope_Size, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Kaleidoscope_Size"));
 	FlexGridSizer9->Add(BitmapButton_Kaleidoscope_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Kaleidoscope_Size = new BulkEditTextCtrl(this, ID_TEXTCTRL_Kaleidoscope_Size, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Kaleidoscope_Size"));
+	TextCtrl_Kaleidoscope_Size = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Kaleidoscope_Size, _("5"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Kaleidoscope_Size"));
 	FlexGridSizer9->Add(TextCtrl_Kaleidoscope_Size, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
 	StaticText13 = new wxStaticText(this, ID_STATICTEXT13, _("Rotation"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT13"));
@@ -131,7 +131,7 @@ KaleidoscopePanel::KaleidoscopePanel(wxWindow* parent,wxWindowID id,const wxPoin
 	FlexGridSizer10->Add(Slider_Kaleidoscope_Rotation, 1, wxALL|wxEXPAND, 2);
 	BitmapButton_Kaleidoscope_Rotation = new BulkEditValueCurveButton(this, ID_VALUECURVE_Kaleidoscope_Rotation, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxNO_BORDER, wxDefaultValidator, _T("ID_VALUECURVE_Kaleidoscope_Rotation"));
 	FlexGridSizer10->Add(BitmapButton_Kaleidoscope_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	TextCtrl_Kaleidoscope_Rotation = new BulkEditTextCtrl(this, ID_TEXTCTRL_Kaleidoscope_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_Kaleidoscope_Rotation"));
+	TextCtrl_Kaleidoscope_Rotation = new BulkEditTextCtrl(this, IDD_TEXTCTRL_Kaleidoscope_Rotation, _("0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(20,-1)), 0, wxDefaultValidator, _T("IDD_TEXTCTRL_Kaleidoscope_Rotation"));
 	FlexGridSizer10->Add(TextCtrl_Kaleidoscope_Rotation, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4->Add(FlexGridSizer10, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 2);

@@ -91,7 +91,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Kaleidoscope_X" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_X" member="yes">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Kaleidoscope_X" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_X" member="yes">
 									<value>50</value>
 									<size>20,-1d</size>
 								</object>
@@ -133,7 +133,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Kaleidoscope_Y" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_Y" member="yes">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Kaleidoscope_Y" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_Y" member="yes">
 									<value>50</value>
 									<size>20,-1d</size>
 								</object>
@@ -176,7 +176,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Kaleidoscope_Size" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_Size" member="yes">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Kaleidoscope_Size" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_Size" member="yes">
 									<value>5</value>
 									<size>20,-1d</size>
 								</object>
@@ -218,7 +218,7 @@
 								<option>1</option>
 							</object>
 							<object class="sizeritem">
-								<object class="wxTextCtrl" name="ID_TEXTCTRL_Kaleidoscope_Rotation" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_Rotation" member="yes">
+								<object class="wxTextCtrl" name="IDD_TEXTCTRL_Kaleidoscope_Rotation" subclass="BulkEditTextCtrl" variable="TextCtrl_Kaleidoscope_Rotation" member="yes">
 									<value>0</value>
 									<size>20,-1d</size>
 								</object>
