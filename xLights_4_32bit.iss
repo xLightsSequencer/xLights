@@ -71,6 +71,8 @@ Source: "bin/xSMSDaemon.exe"; DestDir: "{app}"
 Source: "bin/xSMSDaemon.map"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/xsmsdaemon.windows.properties"; DestDir: "{app}"; Flags: "ignoreversion"
 Source: "include\xsmsdaemon.ico"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "xSchedule\xSMSDaemon\Blacklist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
+Source: "xSchedule\xSMSDaemon\Whitelist.txt"; DestDir: "{app}"; Flags: "ignoreversion"
 
 Source: "bin/wxmsw311u_gcc_custom.dll";    DestDir: "{app}"; Flags: "ignoreversion"
 Source: "bin/wxmsw311u_gl_gcc_custom.dll"; DestDir: "{app}"; Flags: "ignoreversion"
