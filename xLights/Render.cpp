@@ -1569,11 +1569,11 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
         endms,
         renderTree.data.size());
 
-    int startframe = startms / SeqData.FrameTime() - 1;
+    int startframe = startms / SeqData.FrameTime();// -1; by expanding the range we end up rendering more than necessary for no obvious reason
     if (startframe < 0) {
         startframe = 0;
     }
-    int endframe = endms / SeqData.FrameTime() + 1;
+    int endframe = endms / SeqData.FrameTime();// +1; by expanding the range we end up rendering more than necessary for no obvious reason
     if (endframe >= SeqData.NumFrames()) {
         endframe = SeqData.NumFrames() - 1;
     }
