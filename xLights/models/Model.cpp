@@ -2380,6 +2380,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, cnt, 0);
@@ -2394,6 +2395,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, 0, 0);
@@ -2419,6 +2421,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 if (newNodes[x] == nullptr)
                 {
                     logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    wxASSERT(false);
                 }
                 for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                     SetCoords(*it2, strand, cnt, -1, bufferHt, strandLen);
@@ -2447,6 +2450,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 if (newNodes[x] == nullptr)
                 {
                     logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    wxASSERT(false);
                 }
                 for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                     SetCoords(*it2, cnt, strand, bufferWi, -1, strandLen);
@@ -2461,7 +2465,6 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         float minX = 1000000.0;
         float maxY = -1000000.0;
         float minY = 1000000.0;
-        GetModelScreenLocation().PrepareToDraw(false, false);
 
         ModelPreview* modelPreview = nullptr;
         PreviewCamera* pcamera = nullptr;
@@ -2469,6 +2472,15 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         {
             modelPreview = xLightsApp::GetFrame()->GetHousePreview();
             pcamera = xLightsApp::GetFrame()->viewpoint_mgr.GetNamedCamera3D(camera);
+        }
+
+        if (pcamera != nullptr && camera != "2D")
+        {
+            GetModelScreenLocation().PrepareToDraw(true, false);
+        }
+        else
+        {
+            GetModelScreenLocation().PrepareToDraw(false, false);
         }
 
         // We save the transformed coordinates here so we dont have to calculate them all twice
@@ -2505,6 +2517,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 float sx = it2->screenX;
@@ -2527,15 +2540,12 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     {
                         // Handle 3D from an arbitrary camera position
                         float sz = it2->screenZ;
-                        if (GetDisplayAs() != "ModelGroup")  // ignore for groups since they will have already calculated their node positions from recursion call above
-                        {
-                            GetModelScreenLocation().TranslatePoint(sx, sy, sz);
-                            // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
-                            glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
-                            loc.y *= -1.0f;
-                            sx = loc.x;
-                            sy = loc.y;
-                        }
+                        GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                        // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
+                        glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
+                        loc.y *= -1.0f;
+                        sx = loc.x;
+                        sy = loc.y;
                     }
                 }
 
@@ -2597,6 +2607,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
 
