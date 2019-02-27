@@ -24,6 +24,7 @@ class PlayListItemScreenMapPanel: public wxPanel
 
 		PlayListItemScreenMapPanel(wxWindow* parent, PlayListItemScreenMap* screenMap, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~PlayListItemScreenMapPanel();
+        void SizeChange(int x, int y, int w, int h);
 
 		//(*Declarations(PlayListItemScreenMapPanel)
 		wxCheckBox* CheckBox_Rescale;

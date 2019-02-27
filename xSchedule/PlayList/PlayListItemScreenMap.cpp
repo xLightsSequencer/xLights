@@ -14,11 +14,11 @@ PlayListItemScreenMap::PlayListItemScreenMap(wxXmlNode* node) : PlayListItem(nod
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     _durationMS = 50;
     _matrix = "";
-    _x = 0;
-    _y = 0;
-	_width = 0;
-	_height = 0;
-    _rescale = false;
+    _x = 100;
+    _y = 100;
+	_width = 100;
+	_height = 100;
+    _rescale = true;
     _quality = "Bilinear";
 
     PlayListItemScreenMap::Load(node);
@@ -34,10 +34,10 @@ void PlayListItemScreenMap::Load(wxXmlNode* node)
     _blendMode = (APPLYMETHOD)wxAtoi(node->GetAttribute("ApplyMethod", "1"));
     _durationMS = wxAtol(node->GetAttribute("Duration", "50"));
     _matrix = node->GetAttribute("Matrix", "").ToStdString();
-    _x = wxAtoi(node->GetAttribute("X", "0"));
-    _y = wxAtoi(node->GetAttribute("Y", "0"));
-    _width = wxAtoi(node->GetAttribute("Width", "0"));
-    _height = wxAtoi(node->GetAttribute("Height", "0"));
+    _x = wxAtoi(node->GetAttribute("X", "100"));
+    _y = wxAtoi(node->GetAttribute("Y", "100"));
+    _width = wxAtoi(node->GetAttribute("Width", "100"));
+    _height = wxAtoi(node->GetAttribute("Height", "100"));
     _rescale = node->GetAttribute("Rescale", "False") == "True";
     _quality = node->GetAttribute("Quality", "Bilinear").ToStdString();
 }
@@ -48,11 +48,11 @@ PlayListItemScreenMap::PlayListItemScreenMap() : PlayListItem()
     _blendMode = APPLYMETHOD::METHOD_OVERWRITEIFBLACK;
     _durationMS = 50;
     _matrix = "";
-    _x = 0;
-    _y = 0;
-	_width = 0;
-	_height = 0;
-    _rescale = false;
+    _x = 100;
+    _y = 100;
+	_width = 100;
+	_height = 100;
+    _rescale = true;
     _quality = "Bilinear";
 }
 
@@ -88,6 +88,10 @@ wxXmlNode* PlayListItemScreenMap::Save()
     if (_rescale)
     {
         node->AddAttribute("Rescale", "True");
+    }
+    else
+    {
+        node->AddAttribute("Rescale", "False");
     }
 
     PlayListItem::Save(node);
