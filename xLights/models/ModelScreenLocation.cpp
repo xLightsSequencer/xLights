@@ -596,6 +596,15 @@ int BoxedScreenLocation::CheckUpgrade(wxXmlNode *node)
             node->DeleteAttribute("PreviewScaleX");
             node->DeleteAttribute("PreviewScaleY");
             node->DeleteAttribute("PreviewRotation");
+            node->DeleteAttribute("WorldPosX");
+            node->DeleteAttribute("WorldPosY");
+            node->DeleteAttribute("WorldPosZ");
+            node->DeleteAttribute("ScaleX");
+            node->DeleteAttribute("ScaleY");
+            node->DeleteAttribute("ScaleZ");
+            node->DeleteAttribute("RotateX");
+            node->DeleteAttribute("RotateY");
+            node->DeleteAttribute("RotateZ");
             node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
             node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
             node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
@@ -1616,8 +1625,7 @@ int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", "2");
         return UPGRADE_SKIPPED;
-    }
-    else if (version == 2) {
+    } else if (version == 2) {
         if (node->HasAttribute("X1")) {  // Two Point model
             float old_x1 = wxAtof(node->GetAttribute("X1", "0"));
             float old_y1 = wxAtof(node->GetAttribute("Y1", "0"));
@@ -1633,6 +1641,10 @@ int TwoPointScreenLocation::CheckUpgrade(wxXmlNode *node)
             node->DeleteAttribute("Y1");
             node->DeleteAttribute("X2");
             node->DeleteAttribute("Y2");
+            node->DeleteAttribute("Z2");
+            node->DeleteAttribute("WorldPosX");
+            node->DeleteAttribute("WorldPosY");
+            node->DeleteAttribute("WorldPosZ");
             node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
             node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
             node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
@@ -3378,8 +3390,7 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode *node)
         node->DeleteAttribute("versionNumber");
         node->AddAttribute("versionNumber", "2");
         return UPGRADE_SKIPPED;
-    }
-    else if (version == 2) {
+    } else if (version == 2) {
         if (node->HasAttribute("NumPoints")) {
             float worldPos_x = 0.0;
             float worldPos_y = 0.0;
@@ -3425,6 +3436,9 @@ int PolyPointScreenLocation::CheckUpgrade(wxXmlNode *node)
                 cp1y = (previewH * cp1y - worldPos_y) / 100.0f;
                 new_cpoint_data += wxString::Format("%d,%f,%f,%f,%f,%f,%f,", seg_num, cp0x, cp0y, 0.0f, cp1x, cp1y, 0.0f);
             }
+            node->DeleteAttribute("WorldPosX");
+            node->DeleteAttribute("WorldPosY");
+            node->DeleteAttribute("WorldPosZ");
             node->AddAttribute("WorldPosX", wxString::Format("%6.4f", worldPos_x));
             node->AddAttribute("WorldPosY", wxString::Format("%6.4f", worldPos_y));
             node->AddAttribute("WorldPosZ", wxString::Format("%6.4f", worldPos_z));
@@ -3547,8 +3561,7 @@ void PolyPointScreenLocation::DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumula
     if (selected_segment != -1) {
         if (mPos[selected_segment].has_curve) {
             mPos[selected_segment].curve->DrawBoundingBox(c, va);
-        }
-        else {
+        } else {
             DrawGLUtils::DrawBoundingBox(c, seg_aabb_min[selected_segment], seg_aabb_max[selected_segment], *mPos[selected_segment].mod_matrix, va);
         }
     }
@@ -3675,8 +3688,7 @@ bool PolyPointScreenLocation::IsContained(ModelPreview* preview, int x1, int y1,
             aabb_min_pp, aabb_max_pp,
             preview->GetProjViewMatrix(),
             Identity);
-    }
-    else {
+    } else {
         if( x1p >= sx1 && x1p <= sx2 &&
             x2p >= sx1 && x2p <= sx2 &&
             y1p >= sy1 && y1p <= sy2 &&
@@ -3699,8 +3711,7 @@ bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_dire
                 ret_value = true;
                 break;
             }
-        }
-        else {
+        } else {
             // perform normal line segment hit detection
             if (VectorMath::TestRayOBBIntersection2D(
                 ray_origin,
@@ -3771,8 +3782,7 @@ wxCursor PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, gl
     wxCursor return_value = wxCURSOR_DEFAULT;
     handle = NO_HANDLE;
 
-    if (_locked)
-    {
+    if (_locked) {
         return wxCURSOR_DEFAULT;
     }
 
