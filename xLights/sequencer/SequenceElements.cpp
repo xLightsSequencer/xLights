@@ -1945,6 +1945,7 @@ void SequenceElements::BreakdownPhrase(EffectLayer* word_layer, int start_time, 
             }
         }
         int num_words = words.Count();
+        if (num_words == 0) return;
         double interval_ms = (end_time-start_time) / num_words;
         int word_start_time = start_time;
         for( int i = 0; i < num_words; i++ )
