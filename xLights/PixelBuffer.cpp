@@ -1677,6 +1677,7 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
         int nc = 0;
         for (const auto& modelBuffer : layers[layer]->modelBuffers) {
             for (const auto& node : modelBuffer->Nodes) {
+                wxASSERT(nc < layers[layer]->buffer.Nodes.size());
                 modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
                 for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
                     layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);

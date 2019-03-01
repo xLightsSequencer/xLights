@@ -2487,32 +2487,6 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         std::list<float> outx;
         std::list<float> outy;
 
-        if (GetDisplayAs() == "ModelGroup" && camera != "2D" )
-        {
-            std::vector<Model *> models;
-            wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
-            int nc = 0;
-            for (int x = 0; x < mn.size(); x++) {
-                Model *c = modelManager.GetModel(mn[x].ToStdString());
-                if (c != nullptr) {
-                    models.push_back(c);
-                    nc += c->GetNodeCount();
-                }
-                else if (mn[x] == "")
-                {
-                    // silently ignore blank models
-                }
-            }
-
-            if (nc) {
-                newNodes.reserve(nc);
-            }
-            for (Model *c : models) {
-                int bw, bh;
-                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh);
-            }
-        }
-
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
             {
@@ -2540,7 +2514,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                     {
                         // Handle 3D from an arbitrary camera position
                         float sz = it2->screenZ;
-                        GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+
                         // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
                         glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
                         loc.y *= -1.0f;
