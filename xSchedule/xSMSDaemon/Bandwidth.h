@@ -86,15 +86,20 @@ class Bandwidth : public SMSService
                         wxJSONValue &m = root[i];
 
                         wxJSONValue defaultValue = wxString("");
-                        SMSMessage msg;
-                        auto timestamp = m.Get("time", defaultValue).AsString();
-                        msg._timestamp.ParseISOCombined(timestamp);
-                        msg._from = m.Get("from", defaultValue).AsString().ToStdString();
-                        msg._rawMessage = m.Get("text", defaultValue).AsString().ToStdString();
 
-                        if (AddMessage(msg, options))
+                        // only add inbound messages
+                        if (m.Get("direction", defaultValue).AsString() == "in")
                         {
-                            added = true;
+                            SMSMessage msg;
+                            auto timestamp = m.Get("time", defaultValue).AsString();
+                            msg._timestamp.ParseISOCombined(timestamp);
+                            msg._from = m.Get("from", defaultValue).AsString().ToStdString();
+                            msg._rawMessage = m.Get("text", defaultValue).AsString().ToStdString();
+
+                            if (AddMessage(msg, options))
+                            {
+                                added = true;
+                            }
                         }
                     }
                 }
