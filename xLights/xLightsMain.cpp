@@ -317,6 +317,12 @@ const long xLightsFrame::ID_MENUITEM_Timing_DClick_Mode = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_AUTO = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_3 = wxNewId();
 const long xLightsFrame::ID_MENU_OPENGL_1 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO1 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO2 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO3 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO4 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO5 = wxNewId();
+const long xLightsFrame::ID_MENUITEM_OGL_RO6 = wxNewId();
 const long xLightsFrame::ID_MENUITEM19 = wxNewId();
 const long xLightsFrame::ID_MNU_PLAYCONTROLSONPREVIEW = wxNewId();
 const long xLightsFrame::ID_MNU_AUTOSHOWHOUSEPREVIEW = wxNewId();
@@ -566,12 +572,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     wxMenuItem* MenuItem2;
     wxMenuItem* MenuItem30;
     wxMenuItem* MenuItem31;
+    wxMenuItem* MenuItem40;
+    wxMenuItem* MenuItem41;
+    wxMenuItem* MenuItem42;
+    wxMenuItem* MenuItem43;
     wxMenuItem* MenuItem44;
     wxMenuItem* MenuItem45;
     wxMenuItem* MenuItem46;
     wxMenuItem* MenuItem47;
     wxMenuItem* MenuItem48;
     wxMenuItem* MenuItem4;
+    wxMenuItem* MenuItem55;
+    wxMenuItem* MenuItem56;
+    wxMenuItem* MenuItem57;
+    wxMenuItem* MenuItem58;
+    wxMenuItem* MenuItem59;
     wxMenuItem* MenuItem5;
     wxMenuItem* MenuItem6;
     wxMenuItem* MenuItem8;
@@ -1090,6 +1105,19 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     OpenGLMenu->Append(MenuItem41);
     MenuItem43 = new wxMenuItem(OpenGLMenu, ID_MENU_OPENGL_1, _("1.x/2.x"), wxEmptyString, wxITEM_RADIO);
     OpenGLMenu->Append(MenuItem43);
+    OpenGLMenu->AppendSeparator();
+    MenuItem42 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO1, _("Render Order 1"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem42);
+    MenuItem55 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO2, _("Render Order 2"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem55);
+    MenuItem56 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO3, _("Render Order 3"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem56);
+    MenuItem57 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO4, _("Render Order 4"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem57);
+    MenuItem58 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO5, _("Render Order 5"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem58);
+    MenuItem59 = new wxMenuItem(OpenGLMenu, ID_MENUITEM_OGL_RO6, _("Render Order 6"), wxEmptyString, wxITEM_RADIO);
+    OpenGLMenu->Append(MenuItem59);
     MenuSettings->Append(ID_MENUITEM19, _("OpenGL"), OpenGLMenu, wxEmptyString);
     MenuItem_PlayControlsOnPreview = new wxMenuItem(MenuSettings, ID_MNU_PLAYCONTROLSONPREVIEW, _("Play Controls On Preview"), wxEmptyString, wxITEM_CHECK);
     MenuSettings->Append(MenuItem_PlayControlsOnPreview);
@@ -1356,6 +1384,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
     Connect(ID_MENU_OPENGL_AUTO,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
     Connect(ID_MENU_OPENGL_1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuOpenGLSelected);
+    Connect(ID_MENUITEM_OGL_RO1,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO2,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO3,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO4,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO5,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
+    Connect(ID_MENUITEM_OGL_RO6,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItemOGLRenderOrder);
     Connect(ID_MNU_PLAYCONTROLSONPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_PlayControlsOnPreviewSelected);
     Connect(ID_MNU_AUTOSHOWHOUSEPREVIEW,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::OnMenuItem_AutoShowHousePreviewSelected);
     Connect(ID_MENUITEM_AUTOSAVE_0,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&xLightsFrame::AutoSaveIntervalSelected);
@@ -1918,6 +1952,29 @@ xLightsFrame::xLightsFrame(wxWindow* parent, wxWindowID id) : mSequenceElements(
             break;
         default:
             OpenGLMenu->Check(ID_MENU_OPENGL_AUTO, true);
+            break;
+    }
+
+
+    config->Read("OGLRenderOrder", &glVer, 0);
+    switch (glVer) {
+        case 0:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO1, true);
+            break;
+        case 1:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO2, true);
+            break;
+        case 2:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO3, true);
+            break;
+        case 3:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO4, true);
+            break;
+        case 4:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO5, true);
+            break;
+        case 5:
+            OpenGLMenu->Check(ID_MENUITEM_OGL_RO6, true);
             break;
     }
 
@@ -4038,6 +4095,37 @@ void xLightsFrame::OnMenuOpenGLSelected(wxCommandEvent& event)
     }
     OpenGLMenu->Check(event.GetId(), true);
     DisplayInfo("OpenGL changes require a restart", this);
+}
+void xLightsFrame::OnMenuItemOGLRenderOrder(wxCommandEvent& event)
+{
+    wxConfigBase* config = wxConfigBase::Get();
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO1, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO2, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO3, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO4, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO5, false);
+    OpenGLMenu->Check(ID_MENUITEM_OGL_RO6, false);
+
+    int order = 0;
+    if (event.GetId() == ID_MENUITEM_OGL_RO1) {
+        order = 0;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO2) {
+        order = 1;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO3) {
+        order = 2;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO4) {
+        order = 3;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO5) {
+        order = 4;
+    } else if (event.GetId() == ID_MENUITEM_OGL_RO6) {
+        order = 5;
+    }
+    config->Write("OGLRenderOrder", order);
+    OpenGLMenu->Check(event.GetId(), true);
+
+    _housePreviewPanel->GetModelPreview()->SetRenderOrder(order);
+    _modelPreviewPanel->SetRenderOrder(order);
+    modelPreview->SetRenderOrder(order);
 }
 
 void xLightsFrame::SaveWorkingLayout()
@@ -9301,7 +9389,7 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
             //          <sourcetime>1.0</sourcetime>    : in seconds
             //          <fadeinsecs>0.75</fadeinsecs>   : in seconds
             //          <fadeoutsecs>0.5</fadeoutsecs>  : in seconds
-            //          <fadeoutcrossfade/>             
+            //          <fadeoutcrossfade/>
             //          <gain>0.787367</gain>           : 1.0 = no change 0.0 = silence > 1.0 is amplification
             //          <file>01 - The Greatest Show amazon.mp3</file>
             //       </item>
@@ -9637,3 +9725,4 @@ void xLightsFrame::OnMenuItem_PrepareAudioSelected(wxCommandEvent& event)
         }
     }
 }
+

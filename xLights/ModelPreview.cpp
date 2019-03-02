@@ -1,6 +1,7 @@
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/artprov.h>
+#include <wx/config.h>
 
 #ifdef __WXMAC__
     #include "OpenGL/gl.h"
@@ -483,7 +484,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     image(nullptr), sprite(nullptr), allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr),
     xlights(xlights_), currentModel("&---none---&"),  currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000), renderOrder(0)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -492,6 +493,9 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
         EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
         Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
     }
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Read("OGLRenderOrder", &renderOrder, 0);
 }
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
@@ -499,13 +503,16 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     image(nullptr), sprite(nullptr), allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr),
     xlights(xl), currentModel(""), currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000), renderOrder(0)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
     
     EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
     Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Read("OGLRenderOrder", &renderOrder, 0);
 }
 
 ModelPreview::~ModelPreview()
@@ -918,10 +925,41 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
         if (accumulator3d.count > maxVertexCount) {
             maxVertexCount = accumulator3d.count;
         }
-        DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-        DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-        DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
-        DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+        switch (renderOrder) {
+            case 1:
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
+                break;
+            case 2:
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
+                break;
+            case 3:
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                break;
+            case 4:
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                break;
+            case 5:
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                break;
+            case 0:
+            default:
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
+                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                break;
+        }
     } else {
         if (accumulator.count > maxVertexCount) {
             maxVertexCount = accumulator.count;

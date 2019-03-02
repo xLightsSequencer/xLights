@@ -105,6 +105,7 @@ public:
     void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
 
+    void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
 protected:
     virtual void InitializeGLCanvas() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
@@ -158,6 +159,7 @@ private:
     std::vector<Model*> tmpModelList;
     Model *additionalModel;
 
+    int renderOrder;
 	DrawGLUtils::xl3Accumulator view_object_accumulator;
     DrawGLUtils::xl3Accumulator accumulator3d;
     bool is_3d;

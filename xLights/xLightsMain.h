@@ -558,6 +558,7 @@ public:
     void OnMenuItemFSEQV1Selected(wxCommandEvent& event);
     void OnMenuItemFSEQV2Selected(wxCommandEvent& event);
     void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
+    void OnMenuItemOGLRenderOrder(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -775,6 +776,12 @@ public:
     static const long ID_MENU_OPENGL_AUTO;
     static const long ID_MENU_OPENGL_3;
     static const long ID_MENU_OPENGL_1;
+    static const long ID_MENUITEM_OGL_RO1;
+    static const long ID_MENUITEM_OGL_RO2;
+    static const long ID_MENUITEM_OGL_RO3;
+    static const long ID_MENUITEM_OGL_RO4;
+    static const long ID_MENUITEM_OGL_RO5;
+    static const long ID_MENUITEM_OGL_RO6;
     static const long ID_MENUITEM19;
     static const long ID_MNU_PLAYCONTROLSONPREVIEW;
     static const long ID_MNU_AUTOSHOWHOUSEPREVIEW;
@@ -888,9 +895,6 @@ public:
     wxMenuItem* MenuItem38;
     wxMenuItem* MenuItem39;
     wxMenuItem* MenuItem3;
-    wxMenuItem* MenuItem40;
-    wxMenuItem* MenuItem41;
-    wxMenuItem* MenuItem43;
     wxMenuItem* MenuItem49;
     wxMenuItem* MenuItem50;
     wxMenuItem* MenuItem51;

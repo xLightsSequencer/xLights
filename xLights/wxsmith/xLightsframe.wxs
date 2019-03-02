@@ -1570,19 +1570,50 @@
 				</object>
 				<object class="wxMenu" name="ID_MENUITEM19" variable="OpenGLMenu" member="yes">
 					<label>OpenGL</label>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="yes">
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_AUTO" variable="MenuItem40" member="no">
 						<label>Auto Detect</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_3" variable="MenuItem41" member="yes">
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_3" variable="MenuItem41" member="no">
 						<label>3.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
-					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="yes">
+					<object class="wxMenuItem" name="ID_MENU_OPENGL_1" variable="MenuItem43" member="no">
 						<label>1.x/2.x</label>
 						<handler function="OnMenuOpenGLSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="separator" />
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO1" variable="MenuItem42" member="no">
+						<label>Render Order 1</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO2" variable="MenuItem55" member="no">
+						<label>Render Order 2</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO3" variable="MenuItem56" member="no">
+						<label>Render Order 3</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO4" variable="MenuItem57" member="no">
+						<label>Render Order 4</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO5" variable="MenuItem58" member="no">
+						<label>Render Order 5</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MENUITEM_OGL_RO6" variable="MenuItem59" member="no">
+						<label>Render Order 6</label>
+						<handler function="OnMenuItemOGLRenderOrder" entry="EVT_MENU" />
 						<radio>1</radio>
 					</object>
 				</object>
