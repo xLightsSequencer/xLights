@@ -58,7 +58,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent,wxWind
 	Choice1->SetSelection( Choice1->Append(_("Falcon")) );
 	Choice1->Append(_("San Devices"));
 	Choice1->Append(_("ESP Pixel Stick"));
-	Choice1->Append(_("Pixlite"));
+	Choice1->Append(_("PixLite/PixCon"));
 	FlexGridSizer2->Add(Choice1, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
 	CheckListBox_Controllers = new wxCheckListBox(this, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_ALWAYS_SB|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
@@ -187,19 +187,19 @@ void MultiControllerUploadDialog::OnButton_UploadClick(wxCommandEvent& event)
                 TextCtrl_Log->AppendText("ES Pixel Stick Upload FAILED to " + ip + ".\n");
             }
         }
-        else if (selected == "Pixlite")
+        else if (selected == "PixLite/PixCon")
         {
             Pixlite16 pixlite(ip.ToStdString());
             if (pixlite.IsConnected()) {
                 if (pixlite.SetOutputs(&_frame->AllModels, _frame->GetOutputManager(), fake, this)) {
-                    TextCtrl_Log->AppendText("Pixlite Upload Complete to " + ip + ".\n");
+                    TextCtrl_Log->AppendText("PixLite/PixCon Upload Complete to " + ip + ".\n");
                 }
                 else {
-                    TextCtrl_Log->AppendText("Pixlite Upload FAILED to " + ip + ".\n");
+                    TextCtrl_Log->AppendText("PixLite/PixCon Upload FAILED to " + ip + ".\n");
                 }
             }
             else {
-                TextCtrl_Log->AppendText("Pixlite Upload FAILED to " + ip + ".\n");
+                TextCtrl_Log->AppendText("PixLite/PixCon Upload FAILED to " + ip + ".\n");
             }
         }
     }
