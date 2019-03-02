@@ -14,6 +14,7 @@
 #include "sequencer/MainSequencer.h"
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
+#include "Parallel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -565,7 +566,7 @@ public:
                 done.resize(rb.pixels.size());
                 rb.CopyNodeColorsToPixels(done);
                 // now fill in any spaces in the buffer that don't have nodes mapped to them
-                for (int y = 0; y < rb.BufferHt; y++) {
+                parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame] (int y) {
                     for (int x = 0; x < rb.BufferWi; x++) {
                         if (!done[y*rb.BufferWi+x]) {
                             xlColor c = xlBLACK;
@@ -573,7 +574,7 @@ public:
                             rb.SetPixel(x, y, c);
                         }
                     }
-                }
+                });
             }
 
             info.validLayers[layer] = xLights->RenderEffectFromMap(ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);

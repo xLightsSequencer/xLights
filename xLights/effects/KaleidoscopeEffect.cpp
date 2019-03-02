@@ -370,29 +370,24 @@ void KaleidoscopeEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuf
     }
 
     auto currentUsed = cache->_startUsed;
-    auto edges = cache->_edges;
+    auto &edges = cache->_edges;
 
     auto edge = edges.begin();
     //logger_base.debug("frame. Edges %d", (int)edges.size());
-    int setSinceBegin = 0;
+    std::atomic_int setSinceBegin = 0;
     while (!KaleidoscopeDone(currentUsed) && edges.size() > 0)
     {
         //logger_base.debug("   iterate");
         //int set = 0;
 
         //DumpUsed(currentUsed, buffer.BufferWi, buffer.BufferHt);
-        for (int y = 0; y < buffer.BufferHt; y++)
-        {
-            for (int x = 0; x < buffer.BufferWi; x++)
-            {
-                if (!currentUsed[x][y])
-                {
+        parallel_for(0, buffer.BufferHt, [&currentUsed, this, &buffer, &edge, &setSinceBegin] (int y) {
+            for (int x = 0; x < buffer.BufferWi; x++) {
+                if (!currentUsed[x][y]) {
                     // this pixel needs to be set
                     auto source = GetSourceLocation(x, y, *edge, buffer.BufferWi, buffer.BufferHt);
-                    if (source.first >= 0 && source.first < buffer.BufferWi && source.second >= 0 && source.second < buffer.BufferHt)
-                    {
-                        if (currentUsed[source.first][source.second])
-                        {
+                    if (source.first >= 0 && source.first < buffer.BufferWi && source.second >= 0 && source.second < buffer.BufferHt) {
+                        if (currentUsed[source.first][source.second]) {
                             buffer.SetPixel(x, y, buffer.GetPixel(source.first, source.second));
                             currentUsed[x][y] = true;
                             //set++;
@@ -401,7 +396,7 @@ void KaleidoscopeEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuf
                     }
                 }
             }
-        }
+        });
         //logger_base.debug("   set this iteration %d", set);
         ++edge;
         if (edge == edges.end()) {

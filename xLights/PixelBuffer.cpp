@@ -682,18 +682,6 @@ void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
-    // If this coordinate maps to a node use the node function as nodes have some special stuff going on ... like sparkles
-    int i = 0;
-    for (auto it = layers[0]->buffer.Nodes.begin(); it != layers[0]->buffer.Nodes.end(); ++it)
-    {
-        if ((*it)->Coords[0].bufX == x && (*it)->Coords[0].bufY == y)
-        {
-            GetMixedColor(i, c, validLayers, EffectPeriod);
-            return;
-        }
-        i++;
-    }
-
     int cnt = 0;
     c = xlBLACK;
     xlColor color;
