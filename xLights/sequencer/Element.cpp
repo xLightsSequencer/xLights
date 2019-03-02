@@ -2,6 +2,9 @@
 #include "../models/Model.h"
 #include <list>
 #include "UtilFunctions.h"
+#include <log4cpp/Category.hh>
+#include "SequenceElements.h"
+#include "xLightsMain.h"
 
 Element::Element(SequenceElements *p, const std::string &name) :
 mEffectLayers(),
@@ -28,7 +31,7 @@ void Element::CleanupAfterRender() {
     for (auto &a : mEffectLayers) {
         a->CleanupAfterRender();
     }
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
     while (!mLayersToDelete.empty()) {
         delete *mLayersToDelete.begin();
         mLayersToDelete.pop_front();
@@ -102,9 +105,17 @@ EffectLayer* Element::AddEffectLayer()
     IncrementChangeCount(-1, -1);
     return new_layer;
 }
+
 EffectLayer* Element::AddEffectLayerInternal()
 {
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    if (!lock.try_lock_for(std::chrono::milliseconds(500)))
+    {
+        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        lock.lock();
+    }
+
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.push_back(new_layer);
     return new_layer;
@@ -112,7 +123,16 @@ EffectLayer* Element::AddEffectLayerInternal()
 
 EffectLayer* Element::InsertEffectLayer(int index)
 {
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    if (!lock.try_lock_for(std::chrono::milliseconds(500)))
+    {
+        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        lock.lock();
+    }
+
     EffectLayer* new_layer = new EffectLayer(this);
     mEffectLayers.insert(mEffectLayers.begin()+index, new_layer);
     IncrementChangeCount(-1, -1);
@@ -143,7 +163,14 @@ bool Element::operator<(const Element& e) const
 
 void Element::RemoveEffectLayer(int index)
 {
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    // try for 500ms to get the lock ... if i cant get it ... abort rendering and try again
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock, std::defer_lock_t());
+    if (!lock.try_lock_for(std::chrono::milliseconds(500)))
+    {
+        GetSequenceElements()->GetXLightsFrame()->AbortRender();
+        lock.lock();
+    }
+
     EffectLayer *l = GetEffectLayer(index);
     mEffectLayers.erase(mEffectLayers.begin()+index);
     mLayersToDelete.push_back(l);
@@ -312,7 +339,7 @@ ModelElement::ModelElement(const std::string &name)
 ModelElement::~ModelElement()
 {
     //make sure none of the render threads are rendering this model
-    std::unique_lock<std::recursive_mutex> lock(changeLock);
+    std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
     while (waitCount > 0) {
         lock.unlock();
         wxSleep(1);

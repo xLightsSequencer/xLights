@@ -3528,6 +3528,7 @@ bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
     }
     return true;
 }
+
 void xLightsFrame::DoPromoteEffects(ModelElement *element) {
     //first promote from nodes to strands
     for (int x = 0; x < element->GetStrandCount(); x++) {

@@ -701,12 +701,12 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     std::string eyes = eyesIn;
 
     Element *track = elements->GetElement(trackName);
-    std::recursive_mutex tmpLock;
-    std::recursive_mutex *lock = &tmpLock;
+    std::recursive_timed_mutex tmpLock;
+    std::recursive_timed_mutex *lock = &tmpLock;
     if (track != nullptr) {
         lock = &track->GetChangeLock();
     }
-    std::unique_lock<std::recursive_mutex> locker(*lock);
+    std::unique_lock<std::recursive_timed_mutex> locker(*lock);
 
     if (buffer.cur_model == "") {
         return;

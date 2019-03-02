@@ -89,14 +89,14 @@ void LOROptimisedOutput::SetManyChannels(long channel, unsigned char data[], lon
     int cur_channel = channel;
     int total_bytes_sent = 0;
 
-    for (auto it = _controllers.GetControllers()->begin(); it != _controllers.GetControllers()->end(); ++it)
+    for (auto it : *(_controllers.GetControllers()))
     {
-		int channel_count = (*it)->GetNumChannels();
-        int unit_id = (*it)->GetUnitId();
+		int channel_count = it->GetNumChannels();
+        int unit_id = it->GetUnitId();
 
         int controller_channels_to_process = channel_count;
         int channels_per_pass = controller_channels_to_process;
-		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, *it);
+		CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, it);
 
         while( controller_channels_to_process > 0 ) {
             size_t idx = 0;  // running index for placing next byte

@@ -310,7 +310,7 @@ public:
     const std::string GetName() const override {
         return name;
     }
-
+    
     virtual bool DeleteWhenComplete() override {
         return false;
     }
@@ -609,7 +609,7 @@ public:
         int ss, es;
 
         rowToRender->IncWaitCount();
-        std::unique_lock<std::recursive_mutex> lock(rowToRender->GetRenderLock());
+        std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
         rowToRender->DecWaitCount();
         SetGenericStatus("Got lock on rendering thread for %s", 0);
 
@@ -773,6 +773,7 @@ public:
         abort = true;
     }
 
+    ModelElement* GetModelElement() const { return rowToRender; }
 
 private:
 
@@ -922,21 +923,33 @@ void xLightsFrame::LogRenderStatus()
     logger_base.debug("Logging render status ***************");
     logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
     logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it)
+    for (auto it : renderProgressInfo)
     {
-        int frames = (*it)->endFrame - (*it)->startFrame + 1;
-        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", (*it)->numRows, (*it)->startFrame, (*it)->endFrame, frames);
-        for (int i = 0; i < (*it)->numRows; i++)
+        int frames = it->endFrame - it->startFrame + 1;
+        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
+        for (int i = 0; i < it->numRows; i++)
         {
-            if ((*it)->jobs[i] != nullptr)
+            if (it->jobs[i] != nullptr)
             {
-                int curFrame = (*it)->jobs[i]->GetCurrentFrame();
-                if (curFrame >(*it)->endFrame || curFrame == END_OF_RENDER_FRAME)
+                auto job = it->jobs[i];
+                int curFrame = job->GetCurrentFrame();
+                if (curFrame > it->endFrame || curFrame == END_OF_RENDER_FRAME)
                 {
-                    curFrame = (*it)->endFrame;
+                    curFrame = it->endFrame;
                 }
 
-                logger_base.debug("    Progress %s - %ld%%.", (const char *)(*it)->jobs[i]->GetName().c_str(), (long)(curFrame - (*it)->startFrame + 1) * 100 / frames);
+                logger_base.debug("    Progress %s - %ld%%.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
+                logger_base.debug("             %s.", (const char *)job->GetStatusForUser().c_str());
+                logger_base.debug("             %s.", (const char *)job->GetStatus().c_str());
+
+                bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
+                auto row = job->GetModelElement();
+                if (row != nullptr)
+                {
+                    logger_base.debug("             Element %s, Blocked %d, Wait Count %d.", (const char *)row->GetModelName().c_str(), blocked,
+                    row->GetWaitCount()
+                        );
+                }
             }
         }
     }
