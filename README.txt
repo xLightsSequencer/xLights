@@ -11,6 +11,22 @@ Issue Tracker is found here: www.github.com/smeighan/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2019.15 March 2, 2019
+   -- bug (keith)   Fix rendering per preview from a 3D camera ... it just wasnt right
+                    This may change how some rendering looks. I am happy to look into any issues but I will only change it again if it is
+					clearly wrong.
+   -- bug (keith)   Fix crash rendering per model per preview from 3D camera
+   -- bug (keith)   Fix/change behaviour when inserting/deleting layers while rendering. Abort the rendering to take the action
+   -- bug (keith)   Fix SMS tool sends too many rejection messages
+   -- bug (keith)   Fix SMS tool displays sent messages
+   -- bug (keith)   Fix a crash when breaking down phrases with no actual words
+   -- bug (keith)   Fix lines effect value curve not disabling on reset
+   -- enh (keith)   All screen map area to be manipulated using the mouse
+   -- enh (keith)   Stop render range expansion to include immediately prior and immediately following effect
+                    There is a small chance this will cause user to need to click render all in some scenarios. Please report and provide
+					sample sequences if this happens
+   -- enh (keith)   Include a default SMS work whitelist and blacklist
+   -- enh (keith)   Add a frame audio waveform to the VUMeter
 2019.14 February 23, 2019
    -- bug (dkulp)   Fix bug where 2d background image not honoring center is 0 setting
    -- bug (keith)   Fix bandwith.com cant send SMS
@@ -19,9 +35,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)   Dont reset canvas mode when randomising effect settings
    -- bug (keith)   Fix crash when using large triangles in Kaleidoscope on some models
    -- bug (keith)   Fix xSchedule cant set text on a text item playing in every step
-   -- enh (keith)   Add logarithmic x axis to spectrogram
-   -- enh (keith)   Add line spectrogram to vu meter
-   -- enh (keith)   Add circle line spectrogram to vu meter
+   -- enh (keith)   Add logarithmic x axis to spectragram
+   -- enh (keith)   Add line spectragram to vu meter
+   -- enh (keith)   Add circle line spectragram to vu meter
    -- enh (keith)   Add check sequence warning if firework is to fire with timing track but none is selcected
 2019.13 February 21, 2019
    -- enh (keith)   Add the kaleidoscope effect
@@ -733,7 +749,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- bug (keith)  Fix some issues with effect selection
    -- bug (keith)  Some performance fixes which impacted selecting effects and moving effects
    -- enh (keith)  Enhance mapping lots of channels sequentially
-   -- enh (keith)  Add Spectrogram Peak to VUMeter
+   -- enh (keith)  Add Spectragram Peak to VUMeter
    -- enh (keith)  Provide an easy way to replace a model without breaking all the groups it is a member of
 2018.6 Feb 06, 2018
    -- enh (gil)    Add LOR event to xSchedule which should work with the Input Pup board.
@@ -1948,7 +1964,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith) Add video acceleration and slow down so video fully plays in time periods
                       different to their actual length
    -- bug (keith) Fix sensitivity bug in music effect
-   -- bug (keith) Fix spectrograms wider than the model
+   -- bug (keith) Fix spectragrams wider than the model
    -- bug (keith) Similar fix for video
    -- bug (gil)     Fix Pictures effect broken by last release.
 2016.21  Apr 22, 2016
@@ -1967,7 +1983,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
    -- enh (keith) Add option to trigger firework effects based on the audio intensity
    -- enh (keith) Add the option to vary meteor effect meteor count based on the audio intensity
    -- enh (keith) Add Colour On sub effect to VU Meter - Selects a colour based on the intensity of the audio
-   -- enh (keith) Add the ability to constrain the frequency range of the spectrogram. Columns in
+   -- enh (keith) Add the ability to constrain the frequency range of the spectragram. Columns in
                      this effect are now aligned with MIDI notes.
    -- bug (keith) Ensure pictures, piano and video effect move when moving folders around
    -- enh (keith) Move convert tab into a dialog under TOOLS. Now go to convert "TOOLS,CONVERT"
