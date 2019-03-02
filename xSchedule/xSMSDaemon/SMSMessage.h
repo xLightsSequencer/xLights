@@ -27,10 +27,11 @@ class SMSMessage
 	std::string _from;
     int _displayCount = 0;
     bool _displayed = false;
+    bool _filtered = false;
 
     bool Censored() const
     {
-        return _rawMessage == "" || _message != "";
+        return _filtered || _rawMessage == "" || _message != "";
     }
 
     void Censor(bool reject)
@@ -42,6 +43,10 @@ class SMSMessage
             if (msg == "false")
             {
                 _message = _rawMessage;
+            }
+            else
+            {
+                _filtered = true;
             }
         }
         else

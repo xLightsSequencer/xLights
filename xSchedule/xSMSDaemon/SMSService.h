@@ -17,6 +17,7 @@ class SMSService
 	std::string _token;
 	std::string _myNumber;
 	std::vector<SMSMessage> _messages;
+	std::vector<SMSMessage> _rejectedMessages;
 
     public:
 
@@ -75,6 +76,14 @@ class SMSService
                 // Only add if not already there
                 bool found = false;
                 for (auto it : _messages)
+                {
+                    if (it == msg)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                for (auto it : _rejectedMessages)
                 {
                     if (it == msg)
                     {
@@ -173,12 +182,14 @@ class SMSService
                                         else
                                         {
                                             logger_base.warn("Rejected Msg: Not one word : %s", (const char*)msg.GetLog().c_str());
+                                            _rejectedMessages.push_back(msg);
                                             SendRejectMessage(msg, options.GetRejectMessage());
                                         }
                                     }
                                     else
                                     {
                                         logger_base.warn("Rejected Msg: Too long : %s", (const char*)msg.GetLog().c_str());
+                                        _rejectedMessages.push_back(msg);
                                         SendRejectMessage(msg, options.GetRejectMessage());
                                     }
                                 }
@@ -187,6 +198,7 @@ class SMSService
                                     if (options.GetRejectProfanity())
                                     {
                                         logger_base.warn("Rejected Msg: Censored : %s", (const char*)msg.GetLog().c_str());
+                                        _rejectedMessages.push_back(msg);
                                         SendRejectMessage(msg, options.GetRejectMessage());
                                     }
                                 }
@@ -194,18 +206,21 @@ class SMSService
                             else
                             {
                                 logger_base.warn("Rejected Msg: Whitelist : %s", (const char*)msg.GetLog().c_str());
+                                _rejectedMessages.push_back(msg);
                                 SendRejectMessage(msg, options.GetRejectMessage());
                             }
                         }
                         else
                         {
                             logger_base.warn("Rejected Msg: Blacklist : %s", (const char*)msg.GetLog().c_str());
+                            _rejectedMessages.push_back(msg);
                             SendRejectMessage(msg, options.GetRejectMessage());
                         }
                     }
                     else
                     {
                         logger_base.warn("Rejected Msg: Phone Blacklist : %s", (const char*)msg.GetLog().c_str());
+                        _rejectedMessages.push_back(msg);
                         SendRejectMessage(msg, options.GetRejectMessage());
                     }
                 }
