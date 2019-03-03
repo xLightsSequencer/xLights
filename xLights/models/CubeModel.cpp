@@ -17,38 +17,54 @@
 
 static std::vector<std::tuple<int, int, int, int>> transformations =
 {
-{ 1,0,-1,0 },  // FBL V FB          ok
-{ 0,0,-1,1 },  //     V LR          ok
-{ 0,-1,0,1 },  //     H FB          ok
-{ 0,0,0,0 },   //     H LR          ok
-{ 1,0,-1,1 }, // FBR V FB           ok
-{ 0,0,-1,0 },  //     V LR          ok
-{ 0,-1,0,0 },  //     H FB          ok
-{ 0,0,0,1 },   //     H LR          ok
-{1,0,1,1 },   // FTL V FB           ok
-{0,0,1,0},     //     V LR          ok
-{0,-1,2,0},    //     H FB          ok
-{0,0,2,1},     //     H LR          ok
-{1,0,1,0},    // FTR V FB           ok
-{0,0,1,1},     //     V LR          ok
-{0,-1,2,1},    //     H FB          ok
-{0,0,2,0},     //     H LR          ok
-{-1,0,-1,1},    // BBL V FB         ok
-{0,2,1,0},     //     V LR          ok
-{0,1,0,0},     //     H FB          ok
-{0,2,0,1},     //     H LR          ok
-{-1,0,-1,0},    // BBR V FB         ok
-{0,2,1,1},     //     V LR          ok
-{0,1,0,1},     //     H FB          ok
-{0,2,0,0},     //     H LR          ok
-{-1,0,1,0},    // BTL V FB          ok
-{0,2,-1,1},    //     V LR          ok
-{0,-1,2,0},    //     H FB          ok
-{2,0,0,0},     //     H LR          ok
-{-1,0,1,1},    // BTR V FB          ok
-{0,2,-1,0},    //     V LR          ok
-{0,-1,2,1},    //     H FB          ok
-{2,0,0,1}      //     H LR          ok
+    { 1,0,-1,0 },   // FBL V FB          ok
+    { 0,0,-1,1 },   //     V LR          ok
+    { 0,-1,0,1 },   //     H FB          ok
+    { 0,0,0,0 },    //     H LR          ok
+    { -1,2,0,1 },   //     S FB          ok
+    { -1,-1,0,0 },  //     S LR          ok
+    { 1,0,-1,1 },   // FBR V FB          ok
+    { 0,0,-1,0 },   //     V LR          ok
+    { 0,-1,0,0 },   //     H FB          ok
+    { 0,0,0,1 },    //     H LR          ok
+    { -1,2,0,0 },   //     S FB          ok
+    { -1,-1,0,1 },  //     S LR          ok
+    { 1,0,1,1 },    // FTL V FB          ok
+    { 0,0,1,0 },    //     V LR          ok
+    { 0,-1,2,0 },   //     H FB          ok
+    { 0,0,2,1 },    //     H LR          ok
+    { -1,2,2,0 },   //     S FB          ok
+    { -1,-1,2,1 },  //     S LR          ok
+    { 1,0,1,0 },    // FTR V FB          ok
+    { 0,0,1,1 },    //     V LR          ok
+    { 0,-1,2,1 },   //     H FB          ok
+    { 0,0,2,0 },    //     H LR          ok
+    { -1,2,2,1 },   //     S FB          ok
+    { -1,-1,2,0 },  //     S LR          ok
+    { -1,0,-1,1 },  // BBL V FB          ok
+    { 0,2,1,0 },    //     V LR          ok
+    { 0,1,0,0 },    //     H FB          ok
+    { 0,2,0,1 },    //     H LR          ok
+    { -1,0,0,0 },   //     S FB          ok
+    { -1,1,0,1 },   //     S LR          ok
+    { -1,0,-1,0 },  // BBR V FB          ok
+    { 0,2,1,1 },    //     V LR          ok
+    { 0,1,0,1 },    //     H FB          ok
+    { 0,2,0,0 },    //     H LR          ok
+    { -1,0,0,1 },   //     S FB          ok
+    { -1,1,0,0 },   //     S LR          ok
+    { -1,0,1,0 },   // BTL V FB          ok
+    { 0,2,-1,1 },   //     V LR          ok
+    { 0,-1,2,0 },   //     H FB          ok
+    { 2,0,0,0 },    //     H LR          ok
+    { -1,2,2,0 },   //     S FB          ok
+    { 1,-1,0,0 },   //     S LR          ok
+    { -1,0,1,1 },   // BTR V FB          ok
+    { 0,2,-1,0 },   //     V LR          ok
+    { 0,-1,2,1 },   //     H FB          ok
+    { 2,0,0,1 },    //     H LR          ok
+    { -1,2,2,1 },   //     S FB          ok
+    { 1,-1,0,1 }    //     S LR          ok
 };
 
 static wxPGChoices TOP_BOT_LEFT_RIGHT;
@@ -71,6 +87,8 @@ void CubeModel::InitialiseChoices()
         CUBE_STYLES.Add("Vertical Left/Right");
         CUBE_STYLES.Add("Horizontal Front/Back");
         CUBE_STYLES.Add("Horizontal Left/Right");
+        CUBE_STYLES.Add("Stacked Front/Back");
+        CUBE_STYLES.Add("Stacked Left/Right");
 
         STRAND_STYLES.Add("Zig Zag");
         STRAND_STYLES.Add("No Zig Zag");
@@ -100,7 +118,8 @@ int CubeModel::CalcTransformationIndex() const
     auto style = ModelXml->GetAttribute("Style", CUBE_STYLES.GetLabel(0));
     bool leftright = style.Contains("Left");
     bool horizontal = style.Contains("Horizontal");
-    return (GetStartIndex() << 2) + (horizontal << 1) + leftright;
+    bool stacked = style.Contains("Stacked");
+    return (GetStartIndex() * CUBE_STYLES.GetCount()) + (horizontal << 1) + (stacked << 2) + leftright;
 }
 
 void CubeModel::AddTypeProperties(wxPropertyGridInterface *grid) {
