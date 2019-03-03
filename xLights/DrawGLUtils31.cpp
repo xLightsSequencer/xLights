@@ -381,7 +381,7 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
     
     void Draw(bool wf, float brightness, glm::mat4 &curMatrix,
               ShaderProgram &singleColorProgram, ShaderProgram &meshProgram,
-              DrawGLUtils::xlGLCacheInfo::DrawType dt) {
+              bool transparent) {
         if (buffers[0] == 0) {
             LOG_GL_ERRORV(glGenBuffers(NUM_BUFFERS, buffers));
 
@@ -401,22 +401,17 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * wireframe.size(), &wireframe[0], GL_STATIC_DRAW));
 
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[5]));
-            if (lines.size() > 0)
-            {
+            if (lines.size() > 0) {
                 LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * lines.size(), &lines[0], GL_STATIC_DRAW));
-            }
-            else
-            {
+            } else {
                 LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STATIC_DRAW));
             }
 
             calcProgram();
         }
         glm::mat4 mat = curMatrix * matrix;
-        bool ttype = dt == DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS;
-
         if (wf) {
-            if (!ttype) {
+            if (!transparent) {
                 singleColorProgram.UseProgram();
                 singleColorProgram.SetRenderType(0);
                 singleColorProgram.SetMatrix(mat);
@@ -457,29 +452,28 @@ class GL3Mesh : public DrawGLUtils::xl3DMesh {
             LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, buffers[3]));
             LOG_GL_ERRORV(glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0));
             
+            std::vector<PType> &programTypes = transparent ? transparentProgramTypes : solidProgramTypes;
             for (auto & pt : programTypes) {
-                if (pt.transparent == ttype) {
-                    if (pt.image == -1) {
-                        meshProgram.SetRenderType(1);
-                    } else {
-                        meshProgram.SetRenderType(0);
-                        LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
-                        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
-                        LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(meshProgram.ProgramID, "tex"), 0));
-                        LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-                        LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-                    }
-                    LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
-                    if (pt.image != -1) {
-                        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
-                    }
+                if (pt.image == -1) {
+                    meshProgram.SetRenderType(1);
+                } else {
+                    meshProgram.SetRenderType(0);
+                    LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                    LOG_GL_ERRORV(glUniform1i(glGetUniformLocation(meshProgram.ProgramID, "tex"), 0));
+                    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+                    LOG_GL_ERRORV(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+                }
+                LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                if (pt.image != -1) {
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
                 }
             }
             LOG_GL_ERRORV(glDisableVertexAttribArray(0));
             LOG_GL_ERRORV(glDisableVertexAttribArray(1));
             LOG_GL_ERRORV(glDisableVertexAttribArray(2));
             LOG_GL_ERRORV(glDisableVertexAttribArray(3));
-            if (!lines.empty() && !ttype) {
+            if (!lines.empty() && !transparent) {
                 singleColorProgram.UseProgram();
                 singleColorProgram.SetRenderType(0);
                 singleColorProgram.SetMatrix(mat);
@@ -844,7 +838,7 @@ public:
         program->UnbindBuffer(0);
     }
 
-    void Draw(DrawGLUtils::xlAccumulator &va, DrawType dt) override {
+    void Draw(DrawGLUtils::xlAccumulator &va) override {
         if (va.count == 0) {
             bool hasMesh = false;
             for (auto &a : va.types) {
@@ -891,15 +885,13 @@ public:
         program->BindBuffer(1, &va.colors[0], va.count*4*sizeof(GLubyte));
         LOG_GL_ERRORV(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0 ));
         
-        bool ttype = dt == DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS;
-
         int lastTextureId = -1;
         for (auto &brt : va.types) {
             int type = brt.type;
             int enableCapability = brt.enableCapability;
             if (brt.mesh != nullptr) {
                 GL3Mesh *mesh = (GL3Mesh*)brt.mesh;
-                mesh->Draw(brt.extra == 1, brt.textureBrightness, *matrix, singleColor3Program, meshProgram, dt);
+                mesh->Draw(brt.extra == 1, brt.textureBrightness, *matrix, singleColor3Program, meshProgram, brt.meshTransparents);
                 program->UseProgram();
                 program->ReBindBuffer(0);
                 program->ReBindBuffer(1);
@@ -941,7 +933,6 @@ public:
                 lastTextureId = brt.textureId;
             }
             if (brt.mesh == nullptr) {
-                bool doDraw = !ttype;
                 if (brt.textureId != -1) {
                     GLuint cid = glGetUniformLocation(texturep->ProgramID, "inColor");
                     if (brt.useTexturePixelColor) {
@@ -951,9 +942,6 @@ public:
                                                   ((float)brt.texturePixelColor.alpha) / 255.0f));
                         texturep->SetRenderType(1);
                     } else {
-                        if (brt.textureAlpha != 255) {
-                            doDraw = ttype;
-                        }
                         float alpha = ((float)brt.textureAlpha)/255.0;
                         float brightness = brt.textureBrightness / 100.0f;
                         LOG_GL_ERRORV(glUniform4f(cid, brightness, brightness, brightness, alpha));
@@ -976,9 +964,7 @@ public:
                         program->SetRenderType(0);
                     }
                 }
-                if (doDraw) {
-                    LOG_GL_ERRORV(glDrawArrays(type, offset0 + brt.start, brt.count));
-                }
+                LOG_GL_ERRORV(glDrawArrays(type, offset0 + brt.start, brt.count));
                 if (enableCapability > 0 && type != GL_POINTS && enableCapability != 0x0B10) {
                     LOG_GL_ERRORV(glDisable(enableCapability));
                 }

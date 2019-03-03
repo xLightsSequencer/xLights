@@ -257,8 +257,8 @@ public:
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &solidVa, DrawGLUtils::xlAccumulator &transparentVa, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &solidVa3, DrawGLUtils::xl3Accumulator &transparentVa3, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);

@@ -96,7 +96,7 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
+void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
     if( !active ) { return; }
 

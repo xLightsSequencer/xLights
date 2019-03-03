@@ -3241,7 +3241,7 @@ void Model::ApplyTransparency(xlColor &color, int transparency) const
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -3271,6 +3271,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     if (vcount > maxVertexCount) {
         maxVertexCount = vcount;
     }
+    bool needTransparent = false;
+    if (pixelStyle == 2 || transparency != 0 || blackTransparency != 0) {
+        needTransparent = true;
+    }
+    DrawGLUtils::xlAccumulator &va = needTransparent ? tva : sva;
     va.PreAlloc(maxVertexCount);
 
     int first = 0;
@@ -3372,7 +3377,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -3401,6 +3406,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     if (vcount > maxVertexCount) {
         maxVertexCount = vcount;
     }
+    bool needTransparent = false;
+    if (pixelStyle == 2 || transparency != 0 || blackTransparency != 0) {
+        needTransparent = true;
+    }
+    DrawGLUtils::xl3Accumulator &va = needTransparent ? tva : sva;
     va.PreAlloc(maxVertexCount);
 
     int first = 0;
@@ -3445,7 +3455,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
             }
         }
         size_t CoordCount=GetCoordCount(n);
-        for(size_t c2=0; c2 < CoordCount; c2++) {
+        for (size_t c2=0; c2 < CoordCount; c2++) {
             // draw node on screen
             float sx = Nodes[n]->Coords[c2].screenX;;
             float sy = Nodes[n]->Coords[c2].screenY;

@@ -338,9 +338,9 @@ void ModelPreview::Render()
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
             if (is_3d) {
-                m->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
+                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
             } else {
-                m->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
+                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
                 // FIXME:  Delete when not needed for debugging
                 //if ((*PreviewModels)[i]->Highlighted) {
                 //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
@@ -352,7 +352,7 @@ void ModelPreview::Render()
     if (is_3d) {
         for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
             ViewObject *view_object = it->second;
-            view_object->Draw(this, view_object_accumulator, allowSelected);
+            view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
         }
     }
 }
@@ -367,15 +367,15 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                 m->SetNodeChannelValues(n, &data[start]);
             }
             if (is_3d)
-                m->DisplayModelOnWindow(this, accumulator3d, true);
+                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true);
             else
-                m->DisplayModelOnWindow(this, accumulator, false);
+                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false);
         }
         // draw all the view objects
         if (is_3d) {
             for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
                 ViewObject *view_object = it->second;
-                view_object->Draw(this, view_object_accumulator, allowSelected);
+                view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
             }
         }
         EndDrawing(swapBuffers);
@@ -484,7 +484,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int 
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     image(nullptr), sprite(nullptr), allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr),
     xlights(xlights_), currentModel("&---none---&"),  currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000), renderOrder(0)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), renderOrder(0)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -503,7 +503,7 @@ ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
     image(nullptr), sprite(nullptr), allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr),
     xlights(xl), currentModel(""), currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
-    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000), renderOrder(0)
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), renderOrder(0)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
@@ -826,15 +826,14 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
-        accumulator.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
         if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
             && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
             currentPixelScaleFactor = scale2d;
             LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
         }
-        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-        accumulator.Finish(GL_TRIANGLES);
+        solidAccumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+        solidAccumulator.Finish(GL_TRIANGLES);
     } else {
         /*****************************   3D   ********************************/
         glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), camera3d->GetPosY() + camera3d->GetPanY(), camera3d->GetPosZ() + camera3d->GetPanZ()));
@@ -856,7 +855,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
-        accumulator3d.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
     }
 
@@ -881,7 +879,7 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                 scalew = 1.0;
             }
         }
-        accumulator.PreAllocTexture(6);
+        solidAccumulator.PreAllocTexture(6);
         float x = 0;
         if (_center2D0) {
             x = -virtualWidth;
@@ -889,18 +887,18 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         }
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
-        accumulator.AddTextureVertex(x, 0, tx1, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        solidAccumulator.AddTextureVertex(x, 0, tx1, -0.5 / (image->textureHeight));
+        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+        solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
 
-        accumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
-        accumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(x + virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
+        solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
 
         float i = mBackgroundBrightness;
         float a = mBackgroundAlpha * 255.0f;
         a /= 100;
-        accumulator.FinishTextures(GL_TRIANGLES, image->getID(), (uint8_t)a, i);
+        solidAccumulator.FinishTextures(GL_TRIANGLES, image->getID(), (uint8_t)a, i);
     }
 
     // Draw a box around the default area in 2D
@@ -908,11 +906,11 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         if (_center2D0) {
             float x = -virtualWidth;
             x /= 2.0f;
-            accumulator.AddLinesRect(x, 0, x + virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+            transparentAccumulator.AddLinesRect(x, 0, x + virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
         } else {
-            accumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+            transparentAccumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
         }
-        accumulator.Finish(GL_LINES);
+        transparentAccumulator.Finish(GL_LINES);
     }
 
     return true;
@@ -922,50 +920,48 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (is_3d) {
-        if (accumulator3d.count > maxVertexCount) {
-            maxVertexCount = accumulator3d.count;
-        }
         switch (renderOrder) {
             case 1:
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 2:
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::ALL);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 break;
             case 3:
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
             case 4:
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 break;
             case 5:
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 break;
             case 0:
             default:
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-                DrawGLUtils::Draw(accumulator3d, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
-                DrawGLUtils::Draw(view_object_accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
         }
     } else {
-        if (accumulator.count > maxVertexCount) {
-            maxVertexCount = accumulator.count;
-        }
-        DrawGLUtils::Draw(accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::SOLIDS);
-        DrawGLUtils::Draw(accumulator, DrawGLUtils::xlGLCacheInfo::DrawType::TRANSPARENTS);
+        DrawGLUtils::Draw(solidAccumulator);
+        DrawGLUtils::Draw(transparentAccumulator);
     }
     DrawGLUtils::PopMatrix();
     if (swapBuffers)
@@ -974,8 +970,17 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
         LOG_GL_ERRORV(SwapBuffers());
         logger_opengl.debug("Done swapping buffers in ModelPreview::EndDrawing.");
     }
-    view_object_accumulator.Reset();
-    accumulator3d.Reset();
-    accumulator.Reset();
+    solidViewObjectAccumulator.Reset();
+    transparentViewObjectAccumulator.Reset();
+    solidAccumulator3d.Reset();
+    transparentAccumulator3d.Reset();
+    solidAccumulator.Reset();
+    transparentAccumulator.Reset();
     mIsDrawing = false;
+}
+
+void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
+    solidAccumulator.AddDottedLinesRect(x1, y1, x2, y2,
+                                       ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+    solidAccumulator.Finish(GL_LINES);
 }

@@ -50,7 +50,8 @@ namespace DrawGLUtils
             GLint image;
             bool transparent;
         };
-        std::vector<PType> programTypes;
+        std::vector<PType> solidProgramTypes;
+        std::vector<PType> transparentProgramTypes;
     };
 
     class xlVertexAccumulatorBase {
@@ -342,7 +343,7 @@ namespace DrawGLUtils
 
         bool HasMoreVertices() { return count != start; }
         void Finish(int type, int enableCapability = 0, float extra = 1);
-        void AddMesh(xl3DMesh *m, bool wireframe, float textureBrightness = 100.0);
+        void AddMesh(xl3DMesh *m, bool wireframe, float textureBrightness, bool doTransparents);
 
 
         void PreAllocTexture(int i);
@@ -396,7 +397,8 @@ namespace DrawGLUtils
                 texturePixelColor = color;
                 mesh = nullptr;
             }
-            BufferRangeType(xl3DMesh *m, bool wireframe, float brightness) : mesh(m) {
+            BufferRangeType(xl3DMesh *m, bool wireframe, float brightness, bool doTransparents)
+                : mesh(m), meshTransparents(doTransparents)  {
                 start = 0;
                 count = 0;
                 type = 0;
@@ -418,6 +420,7 @@ namespace DrawGLUtils
             bool useTexturePixelColor;
             xlColor texturePixelColor;
             xl3DMesh *mesh;
+            bool meshTransparents;
         };
         std::list<BufferRangeType> types;
         float *tvertices;
@@ -471,12 +474,7 @@ namespace DrawGLUtils
 		virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
         
-        enum DrawType {
-            ALL,
-            SOLIDS,
-            TRANSPARENTS
-        };
-        virtual void Draw(xlAccumulator &va, DrawType dt = ALL) = 0;
+        virtual void Draw(xlAccumulator &va) = 0;
         
         virtual xl3DMesh *createMesh() = 0;
 
@@ -544,8 +542,8 @@ namespace DrawGLUtils
     bool IsCoreProfile();
     int NextTextureIdx();
 
-    void Draw(xlAccumulator &va, xlGLCacheInfo::DrawType dt = xlGLCacheInfo::DrawType::ALL);
-    void Draw(xl3Accumulator &va, xlGLCacheInfo::DrawType dt = xlGLCacheInfo::DrawType::ALL);
+    void Draw(xlAccumulator &va);
+    void Draw(xl3Accumulator &va);
     void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0);
     void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0);
     void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0);

@@ -26,7 +26,7 @@ public:
     virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
 
-    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) {};
+    virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) {};
 
 protected:
     bool active;

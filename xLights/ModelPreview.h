@@ -97,8 +97,6 @@ public:
 
 	virtual void render(const wxSize& size=wxSize(0,0)) override;
 
-    DrawGLUtils::xlAccumulator &GetAccumulator() { return accumulator; }
-    DrawGLUtils::xl3Accumulator &GetAccumulator3d() { return accumulator3d; }
     void SaveCurrentCameraPosition();
     void SetCamera2D(int i);
     void SetCamera3D(int i);
@@ -106,6 +104,8 @@ public:
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
 
     void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
+    
+    void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 protected:
     virtual void InitializeGLCanvas() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
@@ -151,7 +151,8 @@ private:
     bool allowSelected;
     bool allowPreviewChange;
     PreviewPane* mPreviewPane;
-    DrawGLUtils::xlAccumulator accumulator;
+    DrawGLUtils::xlAccumulator solidAccumulator;
+    DrawGLUtils::xlAccumulator transparentAccumulator;
 
     xLightsFrame* xlights;
     std::string currentModel;
@@ -160,8 +161,10 @@ private:
     Model *additionalModel;
 
     int renderOrder;
-	DrawGLUtils::xl3Accumulator view_object_accumulator;
-    DrawGLUtils::xl3Accumulator accumulator3d;
+	DrawGLUtils::xl3Accumulator solidViewObjectAccumulator;
+    DrawGLUtils::xl3Accumulator transparentViewObjectAccumulator;
+    DrawGLUtils::xl3Accumulator solidAccumulator3d;
+    DrawGLUtils::xl3Accumulator transparentAccumulator3d;
     bool is_3d;
     bool m_mouse_down;
     bool m_wheel_down;
@@ -176,8 +179,6 @@ private:
     static const long ID_VIEWPOINT3D;
 
     double currentPixelScaleFactor = 1.0;
-
-    int maxVertexCount;
 
 	DECLARE_EVENT_TABLE()
 };

@@ -23,7 +23,7 @@ class MeshObject : public ObjectWithScreenLocation<BoxedScreenLocation>
 
         int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
 
-        virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected = false) override;
+        virtual void Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected = false) override;
         virtual std::list<std::string> GetFileReferences() override;
         virtual bool CleanupFileLocations(xLightsFrame* frame) override;
         virtual std::list<std::string> CheckModelSettings() override;

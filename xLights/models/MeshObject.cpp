@@ -446,7 +446,7 @@ void MeshObject::loadObject() {
     }
 }
 
-void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
+void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
     if( !active ) { return; }
 
@@ -672,7 +672,8 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
             }
         }
         mesh3d->setMatrix(m);
-        va3.AddMesh(mesh3d, mesh_only, brightness);
+        va3.AddMesh(mesh3d, mesh_only, brightness, false);
+        tva3.AddMesh(mesh3d, mesh_only, brightness, true);
     }
 
     if ((Selected || Highlighted) && allowSelected) {

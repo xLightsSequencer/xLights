@@ -866,14 +866,14 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     float sx,sy,sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
     GetModelScreenLocation().PrepareToDraw(false, false);
 
-    va.PreAlloc(maxVertexCount);
+    tva.PreAlloc(maxVertexCount);
 
     sx=0;
     sy=0;
@@ -884,27 +884,27 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
 
     if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
-        DrawSkullModelOnWindow(preview, va, c, sx, sy, !allowSelected);
+        DrawSkullModelOnWindow(preview, tva, c, sx, sy, !allowSelected);
     } else if( dmx_style_val == DMX_STYLE_BASIC_FLOOD ) {
-        DrawFloodOnWindow(preview, va, c, sx, sy, !allowSelected);
+        DrawFloodOnWindow(preview, tva, c, sx, sy, !allowSelected);
     } else {
-        DrawModelOnWindow(preview, va, c, sx, sy, !allowSelected);
+        DrawModelOnWindow(preview, tva, c, sx, sy, !allowSelected);
     }
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(sva);
     }
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     float sx, sy, sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
     GetModelScreenLocation().PrepareToDraw(false, false);
 
-    va.PreAlloc(maxVertexCount);
+    tva.PreAlloc(maxVertexCount);
 
     sx = 0;
     sy = 0;
@@ -915,17 +915,17 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
 
     if (dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL) {
-        DrawSkullModelOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
+        DrawSkullModelOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
     }
     else if (dmx_style_val == DMX_STYLE_BASIC_FLOOD) {
-        DrawFloodOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
+        DrawFloodOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
     }
     else {
-        DrawModelOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
+        DrawModelOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
     }
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(sva);
     }
 }
 

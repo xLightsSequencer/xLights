@@ -935,9 +935,7 @@ void LayoutPanel::RenderLayout()
     if (m_creating_bound_rect)
     {
         if (!is_3d) {
-            modelPreview->GetAccumulator().AddDottedLinesRect(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y,
-                ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
-            modelPreview->GetAccumulator().Finish(GL_LINES);
+            modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
         }
     }
     modelPreview->EndDrawing();
