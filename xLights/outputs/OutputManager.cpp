@@ -922,12 +922,12 @@ void OutputManager::StopOutput()
 void OutputManager::AllOff(bool send)
 {
     if (!_outputCriticalSection.TryEnter()) return;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        (*it)->AllOff();
+        it->AllOff();
         if (send)
         {
-            (*it)->EndFrame(_suppressFrames);
+            it->EndFrame(_suppressFrames);
         }
     }
     _outputCriticalSection.Leave();

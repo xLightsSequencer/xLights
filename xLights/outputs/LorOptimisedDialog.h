@@ -84,6 +84,8 @@ private:
     void OnListView_ControllersItemSelect(wxListEvent& event);
     //*)
 
+    void OnListView_ControllersItemActivated(wxListEvent& event);
+
     DECLARE_EVENT_TABLE()
 };
 
