@@ -51,7 +51,6 @@
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
-    <ClCompile Include="DrawGLUtils21.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="outputs\DDPDialog.cpp" />
     <ClCompile Include="outputs\DDPOutput.cpp" />

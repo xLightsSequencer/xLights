@@ -54,6 +54,9 @@ END_EVENT_TABLE()
 
 TimingPanel::TimingPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
+    _startLayer = -1;
+    _endLayer = -1;
+
 	//(*Initialize(TimingPanel)
 	wxFlexGridSizer* FlexGridSizer10;
 	wxFlexGridSizer* FlexGridSizer11;
@@ -424,6 +427,7 @@ void TimingPanel::OnCheckBox_ResetTimingPanelClick(wxCommandEvent& event)
 
 void TimingPanel::OnButton_LayersClick(wxCommandEvent& event)
 {
+    wxASSERT(_startLayer <= _endLayer);
     LayerSelectDialog dlg(this, _startLayer, _endLayer, _layersSelected);
 
     if (dlg.ShowModal() == wxID_OK)

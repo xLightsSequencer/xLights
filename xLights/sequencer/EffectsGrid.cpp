@@ -638,6 +638,7 @@ void EffectsGrid::ProcessDroppedEffect(Effect* effect)
 {
     mSelectedEffect = effect;
     mSelectedRow = mDropRow;
+    RaiseSelectedEffectChanged(effect, true);
 }
 
 void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
