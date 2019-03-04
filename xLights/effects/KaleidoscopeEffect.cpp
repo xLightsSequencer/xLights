@@ -374,7 +374,8 @@ void KaleidoscopeEffect::Render(Effect *eff, SettingsMap &SettingsMap, RenderBuf
 
     auto edge = edges.begin();
     //logger_base.debug("frame. Edges %d", (int)edges.size());
-    std::atomic_int setSinceBegin = 0;
+    std::atomic_int setSinceBegin;
+    setSinceBegin = 0;
     while (!KaleidoscopeDone(currentUsed) && edges.size() > 0)
     {
         //logger_base.debug("   iterate");
