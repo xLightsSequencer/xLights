@@ -3272,7 +3272,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
         maxVertexCount = vcount;
     }
     bool needTransparent = false;
-    if (pixelStyle == 2 || transparency != 0 || blackTransparency != 0) {
+    if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
         needTransparent = true;
     }
     DrawGLUtils::xlAccumulator &va = needTransparent ? tva : sva;
@@ -3407,7 +3407,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
         maxVertexCount = vcount;
     }
     bool needTransparent = false;
-    if (pixelStyle == 2 || transparency != 0 || blackTransparency != 0) {
+    if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
         needTransparent = true;
     }
     DrawGLUtils::xl3Accumulator &va = needTransparent ? tva : sva;

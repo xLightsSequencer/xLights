@@ -921,17 +921,28 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
     static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (is_3d) {
         switch (renderOrder) {
+            // 0 or 1 is preferred depending if you want floods shining ONTO glass windows (0) or through (1)
+            // 3 or 4 draws the pixels first so they may have black bands around them and strong moire, but
+            //      seems to work around some video card drivers that cause extreme banding
+            // 5 is the 2019.03 order, but floods will look aweful (black circles)
+            // 2 is the 2019.04 order, floods are OK, no transparent windows
+            case 0:
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                break;
             case 1:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
-                DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 break;
             case 2:
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 DrawGLUtils::Draw(solidAccumulator3d);
                 DrawGLUtils::Draw(transparentAccumulator3d);
-                DrawGLUtils::Draw(transparentViewObjectAccumulator);
                 break;
             case 3:
                 DrawGLUtils::Draw(solidAccumulator3d);
@@ -950,13 +961,6 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
                 DrawGLUtils::Draw(transparentAccumulator3d);
                 DrawGLUtils::Draw(solidViewObjectAccumulator);
                 DrawGLUtils::Draw(transparentViewObjectAccumulator);
-                break;
-            case 0:
-            default:
-                DrawGLUtils::Draw(solidViewObjectAccumulator);
-                DrawGLUtils::Draw(solidAccumulator3d);
-                DrawGLUtils::Draw(transparentViewObjectAccumulator);
-                DrawGLUtils::Draw(transparentAccumulator3d);
                 break;
         }
     } else {
