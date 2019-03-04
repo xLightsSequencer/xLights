@@ -623,15 +623,17 @@ void CubeModel::InitRenderBufferNodes(const std::string& type, const std::string
     int height = parm2;
     int depth = parm3;
 
+    int oldNodes = Nodes.size();
+
     Model::InitRenderBufferNodes(type, camera, transform, Nodes, BufferWi, BufferHi);
 
     if (SingleNode || SingleChannel)
     {
-        wxASSERT(Nodes.size() == 1);
+        wxASSERT(Nodes.size() - oldNodes == 1);
     }
     else
     {
-        wxASSERT(Nodes.size() == width * height * depth);
+        wxASSERT(Nodes.size() - oldNodes == width * height * depth);
     }
 
     if (SingleChannel || SingleNode)
