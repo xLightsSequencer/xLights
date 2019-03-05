@@ -1353,7 +1353,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "Pixlite");
+    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "PixLite/PixCon");
     if (!AllSelectedSupportIP()) {
         beUCOPixlite16->Enable(false);
     } else  {
@@ -1890,14 +1890,14 @@ void xLightsFrame::UploadFPPStringOuputs(const std::string &controller) {
 void xLightsFrame::UploadPixlite16Output()
 {
     SetStatusText("");
-    if (wxMessageBox("This will upload the output controller configuration for a Pixlite controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    if (wxMessageBox("This will upload the output controller configuration for a PixLite/PixCon controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
         if (ip == "") {
-            wxTextEntryDialog dlg(this, "Pixlite IP Address", "IP Address", ip);
+            wxTextEntryDialog dlg(this, "PixLite/PixCon IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
@@ -1911,10 +1911,14 @@ void xLightsFrame::UploadPixlite16Output()
         Pixlite16 pixlite(ip.ToStdString());
         if (pixlite.IsConnected()) {
             if (pixlite.SetOutputs(&AllModels, &_outputManager, selected, this)) {
-                SetStatusText("Pixlite Upload Complete.");
+                SetStatusText("PixLite/PixCon Upload Complete.");
             } else {
-                SetStatusText("Pixlite Upload Failed.");
+                SetStatusText("PixLite/PixCon Upload Failed.");
             }
+        }
+        else
+        {
+            SetStatusText("Unable to connect to PixLite/PixCon.");
         }
         SetCursor(wxCURSOR_ARROW);
     }
