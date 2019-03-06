@@ -405,7 +405,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxCheckBox" name="ID_CHECKBOX_Fireworks_LogarithmicX" subclass="BulkEditCheckBox" variable="CheckBox_LogarithmicXAxis" member="yes">
+						<object class="wxCheckBox" name="ID_CHECKBOX_VUMeter_LogarithmicX" subclass="BulkEditCheckBox" variable="CheckBox_LogarithmicXAxis" member="yes">
 							<label>Logarithmic X axis</label>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

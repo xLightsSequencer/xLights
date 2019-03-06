@@ -56,7 +56,7 @@ const long VUMeterPanel::ID_STATICTEXT_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_EndNote = wxNewId();
 const long VUMeterPanel::ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote = wxNewId();
-const long VUMeterPanel::ID_CHECKBOX_Fireworks_LogarithmicX = wxNewId();
+const long VUMeterPanel::ID_CHECKBOX_VUMeter_LogarithmicX = wxNewId();
 const long VUMeterPanel::ID_STATICTEXT_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::ID_SLIDER_VUMeter_XOffset = wxNewId();
 const long VUMeterPanel::IDD_TEXTCTRL_VUMeter_XOffset = wxNewId();
@@ -200,7 +200,7 @@ VUMeterPanel::VUMeterPanel(wxWindow* parent)
 	BitmapButton_VUMeter_EndNote->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
 	FlexGridSizer31->Add(BitmapButton_VUMeter_EndNote, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_LogarithmicXAxis = new BulkEditCheckBox(this, ID_CHECKBOX_Fireworks_LogarithmicX, _("Logarithmic X axis"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Fireworks_LogarithmicX"));
+	CheckBox_LogarithmicXAxis = new BulkEditCheckBox(this, ID_CHECKBOX_VUMeter_LogarithmicX, _("Logarithmic X axis"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_VUMeter_LogarithmicX"));
 	CheckBox_LogarithmicXAxis->SetValue(false);
 	FlexGridSizer31->Add(CheckBox_LogarithmicXAxis, 1, wxALL|wxEXPAND, 2);
 	FlexGridSizer31->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);

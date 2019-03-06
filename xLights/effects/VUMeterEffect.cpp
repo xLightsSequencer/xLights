@@ -131,6 +131,21 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     return res;
 }
 
+bool VUMeterEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2019.16", version);
+}
+
+void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    SettingsMap &settings = effect->GetSettings();
+    if (settings.Contains("E_CHECKBOX_Fireworks_LogarithmicX"))
+    {
+        settings["E_CHECKBOX_VUMeter_LogarithmicX"] = settings.Get("E_CHECKBOX_Fireworks_LogarithmicX", "0");
+        settings.erase("E_CHECKBOX_Fireworks_LogarithmicX");
+    }
+}
+
 wxPanel *VUMeterEffect::CreatePanel(wxWindow *parent) {
 	return new VUMeterPanel(parent);
 }
@@ -182,6 +197,7 @@ void VUMeterEffect::SetDefaultParameters()
     SetSliderValue(vp->Slider_VUMeter_Sensitivity, 70);
     SetChoiceValue(vp->Choice_VUMeter_Shape, "Circle");
     SetCheckBoxValue(vp->CheckBox_VUMeter_SlowDownFalls, true);
+    SetCheckBoxValue(vp->CheckBox_LogarithmicXAxis, false);
     SetSliderValue(vp->Slider_VUMeter_StartNote, 36);
     SetSliderValue(vp->Slider_VUMeter_EndNote, 84);
     SetSliderValue(vp->Slider_VUMeter_XOffset, 0);
@@ -217,7 +233,7 @@ void VUMeterEffect::Render(Effect *effect, SettingsMap &SettingsMap, RenderBuffe
         SettingsMap.GetInt("SLIDER_VUMeter_XOffset", 0),
         GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset, VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
         GetValueCurveInt("VUMeter_Gain", 0, SettingsMap, oset, VUMETER_GAIN_MIN, VUMETER_GAIN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetBool("CHECKBOX_Fireworks_LogarithmicX", false)
+        SettingsMap.GetBool("CHECKBOX_VUMeter_LogarithmicX", false)
         );
 }
 

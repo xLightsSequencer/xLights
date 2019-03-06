@@ -109,7 +109,7 @@ class VUMeterPanel: public wxPanel
 		static const long ID_SLIDER_VUMeter_EndNote;
 		static const long IDD_TEXTCTRL_VUMeter_EndNote;
 		static const long ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote;
-		static const long ID_CHECKBOX_Fireworks_LogarithmicX;
+		static const long ID_CHECKBOX_VUMeter_LogarithmicX;
 		static const long ID_STATICTEXT_VUMeter_XOffset;
 		static const long ID_SLIDER_VUMeter_XOffset;
 		static const long IDD_TEXTCTRL_VUMeter_XOffset;
