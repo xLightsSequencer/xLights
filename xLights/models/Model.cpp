@@ -2160,15 +2160,6 @@ void Model::SetPosition(double posx, double posy) {
     IncrementChangeCount();
 }
 
-void Model::AddOffset(double deltax, double deltay, double deltaz) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    GetModelScreenLocation().AddOffset(deltax, deltay, deltaz);
-    GetModelScreenLocation().Write(ModelXml);
-    IncrementChangeCount();
-}
-
 // initialize screen coordinates
 // parm1=Number of Strings/Arches/Canes
 // parm2=Pixels Per String/Arch/Cane

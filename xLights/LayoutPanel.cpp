@@ -461,6 +461,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->GetView()->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoCopy, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoPaste, nullptr,this);
     TreeListViewModels->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::DoUndo, nullptr,this);
+    TreeListViewModels->GetView()->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(LayoutPanel::OnCharHook), nullptr, this);
 
     wxScrolledWindow *sw = new wxScrolledWindow(ModelSplitter);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
@@ -4098,16 +4099,17 @@ Model *LayoutPanel::CreateNewModel(const std::string &type) const
     return m;
 }
 
-std::list<Model*> LayoutPanel::GetSelectedModels() const
+std::list<BaseObject*> LayoutPanel::GetSelectedBaseObjects() const
 {
-    std::list<Model*> res;
+    std::list<BaseObject*> res;
+ 
+    if (selectedBaseObject != nullptr)
+    {
+        res.push_back(selectedBaseObject);
+    }
 
-    if( editing_models ) {
-        if (selectedBaseObject != nullptr)
-        {
-            res.push_back(dynamic_cast<Model*>(selectedBaseObject));
-        }
-
+    if (editing_models)
+    {
         for (auto it = modelPreview->GetModels().begin(); it!= modelPreview->GetModels().end(); ++it)
         {
             if ((*it) != selectedBaseObject && ((*it)->Selected || (*it)->GroupSelected))
@@ -4122,13 +4124,12 @@ std::list<Model*> LayoutPanel::GetSelectedModels() const
 
 void LayoutPanel::Nudge(int key)
 {
-    if (!editing_models) return;
-    std::list<Model*> selectedModels = GetSelectedModels();
-    if (selectedModels.size() > 0)
+    std::list<BaseObject*> selectedBaseObjects = GetSelectedBaseObjects();
+    if (selectedBaseObjects.size() > 0)
     {
-        if (selectedModels.size() == 1)
+        if (selectedBaseObjects.size() == 1)
         {
-            CreateUndoPoint("SingleModel", selectedModels.front()->name, "location");
+            CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObjects.front()->name, "location");
         }
         else
         {
@@ -4160,7 +4161,7 @@ void LayoutPanel::Nudge(int key)
             lastKey = key;
         }
 
-        for (auto it : selectedModels)
+        for (auto it : selectedBaseObjects)
         {
             float deltax = 0;
             float deltay = 0;
@@ -4386,11 +4387,17 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
             }
             else
 #endif
-            DeleteSelectedModel();
+				if (editing_models)
+					DeleteSelectedModel();
+				else
+					DeleteSelectedObject();
             event.StopPropagation();
             break;
         case WXK_BACK:
-            DeleteSelectedModel();
+			if (editing_models)
+				DeleteSelectedModel();
+			else
+				DeleteSelectedObject();
             event.StopPropagation();
             break;
 
@@ -4441,6 +4448,11 @@ void LayoutPanel::DeleteSelectedModel() {
         xlights->UpdateModelsList();
         xlights->MarkEffectsFileDirty(true);
     }
+}
+
+void LayoutPanel::DeleteSelectedObject()
+{
+    objects_panel->DeleteSelectedObject();
 }
 
 void LayoutPanel::ReplaceModel()
@@ -4537,12 +4549,12 @@ void LayoutPanel::LockSelectedModels(bool lock)
 }
 
 void LayoutPanel::DoCopy(wxCommandEvent& event) {
-    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
+    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus() && !objects_panel->ObjectListHasFocus()) {
         event.Skip();
     } else if (selectedBaseObject != nullptr) {
-        CopyPasteModel copyData;
+        CopyPasteBaseObject copyData;
 
-        copyData.SetModel(dynamic_cast<Model*>(selectedBaseObject));
+        copyData.SetBaseObject(selectedBaseObject);
 
         if (copyData.IsOk() && wxTheClipboard->Open()) {
             if (!wxTheClipboard->SetData(new wxTextDataObject(copyData.Serialise()))) {
@@ -4554,16 +4566,19 @@ void LayoutPanel::DoCopy(wxCommandEvent& event) {
 }
 
 void LayoutPanel::DoCut(wxCommandEvent& event) {
-    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
+    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus() && !objects_panel->ObjectListHasFocus()) {
         event.Skip();
     } else if (selectedBaseObject != nullptr) {
         DoCopy(event);
-        DeleteSelectedModel();
+		if (editing_models)
+			DeleteSelectedModel();
+		else
+			DeleteSelectedObject();
     }
 }
 
 void LayoutPanel::DoPaste(wxCommandEvent& event) {
-    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus()) {
+    if (!modelPreview->HasFocus() && !TreeListViewModels->HasFocus() && !TreeListViewModels->GetView()->HasFocus() && !objects_panel->ObjectListHasFocus()) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
@@ -4572,62 +4587,85 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
 
-            CopyPasteModel copyData(data.GetText().ToStdString());
+            CopyPasteBaseObject copyData(data.GetText().ToStdString());
 
             wxTheClipboard->Close();
 
             if (copyData.IsOk())
             {
-                wxXmlNode* nd = copyData.GetModelXml();
+                wxXmlNode* nd = copyData.GetBaseObjectXml();
 
                 if (nd != nullptr)
                 {
-                    if (xlights->AllModels[lastModelName] != nullptr) {
-                        nd->DeleteAttribute("StartChannel");
-                        nd->AddAttribute("StartChannel", ">" + lastModelName + ":1");
-                    }
-                    else
-                    {
-                        long highestch = 0;
-                        Model* highest = nullptr;
-                        for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
-                        {
-                            if (it->second->GetDisplayAs() != "ModelGroup")
-                            {
-                                if (it->second->GetLastChannel() > highestch)
-                                {
-                                    highestch = it->second->GetLastChannel();
-                                    highest = it->second;
-                                }
-                            }
-                        }
+					if (!copyData.IsViewObject())
+					{
+						if (!editing_models)//dont paste model in View Object mode
+							return;
+						if (xlights->AllModels[lastModelName] != nullptr) {
+							nd->DeleteAttribute("StartChannel");
+							nd->AddAttribute("StartChannel", ">" + lastModelName + ":1");
+						}
+						else
+						{
+							long highestch = 0;
+							Model* highest = nullptr;
+							for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it)
+							{
+								if (it->second->GetDisplayAs() != "ModelGroup")
+								{
+									if (it->second->GetLastChannel() > highestch)
+									{
+										highestch = it->second->GetLastChannel();
+										highest = it->second;
+									}
+								}
+							}
 
-                        if (highest != nullptr)
-                        {
-                            nd->DeleteAttribute("StartChannel");
-                            nd->AddAttribute("StartChannel", ">" + highest->GetName() + ":1");
-                        }
-                        else
-                        {
-                            nd->DeleteAttribute("StartChannel");
-                            nd->AddAttribute("StartChannel", "1");
-                        }
-                    }
+							if (highest != nullptr)
+							{
+								nd->DeleteAttribute("StartChannel");
+								nd->AddAttribute("StartChannel", ">" + highest->GetName() + ":1");
+							}
+							else
+							{
+								nd->DeleteAttribute("StartChannel");
+								nd->AddAttribute("StartChannel", "1");
+							}
+						}
 
-                    Model *newModel = xlights->AllModels.CreateModel(nd);
-                    std::string name = xlights->AllModels.GenerateModelName(newModel->name);
-                    newModel->name = name;
-                    newModel->GetModelXml()->DeleteAttribute("name");
-                    newModel->Lock(false);
-                    newModel->GetModelXml()->AddAttribute("name", name);
-                    newModel->AddOffset(0.02, 0.02, 0.0);
-                    newModel->UpdateXmlWithScale();
-                    xlights->AllModels.AddModel(newModel);
-                    lastModelName = name;
+						Model *newModel = xlights->AllModels.CreateModel(nd);
+						std::string name = xlights->AllModels.GenerateModelName(newModel->name);
+						newModel->name = name;
+						newModel->GetModelXml()->DeleteAttribute("name");
+						newModel->Lock(false);
+						newModel->GetModelXml()->AddAttribute("name", name);
+						newModel->AddOffset(0.02, 0.02, 0.0);
+						newModel->UpdateXmlWithScale();
+						xlights->AllModels.AddModel(newModel);
+						lastModelName = name;
+						SelectBaseObject(name);
 
-                    xlights->UpdateModelsList();
-                    xlights->MarkEffectsFileDirty(true);
-                    SelectBaseObject(name);
+					}
+					else
+					{
+						if (editing_models)//dont paste view objects in model editing mode
+							return;
+						ViewObject *newViewObject = xlights->AllObjects.CreateObject(nd);
+						std::string name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
+						newViewObject->name = name;
+						newViewObject->GetModelXml()->DeleteAttribute("name");
+						newViewObject->Lock(false);
+						newViewObject->GetModelXml()->AddAttribute("name", name);
+						newViewObject->AddOffset(50.0, 0.0, 0.0);
+						newViewObject->UpdateXmlWithScale();
+						xlights->AllObjects.AddViewObject(newViewObject);
+						lastModelName = name;
+						SelectBaseObject(name);
+					}
+
+					xlights->UpdateModelsList();
+					xlights->MarkEffectsFileDirty(true);
+					
                 }
             }
             else
@@ -5661,7 +5699,7 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp, bool full_refresh) {
     TreeListViewModels->Refresh();
 }
 
-CopyPasteModel::~CopyPasteModel()
+CopyPasteBaseObject::~CopyPasteBaseObject()
 {
     if (_xmlNode != nullptr)
     {
@@ -5669,24 +5707,32 @@ CopyPasteModel::~CopyPasteModel()
     }
 }
 
-CopyPasteModel::CopyPasteModel()
+CopyPasteBaseObject::CopyPasteBaseObject()
 {
     _ok = false;
     _xmlNode = nullptr;
+	_viewObject = false;
 }
 
-CopyPasteModel::CopyPasteModel(const std::string& in)
+CopyPasteBaseObject::CopyPasteBaseObject(const std::string& in)
 {
     _ok = false;
     _xmlNode = nullptr;
+	_viewObject = false;
 
     // check it looks like xml ... to stop parser errors
     wxString xml = in;
-    if (!xml.StartsWith("<?xml") || !xml.Contains("<model "))
+    if (!xml.StartsWith("<?xml") || (!xml.Contains("<model ") && !xml.Contains("<view_object ")))
     {
         // not valid
         return;
     }
+
+	if (xml.Contains("<view_object "))
+	{
+		// not valid
+		_viewObject = true;
+	}
 
     wxStringInputStream strm(xml);
     wxXmlDocument doc(strm);
@@ -5704,7 +5750,7 @@ CopyPasteModel::CopyPasteModel(const std::string& in)
     _ok = true;
 }
 
-void CopyPasteModel::SetModel(Model* model)
+void CopyPasteBaseObject::SetBaseObject(BaseObject* model)
 {
     if (_xmlNode != nullptr)
     {
@@ -5723,7 +5769,7 @@ void CopyPasteModel::SetModel(Model* model)
     }
 }
 
-std::string CopyPasteModel::Serialise() const
+std::string CopyPasteBaseObject::Serialise() const
 {
     if (_xmlNode == nullptr)
     {

@@ -242,9 +242,8 @@ public:
     int GetChanCountPerNode() const;
     size_t GetCoordCount(size_t nodenum) const;
     int GetNodeStringNumber(size_t nodenum) const;
-    void UpdateXmlWithScale();
+    void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
-    void AddOffset(double deltax, double deltay, double deltaz);
     virtual unsigned int GetLastChannel();
     std::string GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel);
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);

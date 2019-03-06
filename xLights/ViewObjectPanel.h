@@ -39,6 +39,8 @@ public:
     void PreviewObjectAlignVCenter();
     void PreviewObjectHDistribute();
     void PreviewObjectVDistribute();
+	void DeleteSelectedObject();
+	bool ObjectListHasFocus() { return TreeListViewObjects->HasFocus() || TreeListViewObjects->GetView()->HasFocus(); };
 
     //(*Declarations(ViewObjectPanel)
     wxPanel* FirstPanel;
@@ -56,9 +58,17 @@ protected:
 private:
 
     //(*Handlers(ViewObjectPanel)
+    void OnChar(wxKeyEvent& event);
     //*)
 
+	void OnCharHook(wxKeyEvent& event);
+
     DECLARE_EVENT_TABLE()
+
+	void DoCopy(wxCommandEvent& event);
+	void DoCut(wxCommandEvent& event);
+	void DoPaste(wxCommandEvent& event);
+	void DoUndo(wxCommandEvent& event);
 
     enum
     {
@@ -78,7 +88,6 @@ private:
     void UpdateObjectsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<ViewObject *> &prev_objects, bool filtering);
     void RenameObjectInTree(ViewObject *view_object, const std::string new_name);
     void OnObjectsPopup(wxCommandEvent& event);
-    void DeleteSelectedObject();
 
     LayoutPanel* layoutPanel;
     ViewObjectManager& mViewObjects;

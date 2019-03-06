@@ -48,6 +48,8 @@ ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,Lay
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(wxEVT_CHAR,(wxObjectEventFunction)&ViewObjectPanel::OnChar);
 	//*)
 
     InitImageList();
@@ -56,6 +58,12 @@ ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,Lay
     sizer1->Add(TreeListViewObjects, wxSizerFlags(2).Expand());
     FirstPanel->SetSizer(sizer1);
     sizer1->SetSizeHints(FirstPanel);
+
+	TreeListViewObjects->GetView()->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoCut, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoCopy, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoPaste, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoUndo, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ViewObjectPanel::OnCharHook), nullptr, this);
 
     refreshObjectList();
 }
@@ -561,7 +569,7 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     if (mSelectedObject != nullptr ) {
         mnuContext.Append(ID_MNU_DELETE_OBJECT,"Delete");
-        mnuContext.AppendSeparator();
+        //mnuContext.AppendSeparator();
     }
 
     /*mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
@@ -988,4 +996,34 @@ void ViewObjectPanel::PreviewObjectVDistribute()
         }
     }
     layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::DoCut(wxCommandEvent& event)
+{
+	layoutPanel->DoCut(event);
+}
+
+void ViewObjectPanel::DoCopy(wxCommandEvent& event)
+{
+	layoutPanel->DoCopy(event);
+}
+
+void ViewObjectPanel::DoPaste(wxCommandEvent& event)
+{
+	layoutPanel->DoPaste(event);
+}
+
+void ViewObjectPanel::DoUndo(wxCommandEvent& event)
+{
+	layoutPanel->DoUndo(event);
+}
+
+void ViewObjectPanel::OnCharHook(wxKeyEvent& event)
+{
+	layoutPanel->OnCharHook(event);
+}
+
+void ViewObjectPanel::OnChar(wxKeyEvent& event)
+{
+	layoutPanel->OnChar(event);
 }

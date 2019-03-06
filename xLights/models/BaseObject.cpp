@@ -199,3 +199,12 @@ float BaseObject::GetHcenterPos() {
 float BaseObject::GetVcenterPos() {
     return GetBaseObjectScreenLocation().GetVcenterPos();
 }
+
+void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
+
+	if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+	GetBaseObjectScreenLocation().AddOffset(deltax, deltay, deltaz);
+	GetBaseObjectScreenLocation().Write(ModelXml);
+	IncrementChangeCount();
+}

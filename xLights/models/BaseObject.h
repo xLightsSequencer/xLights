@@ -66,6 +66,10 @@ public:
 
     virtual void IncrementChangeCount() { ++changeCount;};
 
+	virtual void AddOffset(double deltax, double deltay, double deltaz);
+
+	virtual void UpdateXmlWithScale() = 0;
+
     std::string name;
 
     bool Selected = false;
