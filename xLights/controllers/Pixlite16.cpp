@@ -481,7 +481,7 @@ int Pixlite16::PrepareV4Config(uint8_t* data) const
     data[pos++] = 'h';
     data[pos++] = 0x00;
     Write16(data, pos, 5);
-    data[pos++] = 0x02; // Not sure why this isnt 0x04;
+    data[pos++] = 0x02; 
 
     // Not sure why it insists on dropping the LR but if you dont it wont upload
     std::string mn = _config._modelName;
@@ -579,8 +579,7 @@ int Pixlite16::PrepareV5Config(uint8_t* data) const
     data[pos++] = _config._currentDriverExpanded;
     for (auto g : _config._gamma) { data[pos++] = g; }
     WriteString(data, pos, _config._nicknameLen, _config._nickname);
-
-    // data[pos++] = _config._maxTargetTemp; why is this not in the packet?
+    data[pos++] = _config._maxTargetTemp;
 
     return pos;
 }
@@ -628,8 +627,7 @@ int Pixlite16::PrepareV6Config(uint8_t* data) const
     data[pos++] = _config._currentDriverExpanded;
     for (auto g : _config._gamma) { data[pos++] = g; }
     WriteString(data, pos, _config._nicknameLen, _config._nickname);
-
-    // data[pos++] = _config._maxTargetTemp; why is this not in the packet?
+    data[pos++] = _config._maxTargetTemp;
 
     return pos;
 }
