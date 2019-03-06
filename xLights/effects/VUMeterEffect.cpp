@@ -987,6 +987,11 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
                     {
                         buffer.DrawLine(lastColX, lastColHeight, mid, colheight, color);
                     }
+                    else if (j == usebars - 1)
+                    {
+                        // just draw a horizontal line
+                        buffer.DrawLine(0, colheight, cols - 1, colheight, color);
+                    }
 
                     lastColHeight = colheight;
                     lastColX = mid;
@@ -994,7 +999,7 @@ void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, st
             }
             else
             {
-                float limit = j * cols;
+                float limit = (j+1) * cols;
                 while (x < limit)
                 {
                     for (int y = 0; y < buffer.BufferHt; y++)
