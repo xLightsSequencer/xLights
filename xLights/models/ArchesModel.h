@@ -3,7 +3,6 @@
 
 #include "Model.h"
 
-
 class ArchesModel : public ModelWithScreenLocation<ThreePointScreenLocation>
 {
     public:

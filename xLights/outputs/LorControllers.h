@@ -22,6 +22,7 @@ public:
     std::list<LorController*>* GetControllers() { return &_controllers; }
     void SetDirty() { _changeCount++; }
     bool IsDirty() const;
+    int GetTotalChannels() const;
     void ClearDirty();
 };
 

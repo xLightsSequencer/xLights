@@ -31,7 +31,7 @@ class PicturesEffect : public RenderableEffect
         virtual std::list<std::string> GetFileReferences(const SettingsMap &SettingsMap) override;
         virtual bool CleanupFileLocations(xLightsFrame* frame, SettingsMap &SettingsMap) override;
         static bool IsPictureFile(std::string filename);
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;

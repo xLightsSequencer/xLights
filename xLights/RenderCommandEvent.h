@@ -65,7 +65,6 @@ public:
             if (nodeLayer != nullptr)
             {
                 StrandElement* se = (StrandElement*)e->GetParentEffectLayer()->GetParentElement();
-                ModelElement* me = se->GetModelElement();
                 int baseindex = se->GetEffectLayer(se->GetEffectLayerCount()-1)->GetIndex();
                 _node = nodeLayer->GetIndex() - baseindex;
             }

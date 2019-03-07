@@ -20,6 +20,7 @@ class EffectsPanel: public wxPanel
 public:
     bool EffectChanged;
     wxString* CurrentDir;
+    bool _suppressChangeEvent = false;
 
     EffectsPanel(wxWindow *parent, EffectManager *effects);
     virtual ~EffectsPanel();
@@ -29,7 +30,8 @@ public:
     void SetEffectPanelStatus(Model *cls, const wxString &name);
     //void SetButtonColor(wxButton* btn, const wxColour* c);
     void SetSequenceElements(SequenceElements *els);
-
+    void SetEffectType(int effectId);
+    
     wxString GetRandomEffectString(int effidx);
     bool isRandom_();
     bool WantOverlayBkg(); //selectable clear canvas before render -DJ
@@ -52,6 +54,8 @@ private:
     void OnLockButtonClick(wxCommandEvent& event);
     //*)
 
+    void OnRightDownChoice(wxMouseEvent& event);
+    void OnChoicePopup(wxCommandEvent& event);
     int GetRandomSliderValue(wxSlider* slider);
     wxString GetRandomEffectStringFromWindow(wxWindow *ParentWin, const wxString &prefix);
     wxWindow* GetWindowPanel(wxWindow* w);

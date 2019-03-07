@@ -3,6 +3,7 @@
 
 #include <string>
 
+class xLightsFrame;
 class wxPropertyGridInterface;
 class wxXmlNode;
 class ModelScreenLocation;
@@ -22,7 +23,11 @@ public:
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() = 0;
 
-    void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
+    virtual bool CleanupFileLocations(xLightsFrame* frame) { return false; }
+    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
+    virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
+
+    virtual void MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z);
     void SelectHandle(int handle);
     void Lock(bool lock);
 
@@ -36,6 +41,8 @@ public:
     void SetVcenterPos(float pos);
     void SetWidth(float w);
     void SetHeight(float h);
+    bool Scale(float f);
+    bool Rotate(int axis, float factor);
 
     float GetTop();
     float GetBottom();
@@ -58,7 +65,11 @@ public:
     virtual const std::string &GetLayoutGroup() const {return layout_group;}
     void SetLayoutGroup(const std::string &grp);
 
-    void IncrementChangeCount() { ++changeCount;};
+    virtual void IncrementChangeCount() { ++changeCount;};
+
+	virtual void AddOffset(double deltax, double deltay, double deltaz);
+
+	virtual void UpdateXmlWithScale() = 0;
 
     std::string name;
 

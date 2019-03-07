@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -22,7 +22,7 @@
     <ProjectGuid>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Xlights</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -178,6 +178,7 @@
     <ClCompile Include="ColorManager.cpp" />
     <ClCompile Include="ColorManagerDialog.cpp" />
     <ClCompile Include="controllers\ControllerUploadData.cpp" />
+    <ClCompile Include="controllers\EasyLights.cpp" />
     <ClCompile Include="controllers\ESPixelStick.cpp" />
     <ClCompile Include="controllers\Falcon.cpp" />
     <ClCompile Include="controllers\FPP.cpp" />
@@ -185,10 +186,13 @@
     <ClCompile Include="controllers\J1Sys.cpp" />
     <ClCompile Include="controllers\Pixlite16.cpp" />
     <ClCompile Include="controllers\SanDevices.cpp" />
-    <ClCompile Include="controllers\SimpleFTP.cpp" />
     <ClCompile Include="controllers\WebSocketClient.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="DissolveTransitionPattern.cpp" />
+    <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
+    <ClCompile Include="effects\KaleidoscopePanel.cpp" />
+    <ClCompile Include="effects\LinesEffect.cpp" />
+    <ClCompile Include="effects\LinesPanel.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
     <ClCompile Include="effects\WarpEffect.cpp" />
@@ -215,6 +219,7 @@
     <ClCompile Include="ModelChainDialog.cpp" />
     <ClCompile Include="models\BaseObject.cpp" />
     <ClCompile Include="models\ChannelBlockModel.cpp" />
+    <ClCompile Include="models\CubeModel.cpp" />
     <ClCompile Include="models\GridlinesObject.cpp" />
     <ClCompile Include="models\ImageModel.cpp" />
     <ClCompile Include="models\ImageObject.cpp" />
@@ -222,6 +227,7 @@
     <ClCompile Include="models\ObjectManager.cpp" />
     <ClCompile Include="models\ViewObject.cpp" />
     <ClCompile Include="models\ViewObjectManager.cpp" />
+    <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="OpenGLShaders.cpp" />
     <ClCompile Include="outputs\ArtNetDialog.cpp" />
@@ -244,7 +250,6 @@
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
-    <ClCompile Include="DrawGLUtils21.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="outputs\DDPDialog.cpp" />
     <ClCompile Include="outputs\DDPOutput.cpp" />
@@ -394,7 +399,6 @@
     <ClCompile Include="models\StarModel.cpp" />
     <ClCompile Include="models\SubModel.cpp" />
     <ClCompile Include="models\TreeModel.cpp" />
-    <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="models\WindowFrameModel.cpp" />
     <ClCompile Include="models\WreathModel.cpp" />
     <ClCompile Include="MusicXML.cpp" />
@@ -430,12 +434,14 @@
     <ClCompile Include="outputs\ZCPPOutput.cpp" />
     <ClCompile Include="PaletteMgmtDialog.cpp" />
     <ClCompile Include="Parallel.cpp" />
+    <ClCompile Include="PathGenerationDialog.cpp" />
     <ClCompile Include="PerspectivesPanel.cpp" />
     <ClCompile Include="PhonemeDictionary.cpp" />
     <ClCompile Include="PixelBuffer.cpp" />
     <ClCompile Include="PixelTestDialog.cpp" />
     <ClCompile Include="PreviewModels.cpp" />
     <ClCompile Include="PreviewPane.cpp" />
+    <ClCompile Include="RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="RenameTextDialog.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="RenderBuffer.cpp" />
@@ -543,6 +549,7 @@
     <ClInclude Include="ColorManager.h" />
     <ClInclude Include="ColorManagerDialog.h" />
     <ClInclude Include="controllers\ControllerUploadData.h" />
+    <ClInclude Include="controllers\EasyLights.h" />
     <ClInclude Include="controllers\ESPixelStick.h" />
     <ClInclude Include="controllers\Falcon.h" />
     <ClInclude Include="controllers\FPP.h" />
@@ -550,7 +557,6 @@
     <ClInclude Include="controllers\J1Sys.h" />
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
-    <ClInclude Include="controllers\SimpleFTP.h" />
     <ClInclude Include="controllers\WebSocketClient.h" />
     <ClInclude Include="DissolveTransitionPattern.h" />
     <ClInclude Include="effects\assist\AssistPanel.h" />
@@ -558,6 +564,10 @@
     <ClInclude Include="effects\assist\xlGridCanvasEmpty.h" />
     <ClInclude Include="effects\assist\xlGridCanvasMorph.h" />
     <ClInclude Include="effects\assist\xlGridCanvasPictures.h" />
+    <ClInclude Include="effects\KaleidoscopeEffect.h" />
+    <ClInclude Include="effects\KaleidoscopePanel.h" />
+    <ClInclude Include="effects\LinesEffect.h" />
+    <ClInclude Include="effects\LinesPanel.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="effects\WarpEffect.h" />
@@ -576,6 +586,7 @@
     <ClInclude Include="ModelChainDialog.h" />
     <ClInclude Include="models\BaseObject.h" />
     <ClInclude Include="models\ChannelBlockModel.h" />
+    <ClInclude Include="models\CubeModel.h" />
     <ClInclude Include="models\GridlinesObject.h" />
     <ClInclude Include="models\ImageModel.h" />
     <ClInclude Include="models\ImageObject.h" />
@@ -584,6 +595,7 @@
     <ClInclude Include="models\tiny_obj_loader.h" />
     <ClInclude Include="models\ViewObject.h" />
     <ClInclude Include="models\ViewObjectManager.h" />
+    <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="MSWStackWalk.h" />
     <ClInclude Include="CustomTimingDialog.h" />
     <ClInclude Include="effects\CandleEffect.h" />
@@ -753,7 +765,6 @@
     <ClInclude Include="models\StarModel.h" />
     <ClInclude Include="models\SubModel.h" />
     <ClInclude Include="models\TreeModel.h" />
-    <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="models\WindowFrameModel.h" />
     <ClInclude Include="models\WreathModel.h" />
     <ClInclude Include="MusicXML.h" />
@@ -791,12 +802,14 @@
     <ClInclude Include="outputs\ZCPPOutput.h" />
     <ClInclude Include="PaletteMgmtDialog.h" />
     <ClInclude Include="Parallel.h" />
+    <ClInclude Include="PathGenerationDialog.h" />
     <ClInclude Include="PerspectivesPanel.h" />
     <ClInclude Include="PhonemeDictionary.h" />
     <ClInclude Include="PixelBuffer.h" />
     <ClInclude Include="PixelTestDialog.h" />
     <ClInclude Include="PreviewModels.h" />
     <ClInclude Include="PreviewPane.h" />
+    <ClInclude Include="RemapDMXChannelsDialog.h" />
     <ClInclude Include="RenameTextDialog.h" />
     <ClInclude Include="RenderBuffer.h" />
     <ClInclude Include="RenderCache.h" />

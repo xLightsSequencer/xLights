@@ -424,68 +424,78 @@
 			</object>
 			<object class="wxMenu" variable="Menu4" member="yes">
 				<label>&amp;Modes</label>
-				<object class="wxMenuItem" name="ID_MNU_MODENORMAL" variable="MenuItem_Standalone" member="yes">
-					<label>Standalone</label>
-					<handler function="OnMenuItem_StandaloneSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_TEST" variable="MenuItem_Test" member="yes">
+				<object class="wxMenuItem" name="ID_MNU_TEST" variable="MenuItem_ModeTest" member="yes">
 					<label>Test</label>
 					<handler function="OnMenuItem_TestSelected" entry="EVT_MENU" />
-					<radio>1</radio>
+					<checkable>1</checkable>
 				</object>
-				<object class="wxMenuItem" name="ID_MNU_FPPMASTER" variable="MenuItem_FPPMaster" member="yes">
-					<label>FPP Master</label>
-					<handler function="OnMenuItem_FPPMasterSelected" entry="EVT_MENU" />
-					<radio>1</radio>
+				<object class="wxMenu" name="ID_MNU_MASTER" variable="MenuItem3" member="yes">
+					<label>Master</label>
+					<object class="wxMenuItem" name="ID_MNU_FPP_BROADCASTMASTER" variable="MenuItem_ModeFPPBroadcastMaster" member="yes">
+						<label>FPP Broadcast</label>
+						<handler function="OnMenuItem_FPPMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_FPP_UNICASTMASTER" variable="MenuItem_ModeFPPUnicastMaster" member="yes">
+						<label>FPP Unicast</label>
+						<handler function="OnMenuItem_ModeFPPUnicastMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="IDM_MNU_ARTNETMASTER" variable="MenuItem_ModeArtNetMaster" member="yes">
+						<label>ARTNet Timecode</label>
+						<handler function="OnMenuItem_ARTNetTimeCodeMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_OSCMASTER" variable="MenuItem_ModeOSCMaster" member="yes">
+						<label>OSC</label>
+						<handler function="OnMenuItem_OSCMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="wxMenuItem" name="MNU_MIDITIMECODE_MASTER" variable="MenuItem_ModeMIDIMaster" member="yes">
+						<label>MIDI Timecode</label>
+						<handler function="OnMenuItem_MIDITimeCodeMasterSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 				</object>
-				<object class="wxMenuItem" name="ID_MNU_OSCMASTER" variable="MenuItem_OSCMaster" member="yes">
-					<label>OSC Master</label>
-					<handler function="OnMenuItem_OSCMasterSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_OSCFPPMASTER" variable="MenuItem_FPPOSCMaster" member="yes">
-					<label>FPP + OSC Master</label>
-					<handler function="OnMenuItem_FPPOSCMasterSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="IDM_MNU_ARTNETMASTER" variable="MenuItem_ARTNetTimeCodeMaster" member="yes">
-					<label>ARTNet Timecode Master</label>
-					<handler function="OnMenuItem_ARTNetTimeCodeMasterSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="MNU_MIDITIMECODE_MASTER" variable="MenuItem_MIDITimeCodeMaster" member="yes">
-					<label>MIDI Timecode Master</label>
-					<handler function="OnMenuItem_MIDITimeCodeMasterSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_FPPRemote" member="yes">
-					<label>FPP Remote</label>
-					<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_OSCREMOTE" variable="MenuItem_OSCRemote" member="yes">
-					<label>OSC Remote</label>
-					<handler function="OnMenuItem_OSCRemoteSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_ARTNETTIMECODESLAVE" variable="MenuItem_ARTNetTimeCodeSlave" member="yes">
-					<label>ARTNet Timecode Slave</label>
-					<handler function="OnMenuItem_ARTNetTimeCodeSlaveSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="MNU_MIDITIMECODEREMOTE" variable="MenuItem_MIDITimeCodeSlave" member="yes">
-					<label>MIDI Timecode Slave</label>
-					<handler function="OnMenuItem_MIDITimeCodeSlaveSelected" entry="EVT_MENU" />
-					<radio>1</radio>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_FPPUnicastRemote" member="yes">
-					<label>FPP Unicast Remote</label>
-					<handler function="OnMenuItem_FPPUnicastRemoteSelected" entry="EVT_MENU" />
-					<radio>1</radio>
+				<object class="wxMenu" name="ID_MNU_REMOTE" variable="Menu6" member="yes">
+					<label>Remote</label>
+					<object class="wxMenuItem" name="ID_MNU_MODENORMAL" variable="MenuItem_ModeRemoteDisabled" member="yes">
+						<label>Disabled</label>
+						<handler function="OnMenuItem_StandaloneSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_FPPREMOTE" variable="MenuItem_ModeFPPBroadcastRemote" member="yes">
+						<label>FPP Broadcast</label>
+						<handler function="OnMenuItem_FPPRemoteSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_FPPUNICASTREMOTE" variable="MenuItem_ModeFPPUnicastRemote" member="yes">
+						<label>FPP Unicast</label>
+						<handler function="OnMenuItem_FPPUnicastRemoteSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_ARTNETTIMECODESLAVE" variable="MenuItem_ModeArtNetSlave" member="yes">
+						<label>ARTNet Timecode</label>
+						<handler function="OnMenuItem_ARTNetTimeCodeSlaveSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_OSCREMOTE" variable="MenuItem_ModeOSCRemote" member="yes">
+						<label>OSC</label>
+						<handler function="OnMenuItem_OSCRemoteSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="MNU_MIDITIMECODEREMOTE" variable="MenuItem_ModeMIDISlave" member="yes">
+						<label>MIDI Timecode</label>
+						<handler function="OnMenuItem_MIDITimeCodeSlaveSelected" entry="EVT_MENU" />
+						<radio>1</radio>
+					</object>
+					<object class="wxMenuItem" name="ID_MNU_REMOTECONFIGURE" variable="MenuItem_RemoteLatency" member="yes">
+						<label>Configure</label>
+						<handler function="OnMenuItem_RemoteLatencySelected" entry="EVT_MENU" />
+					</object>
 				</object>
 				<object class="wxMenuItem" name="ID_MNU_EDITFPPREMOTE" variable="MenuItem_EditFPPRemotes" member="yes">
-					<label>Edit FPP Remotes</label>
+					<label>Configure FPP Remotes</label>
 					<help>Edit remotes to unicast sync packets to</help>
 					<handler function="OnMenuItem_EditFPPRemotesSelected" entry="EVT_MENU" />
 				</object>

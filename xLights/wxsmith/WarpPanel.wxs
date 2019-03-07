@@ -17,7 +17,6 @@
 							<value>The warp effect distorts the pixels in the layers below it. The Canvas option in Layer Blending must be enabled for it to work.</value>
 							<size>99,32d</size>
 							<enabled>0</enabled>
-							<bg>wxSYS_COLOUR_MENU</bg>
 							<style>wxTE_NO_VSCROLL|wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER</style>
 						</object>
 						<flag>wxEXPAND</flag>

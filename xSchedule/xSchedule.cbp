@@ -19,7 +19,7 @@
 					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -72,12 +72,11 @@
 					<Add option="-march=i586" />
 					<Add option="-O2" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -103,21 +102,21 @@
 					<Add option="-Wl,--large-address-aware" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
-					<Add library="../lib/windows/libwxmsw31u.a" />
-					<Add library="../lib/windows/libwxmsw31u_gl.a" />
-					<Add library="../lib/windows/avutil.lib" />
-					<Add library="../lib/windows/avformat.lib" />
 					<Add library="../lib/windows/avcodec.lib" />
-					<Add library="../lib/windows/swresample.lib" />
-					<Add library="../lib/windows/libSDL2.dll.a" />
-					<Add library="../lib/windows/swscale.lib" />
-					<Add library="../lib/windows/liblog4cpp.lib" />
+					<Add library="../lib/windows/avformat.lib" />
+					<Add library="../lib/windows/avutil.lib" />
 					<Add library="../lib/windows/imagehlp.lib" />
 					<Add library="../lib/windows/iphlpapi.lib" />
-					<Add library="../lib/windows/Ws2_32.lib" />
+					<Add library="../lib/windows/liblog4cpp.lib" />
 					<Add library="../lib/windows/libportmidi.a" />
+					<Add library="../lib/windows/libSDL2.dll.a" />
 					<Add library="../lib/windows/libzstd_static.lib" />
 					<Add library="libwinmm.a" />
+					<Add library="../lib/windows/libwxmsw31u.a" />
+					<Add library="../lib/windows/libwxmsw31u_gl.a" />
+					<Add library="../lib/windows/swresample.lib" />
+					<Add library="../lib/windows/swscale.lib" />
+					<Add library="../lib/windows/Ws2_32.lib" />
 					<Add directory="../lib/windows" />
 				</Linker>
 			</Target>
@@ -132,7 +131,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=c++1z" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -166,7 +165,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -202,12 +201,11 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=gnu++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
 					<Add option="-D__GNUWIN32__" />
@@ -231,20 +229,20 @@
 					<Add option="-Wl,-Map=../bin64/xSchedule.map" />
 					<Add option="-lpthread" />
 					<Add option="-lz" />
+					<Add library="../lib/windows64/avcodec.lib" />
+					<Add library="../lib/windows64/avformat.lib" />
+					<Add library="../lib/windows64/avutil.lib" />
+					<Add library="../lib/windows64/iphlpapi.lib" />
+					<Add library="../lib/windows64/libimagehlp.a" />
+					<Add library="../lib/windows64/liblog4cpp.a" />
+					<Add library="../lib/windows64/libportmidi.a" />
+					<Add library="../lib/windows64/libSDL2.dll.a" />
+					<Add library="libwinmm.a" />
 					<Add library="../lib/windows64/libwxmsw31u.a" />
 					<Add library="../lib/windows64/libwxmsw31u_gl.a" />
-					<Add library="../lib/windows64/avutil.lib" />
-					<Add library="../lib/windows64/avformat.lib" />
-					<Add library="../lib/windows64/avcodec.lib" />
 					<Add library="../lib/windows64/swresample.lib" />
-					<Add library="../lib/windows64/libSDL2.dll.a" />
 					<Add library="../lib/windows64/swscale.lib" />
-					<Add library="../lib/windows64/liblog4cpp.a" />
-					<Add library="../lib/windows64/libimagehlp.a" />
-					<Add library="../lib/windows64/iphlpapi.lib" />
 					<Add library="../lib/windows64/Ws2_32.lib" />
-					<Add library="../lib/windows64/libportmidi.a" />
-					<Add library="libwinmm.a" />
 					<Add library="../lib/windows64/libzstd_static.lib" />
 					<Add directory="../lib/windows64" />
 				</Linker>
@@ -560,6 +558,8 @@
 		<Unit filename="PlayList/VideoWindowPositionDialog.h" />
 		<Unit filename="RemapDialog.cpp" />
 		<Unit filename="RemapDialog.h" />
+		<Unit filename="RemoteModeConfigDialog.cpp" />
+		<Unit filename="RemoteModeConfigDialog.h" />
 		<Unit filename="RunningSchedule.cpp" />
 		<Unit filename="RunningSchedule.h" />
 		<Unit filename="Schedule.cpp" />
@@ -574,6 +574,16 @@
 		<Unit filename="SetDialog.h" />
 		<Unit filename="SustainDialog.cpp" />
 		<Unit filename="SustainDialog.h" />
+		<Unit filename="SyncArtNet.cpp" />
+		<Unit filename="SyncArtNet.h" />
+		<Unit filename="SyncFPP.cpp" />
+		<Unit filename="SyncFPP.h" />
+		<Unit filename="SyncMIDI.cpp" />
+		<Unit filename="SyncMIDI.h" />
+		<Unit filename="SyncManager.cpp" />
+		<Unit filename="SyncManager.h" />
+		<Unit filename="SyncOSC.cpp" />
+		<Unit filename="SyncOSC.h" />
 		<Unit filename="ThreeToFourDialog.cpp" />
 		<Unit filename="ThreeToFourDialog.h" />
 		<Unit filename="UserButton.cpp" />
@@ -719,6 +729,7 @@
 		<Unit filename="wxsmith/PlayListStepPanel.wxs" />
 		<Unit filename="wxsmith/ProjectorDetailsDialog.wxs" />
 		<Unit filename="wxsmith/RemapDialog.wxs" />
+		<Unit filename="wxsmith/RemoteModeConfigDialog.wxs" />
 		<Unit filename="wxsmith/ScheduleDialog.wxs" />
 		<Unit filename="wxsmith/SetDialog.wxs" />
 		<Unit filename="wxsmith/SustainDialog.wxs" />
@@ -809,6 +820,7 @@
 					<wxDialog wxs="wxsmith/ExtraIPsDialog.wxs" src="ExtraIPsDialog.cpp" hdr="ExtraIPsDialog.h" fwddecl="0" i18n="1" name="ExtraIPsDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ExtraIPDialog.wxs" src="ExtraIPDialog.cpp" hdr="ExtraIPDialog.h" fwddecl="0" i18n="1" name="ExtraIPDialog" language="CPP" />
 					<wxDialog wxs="wxsmith/ConfigureTest.wxs" src="ConfigureTest.cpp" hdr="ConfigureTest.h" fwddecl="0" i18n="1" name="ConfigureTest" language="CPP" />
+					<wxDialog wxs="wxsmith/RemoteModeConfigDialog.wxs" src="RemoteModeConfigDialog.cpp" hdr="RemoteModeConfigDialog.h" fwddecl="0" i18n="1" name="RemoteModeConfigDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 		</Extensions>

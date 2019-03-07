@@ -87,7 +87,7 @@ public:
     virtual void DeleteHandle(int handle) = 0;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) = 0;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) = 0;
-    virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const; // useful for hit test debugging
+    virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const; // useful for hit test debugging
     void UpdateBoundingBox(float width, float height);
 
     virtual void AddSizeLocationProperties(wxPropertyGridInterface *grid) const = 0;
@@ -139,11 +139,11 @@ public:
         float z;
     };
 
-    void SetDefaultMatrices();  // for models that draw themselves
+    void SetDefaultMatrices() const;  // for models that draw themselves
     virtual void SetActiveHandle(int handle);
-    int GetActiveHandle() { return active_handle; }
+    int GetActiveHandle() const { return active_handle; }
     virtual void SetActiveAxis(int axis);
-    int GetActiveAxis() { return active_axis; }
+    int GetActiveAxis() const { return active_axis; }
     virtual void AdvanceAxisTool() { axis_tool += 1; axis_tool %= (NUM_TOOLS-1); }
     virtual void SetAxisTool(int mode) { axis_tool = mode; }
     bool DragHandle(ModelPreview* preview, int mouseX, int mouseY, bool latch);
@@ -152,14 +152,18 @@ public:
     virtual int GetDefaultHandle() { return CENTER_HANDLE; }
     virtual int GetDefaultTool() { return TOOL_TRANSLATE; }
     virtual void MouseOverHandle(int handle);
-    int GetNumSelectableHandles() { return mSelectableHandles; }
+    int GetNumSelectableHandles() const { return mSelectableHandles; }
     virtual bool IsXYTransHandle() const { return false; }
-    bool GetSupportsZScaling() { return supportsZScaling; }
+    bool GetSupportsZScaling() const { return supportsZScaling; }
     void SetSupportsZScaling(bool b) {
         supportsZScaling = b;
     }
-    glm::vec3 GetWorldPosition() { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
-    glm::vec3 GetRotation() { return glm::vec3(rotatex, rotatey, rotatez); }
+    void SetStartOnXAxis(bool b) {
+        _startOnXAxis = b;
+    }
+    glm::vec3 GetWorldPosition() const { return glm::vec3(worldPos_x, worldPos_y, worldPos_z); }
+    glm::vec3 GetRotation() const { return glm::vec3(rotatex, rotatey, rotatez); }
+    glm::vec3 GetScaleMatrix() const { return glm::vec3(scalex, scaley, scalez); }
 
 protected:
     ModelScreenLocation(int points);
@@ -201,6 +205,7 @@ protected:
     int active_axis;
     int axis_tool;
     bool supportsZScaling;
+    bool _startOnXAxis;
 };
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
@@ -407,7 +412,7 @@ public:
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) override;
     virtual wxCursor InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, ModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
-    virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
+    virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
 
     virtual bool IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     void PrepareToDraw(bool is_3d, bool allow_selected) const override;
@@ -484,7 +489,7 @@ public:
     virtual wxCursor CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle) const override;
     virtual void DrawHandles(DrawGLUtils::xlAccumulator &va) const override;
     virtual void DrawHandles(DrawGLUtils::xl3Accumulator &va) const override;
-    virtual void DrawBoundingBox(DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
+    virtual void DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va) const override; // useful for hit test debugging
     virtual int MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
     virtual int MoveHandle3D(ModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
     virtual bool Rotate(int axis, float factor) override;

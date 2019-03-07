@@ -661,20 +661,20 @@ void BezierCurve3D::check_min_max(float &minX, float &maxX, float &minY, float &
     }
 }
 
-void BezierCurve3D::DrawBoundingBox(DrawGLUtils::xlAccumulator &va)
+void BezierCurve3D::DrawBoundingBox(xlColor c, DrawGLUtils::xlAccumulator &va)
 {
     if (!matrix_valid) {
         UpdateMatrices();
     }
-    DrawGLUtils::DrawBoundingBox(points[sub_segment].aabb_min, points[sub_segment].aabb_max, *points[sub_segment].mod_matrix2d, va);
+    DrawGLUtils::DrawBoundingBox(c, points[sub_segment].aabb_min, points[sub_segment].aabb_max, *points[sub_segment].mod_matrix2d, va);
 }
 
-void BezierCurve3D::DrawBoundingBoxes(DrawGLUtils::xl3Accumulator &va)
+void BezierCurve3D::DrawBoundingBoxes(xlColor c, DrawGLUtils::xl3Accumulator &va)
 {
     if (!matrix_valid) {
         UpdateMatrices();
     }
     for (int i = 0; i < num_points - 1; ++i) {
-        DrawGLUtils::DrawBoundingBox(points[i].aabb_min, points[i].aabb_max, *points[i].mod_matrix, va);
+        DrawGLUtils::DrawBoundingBox(c, points[i].aabb_min, points[i].aabb_max, *points[i].mod_matrix, va);
     }
 }

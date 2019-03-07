@@ -23,7 +23,7 @@ BEGIN_EVENT_TABLE(ConfigureMIDITimecodeDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, int format, size_t offset, wxWindowID id,const wxPoint& pos,const wxSize& size)
+ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, TIMECODEFORMAT format, size_t offset, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(ConfigureMIDITimecodeDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -68,15 +68,14 @@ ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ConfigureMIDITimecodeDialog::OnButtonCancelClick);
 	//*)
 
-    auto devices = EventMIDI::GetDevices();
-    for (auto it = devices.begin(); it != devices.end(); ++it)
+    for (auto device : EventMIDI::GetDevices())
     {
-        Choice1->Append(*it);
+        Choice1->Append(device);
     }
-    auto outputdevices = EventMIDI::GetOutputDevices();
-    for (auto it = outputdevices.begin(); it != outputdevices.end(); ++it)
+
+    for (auto device : EventMIDI::GetOutputDevices())
     {
-        Choice1->Append(*it);
+        Choice1->Append(device);
     }
 
     if (midi == "")
@@ -100,16 +99,16 @@ ConfigureMIDITimecodeDialog::ConfigureMIDITimecodeDialog(wxWindow* parent, std::
     switch(format)
     {
     default:
-    case 0:
+    case TIMECODEFORMAT::F24:
         ChoiceFormat->SetStringSelection("24 fps");
         break;
-    case 1:
+    case TIMECODEFORMAT::F25:
         ChoiceFormat->SetStringSelection("25 fps");
         break;
-    case 2:
+    case TIMECODEFORMAT::F2997:
         ChoiceFormat->SetStringSelection("29.97 fps");
         break;
-    case 3:
+    case TIMECODEFORMAT::F30:
         ChoiceFormat->SetStringSelection("30 fps");
         break;
     }
@@ -157,25 +156,25 @@ std::string ConfigureMIDITimecodeDialog::GetMIDI() const
     return Choice1->GetStringSelection().ToStdString();
 }
 
-int ConfigureMIDITimecodeDialog::GetFormat() const
+TIMECODEFORMAT ConfigureMIDITimecodeDialog::GetFormat() const
 {
     if (ChoiceFormat->GetStringSelection() == "24 fps")
     {
-        return 0;
+        return TIMECODEFORMAT::F24;
     }
     if (ChoiceFormat->GetStringSelection() == "25 fps")
     {
-        return 1;
+        return TIMECODEFORMAT::F25;
     }
     if (ChoiceFormat->GetStringSelection() == "29.97 fps")
     {
-        return 2;
+        return TIMECODEFORMAT::F2997;
     }
     if (ChoiceFormat->GetStringSelection() == "30 fps")
     {
-        return 3;
+        return TIMECODEFORMAT::F30;
     }
-    return 0;
+    return TIMECODEFORMAT::F24;
 }
 
 int ConfigureMIDITimecodeDialog::GetOffset() const

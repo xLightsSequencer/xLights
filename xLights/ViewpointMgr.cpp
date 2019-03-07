@@ -6,9 +6,27 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "UtilFunctions.h"
 
+void PreviewCamera::Reset()
+{
+    posX = 0.0f;
+    posY = 0.0f;
+    posZ = 0.0f;
+    angleX = 20.0f;
+    angleY = 5.0f;
+    distance = -2000.0f;
+    zoom = 1.0f;
+    panx = 0.0f; 
+    pany = 0.0f;
+    panz = 0.0f;
+    zoom_corrx = 0.0f;
+    zoom_corry = 0.0f;
+    mat_valid = false;
+}
+
 PreviewCamera::PreviewCamera(bool is_3d_)
-: posX(0.0f), posY(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
-  panx(0.0f), pany(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_), name("Name Unspecified"), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
+: posX(0.0f), posY(0.0f), posZ(0.0f), angleX(20.0f), angleY(5.0f), distance(-2000.0f), zoom(1.0f),
+  panx(0.0f), pany(0.0f), panz(0.0f), zoom_corrx(0.0f), zoom_corry(0.0f), is_3d(is_3d_),
+  name("Name Unspecified"), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
 {
 }
 
@@ -18,8 +36,9 @@ PreviewCamera::~PreviewCamera()
 
 // Copy constructor
 PreviewCamera::PreviewCamera(const PreviewCamera &cam)
-: posX(cam.posX), posY(cam.posY), angleX(cam.angleX), angleY(cam.angleY), distance(cam.distance), zoom(cam.zoom),
-  panx(cam.panx), pany(cam.pany), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d), name(cam.name), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
+: posX(cam.posX), posY(cam.posY), posZ(cam.posZ), angleX(cam.angleX), angleY(cam.angleY), distance(cam.distance), zoom(cam.zoom),
+  panx(cam.panx), pany(cam.pany), panz(cam.panz), zoom_corrx(cam.zoom_corrx), zoom_corry(cam.zoom_corry), is_3d(cam.is_3d),
+  name(cam.name), menu_id(wxNewId()), deletemenu_id(wxNewId()), mat_valid(false)
 {
 }
 
@@ -28,12 +47,14 @@ PreviewCamera& PreviewCamera::operator= (const PreviewCamera& rhs)
     if (this == &rhs) return *this;   // Gracefully handle self assignment
     posX = rhs.posX;
     posY = rhs.posY;
+    posZ = rhs.posZ;
     angleX = rhs.angleX;
     angleY = rhs.angleY;
     distance = rhs.distance;
     zoom = rhs.zoom;
     panx = rhs.panx;
     pany = rhs.pany;
+    panz = rhs.panz;
     zoom_corrx = rhs.zoom_corrx;
     zoom_corry = rhs.zoom_corry;
     is_3d = rhs.is_3d;
@@ -44,7 +65,7 @@ PreviewCamera& PreviewCamera::operator= (const PreviewCamera& rhs)
 glm::mat4& PreviewCamera::GetViewMatrix()
 {
     if (!mat_valid) {
-        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(posX + panx, 1.0f, posY + pany));
+        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(posX + panx, posY + pany, posZ + panz));
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, distance * zoom));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -52,6 +73,30 @@ glm::mat4& PreviewCamera::GetViewMatrix()
         mat_valid = true;
     }
     return view_matrix;
+}
+
+void PreviewCamera::SetAngleX(float value)
+{
+    angleX = value;
+    if (angleX < 0.0f) {
+        angleX += 360.0f;
+    }
+    if (angleX >= 360.0f) {
+            angleX -= 360.0f;
+    }
+    mat_valid = false;
+}
+
+void PreviewCamera::SetAngleY(float value)
+{
+    angleY = value;
+    if (angleY < 0.0f) {
+        angleY += 360.0f;
+    }
+    if (angleY >= 360.0f) {
+            angleY -= 360.0f;
+    }
+    mat_valid = false;
 }
 
 ViewpointMgr::ViewpointMgr()
@@ -181,12 +226,14 @@ wxXmlNode* ViewpointMgr::Save() const
 	    cnode->AddAttribute("name", XmlSafe(previewCameras2d[i]->name));
 	    cnode->AddAttribute("posX", wxString::Format("%f", previewCameras2d[i]->posX));
 	    cnode->AddAttribute("posY", wxString::Format("%f", previewCameras2d[i]->posY));
+	    cnode->AddAttribute("posZ", wxString::Format("%f", previewCameras2d[i]->posZ));
 	    cnode->AddAttribute("angleX", wxString::Format("%f", previewCameras2d[i]->angleX));
 	    cnode->AddAttribute("angleY", wxString::Format("%f", previewCameras2d[i]->angleY));
 	    cnode->AddAttribute("distance", wxString::Format("%f", previewCameras2d[i]->distance));
 	    cnode->AddAttribute("zoom", wxString::Format("%f", previewCameras2d[i]->zoom));
 	    cnode->AddAttribute("panx", wxString::Format("%f", previewCameras2d[i]->panx));
 	    cnode->AddAttribute("pany", wxString::Format("%f", previewCameras2d[i]->pany));
+	    cnode->AddAttribute("panz", wxString::Format("%f", previewCameras2d[i]->panz));
 	    cnode->AddAttribute("zoom_corrx", wxString::Format("%f", previewCameras2d[i]->zoom_corrx));
 	    cnode->AddAttribute("zoom_corry", wxString::Format("%f", previewCameras2d[i]->zoom_corry));
 	    cnode->AddAttribute("is_3d", wxString::Format("%d", previewCameras2d[i]->is_3d));
@@ -199,12 +246,14 @@ wxXmlNode* ViewpointMgr::Save() const
 	    cnode->AddAttribute("name", XmlSafe(previewCameras3d[i]->name));
 	    cnode->AddAttribute("posX", wxString::Format("%f", previewCameras3d[i]->posX));
 	    cnode->AddAttribute("posY", wxString::Format("%f", previewCameras3d[i]->posY));
+	    cnode->AddAttribute("posZ", wxString::Format("%f", previewCameras3d[i]->posZ));
 	    cnode->AddAttribute("angleX", wxString::Format("%f", previewCameras3d[i]->angleX));
 	    cnode->AddAttribute("angleY", wxString::Format("%f", previewCameras3d[i]->angleY));
 	    cnode->AddAttribute("distance", wxString::Format("%f", previewCameras3d[i]->distance));
 	    cnode->AddAttribute("zoom", wxString::Format("%f", previewCameras3d[i]->zoom));
 	    cnode->AddAttribute("panx", wxString::Format("%f", previewCameras3d[i]->panx));
 	    cnode->AddAttribute("pany", wxString::Format("%f", previewCameras3d[i]->pany));
+	    cnode->AddAttribute("panz", wxString::Format("%f", previewCameras3d[i]->panz));
 	    cnode->AddAttribute("zoom_corrx", wxString::Format("%f", previewCameras3d[i]->zoom_corrx));
 	    cnode->AddAttribute("zoom_corry", wxString::Format("%f", previewCameras3d[i]->zoom_corry));
 	    cnode->AddAttribute("is_3d", wxString::Format("%d", previewCameras3d[i]->is_3d));
@@ -238,6 +287,8 @@ void ViewpointMgr::Load(wxXmlNode* vp_node)
             new_camera->posX = wxAtof(attr);
             c->GetAttribute("posY", &attr);
             new_camera->posY = wxAtof(attr);
+            c->GetAttribute("posZ", &attr);
+            new_camera->posZ = wxAtof(attr);
             c->GetAttribute("angleX", &attr);
             new_camera->angleX = wxAtof(attr);
             c->GetAttribute("angleY", &attr);
@@ -250,6 +301,8 @@ void ViewpointMgr::Load(wxXmlNode* vp_node)
             new_camera->panx = wxAtof(attr);
             c->GetAttribute("pany", &attr);
             new_camera->pany = wxAtof(attr);
+            c->GetAttribute("panz", &attr);
+            new_camera->panz = wxAtof(attr);
             c->GetAttribute("zoom_corrx", &attr);
             new_camera->zoom_corrx = wxAtof(attr);
             c->GetAttribute("zoom_corry", &attr);

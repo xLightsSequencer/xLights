@@ -154,7 +154,7 @@ inline void write4ByteUInt(uint8_t* data, uint32_t v) {
 
 FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
 
-    FILE *seqFile = fopen((const char *)fn.c_str(), "r");
+    FILE *seqFile = fopen((const char *)fn.c_str(), "rb");
     if (seqFile == NULL) {
         LogErr(VB_SEQUENCE, "Error opening sequence file: %s. fopen returned NULL\n",
                fn.c_str());
@@ -206,6 +206,7 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
         LogErr(VB_SEQUENCE, "Error opening sequence file: %s. Could not read header.\n", fn.c_str());
         DumpHeader("Sequence File head:", &header[0], bytesRead);
         fclose(seqFile);
+        return nullptr;
     }
 
     FSEQFile *file = nullptr;
@@ -218,7 +219,6 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string &fn) {
                fn.c_str(), seqVersionMajor, seqVersionMinor);
         DumpHeader("Sequence File head:", tmpData, bytesRead);
         fclose(seqFile);
-
         return nullptr;
     }
     file->dumpInfo();
@@ -528,6 +528,11 @@ void V1FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &r
 }
 
 FrameData *V1FSEQFile::getFrame(uint32_t frame) {
+    if (m_rangesToRead.empty()) {
+        std::vector<std::pair<uint32_t, uint32_t>> range;
+        range.push_back(std::pair<uint32_t, uint32_t>(0, m_seqChannelCount));
+        prepareRead(range);
+    }
     uint64_t offset = m_seqChannelCount;
     offset *= frame;
     offset += m_seqChanDataOffset;
@@ -1242,7 +1247,7 @@ m_handler(nullptr)
 
         m_compressionType = CompressionType::none;
         //ESEQ files use 1 based start channels, we need 0 based
-        m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(modelStart - 1, modelLen));
+        m_sparseRanges.push_back(std::pair<uint32_t, uint32_t>(modelStart ? modelStart - 1 : modelStart, modelLen));
     } else {
         //24-31 - timestamp/uuid/identifier
         uint64_t *a = (uint64_t*)&header[24];
@@ -1354,7 +1359,7 @@ void V2FSEQFile::prepareRead(const std::vector<std::pair<uint32_t, uint32_t>> &r
 FrameData *V2FSEQFile::getFrame(uint32_t frame) {
     if (m_rangesToRead.empty()) {
         std::vector<std::pair<uint32_t, uint32_t>> range;
-        range.push_back(std::pair<uint32_t, uint32_t>(0, getMaxChannel()));
+        range.push_back(std::pair<uint32_t, uint32_t>(0, getMaxChannel() + 1));
         prepareRead(range);
     }
     if (frame >= m_seqNumFrames) {

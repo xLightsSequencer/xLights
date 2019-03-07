@@ -16,6 +16,7 @@ class DMXEffect : public RenderableEffect
         virtual void SetPanelStatus(Model *cls) override;
         virtual void SetDefaultParameters() override;
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
+        void RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::pair<int, int>>& pairs) const;
     protected:
         virtual wxPanel *CreatePanel(wxWindow *parent) override;
         virtual bool needToAdjustSettings(const std::string& version) override { return true; };

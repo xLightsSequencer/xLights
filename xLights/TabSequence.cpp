@@ -285,6 +285,10 @@ wxString xLightsFrame::LoadEffectsFileNoCheck()
         }
     }
     SetPreviewBackgroundImage(mBackgroundImage);
+    SetDisplay2DBoundingBox(GetXmlSetting("Display2DBoundingBox", "0") == "1");
+    layoutPanel->SetDisplay2DBoundingBox(GetDisplay2DBoundingBox());
+    SetDisplay2DCenter0(GetXmlSetting("Display2DCenter0", "0") == "1");
+    layoutPanel->SetDisplay2DCenter0(GetDisplay2DCenter0());
 
     //Load FSEQ and Backup directory settings
     fseqDirectory = GetXmlSetting("fseqDir", showDirectory);
@@ -670,12 +674,12 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         }
         return false;
     }
+
     if (!backup)
     {
+        SaveModelsFile();
         UnsavedRgbEffectsChanges = false;
     }
-
-    SaveModelsFile();
 
     return true;
 }
@@ -1011,8 +1015,10 @@ void xLightsFrame::UpdateModelsList()
 
 void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames, bool exitOnDone) {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
     if (origFilenames.IsEmpty()) {
         EnableSequenceControls(true);
+        logger_base.debug("Batch render done.");
         printf("Done All Files\n");
         if (exitOnDone) {
             Destroy();
@@ -1021,6 +1027,21 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         }
         return;
     }
+
+    if (wxGetKeyState(WXK_ESCAPE))
+    {
+        logger_base.debug("Batch render cancelled.");
+        EnableSequenceControls(true);
+        printf("Batch render cancelled.\n");
+        if (exitOnDone) {
+            Destroy();
+        }
+        else {
+            CloseSequence();
+        }
+        return;
+    }
+
     EnableSequenceControls(false);
 
     wxArrayString fileNames = origFilenames;
@@ -1029,6 +1050,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     wxStopWatch sw; // start a stopwatch timer
 
     printf("Processing file %s\n", (const char *)seq.c_str());
+    logger_base.debug("Batch Render Processing file %s\n", (const char *)seq.c_str());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
@@ -1365,7 +1387,7 @@ void xLightsFrame::EnableSequenceControls(bool enable)
         MenuItem_File_Save->Enable(false);
         MenuItem_File_SaveAs_Sequence->Enable(false);
         MenuItem_File_Close_Sequence->Enable(false);
-		  MenuItem_File_Export_Video->Enable(false);
+		MenuItem_File_Export_Video->Enable(false);
         MenuItem_PackageSequence->Enable(false);
         MenuItem_GenerateLyrics->Enable(false);
         MenuItem_ExportEffects->Enable(false);

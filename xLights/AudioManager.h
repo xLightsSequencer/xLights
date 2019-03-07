@@ -257,7 +257,9 @@ public:
 	bool IsPolyphonicTranscriptionDone() const { return _polyphonicTranscriptionDone; };
     void DoLoadAudioData(AVFormatContext* formatContext, AVCodecContext* codecContext, AVStream* audioStream, AVFrame* frame);
     
-    
+    static bool WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue = false);
+    static bool CreateAudioFile(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate);
+
     bool AudioDeviceChanged();
 
     static SDL* GetSDL();

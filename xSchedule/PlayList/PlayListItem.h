@@ -31,6 +31,7 @@ protected:
     void Save(wxXmlNode* node);
     void Copy(PlayListItem* to) const;
     bool IsInSlaveMode() const;
+    bool IsSuppressAudioOnSlaves() const;
     std::string ReplaceTags(const std::string s) const;
 
 protected:

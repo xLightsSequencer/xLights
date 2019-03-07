@@ -519,9 +519,9 @@ void PlayListStep::Pause(bool pause)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (auto it : _items)
         {
-            (*it)->Pause(pause);
+            it->Pause(pause);
         }
     }
 }
@@ -561,9 +561,9 @@ void PlayListStep::Suspend(bool suspend)
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (auto it : _items)
         {
-            (*it)->Suspend(suspend);
+            it->Suspend(suspend);
         }
     }
 }
@@ -576,9 +576,9 @@ void PlayListStep::Restart()
     _startTime = wxGetUTCTimeMillis().GetLo();
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (auto it : _items)
         {
-            (*it)->Restart();
+            it->Restart();
         }
     }
 }
@@ -590,9 +590,9 @@ void PlayListStep::Stop()
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _items.begin(); it != _items.end(); ++it)
+        for (auto it : _items)
         {
-            (*it)->Stop();
+            it->Stop();
         }
     }
 }
@@ -647,20 +647,20 @@ size_t PlayListStep::GetLengthMS()
         {
             ReentrancyCounter rec(_reentrancyCounter);
             size_t len = 0;
-            for (auto it = _items.begin(); it != _items.end(); ++it)
+            for (auto it : _items)
             {
                 // duration has to look valid
-                if ((*it)->GetDurationMS() < 999999999)
+                if (it->GetDurationMS() < 999999999)
                 {
-                    len = std::max(len, (*it)->GetDurationMS());
+                    len = std::max(len, it->GetDurationMS());
                 }
             }
 
             if (len == 0)
             {
-                for (auto it = _items.begin(); it != _items.end(); ++it)
+                for (auto it : _items)
                 {
-                    len = std::max(len, (*it)->GetDurationMS(msPerFrame));
+                    len = std::max(len, it->GetDurationMS(msPerFrame));
                 }
 
                 if (len == 0) len = msPerFrame;
@@ -731,10 +731,10 @@ bool PlayListStep::IsRunningFSEQ(const std::string& fseqFile)
     return (fn.GetFullName().Lower() == wxString(fseqFile).Lower());
 }
 
-void PlayListStep::SetSyncPosition(size_t ms, bool force)
+void PlayListStep::SetSyncPosition(size_t ms, size_t acceptableJitter, bool force)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-    logger_base.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force? "true" : "false");
+    logger_base.debug("SetSyncPosition: MS %ld Force %s.", (long)ms, force ? "true" : "false");
 
     std::string fseq = GetActiveSyncItemFSEQ();
 
@@ -748,37 +748,71 @@ void PlayListStep::SetSyncPosition(size_t ms, bool force)
                 if (fseq == pli->GetFSEQFileName())
                 {
                     // wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
+                    long posDiff = pli->GetPositionMS() - ms; // Stephen Morgan - Wrong Variable?
 
-                    int frame = ms / pli->GetFrameMS();
-                    if (force)
+                    // double the acceptable jitter if we are ahead as this is more likely a network effect
+                    // stops a jump back then big jump forward as often
+                    if (posDiff < 0) acceptableJitter *= 2;
+
+                    if (std::abs(posDiff) > acceptableJitter)
                     {
-                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
-                        pli->SetPosition(frame, ms);
-                        if (xScheduleFrame::GetScheduleManager() != nullptr)
-                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
-                    }
-                    else
-                    {
-                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                        // only adjust position if we are more that one frame out of sync
+                        int frame = ms / pli->GetFrameMS();
+                        if (force)
+                        {
+                            long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
 
-                        int adjustment = 0;
-                        if (timeDiff == 0)
-                        {
-                        }
-                        else if (abs(timeDiff) > pli->GetFrameMS() * 2)
-                        {
-                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
-                        }
-                        else if (abs(timeDiff) > pli->GetFrameMS())
-                        {
-                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
-                        }
+                            if (timeDiff != 0) // if this is zero then we are less than one frame out
+                            {
+                                logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld:%ld. FORCED ReSync.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, posDiff);
 
-                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
-                        if (xScheduleFrame::GetScheduleManager() != nullptr)
-                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                                if (posDiff > (acceptableJitter * 2)) {
+                                    pli->SetPosition(frame, ms);
+                                    logger_base.debug("Way OFF!! Need to SKIP (%ld).", timeDiff); // Add time to current position
+                                }
+                                else {
+                                    long mscorrection = 0;
+                                    int  fcorrection = 0;
+                                    if (timeDiff > 0) {		// Ahead or Behind? 
+                                        mscorrection = (long)(acceptableJitter / 20);
+                                        fcorrection = 1;
+                                        logger_base.debug("Behind:(%ld)- Need to move Forward - Correction(%ld).", posDiff, mscorrection); // Add time to current position
+                                    }
+                                    else {
+                                        mscorrection = -(long)(acceptableJitter / 20);
+                                        fcorrection = -1;
+                                        logger_base.debug("Ahead:(%ld)- Need to move Back - Correction(%ld).", posDiff, mscorrection); // Subtract time from current position
+                                    }
+
+                                    //pli->SetPosition(frame, pli->GetPositionMS() + mscorrection);
+                                    pli->SetPosition(pli->GetCurrentFrame() + fcorrection, pli->GetPositionMS() + mscorrection);
+                                }
+
+                                if (xScheduleFrame::GetScheduleManager() != nullptr)
+                                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
+                            }
+                        }
+                        else
+                        {
+                            long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+
+                            // only adjust position if we are more that one frame out of sync
+                            if (timeDiff != 0)
+                            {
+                                int adjustment = 0;
+                                if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                                {
+                                    adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
+                                }
+                                else if (abs(timeDiff) > pli->GetFrameMS())
+                                {
+                                    adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
+                                }
+
+                                logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                                if (xScheduleFrame::GetScheduleManager() != nullptr)
+                                    xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                            }
+                        }
                     }
                     break;
                 }
@@ -789,37 +823,47 @@ void PlayListStep::SetSyncPosition(size_t ms, bool force)
                 if (fseq == pli->GetFSEQFileName())
                 {
                     //wxASSERT(abs((long)frame * (long)pli->GetFrameMS() - (long)ms) < pli->GetFrameMS());
-                    int frame = ms / pli->GetFrameMS();
-                    if (force)
+
+                    long posDiff = pli->GetPositionMS() - ms; // Stephen Morgan - Wrong Variable?
+
+                    // double the acceptable jitter if we are ahead as this is more likely a network effect
+                    // stops a jump back then big jump forward as often
+                    if (posDiff < 0) acceptableJitter *= 2;
+
+                    if (std::abs(posDiff) > acceptableJitter)
                     {
-                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
-                        pli->SetPosition(frame, ms);
-                        if (xScheduleFrame::GetScheduleManager() != nullptr)
-                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
-                    }
-                    else
-                    {
-                        long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
-                        // only adjust position if we are more that one frame out of sync
-
-                        int adjustment = 0;
-                        if (timeDiff == 0)
+                        int frame = ms / pli->GetFrameMS();
+                        if (force)
                         {
+                            long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld. FORCED.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff);
+                            pli->SetPosition(frame, ms);
+                            if (xScheduleFrame::GetScheduleManager() != nullptr)
+                                xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(0);
                         }
-                        else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                        else
                         {
-                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
-                        }
-                        else if (abs(timeDiff) > pli->GetFrameMS())
-                        {
-                            adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
-                        }
+                            long timeDiff = (long)frame * (long)pli->GetFrameMS() - (long)pli->GetPositionMS();
+                            // only adjust position if we are more that one frame out of sync
 
-                        logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+                            int adjustment = 0;
+                            if (timeDiff == 0)
+                            {
+                            }
+                            else if (abs(timeDiff) > pli->GetFrameMS() * 2)
+                            {
+                                adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.1);
+                            }
+                            else if (abs(timeDiff) > pli->GetFrameMS())
+                            {
+                                adjustment = timeDiff / abs(timeDiff) * (int)((float)pli->GetFrameMS() * 0.06);
+                            }
 
-                        if (xScheduleFrame::GetScheduleManager() != nullptr)
-                            xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                            logger_base.debug("Sync: Position was %d:%d - should be %d:%d: %ld -> Adjustment to frame time %d.", pli->GetCurrentFrame(), pli->GetPositionMS(), frame, frame * pli->GetFrameMS(), timeDiff, adjustment);
+
+                            if (xScheduleFrame::GetScheduleManager() != nullptr)
+                                xScheduleFrame::GetScheduleManager()->SetTimerAdjustment(adjustment);
+                        }
                     }
                     break;
                 }

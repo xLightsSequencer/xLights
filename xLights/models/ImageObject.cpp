@@ -6,6 +6,7 @@
 #include "DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
+#include "../xLightsMain.h"
 
 #include <log4cpp/Category.hh>
 
@@ -17,8 +18,7 @@ ImageObject::ImageObject(wxXmlNode *node, const ViewObjectManager &manager)
 
 ImageObject::~ImageObject()
 {
-    for (auto it = _images.begin(); it != _images.end(); ++it)
-    {
+    for (auto it = _images.begin(); it != _images.end(); ++it) {
         delete it->second;
     }
 }
@@ -54,8 +54,7 @@ void ImageObject::AddTypeProperties(wxPropertyGridInterface *grid) {
 
 int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("Image" == event.GetPropertyName()) {
-        for (auto it = _images.begin(); it != _images.end(); ++it)
-        {
+        for (auto it = _images.begin(); it != _images.end(); ++it) {
             delete it->second;
         }
         _images.clear();
@@ -63,23 +62,23 @@ int ImageObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyG
         ModelXml->DeleteAttribute("Image");
         ModelXml->AddAttribute("Image", _imageFile);
         SetFromXml(ModelXml);
-        return 3;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     } else if ("Transparency" == event.GetPropertyName()) {
         transparency = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format("%d", transparency));
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("Brightness" == event.GetPropertyName()) {
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
 
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
+void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
     if( !active ) { return; }
 
@@ -88,10 +87,8 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
 
     GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
 
-    if (_images.find(preview->GetName().ToStdString()) == _images.end())
-    {
-        if (wxFileExists(_imageFile))
-        {
+    if (_images.find(preview->GetName().ToStdString()) == _images.end()) {
+        if (wxFileExists(_imageFile)) {
             logger_base.debug("Loading image model %s file %s for preview %s.",
                 (const char *)GetName().c_str(),
                 (const char *)_imageFile.c_str(),
@@ -103,9 +100,7 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
             screenLocation.SetRenderSize(width, height, 10.0f);
             exists = true;
         }
-    }
-    else
-    {
+    } else {
         exists = true;
     }
 
@@ -132,20 +127,20 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     if (exists) {
         Image* image = _images[preview->GetName().ToStdString()];
 
-        va3.PreAllocTexture(6);
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
 
-        va3.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
-        va3.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va3.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-
-        va3.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
-        va3.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
-        va3.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
-
+        DrawGLUtils::xl3Accumulator &va = transparency == 0 ? va3 : tva3;
+        
+        va.PreAllocTexture(6);
+        va.AddTextureVertex(x1, y1, z1, tx1, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
+        va.AddTextureVertex(x2, y2, z2, tx1, image->tex_coord_y);
+        va.AddTextureVertex(x4, y4, z4, tx2, -0.5 / (image->textureHeight));
+        va.AddTextureVertex(x3, y3, z3, tx2, image->tex_coord_y);
         int alpha = (100.0 - transparency) * 255.0 / 100.0;
-        va3.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
+        va.FinishTextures(GL_TRIANGLES, image->getID(), alpha, brightness);
     } else {
         va3.AddVertex(x1, y1, z1, *wxRED);
         va3.AddVertex(x2, y2, z2, *wxRED);
@@ -165,4 +160,46 @@ void ImageObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, 
     if ((Selected || Highlighted) && allowSelected) {
         GetObjectScreenLocation().DrawHandles(va3);
     }
+}
+
+std::list<std::string> ImageObject::CheckModelSettings()
+{
+    std::list<std::string> res;
+
+    if (_imageFile == "" || !wxFile::Exists(_imageFile)) {
+        res.push_back(wxString::Format("    ERR: Image object '%s' cant find image file '%s'", GetName(), _imageFile).ToStdString());
+    } else {
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _imageFile)) {
+            res.push_back(wxString::Format("    WARN: Image object '%s' image file '%s' not under show directory.", GetName(), _imageFile).ToStdString());
+        }
+    }
+    return res;
+}
+
+bool ImageObject::CleanupFileLocations(xLightsFrame* frame)
+{
+    bool rc = false;
+    if (wxFile::Exists(_imageFile))
+    {
+        if (!frame->IsInShowFolder(_imageFile))
+        {
+            _imageFile = frame->MoveToShowFolder(_imageFile, wxString(wxFileName::GetPathSeparator()) + "Images");
+            ModelXml->DeleteAttribute("Image");
+            ModelXml->AddAttribute("Image", _imageFile);
+            SetFromXml(ModelXml);
+            rc = true;
+        }
+    }
+
+    return BaseObject::CleanupFileLocations(frame) || rc;
+}
+
+std::list<std::string> ImageObject::GetFileReferences()
+{
+    std::list<std::string> res;
+    if (wxFile::Exists(_imageFile))
+    {
+        res.push_back(_imageFile);
+    }
+    return res;
 }

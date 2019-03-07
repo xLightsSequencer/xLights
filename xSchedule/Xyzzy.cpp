@@ -257,7 +257,7 @@ bool Xyzzy::Frame(uint8_t* buffer, size_t size, bool outputframe)
 }
 
 // <matrix name>
-void Xyzzy::Initialise(const std::string& parameters, std::string& result, const std::string& reference)
+void Xyzzy::Initialise(const wxString& parameters, wxString& result, const wxString& reference)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Xyzzy initialising.");
@@ -351,7 +351,7 @@ void Xyzzy::Initialise(const std::string& parameters, std::string& result, const
     wxPostEvent(wxGetApp().GetTopWindow(), event2);
 }
 
-void Xyzzy::Close(std::string& result, const std::string& reference)
+void Xyzzy::Close(wxString& result, const wxString& reference)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("Xyzzy closing.");
@@ -409,7 +409,7 @@ std::string Xyzzy::GameNotRunningResult(const std::string& reference)
     }
 }
 
-bool Xyzzy::Action(const std::string& command, const std::string& parameters, std::string& result, const std::string& reference)
+bool Xyzzy::Action(const wxString& command, const wxString& parameters, wxString& result, const wxString& reference)
 {
     if (command == "q") // query state
     {

@@ -26,6 +26,15 @@
 #define SHAPE_COUNT_MIN 1
 #define SHAPE_COUNT_MAX 100
 
+#define SHAPE_ROTATION_MIN 0
+#define SHAPE_ROTATION_MAX 360
+
+#define SHAPE_VELOCITY_MIN 0
+#define SHAPE_VELOCITY_MAX 20
+
+#define SHAPE_DIRECTION_MIN 0
+#define SHAPE_DIRECTION_MAX 359
+
 class ShapeEffect : public RenderableEffect
 {
     public:
@@ -37,7 +46,7 @@ class ShapeEffect : public RenderableEffect
         virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff) override;
         virtual bool AppropriateOnNodes() const override { return false; }
-        virtual bool SupportsRenderCache() const override { return true; }
+        virtual bool SupportsRenderCache(const SettingsMap& settings) const override { return true; }
 #ifdef LINUX
         virtual bool CanRenderOnBackgroundThread(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override { return false; };
 #endif
@@ -49,7 +58,7 @@ protected:
         void SetPanelTimingTracks() const;
         void Drawcircle(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
         void Drawheart(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
-        void Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness) const;
+        void Drawstar(RenderBuffer &buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation = 0) const;
         void Drawpolygon(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, int thickness, double rotation = 0) const;
         void Drawsnowflake(RenderBuffer &buffer, int xc, int yc, double radius, int sides, xlColor color, double rotation = 0) const;
         void Drawtree(RenderBuffer &buffer, int xc, int yc, double radius, xlColor color, int thickness) const;

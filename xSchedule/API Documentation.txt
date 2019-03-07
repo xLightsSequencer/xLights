@@ -300,6 +300,10 @@ http://<host:port>/xScheduleCommand?Command=<command>&Parameters=<parameters>
 			
 		Stop test mode	
 			Stops test mode and restores xSchedule to its previous mode
+
+        Change show folder <show folder>
+            Change the show folder to the named show folder (if it exists). 
+            If blank is passed the current show folder is reloaded
 			
 http://<host:port>/xScheduleStash?Command=<command>&Key=<key>
 

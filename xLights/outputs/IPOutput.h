@@ -15,6 +15,7 @@ public:
     #pragma region Constructors and Destructors
     IPOutput(wxXmlNode* node);
     IPOutput();
+    IPOutput(IPOutput* output) : Output(output) {};
     virtual ~IPOutput() override {};
     #pragma endregion Constructors and Destructors
 

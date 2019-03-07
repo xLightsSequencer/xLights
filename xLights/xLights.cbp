@@ -16,6 +16,7 @@
 				<Compiler>
 					<Add option="-march=i586" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-g" />
 					<Add option="-pipe" />
@@ -83,12 +84,11 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m32" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-static-libgcc" />
-					<Add option="-std=c++14" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option="-Wno-attributes" />
 					<Add option="-D__GNUWIN32__" />
@@ -153,9 +153,9 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-g" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -201,7 +201,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-Wall" />
 					<Add option="`wx-config --version=3.1 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
@@ -249,10 +249,11 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
-					<Add option="-std=gnu++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-keep-inline-dllexport" />
 					<Add option="-Wno-attributes" />
 					<Add option="-D__GNUWIN32__" />
@@ -313,7 +314,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-pedantic" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++1z" />
 					<Add option="-m64" />
 					<Add option="-g" />
 					<Add option="-pipe" />
@@ -433,7 +434,6 @@
 		<Unit filename="DissolveTransitionPattern.cpp" />
 		<Unit filename="DrawGLUtils.cpp" />
 		<Unit filename="DrawGLUtils.h" />
-		<Unit filename="DrawGLUtils21.cpp" />
 		<Unit filename="DrawGLUtils31.cpp" />
 		<Unit filename="EffectAssist.cpp" />
 		<Unit filename="EffectAssist.h" />
@@ -535,6 +535,8 @@
 		<Unit filename="PaletteMgmtDialog.h" />
 		<Unit filename="Parallel.cpp" />
 		<Unit filename="Parallel.h" />
+		<Unit filename="PathGenerationDialog.cpp" />
+		<Unit filename="PathGenerationDialog.h" />
 		<Unit filename="PerspectivesPanel.cpp" />
 		<Unit filename="PerspectivesPanel.h" />
 		<Unit filename="PhonemeDictionary.cpp" />
@@ -548,6 +550,8 @@
 		<Unit filename="PreviewModels.h" />
 		<Unit filename="PreviewPane.cpp" />
 		<Unit filename="PreviewPane.h" />
+		<Unit filename="RemapDMXChannelsDialog.cpp" />
+		<Unit filename="RemapDMXChannelsDialog.h" />
 		<Unit filename="RenameTextDialog.cpp" />
 		<Unit filename="RenameTextDialog.h" />
 		<Unit filename="Render.cpp" />
@@ -650,6 +654,8 @@
 		<Unit filename="controllers/ControllerUploadData.h" />
 		<Unit filename="controllers/ESPixelStick.cpp" />
 		<Unit filename="controllers/ESPixelStick.h" />
+		<Unit filename="controllers/EasyLights.cpp" />
+		<Unit filename="controllers/EasyLights.h" />
 		<Unit filename="controllers/FPP.cpp" />
 		<Unit filename="controllers/FPP.h" />
 		<Unit filename="controllers/FPPConnectDialog.cpp" />
@@ -662,8 +668,6 @@
 		<Unit filename="controllers/Pixlite16.h" />
 		<Unit filename="controllers/SanDevices.cpp" />
 		<Unit filename="controllers/SanDevices.h" />
-		<Unit filename="controllers/SimpleFTP.cpp" />
-		<Unit filename="controllers/SimpleFTP.h" />
 		<Unit filename="controllers/WebSocketClient.cpp" />
 		<Unit filename="controllers/WebSocketClient.h" />
 		<Unit filename="djdebug.cpp" />
@@ -734,6 +738,10 @@
 		<Unit filename="effects/GlediatorEffect.h" />
 		<Unit filename="effects/GlediatorPanel.cpp" />
 		<Unit filename="effects/GlediatorPanel.h" />
+		<Unit filename="effects/KaleidoscopeEffect.cpp" />
+		<Unit filename="effects/KaleidoscopeEffect.h" />
+		<Unit filename="effects/KaleidoscopePanel.cpp" />
+		<Unit filename="effects/KaleidoscopePanel.h" />
 		<Unit filename="effects/LifeEffect.cpp" />
 		<Unit filename="effects/LifeEffect.h" />
 		<Unit filename="effects/LifePanel.cpp" />
@@ -742,6 +750,10 @@
 		<Unit filename="effects/LightningEffect.h" />
 		<Unit filename="effects/LightningPanel.cpp" />
 		<Unit filename="effects/LightningPanel.h" />
+		<Unit filename="effects/LinesEffect.cpp" />
+		<Unit filename="effects/LinesEffect.h" />
+		<Unit filename="effects/LinesPanel.cpp" />
+		<Unit filename="effects/LinesPanel.h" />
 		<Unit filename="effects/LiquidEffect.cpp" />
 		<Unit filename="effects/LiquidEffect.h" />
 		<Unit filename="effects/LiquidPanel.cpp" />
@@ -896,6 +908,7 @@
 		<Unit filename="models/ChannelBlockModel.h" />
 		<Unit filename="models/CircleModel.cpp" />
 		<Unit filename="models/CircleModel.h" />
+		<Unit filename="models/CubeModel.cpp" />
 		<Unit filename="models/CustomModel.cpp" />
 		<Unit filename="models/CustomModel.h" />
 		<Unit filename="models/DmxModel.cpp" />
@@ -1139,8 +1152,10 @@
 		<Unit filename="wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="wxsmith/LayoutPanel.wxs" />
+		<Unit filename="wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="wxsmith/LifePanel.wxs" />
 		<Unit filename="wxsmith/LightningPanel.wxs" />
+		<Unit filename="wxsmith/LinesPanel.wxs" />
 		<Unit filename="wxsmith/LinkJukeboxButtonDialog.wxs" />
 		<Unit filename="wxsmith/LiquidPanel.wxs" />
 		<Unit filename="wxsmith/LorControllerDialog.wxs" />
@@ -1167,6 +1182,7 @@
 		<Unit filename="wxsmith/OnPanel.wxs" />
 		<Unit filename="wxsmith/OptionChooser.wxs" />
 		<Unit filename="wxsmith/PaletteMgmtDialog.wxs" />
+		<Unit filename="wxsmith/PathGenerationDialog.wxs" />
 		<Unit filename="wxsmith/PerspectivesPanel.wxs" />
 		<Unit filename="wxsmith/PianoPanel.wxs" />
 		<Unit filename="wxsmith/PicturesAssistPanel.wxs" />
@@ -1176,6 +1192,7 @@
 		<Unit filename="wxsmith/PlasmaPanel.wxs" />
 		<Unit filename="wxsmith/PreviewModels.wxs" />
 		<Unit filename="wxsmith/PreviewPane.wxs" />
+		<Unit filename="wxsmith/RemapDMXChannelsDialog.wxs" />
 		<Unit filename="wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="wxsmith/ResizeImageDialog.wxs" />
@@ -1318,8 +1335,10 @@
 					<wxPanel wxs="wxsmith/GalaxyPanel.wxs" src="effects/GalaxyPanel.cpp" hdr="effects/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GarlandsPanel.wxs" src="effects/GarlandsPanel.cpp" hdr="effects/GarlandsPanel.h" fwddecl="1" i18n="1" name="GarlandsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/GlediatorPanel.wxs" src="effects/GlediatorPanel.cpp" hdr="effects/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/KaleidoscopePanel.wxs" src="effects/KaleidoscopePanel.cpp" hdr="effects/KaleidoscopePanel.h" fwddecl="1" i18n="1" name="KaleidoscopePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LifePanel.wxs" src="effects/LifePanel.cpp" hdr="effects/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/LightningPanel.wxs" src="effects/LightningPanel.cpp" hdr="effects/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />
+					<wxPanel wxs="wxsmith/LinesPanel.wxs" src="effects/LinesPanel.cpp" hdr="effects/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MarqueePanel.wxs" src="effects/MarqueePanel.cpp" hdr="effects/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MeteorsPanel.wxs" src="effects/MeteorsPanel.cpp" hdr="effects/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/MorphPanel.wxs" src="effects/MorphPanel.cpp" hdr="effects/MorphPanel.h" fwddecl="1" i18n="1" name="MorphPanel" language="CPP" />
@@ -1402,6 +1421,8 @@
 					<wxDialog wxs="wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/NodeSelectGrid.wxs" src="NodeSelectGrid.cpp" hdr="NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
 					<wxDialog wxs="wxsmith/MultiControllerUploadDialog.wxs" src="MultiControllerUploadDialog.cpp" hdr="MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/PathGenerationDialog.wxs" src="PathGenerationDialog.cpp" hdr="PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/RemapDMXChannelsDialog.wxs" src="RemapDMXChannelsDialog.cpp" hdr="RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<DoxyBlocks>

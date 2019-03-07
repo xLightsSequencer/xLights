@@ -66,14 +66,14 @@ int xlGridCanvas::SetColumnCenter(int position)
     return calcPercentFromCell(col, mColumns);
 }
 
-int xlGridCanvas::calcCellFromPercent(int value, int base)
+int xlGridCanvas::calcCellFromPercent(int value, int base) const
 {
     if( value == 100 ) return (base - 1);
     double band = 100.0 / (double)base;
     return (int)((double)value / band);
 }
 
-int xlGridCanvas::calcPercentFromCell(int value, int base)
+int xlGridCanvas::calcPercentFromCell(int value, int base) const
 {
     if( value == 0 ) return 0;
     if( value == base-1 ) return 100;

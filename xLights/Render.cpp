@@ -14,6 +14,7 @@
 #include "sequencer/MainSequencer.h"
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
+#include "Parallel.h"
 
 #include <log4cpp/Category.hh>
 
@@ -310,7 +311,7 @@ public:
     const std::string GetName() const override {
         return name;
     }
-
+    
     virtual bool DeleteWhenComplete() override {
         return false;
     }
@@ -565,7 +566,7 @@ public:
                 done.resize(rb.pixels.size());
                 rb.CopyNodeColorsToPixels(done);
                 // now fill in any spaces in the buffer that don't have nodes mapped to them
-                for (int y = 0; y < rb.BufferHt; y++) {
+                parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame] (int y) {
                     for (int x = 0; x < rb.BufferWi; x++) {
                         if (!done[y*rb.BufferWi+x]) {
                             xlColor c = xlBLACK;
@@ -573,7 +574,7 @@ public:
                             rb.SetPixel(x, y, c);
                         }
                     }
-                }
+                });
             }
 
             info.validLayers[layer] = xLights->RenderEffectFromMap(ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
@@ -609,7 +610,7 @@ public:
         int ss, es;
 
         rowToRender->IncWaitCount();
-        std::unique_lock<std::recursive_mutex> lock(rowToRender->GetRenderLock());
+        std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
         rowToRender->DecWaitCount();
         SetGenericStatus("Got lock on rendering thread for %s", 0);
 
@@ -773,6 +774,7 @@ public:
         abort = true;
     }
 
+    ModelElement* GetModelElement() const { return rowToRender; }
 
 private:
 
@@ -922,21 +924,33 @@ void xLightsFrame::LogRenderStatus()
     logger_base.debug("Logging render status ***************");
     logger_base.debug("Render tree size. %d entries.", renderTree.data.size());
     logger_base.debug("Render Thread status:\n%s", (const char *)GetThreadStatusReport().c_str());
-    for (auto it = renderProgressInfo.begin(); it != renderProgressInfo.end(); ++it)
+    for (auto it : renderProgressInfo)
     {
-        int frames = (*it)->endFrame - (*it)->startFrame + 1;
-        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", (*it)->numRows, (*it)->startFrame, (*it)->endFrame, frames);
-        for (int i = 0; i < (*it)->numRows; i++)
+        int frames = it->endFrame - it->startFrame + 1;
+        logger_base.debug("Render progress rows %d, start frame %d, end frame %d, frames %d.", it->numRows, it->startFrame, it->endFrame, frames);
+        for (int i = 0; i < it->numRows; i++)
         {
-            if ((*it)->jobs[i] != nullptr)
+            if (it->jobs[i] != nullptr)
             {
-                int curFrame = (*it)->jobs[i]->GetCurrentFrame();
-                if (curFrame >(*it)->endFrame || curFrame == END_OF_RENDER_FRAME)
+                auto job = it->jobs[i];
+                int curFrame = job->GetCurrentFrame();
+                if (curFrame > it->endFrame || curFrame == END_OF_RENDER_FRAME)
                 {
-                    curFrame = (*it)->endFrame;
+                    curFrame = it->endFrame;
                 }
 
-                logger_base.debug("    Progress %s - %ld%%.", (const char *)(*it)->jobs[i]->GetName().c_str(), (long)(curFrame - (*it)->startFrame + 1) * 100 / frames);
+                logger_base.debug("    Progress %s - %ld%%.", (const char *)job->GetName().c_str(), (long)(curFrame - it->startFrame + 1) * 100 / frames);
+                logger_base.debug("             %s.", (const char *)job->GetStatusForUser().c_str());
+                logger_base.debug("             %s.", (const char *)job->GetStatus().c_str());
+
+                bool blocked = job->GetwxStatus().StartsWith("Initializing rendering thread");
+                auto row = job->GetModelElement();
+                if (row != nullptr)
+                {
+                    logger_base.debug("             Element %s, Blocked %d, Wait Count %d.", (const char *)row->GetModelName().c_str(), blocked,
+                    row->GetWaitCount()
+                        );
+                }
             }
         }
     }
@@ -1312,9 +1326,10 @@ void xLightsFrame::Render(const std::list<Model*> models,
         for (int f = startFrame; f <= endFrame; f++) {
             for (auto it = ranges.begin(); it != ranges.end(); ++it) {
                 FrameData fd = SeqData[f];
-                for (int x = it->start; x <= it->end; ++x) {
-                    fd[x] = (unsigned char)0;
-                }
+                fd.Zero(it->start, it->end - it->start + 1);
+                //for (int x = it->start; x <= it->end; ++x) {
+                //    fd[x] = (unsigned char)0;
+                //}
             }
         }
     }
@@ -1568,11 +1583,11 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
         endms,
         renderTree.data.size());
 
-    int startframe = startms / SeqData.FrameTime() - 1;
+    int startframe = startms / SeqData.FrameTime();// -1; by expanding the range we end up rendering more than necessary for no obvious reason
     if (startframe < 0) {
         startframe = 0;
     }
-    int endframe = endms / SeqData.FrameTime() + 1;
+    int endframe = endms / SeqData.FrameTime();// +1; by expanding the range we end up rendering more than necessary for no obvious reason
     if (endframe >= SeqData.NumFrames()) {
         endframe = SeqData.NumFrames() - 1;
     }
@@ -1850,7 +1865,7 @@ bool xLightsFrame::RenderEffectFromMap(Effect *effectObj, int layer, int period,
             } else if (!bgThread || reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, b)) {
                 wxStopWatch sw;
 
-                if (effectObj != nullptr && reff->SupportsRenderCache()) {
+                if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap)) {
                     if (!effectObj->GetFrame(b, _renderCache)) {
                         reff->Render(effectObj, SettingsMap, b);
                         effectObj->AddFrame(b, _renderCache);

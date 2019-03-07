@@ -24,6 +24,7 @@
 #include "controllers/SanDevices.h"
 #include "controllers/J1Sys.h"
 #include "controllers/ESPixelStick.h"
+#include "controllers/EasyLights.h"
 #include "sequencer/MainSequencer.h"
 #include "ViewsModelsPanel.h"
 #include "outputs/Output.h"
@@ -75,6 +76,8 @@ const long xLightsFrame::ID_NETWORK_UCOPIXLITE16 = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOJ1SYS = wxNewId();
 const long xLightsFrame::ID_NETWORK_UCOESPIXELSTICK = wxNewId();
 const long xLightsFrame::ID_NETWORK_PINGCONTROLLER = wxNewId();
+const long xLightsFrame::ID_NETWORK_UCOEASYLIGHTS = wxNewId();
+
 const long ID_NETWORK_UCOFPP_PIHAT = wxNewId();
 
 const long ID_NETWORK_UCOFPP_F4B = wxNewId();
@@ -476,36 +479,38 @@ void xLightsFrame::UpdateChannelNames()
     // KW left as some of the conversions seem to use this
     for (auto it = AllModels.begin(); it != AllModels.end(); ++it) {
         Model *model = it->second;
-        NodeCount = model->GetNodeCount();
-        ChanPerNode = model->GetChanCountPerNode();
-        FormatSpec = "Ch %ld: " + model->name + " #%d";
-        for (n = 0; n < NodeCount; n++)
-        {
-            ChannelNum = model->NodeStartChannel(n);
+        if (model->GetDisplayAs() != "ModelGroup") {
+            NodeCount = model->GetNodeCount();
+            ChanPerNode = model->GetChanCountPerNode();
+            FormatSpec = "Ch %ld: " + model->name + " #%d";
+            for (n = 0; n < NodeCount; n++)
+            {
+                ChannelNum = model->NodeStartChannel(n);
 
-            NodeNum = n + 1;
-            if (ChanPerNode == 1)
-            {
-                if (ChannelNum < ChNames.Count())
-                {
-                    if (ChNames[ChannelNum] == "")
-                    {
-                        ChNames[ChannelNum] = wxString::Format(FormatSpec, ChannelNum + 1, NodeNum);
-                    }
-                }
-            }
-            else
-            {
-                for (c = 0; c < ChanPerNode; c++)
+                NodeNum = n + 1;
+                if (ChanPerNode == 1)
                 {
                     if (ChannelNum < ChNames.Count())
                     {
                         if (ChNames[ChannelNum] == "")
                         {
-                            ChNames[ChannelNum] = wxString::Format(FormatSpec, ChannelNum + 1, NodeNum) + model->GetChannelColorLetter(c);
+                            ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, NodeNum);
                         }
                     }
-                    ChannelNum++;
+                }
+                else
+                {
+                    for (c = 0; c < ChanPerNode; c++)
+                    {
+                        if (ChannelNum < ChNames.Count())
+                        {
+                            if (ChNames[ChannelNum] == "")
+                            {
+                                ChNames[ChannelNum] = wxString::Format(FormatSpec, (int)ChannelNum + 1, NodeNum) + model->GetChannelColorLetter(c);
+                            }
+                        }
+                        ChannelNum++;
+                    }
                 }
             }
         }
@@ -1441,7 +1446,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
-    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "Pixlite");
+    wxMenuItem* beUCOPixlite16 = mnuUCOutput->Append(ID_NETWORK_UCOPIXLITE16, "PixLite/PixCon");
     if (!AllSelectedSupportIP()) {
         beUCOPixlite16->Enable(false);
     } else  {
@@ -1465,6 +1470,7 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
         }
     }
 
+
     wxMenuItem* beUCOJ1SYS = mnuUCOutput->Append(ID_NETWORK_UCOJ1SYS, "J1SYS");
     if (!AllSelectedSupportIP()) {
         beUCOJ1SYS->Enable(false);
@@ -1476,6 +1482,20 @@ void xLightsFrame::OnGridNetworkItemRClick(wxListEvent& event)
             beUCOJ1SYS->Enable(valid);
         }
     }
+
+	wxMenuItem* beUCOEasyLights = mnuUCOutput->Append(ID_NETWORK_UCOEASYLIGHTS, "EasyLights");
+	if(!AllSelectedSupportIP()) {
+		beUCOEasyLights->Enable(false);
+	}
+	else {
+		if(selcnt == 1) {
+			beUCOEasyLights->Enable(true);
+		}
+		else {
+			bool valid = CheckAllAreSameIPType(_outputManager, GridNetwork, false, true);
+			beUCOEasyLights->Enable(valid);
+		}
+	}
 
     bool validIpNoType = CheckAllAreSameIPType(_outputManager, GridNetwork, true, false);
     bool allSupportIp = AllSelectedSupportIP();
@@ -1656,37 +1676,37 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_UCOESPIXELSTICK) {
         UploadESPixelStickOutput();
     } else if (id == ID_NETWORK_UCOFPP_F4B) {
-        UploadFPPStringOuputs("F4-B", 4, 1);
+        UploadFPPStringOuputs("F4-B");
     } else if (id == ID_NETWORK_UCOFPP_F8B) {
-        UploadFPPStringOuputs("F8-B", 12, 8);
+        UploadFPPStringOuputs("F8-B");
     } else if (id == ID_NETWORK_UCOFPP_F8B_16) {
-        UploadFPPStringOuputs("F8-B-16", 16, 4);
+        UploadFPPStringOuputs("F8-B-16");
     } else if (id == ID_NETWORK_UCOFPP_F8B_20) {
-        UploadFPPStringOuputs("F8-B-20", 20, 0);
+        UploadFPPStringOuputs("F8-B-20");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP) {
-        UploadFPPStringOuputs("F8-B-EXP", 28, 8);
+        UploadFPPStringOuputs("F8-B-EXP");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_32) {
-        UploadFPPStringOuputs("F8-B-EXP-32", 32, 4);
+        UploadFPPStringOuputs("F8-B-EXP-32");
     } else if (id == ID_NETWORK_UCOFPP_F8B_EXP_36) {
-        UploadFPPStringOuputs("F8-B-EXP-36", 36, 0);
+        UploadFPPStringOuputs("F8-B-EXP-36");
     } else if (id == ID_NETWORK_UCOFPP_F16B) {
-        UploadFPPStringOuputs("F16-B", 16, 8);
+        UploadFPPStringOuputs("F16-B");
     } else if (id == ID_NETWORK_UCOFPP_F16B_32) {
-        UploadFPPStringOuputs("F16-B-32", 32, 8);
+        UploadFPPStringOuputs("F16-B-32");
     } else if (id == ID_NETWORK_UCOFPP_F16B_48) {
-        UploadFPPStringOuputs("F16-B-48", 48, 0);
+        UploadFPPStringOuputs("F16-B-48");
     } else if (id == ID_NETWORK_UCOFPP_F32B) {
-        UploadFPPStringOuputs("F32-B", 40, 8);
+        UploadFPPStringOuputs("F32-B");
     } else if (id == ID_NETWORK_UCOFPP_F32B_48) {
-        UploadFPPStringOuputs("F32-B-48", 48, 0);
+        UploadFPPStringOuputs("F32-B-48");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape24) {
-        UploadFPPStringOuputs("RGBCape24", 48, 0);
+        UploadFPPStringOuputs("RGBCape24");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape48C) {
-        UploadFPPStringOuputs("RGBCape48C", 48, 0);
+        UploadFPPStringOuputs("RGBCape48C");
     } else if (id == ID_NETWORK_UCOFPP_RGBCape48F) {
-        UploadFPPStringOuputs("RGBCape48F", 48, 0);
+        UploadFPPStringOuputs("RGBCape48F");
     } else if (id == ID_NETWORK_UCOFPP_PIHAT) {
-        UploadFPPStringOuputs("PiHat", 2, 0);
+        UploadFPPStringOuputs("PiHat");
     } else if (id == ID_NETWORK_UCOPIXLITE16) {
         UploadPixlite16Output();
     } else if (id == ID_NETWORK_BEIPADDR) {
@@ -1715,7 +1735,10 @@ void xLightsFrame::OnNetworkPopup(wxCommandEvent &event)
     } else if (id == ID_NETWORK_PINGCONTROLLER) {
         Output* o = _outputManager.GetOutput(item);
         PingController(o);
-    }
+	}
+	else if(id == ID_NETWORK_UCOEASYLIGHTS) {
+		UploadEasyLightsOutput();
+	}
 }
 
 void xLightsFrame::OnGridNetworkItemSelect(wxListEvent& event)
@@ -1834,14 +1857,14 @@ void xLightsFrame::UploadFPPBridgeInput()
             }
         }
 
-        FPP fpp(&_outputManager, "2.0", ip.ToStdString(), theUser.ToStdString(), password.ToStdString());
-
-        if (fpp.IsConnected()) {
-            if (fpp.SetInputUniversesBridge(selected, this)) {
-                SetStatusText("FPP Input Upload Complete.");
-            } else {
-                SetStatusText("FPP Input Upload Failed.");
-            }
+        FPP fpp(ip);
+        fpp.parent = this;
+        fpp.username = theUser;
+        fpp.password = password;
+        if (fpp.AuthenticateAndUpdateVersions() && !fpp.SetInputUniversesBridge(selected, &_outputManager)) {
+            SetStatusText("FPP Input Upload Complete.");
+        } else {
+            SetStatusText("FPP Input Upload Failed.");
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1932,7 +1955,7 @@ void xLightsFrame::UploadFalconOutput()
     }
 }
 
-void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxport, int maxdmx) {
+void xLightsFrame::UploadFPPStringOuputs(const std::string &controller) {
     SetStatusText("");
     if (wxMessageBox("This will upload the output controller configuration for a " + controller + " controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES) {
         SetCursor(wxCURSOR_WAIT);
@@ -1951,13 +1974,13 @@ void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxp
         // Recalc all the models to make sure any changes on setup are incorporated
         RecalcModels();
 
-        FPP fpp(&_outputManager, "2.0", ip.ToStdString(), "fpp", "falcon");
-        if (fpp.IsConnected()) {
-            if (fpp.SetOutputs(controller, &AllModels, selected, this, maxport, maxdmx)) {
-                SetStatusText("FPP Upload Complete.");
-            } else {
-                SetStatusText("FPP Upload Failed.");
-            }
+        FPP fpp(ip);
+        fpp.parent = this;
+        fpp.pixelControllerType = controller;
+        if (fpp.AuthenticateAndUpdateVersions() && !fpp.UploadPixelOutputs(&AllModels, &_outputManager, selected)) {
+            SetStatusText("FPP Upload Complete.");
+        } else {
+            SetStatusText("FPP Upload Failed.");
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -1966,14 +1989,14 @@ void xLightsFrame::UploadFPPStringOuputs(const std::string &controller, int maxp
 void xLightsFrame::UploadPixlite16Output()
 {
     SetStatusText("");
-    if (wxMessageBox("This will upload the output controller configuration for a Pixlite controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+    if (wxMessageBox("This will upload the output controller configuration for a PixLite/PixCon controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
     {
         SetCursor(wxCURSOR_WAIT);
         wxString ip;
         std::list<int> selected = GetSelectedOutputs(ip);
 
         if (ip == "") {
-            wxTextEntryDialog dlg(this, "Pixlite IP Address", "IP Address", ip);
+            wxTextEntryDialog dlg(this, "PixLite/PixCon IP Address", "IP Address", ip);
             if (dlg.ShowModal() != wxID_OK) {
                 SetCursor(wxCURSOR_ARROW);
                 return;
@@ -1987,10 +2010,14 @@ void xLightsFrame::UploadPixlite16Output()
         Pixlite16 pixlite(ip.ToStdString());
         if (pixlite.IsConnected()) {
             if (pixlite.SetOutputs(&AllModels, &_outputManager, selected, this)) {
-                SetStatusText("Pixlite Upload Complete.");
+                SetStatusText("PixLite/PixCon Upload Complete.");
             } else {
-                SetStatusText("Pixlite Upload Failed.");
+                SetStatusText("PixLite/PixCon Upload Failed.");
             }
+        }
+        else
+        {
+            SetStatusText("Unable to connect to PixLite/PixCon.");
         }
         SetCursor(wxCURSOR_ARROW);
     }
@@ -2355,4 +2382,40 @@ void xLightsFrame::OnButton_DiscoverClick(wxCommandEvent& event)
     }
     SetStatusText("Discovery complete.");
     logger_base.debug("Controller discovery complete.");
+}
+
+void xLightsFrame::UploadEasyLightsOutput()
+{
+	SetStatusText("");
+	if(wxMessageBox("This uploads your E131, Port Configurations and Resets your EasyLights controller. It requires that you have setup the controller connection on your models. Do you want to proceed with the upload?", "Are you sure?", wxYES_NO, this) == wxYES)
+	{
+		SetCursor(wxCURSOR_WAIT);
+		wxString ip;
+		std::list<int> selected = GetSelectedOutputs(ip);
+
+		if(ip == "") {
+			wxTextEntryDialog dlg(this, "EasyLights IP Address", "IP Address", ip);
+			if(dlg.ShowModal() != wxID_OK) {
+				SetCursor(wxCURSOR_ARROW);
+				return;
+			}
+			ip = dlg.GetValue();
+		}
+
+		// Recalc all the models to make sure any changes on setup are incorporated
+		RecalcModels();
+
+		EasyLights EL(ip.ToStdString(), 0);
+
+		if(EL.SetOutputs(&AllModels, &_outputManager, selected, this)) 
+		{
+			SetStatusText("EasyLights Output Upload Complete.");
+		}
+		else 
+		{
+			SetStatusText("EasyLights Output Upload Failed.");
+		}
+		
+		SetCursor(wxCURSOR_ARROW);
+	}
 }

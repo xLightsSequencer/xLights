@@ -62,10 +62,9 @@ EventMIDIPanel::EventMIDIPanel(wxWindow* parent,wxWindowID id,const wxPoint& pos
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&EventMIDIPanel::OnButton_ScanClick);
 	//*)
 
-    auto devices = EventMIDI::GetDevices();
-    for (auto it = devices.begin(); it != devices.end(); ++it)
+    for (auto device : EventMIDI::GetDevices())
     {
-        Choice_Devices->Append(*it);
+        Choice_Devices->Append(device);
     }
     if (Choice_Devices->GetCount() > 0)
     {

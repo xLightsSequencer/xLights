@@ -45,10 +45,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_Bars" variable="BitmapButton_VUMeter_Bars" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_Bars" subclass="xlLockButton" variable="BitmapButton_VUMeter_Bars" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -66,33 +66,6 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxChoice" name="ID_CHOICE_VUMeter_Type" subclass="BulkEditChoice" variable="Choice_VUMeter_Type" member="yes">
-							<content>
-								<item>Spectrogram</item>
-								<item>Spectrogram Peak</item>
-								<item>Volume Bars</item>
-								<item>Waveform</item>
-								<item>On</item>
-								<item>Color On</item>
-								<item>Intensity Wave</item>
-								<item>Pulse</item>
-								<item>Level Bar</item>
-								<item>Level Color</item>
-								<item>Level Pulse</item>
-								<item>Level Pulse Color</item>
-								<item>Level Shape</item>
-								<item>Timing Event Bar</item>
-								<item>Timing Event Bars</item>
-								<item>Timing Event Spike</item>
-								<item>Timing Event Sweep</item>
-								<item>Timing Event Color</item>
-								<item>Timing Event Jump</item>
-								<item>Timing Event Jump 100</item>
-								<item>Timing Event Pulse</item>
-								<item>Timing Event Pulse Color</item>
-								<item>Note On</item>
-								<item>Note Level Pulse</item>
-								<item>Note Level Bar</item>
-							</content>
 							<selection>3</selection>
 							<handler function="OnChoice_VUMeter_TypeSelect" entry="EVT_CHOICE" />
 						</object>
@@ -109,10 +82,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_Type" variable="BitmapButton_VUMeter_Type" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_Type" subclass="xlLockButton" variable="BitmapButton_VUMeter_Type" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -145,10 +118,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack" variable="BitmapButton_VUMeter_TimingTrack" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_TimingTrack" subclass="xlLockButton" variable="BitmapButton_VUMeter_TimingTrack" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -192,10 +165,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity" variable="BitmapButton_VUMeter_Sensitivity" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity" subclass="xlLockButton" variable="BitmapButton_VUMeter_Sensitivity" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -204,10 +177,59 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText15" member="yes">
+							<label>Gain</label>
+						</object>
+						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+							<cols>2</cols>
+							<growablecols>0</growablecols>
+							<object class="sizeritem">
+								<object class="wxSlider" name="ID_SLIDER_VUMeter_Gain" subclass="BulkEditSlider" variable="Slider_VUMeter_Gain" member="yes">
+									<min>-100</min>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxBitmapButton" name="ID_VALUECURVE_VUMeter_Gain" subclass="BulkEditValueCurveButton" variable="BitmapButton_VUMeter_Gain" member="yes">
+									<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
+									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
+								</object>
+								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+								<border>2</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_VUMeter_Gain" subclass="BulkEditTextCtrl" variable="TextCtrl_VUMeter_Gain" member="yes">
+							<value>0</value>
+							<size>20,-1d</size>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT_VUMeter_Shape" variable="StaticText7" member="yes">
 							<label>Shape</label>
 						</object>
-						<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxALL</flag>
 						<border>2</border>
 						<option>1</option>
 					</object>
@@ -249,10 +271,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_Shape" variable="BitmapButton_VUMeter_Shape" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHOICE_VUMeter_Shape" subclass="xlLockButton" variable="BitmapButton_VUMeter_Shape" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -286,10 +308,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls" variable="BitmapButton_VUMeter_SlowDownFalls" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_CHECKBOX_VUMeter_SlowDownFalls" subclass="xlLockButton" variable="BitmapButton_VUMeter_SlowDownFalls" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -326,10 +348,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote" variable="BitmapButton_VUMeter_StartNote" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_StartNote" subclass="xlLockButton" variable="BitmapButton_VUMeter_StartNote" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -366,13 +388,36 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote" variable="BitmapButton_VUMeter_EndNote" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote" subclass="xlLockButton" variable="BitmapButton_VUMeter_EndNote" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxCheckBox" name="ID_CHECKBOX_VUMeter_LogarithmicX" subclass="BulkEditCheckBox" variable="CheckBox_LogarithmicXAxis" member="yes">
+							<label>Logarithmic X axis</label>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>2</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
+						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
+					<object class="spacer">
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
@@ -412,10 +457,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset" variable="BitmapButton_VUMeter_XOffset" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_XOffset" subclass="xlLockButton" variable="BitmapButton_VUMeter_XOffset" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>
@@ -445,7 +490,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxBitmapButton" name="ID_VALUECURVE_VUMeter_YOffset" subclass="BulkEditValueCurveButton" variable="BitmapButton_VUMeter_YOffsetVC" member="yes">
-                                    <bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
+									<bitmap stock_id="xlART_valuecurve_notselected" stock_client="wxART_BUTTON" />
 									<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 									<handler function="OnVCButtonClick" entry="EVT_BUTTON" />
 								</object>
@@ -468,10 +513,10 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" subclass="xlLockButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset" variable="BitmapButton_VUMeter_YOffset" member="yes">
-                            <bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
-                            <size>14,14</size>
-                            <bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
+						<object class="wxBitmapButton" name="ID_BITMAPBUTTON_SLIDER_VUMeter_YOffset" subclass="xlLockButton" variable="BitmapButton_VUMeter_YOffset" member="yes">
+							<bitmap stock_id="xlART_PADLOCK_OPEN" stock_client="wxART_BUTTON" />
+							<size>14,14</size>
+							<bg>wxSYS_COLOUR_BTNHIGHLIGHT</bg>
 							<style>wxBU_AUTODRAW|wxNO_BORDER</style>
 							<handler function="OnLockButtonClick" entry="EVT_BUTTON" />
 						</object>

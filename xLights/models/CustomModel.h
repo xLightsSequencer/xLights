@@ -9,6 +9,11 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         CustomModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased = false);
         virtual ~CustomModel();
 
+        virtual const std::vector<std::string> &GetBufferStyles() const override;
+        virtual void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform, int &BufferWi, int &BufferHi) const override;
+        virtual void InitRenderBufferNodes(const std::string &type, const std::string &camera, const std::string &transform,
+            std::vector<NodeBaseClassPtr> &Nodes, int &BufferWi, int &BufferHi) const override;
+
         virtual int GetStrandLength(int strand) const override;
         virtual int MapToNodeIndex(int strand, int node) const override;
 
@@ -18,10 +23,14 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual std::list<std::string> GetFileReferences() override;
         virtual bool CleanupFileLocations(xLightsFrame* frame) override;
 
+        virtual std::string GetStartLocation() const override { return "n/a"; }
+
         long GetCustomWidth() const { return parm1;}
         long GetCustomHeight() const { return parm2;}
+        long GetCustomDepth() const { return _depth;}
         void SetCustomWidth(long w);
         void SetCustomHeight(long u);
+        void SetCustomDepth(long d);
         virtual int NodesPerString() const override;
         virtual int MapPhysicalStringToLogicalString(int string) const override;
 
@@ -61,6 +70,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         std::string ComputeStringStartNode(int x) const;
         int GetCustomNodeStringNumber(int node) const;
 
+        int _depth = 1;
         std::string custom_background;
         int _strings;
         std::vector<int> stringStartNodes;

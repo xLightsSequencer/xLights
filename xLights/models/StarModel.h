@@ -38,6 +38,8 @@ class StarModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
     private:
         std::vector<int> starSizes;
+        // The ratio between the inner and outer radius of the star; default is 2.618034.
+        float starRatio;
 };
 
 #endif // STARMODEL_H

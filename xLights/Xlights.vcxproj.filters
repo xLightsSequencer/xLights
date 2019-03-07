@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="BatchRenderDialog.cpp" />
@@ -13,7 +13,6 @@
     <ClCompile Include="controllers\J1Sys.cpp" />
     <ClCompile Include="controllers\Pixlite16.cpp" />
     <ClCompile Include="controllers\SanDevices.cpp" />
-    <ClCompile Include="controllers\SimpleFTP.cpp" />
     <ClCompile Include="CustomTimingDialog.cpp" />
     <ClCompile Include="effects\ShapeEffect.cpp" />
     <ClCompile Include="effects\ShapePanel.cpp" />
@@ -52,7 +51,6 @@
     <ClCompile Include="DimmingCurvePanel.cpp" />
     <ClCompile Include="djdebug.cpp" />
     <ClCompile Include="DrawGLUtils.cpp" />
-    <ClCompile Include="DrawGLUtils21.cpp" />
     <ClCompile Include="DrawGLUtils31.cpp" />
     <ClCompile Include="outputs\DDPDialog.cpp" />
     <ClCompile Include="outputs\DDPOutput.cpp" />
@@ -202,7 +200,6 @@
     <ClCompile Include="models\StarModel.cpp" />
     <ClCompile Include="models\SubModel.cpp" />
     <ClCompile Include="models\TreeModel.cpp" />
-    <ClCompile Include="models\WholeHouseModel.cpp" />
     <ClCompile Include="models\WindowFrameModel.cpp" />
     <ClCompile Include="models\WreathModel.cpp" />
     <ClCompile Include="MusicXML.cpp" />
@@ -368,6 +365,15 @@
     <ClCompile Include="MultiControllerUploadDialog.cpp" />
     <ClCompile Include="wxModelGridCellRenderer.cpp" />
     <ClCompile Include="FSEQFile.cpp" />
+    <ClCompile Include="PathGenerationDialog.cpp" />
+    <ClCompile Include="models\CubeModel.cpp" />
+    <ClCompile Include="controllers\EasyLights.cpp" />
+    <ClCompile Include="RemapDMXChannelsDialog.cpp" />
+    <ClCompile Include="models\WholeHouseModel.cpp" />
+    <ClCompile Include="effects\LinesEffect.cpp" />
+    <ClCompile Include="effects\LinesPanel.cpp" />
+    <ClCompile Include="effects\KaleidoscopeEffect.cpp" />
+    <ClCompile Include="effects\KaleidoscopePanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchRenderDialog.h" />
@@ -382,7 +388,6 @@
     <ClInclude Include="controllers\J1Sys.h" />
     <ClInclude Include="controllers\Pixlite16.h" />
     <ClInclude Include="controllers\SanDevices.h" />
-    <ClInclude Include="controllers\SimpleFTP.h" />
     <ClInclude Include="effects\ShapeEffect.h" />
     <ClInclude Include="effects\ShapePanel.h" />
     <ClInclude Include="EffectTimingDialog.h" />
@@ -559,7 +564,6 @@
     <ClInclude Include="models\StarModel.h" />
     <ClInclude Include="models\SubModel.h" />
     <ClInclude Include="models\TreeModel.h" />
-    <ClInclude Include="models\WholeHouseModel.h" />
     <ClInclude Include="models\WindowFrameModel.h" />
     <ClInclude Include="models\WreathModel.h" />
     <ClInclude Include="MusicXML.h" />
@@ -736,6 +740,15 @@
     <ClInclude Include="MultiControllerUploadDialog.h" />
     <ClInclude Include="wxModelGridCellRenderer.h" />
     <ClInclude Include="FSEQFile.h" />
+    <ClInclude Include="PathGenerationDialog.h" />
+    <ClInclude Include="models\CubeModel.h" />
+    <ClInclude Include="controllers\EasyLights.h" />
+    <ClInclude Include="RemapDMXChannelsDialog.h" />
+    <ClInclude Include="models\WholeHouseModel.h" />
+    <ClInclude Include="effects\LinesEffect.h" />
+    <ClInclude Include="effects\LinesPanel.h" />
+    <ClInclude Include="effects\KaleidoscopeEffect.h" />
+    <ClInclude Include="effects\KaleidoscopePanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\wxWidgets\include\wx\msw\wx.rc" />

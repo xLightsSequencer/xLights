@@ -558,6 +558,11 @@ public:
     void OnButton_AddZCPPClick(wxCommandEvent& event);
     void OnButton_DiscoverClick(wxCommandEvent& event);
     void OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event);
+    void OnMenuItem_Generate2DPathSelected(wxCommandEvent& event);
+    void OnMenuItemFSEQV1Selected(wxCommandEvent& event);
+    void OnMenuItemFSEQV2Selected(wxCommandEvent& event);
+    void OnMenuItem_PrepareAudioSelected(wxCommandEvent& event);
+    void OnMenuItemOGLRenderOrder(wxCommandEvent& event);
     //*)
     void OnCharHook(wxKeyEvent& event);
 private:
@@ -672,6 +677,8 @@ public:
     static const long ID_MENUITEM_CONVERT;
     static const long ID_MENUITEM_GenerateCustomModel;
     static const long ID_MNU_GENERATELYRICS;
+    static const long ID_MENU_GENERATE2DPATH;
+    static const long ID_MNU_PREPAREAUDIO;
     static const long ID_MNU_CHECKSEQ;
     static const long ID_MNU_CLEANUPFILE;
     static const long ID_MENU_VIEW_LOG;
@@ -774,8 +781,13 @@ public:
     static const long ID_MENUITEM_Timing_DClick_Mode;
     static const long ID_MENU_OPENGL_AUTO;
     static const long ID_MENU_OPENGL_3;
-    static const long ID_MENU_OPENGL_2;
     static const long ID_MENU_OPENGL_1;
+    static const long ID_MENUITEM_OGL_RO1;
+    static const long ID_MENUITEM_OGL_RO2;
+    static const long ID_MENUITEM_OGL_RO3;
+    static const long ID_MENUITEM_OGL_RO4;
+    static const long ID_MENUITEM_OGL_RO5;
+    static const long ID_MENUITEM_OGL_RO6;
     static const long ID_MENUITEM19;
     static const long ID_MNU_PLAYCONTROLSONPREVIEW;
     static const long ID_MNU_AUTOSHOWHOUSEPREVIEW;
@@ -798,6 +810,9 @@ public:
     static const long ID_MNU_FORCEIP;
     static const long ID_MNU_DEFAULTMODELBLENDOFF;
     static const long ID_MNU_SNAP_TO_TIMING;
+    static const long ID_MENUITEM21;
+    static const long ID_MENUITEM22;
+    static const long ID_MENUITEM1;
     static const long ID_MNU_ZOOM;
     static const long ID_MNU_KEYBINDINGS;
     static const long idMenuHelpContent;
@@ -866,6 +881,7 @@ public:
     wxMenu* MenuItem1;
     wxMenu* MenuItem29;
     wxMenu* MenuItem53;
+    wxMenu* MenuItem54;
     wxMenu* MenuItem7;
     wxMenu* MenuItemPerspectives;
     wxMenu* MenuItemRenderMode;
@@ -887,10 +903,6 @@ public:
     wxMenuItem* MenuItem38;
     wxMenuItem* MenuItem39;
     wxMenuItem* MenuItem3;
-    wxMenuItem* MenuItem40;
-    wxMenuItem* MenuItem41;
-    wxMenuItem* MenuItem42;
-    wxMenuItem* MenuItem43;
     wxMenuItem* MenuItem49;
     wxMenuItem* MenuItem50;
     wxMenuItem* MenuItem51;
@@ -903,6 +915,8 @@ public:
     wxMenuItem* MenuItemEffectAssistAlwaysOn;
     wxMenuItem* MenuItemEffectAssistToggleMode;
     wxMenuItem* MenuItemEffectAssistWindow;
+    wxMenuItem* MenuItemFSEQV1;
+    wxMenuItem* MenuItemFSEQV2;
     wxMenuItem* MenuItemGridIconBackgroundOff;
     wxMenuItem* MenuItemGridIconBackgroundOn;
     wxMenuItem* MenuItemGridNodeValuesOff;
@@ -941,6 +955,7 @@ public:
     wxMenuItem* MenuItem_File_Save;
     wxMenuItem* MenuItem_File_SaveAs_Sequence;
     wxMenuItem* MenuItem_ForceLocalIP;
+    wxMenuItem* MenuItem_Generate2DPath;
     wxMenuItem* MenuItem_GenerateLyrics;
     wxMenuItem* MenuItem_Help_Download;
     wxMenuItem* MenuItem_Help_Facebook;
@@ -956,6 +971,7 @@ public:
     wxMenuItem* MenuItem_PackageSequence;
     wxMenuItem* MenuItem_PerspectiveAutosave;
     wxMenuItem* MenuItem_PlayControlsOnPreview;
+    wxMenuItem* MenuItem_PrepareAudio;
     wxMenuItem* MenuItem_PurgeRenderCache;
     wxMenuItem* MenuItem_PurgeVendorCache;
     wxMenuItem* MenuItem_QuietVol;
@@ -1062,6 +1078,7 @@ public:
     bool _modelBlendDefaultOff;
     bool _snapToTimingMarks;
     bool _autoSavePerspecive;
+    int _fseqVersion;
     int _xFadePort;
     wxSocketServer* _xFadeSocket;
 
@@ -1112,10 +1129,11 @@ public:
     void UploadJ1SYSOutput();
     void UploadESPixelStickOutput();
     void UploadPixlite16Output();
-    void UploadFPPStringOuputs(const std::string &controllers, int maxport, int maxdmx);
+    void UploadFPPStringOuputs(const std::string &controllers);
 	void PingController(Output* e);
     void SetModelData(ZCPPOutput* zcpp, ModelManager* modelManager, OutputManager* outputManager, int modelsChangeCount, std::string showDir);
     void SetZCPPPort(unsigned char* current, UDControllerPort* port, long baseStart);
+	void UploadEasyLightsOutput();
 
     void DeleteSelectedNetworks();
     void ActivateSelectedNetworks(bool active);
@@ -1189,7 +1207,7 @@ private:
     void CreateDefaultEffectsXml();
     void TimerRgbSeq(long msec);
     void SetChoicebook(wxChoicebook* cb, const wxString& PageName);
-    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue);
+    wxString GetXmlSetting(const wxString& settingName,const wxString& defaultValue) const;
     void SetPanelSequencerLabel(const std::string& sequence);
 
     void DisplayXlightsFilename(const wxString& filename) const;
@@ -1372,6 +1390,10 @@ public:
     void SetPreviewBackgroundScaled(bool scaled);
     void SetPreviewSize(int width, int height);
     void SetPreviewBackgroundImage(const wxString &filename);
+    void SetDisplay2DBoundingBox(bool bb);
+    bool GetDisplay2DBoundingBox() const;
+    void SetDisplay2DCenter0(bool bb);
+    bool GetDisplay2DCenter0() const;
     const wxString & GetDefaultPreviewBackgroundImage();
     bool GetDefaultPreviewBackgroundScaled();
     int GetDefaultPreviewBackgroundBrightness();
@@ -1481,7 +1503,6 @@ private:
     void ShowHidePreviewWindow(wxCommandEvent& event);
     void ShowHideAllPreviewWindows(wxCommandEvent& event);
 
-    std::string GetEffectTextFromWindows(std::string &palette);
     bool isRandom_(wxControl* ctl, const char*debug);
     void SetSyncUniverse(int syncUniverse);
 
@@ -1505,8 +1526,8 @@ private:
     void CheckSequence(bool display);
     void CleanupRGBEffectsFileLocations();
     void CleanupSequenceFileLocations();
-    void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning);
-    void CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning);
+    void CheckElement(Element* e, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
+    void CheckEffect(Effect* ef, wxFile& f, int& errcount, int& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
     bool CheckStart(wxFile& f, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
     void ShowHideSync();
     void ValidateWindow();
@@ -1559,8 +1580,9 @@ private:
     static const long ID_NETWORK_UCOESPIXELSTICK;
     static const long ID_NETWORK_UCOPIXLITE16;
     static const long ID_NETWORK_PINGCONTROLLER;
+	static const long ID_NETWORK_UCOEASYLIGHTS;
 
-#define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
+    #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 
     DECLARE_EVENT_TABLE()
     friend class xLightsApp; //kludge: allow xLightsApp to call OnPaneNutcrackerChar -DJ
@@ -1586,6 +1608,8 @@ public:
     std::string MoveToShowFolder(const std::string& file, const std::string& subdirectory);
     bool IsInShowFolder(const std::string & file) const;
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
+
+    std::string GetEffectTextFromWindows(std::string &palette) const;
 
 	void DoPlaySequence();
     void RecalcModels(bool force = false);

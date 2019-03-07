@@ -20,6 +20,39 @@ namespace DrawGLUtils
     #define IGNORE_GL_ERRORV(a) a; glGetError()
 
     bool LoadGLFunctions();
+    
+    
+    class xl3DMesh {
+    protected:
+        xl3DMesh() : matrix(1.0f)  {}
+    public:
+        virtual ~xl3DMesh() {}
+        
+        void addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t colors[3][4], GLint imageId);
+        void addLine(float v[2][3]);
+        void setMatrix(glm::mat4& mat);
+
+    protected:
+        void calcProgram();
+        
+        std::vector<GLfloat> vertices;
+        std::vector<GLubyte> colors;
+        std::vector<GLfloat> texCoords;
+        std::vector<GLfloat> normals;
+        std::vector<GLfloat> wireframe;
+        std::vector<GLfloat> lines;
+        
+        std::vector<GLint> images;
+        glm::mat4 matrix;
+        struct PType {
+            int startIdx;
+            int count;
+            GLint image;
+            bool transparent;
+        };
+        std::vector<PType> solidProgramTypes;
+        std::vector<PType> transparentProgramTypes;
+    };
 
     class xlVertexAccumulatorBase {
     public:
@@ -310,6 +343,7 @@ namespace DrawGLUtils
 
         bool HasMoreVertices() { return count != start; }
         void Finish(int type, int enableCapability = 0, float extra = 1);
+        void AddMesh(xl3DMesh *m, bool wireframe, float textureBrightness, bool doTransparents);
 
 
         void PreAllocTexture(int i);
@@ -336,6 +370,7 @@ namespace DrawGLUtils
                 textureId = -1;
                 textureBrightness = 1.0f;
                 useTexturePixelColor = false;
+                mesh = nullptr;
             }
             BufferRangeType(int s, int c, int t, int ec, GLuint tid, uint8_t alpha, float brightness) {
                 start = s;
@@ -347,6 +382,7 @@ namespace DrawGLUtils
                 textureAlpha = alpha;
                 textureBrightness = brightness;
                 useTexturePixelColor = false;
+                mesh = nullptr;
             }
             BufferRangeType(int s, int c, int t, int ec, GLuint tid, const xlColor &color) {
                 start = s;
@@ -359,6 +395,19 @@ namespace DrawGLUtils
                 textureBrightness = 1.0f;
                 useTexturePixelColor = true;
                 texturePixelColor = color;
+                mesh = nullptr;
+            }
+            BufferRangeType(xl3DMesh *m, bool wireframe, float brightness, bool doTransparents)
+                : mesh(m), meshTransparents(doTransparents)  {
+                start = 0;
+                count = 0;
+                type = 0;
+                enableCapability = 0;
+                extra = wireframe ? 1 : 0;
+                textureId = -1;
+                textureBrightness = brightness;
+                textureAlpha = 255;
+                useTexturePixelColor = false;
             }
             int start;
             int count;
@@ -370,6 +419,8 @@ namespace DrawGLUtils
             float textureBrightness;
             bool useTexturePixelColor;
             xlColor texturePixelColor;
+            xl3DMesh *mesh;
+            bool meshTransparents;
         };
         std::list<BufferRangeType> types;
         float *tvertices;
@@ -422,7 +473,10 @@ namespace DrawGLUtils
 		virtual void Draw(xlVertexAccumulator &va, const xlColor & color, int type, int enableCapability = 0) = 0;
 		virtual void Draw(xlVertexColorAccumulator &va, int type, int enableCapability = 0) = 0;
         virtual void Draw(xlVertexTextureAccumulator &va, int type, int enableCapability = 0) = 0;
+        
         virtual void Draw(xlAccumulator &va) = 0;
+        
+        virtual xl3DMesh *createMesh() = 0;
 
         virtual void addVertex(float x, float y, const xlColor &c) = 0;
         virtual unsigned int vertexCount() = 0;
@@ -496,6 +550,7 @@ namespace DrawGLUtils
     void Draw(xlVertexTextAccumulator &va, int size, float factor);
 	void Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability = 0);
 
+    xl3DMesh *createMesh();
 
     void DrawText(double x, double y, double size, const wxString &text, double factor = 1.0);
     int GetTextWidth(double size, const wxString &text, double factor = 1.0);
@@ -541,9 +596,9 @@ namespace DrawGLUtils
 
     void DrawCube(double x, double y, double z, double width, const xlColor &color, xl3Accumulator &va);
     void DrawSphere(double x, double y, double z, double radius, const xlColor &color, xl3Accumulator &va);
-    void DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va);
+    void DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va);
     // 2D version is mainly useful for debugging hit testing
-    void DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va);
+    void DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va);
 }
 
 #endif

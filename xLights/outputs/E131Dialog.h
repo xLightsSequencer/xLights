@@ -2,12 +2,12 @@
 #define E131DIALOG_H
 
 //(*Headers(E131Dialog)
-#include <wx/button.h>
+#include <wx/spinctrl.h>
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
-#include <wx/radiobut.h>
 #include <wx/sizer.h>
-#include <wx/spinctrl.h>
+#include <wx/button.h>
+#include <wx/radiobut.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
@@ -27,26 +27,28 @@ public:
     virtual ~E131Dialog();
 
     //(*Declarations(E131Dialog)
+    wxTextCtrl* TextCtrlIpAddr;
+    wxRadioButton* RadioButtonMulticast;
+    wxSpinCtrl* SpinCtrl_NumUniv;
+    wxRadioButton* RadioButtonUnicast;
+    wxTextCtrl* TextCtrl_Description;
+    wxSpinCtrl* SpinCtrl_StartUniv;
     wxButton* Button_Cancel;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticText10;
     wxButton* Button_Ok;
+    wxStaticText* StaticText3;
     wxCheckBox* CheckBox_SuppressDuplicates;
     wxCheckBox* MultiE131CheckBox;
-    wxRadioButton* RadioButtonMulticast;
-    wxRadioButton* RadioButtonUnicast;
+    wxStaticText* StaticText8;
     wxSpinCtrl* SpinCtrl_LastChannel;
-    wxSpinCtrl* SpinCtrl_NumUniv;
-    wxSpinCtrl* SpinCtrl_StartUniv;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticText3;
+    wxStaticText* StaticText7;
     wxStaticText* StaticText4;
     wxStaticText* StaticText5;
+    wxStaticText* StaticText2;
     wxStaticText* StaticText6;
-    wxStaticText* StaticText7;
-    wxStaticText* StaticText8;
+    wxSpinCtrl* SpinCtrl_Priority;
     wxStaticText* StaticText9;
-    wxTextCtrl* TextCtrlIpAddr;
-    wxTextCtrl* TextCtrl_Description;
     //*)
 
 protected:
@@ -70,6 +72,8 @@ protected:
     static const long ID_TEXTCTRL_DESCRIPTION;
     static const long ID_STATICTEXT9;
     static const long ID_CHECKBOX2;
+    static const long ID_STATICTEXT10;
+    static const long ID_SPINCTRL_PRIORITY;
     static const long ID_BUTTON1;
     static const long ID_BUTTON2;
     //*)
@@ -89,5 +93,4 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
-
 #endif

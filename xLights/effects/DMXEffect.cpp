@@ -10,6 +10,7 @@
 #include "../../include/dmx-32.xpm"
 #include "../../include/dmx-48.xpm"
 #include "../../include/dmx-64.xpm"
+#include "UtilFunctions.h"
 
 DMXEffect::DMXEffect(int id) : RenderableEffect(id, "DMX", dmx_16, dmx_24, dmx_32, dmx_48, dmx_64)
 {
@@ -19,6 +20,36 @@ DMXEffect::DMXEffect(int id) : RenderableEffect(id, "DMX", dmx_16, dmx_24, dmx_3
 DMXEffect::~DMXEffect()
 {
     //dtor
+}
+
+void DMXEffect::RemapSelectedDMXEffectValues(Effect* effect, const std::vector<std::pair<int, int>>& pairs) const
+{
+    SettingsMap &settings = effect->GetSettings();
+    SettingsMap oldSettings = settings;
+    for (auto p : pairs)
+    {
+        auto froms = wxString::Format("%d", p.first);
+        auto tos = wxString::Format("%d", p.second);
+        auto slider = oldSettings.Get("E_SLIDER_DMX" + froms, "NOTTHERE");
+        auto vc = oldSettings.Get("E_VALUECURVE_DMX" + froms, "NOTTHERE");
+
+        if (slider != "NOTTHERE")
+        {
+            settings["E_SLIDER_DMX" + tos] = slider;
+        }
+        else
+        {
+            settings.erase("E_SLIDER_DMX" + tos);
+        }
+        if (vc != "NOTTHERE")
+        {
+            settings["E_VALUECURVE_DMX" + tos] = vc;
+        }
+        else
+        {
+            settings.erase("E_VALUECURVE_DMX" + tos);
+        }
+    }
 }
 
 wxPanel *DMXEffect::CreatePanel(wxWindow *parent) {

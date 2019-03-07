@@ -180,7 +180,8 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent, wxWindowID id, const wxPoint &pos,
         mIsInitialized(false),
         m_context(nullptr),
         m_coreProfile(true),
-        cache(nullptr)
+        cache(nullptr),
+        _name(name)
 {
     log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("                    Creating GL Canvas for %s", (const char *)name.c_str());
@@ -366,7 +367,6 @@ void AddDebugLog(xlGLCanvas *c) {
 
 
 DrawGLUtils::xlGLCacheInfo *Create33Cache(bool, bool, bool, bool, bool, bool, bool);
-DrawGLUtils::xlGLCacheInfo *Create21Cache();
 DrawGLUtils::xlGLCacheInfo *Create11Cache();
 
 void xlGLCanvas::DisplayWarning(const wxString &msg) {
@@ -507,7 +507,7 @@ void xlGLCanvas::SetCurrentGLContext() {
             if (logger_opengl.isDebugEnabled()) {
                 AddDebugLog(this);
             }
-            logger_opengl.info("Try creating 3.3 Cache");
+            logger_opengl.info("Try creating 3.3 Cache for %s", (const char *)_name.c_str());
             LOG_GL_ERRORV(cache = Create33Cache(UsesVertexTextureAccumulator(),
                 UsesVertexColorAccumulator(),
                 UsesVertexAccumulator(),
@@ -516,13 +516,8 @@ void xlGLCanvas::SetCurrentGLContext() {
                 UsesVertex3TextureAccumulator(),
                 UsesVertex3ColorAccumulator()));
         }
-        if (cache == nullptr && ver >=2
-            && ((str[0] > '2') || (str[0] == '2' && str[2] >= '1'))) {
-            logger_opengl.info("Try creating 2.1 Cache");
-            LOG_GL_ERRORV(cache = Create21Cache());
-        }
         if (cache == nullptr) {
-            logger_opengl.info("Try creating 1.1 Cache");
+            logger_opengl.info("Try creating 1.1 Cache for %s", (const char *)_name.c_str());
             LOG_GL_ERRORV(cache = Create11Cache());
         }
         if (cache == nullptr) {
@@ -531,7 +526,6 @@ void xlGLCanvas::SetCurrentGLContext() {
     }
     LOG_GL_ERRORV(DrawGLUtils::SetCurrentCache(cache));
 }
-
 
 void xlGLCanvas::CreateGLContext() {
     static log4cpp::Category &logger_opengl_trace = log4cpp::Category::getInstance(std::string("log_opengl_trace"));
@@ -612,7 +606,6 @@ double xlGLCanvas::translateToBacking(double x) {
     return xlTranslateToRetina(*this, x);
 }
 
-
 // Inits the OpenGL viewport for drawing in 2D.
 void xlGLCanvas::prepare2DViewport(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y)
 {
@@ -625,4 +618,3 @@ void xlGLCanvas::prepare3DViewport(int topleft_x, int topleft_y, int bottomright
     DrawGLUtils::SetViewport3D(*this, topleft_x, topleft_y, bottomright_x, bottomright_y);
     mWindowResized = false;
 }
-

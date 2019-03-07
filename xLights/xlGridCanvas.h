@@ -37,8 +37,8 @@ class xlGridCanvas : public xlGLCanvas
         int SetRowCenter(int position);
         int SetColumnCenter(int position);
         int GetCellFromPosition(int position) const;
-        int calcCellFromPercent(int value, int base);
-        int calcPercentFromCell(int value, int base);
+        int calcCellFromPercent(int value, int base) const;
+        int calcPercentFromCell(int value, int base) const;
 
         Effect* mEffect;
         Model* mModel;
@@ -46,7 +46,8 @@ class xlGridCanvas : public xlGLCanvas
         int mCellSize;
         int mColumns;
         int mRows;
-        bool mDragging;
+        bool mDragging = false;
+        bool mRightDragging = false;
         const int mMinCornerSize = 15;
         DECLARE_EVENT_TABLE()
 };

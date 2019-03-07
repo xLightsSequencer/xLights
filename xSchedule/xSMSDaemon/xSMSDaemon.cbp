@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="xSMSDaemon" />
+		<Option execution_dir="../../bin/" />
+		<Option pch_mode="0" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="MinGW_Debug">
+				<Option platforms="Windows;" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../bin" />
+				<Option object_output=".objs_wd32" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-march=i586" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
+					<Add option="-g" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-fno-keep-inline-dllexport" />
+					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-D__GNUWIN32__" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DWXUSINGDLL" />
+					<Add option="-D__WXDEBUG__" />
+					<Add option="-D_USE_MATH_DEFINES" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+					<Add directory="include" />
+					<Add directory="../../xSchedule/xSMSDaemon" />
+					<Add directory="../../include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswud" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-mthreads" />
+					<Add option="-lopengl32" />
+					<Add option="-Wl,-Map=../../bin/xLights.map" />
+					<Add option="-Wl,--large-address-aware" />
+					<Add option="-lz" />
+					<Add library="libwxmsw31ud.a" />
+					<Add library="libwxmsw31ud_gl.a" />
+					<Add library="../../lib/windows/liblog4cpp.lib" />
+					<Add library="../../lib/windows/DbgHelp.Lib" />
+					<Add library="../../lib/windows/iphlpapi.lib" />
+					<Add library="../../lib/windows/Ws2_32.lib" />
+					<Add library="libwinmm.a" />
+					<Add library="../../lib/windows/libcurl.lib" />
+					<Add directory="$(#wx)/lib/gcc_dll" />
+				</Linker>
+			</Target>
+			<Target title="MinGW_Release">
+				<Option platforms="Windows;" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../bin" />
+				<Option object_output=".objs_wr32" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-march=i586" />
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
+					<Add option="-m32" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-static-libgcc" />
+					<Add option="-fno-keep-inline-dllexport" />
+					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-D__GNUWIN32__" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DWXUSINGDLL" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_USE_MATH_DEFINES" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+					<Add directory="include" />
+					<Add directory="../../xSchedule/xSMSDaemon" />
+					<Add directory="../../include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m32" />
+					<Add option="-lopengl32" />
+					<Add option="-Wl,-Map=../../bin/xSMSDaemon.map" />
+					<Add option="-Wl,--large-address-aware" />
+					<Add option="-lpthread" />
+					<Add option="-lz" />
+					<Add library="../../lib/windows/imagehlp.lib" />
+					<Add library="../../lib/windows/iphlpapi.lib" />
+					<Add library="../../lib/windows/liblog4cpp.lib" />
+					<Add library="libwinmm.a" />
+					<Add library="../../lib/windows/libwxmsw31u.a" />
+					<Add library="../../lib/windows/libwxmsw31u_gl.a" />
+					<Add library="../../lib/windows/Ws2_32.lib" />
+					<Add library="../../lib/windows/libcurl.lib" />
+					<Add directory="../../lib/windows" />
+				</Linker>
+			</Target>
+			<Target title="Linux_Debug">
+				<Option platforms="Unix;" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_ld" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --cflags`" />
+					<Add option="-Winvalid-pch" />
+					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
+					<Add option="-D__WXDEBUG__" />
+					<Add option='-D__cdecl=&quot;&quot;' />
+					<Add directory="include" />
+					<Add directory="../xSchedule/xSMSDaemon" />
+					<Add directory="../include" />
+				</Compiler>
+				<Linker>
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --libs log4cpp`" />
+					<Add option="`sdl2-config --libs`" />
+					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --libs`" />
+					<Add option="-lexpat" />
+					<Add option="-lporttime -lportmidi" />
+					<Add option="-rdynamic" />
+				</Linker>
+			</Target>
+			<Target title="Linux_Release">
+				<Option platforms="Unix;" />
+				<Option output="../../bin/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option object_output=".objs_lr" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="`wx-config --version=3.1 --cflags`" />
+					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`curl-config --cflags`" />
+					<Add option="-Winvalid-pch" />
+					<Add option="-DWX_PRECOMP" />
+					<Add option="-DLINUX" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D__cdecl=&apos;&apos;" />
+					<Add directory="include" />
+					<Add directory="../xSchedule/xSMSDaemon" />
+					<Add directory="../include" />
+				</Compiler>
+				<Linker>
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lz -lzstd" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil  libswresample libswscale`" />
+					<Add option="`pkg-config --libs log4cpp`" />
+					<Add option="`sdl2-config --libs`" />
+					<Add option="`wx-config --version=3.1 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
+					<Add option="`curl-config --libs`" />
+					<Add option="-lexpat" />
+					<Add option="-lporttime -lportmidi" />
+					<Add option="-rdynamic" />
+				</Linker>
+			</Target>
+			<Target title="64bit_MinGW_Release">
+				<Option platforms="Windows;" />
+				<Option output="../../bin64/xSMSDaemon" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../bin64" />
+				<Option object_output=".objs_wr64" />
+				<Option type="0" />
+				<Option compiler="gnu_gcc_64bit_compiler" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++1z" />
+					<Add option="-m64" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-static-libgcc" />
+					<Add option="-fno-keep-inline-dllexport" />
+					<Add option='[[if ((GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.0.0&quot;))) print(_T(&quot;-Wno-attributes&quot;));]]' />
+					<Add option="-D__GNUWIN32__" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DWXUSINGDLL" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_USE_MATH_DEFINES" />
+					<Add directory="include" />
+					<Add directory="../../xSchedule/xSMSDaemon" />
+					<Add directory="../../include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="$(#wx)/include" />
+					<Add directory="$(#wx)/lib/gcc_dll/mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m64" />
+					<Add option="-Wl,-Map=../../bin64/xSMSDaemon.map" />
+					<Add option="-lpthread" />
+					<Add option="-lz" />
+					<Add library="../../lib/windows64/iphlpapi.lib" />
+					<Add library="../../lib/windows64/libimagehlp.a" />
+					<Add library="../../lib/windows64/liblog4cpp.a" />
+					<Add library="libwinmm.a" />
+					<Add library="../../lib/windows64/libwxmsw31u.a" />
+					<Add library="../../lib/windows64/libwxmsw31u_gl.a" />
+					<Add library="../../lib/windows64/Ws2_32.lib" />
+					<Add library="../../lib/windows64/libcurl.lib" />
+					<Add directory="../../lib/windows64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-fno-strict-aliasing" />
+			<Add option="-Wno-unused-local-typedefs" />
+			<Add option="-DwxUSE_UNICODE" />
+		</Compiler>
+		<ResourceCompiler>
+			<Add directory="$(#wx)/include" />
+		</ResourceCompiler>
+		<Unit filename="../../xLights/UtilFunctions.cpp" />
+		<Unit filename="../../xLights/UtilFunctions.h" />
+		<Unit filename="../../xLights/xLightsTimer.cpp" />
+		<Unit filename="../../xLights/xLightsTimer.h" />
+		<Unit filename="../../xLights/xLightsVersion.cpp" />
+		<Unit filename="../../xLights/xLightsVersion.h" />
+		<Unit filename="../wxJSON/json_defs.h" />
+		<Unit filename="../wxJSON/jsonreader.cpp" />
+		<Unit filename="../wxJSON/jsonreader.h" />
+		<Unit filename="../wxJSON/jsonval.cpp" />
+		<Unit filename="../wxJSON/jsonval.h" />
+		<Unit filename="Bandwidth.h" />
+		<Unit filename="Curl.h" />
+		<Unit filename="SMSDaemonOptions.cpp" />
+		<Unit filename="SMSDaemonoptions.h" />
+		<Unit filename="SMSMessage.cpp" />
+		<Unit filename="SMSService.h" />
+		<Unit filename="SMSSettingsDialog.cpp" />
+		<Unit filename="SMSSettingsDialog.h" />
+		<Unit filename="TestMessagesDialog.cpp" />
+		<Unit filename="TestMessagesDialog.h" />
+		<Unit filename="Twilio.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="MinGW_Debug" />
+			<Option target="MinGW_Release" />
+			<Option target="64bit_MinGW_Release" />
+		</Unit>
+		<Unit filename="voip_ms.h" />
+		<Unit filename="wxsmith/SMSSettingsDialog.wxs" />
+		<Unit filename="wxsmith/TestMessagesDialog.wxs" />
+		<Unit filename="wxsmith/xSMSDaemonframe.wxs" />
+		<Unit filename="xSMSDaemonApp.cpp" />
+		<Unit filename="xSMSDaemonApp.h" />
+		<Unit filename="xSMSDaemonMain.cpp" />
+		<Unit filename="xSMSDaemonMain.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+			<wxsmith version="1">
+				<gui name="wxWidgets" src="xSMSDaemonApp.cpp" main="xSMSDaemonFrame" init_handlers="necessary" language="CPP" />
+				<resources>
+					<wxFrame wxs="wxsmith/xSMSDaemonframe.wxs" src="xSMSDaemonMain.cpp" hdr="xSMSDaemonMain.h" fwddecl="0" i18n="1" name="xSMSDaemonFrame" language="CPP" />
+					<wxDialog wxs="wxsmith/SMSSettingsDialog.wxs" src="SMSSettingsDialog.cpp" hdr="SMSSettingsDialog.h" fwddecl="0" i18n="1" name="SMSSettingsDialog" language="CPP" />
+					<wxDialog wxs="wxsmith/TestMessagesDialog.wxs" src="TestMessagesDialog.cpp" hdr="TestMessagesDialog.h" fwddecl="0" i18n="1" name="TestMessagesDialog" language="CPP" />
+				</resources>
+			</wxsmith>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

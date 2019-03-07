@@ -228,6 +228,9 @@ void FacesEffect::SetDefaultParameters() {
     }
 
     SetCheckBoxValue(fp->CheckBox_Faces_Outline, false);
+    SetCheckBoxValue(fp->CheckBox_SuppressWhenNotSinging, false);
+    SetCheckBoxValue(fp->CheckBox_TransparentBlack, false);
+    SetSliderValue(fp->Slider_Faces_TransparentBlack, 0);
 }
 
 void FacesEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
@@ -698,12 +701,12 @@ void FacesEffect::RenderFaces(RenderBuffer &buffer,
     std::string eyes = eyesIn;
 
     Element *track = elements->GetElement(trackName);
-    std::recursive_mutex tmpLock;
-    std::recursive_mutex *lock = &tmpLock;
+    std::recursive_timed_mutex tmpLock;
+    std::recursive_timed_mutex *lock = &tmpLock;
     if (track != nullptr) {
         lock = &track->GetChangeLock();
     }
-    std::unique_lock<std::recursive_mutex> locker(*lock);
+    std::unique_lock<std::recursive_timed_mutex> locker(*lock);
 
     if (buffer.cur_model == "") {
         return;

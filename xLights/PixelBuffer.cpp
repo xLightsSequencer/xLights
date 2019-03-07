@@ -34,6 +34,7 @@
 
 #include <random>
 #include "Parallel.h"
+#include "UtilFunctions.h"
 
 // This is needed for visual studio
 #ifdef _MSC_VER
@@ -680,18 +681,6 @@ void PixelBufferClass::GetMixedColor(int node, xlColor& c, const std::vector<boo
 void PixelBufferClass::GetMixedColor(int x, int y, xlColor& c, const std::vector<bool> & validLayers, int EffectPeriod)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
-    // If this coordinate maps to a node use the node function as nodes have some special stuff going on ... like sparkles
-    int i = 0;
-    for (auto it = layers[0]->buffer.Nodes.begin(); it != layers[0]->buffer.Nodes.end(); ++it)
-    {
-        if ((*it)->Coords[0].bufX == x && (*it)->Coords[0].bufY == y)
-        {
-            GetMixedColor(i, c, validLayers, EffectPeriod);
-            return;
-        }
-        i++;
-    }
 
     int cnt = 0;
     c = xlBLACK;
@@ -1462,18 +1451,22 @@ void ComputeSubBuffer(const std::string &subBuffer, std::vector<NodeBaseClassPtr
     x2 /= 100.0;
     y1 /= 100.0;
     y2 /= 100.0;
+    
+    int x1Int = std::round(x1);
+    int x2Int = std::round(x2);
+    int y1Int = std::round(y1);
+    int y2Int = std::round(y2);
 
-    for (size_t x = 0; x < newNodes.size(); x++) {
-        for (auto &it2 : newNodes[x]->Coords) {
-            it2.bufX -= x1;
-            it2.bufY -= y1;
-        }
-    }
-
-    bufferWi = int(std::ceil(x2 - x1));
-    bufferHi = int(std::ceil(y2 - y1));
+    bufferWi = x2Int - x1Int;
+    bufferHi = y2Int - y1Int;
     if (bufferWi < 1) bufferWi = 1;
     if (bufferHi < 1) bufferHi = 1;
+    for (size_t x = 0; x < newNodes.size(); x++) {
+        for (auto &it2 : newNodes[x]->Coords) {
+            it2.bufX -= x1Int;
+            it2.bufY -= y1Int;
+        }
+    }
 }
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMap) {
@@ -1564,10 +1557,19 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
     {
         int origNodeCount = inf->buffer.Nodes.size();
         inf->buffer.Nodes.clear();
-        model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+
+        // If we are a 'Per Model Default' render buffer then we need to ensure we create a full set of pixels
+        // so we change the type of the render buffer but just for model initialisation
+        // 2019-02-22 This was "Horizontal Per Model" but it causes DMX Model issues ... 
+        // so I have changed it to "Single Line". In theory both should create all the nodes
+        auto tt = type;
+        if (StartsWith(type, "Per Model")) {
+            tt = "Single Line";
+        }
+        model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         if (origNodeCount != 0 && origNodeCount != inf->buffer.Nodes.size()) {
             inf->buffer.Nodes.clear();
-            model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
+            model->InitRenderBufferNodes(tt, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt);
         }
         
         int curBH = inf->BufferHt;
@@ -1617,7 +1619,6 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap &settingsMa
 
         // we create the buffer oversized to prevent issues
         inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, inf->ModelBufferHt, inf->ModelBufferWi, inf->bufferTransform);
-
         if (type.compare(0, 9, "Per Model") == 0) {
             inf->usingModelBuffers = true;
             const ModelGroup *gp = dynamic_cast<const ModelGroup*>(model);
@@ -1664,6 +1665,7 @@ void PixelBufferClass::MergeBuffersForLayer(int layer) {
         int nc = 0;
         for (const auto& modelBuffer : layers[layer]->modelBuffers) {
             for (const auto& node : modelBuffer->Nodes) {
+                wxASSERT(nc < layers[layer]->buffer.Nodes.size());
                 modelBuffer->GetPixel(node->Coords[0].bufX, node->Coords[0].bufY, color);
                 for (const auto& coord : layers[layer]->buffer.Nodes[nc]->Coords) {
                     layers[layer]->buffer.SetPixel(coord.bufX, coord.bufY, color);

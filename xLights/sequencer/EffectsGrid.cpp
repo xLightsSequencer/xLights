@@ -638,6 +638,7 @@ void EffectsGrid::ProcessDroppedEffect(Effect* effect)
 {
     mSelectedEffect = effect;
     mSelectedRow = mDropRow;
+    RaiseSelectedEffectChanged(effect, true);
 }
 
 void EffectsGrid::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
@@ -816,7 +817,7 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event)
 
     if(mResizing)
     {
-        logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
+        //logger_base.debug("EffectsGrid::mouseMoved sizing or moving effects.");
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Refresh(false);
         Update();
@@ -864,7 +865,8 @@ void EffectsGrid::mouseLeftWindow(wxMouseEvent& event)
     UpdateMousePosition(-1);
 }
 
-int EffectsGrid::GetClippedPositionFromTimeMS(int ms) {
+int EffectsGrid::GetClippedPositionFromTimeMS(int ms) const
+{
     int i = mTimeline->GetPositionFromTimeMS(ms);
     if (i < -10) {
         i = -10;
@@ -1194,7 +1196,7 @@ bool EffectsGrid::AreAllSelectedEffectsOnTheSameElement() const
     return true;
 }
 
-int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
+int EffectsGrid::GetSelectedEffectCount(const std::string& effectName) const
 {
     int count = 0;
 
@@ -1207,7 +1209,181 @@ int EffectsGrid::GetSelectedEffectCount(const std::string effectName) const
     return count;
 }
 
-void EffectsGrid::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+void EffectsGrid::ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+{
+    Element* lastModel = nullptr;
+    RangeAccumulator rangeAccumulator;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
+    {
+        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+
+        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0)
+        {
+            // send render events for all the ranges that changed
+            // 1000 means if there is less than a second gap between ranges then we will just merge them
+            //rangeAccumulator.Consolidate(1000);
+            //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+            //{
+            //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+            //}
+
+            // just send one render event for the whole model range
+            // if there are big gaps this massively over-renders compared to the commented out code above
+            rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+            sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+            rangeAccumulator.clear();
+        }
+        lastModel = ri->element;
+
+        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            // skip timing rows
+        }
+        else
+        {
+            mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, mSequenceElements->get_undo_mgr(), effectName, id, value, vc, vcid, xlights->GetEffectManager(), rangeAccumulator);
+        }
+    }
+
+    if (lastModel != nullptr && rangeAccumulator.size() > 0)
+    {
+        // send render events for all the ranges that changed
+        // 1000 means if there is less than a second gap between ranges then we will just merge them
+        //rangeAccumulator.Consolidate(1000);
+        //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+        //{
+        //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+        //}
+
+        // just send one render event for the whole model range
+        // if there are big gaps this massively over-renders compared to the commented out code above
+        rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+        sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+        rangeAccumulator.clear();
+    }
+}
+
+void EffectsGrid::ApplyButtonPressToSelected(const std::string& effectName, const std::string id)
+{
+    Element* lastModel = nullptr;
+    RangeAccumulator rangeAccumulator;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
+    {
+        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+
+        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0)
+        {
+            // send render events for all the ranges that changed
+            // 1000 means if there is less than a second gap between ranges then we will just merge them
+            //rangeAccumulator.Consolidate(1000);
+            //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+            //{
+            //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+            //}
+
+            // just send one render event for the whole model range
+            // if there are big gaps this massively over-renders compared to the commented out code above
+            rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+            sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+            rangeAccumulator.clear();
+        }
+        lastModel = ri->element;
+
+        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            // skip timing rows
+        }
+        else
+        {
+            mSequenceElements->GetEffectLayer(row)->ApplyButtonPressToSelected(this, mSequenceElements->get_undo_mgr(), effectName, id, xlights->GetEffectManager(), rangeAccumulator);
+        }
+    }
+
+    if (lastModel != nullptr && rangeAccumulator.size() > 0)
+    {
+        // send render events for all the ranges that changed
+        // 1000 means if there is less than a second gap between ranges then we will just merge them
+        //rangeAccumulator.Consolidate(1000);
+        //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+        //{
+        //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+        //}
+
+        // just send one render event for the whole model range
+        // if there are big gaps this massively over-renders compared to the commented out code above
+        rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+        sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+        rangeAccumulator.clear();
+    }
+}
+
+void EffectsGrid::RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs)
+{
+    Element* lastModel = nullptr;
+    RangeAccumulator rangeAccumulator;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++)
+    {
+        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+
+        if (ri->element != lastModel && lastModel != nullptr && rangeAccumulator.size() > 0)
+        {
+            // send render events for all the ranges that changed
+            // 1000 means if there is less than a second gap between ranges then we will just merge them
+            //rangeAccumulator.Consolidate(1000);
+            //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+            //{
+            //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+            //}
+
+            // just send one render event for the whole model range
+            // if there are big gaps this massively over-renders compared to the commented out code above
+            rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+            sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+            rangeAccumulator.clear();
+        }
+        lastModel = ri->element;
+
+        if (ri->element->GetType() == ELEMENT_TYPE_TIMING)
+        {
+            // skip timing rows
+        }
+        else
+        {
+            mSequenceElements->GetEffectLayer(row)->RemapSelectedDMXEffectValues(this, mSequenceElements->get_undo_mgr(), pairs, xlights->GetEffectManager(), rangeAccumulator);
+        }
+    }
+
+    if (lastModel != nullptr && rangeAccumulator.size() > 0)
+    {
+        // send render events for all the ranges that changed
+        // 1000 means if there is less than a second gap between ranges then we will just merge them
+        //rangeAccumulator.Consolidate(1000);
+        //for (auto it = rangeAccumulator.begin(); it != rangeAccumulator.end(); ++it)
+        //{
+        //    sendRenderEvent(lastModel->GetModelName(), it->first, it->second);
+        //}
+
+        // just send one render event for the whole model range
+        // if there are big gaps this massively over-renders compared to the commented out code above
+        rangeAccumulator.Consolidate(); // still need to consolidate before we access it
+        sendRenderEvent(lastModel->GetModelName(), rangeAccumulator.front().first, rangeAccumulator.back().second);
+
+        rangeAccumulator.clear();
+    }
+}
+
+void EffectsGrid::ConvertSelectedEffectsTo(const std::string& effectName)
 {
     Element* lastModel = nullptr;
     RangeAccumulator rangeAccumulator;
@@ -1242,7 +1418,7 @@ void EffectsGrid::ApplyEffectSettingToSelected(const std::string effectName, con
         }
         else
         {
-            mSequenceElements->GetEffectLayer(row)->ApplyEffectSettingToSelected(this, mSequenceElements->get_undo_mgr(), effectName, id, value, vc, vcid, xlights->GetEffectManager(), rangeAccumulator);
+            mSequenceElements->GetEffectLayer(row)->ConvertSelectedEffectsTo(this, mSequenceElements->get_undo_mgr(), effectName, xlights->GetEffectManager(), rangeAccumulator);
         }
     }
 
@@ -3060,7 +3236,7 @@ void EffectsGrid::Resize(int position, bool offset, bool control)
     // If we encounter scenarios where it isnt it would be better to send the render dirty
     // event from the calling functions. I have temporarily added logging for all click and
     // drag events to try to help us identify why we miss rendering when we do
-    logger_base.debug("EffectsGrid::Resize would have sent render dirty event");
+    //logger_base.debug("EffectsGrid::Resize would have sent render dirty event");
     //sendRenderDirtyEvent();
 }
 
@@ -4413,8 +4589,8 @@ void EffectsGrid::Paste(const wxString &data, const wxString &pasteDataVersion, 
 
     logger_base.info("mPartialCellSelected %d,   OneCellSelected: %d    paste_by_cell:  %d", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
-    if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive()) {
-        if( ((number_of_timings + number_of_effects) > 1) || row_paste || xlights->IsACActive() )  // multi-effect paste or row_paste
+    if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive() || row_paste ) {
+        if( ((number_of_timings + number_of_effects) > 1) || xlights->IsACActive() )  // multi-effect paste or row_paste
         {
             std::set<std::string> modelsToRender;
 
@@ -4941,7 +5117,7 @@ void EffectsGrid::ResizeSingleEffectMS(int timems)
 
     if (mEffectLayer->GetEffect(mResizeEffectIndex)->IsLocked() || mEffectLayer->IsFixedTimingLayer()) return;
 
-    logger_base.debug("EffectsGrid::ResizeSingleEffect.");
+    //logger_base.debug("EffectsGrid::ResizeSingleEffect.");
 
     int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
     if(mResizingMode==EFFECT_RESIZE_LEFT || mResizingMode==EFFECT_RESIZE_LEFT_EDGE)

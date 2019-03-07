@@ -83,9 +83,52 @@ inline char HexToChar(char c1, char c2)
     return (HexToChar(c1) << 8) + HexToChar(c2);
 }
 
-inline bool Contains(const std::string& in, const std::string contains) noexcept
+inline bool Contains(const std::string& in, const std::string& contains) noexcept
 {
     return in.find(contains) != std::string::npos;
+}
+
+inline bool Contains(const std::wstring& in, const std::wstring& contains) noexcept
+{
+    return in.find(contains) != std::wstring::npos;
+}
+
+inline bool StartsWith(const std::string& in, const std::string& startswith) noexcept
+{
+    return in.size() >= startswith.size() && in.substr(0, startswith.size()) == startswith;
+}
+
+inline bool EndsWith(const std::string& in, const std::string& endswith) noexcept
+{
+    return in.size() >= endswith.size() && in.substr(in.size() - endswith.size()) == endswith;
+}
+
+inline void Replace(std::string& in, const std::string& what, const std::string& with)
+{
+    auto pos = in.find(what);
+
+    // Repeat till end is reached
+    while (pos != std::string::npos)
+    {
+        // Replace this occurrence of Sub String
+        in.replace(pos, what.size(), with);
+        // Get the next occurrence from the current position
+        pos = in.find(what, pos + with.size());
+    }
+}
+
+inline void Replace(std::wstring& in, const std::wstring& what, const std::wstring& with)
+{
+    auto pos = in.find(what);
+
+    // Repeat till end is reached
+    while (pos != std::wstring::npos)
+    {
+        // Replace this occurrence of Sub String
+        in.replace(pos, what.size(), with);
+        // Get the next occurrence from the current position
+        pos = in.find(what, pos + with.size());
+    }
 }
 
 inline std::string Capitalise(const std::string& input) noexcept
@@ -107,4 +150,24 @@ inline std::string Capitalise(const std::string& input) noexcept
     }
     return res;
 }
+
+inline std::string Lower(const std::string& input) noexcept
+{
+    std::string res = "";
+    for (const auto c : input)
+    {
+        res += ::tolower(c);
+    }
+    return res;
+}
+
+static inline double toRadians(float degrees) 
+{
+    return 2.0*M_PI*double(degrees) / 360.0;
+}
+
+static inline double toDegrees(double radians) {
+    return (radians / (2 * M_PI))*360.0;
+}
+
 #endif

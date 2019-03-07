@@ -31,8 +31,10 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _changeCount = 0;
     _lastSavedChangeCount = 0;
     _MIDITimecodeDevice = node->GetAttribute("MIDITimecodeDevice", "").ToStdString();
-    _MIDITimecodeFormat = wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0"));
+    _MIDITimecodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("MIDITimecodeFormat", "0")));
     _MIDITimecodeOffset = wxAtol(node->GetAttribute("MIDITimecodeOffset", "0"));
+    _remoteLatency = wxAtoi(node->GetAttribute("RemoteLatency", "0"));
+    _remoteAcceptableJitter = wxAtoi(node->GetAttribute("RemoteAcceptableJitter", "20"));
     _sync = node->GetAttribute("Sync", "FALSE") == "TRUE";
     _advancedMode = node->GetAttribute("AdvancedMode", "FALSE") == "TRUE";
     _webAPIOnly = node->GetAttribute("APIOnly", "FALSE") == "TRUE";
@@ -40,6 +42,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _parallelTransmission = node->GetAttribute("ParallelTransmission", "FALSE") == "TRUE";
     _remoteAllOff = node->GetAttribute("RemoteSustain", "FALSE") == "FALSE";
     _retryOutputOpen = node->GetAttribute("RetryOutputOpen", "FALSE") == "TRUE";
+    _suppressAudioOnRemotes = node->GetAttribute("SuppressAudioOnRemotes", "TRUE") == "TRUE";
     _sendBackgroundWhenNotRunning = node->GetAttribute("SendBackgroundWhenNotRunning", "FALSE") == "TRUE";
 #ifdef __WXMSW__
     _port = wxAtoi(node->GetAttribute("WebServerPort", "80"));
@@ -49,7 +52,7 @@ ScheduleOptions::ScheduleOptions(OutputManager* outputManager, wxXmlNode* node, 
     _passwordTimeout = wxAtoi(node->GetAttribute("PasswordTimeout", "30"));
     _wwwRoot = node->GetAttribute("WWWRoot", "xScheduleWeb");
     _crashBehaviour = node->GetAttribute("CrashBehaviour", "Prompt user");
-    _artNetTimeCodeFormat = wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1"));
+    _artNetTimeCodeFormat = static_cast<TIMECODEFORMAT>(wxAtoi(node->GetAttribute("ARTNetTimeCodeFormat", "1")));
     _audioDevice = node->GetAttribute("AudioDevice", "").ToStdString();
     AudioManager::SetAudioDevice(_audioDevice);
     _password = node->GetAttribute("Password", "");
@@ -164,7 +167,7 @@ void ScheduleOptions::AddButton(const std::string& label, const std::string& com
 
 ScheduleOptions::ScheduleOptions()
 {
-    _artNetTimeCodeFormat = 1;
+    _artNetTimeCodeFormat = TIMECODEFORMAT::F25;
     _oscOptions = new OSCOptions();
     _testOptions = new TestOptions();
     _password = "";
@@ -177,6 +180,8 @@ ScheduleOptions::ScheduleOptions()
 #else
     _port = 8080;
 #endif
+    _remoteLatency = 0;
+    _remoteAcceptableJitter = 20;
     _webAPIOnly = false;
     _changeCount = 1;
     _lastSavedChangeCount = 0;
@@ -185,11 +190,12 @@ ScheduleOptions::ScheduleOptions()
     _parallelTransmission = false;
     _remoteAllOff = true;
     _retryOutputOpen = false;
+    _suppressAudioOnRemotes = true;
     _sendBackgroundWhenNotRunning = false;
     _advancedMode = false;
     _crashBehaviour = "Prompt user";
     _MIDITimecodeDevice = "";
-    _MIDITimecodeFormat = 0;
+    _MIDITimecodeFormat = TIMECODEFORMAT::F24;
     _MIDITimecodeOffset = 0;
 }
 
@@ -222,6 +228,8 @@ wxXmlNode* ScheduleOptions::Save()
     res->AddAttribute("MIDITimecodeOffset", wxString::Format("%ld", (long)_MIDITimecodeOffset));
     res->AddAttribute("Password", _password);
     res->AddAttribute("City", _city);
+    res->AddAttribute("RemoteLatency", wxString::Format("%d", _remoteLatency));
+    res->AddAttribute("RemoteAcceptableJitter", wxString::Format("%d", _remoteAcceptableJitter));
     if (IsSync())
     {
         res->AddAttribute("Sync", "TRUE");
@@ -260,6 +268,15 @@ wxXmlNode* ScheduleOptions::Save()
     if (IsRetryOpen())
     {
         res->AddAttribute("RetryOutputOpen", "TRUE");
+    }
+
+    if (IsSuppressAudioOnRemotes())
+    {
+        res->AddAttribute("SuppressAudioOnRemotes", "TRUE");
+    }
+    else
+    {
+        res->AddAttribute("SuppressAudioOnRemotes", "FALSE");
     }
 
     res->AddAttribute("WebServerPort", wxString::Format(wxT("%i"), _port));

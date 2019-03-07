@@ -210,9 +210,9 @@ bool OutputManager::Discover(wxWindow* frame, std::map<std::string, std::string>
     auto e131 = E131Output::Discover(this);
     for (auto it = e131.begin(); it != e131.end(); ++it)
     {
-        if (std::find(outputs.begin(), outputs.end(), *it) == outputs.end())
+        if (std::find(outputs.begin(), outputs.end(), it) == outputs.end())
         {
-            _outputs.push_back(*it);
+            _outputs.push_back(it);
             found = true;
         }
     }
@@ -263,36 +263,36 @@ void OutputManager::SetShowDir(const std::string& showDir)
 
 void OutputManager::SuspendAll(bool suspend)
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        (*it)->Suspend(suspend);
+        it->Suspend(suspend);
     }
 }
 
 // get an output based on an absolute channel number
 Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsOutputCollection() && absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+        if (it->IsOutputCollection() && absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
         {
-            auto outputs = (*it)->GetOutputs();
+            auto outputs = it->GetOutputs();
 
-            for (auto it2 = outputs.begin(); it2 != outputs.end(); ++it2)
+            for (auto it2 : outputs)
             {
-                if (absoluteChannel >= (*it2)->GetStartChannel() && absoluteChannel <= (*it2)->GetEndChannel())
+                if (absoluteChannel >= it2->GetStartChannel() && absoluteChannel <= it2->GetEndChannel())
                 {
-                    startChannel = absoluteChannel - (*it2)->GetStartChannel() + 1;
-                    return *it2;
+                    startChannel = absoluteChannel - it2->GetStartChannel() + 1;
+                    return it2;
                 }
             }
         }
         else
         {
-            if (absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+            if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
             {
-                startChannel = absoluteChannel - (*it)->GetStartChannel() + 1;
-                return *it;
+                startChannel = absoluteChannel - it->GetStartChannel() + 1;
+                return it;
             }
         }
     }
@@ -303,12 +303,12 @@ Output* OutputManager::GetOutput(long absoluteChannel, long& startChannel) const
 // get an output based on an absolute channel number
 Output* OutputManager::GetLevel1Output(long absoluteChannel, long& startChannel) const
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (absoluteChannel >= (*it)->GetStartChannel() && absoluteChannel <= (*it)->GetEndChannel())
+        if (absoluteChannel >= it->GetStartChannel() && absoluteChannel <= it->GetEndChannel())
         {
-            startChannel = absoluteChannel - (*it)->GetStartChannel() + 1;
-            return *it;
+            startChannel = absoluteChannel - it->GetStartChannel() + 1;
+            return it;
         }
     }
 
@@ -329,11 +329,11 @@ Output* OutputManager::GetOutput(int universe, const std::string& ip) const
         {
             auto outputs = (*it)->GetOutputs();
 
-            for (auto it2 = outputs.begin(); it2 != outputs.end(); ++it2)
+            for (auto it2 : outputs)
             {
-                if (universe == (*it2)->GetUniverse() && (ip == "" || ip == (*it2)->GetIP()))
+                if (universe == it2->GetUniverse() && (ip == "" || ip == it2->GetIP()))
                 {
-                    return (*it2);
+                    return (it2);
                 }
             }
         }
@@ -471,9 +471,9 @@ bool OutputManager::IsDirty() const
 {
     if (_dirty) return _dirty;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsDirty())
+        if (it->IsDirty())
         {
             return true;
         }
@@ -486,26 +486,26 @@ std::list<int> OutputManager::GetIPUniverses(const std::string& ip) const
 {
     std::list<int> res;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (ip == "" || ip == (*it)->GetIP())
+        if (ip == "" || ip == it->GetIP())
         {
-            if ((*it)->IsOutputCollection())
+            if (it->IsOutputCollection())
             {
-                auto coll = (*it)->GetOutputs();
-                for (auto it2 = coll.begin(); it2 != coll.end(); ++it2)
+                auto coll = it->GetOutputs();
+                for (auto it2 : coll)
                 {
-                    if (std::find(res.begin(), res.end(), (*it2)->GetUniverse()) == res.end())
+                    if (std::find(res.begin(), res.end(), it2->GetUniverse()) == res.end())
                     {
-                        res.push_back((*it2)->GetUniverse());
+                        res.push_back(it2->GetUniverse());
                     }
                 }
             }
             else
             {
-                if (std::find(res.begin(), res.end(), (*it)->GetUniverse()) == res.end())
+                if (std::find(res.begin(), res.end(), it->GetUniverse()) == res.end())
                 {
-                    res.push_back((*it)->GetUniverse());
+                    res.push_back(it->GetUniverse());
                 }
             }
         }
@@ -518,13 +518,13 @@ std::list<std::string> OutputManager::GetIps() const
 {
     std::list<std::string> res;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsIpOutput())
+        if (it->IsIpOutput())
         {
-            if (std::find(res.begin(), res.end(), (*it)->GetIP()) == res.end())
+            if (std::find(res.begin(), res.end(), it->GetIP()) == res.end())
             {
-                res.push_back((*it)->GetIP());
+                res.push_back(it->GetIP());
             }
         }
     }
@@ -535,18 +535,19 @@ std::list<std::string> OutputManager::GetIps() const
 size_t OutputManager::TxNonEmptyCount()
 {
     size_t res = 0;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        res += (*it)->TxNonEmptyCount();
+        res += it->TxNonEmptyCount();
     }
 
     return res;
 }
+
 bool OutputManager::TxEmpty()
 {
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (!(*it)->TxEmpty()) return false;
+        if (!it->TxEmpty()) return false;
     }
 
     return true;
@@ -558,20 +559,20 @@ void OutputManager::SomethingChanged() const
     int nullcnt = 0;
     int cnt = 0;
     int start = 1;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
         cnt++;
-        if ((*it)->GetType() == OUTPUT_NULL)
+        if (it->GetType() == OUTPUT_NULL)
         {
             nullcnt++;
-            (*it)->SetTransientData(cnt, start, nullcnt);
+            it->SetTransientData(cnt, start, nullcnt);
         }
         else
         {
-            (*it)->SetTransientData(cnt, start, -1);
+            it->SetTransientData(cnt, start, -1);
         }
 
-        start += (*it)->GetChannels() * (*it)->GetUniverses();
+        start += it->GetChannels() * it->GetUniverses();
     }
 }
 
@@ -592,10 +593,10 @@ void OutputManager::AddOutput(Output* output, Output* after)
     {
         std::list<Output*> newoutputs;
         bool added = false;
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto it : _outputs)
         {
-            newoutputs.push_back(*it);
-            if (*it == after)
+            newoutputs.push_back(it);
+            if (it == after)
             {
                 newoutputs.push_back(output);
                 added = true;
@@ -624,7 +625,7 @@ void OutputManager::AddOutput(Output* output, int pos)
         std::list<Output*> newoutputs;
         int cnt = 0;
         bool added = false;
-        for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+        for (auto it : _outputs)
         {
             cnt++;
             if (cnt == pos+1)
@@ -632,7 +633,7 @@ void OutputManager::AddOutput(Output* output, int pos)
                 newoutputs.push_back(output);
                 added = true;
             }
-            newoutputs.push_back(*it);
+            newoutputs.push_back(it);
         }
         if (!added)
         {
@@ -663,9 +664,9 @@ void OutputManager::DeleteAllOutputs()
 {
     _dirty = true;
 
-    for (auto it=  _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        delete (*it);
+        delete (it);
     }
 
     _outputs.clear();
@@ -678,7 +679,7 @@ void OutputManager::MoveOutput(Output* output, int toOutputNumber)
     std::list<Output*> res;
     int i = 1;
     bool added = false;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
         if (i == toOutputNumber + 1)
         {
@@ -686,13 +687,13 @@ void OutputManager::MoveOutput(Output* output, int toOutputNumber)
             added = true;
             i++;
         }
-        if (*it == output)
+        if (it == output)
         {
             // do nothing we are moving this
         }
         else
         {
-            res.push_back(*it);
+            res.push_back(it);
             i++;
         }
     }
@@ -711,9 +712,9 @@ bool OutputManager::AreAllIPOutputs(std::list<int> outputNumbers)
 {
     auto outputs = GetAllOutputs(outputNumbers);
 
-    for (auto it = outputs.begin(); it != outputs.end(); ++it)
+    for (auto it : outputs)
     {
-        if (!(*it)->IsIpOutput())
+        if (!it->IsIpOutput())
         {
             return false;
         }
@@ -722,46 +723,46 @@ bool OutputManager::AreAllIPOutputs(std::list<int> outputNumbers)
     return true;
 }
 
-std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::list<int>& selected) const
+std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname, const std::list<int>& selected) const
 {
     std::list<Output*> res;
 
     std::list<Output*> sel = GetAllOutputs(selected);
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if (ip == "" || (*it)->GetIP() == ip)
+        if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetIP() == hostname)))
         {
-            if ((*it)->IsOutputCollection())
+            if (it->IsOutputCollection())
             {
-                auto o = (*it)->GetOutputs();
-                for (auto it2 = o.begin(); it2 != o.end(); ++it2)
+                auto o = it->GetOutputs();
+                for (auto it2 : o)
                 {
-                    res.push_back(*it2);
+                    res.push_back(it2);
                 }
             }
             else
             {
-                res.push_back(*it);
+                res.push_back(it);
             }
         }
         else
         {
-            for (auto it2 = sel.begin(); it2 != sel.end(); ++it2)
+            for (auto it2 : sel)
             {
-                if ((*it2)->GetOutputNumber() == (*it)->GetOutputNumber())
+                if (it2->GetOutputNumber() == it->GetOutputNumber())
                 {
-                    if ((*it2)->IsOutputCollection())
+                    if (it2->IsOutputCollection())
                     {
-                        auto o = (*it2)->GetOutputs();
-                        for (auto it3 = o.begin(); it3 != o.end(); ++it3)
+                        auto o = it2->GetOutputs();
+                        for (auto it3 : o)
                         {
-                            res.push_back(*it3);
+                            res.push_back(it3);
                         }
                     }
                     else
                     {
-                        res.push_back(*it2);
+                        res.push_back(it2);
                     }
                 }
             }
@@ -775,17 +776,17 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::list<int>& outputNumb
 {
     std::list<Output*> res;
 
-    for (auto it = outputNumbers.begin(); it != outputNumbers.end(); ++it)
+    for (auto it : outputNumbers)
     {
-        Output* o = GetOutput(*it);
+        Output* o = GetOutput(it);
         if (o != nullptr)
         {
             if (o->IsOutputCollection())
             {
                 auto o2 = o->GetOutputs();
-                for (auto it2 = o2.begin(); it2 != o2.end(); ++it2)
+                for (auto it2 : o2)
                 {
-                    res.push_back(*it2);
+                    res.push_back(it2);
                 }
             }
             else
@@ -802,19 +803,19 @@ std::list<Output*> OutputManager::GetAllOutputs() const
 {
     std::list<Output*> res;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it)->IsOutputCollection())
+        if (it->IsOutputCollection())
         {
-            auto o2 = (*it)->GetOutputs();
-            for (auto it2 = o2.begin(); it2 != o2.end(); ++it2)
+            auto o2 = it->GetOutputs();
+            for (auto it2 : o2)
             {
-                res.push_back(*it2);
+                res.push_back(it2);
             }
         }
         else
         {
-            res.push_back(*it);
+            res.push_back(it);
         }
     }
 
@@ -825,15 +826,15 @@ void OutputManager::Replace(Output* replacethis, Output* withthis)
 {
     std::list<Output*> newoutputs;
 
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        if ((*it) == replacethis)
+        if (it == replacethis)
         {
             newoutputs.push_back(withthis);
         }
         else
         {
-            newoutputs.push_back(*it);
+            newoutputs.push_back(it);
         }
     }
     _outputs = newoutputs;
@@ -982,12 +983,12 @@ void OutputManager::StopOutput()
 void OutputManager::AllOff(bool send)
 {
     if (!_outputCriticalSection.TryEnter()) return;
-    for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
+    for (auto it : _outputs)
     {
-        (*it)->AllOff();
+        it->AllOff();
         if (send)
         {
-            (*it)->EndFrame(_suppressFrames);
+            it->EndFrame(_suppressFrames);
         }
     }
     _outputCriticalSection.Leave();

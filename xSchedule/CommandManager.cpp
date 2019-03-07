@@ -69,7 +69,7 @@ std::string Command::GetParametersTip() const
     return tip;
 }
 
-bool Command::IsValid(std::string parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, std::string& msg, bool queuedMode) const
+bool Command::IsValid(wxString parms, PlayList* selectedPlayList, Schedule* selectedSchedule, ScheduleManager* scheduleManager, wxString& msg, bool queuedMode) const
 {
     auto components = wxSplit(parms, ',');
 
@@ -339,4 +339,5 @@ CommandManager::CommandManager()
     _commands.push_back(new Command("Add n Seconds To Current Step Position", 1, i, false, false, true, false, false, true, true, false));
     _commands.push_back(new Command("Start test mode", 1, s, false, false, false, false, false, true, true, false));
     _commands.push_back(new Command("Stop test mode", 0, {}, false, false, false, false, false, true, true, false));
+    _commands.push_back(new Command("Change show folder", 1, s, false, false, false, false, true, true, true, false));
 }

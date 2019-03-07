@@ -70,7 +70,7 @@ void SplashDialog::OnPaint(wxPaintEvent& event)
         scl = 2;
     }
 #endif
-    wxString ver = xlights_version_string + " " + GetBitness();
+    wxString ver = GetDisplayVersionString();
     int w, h, descent;
     
     dc.GetTextExtent(ver, &w, &h, &descent);

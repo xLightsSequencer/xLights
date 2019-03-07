@@ -5,6 +5,7 @@
 #include "GridlinesObject.h"
 #include "DrawGLUtils.h"
 #include "ModelPreview.h"
+#include "Model.h"
 
 GridlinesObject::GridlinesObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), line_spacing(50), gridColor(xlColor(0,128, 0)),
@@ -61,19 +62,19 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         line_spacing = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridLineSpacing");
         ModelXml->AddAttribute("GridLineSpacing", wxString::Format("%d", line_spacing));
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if ("GridWidth" == event.GetPropertyName()) {
         width = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridWidth");
         ModelXml->AddAttribute("GridWidth", wxString::Format("%d", width));
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if ("GridHeight" == event.GetPropertyName()) {
         height = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("GridHeight");
         ModelXml->AddAttribute("GridHeight", wxString::Format("%d", height));
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
     else if ("GridColor" == event.GetPropertyName()) {
         wxPGProperty *p = grid->GetPropertyByName("GridColor");
@@ -82,20 +83,20 @@ int GridlinesObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPrope
         gridColor = c;
         ModelXml->DeleteAttribute("GridColor");
         ModelXml->AddAttribute("GridColor", gridColor);
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "GridAxis") {
         ModelXml->DeleteAttribute("GridAxis");
         hasAxis = event.GetValue().GetBool();
         if (hasAxis) {
             ModelXml->AddAttribute("GridAxis", "1");
         }
-        return 3 | 0x0008;
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     }
 
     return ViewObject::OnPropertyGridChange(grid, event);
 }
 
-void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
+void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
 {
     if( !active ) { return; }
 
@@ -114,23 +115,30 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
     float half_width = width / 2.0f;
     float half_height = height / 2.0f;
     for (float i = 0; i <= half_height; i += line_spacing)
-	{
-	    sx = -half_width; sy = i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+    {
+        if (hasAxis && i == 0)
+        {
+            // dont draw
+        }
+        else
+        {
+            sx = -half_width; sy = i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = half_width; sy = i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = half_width; sy = i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = -half_width; sy = -i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = -half_width; sy = -i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-        sx = half_width; sy = -i; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
-	}
+            sx = half_width; sy = -i; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
+        }
+    }
 
 	if( hasAxis ) {
         sx = -half_width; sy = 0; sz = 0;
@@ -142,25 +150,31 @@ void GridlinesObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &v
         va3.AddVertex(sx, sy, sz, xaxis);
 	}
 
-	for (float i = 0; i <= half_width; i += line_spacing)
-	{
-	    sx = i; sy = -half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+    for (float i = 0; i <= half_width; i += line_spacing)
+    {
+        if (hasAxis && i == 0)
+        {
+            // dont draw
+        }
+        else
+        {
+            sx = i; sy = -half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = i; sy = half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = i; sy = half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = -i; sy = -half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
+            sx = -i; sy = -half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
 
-	    sx = -i; sy = half_height; sz = 0;
-        GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
-		va3.AddVertex(sx, sy, sz, gridColor);
-	}
-
+            sx = -i; sy = half_height; sz = 0;
+            GetObjectScreenLocation().TranslatePoint(sx, sy, sz);
+            va3.AddVertex(sx, sy, sz, gridColor);
+        }
+    }
 	if( hasAxis ) {
         sx = 0; sy = -half_height; sz = 0;
         GetObjectScreenLocation().TranslatePoint(sx, sy, sz);

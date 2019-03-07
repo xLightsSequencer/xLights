@@ -54,7 +54,7 @@ void ValueCurve::GetRangeParm(int parm, const std::string& type, float& low, flo
     }
 }
 
-float ValueCurve::Denormalise(int parm, float value)
+float ValueCurve::Denormalise(int parm, float value) const
 {
     float low;
     float high;
@@ -83,6 +83,20 @@ float ValueCurve::Denormalise(int parm, float value)
     if (res > high) res = high;
 
     return res;
+}
+
+std::string ValueCurve::GetValueCurveFolder(const std::string& showFolder)
+{
+    std::string vcf = showFolder + "/valuecurves";
+    if (!wxDir::Exists(vcf))
+    {
+        wxMkdir(vcf);
+        if (!wxDir::Exists(vcf))
+        {
+            return "";
+        }
+    }
+    return vcf;
 }
 
 void ValueCurve::ConvertToRealValues(float oldmin, float oldmax)
@@ -140,6 +154,11 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
         high = MAXVOID;
     }
     else if (type == "Music")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Inverted Music")
     {
         low = MINVOID;
         high = MAXVOID;
@@ -205,6 +224,11 @@ void ValueCurve::GetRangeParm2(const std::string& type, float& low, float &high)
         high = MAXVOID;
     }
     else if (type == "Ramp Up/Down")
+    {
+        low = MINVOID;
+        high = MAXVOID;
+    }
+    else if (type == "Inverted Music")
     {
         low = MINVOID;
         high = MAXVOID;
@@ -343,6 +367,16 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
     }
     else if (type == "Music Trigger Fade")
     {
+    }
+    else if (type == "Music")
+    {
+        low = -100;
+        high = 100;
+    }
+    else if (type == "Inverted Music")
+    {
+        low = -100;
+        high = 100;
     }
 }
 
@@ -490,6 +524,59 @@ void ValueCurve::Reverse()
         SetParameter1(GetParameter2());
         SetParameter2(p1);
     }
+}
+
+void ValueCurve::Flip()
+{
+    if (_type == "Custom")
+    {
+        for (auto it = _values.begin(); it != _values.end(); ++it)
+        {
+            it->y = 1.0 - it->y;
+        }
+    }
+    else if (_type == "Ramp" || _type == "Saw Tooth" || _type == "Square" || _type == "Random")
+    {
+        SetParameter1(GetMax() - GetParameter1());
+        SetParameter2(GetMax() - GetParameter2());
+    }
+    else if (_type == "Ramp Up/Down" || _type == "Ramp Up/Down Hold")
+    {
+        SetParameter1(GetMax() - GetParameter1());
+        SetParameter2(GetMax() - GetParameter2());
+        SetParameter3(GetMax() - GetParameter3());
+    }
+    else if (_type == "Flat")
+    {
+        SetParameter1(GetMax() - GetParameter1());
+    }
+    else if (_type == "Parabolic Down")
+    {
+        SetType("Parabolic Up");
+        SetParameter2(GetMax() - GetParameter2());
+    }
+    else if (_type == "Parabolic Up")
+    {
+        SetType("Parabolic Down");
+        SetParameter2(GetMax() - GetParameter2());
+    }
+    else if (_type == "Exponential Up")
+    {
+        SetType("Exponential Down");
+    }
+    else if (_type == "Exponential Down")
+    {
+        SetType("Exponential Up");
+    }
+    else if (_type == "Sine") {}
+    else if (_type == "Logarithmic Up") {}
+    else if (_type == "Logarithmic Down") {}
+    else if (_type == "Music") {}
+    else if (_type == "Inverted Music") {}
+    else if (_type == "Music Trigger Fade") {}
+    else if (_type == "Decaying Sine") {}
+    else if (_type == "Abs Sine") {}
+    else { wxASSERT(false); }
 }
 
 float ValueCurve::Normalise(int parm, float value)
@@ -702,6 +789,10 @@ void ValueCurve::RenderType()
         }
     }
     else if (_type == "Music")
+    {
+        // ???
+    }
+    else if (_type == "Inverted Music")
     {
         // ???
     }
@@ -1297,6 +1388,92 @@ std::string ValueCurve::Serialise()
     return res;
 }
 
+void ValueCurve::LoadXVC(const wxFileName& fn)
+{
+    LoadXVC(fn.GetFullPath().ToStdString());
+}
+
+void ValueCurve::LoadXVC(const std::string& fn)
+{
+    wxXmlDocument doc(fn);
+
+    if (doc.IsOk())
+    {
+        wxXmlNode* root = doc.GetRoot();
+
+        if (root->GetName() == "valuecurve")
+        {
+            wxString data = root->GetAttribute("data");
+            wxString v = root->GetAttribute("SourceVersion");
+
+            // Add any valuecurve version conversion logic here
+            // Source version will be the program version that created the custom model
+
+            Deserialise(data.ToStdString(), true);
+
+            if (GetId() == "ID_VALUECURVE_XVC")
+            {
+                // this should already have the 0-100 scale
+            }
+            else
+            {
+                // need to fudge it
+                float min = GetMin();
+                float max = GetMax();
+                SetLimits(0, 100);
+                FixChangedScale(min, max, 1);
+            }
+
+            SetActive(true);
+        }
+        else
+        {
+            DisplayError("Failure loading value curve file " + fn + ".");
+        }
+    }
+    else
+    {
+        DisplayError("Failure loading value curve file " + fn + ".");
+    }
+}
+
+void ValueCurve::SaveXVC(const wxFileName& fn)
+{
+    SaveXVC(fn.GetFullPath().ToStdString());
+}
+
+void ValueCurve::SaveXVC(const std::string& filename)
+{
+    wxFile f(filename);
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    logger_base.info("Saving to xvc file %s.", (const char *)filename.c_str());
+
+    if (!f.Create(filename, true) || !f.IsOpened())
+    {
+        DisplayError(wxString::Format("Unable to create file %s. Error %d\n", filename, f.GetLastError()).ToStdString());
+        return;
+    }
+
+    bool active = IsActive();
+    std::string id = GetId();
+    if (id == "") SetId("Dummy");
+    SetActive(true);
+
+    wxString v = xlights_version_string;
+    f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<valuecurve \n");
+    ValueCurve vc(Serialise());
+    vc.SetId("ID_VALUECURVE_XVC");
+    vc.SetLimits(0, 100);
+    vc.UnFixChangedScale(GetMin(), GetMax());
+    f.Write(wxString::Format("data=\"%s\" ", (const char *)vc.Serialise().c_str()));
+    f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+    f.Write(" >\n");
+    f.Write("</valuecurve>");
+    f.Close();
+    SetActive(active);
+    SetId(id);
+}
+
 void ValueCurve::SetSerialisedValue(std::string k, std::string s)
 {
     wxString kk = wxString(k.c_str());
@@ -1397,6 +1574,13 @@ float ValueCurve::GetOutputValueAtDivided(float offset, long startMS, long endMS
     return (_min + (_max - _min) * GetValueAt(offset, startMS, endMS)) / _divisor;
 }
 
+float ValueCurve::ApplyGain(float value, int gain) const
+{
+    float v = (100.0 + gain) * value / 100.0;
+    if (v > 1.0) v = 1.0;
+    return v;
+}
+
 float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
@@ -1416,7 +1600,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             long time = (float)startMS + offset * (endMS - startMS);
 
             float last = -1000.0;
-            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)) ; cur <= time + frameMS; cur += step)
+            for (long cur = std::max(startMS, (long)(time - GetParameter4() * frameMS)); cur <= time + frameMS; cur += step)
             {
                 float x = (float)(cur - startMS) / (float)(endMS - startMS);
                 float f = 0.0;
@@ -1447,7 +1631,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         }
     }
 
-    if (_type == "Music")
+    if (_type == "Music" || _type == "Inverted Music")
     {
         if (__audioManager != nullptr)
         {
@@ -1456,7 +1640,11 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             auto pf = __audioManager->GetFrameData(FRAMEDATATYPE::FRAMEDATA_HIGH, "", time);
             if (pf != nullptr)
             {
-                f = *pf->begin();
+                f = ApplyGain(*pf->begin(), GetParameter3());
+                if (_type == "Inverted Music")
+                {
+                    f = 1.0 - f;
+                }
             }
 
             float min = (GetParameter1() - _min) / (_max - _min);
@@ -1680,7 +1868,7 @@ wxBitmap ValueCurve::GetImage(int w, int h, double scaleFactor)
     dc.SetPen(*wxBLACK_PEN);
     float lastY = height - 1 - (GetValueAt(0, 0, 1)) * height;
 
-    if (_type == "Music" || _type == "Music Trigger Fade")
+    if (_type == "Music" || _type == "Inverted Music" || _type == "Music Trigger Fade")
     {
         dc.DrawCircle(width / 4, height - height / 4, wxCoord(std::min(width / 5, height / 5)));
         dc.DrawLine(width / 4 + width / 5, height - height / 4, width / 4 + width / 5, height / 5);

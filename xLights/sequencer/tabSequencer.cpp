@@ -246,7 +246,7 @@ void xLightsFrame::InitSequencer()
     }
 
     mSequencerInitialize = true;
-    _housePreviewPanel->GetModelPreview()->InitializePreview(mBackgroundImage, mBackgroundBrightness, mBackgroundAlpha);
+    _housePreviewPanel->GetModelPreview()->InitializePreview(mBackgroundImage, mBackgroundBrightness, mBackgroundAlpha, GetDisplay2DCenter0());
     _housePreviewPanel->GetModelPreview()->SetScaleBackgroundImage(mScaleBackgroundImage);
 }
 
@@ -632,8 +632,6 @@ void xLightsFrame::CheckForValidModels()
 
 void xLightsFrame::LoadAudioData(xLightsXmlFile& xml_file)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     // abort any in progress render ... as it may be using any already open media
     if (xml_file.GetMedia() != nullptr)
     {
@@ -970,7 +968,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         int pageIndex = event.GetInt();
         // Dont change page if it is already on correct page
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
-            EffectsPanel1->EffectChoicebook->SetSelection(pageIndex);
+            EffectsPanel1->SetEffectType(pageIndex);
 
             timingPanel->SetDefaultControls(nullptr, true);
             bufferPanel->SetDefaultControls(nullptr, true);
@@ -1921,12 +1919,28 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                 std::string effectName = el->GetEffect(j)->GetEffectName();
                 int effectIndex = el->GetEffect(j)->GetEffectIndex();
 
+                auto oldSettings = el->GetEffect(j)->GetSettings();
+
                 std::string settings = EffectsPanel1->GetRandomEffectString(effectIndex).ToStdString();
                 std::string palette = colorPanel->GetRandomColorString().ToStdString();
 
                 mSequenceElements.get_undo_mgr().CaptureModifiedEffect(element->GetModelName(),
                                                                        el->GetIndex(),
                                                                        el->GetEffect(j));
+
+                // Keep canvas mode if it was set as the effect is unlikely to work 
+                // properly without it
+                for (auto it : oldSettings)
+                {
+                    //if (StartsWith(it.first, "B_") || StartsWith(it.first, "T_"))
+                    //{
+                    //    settings += "," + it.first + "=" + it.second;
+                    //}
+                    if (it.first == "T_CHECKBOX_Canvas")
+                    {
+                        settings += "," + it.first + "=" + it.second;
+                    }
+                }
 
                 el->GetEffect(j)->SetSettings(settings, true);
                 el->GetEffect(j)->SetEffectIndex(effectIndex);
@@ -1979,7 +1993,8 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         std::string palette;
         std::string effectText = GetEffectTextFromWindows(palette);
         if (effectText != selectedEffectString
-            || palette != selectedEffectPalette) {
+            || palette != selectedEffectPalette
+            || eff->GetEffectIndex() != EffectsPanel1->EffectChoicebook->GetSelection()) {
 
             int effectIndex = EffectsPanel1->EffectChoicebook->GetSelection();
             wxString name = EffectsPanel1->EffectChoicebook->GetPageText(effectIndex);
@@ -1994,6 +2009,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             if (el == nullptr)
             {
                 logger_base.crit("OnEffectSettingsTimerTrigger el is nullptr ... this is going to crash.");
+                wxASSERT(false);
             }
 
             Element *elem = el->GetParentElement();
@@ -2002,6 +2018,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             if (elem == nullptr)
             {
                 logger_base.crit("OnEffectSettingsTimerTrigger elem is nullptr ... this is going to crash.");
+                wxASSERT(false);
             }
 
             //check for undo capture
@@ -2037,8 +2054,6 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
             {
                 colorPanel->SetSupports(ef->SupportsLinearColorCurves(eff->GetSettings()), ef->SupportsRadialColorCurves(eff->GetSettings()));
             }
-
-            return;
         }
     }
 }
@@ -2220,8 +2235,6 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
 
 void xLightsFrame::ApplySetting(wxString name, const wxString &value)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxWindow* ContextWin;
 	if (name.StartsWith("E_"))
 	{
@@ -2434,7 +2447,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
     colorPanel->ValidateWindow();
 }
 
-std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette)
+std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
 {
     RenderableEffect *eff = effectManager[EffectsPanel1->EffectChoicebook->GetSelection()];
     if (eff == nullptr)
@@ -3515,6 +3528,7 @@ bool equals(Effect *e, Effect *e2, const wxString &pal, const wxString &set) {
     }
     return true;
 }
+
 void xLightsFrame::DoPromoteEffects(ModelElement *element) {
     //first promote from nodes to strands
     for (int x = 0; x < element->GetStrandCount(); x++) {

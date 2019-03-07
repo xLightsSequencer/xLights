@@ -10,6 +10,7 @@
 #include "ChannelBlockModel.h"
 #include "CircleModel.h"
 #include "TreeModel.h"
+#include "CubeModel.h"
 #include "CustomModel.h"
 #include "DmxModel.h"
 #include "ImageModel.h"
@@ -24,10 +25,10 @@
 #include "IciclesModel.h"
 #include "../sequencer/Element.h"
 #include "../xLightsMain.h"
+#include "UtilFunctions.h"
+#include "outputs/Output.h"
 
 #include <log4cpp/Category.hh>
-#include "outputs/Output.h"
-#include "UtilFunctions.h"
 
 ModelManager::ModelManager(OutputManager* outputManager, xLightsFrame* xl) :
     _outputManager(outputManager),
@@ -298,8 +299,6 @@ void ModelManager::OldRecalcStartChannels() const {
 
 void ModelManager::DisplayStartChannelCalcWarning() const
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     static std::string lastwarn = "";
     std::string msg = "Could not calculate start channels for models:\n";
     for (auto it = models.begin(); it != models.end(); ++it) {
@@ -415,7 +414,6 @@ void ModelManager::ReworkStartChannel() const
 }
 
 bool ModelManager::LoadGroups(wxXmlNode *groupNode, int previewW, int previewH) {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     this->groupNode = groupNode;
     std::list<ModelGroup*> toBeDone;
     bool changed = false;
@@ -629,11 +627,25 @@ Model* ModelManager::CreateDefaultModel(const std::string &type, const std::stri
     } else if (type == "Wreath") {
         model = new WreathModel(node, *this, false);
     } else if (type.find("Sphere") == 0) {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "10");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "10");
         model = new SphereModel(node, *this, false);
     } else if (type == "Single Line") {
         model = new SingleLineModel(node, *this, false);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, false);
+    } else if (type == "Cube") {
+        node->DeleteAttribute("parm1");
+        node->AddAttribute("parm1", "5");
+        node->DeleteAttribute("parm2");
+        node->AddAttribute("parm2", "5");
+        node->DeleteAttribute("parm3");
+        node->AddAttribute("parm3", "5");
+        node->DeleteAttribute("Style");
+        node->AddAttribute("Style", "Horizontal Left/Right");
+        model = new CubeModel(node, *this, false);
     } else if (type == "Custom") {
         node->DeleteAttribute("parm1");
         node->AddAttribute("parm1", "5");
@@ -708,6 +720,8 @@ Model *ModelManager::CreateModel(wxXmlNode *node, int previewW, int previewH, bo
         model = new SingleLineModel(node, *this, zeroBased);
     } else if (type == "Poly Line") {
         model = new PolyLineModel(node, *this, zeroBased);
+    } else if (type == "Cube") {
+        model = new CubeModel(node, *this, zeroBased);
     } else if (type == "Custom") {
         model = new CustomModel(node, *this, zeroBased);
     } else if (type.find("Tree") == 0) {

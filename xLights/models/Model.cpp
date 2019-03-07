@@ -358,8 +358,6 @@ static wxArrayString NODE_TYPES;
 static wxArrayString RGBW_HANDLING;
 static wxArrayString PIXEL_STYLES;
 static wxArrayString LAYOUT_GROUPS;
-static wxArrayString CONTROLLERS;
-static wxArrayString CONTROLLER_PORTS;
 static wxArrayString CONTROLLER_PROTOCOLS;
 static wxArrayString CONTROLLER_DIRECTION;
 static wxArrayString CONTROLLER_COLORORDER;
@@ -656,14 +654,6 @@ static inline void setupProtocolList() {
         CONTROLLER_COLORORDER.push_back("WBRG");
         CONTROLLER_COLORORDER.push_back("WBGR");
     }
-
-    if (CONTROLLER_PORTS.IsEmpty()) {
-        //not ideal.  Would like to be able to limit to what the controller supports
-        CONTROLLER_PORTS.push_back("");
-        for (int x = 1; x <= 48; x++) {
-            CONTROLLER_PORTS.push_back(wxString::Format("%d", x));
-        }
-    }
 }
 
 void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
@@ -672,8 +662,12 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
 
     wxPGProperty *p = grid->Append(new wxPropertyCategory("Controller Connection", "ModelControllerConnectionProperties"));
 
-    wxPGProperty *sp = grid->AppendIn(p, new wxEnumProperty("Port", "ModelControllerConnectionPort", CONTROLLER_PORTS, wxArrayInt(), GetControllerPort(1)));
-    if (_controllerName != "" && GetControllerPort(1) == 0)
+    wxPGProperty *sp = grid->AppendIn(p, new wxUIntProperty("Port", "ModelControllerConnectionPort", GetPort(1)));
+    sp->SetAttribute("Min", 0);
+    sp->SetAttribute("Max", 48);
+    sp->SetEditor("SpinCtrl");
+
+        if (_controllerName != "" && GetControllerPort(1) == 0)
     {
         sp->SetBackgroundColour(*wxRED);
     }
@@ -682,7 +676,7 @@ void Model::AddControllerProperties(wxPropertyGridInterface *grid) {
         sp->SetBackgroundColour(*wxWHITE);
     }
 
-    wxString protocol = GetControllerProtocol();
+	wxString protocol = GetControllerProtocol();
     protocol.LowerCase();
     int idx = -1;
     int i = 0;
@@ -829,30 +823,26 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         ModelXml->DeleteAttribute("PixelSize");
         ModelXml->AddAttribute("PixelSize", wxString::Format(wxT("%i"), pixelSize));
         IncrementChangeCount();
-        return 3;
-    }
-    else if (event.GetPropertyName() == "ModelPixelStyle") {
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+    } else if (event.GetPropertyName() == "ModelPixelStyle") {
         pixelStyle = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Antialias");
         ModelXml->AddAttribute("Antialias", wxString::Format(wxT("%i"), pixelStyle));
         IncrementChangeCount();
-        return 3;
-    }
-    else if (event.GetPropertyName() == "ModelPixelTransparency") {
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+    } else if (event.GetPropertyName() == "ModelPixelTransparency") {
         transparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("Transparency");
         ModelXml->AddAttribute("Transparency", wxString::Format(wxT("%i"), transparency));
         IncrementChangeCount();
-        return 3;
-    }
-    else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+    } else if (event.GetPropertyName() == "ModelPixelBlackTransparency") {
         blackTransparency = event.GetValue().GetLong();
         ModelXml->DeleteAttribute("BlackTransparency");
         ModelXml->AddAttribute("BlackTransparency", wxString::Format(wxT("%i"), blackTransparency));
         IncrementChangeCount();
-        return 3;
-    }
-    else if (event.GetPropertyName() == "ModelStrandNodeNames") {
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+    } else if (event.GetPropertyName() == "ModelStrandNodeNames") {
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
         return 2;
@@ -860,7 +850,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     else if (event.GetPropertyName() == "ModelDimmingCurves") {
         SetFromXml(ModelXml, zeroBased);
         IncrementChangeCount();
-        return 2;
+        return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelChain") {
         SetModelChain(event.GetValue().GetString());
         ModelXml->DeleteAttribute("Advanced");
@@ -899,7 +889,6 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             grid->GetPropertyByName("ControllerConnection")->SetBackgroundColour(*wxWHITE);
 		}
     } else if (event.GetPropertyName() == "ModelControllerConnectionPort") {
-
         SetControllerPort(event.GetValue().GetLong());
 
         if (_controllerName != "" && GetControllerPort(1) == 0)
@@ -1081,7 +1070,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         {
             ModelXml->AddAttribute("Description", XmlSafe(description));
         }
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelFaces") {
         wxXmlNode *f = ModelXml->GetChildren();
@@ -1096,7 +1085,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteFaceInfo(ModelXml, faceInfo);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelStates") {
         wxXmlNode *f = ModelXml->GetChildren();
@@ -1111,7 +1100,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             }
         }
         Model::WriteStateInfo(ModelXml, stateInfo);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY;
     } else if (event.GetPropertyName() == "ModelStringColor"
                || event.GetPropertyName() == "ModelStringType"
@@ -1144,7 +1133,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->AddAttribute("RGBWHandling", RGBW_HANDLING[p2->GetValue().GetLong()]);
         }
         SetFromXml(ModelXml, zeroBased);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | ((event.GetPropertyName() == "ModelStringType" ) ? GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST : 0);
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {
 
@@ -1162,8 +1151,8 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
             ModelXml->DeleteAttribute(StartChanAttrName(0));
             ModelXml->AddAttribute(StartChanAttrName(0), val);
         }
-        RecalcStartChannels();
-        IncrementChangeCount();
+        //RecalcStartChannels();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
@@ -1186,7 +1175,7 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
         }
         RecalcStartChannels();
         AdjustStringProperties(grid, parm1);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualStartChannels.")) {
         wxString str = event.GetPropertyName();
@@ -1201,14 +1190,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
 
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, val);
-        RecalcStartChannels();
-        IncrementChangeCount();
+        //RecalcStartChannels();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelLayoutGroup") {
         layout_group = LAYOUT_GROUPS[event.GetValue().GetLong()];
         ModelXml->DeleteAttribute("LayoutGroup");
         ModelXml->AddAttribute("LayoutGroup", layout_group);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_UPDATE_ALL_MODEL_LISTS;
     }
 
@@ -1217,14 +1206,14 @@ int Model::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEve
     if (i & GRIDCHANGE_MARK_DIRTY) {
         GetModelScreenLocation().Write(ModelXml);
         SetFromXml(ModelXml, zeroBased);
-        IncrementChangeCount();
+        //IncrementChangeCount();
     }
 
     return i;
 }
 
 void Model::AdjustStringProperties(wxPropertyGridInterface *grid, int newNum) {
-    wxPropertyGrid *pg = (wxPropertyGrid*)grid;
+    wxPropertyGrid *pg = static_cast<wxPropertyGrid*>(grid);
     wxPGProperty *p = grid->GetPropertyByName("ModelIndividualStartChannels");
     if (p != nullptr) {
         pg->Freeze();
@@ -2000,7 +1989,11 @@ std::string Model::GetControllerConnectionRangeString() const
 {
     if (GetControllerProtocol() == "") return "";
     std::string ret = wxString::Format("%s:%d", GetControllerProtocol(), GetControllerPort(1)).ToStdString();
-    if (GetNumPhysicalStrings() > 1)
+    if (GetPort(1) == 0)
+    {
+        ret = wxString::Format("%s", GetProtocol()).ToStdString();
+    }
+    if (GetNumPhysicalStrings() > 1 && GetPort(1) != 0)
     {
         ret = wxString::Format("%s-%d", ret, GetControllerPort(GetNumPhysicalStrings())).ToStdString();
     }
@@ -2375,15 +2368,6 @@ void Model::SetPosition(double posx, double posy) {
     IncrementChangeCount();
 }
 
-void Model::AddOffset(double deltax, double deltay, double deltaz) {
-
-    if (GetModelScreenLocation().IsLocked()) return;
-
-    GetModelScreenLocation().AddOffset(deltax, deltay, deltaz);
-    GetModelScreenLocation().Write(ModelXml);
-    IncrementChangeCount();
-}
-
 // initialize screen coordinates
 // parm1=Number of Strings/Arches/Canes
 // parm2=Pixels Per String/Arch/Cane
@@ -2595,6 +2579,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, cnt, 0);
@@ -2609,6 +2594,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("XXX Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 SetCoords(*it2, 0, 0);
@@ -2634,6 +2620,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 if (newNodes[x] == nullptr)
                 {
                     logger_base.crit("AAA Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    wxASSERT(false);
                 }
                 for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                     SetCoords(*it2, strand, cnt, -1, bufferHt, strandLen);
@@ -2662,6 +2649,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
                 if (newNodes[x] == nullptr)
                 {
                     logger_base.crit("BBB Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                    wxASSERT(false);
                 }
                 for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                     SetCoords(*it2, cnt, strand, bufferWi, -1, strandLen);
@@ -2676,7 +2664,6 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
         float minX = 1000000.0;
         float maxY = -1000000.0;
         float minY = 1000000.0;
-        GetModelScreenLocation().PrepareToDraw(false, false);
 
         ModelPreview* modelPreview = nullptr;
         PreviewCamera* pcamera = nullptr;
@@ -2686,58 +2673,47 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             pcamera = xLightsApp::GetFrame()->viewpoint_mgr.GetNamedCamera3D(camera);
         }
 
+        if (pcamera != nullptr && camera != "2D")
+        {
+            GetModelScreenLocation().PrepareToDraw(true, false);
+        }
+        else
+        {
+            GetModelScreenLocation().PrepareToDraw(false, false);
+        }
+
         // We save the transformed coordinates here so we dont have to calculate them all twice
         std::list<float> outx;
         std::list<float> outy;
-
-        if (GetDisplayAs() == "ModelGroup" && camera != "2D" )
-        {
-            std::vector<Model *> models;
-            wxArrayString mn = wxSplit(ModelXml->GetAttribute("models"), ',');
-            int nc = 0;
-            for (int x = 0; x < mn.size(); x++) {
-                Model *c = modelManager.GetModel(mn[x].ToStdString());
-                if (c != nullptr) {
-                    models.push_back(c);
-                    nc += c->GetNodeCount();
-                }
-                else if (mn[x] == "")
-                {
-                    // silently ignore blank models
-                }
-            }
-
-            if (nc) {
-                newNodes.reserve(nc);
-            }
-            for (Model *c : models) {
-                int bw, bh;
-                c->InitRenderBufferNodes("Per Preview No Offset", camera, transform, newNodes, bw, bh);
-            }
-        }
 
         for (int x = firstNode; x < newNodes.size(); x++) {
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("CCC Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
                 float sx = it2->screenX;
                 float sy = it2->screenY;
 
-                if (pcamera == nullptr || camera == "2D")
+                if (ModelXml == nullptr)
                 {
-                    // Handle all of the 2D classic transformations
-                    float sz = 0;
-                    GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                    // if model xml is null then this isnt a real model which means it doesnt have a real location
+                    // which means translatePoint is going to do strange things ... so dont call it
                 }
                 else
                 {
-                    // Handle 3D from an arbitrary camera position
-                    float sz = it2->screenZ;
-                    if (GetDisplayAs() != "ModelGroup")  // ignore for groups since they will have already calculated their node positions from recursion call above
+                    if (pcamera == nullptr || camera == "2D")
                     {
+                        // Handle all of the 2D classic transformations
+                        float sz = 0;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
+                    }
+                    else
+                    {
+                        // Handle 3D from an arbitrary camera position
+                        float sz = it2->screenZ;
+
                         // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
                         glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
                         loc.y *= -1.0f;
@@ -2804,6 +2780,7 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
             if (newNodes[x] == nullptr)
             {
                 logger_base.crit("DDD Model::InitRenderBufferNodes newNodes[x] is null ... this is going to crash.");
+                wxASSERT(false);
             }
             for (auto it2 = newNodes[x]->Coords.begin(); it2 != newNodes[x]->Coords.end(); ++it2) {
 
@@ -2845,12 +2822,12 @@ void Model::InitRenderBufferNodes(const std::string &type, const std::string &ca
 
     // Zero buffer sizes are bad
     // This can happen when a strand is zero length ... maybe also a custom model with no nodes
-    if (BufferHt == 0)
+    if (bufferHt == 0)
     {
         logger_base.warn("Model::InitRenderBufferNodes BufferHt was 0 ... overidden to be 1.");
         bufferHt = 1;
     }
-    if (BufferWi == 0)
+    if (bufferWi == 0)
     {
         logger_base.warn("Model::InitRenderBufferNodes BufferWi was 0 ... overidden to be 1.");
         bufferWi = 1;
@@ -3315,6 +3292,22 @@ void Model::ExportAsCustomXModel() const {
     f.Close();
 }
 
+std::string Model::GetStartLocation() const
+{
+    if (!IsLtoR) {
+     if (!isBotToTop)
+         return "Top Right";
+     else
+         return "Bottom Right";
+    }
+     else {
+     if (!isBotToTop)
+         return "Top Left";
+     else
+         return "Bottom Left";
+    }
+}
+
 std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
 {
     size_t NodeCount = GetNodeCount();
@@ -3322,22 +3315,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager)
     std::vector<int> chmap;
     chmap.resize(BufferHt * BufferWi, 0);
 
-    bool IsCustom = DisplayAs == "Custom";
-
-    std::string direction;
-    if (IsCustom) {
-        direction = "n/a";
-    } else if (!IsLtoR) {
-        if(!isBotToTop)
-            direction = "Top Right";
-        else
-            direction = "Bottom Right";
-    } else {
-        if (!isBotToTop)
-            direction = "Top Left";
-        else
-            direction = "Bottom Left";
-    }
+    std::string direction = GetStartLocation();
 
     long sc;
     Output* o = outputManager->GetOutput(this->GetFirstChannel(), sc);
@@ -3435,6 +3413,7 @@ void Model::UpdateXmlWithScale() {
         ModelXml->DeleteAttribute("versionNumber");
     ModelXml->AddAttribute("versionNumber", "3");
     ModelXml->AddAttribute("StartChannel", ModelStartChannel);
+    IncrementChangeCount();
 }
 
 bool Model::IsContained(ModelPreview* preview, int x1, int y1, int x2, int y2) {
@@ -3461,7 +3440,7 @@ void Model::ApplyTransparency(xlColor &color, int transparency) const
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -3491,6 +3470,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
     if (vcount > maxVertexCount) {
         maxVertexCount = vcount;
     }
+    bool needTransparent = false;
+    if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
+        needTransparent = true;
+    }
+    DrawGLUtils::xlAccumulator &va = needTransparent ? tva : sva;
     va.PreAlloc(maxVertexCount);
 
     int first = 0;
@@ -3592,7 +3576,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulat
 
 // display model using colors stored in each node
 // used when preview is running
-void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     size_t NodeCount = Nodes.size();
     xlColor color;
     if (c != nullptr) {
@@ -3621,6 +3605,11 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
     if (vcount > maxVertexCount) {
         maxVertexCount = vcount;
     }
+    bool needTransparent = false;
+    if (pixelStyle == 3 || transparency != 0 || blackTransparency != 0) {
+        needTransparent = true;
+    }
+    DrawGLUtils::xl3Accumulator &va = needTransparent ? tva : sva;
     va.PreAlloc(maxVertexCount);
 
     int first = 0;
@@ -3665,7 +3654,7 @@ void Model::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumula
             }
         }
         size_t CoordCount=GetCoordCount(n);
-        for(size_t c2=0; c2 < CoordCount; c2++) {
+        for (size_t c2=0; c2 < CoordCount; c2++) {
             // draw node on screen
             float sx = Nodes[n]->Coords[c2].screenX;;
             float sy = Nodes[n]->Coords[c2].screenY;
@@ -4400,7 +4389,7 @@ bool Model::CleanupFileLocations(xLightsFrame* frame)
         Model::WriteFaceInfo(ModelXml, faceInfo);
     }
 
-    return rc;
+    return BaseObject::CleanupFileLocations(frame) || rc;
 }
 
 // all when true includes all image files ... even if they dont really exist

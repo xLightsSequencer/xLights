@@ -154,7 +154,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxSlider" name="IDD_SLIDER_Faces_TransparentBlack" subclass="BulkEditSlider" variable="Slider1" member="yes">
+						<object class="wxSlider" name="IDD_SLIDER_Faces_TransparentBlack" subclass="BulkEditSlider" variable="Slider_Faces_TransparentBlack" member="yes">
 							<max>300</max>
 						</object>
 						<flag>wxALL|wxEXPAND</flag>
@@ -162,7 +162,7 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxTextCtrl" name="ID_TEXTCTRL_Faces_TransparentBlack" subclass="BulkEditTextCtrl" variable="TextCtrl3" member="yes">
+						<object class="wxTextCtrl" name="ID_TEXTCTRL_Faces_TransparentBlack" subclass="BulkEditTextCtrl" variable="TextCtrl_Faces_TransparentBlack" member="yes">
 							<value>0</value>
 							<size>40,-1d</size>
 							<style>wxTE_RIGHT</style>

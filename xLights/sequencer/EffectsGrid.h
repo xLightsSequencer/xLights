@@ -96,9 +96,12 @@ public:
     void CopyModelEffects(int row_number, bool allLayers);
     void PasteModelEffects(int row_number, bool allLayers);
     Effect* GetSelectedEffect() const;
-    int GetSelectedEffectCount(const std::string effectName) const;
+    int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;
-    void ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
+    void ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid);
+    void ApplyButtonPressToSelected(const std::string& effectName, const std::string id);
+    void RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs);
+    void ConvertSelectedEffectsTo(const std::string& effectName);
 
     bool HandleACKey(wxChar key, bool shift = false);
     bool IsACActive();
@@ -131,11 +134,11 @@ public:
     void sendRenderDirtyEvent();
     void UnselectEffect(bool force = false);
 protected:
-    virtual void InitializeGLCanvas();
+    void InitializeGLCanvas() override;
 
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType);
-    int GetClippedPositionFromTimeMS(int ms);
+    int GetClippedPositionFromTimeMS(int ms) const;
 
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);
     void render(wxPaintEvent& evt);

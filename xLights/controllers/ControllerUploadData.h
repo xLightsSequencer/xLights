@@ -29,6 +29,7 @@ public:
     virtual bool SupportsMultipleProtocols() const = 0;
     virtual bool AllUniversesSameSize() const = 0;
     virtual std::list<std::string> GetSupportedInputProtocols() const = 0;
+    virtual bool SupportsMultipleInputProtocols() const = 0;
     virtual bool UniversesMustBeSequential() const = 0;
 };
 
@@ -113,6 +114,7 @@ class UDControllerPort
 		long GetStartChannel() const;
 		long GetEndChannel() const;
 		long Channels() const;
+        int Pixels() const { return Channels() / 3; }
         std::string GetProtocol() const { return _protocol; }
 		std::string GetPortName() const;
 		int GetPort() const { return _port; }
@@ -127,6 +129,7 @@ class UDControllerPort
         void CreateVirtualStrings();
         int GetVirtualStringCount() const { return _virtualStrings.size(); }
         std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
+        std::list<UDControllerPortModel*> GetModels() const { return _models; }
 };
 
 class UDController

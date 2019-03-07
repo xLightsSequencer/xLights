@@ -93,6 +93,13 @@ void PolyLineModel::InitRenderBufferNodes(const std::string &type, const std::st
         Model::InitRenderBufferNodes(type, camera, transform, newNodes, BufferWi, BufferHi);
     }
 }
+int PolyLineModel::GetPolyLineSize(int polyLineLayer) const {
+    if (polyLineLayer >= polyLineSizes.size()) return 0;
+    if (polyLineSegDropSizes[polyLineLayer]) {
+        return polyLineSegDropSizes[polyLineLayer];
+    }
+    return polyLineSizes[polyLineLayer];
+}
 
 int PolyLineModel::GetStrandLength(int strand) const {
     return SingleNode ? 1 : GetPolyLineSize(strand);
@@ -597,12 +604,12 @@ void PolyLineModel::InitModel() {
                     c++;
                 } else {
                     c = 0;
-                    if (!SingleNode)
-                    {
+                    if (!SingleNode) {
                         IsLtoR ? idx++ : idx--;
                     }
                 }
             }
+            polyLineSegDropSizes[segment] += drops_this_node;
             drop_index %= dropSizes.size();
             current_pos += offset;
         }
@@ -740,15 +747,19 @@ void PolyLineModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("PolyLineNodes" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm2");
-        ModelXml->AddAttribute("parm2", wxString::Format("%ld", (int)event.GetPropertyValue().GetLong()));
+        ModelXml->AddAttribute("parm2", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
         SetFromXml(ModelXml, zeroBased);
         wxPGProperty* sp = grid->GetPropertyByLabel("# Nodes");
+        if (sp == nullptr)
+        {
+            sp = grid->GetPropertyByLabel("# Lights");
+        }
         sp->SetValueFromInt(parm2);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("PolyLineLights" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm3");
-        ModelXml->AddAttribute("parm3", wxString::Format("%ld", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
+        ModelXml->AddAttribute("parm3", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
+        //SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("PolyLineStart" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Dir");
@@ -776,16 +787,16 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
                 ModelXml->DeleteAttribute(SegAttrName(x));
             }
         }
-        SetFromXml(ModelXml, zeroBased);
-        IncrementChangeCount();
+        //SetFromXml(ModelXml, zeroBased);
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName().StartsWith("ModelIndividualSegments.")) {
         wxString str = event.GetPropertyName();
         str = str.SubString(str.Find(".") + 1, str.length());
         ModelXml->DeleteAttribute(str);
         ModelXml->AddAttribute(str, event.GetValue().GetString());
-        SetFromXml(ModelXml, zeroBased);
-        IncrementChangeCount();
+        //SetFromXml(ModelXml, zeroBased);
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_PROP_GRID | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if (event.GetPropertyName() == "ModelIndividualStartChannels") {
         ModelXml->DeleteAttribute("Advanced");
@@ -806,7 +817,7 @@ int PolyLineModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropert
         }
         RecalcStartChannels();
         AdjustStringProperties(grid, num_segments);
-        IncrementChangeCount();
+        //IncrementChangeCount();
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("IciclesDrops" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DropPattern");
@@ -861,8 +872,6 @@ void PolyLineModel::OnPropertyGridItemExpanded(wxPropertyGridInterface *grid, wx
 
 void PolyLineModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, float& min_x, float& max_x, float& min_y, float& max_y)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
-
     wxXmlDocument doc(filename);
 
     if (doc.IsOk())

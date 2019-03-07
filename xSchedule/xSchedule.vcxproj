@@ -22,7 +22,7 @@
     <ProjectGuid>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Xlights</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -339,6 +339,7 @@
     <ClCompile Include="PlayList\PlayListStepPanel.cpp" />
     <ClCompile Include="PlayList\VideoWindowPositionDialog.cpp" />
     <ClCompile Include="RemapDialog.cpp" />
+    <ClCompile Include="RemoteModeConfigDialog.cpp" />
     <ClCompile Include="RunningSchedule.cpp" />
     <ClCompile Include="Schedule.cpp" />
     <ClCompile Include="ScheduleDialog.cpp" />
@@ -346,6 +347,11 @@
     <ClCompile Include="ScheduleOptions.cpp" />
     <ClCompile Include="SetDialog.cpp" />
     <ClCompile Include="SustainDialog.cpp" />
+    <ClCompile Include="SyncArtNet.cpp" />
+    <ClCompile Include="SyncFPP.cpp" />
+    <ClCompile Include="SyncManager.cpp" />
+    <ClCompile Include="SyncMIDI.cpp" />
+    <ClCompile Include="SyncOSC.cpp" />
     <ClCompile Include="ThreeToFourDialog.cpp" />
     <ClCompile Include="UserButton.cpp" />
     <ClCompile Include="VideoCache.cpp" />
@@ -539,6 +545,7 @@
     <ClInclude Include="ProjectorCodes.h" />
     <ClInclude Include="ReentrancyCounter.h" />
     <ClInclude Include="RemapDialog.h" />
+    <ClInclude Include="RemoteModeConfigDialog.h" />
     <ClInclude Include="RunningSchedule.h" />
     <ClInclude Include="Schedule.h" />
     <ClInclude Include="ScheduleDialog.h" />
@@ -546,6 +553,11 @@
     <ClInclude Include="ScheduleOptions.h" />
     <ClInclude Include="SetDialog.h" />
     <ClInclude Include="SustainDialog.h" />
+    <ClInclude Include="SyncArtNet.h" />
+    <ClInclude Include="SyncFPP.h" />
+    <ClInclude Include="SyncManager.h" />
+    <ClInclude Include="SyncMIDI.h" />
+    <ClInclude Include="SyncOSC.h" />
     <ClInclude Include="ThreeToFourDialog.h" />
     <ClInclude Include="UserButton.h" />
     <ClInclude Include="VideoCache.h" />

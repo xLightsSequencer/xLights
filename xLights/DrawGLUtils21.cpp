@@ -324,8 +324,9 @@ public:
     }
 
 
-    void Draw(DrawGLUtils::xlAccumulator &va) override {
-        if (va.count == 0) {
+    void Draw(DrawGLUtils::xlAccumulator &va, DrawType dt) override {
+        if (va.count == 0 || dt == DrawType::SOLIDS) {
+            //we cannot determine transparent vs solid right now so draw everything when transparents are asked
             return;
         }
         bool intelMapped = false;
@@ -420,7 +421,11 @@ public:
                         GLuint cid = glGetUniformLocation(textProgramId, "RenderType");
                         LOG_GL_ERRORV(glUniform1i(cid, 0));
                         cid = glGetUniformLocation(textProgramId, "inColor");
-                        LOG_GL_ERRORV(glUniform4f(cid, 1.0, 1.0, 1.0, ((float)it->textureAlpha)/255.0));
+                        float trans = it->textureAlpha;
+                        trans /= 255.0f;
+                        float bri = it->textureBrightness;
+                        bri /= 100.0f;
+                        LOG_GL_ERRORV(glUniform4f(cid, bri, bri, bri, trans));
                     }
                     LOG_GL_ERRORV(glActiveTexture(GL_TEXTURE0)); //switch to texture image unit 0
                     LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
@@ -594,8 +599,9 @@ public:
         LOG_GL_ERRORV(glDisableVertexAttribArray(cattrib));
         LOG_GL_ERRORV(glDisableVertexAttribArray(vattrib));
     }
-
-
+    virtual DrawGLUtils::xl3DMesh *createMesh() override {
+        return nullptr;
+    }
     virtual void addVertex(float x, float y, const xlColor &c) override {
         data.PreAlloc(1);
         data.AddVertex(x, y, c);
@@ -656,12 +662,17 @@ public:
         matrix = new glm::mat4(*matrix);
     }
     void PopMatrix() override {
+        static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
         if (!matrixStack.empty()) {
             if (matrix != nullptr) {
                 delete matrix;
             }
             matrix = matrixStack.top();
             matrixStack.pop();
+        }
+        else
+        {
+            logger_opengl.error("OpenGL21Cache PopMatrix called but no matrixes in the stack.");
         }
     }
     void Translate(float x, float y, float z) override {

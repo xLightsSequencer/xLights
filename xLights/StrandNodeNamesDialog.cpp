@@ -1,9 +1,8 @@
 #include "StrandNodeNamesDialog.h"
 
 //(*InternalHeaders(StrandNodeNamesDialog)
-#include <wx/button.h>
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 #include <sstream>
@@ -12,6 +11,8 @@
 //(*IdInit(StrandNodeNamesDialog)
 const long StrandNodeNamesDialog::ID_GRID2 = wxNewId();
 const long StrandNodeNamesDialog::ID_GRID1 = wxNewId();
+const long StrandNodeNamesDialog::ID_BUTTONOK = wxNewId();
+const long StrandNodeNamesDialog::ID_BUTTONCANCEL = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(StrandNodeNamesDialog,wxDialog)
@@ -24,9 +25,9 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	//(*Initialize(StrandNodeNamesDialog)
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer2;
+	wxFlexGridSizer* FlexGridSizer3;
 	wxStaticText* StaticText1;
 	wxStaticText* StaticText2;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
 	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
 	SetClientSize(wxDefaultSize);
@@ -57,17 +58,26 @@ StrandNodeNamesDialog::StrandNodeNamesDialog(wxWindow* parent,wxWindowID id,cons
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
 	FlexGridSizer2->Add(NodesGrid, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	ButtonOk = new wxButton(this, ID_BUTTONOK, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONOK"));
+	ButtonOk->SetDefault();
+	FlexGridSizer3->Add(ButtonOk, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonCancel = new wxButton(this, ID_BUTTONCANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTONCANCEL"));
+	FlexGridSizer3->Add(ButtonCancel, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(ID_GRID2,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnStrandsGridCellChanged);
+	Connect(ID_GRID1,wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnNodesGridCellChanged);
+	Connect(ID_BUTTONOK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnButtonOkClick);
+	Connect(ID_BUTTONCANCEL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&StrandNodeNamesDialog::OnButtonCancelClick);
 	//*)
 
-    SetEscapeId(wxID_CANCEL);
+    SetEscapeId(ID_BUTTONCANCEL);
+
+    ValidateWindow();
 }
 
 StrandNodeNamesDialog::~StrandNodeNamesDialog()
@@ -102,12 +112,12 @@ void StrandNodeNamesDialog::Setup(const Model *md, const std::string &nodeNames,
     StrandsGrid->DeleteRows(0, 10);
     StrandsGrid->AppendRows(strands.size());
     StrandsGrid->SetRowLabelSize(40);
-    
+
     for (int x = 0; x < strands.size(); x++) {
         StrandsGrid->SetCellValue(x, 0, strands[x]);
     }
     StrandsGrid->EndBatch();
-    
+
     tempstr=nodeNames;
     nodes.clear();
     while (tempstr.size() > 0) {
@@ -131,12 +141,14 @@ void StrandNodeNamesDialog::Setup(const Model *md, const std::string &nodeNames,
     NodesGrid->HideColLabels();
     NodesGrid->DeleteRows(0, 10);
     NodesGrid->SetRowLabelSize(40);
-    
+
     NodesGrid->AppendRows(nodes.size());
     for (int x = 0; x < nodes.size(); x++) {
         NodesGrid->SetCellValue(x, 0, nodes[x]);
     }
     NodesGrid->EndBatch();
+
+    ValidateWindow();
 }
 
 std::string StrandNodeNamesDialog::GetNodeNames() {
@@ -151,6 +163,7 @@ std::string StrandNodeNamesDialog::GetNodeNames() {
     }
     return nodeNames;
 }
+
 std::string StrandNodeNamesDialog::GetStrandNames() {
     std::string strandNames;
     for (int x = StrandsGrid->GetNumberRows(); x > 0; x--) {
@@ -164,3 +177,64 @@ std::string StrandNodeNamesDialog::GetStrandNames() {
     return strandNames;
 }
 
+void StrandNodeNamesDialog::ValidateWindow()
+{
+    bool valid = true;
+
+    std::vector<std::string> st;
+
+    for (int i = 0; i < StrandsGrid->GetNumberRows(); i++) {
+        if ("" != StrandsGrid->GetCellValue(i, 0)) {
+            st.push_back(StrandsGrid->GetCellValue(i, 0));
+        }
+    }
+    std::sort(begin(st), end(st));
+    if (std::unique(begin(st), end(st)) != end(st))
+    {
+        valid = false;
+    }
+
+    if (valid)
+    {
+        std::vector<std::string> no;
+        for (int i = 0; i < NodesGrid->GetNumberRows(); i++) {
+            if ("" != NodesGrid->GetCellValue(i, 0)) {
+                no.push_back(NodesGrid->GetCellValue(i, 0));
+            }
+        }
+
+        std::sort(begin(no), end(no));
+        if (std::unique(begin(no), end(no)) != end(no))
+        {
+            valid = false;
+        }
+    }
+
+    if (valid)
+    {
+        ButtonOk->Enable();
+    }
+    else
+    {
+        ButtonOk->Enable(false);
+    }
+}
+void StrandNodeNamesDialog::OnButtonCancelClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_CANCEL);
+}
+
+void StrandNodeNamesDialog::OnButtonOkClick(wxCommandEvent& event)
+{
+    EndDialog(wxID_OK);
+}
+
+void StrandNodeNamesDialog::OnStrandsGridCellChanged(wxGridEvent& event)
+{
+    ValidateWindow();
+}
+
+void StrandNodeNamesDialog::OnNodesGridCellChanged(wxGridEvent& event)
+{
+    ValidateWindow();
+}

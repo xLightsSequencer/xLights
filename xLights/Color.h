@@ -221,16 +221,24 @@ public:
 };
 
 static const xlColor xlBLUE(0, 0, 255);
+static const xlColor xlBLUETRANSLUCENT(0, 0, 255, 180); // higher alpha because blue/black lacks contrast
 static const xlColor xlRED(255, 0, 0);
+static const xlColor xlREDTRANSLUCENT(255, 0, 0, 150);
 static const xlColor xlGREEN(0, 255, 0);
+static const xlColor xlGREENTRANSLUCENT(0, 255, 0, 150);
 static const xlColor xlBLACK(0, 0, 0);
 static const xlColor xlWHITE(255, 255, 255);
+static const xlColor xlWHITETRANSLUCENT(255, 255, 255, 150);
 static const xlColor xlYELLOW(255, 255, 0);
+static const xlColor xlYELLOWTRANSLUCENT(255, 255, 0, 150);
 static const xlColor xlORANGE(255, 128, 0);
+static const xlColor xlORANGETRANSLUCENT(255, 128, 0, 150);
 static const xlColor xlLIGHT_GREY(211, 211, 211);
 static const xlColor xlDARK_GREY(96, 96, 96);
 static const xlColor xlCYAN(0, 255, 255);
+static const xlColor xlCYANTRANSLUCENT(0, 255, 255, 150);
 static const xlColor xlMAGENTA(255, 0, 255);
+static const xlColor xlMAGENTATRANSLUCENT(255, 0, 255, 150);
 static const xlColor xlCLEAR(0, 0, 0, 0);
 
 typedef std::vector<xlColor> xlColorVector;

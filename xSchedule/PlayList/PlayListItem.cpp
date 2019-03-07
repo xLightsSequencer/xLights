@@ -2,6 +2,7 @@
 #include <wx/xml/xml.h>
 #include "../xScheduleMain.h"
 #include "../ScheduleManager.h"
+#include "../ScheduleOptions.h"
 #include "../../xLights/AudioManager.h"
 #include "../RunningSchedule.h"
 #include "PlayList.h"
@@ -110,9 +111,16 @@ bool PlayListItem::IsInSlaveMode() const
 
     if (sm == nullptr) return false;
 
-    SYNCMODE m = sm->GetMode();
+    return sm->GetSyncManager()->IsSlave();
+}
 
-    return (m == SYNCMODE::FPPSLAVE || m == SYNCMODE::ARTNETSLAVE || m == SYNCMODE::FPPUNICASTSLAVE);
+bool PlayListItem::IsSuppressAudioOnSlaves() const
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+
+    if (sm == nullptr) return false;
+
+    return sm->GetOptions()->IsSuppressAudioOnRemotes();
 }
 
 std::string PlayListItem::ReplaceTags(const std::string s) const

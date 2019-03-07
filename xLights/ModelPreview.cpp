@@ -1,6 +1,7 @@
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/artprov.h>
+#include <wx/config.h>
 
 #ifdef __WXMAC__
     #include "OpenGL/gl.h"
@@ -81,6 +82,20 @@ void ModelPreview::SaveCurrentCameraPosition()
     }
 }
 
+void ModelPreview::OnZoomGesture(wxZoomGestureEvent& event) {
+    if (!event.IsGestureStart()) {
+        float delta = (m_last_mouse_x - (event.GetZoomFactor() * 1000)) / 1000.0;
+        SetZoomDelta(delta > 0.0 ? 0.1f : -0.1f);
+        if (xlights != nullptr) {
+            if (xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
+                Refresh();
+                Update();
+            }
+        }
+    }
+    m_last_mouse_x = (event.GetZoomFactor() * 1000);
+}
+
 void ModelPreview::mouseMoved(wxMouseEvent& event) {
 	if (m_mouse_down) {
 		int delta_x = event.GetPosition().x - m_last_mouse_x;
@@ -99,12 +114,32 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
             new_y *= -1.0f;
         }
         // account for grid rotation
-        float angle = glm::radians(GetCameraRotation());
-        float delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
-        float delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+        float angleX = glm::radians(GetCameraRotationX());
+        float angleY = glm::radians(GetCameraRotationY());
+        float delta_x = 0.0f;
+        float delta_y = 0.0f;
+        float delta_z = 0.0f;
+        bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+        bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+        bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+        if( top_view ) {
+            delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+            delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+        } else if( bottom_view ) {
+            delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
+            delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+        } else {
+            delta_x = new_x * std::cos(angleY);
+            delta_y = new_y;
+            delta_z = new_x * std::sin(angleY);
+            if( !upside_down_view && is_3d) {
+                delta_y *= -1.0f;
+            }
+        }
         delta_x *= GetZoom() * 2.0f;
         delta_y *= GetZoom() * 2.0f;
-        SetPan(delta_x, delta_y);
+        delta_z *= GetZoom() * 2.0f;
+        SetPan(delta_x, delta_y, delta_z);
         m_last_mouse_x = event.GetX();
         m_last_mouse_y = event.GetY();
         if (xlights != nullptr) {
@@ -143,6 +178,8 @@ void ModelPreview::mouseLeftUp(wxMouseEvent& event) {
 }
 
 void ModelPreview::mouseLeftWindow(wxMouseEvent& event) {
+    m_mouse_down = false;
+    m_wheel_down = false;
     event.ResumePropagation(1);
     event.Skip (); // continue the event
 }
@@ -202,20 +239,44 @@ void ModelPreview::SetModel(const Model* model) {
 }
 
 void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
-    int i = event.GetWheelRotation();
-    float delta = -0.1f;
-    if (i < 0)
-    {
-        delta *= -1.0f;
+    if (event.GetWheelRotation() == 0) {
+        //rotation of 0 is sometimes generated for other gestures (pinch/zoom), ignore
+        return;
     }
-    SetZoomDelta(delta);
+    bool fromTrackPad = IsMouseEventFromTouchpad();
+    if (!fromTrackPad || event.ControlDown()) {
+        SetZoomDelta(event.GetWheelRotation() > 0 ? -0.1f : 0.1f);
+    } else {
+        float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+        float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+        if (is_3d) {
+            if (event.ShiftDown()) {
+                SetPan(delta_x, delta_y, 0.0f);
+            } else {
+                SetCameraView(delta_x, delta_y, false);
+                SetCameraView(0, 0, true);
+            }
+        } else {
+            // account for grid rotation
+            float angle = glm::radians(GetCameraRotationY());
+            float new_x = delta_x;
+            float new_y = delta_y;
+            delta_x = new_x * std::cos(angle) - new_y * std::sin(angle);
+            delta_y = new_y * std::cos(angle) + new_x * std::sin(angle);
+            delta_x *= GetZoom() * 2.0f;
+            delta_y *= GetZoom() * 2.0f;
+            SetPan(delta_x, delta_y, 0.0f);
+            m_last_mouse_x = event.GetX();
+            m_last_mouse_y = event.GetY();
+        }
+    }
+
     if (xlights != nullptr) {
         if(xlights->GetPlayStatus() == PLAY_TYPE_STOPPED) {
             Refresh();
             Update();
         }
     }
-
     event.ResumePropagation(1);
     event.Skip(); // continue the event
 }
@@ -277,9 +338,9 @@ void ModelPreview::Render()
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
             if (is_3d) {
-                m->DisplayModelOnWindow(this, accumulator3d, true, color, allowSelected);
+                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true, color, allowSelected);
             } else {
-                m->DisplayModelOnWindow(this, accumulator, false, color, allowSelected);
+                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false, color, allowSelected);
                 // FIXME:  Delete when not needed for debugging
                 //if ((*PreviewModels)[i]->Highlighted) {
                 //    (*PreviewModels)[i]->GetModelScreenLocation().DrawBoundingBox(accumulator);
@@ -291,7 +352,7 @@ void ModelPreview::Render()
     if (is_3d) {
         for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
             ViewObject *view_object = it->second;
-            view_object->Draw(this, view_object_accumulator, allowSelected);
+            view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
         }
     }
 }
@@ -306,15 +367,15 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
                 m->SetNodeChannelValues(n, &data[start]);
             }
             if (is_3d)
-                m->DisplayModelOnWindow(this, accumulator3d, true);
+                m->DisplayModelOnWindow(this, solidAccumulator3d, transparentAccumulator3d, true);
             else
-                m->DisplayModelOnWindow(this, accumulator, false);
+                m->DisplayModelOnWindow(this, solidAccumulator, transparentAccumulator, false);
         }
         // draw all the view objects
         if (is_3d) {
             for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
                 ViewObject *view_object = it->second;
-                view_object->Draw(this, view_object_accumulator, allowSelected);
+                view_object->Draw(this, solidViewObjectAccumulator, transparentViewObjectAccumulator, allowSelected);
             }
         }
         EndDrawing(swapBuffers);
@@ -324,6 +385,7 @@ void ModelPreview::Render(const unsigned char *data, bool swapBuffers/*=true*/) 
 void ModelPreview::rightClick(wxMouseEvent& event) {
     if (allowPreviewChange && xlights != nullptr) {
         wxMenu mnu;
+        mnu.Append(0x2001, "Reset");
         wxMenuItem* item = mnu.Append(0x1001, "3D", wxEmptyString, wxITEM_CHECK);
         item->Check(is_3d);
         mnu.AppendSeparator();
@@ -374,7 +436,11 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
             SetbackgroundImage(xlights->LayoutGroups[id - 1]->GetBackgroundImage());
         }
     }
-    if (id == 0x1000) {
+    if (id == 0x2000)
+    {
+        Reset();
+    }
+    else if (id == 0x1000) {
         is_3d = !is_3d;
     } else if (is_3d) {
         if (xlights->viewpoint_mgr.GetNum3DCameras() > 0) {
@@ -399,26 +465,54 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
     Update();
 }
 
+// reset cameras
+void ModelPreview::Reset()
+{
+    // Reset
+    if (is_3d)
+    {
+        camera3d->Reset();
+    }
+    else
+    {
+        camera2d->Reset();
+    }
+}
+
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame* xlights_, bool a, int styles, bool apc)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, styles, a ? "Layout" : "Preview", false),
-    virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
-    allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr), xlights(xlights_), is_3d(false),
-    m_mouse_down(false), m_wheel_down(false),  m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
-    currentLayoutGroup("Default"), currentModel("&---none---&"), additionalModel(nullptr)
+    virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
+    image(nullptr), sprite(nullptr), allowSelected(a), allowPreviewChange(apc), mPreviewPane(nullptr),
+    xlights(xlights_), currentModel("&---none---&"),  currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), renderOrder(0)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
+    
+    if (!allowSelected) {
+        EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
+        Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
+    }
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Read("OGLRenderOrder", &renderOrder, 0);
 }
 
 ModelPreview::ModelPreview(wxPanel* parent, xLightsFrame *xl)
     : xlGLCanvas(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, "ModelPreview", false),
-    virtualWidth(0), virtualHeight(0), image(nullptr), sprite(nullptr),
-    allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr), xlights(xl), is_3d(false),
-    m_mouse_down(false), m_wheel_down(false), m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), maxVertexCount(5000),
-    currentLayoutGroup("Default"), currentModel(""), additionalModel(nullptr)
+    virtualWidth(0), virtualHeight(0), _display2DBox(false), _center2D0(false),
+    image(nullptr), sprite(nullptr), allowSelected(false), allowPreviewChange(false), mPreviewPane(nullptr),
+    xlights(xl), currentModel(""), currentLayoutGroup("Default"), additionalModel(nullptr), is_3d(false), m_mouse_down(false), m_wheel_down(false),
+    m_last_mouse_x(-1), m_last_mouse_y(-1), camera3d(nullptr), camera2d(nullptr), renderOrder(0)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     setupCameras();
+    
+    EnableTouchEvents(wxTOUCH_ZOOM_GESTURE);
+    Connect(wxEVT_GESTURE_ZOOM, (wxObjectEventFunction)&ModelPreview::OnZoomGesture, nullptr, this);
+    
+    wxConfigBase* config = wxConfigBase::Get();
+    config->Read("OGLRenderOrder", &renderOrder, 0);
 }
 
 ModelPreview::~ModelPreview()
@@ -452,8 +546,9 @@ void ModelPreview::SetVirtualCanvasSize(int width, int height) {
     virtualHeight = height;
 }
 
-void ModelPreview::InitializePreview(wxString img, int brightness, int alpha)
+void ModelPreview::InitializePreview(wxString img, int brightness, int alpha, bool center2d0)
 {
+    _center2D0 = center2d0;
     if (img != mBackgroundImage) {
         if (image) {
             if (cache) {
@@ -508,6 +603,7 @@ void ModelPreview::OnSysColourChanged(wxSysColourChangedEvent& event) {
         LOG_GL_ERRORV(glClearColor(c.Red()/255.0f, c.Green()/255.0f, c.Blue()/255.0, 1.0f));
     }
 }
+
 void ModelPreview::SetOrigin()
 {
 }
@@ -564,7 +660,7 @@ double ModelPreview::calcPixelSize(double i) {
     return d;
 }
 
-bool ModelPreview::GetActive()
+bool ModelPreview::GetActive() const
 {
     return mPreviewPane->GetActive();
 }
@@ -671,11 +767,12 @@ void ModelPreview::SetZoomDelta(float delta)
     }
 }
 
-void ModelPreview::SetPan(float deltax, float deltay)
+void ModelPreview::SetPan(float deltax, float deltay, float deltaz)
 {
     if (is_3d) {
         camera3d->SetPanX(camera3d->GetPanX() + deltax);
         camera3d->SetPanY(camera3d->GetPanY() + deltay);
+        camera3d->SetPanZ(camera3d->GetPanZ() + deltaz);
     } else {
         camera2d->SetPanX(camera2d->GetPanX() + deltax);
         camera2d->SetPanY(camera2d->GetPanY() + deltay);
@@ -716,6 +813,10 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f), glm::vec3(camera2d->GetZoom() * scale2d, camera2d->GetZoom() * scale2d, 1.0f));
         glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(camera2d->GetPanX()*camera2d->GetZoom() - camera2d->GetZoomCorrX() + scale_corrx, camera2d->GetPanY()*camera2d->GetZoom() - camera2d->GetZoomCorrY() + scale_corry, 0.0f));
         ViewMatrix = ViewTranslate * ViewScale;
+        if (_center2D0) {
+            glm::mat4 cTranslate =  glm::translate(glm::mat4(1.0f), glm::vec3(((float)virtualWidth) / 2.0f, 0.0f, 0.0f));
+            ViewMatrix = ViewTranslate * ViewScale * cTranslate;
+        }
         ProjMatrix = glm::ortho(0.0f, (float)mWindowWidth, 0.0f, (float)mWindowHeight);  // this must match prepare2DViewport call
         ProjViewMatrix = ProjMatrix * ViewMatrix;
 
@@ -725,18 +826,17 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
-        accumulator.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
         if (!allowSelected && virtualWidth > 0 && virtualHeight > 0
             && (virtualWidth != mWindowWidth || virtualHeight != mWindowHeight)) {
             currentPixelScaleFactor = scale2d;
             LOG_GL_ERRORV(glPointSize(calcPixelSize(mPointSize)));
         }
-        accumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
-        accumulator.Finish(GL_TRIANGLES);
+        solidAccumulator.AddRect(0, 0, virtualWidth, virtualHeight, xlBLACK);
+        solidAccumulator.Finish(GL_TRIANGLES);
     } else {
         /*****************************   3D   ********************************/
-        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), 1.0f, camera3d->GetPosY() + camera3d->GetPanY()));
+        glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), camera3d->GetPosY() + camera3d->GetPanY(), camera3d->GetPosZ() + camera3d->GetPanZ()));
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
         glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleX()), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(camera3d->GetAngleY()), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -755,7 +855,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
         LOG_GL_ERRORV(glPointSize(translateToBacking(mPointSize)));
         DrawGLUtils::SetCamera(ViewMatrix);
         DrawGLUtils::PushMatrix();
-        accumulator3d.PreAlloc(maxVertexCount);
         currentPixelScaleFactor = 1.0;
     }
 
@@ -780,27 +879,38 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
                 scalew = 1.0;
             }
         }
-        accumulator.PreAllocTexture(6);
+        solidAccumulator.PreAllocTexture(6);
+        float x = 0;
+        if (_center2D0) {
+            x = -virtualWidth;
+            x /= 2.0f;
+        }
         float tx1 = 0;
         float tx2 = image->tex_coord_x;
-        accumulator.AddTextureVertex(0, 0, tx1, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        solidAccumulator.AddTextureVertex(x, 0, tx1, -0.5 / (image->textureHeight));
+        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+        solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
 
-        accumulator.AddTextureVertex(0, virtualHeight * scaleh, tx1, image->tex_coord_y);
-        accumulator.AddTextureVertex(virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
-        accumulator.AddTextureVertex(virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
+        solidAccumulator.AddTextureVertex(x, virtualHeight * scaleh, tx1, image->tex_coord_y);
+        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, 0, tx2, -0.5 / (image->textureHeight));
+        solidAccumulator.AddTextureVertex(x + virtualWidth * scalew, virtualHeight *scaleh, tx2, image->tex_coord_y);
 
         float i = mBackgroundBrightness;
         float a = mBackgroundAlpha * 255.0f;
         a /= 100;
-        accumulator.FinishTextures(GL_TRIANGLES, image->getID(), (uint8_t)a, i);
+        solidAccumulator.FinishTextures(GL_TRIANGLES, image->getID(), (uint8_t)a, i);
     }
 
     // Draw a box around the default area in 2D
-    if (!is_3d && allowSelected) {
-        accumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREEN);
-        accumulator.Finish(GL_LINES);
+    if (!is_3d && allowSelected && _display2DBox) {
+        if (_center2D0) {
+            float x = -virtualWidth;
+            x /= 2.0f;
+            transparentAccumulator.AddLinesRect(x, 0, x + virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+        } else {
+            transparentAccumulator.AddLinesRect(0, 0, virtualWidth - 1, virtualHeight - 1, xlGREENTRANSLUCENT);
+        }
+        transparentAccumulator.Finish(GL_LINES);
     }
 
     return true;
@@ -808,26 +918,73 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
 
 void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
 {
+    static log4cpp::Category &logger_opengl = log4cpp::Category::getInstance(std::string("log_opengl"));
     if (is_3d) {
-        if (accumulator3d.count > maxVertexCount) {
-            maxVertexCount = accumulator3d.count;
+        switch (renderOrder) {
+            // 0 or 1 is preferred depending if you want floods shining ONTO glass windows (0) or through (1)
+            // 3 or 4 draws the pixels first so they may have black bands around them and strong moire, but
+            //      seems to work around some video card drivers that cause extreme banding
+            // 5 is the 2019.03 order, but floods will look aweful (black circles)
+            // 2 is the 2019.04 order, floods are OK, no transparent windows
+            case 0:
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                break;
+            case 1:
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                break;
+            case 2:
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                break;
+            case 3:
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                break;
+            case 4:
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                break;
+            case 5:
+                DrawGLUtils::Draw(solidAccumulator3d);
+                DrawGLUtils::Draw(transparentAccumulator3d);
+                DrawGLUtils::Draw(solidViewObjectAccumulator);
+                DrawGLUtils::Draw(transparentViewObjectAccumulator);
+                break;
         }
-        DrawGLUtils::Draw(accumulator3d);
-        DrawGLUtils::Draw(view_object_accumulator);
     } else {
-        if (accumulator.count > maxVertexCount) {
-            maxVertexCount = accumulator.count;
-        }
-        DrawGLUtils::Draw(accumulator);
+        DrawGLUtils::Draw(solidAccumulator);
+        DrawGLUtils::Draw(transparentAccumulator);
     }
     DrawGLUtils::PopMatrix();
     if (swapBuffers)
     {
+        logger_opengl.debug("About to swap buffers in ModelPreview::EndDrawing.");
         LOG_GL_ERRORV(SwapBuffers());
+        logger_opengl.debug("Done swapping buffers in ModelPreview::EndDrawing.");
     }
-    view_object_accumulator.Reset();
-    accumulator3d.Reset();
-    accumulator.Reset();
+    solidViewObjectAccumulator.Reset();
+    transparentViewObjectAccumulator.Reset();
+    solidAccumulator3d.Reset();
+    transparentAccumulator3d.Reset();
+    solidAccumulator.Reset();
+    transparentAccumulator.Reset();
     mIsDrawing = false;
 }
 
+void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
+    solidAccumulator.AddDottedLinesRect(x1, y1, x2, y2,
+                                       ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+    solidAccumulator.Finish(GL_LINES);
+}

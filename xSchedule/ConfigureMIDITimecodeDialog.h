@@ -10,16 +10,18 @@
 #include <wx/stattext.h>
 //*)
 
+#include "SyncManager.h"
+
 class ConfigureMIDITimecodeDialog: public wxDialog
 {
     void ValidateWindow();
 
 	public:
 
-		ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, int format, size_t offset, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		ConfigureMIDITimecodeDialog(wxWindow* parent, std::string midi, TIMECODEFORMAT format, size_t offset, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ConfigureMIDITimecodeDialog();
         std::string GetMIDI() const;
-        int GetFormat() const;
+        TIMECODEFORMAT GetFormat() const;
         int GetOffset() const;
 
 		//(*Declarations(ConfigureMIDITimecodeDialog)

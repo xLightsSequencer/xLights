@@ -20,6 +20,7 @@
 #include "ColorManager.h"
 #include "../xLightsApp.h"
 #include "../xLightsMain.h"
+#include "MainSequencer.h"
 
 #include <log4cpp/Category.hh>
 
@@ -460,6 +461,24 @@ void Waveform::DrawWaveView(const WaveView &wv)
         vac.AddVertex(play_marker, 1, color);
         vac.AddVertex(play_marker, mWindowHeight-1, color);
     }
+
+    if (xLightsApp::GetFrame() != nullptr)
+    {
+        Effect* selectedEffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (selectedEffect != nullptr)
+        {
+            color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);
+            int start = mTimeline->GetPositionFromTimeMS(selectedEffect->GetStartTimeMS());
+            int end = mTimeline->GetPositionFromTimeMS(selectedEffect->GetEndTimeMS());
+            vac.AddVertex(start, 1, color);
+            vac.AddVertex(start, (mWindowHeight - 1) / 4, color);
+            vac.AddVertex(end, 1, color);
+            vac.AddVertex(end, (mWindowHeight - 1) / 4, color);
+            vac.AddVertex(start, (mWindowHeight - 1) / 8, color);
+            vac.AddVertex(end, (mWindowHeight - 1) / 8, color);
+        }
+    }
+
     if (vac.HasMoreVertices()) {
         vac.Finish(GL_LINES, 0, 1);
     }

@@ -13,7 +13,7 @@
 
 std::vector<std::string> StarModel::STAR_BUFFER_STYLES;
 
-StarModel::StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager)
+StarModel::StarModel(wxXmlNode *node, const ModelManager &manager, bool zeroBased) : ModelWithScreenLocation(manager), starRatio(2.618034)
 {
     SetFromXml(node, zeroBased);
 }
@@ -135,6 +135,8 @@ bool StarModel::AllNodesAllocated() const
 // top left=top ccw, top right=top cw, bottom left=bottom cw, bottom right=bottom ccw
 
 void StarModel::InitModel() {
+    starRatio = wxAtof(ModelXml->GetAttribute("starRatio", "2.618034"));
+
     wxString tempstr=ModelXml->GetAttribute("starSizes");
     starSizes.resize(0);
     while (tempstr.size() > 0) {
@@ -202,7 +204,7 @@ void StarModel::InitModel() {
         int numsegments=parm3*2;
         double dpct=1.0/(double)numsegments;
         double OuterRadius=offset;
-        double InnerRadius=OuterRadius/2.618034;    // divide by golden ratio squared
+        double InnerRadius=OuterRadius / starRatio; // divide by ratio (default is golden ratio squared)
         double pct=isBotToTop ? 0.5 : 0.0;          // % of circle, 0=top
         double pctIncr=1.0 / (double)numlights;     // this is cw
         if (IsLtoR != isBotToTop) pctIncr*=-1.0;    // adjust to ccw
@@ -296,6 +298,11 @@ void StarModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     grid->Append(new wxEnumProperty("Starting Location", "StarStart", TOP_BOT_LEFT_RIGHT, IsLtoR ? (isBotToTop ? 2 : 0) : (isBotToTop ? 3 : 1)));
     grid->Append(new wxStringProperty("Layer Sizes", "StarLayerSizes", ModelXml->GetAttribute("starSizes")));
+
+    p = grid->Append(new wxFloatProperty("Outer to Inner Ratio", "StarRatio",  starRatio));
+    p->SetAttribute("Precision", 2);
+    p->SetAttribute("Step", 0.1);
+    p->SetEditor("SpinCtrl");
 }
 
 int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
@@ -327,6 +334,11 @@ int StarModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGri
         ModelXml->AddAttribute("starSizes", event.GetValue().GetString());
         SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
+    } else if ("StarRatio" == event.GetPropertyName()) {
+        ModelXml->DeleteAttribute("starRatio");
+        ModelXml->AddAttribute("starRatio", wxString::Format("%f", event.GetValue().GetDouble()));
+        SetFromXml(ModelXml, zeroBased);
+        return GRIDCHANGE_MARK_DIRTY_AND_REFRESH;
     }
 
     return Model::OnPropertyGridChange(grid, event);
@@ -350,6 +362,7 @@ void StarModel::ExportXlightsModel()
     wxString mb = ModelXml->GetAttribute("ModelBrightness");
     wxString a = ModelXml->GetAttribute("Antialias");
     wxString ss = ModelXml->GetAttribute("starSizes");
+    wxString sr = ModelXml->GetAttribute("starRatio");
     wxString sts = ModelXml->GetAttribute("StartSide");
     wxString dir = ModelXml->GetAttribute("Dir");
     wxString sn = ModelXml->GetAttribute("StrandNames");
@@ -369,6 +382,7 @@ void StarModel::ExportXlightsModel()
     f.Write(wxString::Format("Antialias=\"%s\" ", a));
     f.Write(wxString::Format("StartSide=\"%s\" ", sts));
     f.Write(wxString::Format("starSizes=\"%s\" ", ss));
+    f.Write(wxString::Format("starRatio=\"%s\" ", sr));
     f.Write(wxString::Format("Dir=\"%s\" ", dir));
     f.Write(wxString::Format("StrandNames=\"%s\" ", sn));
     f.Write(wxString::Format("NodeNames=\"%s\" ", nn));
@@ -414,6 +428,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             wxString a = root->GetAttribute("Antialias");
             wxString sts = root->GetAttribute("StartSide");
             wxString ss = root->GetAttribute("starSizes");
+            wxString sr = root->GetAttribute("starRatio");
             wxString dir = root->GetAttribute("Dir");
             wxString sn = root->GetAttribute("StrandNames");
             wxString nn = root->GetAttribute("NodeNames");
@@ -436,6 +451,7 @@ void StarModel::ImportXlightsModel(std::string filename, xLightsFrame* xlights, 
             SetProperty("Antialias", a);
             SetProperty("StartSide", sts);
             SetProperty("starSizes", ss);
+            SetProperty("starRatio", sr);
             SetProperty("Dir", dir);
             SetProperty("StrandNames", sn);
             SetProperty("NodeNames", nn);

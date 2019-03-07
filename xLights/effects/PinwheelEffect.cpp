@@ -39,6 +39,7 @@ void PinwheelEffect::SetDefaultParameters() {
     pp->BitmapButton_Pinwheel_TwistVC->SetActive(false);
 
     SetChoiceValue(pp->Choice_Pinwheel_3D, "none");
+    SetChoiceValue(pp->Choice_Pinwheel_Style, "New Render Method");
 
     SetSliderValue(pp->Slider_PinwheelXC, 0);
     SetSliderValue(pp->Slider_PinwheelYC, 0);

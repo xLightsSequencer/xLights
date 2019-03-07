@@ -137,9 +137,8 @@ public:
     virtual bool UsesAddVertex() override {return false;}
     void InitializeGLCanvas() override
     {
-#ifdef __LINUX__
         if(!IsShownOnScreen()) return;
-#endif
+
         SetCurrentGLContext();
         xlColor c(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER));
         //c.Set(70,70,70); //54->70
@@ -158,9 +157,7 @@ public:
     void renderGL()
     {
         if(!mIsInitialized) { InitializeGLCanvas(); }
-#ifdef __LINUX__
         if(!IsShownOnScreen()) return;
-#endif
 
         SetCurrentGLContext();
         glClear(GL_COLOR_BUFFER_BIT);
@@ -1254,9 +1251,24 @@ bool MainSequencer::AreAllSelectedEffectsOnTheSameElement() const
     return PanelEffectGrid->AreAllSelectedEffectsOnTheSameElement();
 }
 
-void MainSequencer::ApplyEffectSettingToSelected(const std::string effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
+void MainSequencer::ApplyEffectSettingToSelected(const std::string& effectName, const std::string id, const std::string value, ValueCurve* vc, const std::string& vcid)
 {
     return PanelEffectGrid->ApplyEffectSettingToSelected(effectName, id, value, vc, vcid);
+}
+
+void MainSequencer::ApplyButtonPressToSelected(const std::string& effectName, const std::string id)
+{
+    return PanelEffectGrid->ApplyButtonPressToSelected(effectName, id);
+}
+
+void MainSequencer::RemapSelectedDMXEffectValues(const std::vector<std::pair<int, int>>& pairs)
+{
+    return PanelEffectGrid->RemapSelectedDMXEffectValues(pairs);
+}
+
+void MainSequencer::ConvertSelectedEffectsTo(const std::string& effectName)
+{
+    return PanelEffectGrid->ConvertSelectedEffectsTo(effectName);
 }
 
 void MainSequencer::UnselectAllEffects()

@@ -136,7 +136,7 @@ void PlayListItemFSEQVideo::LoadAudio()
         }
     }
 
-    if (IsInSlaveMode())
+    if (IsInSlaveMode() && IsSuppressAudioOnSlaves())
     {
     }
     else if (wxFile::Exists(af))
@@ -191,8 +191,16 @@ void PlayListItemFSEQVideo::LoadFiles(bool doCache)
     if (wxFile::Exists(_fseqFileName))
     {
         _fseqFile = FSEQFile::openFSEQFile(_fseqFileName);
-        _msPerFrame = _fseqFile->getStepTime();
-        _durationMS = _fseqFile->getTotalTimeMS();
+        if (_fseqFile != nullptr)
+        {
+            _msPerFrame = _fseqFile->getStepTime();
+            _durationMS = _fseqFile->getTotalTimeMS();
+        }
+        else
+        {
+            _msPerFrame = 50;
+            _durationMS = 0;
+        }
     }
     else
     {
@@ -563,16 +571,25 @@ void PlayListItemFSEQVideo::Frame(uint8_t* buffer, size_t size, size_t ms, size_
             if (_fseqFile != nullptr) {
                 int frame =  adjustedMS / framems;
                 FSEQFile::FrameData *data = _fseqFile->getFrame(frame);
-                std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
-                data->readFrame(&buf[0]);
-                uint32_t channelsPerFrame = _fseqFile->getMaxChannel() + 1;
-                if (_channels > 0) {
-                    long offset = GetStartChannelAsNumber() - 1;
-                    Blend(buffer, size, &buf[offset], channelsPerFrame, _applyMethod, offset);
-                } else {
-                    Blend(buffer, size, &buf[0], channelsPerFrame, _applyMethod, 0);
+                if (data != nullptr)
+                {
+                    std::vector<uint8_t> buf(_fseqFile->getMaxChannel() + 1);
+                    data->readFrame(&buf[0]);
+                    size_t channelsPerFrame = (size_t)_fseqFile->getMaxChannel() + 1;
+                    if (_channels > 0) channelsPerFrame = std::min(_channels, (size_t)_fseqFile->getMaxChannel() + 1);
+                    if (_channels > 0) {
+                        long offset = GetStartChannelAsNumber() - 1;
+                        Blend(buffer, size, &buf[offset], channelsPerFrame, _applyMethod, offset);
+                    }
+                    else {
+                        Blend(buffer, size, &buf[0], channelsPerFrame, _applyMethod, 0);
+                    }
+                    delete data;
                 }
-                delete data;
+                else
+                {
+                    wxASSERT(false);
+                }
             }
         }
         _currentFrame++;

@@ -128,9 +128,17 @@ void xLightsFrame::NewSequence()
 
     LoadSequencer(*CurrentSeqXmlFile);
     CurrentSeqXmlFile->SetSequenceLoaded(true);
-    std::string new_timing = "New Timing";
-    CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-    mSequenceElements.AddTimingToAllViews(new_timing);
+    if (mSequenceElements.GetNumberOfTimingElements() == 0)
+    {
+        // only add timing if the user didnt set up timings
+        std::string new_timing = "New Timing";
+        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+        mSequenceElements.AddTimingToAllViews(new_timing);
+    }
+    else
+    {
+        mSequenceElements.GetTimingElement(0)->SetActive(true);
+    }
     MenuItem_File_Save->Enable(true);
     MenuItem_File_SaveAs_Sequence->Enable(true);
     MenuItem_File_Close_Sequence->Enable(true);
@@ -174,6 +182,7 @@ void xLightsFrame::NewSequence()
     if( view == "All Models" )
     {
         AddAllModelsToSequence();
+        displayElementsPanel->SelectView("Master View");
     }
     else if( view != "Empty" )
     {
@@ -638,7 +647,7 @@ bool xLightsFrame::CloseSequence()
     _modelPreviewPanel->Refresh();
     _housePreviewPanel->Refresh();
 
-    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + xlights_version_string + " " + GetBitness() + ") " + xlights_build_date);
+    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
 
     return true;
 }
@@ -1090,7 +1099,10 @@ void MapXLightsEffects(EffectLayer *target, EffectLayer *src, std::vector<Effect
         Effect *ef = src->GetEffect(x);
         if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS()))
         {
-            target->AddEffect(0, ef->GetEffectName(), ef->GetSettingsAsString(), ef->GetPaletteAsString(),
+            auto settings = ef->GetSettingsAsString();
+            // remove lock if it is there
+            Replace(settings, ",X_Effect_Locked=True", "");
+            target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
                 ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
         }
     }
@@ -1207,8 +1219,8 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     std::vector<std::string> timingTrackNames;
     std::map<std::string, TimingElement*> timingTracks;
 
-    for (auto it = elements.begin(); it != elements.end(); ++it) {
-        Element *e = *it;
+    for (auto it : elements) {
+        Element *e = it;
         if (e->GetType() == ELEMENT_TYPE_MODEL)
         {
             ModelElement *el = dynamic_cast<ModelElement*>(e);
@@ -1276,10 +1288,10 @@ void xLightsFrame::ImportXLights(SequenceElements &se, const std::vector<Element
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
         if (dlg.TimingTrackListBox->IsChecked(tt)) {
             TimingElement *tel = timingTracks[timingTrackNames[tt]];
-            TimingElement *target = (TimingElement*)mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false);
+            TimingElement *target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
             char cnt = '1';
             while (target == nullptr) {
-                target = (TimingElement*)mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false);
+                target = static_cast<TimingElement*>(mSequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false));
             }
             for (int l = 0; l < tel->GetEffectLayerCount(); ++l) {
                 EffectLayer *src = tel->GetEffectLayer(l);
@@ -1529,15 +1541,10 @@ std::string FindHLSStrandName(const std::string &ccrName, int node, const std::v
     return "";
 }
 
-bool EndsWith(const std::string &fullString, const std::string &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    }
-    return false;
-}
 bool Contains(const std::vector<std::string> &array, const std::string &str) {
     return std::find(array.begin(), array.end(), str) != array.end();
 }
+
 int Index(const std::vector<std::string> &array, const std::string &str) {
     auto it = std::find(array.begin(), array.end(), str);
     if (it == array.end()) {

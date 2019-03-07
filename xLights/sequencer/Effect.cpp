@@ -10,6 +10,8 @@
 #include "../RenderCache.h"
 #include "../models/Model.h"
 #include "../xLightsMain.h"
+#include "../xLightsApp.h"
+#include "../effects/RenderableEffect.h"
 
 #include <unordered_map>
 
@@ -328,6 +330,40 @@ bool Effect::OverlapsWith(int startTimeMS, int EndTimeMS)
     return (startTimeMS < GetEndTimeMS() && EndTimeMS > GetStartTimeMS());
 }
 
+void Effect::ConvertTo(int effectIndex)
+{
+    if (effectIndex != mEffectIndex)
+    {
+        SetEffectIndex(effectIndex);
+        SettingsMap newSettings;
+        // remove any E_ settings as the effect type has changed
+        for (auto it : mSettings)
+        {
+            if (!StartsWith(it.first, "E_"))
+            {
+                newSettings[it.first] = it.second;
+            }
+        }
+        mSettings = newSettings;
+
+        std::string palette;
+        std::string effectText = xLightsApp::GetFrame()->GetEffectTextFromWindows(palette);
+
+        auto es = wxSplit(effectText, ',');
+        for (auto it: es)
+        {
+            if (StartsWith(it, "E_"))
+            {
+                auto sv = wxSplit(it, '=');
+                if (sv.size()==2)
+                {
+                    mSettings[sv[0]] = sv[1];
+                }
+            }
+        }
+    }
+}
+
 bool Effect::IsLocked() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
@@ -387,6 +423,21 @@ void Effect::SetSettings(const std::string &settings, bool keepxsettings)
         }
     }
     IncrementChangeCount();
+}
+
+void Effect::PressButton(RenderableEffect* re, const std::string& id)
+{
+    bool changed = false;
+    if (StartsWith(id, "E_"))
+    {
+        changed = re->PressButton(id, mPaletteMap, mSettings);
+    }
+    else
+    {
+        // all other button press changes need to be handled here
+    }
+
+    if (changed) IncrementChangeCount();
 }
 
 void Effect::ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid)

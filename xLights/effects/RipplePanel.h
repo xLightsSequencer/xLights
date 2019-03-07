@@ -34,6 +34,7 @@ class RipplePanel: public wxPanel
 		BulkEditTextCtrl* TextCtrl_Ripple_Points;
 		BulkEditTextCtrl* TextCtrl_Ripple_Rotation;
 		BulkEditValueCurveButton* BitmapButton_Ripple_CyclesVC;
+		BulkEditValueCurveButton* BitmapButton_Ripple_RotationVC;
 		BulkEditValueCurveButton* BitmapButton_Ripple_ThicknessVC;
 		wxStaticText* StaticText176;
 		wxStaticText* StaticText1;
@@ -73,6 +74,7 @@ class RipplePanel: public wxPanel
 		static const long ID_BITMAPBUTTON_SLIDER_RIPPLE_POINTS;
 		static const long ID_STATICTEXT_Ripple_Rotation;
 		static const long ID_SLIDER_Ripple_Rotation;
+		static const long ID_VALUECURVE_Ripple_Rotation;
 		static const long IDD_TEXTCTRL_Ripple_Rotation;
 		static const long ID_BITMAPBUTTON_SLIDER_Ripple_Rotation;
 		static const long ID_CHECKBOX_Ripple3D;

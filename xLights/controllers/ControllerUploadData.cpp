@@ -254,16 +254,36 @@ bool UDController::Check(ControllerRules* rules, std::string& res)
         }
     }
 
+    if (!rules->SupportsMultipleInputProtocols())
+    {
+        std::string protocol = "";
+        for (auto o : _outputs)
+        {
+            if (protocol == "")
+            {
+                protocol = o->GetType();
+            }
+            else
+            {
+                if (o->GetType() != protocol)
+                {
+                    res += wxString::Format("ERROR: Controller only support a single input protocol at a time. %s and %s found.\n", protocol, o->GetType()).ToStdString();
+                    success = false;
+                }
+            }
+        }
+    }
+
     if (!rules->SupportsMultipleProtocols())
     {
         std::string protocol;
-        for (auto it = _pixelPorts.begin(); it != _pixelPorts.end(); ++it)
+        for (auto it : _pixelPorts)
         {
-            if (protocol == "") protocol = it->second->GetProtocol();
+            if (protocol == "") protocol = it.second->GetProtocol();
 
-            if (protocol != it->second->GetProtocol())
+            if (protocol != it.second->GetProtocol())
             {
-                res += wxString::Format("ERROR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it->second->GetProtocol()).ToStdString();
+                res += wxString::Format("ERROR: Pixel ports only support a single protocol at a time. %s and %s found.\n", protocol, it.second->GetProtocol()).ToStdString();
                 success = false;
             }
         }
@@ -766,6 +786,7 @@ void UDControllerPort::CreateVirtualStrings()
         _virtualStrings.pop_front();
     }
 
+    long lastEndChannel = -1000;
     UDVirtualString* current = nullptr;
     for (auto it : _models)
     {
@@ -783,6 +804,7 @@ void UDControllerPort::CreateVirtualStrings()
             current = new UDVirtualString();
             _virtualStrings.push_back(current);
             first = true;
+            lastEndChannel = it->GetEndChannel();
         }
         else
         {
@@ -791,12 +813,14 @@ void UDControllerPort::CreateVirtualStrings()
                 (reverse != "unknown" && current->_reverse != reverse) ||
                 (colourOrder != "unknown" && current->_colourOrder != colourOrder) ||
                 (gamma != -9999 && current->_gamma != gamma) ||
-                (groupCount != -9999 && current->_groupCount != groupCount))
+                (groupCount != -9999 && current->_groupCount != groupCount) ||
+                lastEndChannel + 1 != it->GetStartChannel())
             {
                 current = new UDVirtualString();
                 _virtualStrings.push_back(current);
                 first = true;
             }
+            lastEndChannel = it->GetEndChannel();
         }
 
         current->_endChannel = it->GetEndChannel();

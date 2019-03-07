@@ -247,16 +247,18 @@ void Pinger::AddIP(const std::string ip, const std::string why)
 
 void Pinger::RemoveNonOutputIPs()
 {
-    for (auto it = _pingers.begin(); it != _pingers.end(); ++it)
+    std::list<APinger*> newPingers;
+    for (auto it : _pingers)
     {
-        if (!(*it)->IsOutput())
+        if (!it->IsOutput())
         {
-            auto t = it;
-            --t;
-            (*it)->Stop();
-            delete *it;
-            _pingers.remove(*it);
-            it = t;
+            it->Stop();
+            delete it;
+        }
+        else
+        {
+            newPingers.push_back(it);
         }
     }
+    _pingers = newPingers;
 }

@@ -537,6 +537,7 @@ void ModelGroup::CheckForChanges() const {
     }
 
     if (l != changeCount) {
+        // this is ugly ... it is casting away the const-ness of this
         ModelGroup *group = (ModelGroup*)this;
         if (group != nullptr) group->Reset();
     }
@@ -656,7 +657,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
                                        int &BufferWi, int &BufferHt) const {
     CheckForChanges();
     std::string type = tp;
-    if (type.compare(0, 9, "Per Model") == 0 && type != PER_MODEL_DEFAULT) {
+    if (type.compare(0, 9, "Per Model") == 0) {
         type = "Default";
     }
     if (type == "Default") {
@@ -688,7 +689,7 @@ void ModelGroup::InitRenderBufferNodes(const std::string &tp,
             }
         }
         ApplyTransform(transform, Nodes, BufferWi, BufferHt);
-    } else if (type == HORIZ || type == PER_MODEL_DEFAULT) {
+    } else if (type == HORIZ) {
         int modelX = 0;
         for (auto it = modelNames.begin(); it != modelNames.end(); ++it) {
             Model* m = modelManager[*it];

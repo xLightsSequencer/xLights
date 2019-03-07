@@ -20,6 +20,15 @@ Version:     ?
 License:     LGPL
 Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
 
+Library:     libcurl
+Usage:       HTTPS
+Link:        https://curl.haxx.se/libcurl/
+Source:      https://github.com/curl/curl
+Last Pulled: Feb13, 2019
+Version:     7.64.0
+License:     MIT Style but more complex
+Strategy:    Windows: Selected header files are included in the xLights repository along with precompiled libraries and DLLs.
+
 Library:     kiss_fft
 Usage:       FFT for audio analysis
 Link:        https://sourceforge.net/projects/kissfft/

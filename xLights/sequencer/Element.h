@@ -75,7 +75,7 @@ public:
     int &Index() { return mIndex;}
     int Index() const { return mIndex;}
     
-    std::recursive_mutex &GetChangeLock() { return changeLock; }
+    std::recursive_timed_mutex &GetChangeLock() { return changeLock; }
     virtual void IncrementChangeCount(int startMs, int endMS);
     int getChangeCount() const { return changeCount; }
     
@@ -124,9 +124,8 @@ protected:
     volatile int dirtyStart = -1;
     volatile int dirtyEnd = -1;
 
-    std::recursive_mutex changeLock;
+    std::recursive_timed_mutex changeLock;
 };
-
 
 class TimingElement : public Element
 {
@@ -243,7 +242,7 @@ class ModelElement : public Element
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
     
-        std::recursive_mutex &GetRenderLock() { return changeLock; }
+        std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
         int GetWaitCount();
         void IncWaitCount();
         void DecWaitCount();

@@ -64,7 +64,7 @@ void PlayListItemAudio::LoadFiles()
 
     _durationMS = 0;
 
-    if (IsInSlaveMode())
+    if (IsInSlaveMode() && IsSuppressAudioOnSlaves())
     {
         
     }

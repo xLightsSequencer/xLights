@@ -31,6 +31,7 @@ protected:
     std::string _commandParametersAtEndOfCurrentStep;
     bool _firstOnlyOnce;
     bool _lastOnlyOnce;
+    bool _alwaysShuffle;
     PlayListStep* _currentStep;
     wxDateTime _pauseTime;
     wxDateTime _suspendTime;
@@ -49,6 +50,7 @@ protected:
     PlayListStep* GetPriorStep();
     void ForgetChildren();
     void DeleteChildren();
+    static bool IsInSlaveMode();
 
 public:
 
@@ -83,14 +85,14 @@ public:
     Schedule* GetSchedule(const std::string& name);
     int GetChangeCount() const { return _changeCount; }
     bool SupportsRandom();
-    bool IsRandom() const { return _random; }
+    bool IsRandom() const { return _random || _alwaysShuffle; }
     bool SetRandom(bool random) { _random = random; if (random) _played.clear(); return true; }
     bool SetLooping(bool looping) { _looping = looping; return true; }
     bool IsStepLooping() const { return _loopStep; }
     int GetLoopsLeft() const { return _loops; }
     void DoLoop() { --_loops; if (_loops == 1) { _loops = -1; _looping = false; } }
     void SetStepLooping(bool loop) { _loopStep = loop; }
-    PlayListStep* GetStepAtTime(long ms);
+    PlayListStep* GetStepAtTime(long ms, long& stepMS);
     size_t GetPosition();
     std::string GetName();
     std::string GetRawName() const {  return _name; };
@@ -99,9 +101,10 @@ public:
     bool GetFirstOnce() const
     { return _firstOnlyOnce; }
     void SetFirstOnce(bool foo) { if (_firstOnlyOnce != foo) { _firstOnlyOnce = foo; _changeCount++; } }
-    bool GetLastOnce() const
-    { return _lastOnlyOnce; }
+    bool GetLastOnce() const { return _lastOnlyOnce; }
+    bool GetShuffle() const { return _alwaysShuffle; }
     void SetLastOnce(bool foo) { if (_lastOnlyOnce != foo) { _lastOnlyOnce = foo; _changeCount++; } }
+    void SetShuffle(bool foo) { if (_alwaysShuffle != foo) { _alwaysShuffle = foo; _changeCount++; } }
     bool Frame(uint8_t* buffer, size_t size, bool outputframe); // true if this was the last frame
     int GetPlayListSize() const { return _steps.size(); }
     bool IsLooping() const { return _looping; }
@@ -125,7 +128,7 @@ public:
     void RemoveAllSteps();
     bool IsPaused() const;
     bool JumpToNextStep();
-    bool MoveToNextStep();
+    bool MoveToNextStep(bool suppressNext);
     bool JumpToPriorStep();
     bool JumpToStep(const std::string& step);
     bool JumpToEndStepsAtEndOfCurrentStep();

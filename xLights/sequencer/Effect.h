@@ -7,7 +7,7 @@
 #include <string>
 #include <mutex>
 
-#include "../ColorCurve.h"
+#include "ColorCurve.h" // This needs to be here
 #include "../UtilClasses.h"
 #include "../DrawGLUtils.h"
 #include "../Color.h"
@@ -18,6 +18,7 @@ class RenderCacheItem;
 class RenderBuffer;
 class RenderCache;
 class Model;
+class RenderableEffect;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -74,6 +75,8 @@ public:
     void SetEndTimeMS(int endTimeMS);
     bool OverlapsWith(int startTimeMS, int EndTimeMS);
 
+    void ConvertTo(int effectIndex);
+
     int GetSelected() const { return mSelected; }
     void SetSelected(int selected) { mSelected = selected; }
 
@@ -95,6 +98,7 @@ public:
     std::string GetSettingsAsString() const;
     void SetSettings(const std::string &settings, bool keepxsettings);
     void ApplySetting(const std::string& id, const std::string& value, ValueCurve* vc, const std::string& vcid);
+    void PressButton(RenderableEffect* re, const std::string& id);
     const SettingsMap &GetSettings() const { return mSettings; }
     void CopySettingsMap(SettingsMap &target, bool stripPfx = false) const;
     void FixBuffer(const Model* m);

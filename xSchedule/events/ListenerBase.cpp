@@ -11,7 +11,7 @@ ListenerBase::ListenerBase(ListenerManager* listenerManager)
     _isOk = false;
 }
 
-ListenerThread::ListenerThread(ListenerBase* listener)
+ListenerThread::ListenerThread(ListenerBase* listener) : wxThread(wxTHREAD_JOINABLE)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
 
@@ -51,8 +51,8 @@ void* ListenerThread::Entry()
         }
     }
 
-    //_listener->StopProcess();
-    //_running = false;
+    _listener->StopProcess();
+    _running = false;
 
     return nullptr;
 }

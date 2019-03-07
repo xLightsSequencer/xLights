@@ -14,7 +14,7 @@ protected:
 
     #pragma region Member Variables
     size_t _durationMS;
-    std::string _text;
+    wxString _text;
     std::string _format;
     wxColour _colour;
     int _speed;
@@ -31,7 +31,7 @@ protected:
     MatrixMapper* _matrixMapper;
     #pragma endregion Member Variables
 
-    std::string GetText(size_t ms);
+    wxString GetText(size_t ms);
     wxPoint GetLocation(size_t ms, wxSize size);
     void SetPixel(uint8_t* p, uint8_t r, uint8_t g, uint8_t b, APPLYMETHOD blendMode);
 
@@ -53,8 +53,8 @@ public:
     int GetBlendMode() const { return _blendMode; }
     void SetDuration(size_t duration) { if (_durationMS != duration) { _durationMS = duration; _changeCount++; } }
     size_t GetDuration() const { return _durationMS; }
-    void SetText(const std::string& text) { if (_text != text) { _text = text; _changeCount++; } }
-    std::string GetText() const { return _text; }
+    void SetText(const wxString& text) { if (_text != text) { _text = text; _changeCount++; } }
+    wxString GetText() const { return _text; }
     void SetFormat(const std::string& format) { if (_format != format) { _format = format; _changeCount++; } }
     std::string GetFormat() const { return _format; }
     void SetColour(const wxColour& colour) { if (_colour != colour) { _colour = colour; _changeCount++; } }

@@ -1,6 +1,7 @@
 #include <wx/xml/xml.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
+
 #include <algorithm>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -8,12 +9,19 @@
 #include "DrawGLUtils.h"
 #include "UtilFunctions.h"
 #include "ModelPreview.h"
+#include "../xLightsMain.h"
+
 #include <log4cpp/Category.hh>
+
+
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
  : ObjectWithScreenLocation(manager), _objFile(""),
     width(100), height(100), depth(100), brightness(100),
-    obj_loaded(false), mesh_only(false), diffuse_colors(false)
+    obj_loaded(false), mesh_only(false), diffuse_colors(false),
+    mesh3d(nullptr)
 {
     SetFromXml(node);
     screenLocation.SetSupportsZScaling(true);
@@ -21,14 +29,13 @@ MeshObject::MeshObject(wxXmlNode *node, const ViewObjectManager &manager)
 
 MeshObject::~MeshObject()
 {
-    for (auto it = textures.begin(); it != textures.end(); ++it)
-    {
-        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-        {
-            if (it2->second != nullptr) {
-                delete it2->second;
-            }
+    for (auto it : textures) {
+        if (it.second != nullptr) {
+            delete it.second;
         }
+    }
+    if (mesh3d) {
+        delete mesh3d;
     }
 }
 
@@ -69,43 +76,37 @@ void MeshObject::AddTypeProperties(wxPropertyGridInterface *grid) {
 int MeshObject::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event) {
     if ("ObjFile" == event.GetPropertyName()) {
         obj_loaded = false;
-        for (auto it = textures.begin(); it != textures.end(); ++it)
-        {
-            for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-            {
-                if (it2->second != nullptr) {
-                    delete it2->second;
-                }
+        for (auto it = textures.begin(); it != textures.end(); ++it) {
+            if (it->second != nullptr) {
+                delete it->second;
             }
         }
+        textures.clear();
+        uncacheDisplayObjects();
         _objFile = event.GetValue().GetString();
         ModelXml->DeleteAttribute("ObjFile");
         ModelXml->AddAttribute("ObjFile", _objFile);
         SetFromXml(ModelXml);
         return 3;
-    }
-    else if ("Brightness" == event.GetPropertyName()) {
+    } else if ("Brightness" == event.GetPropertyName()) {
         brightness = (int)event.GetPropertyValue().GetLong();
         ModelXml->DeleteAttribute("Brightness");
         ModelXml->AddAttribute("Brightness", wxString::Format("%d", (int)brightness));
         return 3 | 0x0008;
-    }
-    else if ("MeshOnly" == event.GetPropertyName()) {
+    } else if ("MeshOnly" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("MeshOnly");
         mesh_only = event.GetValue().GetBool();
         if (mesh_only) {
             ModelXml->AddAttribute("MeshOnly", "1");
         }
-        IncrementChangeCount();
         return 3 | 0x0008;
-    }
-    else if ("Diffuse" == event.GetPropertyName()) {
+    } else if ("Diffuse" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("Diffuse");
         diffuse_colors = event.GetValue().GetBool();
         if (diffuse_colors) {
             ModelXml->AddAttribute("Diffuse", "1");
         }
-        IncrementChangeCount();
+        uncacheDisplayObjects();
         return 3 | 0x0008;
     }
 
@@ -229,141 +230,287 @@ namespace  // Local utility functions
     }  // computeSmoothingNormals
 }  // namespace
 
-void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool allowSelected)
+bool MeshObject::CleanupFileLocations(xLightsFrame* frame)
 {
-    if( !active ) { return; }
+    bool rc = false;
+    if (wxFile::Exists(_objFile))
+    {
+        if (!frame->IsInShowFolder(_objFile))
+        {
+            auto fr = GetFileReferences();
+            for (auto f: fr)
+            {
+                if (f != _objFile)
+                {
+                    frame->MoveToShowFolder(f, wxString(wxFileName::GetPathSeparator()) + "3D");
+                }
+            }
 
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+            _objFile = frame->MoveToShowFolder(_objFile, wxString(wxFileName::GetPathSeparator()) + "3D");
 
-    GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
+            ModelXml->DeleteAttribute("ObjFile");
+            ModelXml->AddAttribute("ObjFile", _objFile);
+            SetFromXml(ModelXml);
+            rc = true;
+        }
+    }
 
-    if (!obj_loaded) {
-        if (wxFileExists(_objFile)) {
-            logger_base.debug("Loading mesh model %s file %s for preview %s.",
-                (const char *)GetName().c_str(),
-                (const char *)_objFile.c_str(),
-                (const char *)preview->GetName().c_str());
-            wxFileName fn(_objFile);
-            std::string base_path = fn.GetPath();
-            std::string err;
-            bool ret = tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+    return BaseObject::CleanupFileLocations(frame) || rc;
+}
 
-            // Append `default` material
-            materials.push_back(tinyobj::material_t());
+std::list<std::string> MeshObject::CheckModelSettings()
+{
+    std::list<std::string> res;
 
+    if (_objFile == "" || !wxFile::Exists(_objFile))
+    {
+        res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find obj file '%s'", GetName(), _objFile).ToStdString());
+    }
+    else
+    {
+        if (!IsFileInShowDir(xLightsFrame::CurrentDir, _objFile))
+        {
+            res.push_back(wxString::Format("    WARN: Mesh object '%s' obj file '%s' not under show directory.", GetName(), _objFile).ToStdString());
+        }
 
-            bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
-            bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
+        wxFileName fn(_objFile);
+        fn.SetExt("mtl");
+        if (!fn.Exists())
+        {
+            res.push_back(wxString::Format("    WARN: Mesh object '%s' does not have a material file '%s'.", GetName(), fn.GetFullPath()).ToStdString());
+        }
 
-            for (size_t s = 0; s < shapes.size(); s++) {
-                // Loop over faces(polygon)
-                size_t index_offset = 0;
+        std::string base_path = fn.GetPath();
 
-                for (size_t f = 0; f < shapes[s].mesh.indices.size() / 3; f++) {
-                    tinyobj::index_t idx0 = shapes[s].mesh.indices[3 * f + 0];
-                    tinyobj::index_t idx1 = shapes[s].mesh.indices[3 * f + 1];
-                    tinyobj::index_t idx2 = shapes[s].mesh.indices[3 * f + 2];
+        tinyobj::attrib_t attr;
+        std::vector<int> lin;
+        std::vector<tinyobj::shape_t> shap;
+        std::vector<tinyobj::material_t> mater;
+        std::string err;
+        tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
 
-                    float v[3][3];
-                    for (int k = 0; k < 3; k++) {
-                        int f0 = idx0.vertex_index;
-                        int f1 = idx1.vertex_index;
-                        int f2 = idx2.vertex_index;
-                        assert(f0 >= 0);
-                        assert(f1 >= 0);
-                        assert(f2 >= 0);
-
-                        v[0][k] = attrib.vertices[3 * f0 + k];
-                        v[1][k] = attrib.vertices[3 * f1 + k];
-                        v[2][k] = attrib.vertices[3 * f2 + k];
-                        bmin[k] = std::min(v[0][k], bmin[k]);
-                        bmin[k] = std::min(v[1][k], bmin[k]);
-                        bmin[k] = std::min(v[2][k], bmin[k]);
-                        bmax[k] = std::max(v[0][k], bmax[k]);
-                        bmax[k] = std::max(v[1][k], bmax[k]);
-                        bmax[k] = std::max(v[2][k], bmax[k]);
+        for (auto m : mater) {
+            if (m.diffuse_texname.length() > 0) {
+                wxFileName tex(m.diffuse_texname);
+                tex.SetPath(fn.GetPath());
+                if (!tex.Exists())
+                {
+                    wxFileName tex2(fn.GetPath() + "/" + m.diffuse_texname);
+                    if (!tex2.Exists())
+                    {
+                        res.push_back(wxString::Format("    ERR: Mesh object '%s' cant find texture file '%s'", GetName(), tex.GetFullPath()).ToStdString());
                     }
                 }
             }
-            width = std::max(std::abs(bmin[0]), bmax[0]) * 2.0f;
-            height = std::max(std::abs(bmin[1]), bmax[1]) * 2.0f;
-            depth = std::max(std::abs(bmin[2]), bmax[2]) * 2.0f;
-            screenLocation.SetRenderSize(width, height, depth);
-            obj_loaded = true;
         }
     }
-    // Load diffuse textures
+
+    return res;
+}
+
+std::list<std::string> MeshObject::GetFileReferences()
+{
+    std::list<std::string> res;
+    if (wxFile::Exists(_objFile))
     {
+        res.push_back(_objFile);
+
+        wxFileName mtl(_objFile);
+        mtl.SetExt("mtl");
+
+        if (mtl.Exists())
+        {
+            res.push_back(mtl.GetFullPath());
+        }
+
         wxFileName fn(_objFile);
-        for (size_t m = 0; m < materials.size(); m++) {
-            tinyobj::material_t* mp = &materials[m];
+        std::string base_path = fn.GetPath();
+
+        tinyobj::attrib_t attr;
+        std::vector<int> lin;
+        std::vector<tinyobj::shape_t> shap;
+        std::vector<tinyobj::material_t> mater;
+        std::string err;
+        tinyobj::LoadObj(&attr, &shap, &lin, &mater, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+
+        for (auto m : mater) {
+            if (m.diffuse_texname.length() > 0) {
+                wxFileName tex(m.diffuse_texname);
+                tex.SetPath(fn.GetPath());
+                if (tex.Exists())
+                {
+                    res.push_back(tex.GetFullPath());
+                }
+                else
+                {
+                    wxFileName tex2(fn.GetPath() + "/" + m.diffuse_texname);
+                    if (tex2.Exists())
+                    {
+                        res.push_back(tex2.GetFullPath());
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+void MeshObject::IncrementChangeCount() {
+    uncacheDisplayObjects();
+    ObjectWithScreenLocation<BoxedScreenLocation>::IncrementChangeCount();
+}
+
+void MeshObject::uncacheDisplayObjects() {
+    if (mesh3d) {
+        delete mesh3d;
+        mesh3d = nullptr;
+    }
+}
+
+void MeshObject::loadObject() {
+    if (wxFileExists(_objFile)) {
+        static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+        logger_base.debug("Loading mesh model %s file %s.",
+                          (const char *)GetName().c_str(),
+                          (const char *)_objFile.c_str());
+        wxFileName fn(_objFile);
+        std::string base_path = fn.GetPath();
+        std::string err;
+        tinyobj::LoadObj(&attrib, &shapes, &lines, &materials, &err, (char *)_objFile.c_str(), (char *)base_path.c_str());
+        
+        // Append `default` material
+        materials.push_back(tinyobj::material_t());
+        
+        bmin[0] = bmin[1] = bmin[2] = std::numeric_limits<float>::max();
+        bmax[0] = bmax[1] = bmax[2] = -std::numeric_limits<float>::max();
+        
+        for (auto shape : shapes) {
+            // Loop over faces(polygon)
             
-            if (mp->diffuse_texname.length() > 0) {
+            for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
+                tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
+                tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
+                tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
+                
+                float v[3][3];
+                for (int k = 0; k < 3; k++) {
+                    int f0 = idx0.vertex_index;
+                    int f1 = idx1.vertex_index;
+                    int f2 = idx2.vertex_index;
+                    assert(f0 >= 0);
+                    assert(f1 >= 0);
+                    assert(f2 >= 0);
+                    
+                    v[0][k] = attrib.vertices[3 * f0 + k];
+                    v[1][k] = attrib.vertices[3 * f1 + k];
+                    v[2][k] = attrib.vertices[3 * f2 + k];
+                    bmin[k] = std::min(v[0][k], bmin[k]);
+                    bmin[k] = std::min(v[1][k], bmin[k]);
+                    bmin[k] = std::min(v[2][k], bmin[k]);
+                    bmax[k] = std::max(v[0][k], bmax[k]);
+                    bmax[k] = std::max(v[1][k], bmax[k]);
+                    bmax[k] = std::max(v[2][k], bmax[k]);
+                }
+            }
+        }
+        width = std::max(std::abs(bmin[0]), bmax[0]) * 2.0f;
+        height = std::max(std::abs(bmin[1]), bmax[1]) * 2.0f;
+        depth = std::max(std::abs(bmin[2]), bmax[2]) * 2.0f;
+        screenLocation.SetRenderSize(width, height, depth);
+        obj_loaded = true;
+        
+        // Load textures
+        for (auto m : materials) {
+            if (m.diffuse_texname.length() > 0) {
                 // Only load the texture if it is not already loaded
-                if (textures[preview->GetName().ToStdString()].find(mp->diffuse_texname) == textures[preview->GetName().ToStdString()].end()) {
-                    std::string texture_filename = mp->diffuse_texname;
+                if (textures.find(m.diffuse_texname) == textures.end()) {
+                    std::string texture_filename = m.diffuse_texname;
                     if (!wxFileExists(texture_filename)) {
                         // Append base dir.
                         wxFileName fn2(texture_filename);
                         fn2.SetPath(fn.GetPath());
                         texture_filename = fn2.GetFullPath();
                         if (!wxFileExists(texture_filename)) {
-                            logger_base.debug("Unable to find materials file: %s", (const char *)mp->diffuse_texname.c_str());
-                            continue;
+                            texture_filename = fn.GetPath() + "/" + m.diffuse_texname;
+                            if (!wxFileExists(texture_filename)) {
+                                logger_base.debug("Unable to find materials file: %s", (const char *)m.diffuse_texname.c_str());
+                                continue;
+                            }
                         }
                     }
-                    textures[preview->GetName().ToStdString()][mp->diffuse_texname] = new Image(texture_filename, false, true);
+                    textures[m.diffuse_texname] = new Image(texture_filename, false, true);
                 }
             }
         }
     }
+}
+
+void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, DrawGLUtils::xl3Accumulator &tva3, bool allowSelected)
+{
+    if( !active ) { return; }
+
+    GetObjectScreenLocation().PrepareToDraw(true, allowSelected);
+
+    if (!obj_loaded) {
+        loadObject();
+    }
 
     GetObjectScreenLocation().UpdateBoundingBox(width, height);  // FIXME: Modify to only call this when position changes
-
+    
     if (obj_loaded) {
-        // Loop over shapes
-        for (size_t s = 0; s < shapes.size(); s++) {
-            // Loop over faces(polygon)
+        glm::mat4 m = glm::mat4(1.0f);
+        glm::mat4 scalingMatrix = glm::scale(m, GetObjectScreenLocation().GetScaleMatrix());
+        glm::vec3 rot = GetObjectScreenLocation().GetRotation();
+        glm::mat4 RotateX = glm::rotate(m, glm::radians((float)-rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 RotateY = glm::rotate(m, glm::radians((float)-rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 RotateZ = glm::rotate(m, glm::radians((float)rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 translationMatrix = glm::translate(m, GetObjectScreenLocation().GetWorldPosition());
+        m = translationMatrix * RotateX * RotateY * RotateZ * scalingMatrix;
+        
+        if (!mesh3d) {
+            mesh3d = DrawGLUtils::createMesh();
+            // Loop over shapes
+            for (auto shape : shapes) {
+                // Loop over faces(polygon)
 
-            // Check for smoothing group and compute smoothing normals
-            std::map<int, vec3> smoothVertexNormals;
-            if (hasSmoothingGroup(shapes[s])) {
-                computeSmoothingNormals(attrib, shapes[s], smoothVertexNormals);
-            }
-
-            int last_material_id = -1;
-            GLuint image_id = 0;
-            for (size_t f = 0; f < shapes[s].mesh.indices.size() / 3; f++) {
-                tinyobj::index_t idx0 = shapes[s].mesh.indices[3 * f + 0];
-                tinyobj::index_t idx1 = shapes[s].mesh.indices[3 * f + 1];
-                tinyobj::index_t idx2 = shapes[s].mesh.indices[3 * f + 2];
-
-                int current_material_id = shapes[s].mesh.material_ids[f];
-
-                if ((current_material_id < 0) ||
-                    (current_material_id >= static_cast<int>(materials.size()))) {
-                    // Invaid material ID. Use default material.
-                    current_material_id = materials.size() - 1;  // Default material is added to the last item in `materials`.
+                // Check for smoothing group and compute smoothing normals
+                std::map<int, vec3> smoothVertexNormals;
+                if (hasSmoothingGroup(shape)) {
+                    computeSmoothingNormals(attrib, shape, smoothVertexNormals);
                 }
 
-                if (current_material_id != last_material_id) {
-                    std::string diffuse_texname = materials[current_material_id].diffuse_texname;
-                    if (textures[preview->GetName().ToStdString()].find(diffuse_texname) != textures[preview->GetName().ToStdString()].end()) {
-                        image_id = textures[preview->GetName().ToStdString()][diffuse_texname]->getID();
+                int last_material_id = -1;
+                GLuint image_id = 0;
+                for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
+                    tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
+                    tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
+                    tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
+
+                    int current_material_id = shape.mesh.material_ids[f];
+
+                    if ((current_material_id < 0) ||
+                        (current_material_id >= static_cast<int>(materials.size()))) {
+                        // Invaid material ID. Use default material.
+                        current_material_id = materials.size() - 1;  // Default material is added to the last item in `materials`.
                     }
-                    else {
-                        image_id = -1;
+
+                    if (current_material_id != last_material_id) {
+                        std::string diffuse_texname = materials[current_material_id].diffuse_texname;
+                        if (textures.find(diffuse_texname) != textures.end()) {
+                            image_id = textures[diffuse_texname]->getID();
+                        } else {
+                            image_id = -1;
+                        }
                     }
-                }
-                last_material_id = current_material_id;
+                    last_material_id = current_material_id;
 
-                float diffuse[3];
-                for (size_t i = 0; i < 3; i++) {
-                    diffuse[i] = materials[current_material_id].diffuse[i];
-                }
+                    float diffuse[3];
+                    for (size_t i = 0; i < 3; i++) {
+                        diffuse[i] = materials[current_material_id].diffuse[i];
+                    }
 
-                float tc[3][2];
-                if (!mesh_only) {
+                    float tc[3][2];
                     if (attrib.texcoords.size() > 0) {
                         if ((idx0.texcoord_index < 0) || (idx1.texcoord_index < 0) ||
                             (idx2.texcoord_index < 0)) {
@@ -374,8 +521,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             tc[1][1] = 0.0f;
                             tc[2][0] = 0.0f;
                             tc[2][1] = 0.0f;
-                        }
-                        else {
+                        } else {
                             assert(attrib.texcoords.size() >
                                 size_t(2 * idx0.texcoord_index + 1));
                             assert(attrib.texcoords.size() >
@@ -394,8 +540,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             //tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
                             //tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
                         }
-                    }
-                    else {
+                    } else {
                         tc[0][0] = 0.0f;
                         tc[0][1] = 0.0f;
                         tc[1][0] = 0.0f;
@@ -403,26 +548,19 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         tc[2][0] = 0.0f;
                         tc[2][1] = 0.0f;
                     }
-                }
 
-                float v[3][3];
-                for (int k = 0; k < 3; k++) {
-                    int f0 = idx0.vertex_index;
-                    int f1 = idx1.vertex_index;
-                    int f2 = idx2.vertex_index;
+                    float v[3][3];
+                    for (int k = 0; k < 3; k++) {
+                        int f0 = idx0.vertex_index;
+                        int f1 = idx1.vertex_index;
+                        int f2 = idx2.vertex_index;
 
-                    v[0][k] = attrib.vertices[3 * f0 + k];
-                    v[1][k] = attrib.vertices[3 * f1 + k];
-                    v[2][k] = attrib.vertices[3 * f2 + k];
-                }
+                        v[0][k] = attrib.vertices[3 * f0 + k];
+                        v[1][k] = attrib.vertices[3 * f1 + k];
+                        v[2][k] = attrib.vertices[3 * f2 + k];
+                    }
 
-                for (int k = 0; k < 3; k++) {
-                    GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
-                }
-
-                float n[3][3];
-                if( !mesh_only )
-                {
+                    float n[3][3];
                     bool invalid_normal_index = false;
                     if (attrib.normals.size() > 0) {
                         int nf0 = idx0.normal_index;
@@ -432,8 +570,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         if ((nf0 < 0) || (nf1 < 0) || (nf2 < 0)) {
                             // normal index is missing from this face.
                             invalid_normal_index = true;
-                        }
-                        else {
+                        } else {
                             for (int k = 0; k < 3; k++) {
                                 assert(size_t(3 * nf0 + k) < attrib.normals.size());
                                 assert(size_t(3 * nf1 + k) < attrib.normals.size());
@@ -443,8 +580,7 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                                 n[2][k] = attrib.normals[3 * nf2 + k];
                             }
                         }
-                    }
-                    else {
+                    } else {
                         invalid_normal_index = true;
                     }
 
@@ -481,9 +617,8 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                         n[2][1] = n[0][1];
                         n[2][2] = n[0][2];
                     }
-                }
-
-                if (!mesh_only) {
+                    
+                    uint8_t colors[3][4];
                     for (int k = 0; k < 3; k++) {
 
                         // Combine normal and diffuse to get color.
@@ -510,60 +645,35 @@ void MeshObject::Draw(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, b
                             green = diffuse[1];
                             blue = diffuse[2];
                         }
-
-                        if (image_id == -1) {
-                            float trans = materials[current_material_id].dissolve * 255.0f;
-                            red *= brightness / 100.f;
-                            green *= brightness / 100.f;
-                            blue *= brightness / 100.f;
-                            xlColor c(red * 255, green * 255, blue * 255, trans);
-                            va3.AddVertex(v[k][0], v[k][1], v[k][2], c);
-                        } else {
-                            va3.AddTextureVertex(v[k][0], v[k][1], v[k][2], tc[k][0], tc[k][1]);
-                        }
+                        float trans = materials[current_material_id].dissolve * 255.0f;
+                        xlColor color(red * 255, green * 255, blue * 255, trans);
+                        colors[k][0] = color.red;
+                        colors[k][1] = color.green;
+                        colors[k][2] = color.blue;
+                        colors[k][3] = trans;
                     }
+                    mesh3d->addSurface(v, tc, n, colors, image_id);
                 }
+            }
 
-                // Mesh Lines
-                if (mesh_only) {
-                    va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
-                    va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxGREEN);
-                    va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxGREEN);
-                    va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
-                    va3.AddVertex(v[2][0], v[2][1], v[2][2], *wxGREEN);
-                    va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxGREEN);
-                } else {
-                    if (image_id == -1) {
-                        va3.Finish(GL_TRIANGLES, GL_LINE_SMOOTH, 1.0f);
-                    } else {
-                        va3.FinishTextures(GL_TRIANGLES, image_id, 255, (float)brightness);
+            // process any edge lines
+            if (lines.size() > 0) {
+                for (size_t l = 0; l < lines.size() / 2; l++) {
+                    float v[2][3];
+                    for (int k = 0; k < 3; k++) {
+                        int f0 = lines[l * 2 + 0];
+                        int f1 = lines[l * 2 + 1];
+
+                        v[0][k] = attrib.vertices[3 * f0 + k];
+                        v[1][k] = attrib.vertices[3 * f1 + k];
                     }
+                    mesh3d->addLine(v);
                 }
             }
         }
-        if (mesh_only) {
-            va3.Finish(GL_LINES, GL_LINE_SMOOTH, 1.0f);
-        }
-
-        // process any edge lines
-        if (lines.size() > 0) {
-            for (size_t l = 0; l < lines.size() / 2; l++) {
-                float v[2][3];
-                for (int k = 0; k < 3; k++) {
-                    int f0 = lines[l * 2 + 0];
-                    int f1 = lines[l * 2 + 1];
-
-                    v[0][k] = attrib.vertices[3 * f0 + k];
-                    v[1][k] = attrib.vertices[3 * f1 + k];
-                }
-                for (int k = 0; k < 2; k++) {
-                    GetObjectScreenLocation().TranslatePoint(v[k][0], v[k][1], v[k][2]);
-                }
-                va3.AddVertex(v[0][0], v[0][1], v[0][2], *wxBLACK);
-                va3.AddVertex(v[1][0], v[1][1], v[1][2], *wxBLACK);
-            }
-            va3.Finish(GL_LINES, GL_LINE_SMOOTH, 0.75f);
-        }
+        mesh3d->setMatrix(m);
+        va3.AddMesh(mesh3d, mesh_only, brightness, false);
+        tva3.AddMesh(mesh3d, mesh_only, brightness, true);
     }
 
     if ((Selected || Highlighted) && allowSelected) {

@@ -326,18 +326,25 @@ bool LyricUserDictDialog::IsValidPhoneme(const wxString & text) const
 
 void LyricUserDictDialog::OnTextCtrlOldLyricText(wxCommandEvent& event)
 {
-    if ((m_dictionary->ContainsPhoneme(TextCtrlOldLyric->GetValue().Upper())))
+    const auto& words = wxSplit(TextCtrlOldLyric->GetValue().Upper(), ' ');
+    wxArrayString phenoms;
+    //loop through for multiple words
+    for (const auto& word : words)
     {
-        wxArrayString  phenoms = m_dictionary->GetPhoneme(TextCtrlOldLyric->GetValue().Upper());
-        if (phenoms.size() > 2)
+        if ((m_dictionary->ContainsPhoneme(word)))
         {
-            phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
-            TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
+            wxArrayString word_phenoms = m_dictionary->GetPhoneme(word);
+            if (word_phenoms.size() > 2)
+            {
+                word_phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
+                phenoms.insert(phenoms.end(),word_phenoms.begin(),word_phenoms.end());
+            }
         }
-        else
-        {
-            TextCtrlPhonems->Clear();
-        }
+    }
+
+    if (!phenoms.IsEmpty())
+    {
+         TextCtrlPhonems->SetValue(wxJoin(phenoms, ' '));
     }
     else
     {

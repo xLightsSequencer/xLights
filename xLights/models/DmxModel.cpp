@@ -1,18 +1,20 @@
-#include "DmxModel.h"
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 #include <wx/xml/xml.h>
-#include "ModelScreenLocation.h"
-#include "../ModelPreview.h"
-#include "../RenderBuffer.h"
+#include <wx/log.h>
+#include <wx/filedlg.h>
+#include <wx/msgdlg.h>
+
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <wx/log.h>
-#include <wx/filedlg.h>
+
+#include "DmxModel.h"
+#include "ModelScreenLocation.h"
+#include "../ModelPreview.h"
+#include "../RenderBuffer.h"
 #include "../xLightsVersion.h"
-#include <wx/msgdlg.h>
 #include "../xLightsMain.h"
 #include "UtilFunctions.h"
 
@@ -414,7 +416,7 @@ int DmxModel::OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGrid
     } else if ("DmxChannelCount" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("parm1");
         ModelXml->AddAttribute("parm1", wxString::Format("%d", (int)event.GetPropertyValue().GetLong()));
-        SetFromXml(ModelXml, zeroBased);
+        //SetFromXml(ModelXml, zeroBased);
         return GRIDCHANGE_MARK_DIRTY_AND_REFRESH | GRIDCHANGE_REBUILD_MODEL_LIST;
     } else if ("DmxPanChannel" == event.GetPropertyName()) {
         ModelXml->DeleteAttribute("DmxPanChannel");
@@ -864,14 +866,14 @@ void DmxModel::DisplayEffectOnWindow(ModelPreview* preview, double pointSize)
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &sva, DrawGLUtils::xlAccumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     float sx,sy,sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
     GetModelScreenLocation().PrepareToDraw(false, false);
 
-    va.PreAlloc(maxVertexCount);
+    tva.PreAlloc(maxVertexCount);
 
     sx=0;
     sy=0;
@@ -882,27 +884,27 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumu
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
 
     if( dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL ) {
-        DrawSkullModelOnWindow(preview, va, c, sx, sy, !allowSelected);
+        DrawSkullModelOnWindow(preview, tva, c, sx, sy, !allowSelected);
     } else if( dmx_style_val == DMX_STYLE_BASIC_FLOOD ) {
-        DrawFloodOnWindow(preview, va, c, sx, sy, !allowSelected);
+        DrawFloodOnWindow(preview, tva, c, sx, sy, !allowSelected);
     } else {
-        DrawModelOnWindow(preview, va, c, sx, sy, !allowSelected);
+        DrawModelOnWindow(preview, tva, c, sx, sy, !allowSelected);
     }
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(sva);
     }
 }
 
 // display model using colors
-void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va, bool is_3d, const xlColor *c, bool allowSelected) {
+void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &sva, DrawGLUtils::xl3Accumulator &tva, bool is_3d, const xlColor *c, bool allowSelected) {
     float sx, sy, sz;
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
 
     GetModelScreenLocation().PrepareToDraw(false, false);
 
-    va.PreAlloc(maxVertexCount);
+    tva.PreAlloc(maxVertexCount);
 
     sx = 0;
     sy = 0;
@@ -913,17 +915,17 @@ void DmxModel::DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accum
     GetModelScreenLocation().UpdateBoundingBox(Nodes);  // FIXME: Modify to only call this when position changes
 
     if (dmx_style_val == DMX_STYLE_SKULLTRONIX_SKULL) {
-        DrawSkullModelOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
+        DrawSkullModelOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
     }
     else if (dmx_style_val == DMX_STYLE_BASIC_FLOOD) {
-        DrawFloodOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
+        DrawFloodOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
     }
     else {
-        DrawModelOnWindow(preview, va, c, sx, sy, sz, !allowSelected);
+        DrawModelOnWindow(preview, tva, c, sx, sy, sz, !allowSelected);
     }
 
     if ((Selected || (Highlighted && is_3d)) && c != nullptr && allowSelected) {
-        GetModelScreenLocation().DrawHandles(va);
+        GetModelScreenLocation().DrawHandles(sva);
     }
 }
 

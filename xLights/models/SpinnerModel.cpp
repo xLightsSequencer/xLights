@@ -76,7 +76,7 @@ void SpinnerModel::AddTypeProperties(wxPropertyGridInterface *grid) {
 
     p = grid->Append(new wxUIntProperty("Hollow %", "Hollow", hollow));
     p->SetAttribute("Min", 0);
-    p->SetAttribute("Max", 50);
+    p->SetAttribute("Max", 80);
     p->SetEditor("SpinCtrl");
 
     p = grid->Append(new wxUIntProperty("Arc", "Arc", arc));

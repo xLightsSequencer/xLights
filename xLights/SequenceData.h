@@ -22,6 +22,13 @@ public:
     {
         memset(_data, 0x00, _numChannels);
     }
+    void Zero(unsigned int start, unsigned int count)
+    {
+        if (start < 0) return;
+        if (count < 1) return;
+        if (start + count > _numChannels) return;
+        memset(&_data[start], 0x00, count);
+    }
     FrameData(unsigned int nc, unsigned char *d) {
         _numChannels = nc;
         _data = d;

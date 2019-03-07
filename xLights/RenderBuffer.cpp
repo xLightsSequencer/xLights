@@ -225,6 +225,42 @@ std::string RenderBuffer::GetModelName() const
     return cur_model;
 }
 
+void RenderBuffer::AlphaBlend(const RenderBuffer& src)
+{
+    if (src.BufferWi != BufferWi || src.BufferHt != BufferHt) return;
+
+    for (int y = 0; y < BufferHt; y++)
+    {
+        for (int x = 0; x < BufferWi; x++)
+        {
+            auto pnew = src.GetPixel(x, y);
+            auto pold = GetPixel(x, y);
+
+            if (pnew.alpha == 255 || pold == xlBLACK)
+            {
+                SetPixel(x, y, pnew);
+            }
+            else if (pnew.alpha > 0 && pnew != xlBLACK)
+            {
+                xlColor c;
+                int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+                if (r > 255) r = 255;
+                c.red = r;
+                int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+                if (g > 255) g = 255;
+                c.green = g;
+                int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+                if (b > 255) b = 255;
+                c.blue = b;
+                int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+                if (a > 255) a = 255;
+                c.alpha = a;
+                SetPixel(x, y, c);
+            }
+        }
+    }
+}
+
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
 DrawingContext::DrawingContext(int BufferWi, int BufferHt, bool allowShared, bool alpha) : nullBitmap(wxNullBitmap)
@@ -840,7 +876,7 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
 
 
 // 0,0 is lower left
-void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
+void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha)
 {
     if (wrap) {
         while (x < 0) {
@@ -860,7 +896,35 @@ void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap)
     // I dont like this ... it should actually never happen
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
-        pixels[y*BufferWi+x] = color;
+        if (color.alpha == 0)
+        {
+            // transparent ... dont do anything
+        }
+        else if (useAlpha && color.Alpha() != 255)
+        {
+            xlColor pnew = color;
+            xlColor pold = pixels[y*BufferWi + x];
+
+            xlColor c;
+            int r = pnew.red + pold.red * (255 - pnew.alpha) / 255;
+            if (r > 255) r = 255;
+            c.red = r;
+            int g = pnew.green + pold.green * (255 - pnew.alpha) / 255;
+            if (g > 255) g = 255;
+            c.green = g;
+            int b = pnew.blue + pold.blue * (255 - pnew.alpha) / 255;
+            if (b > 255) b = 255;
+            c.blue = b;
+            int a = pnew.alpha + pold.alpha * (255 - pnew.alpha) / 255;
+            if (a > 255) a = 255;
+            c.alpha = a;
+
+            pixels[y*BufferWi + x] = c;
+        }
+        else
+        {
+            pixels[y*BufferWi + x] = color;
+        }
     }
 }
 
@@ -976,7 +1040,7 @@ void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color,
 }
 
 // Bresenham's line algorithm
-void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color )
+void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool useAlpha)
 {
     int x0 = x0_;
     int x1 = x1_;
@@ -985,15 +1049,36 @@ void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const 
 
     int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
     int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
-    int err = (dx>dy ? dx : -dy)/2, e2;
+    int err = (dx>dy ? dx : -dy)/2;
 
   for(;;){
-    SetPixel(x0,y0, color);
+    SetPixel(x0,y0, color, false, useAlpha);
     if (x0==x1 && y0==y1) break;
-    e2 = err;
+    int e2 = err;
     if (e2 >-dx) { err -= dy; x0 += sx; }
     if (e2 < dy) { err += dx; y0 += sy; }
   }
+}
+
+void RenderBuffer::DrawThickLine(const int x1_, const int y1_, const int x2_, const int y2_, const xlColor& color, int thickness, bool useAlpha)
+{
+    if (thickness < 1) return;
+    if (thickness == 1)
+    {
+        DrawLine(x1_, y1_, x2_, y2_, color, useAlpha);
+    }
+    else
+    {
+        DrawCircle(x1_, y1_, thickness / 2, color, true);
+        DrawCircle(x2_, y2_, thickness / 2, color, true);
+        for (int i =0; i < thickness; i++)
+        {
+            int adjust = i - thickness / 2;
+            DrawLine(x1_ + adjust, y1_, x2_ + adjust, y2_, color, useAlpha);
+            DrawLine(x1_, y1_ + adjust, x2_, y2_ + adjust, color, useAlpha);
+            DrawLine(x1_ + adjust, y1_ + adjust, x2_ + adjust, y2_ + adjust, color, useAlpha);
+        }
+    }
 }
 
 void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool direction )
@@ -1107,7 +1192,7 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
 }
 
 // 0,0 is lower left
-void RenderBuffer::GetPixel(int x, int y, xlColor &color)
+void RenderBuffer::GetPixel(int x, int y, xlColor &color) const
 {
     // I also dont like this ... I shouldnt need to check against pixel size
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
@@ -1120,7 +1205,7 @@ void RenderBuffer::GetPixel(int x, int y, xlColor &color)
     }
 }
 
-const xlColor &RenderBuffer::GetPixel(int x, int y) {
+const xlColor &RenderBuffer::GetPixel(int x, int y) const {
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y*BufferWi + x < pixels.size())
     {
         return pixels[y*BufferWi+x];

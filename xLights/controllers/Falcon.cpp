@@ -14,6 +14,109 @@
 #include <log4cpp/Category.hh>
 #include "UtilFunctions.h"
 
+class FalconControllerRules : public ControllerRules
+{
+    int _type;
+    int _version;
+    int _expansions;
+
+public:
+    FalconControllerRules(int type, int version) : ControllerRules()
+    {
+        _expansions = 0;
+        _type = type;
+        _version = version;
+    }
+    virtual ~FalconControllerRules() {}
+    virtual int GetMaxPixelPortChannels() const override
+    {
+        if (_version == 2)
+        {
+            return 680 * 3;
+        }
+        else
+        {
+            return 1024 * 3;
+        }
+    }
+    virtual int GetMaxPixelPort() const override
+    {
+        if (_type == 4)
+        {
+            return 12;
+        }
+        else if (_type == 16)
+        {
+            return 48;
+        }
+        else if (_type == 48)
+        {
+            return 48;
+        }
+
+        return 48;
+    }
+    virtual int GetMaxSerialPortChannels() const override
+    {
+        return 512;
+    }
+    virtual int GetMaxSerialPort() const override
+    {
+        if (_type == 4)
+        {
+            return 1;
+        }
+        else
+        {
+            return 4;
+        }
+    }
+    virtual bool IsValidPixelProtocol(const std::string protocol) const override
+    {
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "ws2811") return true;
+        if (p == "tm18xx") return true;
+        if (p == "lx1203") return true;
+        if (p == "ws2801") return true;
+        if (p == "tls3001") return true;
+        if (p == "lpd6803") return true;
+        if (p == "gece") return true;
+
+        return false;
+    }
+    virtual bool IsValidSerialProtocol(const std::string protocol) const override
+    {
+        wxString p(protocol);
+        p = p.Lower();
+        if (p == "dmx") return true;
+        if (p == "pixelnet") return true;
+        if (p == "renard") return true;
+
+        return false;
+    }
+    virtual bool SupportsMultipleProtocols() const override
+    {
+        return true;
+    }
+    virtual bool SupportsMultipleInputProtocols() const override { return true; }
+    virtual bool AllUniversesSameSize() const override
+    {
+        return false;
+    }
+    virtual std::list<std::string> GetSupportedInputProtocols() const override
+    {
+        std::list<std::string> res;
+        res.push_back("E131");
+        res.push_back("ARTNET");
+        return res;
+    }
+    virtual bool UniversesMustBeSequential() const override
+    {
+        return false;
+    }
+};
+
 void Falcon::DecodeModelVersion(int p, int& model, int& version)
 {
     switch(p)
@@ -291,7 +394,6 @@ std::string Falcon::PutURL(const std::string& url, const std::string& request, b
 
 bool Falcon::SetInputUniverses(OutputManager* outputManager, std::list<int>& selected)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     wxString request;
     int output = 0;
 
@@ -605,14 +707,14 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, s
     int maxDaughter1 = 0;
     int maxDaughter2 = 0;
 
-    for (auto i = 0; i < stringData.size(); ++i)
+    for (auto pp = 0; pp < totalPixelPorts; ++pp)
     {
-        int pixels = GetPixelCount(stringData, stringData[i]->port);
-        if (i < GetBank1Threshold())
+        int pixels = GetPixelCount(stringData, pp);
+        if (pp < GetBank1Threshold())
         {
             if (pixels > maxMain) maxMain = pixels;
         }
-        else if (i < GetDaughter2Threshold())
+        else if (pp < GetDaughter2Threshold())
         {
             if (pixels > maxDaughter1) maxDaughter1 = pixels;
         }
@@ -846,8 +948,6 @@ void Falcon::ReadStringData(const wxXmlDocument& stringsDoc, std::vector<FalconS
     for (auto e = stringsDoc.GetRoot()->GetChildren(); e != nullptr; e = e->GetNext())
     {
         int port = wxAtoi(e->GetAttribute("p"));
-
-        bool vs = (port == lastString);
 
         //<vs y="" p="7" u="2000" us="0" s="0" c="50" g="1" t="0" d="0" o="0" n="0" z="0" b="13" bl="0" ga="0"/>
         // y = description
@@ -1225,7 +1325,6 @@ int Falcon::DecodeSerialOutputProtocol(std::string protocol) const
 
 void Falcon::UploadSerialOutput(int output, OutputManager* outputManager, int protocol, int portstart, wxWindow* parent)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     if (output > GetMaxSerialOutputs())
     {
         DisplayError("Falcon " + wxString(_modelString.c_str()) + " only supports " + wxString::Format("%d", GetMaxSerialOutputs()) + " outputs. Attempt to upload to output " + wxString::Format("%d", output) + ".", parent);

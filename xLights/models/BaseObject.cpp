@@ -143,6 +143,23 @@ void BaseObject::SetVcenterPos(float pos) {
     IncrementChangeCount();
 }
 
+bool BaseObject::Scale(float f) {
+    if (GetBaseObjectScreenLocation().IsLocked()) return false;
+    
+    bool b = GetBaseObjectScreenLocation().Scale(f);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+    return b;
+}
+bool BaseObject::Rotate(int axis, float factor) {
+    if (GetBaseObjectScreenLocation().IsLocked()) return false;
+    
+    bool b = GetBaseObjectScreenLocation().Rotate(axis, factor);
+    GetBaseObjectScreenLocation().Write(ModelXml);
+    IncrementChangeCount();
+    return b;
+}
+
 float BaseObject::GetTop() {
     return GetBaseObjectScreenLocation().GetTop();
 }
@@ -181,4 +198,13 @@ float BaseObject::GetHcenterPos() {
 
 float BaseObject::GetVcenterPos() {
     return GetBaseObjectScreenLocation().GetVcenterPos();
+}
+
+void BaseObject::AddOffset(double deltax, double deltay, double deltaz) {
+
+	if (GetBaseObjectScreenLocation().IsLocked()) return;
+
+	GetBaseObjectScreenLocation().AddOffset(deltax, deltay, deltaz);
+	GetBaseObjectScreenLocation().Write(ModelXml);
+	IncrementChangeCount();
 }

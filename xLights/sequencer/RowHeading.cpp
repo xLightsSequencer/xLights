@@ -1,6 +1,7 @@
 #include <wx/wx.h>
 #include <wx/brush.h>
 #include <wx/numdlg.h>
+#include <wx/confbase.h>
 
 #include "RowHeading.h"
 #include "../xLightsVersion.h"
@@ -13,14 +14,15 @@
 #include "../xLightsMain.h"
 #include "NewTimingDialog.h"
 #include "VAMPPluginDialog.h"
+#include "UtilFunctions.h"
 
 #include <log4cpp/Category.hh>
-#include "UtilFunctions.h"
 
 #define ICON_SPACE 25
 
 BEGIN_EVENT_TABLE(RowHeading, wxWindow)
 EVT_LEFT_DOWN(RowHeading::mouseLeftDown)
+EVT_LEFT_UP(RowHeading::mouseLeftUp)
 EVT_RIGHT_DOWN(RowHeading::rightClick)
 EVT_LEFT_DCLICK(RowHeading::leftDoubleClick)
 EVT_ENTER_WINDOW(RowHeading::mouseEnter)
@@ -69,7 +71,6 @@ const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
 
-
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
 RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos, const wxSize &size,
@@ -90,6 +91,10 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     papagayox_icon = BitmapCache::GetPapgayoXIcon(tooltip, 16, exact);
     model_group_icon = BitmapCache::GetModelGroupIcon(tooltip, 16, exact);
     mCanPaste = false;
+
+    wxConfigBase* config = wxConfigBase::Get();
+    int w = config->ReadLong("xLightsRowHeaderWidth", _minRowHeadingWidth);
+    CallAfter(&RowHeading::SetWidth, w);
 }
 
 RowHeading::~RowHeading()
@@ -149,13 +154,59 @@ void RowHeading::mouseLeave(wxMouseEvent& event)
     SetToolTip("");
 }
 
+void RowHeading::SetWidth(int w)
+{
+    auto minSize = GetMinSize();
+    if (w < _minRowHeadingWidth) w = _minRowHeadingWidth;
+    if (minSize.GetWidth() != w)
+    {
+        SetMinSize(wxSize(w, -1));
+        GetParent()->Layout();
+    }
+}
+
 void RowHeading::mouseMove(wxMouseEvent& event)
 {
     ProcessTooltip(event);
+
+    if (_dragging)
+    {
+        SetWidth(event.GetX());
+    }
+
+    auto size = GetSize();
+    if (HasCapture() || (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth()))
+    {
+        SetCursor(wxCURSOR_SIZEWE);
+    }
+    else
+    {
+        SetCursor(wxCURSOR_ARROW);
+    }
+}
+
+void RowHeading::mouseLeftUp(wxMouseEvent& event)
+{
+    if (_dragging)
+    {
+        auto size = GetSize();
+        wxConfigBase* config = wxConfigBase::Get();
+        config->Write("xLightsRowHeaderWidth", size.GetWidth());
+        ReleaseMouse();
+        _dragging = false;
+    }
 }
 
 void RowHeading::mouseLeftDown( wxMouseEvent& event)
 {
+    _dragging = false;
+    auto size = GetSize();
+    if (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth())
+    {
+        CaptureMouse();
+        _dragging = true;
+        return;
+    }
     mSelectedRow = event.GetY()/DEFAULT_ROW_HEADING_HEIGHT;
     if(mSelectedRow < mSequenceElements->GetVisibleRowInformationSize())
     {
@@ -724,12 +775,20 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if(id == ID_ROW_MNU_IMPORT_LYRICS) {
         mSequenceElements->ImportLyrics(dynamic_cast<TimingElement *>(element), GetParent());
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
-        int result = wxMessageBox("Breakdown phrases? Any existing words and phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        int result = wxOK;
+        if (element->GetEffectLayerCount() > 1)
+        {
+            result = wxMessageBox("Breakdown phrases? Any existing words and phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        }
         if (result == wxOK) {
             BreakdownTimingPhrases(dynamic_cast<TimingElement *>(element));
         }
     } else if(id == ID_ROW_MNU_BREAKDOWN_TIMING_WORDS) {
-        int result = wxMessageBox("Breakdown words? Any existing phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        int result = wxOK;
+        if (element->GetEffectLayerCount() > 2)
+        {
+            result = wxMessageBox("Breakdown words? Any existing phonemes will be deleted.", "Confirm Action", wxOK | wxCANCEL | wxCENTER);
+        }
         if (result == wxOK) {
             BreakdownTimingWords(dynamic_cast<TimingElement *>(element));
         }

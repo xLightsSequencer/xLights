@@ -51,7 +51,7 @@
 					<cols>3</cols>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_SaveChanges" variable="Button_SaveChanges" member="yes">
-							<label>Save Changes</label>
+							<label>&amp;Save Changes</label>
 							<handler function="OnButton_SaveChangesClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -60,7 +60,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_DiscardChanges" variable="Button_DiscardChanges" member="yes">
-							<label>Discard Changes</label>
+							<label>&amp;Discard Changes</label>
 							<handler function="OnButton_DiscardChangesClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
@@ -69,7 +69,7 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_CANCEL" variable="Button_Cancel" member="yes">
-							<label>Cancel</label>
+							<label>&amp;Cancel</label>
 							<handler function="OnButton_CancelClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>

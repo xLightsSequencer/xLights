@@ -155,20 +155,20 @@ bool RenderCache::IsEffectOkForCaching(Effect* effect) const
 
     bool locked = false;
 
-    for (auto it = effect->GetSettings().begin(); it != effect->GetSettings().end(); ++it) {
+    for (auto it : effect->GetSettings()) {
         // we cant cache effects with canvas turned on
-        if (it->first == "T_CHECKBOX_Canvas" && it->second == "1") {
+        if (it.first == "T_CHECKBOX_Canvas" && it.second == "1") {
             return false;
         }
 
         // we also shouldnt cache effects with persistent turned on
-        if (it->first == "B_CHECKBOX_OverlayBkg" && it->second == "1") {
+        if (it.first == "B_CHECKBOX_OverlayBkg" && it.second == "1") {
             return false;
         }
 
         if (_enabled == "Locked Only")
         {
-            if (it->first == "X_Effect_Locked" && it->second == "True") {
+            if (it.first == "X_Effect_Locked" && it.second == "True") {
                 locked = true;
             }
         }
@@ -480,6 +480,19 @@ void RenderCacheItem::Delete()
 
 void RenderCacheItem::AddFrame(RenderBuffer* buffer)
 {
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    if (buffer == nullptr)
+    {
+        logger_base.error("RenderCacheItem::AddFrame was passed a null buffer");
+        return;
+    }
+    
+    if (buffer->pixels.size() == 0)
+    {
+        logger_base.error("RenderCacheItem::AddFrame was passed a buffer with no pixels in it");
+        return;
+    }
+
     int frame = buffer->curPeriod - buffer->curEffStartPer;
 
     std::string mname = GetModelName(buffer);
@@ -522,9 +535,9 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     if (buffer->curPeriod == buffer->curEffEndPer)
     {
         // if multi models in this cache then only call save when none of them have null pointers at the end
-        for (auto itm = _frames.begin(); itm != _frames.end(); ++itm)
+        for (auto itm : _frames)
         {
-            if (itm->second.back() == nullptr) return;
+            if (itm.second.back() == nullptr) return;
         }
 
         Save();

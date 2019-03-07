@@ -9,6 +9,7 @@
 #include "PlayListSimpleDialog.h"
 #include "../xScheduleMain.h"
 #include "../xScheduleApp.h"
+#include "../ScheduleManager.h"
 #include "../ReentrancyCounter.h"
 
 int __playlistid = 0;
@@ -31,9 +32,10 @@ PlayList::PlayList(OutputManager* outputManager, wxXmlNode* node)
     _lastLoop = false;
     _looping = false;
     _random = false;
+    _alwaysShuffle = false;
     _loopStep = false;
-    _pauseTime.Set((time_t)0);
-    _suspendTime.Set((time_t)0);
+    _pauseTime.Set(static_cast<time_t>(0));
+    _suspendTime.Set(static_cast<time_t>(0));
     _stopAtEndOfCurrentStep = false;
     _lastSavedChangeCount = 0;
     _changeCount = 0;
@@ -70,6 +72,7 @@ PlayList& PlayList::operator=(PlayList& playlist)
     _changeCount = playlist._changeCount;
     _firstOnlyOnce = playlist._firstOnlyOnce;
     _lastOnlyOnce = playlist._lastOnlyOnce;
+    _alwaysShuffle = playlist._alwaysShuffle;
     _name = playlist._name;
     _loops = playlist._loops;
     _id = playlist._id;
@@ -78,9 +81,9 @@ PlayList& PlayList::operator=(PlayList& playlist)
         ReentrancyCounter rec(_reentrancyCounter);
         RemoveAllSteps();
 
-        for (auto it = playlist._steps.begin(); it != playlist._steps.end(); ++it)
+        for (auto it : playlist._steps)
         {
-            _steps.push_back(*it);
+            _steps.push_back(it);
         }
         for (auto it: playlist._everySteps)
         {
@@ -114,13 +117,14 @@ PlayList::PlayList(PlayList& playlist, bool newid)
     _loopStep = false;
     _lastLoop = false;
     _random = false;
+    _alwaysShuffle = playlist._alwaysShuffle;
     _looping = false;
     _lastSavedChangeCount = playlist._lastSavedChangeCount;
     _changeCount = playlist._changeCount;
     _currentStep = nullptr;
     _stopAtEndOfCurrentStep = false;
-    _pauseTime.Set((time_t)0);
-    _suspendTime.Set((time_t)0);
+    _pauseTime.Set(static_cast<time_t>(0));
+    _suspendTime.Set(static_cast<time_t>(0));
     _firstOnlyOnce = playlist._firstOnlyOnce;
     _lastOnlyOnce = playlist._lastOnlyOnce;
     _name = playlist._name;
@@ -160,9 +164,10 @@ PlayList::PlayList()
     _loopStep = false;
     _lastLoop = false;
     _random = false;
+    _alwaysShuffle = false;
     _looping = false;
-    _pauseTime.Set((time_t)0);
-    _suspendTime.Set((time_t)0);
+    _pauseTime.Set(static_cast<time_t>(0));
+    _suspendTime.Set(static_cast<time_t>(0));
     _lastSavedChangeCount = 0;
     _changeCount = 1;
     _currentStep = nullptr;
@@ -248,6 +253,11 @@ wxXmlNode* PlayList::Save()
         res->AddAttribute("LastOnce", "TRUE");
     }
 
+    if (_alwaysShuffle)
+    {
+        res->AddAttribute("AlwaysShuffle", "TRUE");
+    }
+
     res->AddAttribute("Name", _name);
 
     {
@@ -290,6 +300,7 @@ void PlayList::Load(OutputManager* outputManager, wxXmlNode* node)
 
     _firstOnlyOnce = (node->GetAttribute("FirstOnce", "FALSE") == "TRUE");
     _lastOnlyOnce = (node->GetAttribute("LastOnce", "FALSE") == "TRUE");
+    _alwaysShuffle = (node->GetAttribute("AlwaysShuffle", "FALSE") == "TRUE");
     _name = node->GetAttribute("Name", "");
 
     for (wxXmlNode* n = node->GetChildren(); n != nullptr; n = n->GetNext())
@@ -555,6 +566,15 @@ int PlayList::GetPos(PlayListStep* step)
     return -1;
 }
 
+bool PlayList::IsInSlaveMode()
+{
+    ScheduleManager* sm = xScheduleFrame::GetScheduleManager();
+
+    if (sm == nullptr) return false;
+
+    return sm->GetSyncManager()->IsSlave();
+}
+
 bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
@@ -568,8 +588,15 @@ bool PlayList::Frame(uint8_t* buffer, size_t size, bool outputframe)
         // This returns true if everything is done
         if (_currentStep->Frame(buffer, size, outputframe))
         {
-            logger_base.debug("PlayList: Frame moving to next step because step '%s' is done.", (const char *)_currentStep->GetNameNoTime().c_str());
-            return !MoveToNextStep();
+            if (!IsInSlaveMode())
+            {
+                logger_base.debug("PlayList: Frame moving to next step because step '%s' is done.", (const char *)_currentStep->GetNameNoTime().c_str());
+                return !MoveToNextStep(false);
+            }
+            else
+            {
+                return !MoveToNextStep(true);
+            }
         }
 
         for (auto it : _everySteps)
@@ -609,7 +636,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
         logger_base.info("******** Playlist %s starting to play.", (const char*)GetName().c_str());
         logger_base.info("********     %s %s %s",
             (const char*)(_looping ? ("LOOPING" + (_loops > 0 ? wxString::Format(" Loops %d", _loops).c_str() : wxString("").c_str())).c_str() : wxString("").c_str()),
-            (const char*)(_random ? "RANDOM" : ""),
+            (const char*)(IsRandom() ? "RANDOM" : ""),
             (const char*)(step == "" ? step.c_str() : wxString::Format("Step: %s", step).c_str())
         );
 
@@ -623,7 +650,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
 
         if (step == "")
         {
-            if (_random && !_firstOnlyOnce)
+            if (IsRandom() && !_firstOnlyOnce)
             {
                 _currentStep = GetRandomStep();
             }
@@ -637,7 +664,7 @@ void PlayList::Start(bool loop, bool random, int loops, const std::string& step)
             _currentStep = GetStep(step);
             if (_currentStep == nullptr)
             {
-                if (_random && !_firstOnlyOnce)
+                if (IsRandom() && !_firstOnlyOnce)
                 {
                     _currentStep = GetRandomStep();
                 }
@@ -720,7 +747,7 @@ PlayListStep* PlayList::GetNextStep(bool& didloop)
         // get the last step in the playlist
         PlayListStep* last = _steps.back();
 
-        if (_random && !_lastLoop)
+        if (IsRandom() && !_lastLoop)
         {
             return GetRandomStep();
         }
@@ -809,13 +836,13 @@ size_t PlayList::GetLengthMS()
 
 bool PlayList::IsPaused() const
 {
-    wxDateTime zero((time_t)0);
+    wxDateTime zero(static_cast<time_t>(0));
     return (_pauseTime != zero);
 }
 
 bool PlayList::IsSuspended() const
 {
-    wxDateTime zero((time_t)0);
+    wxDateTime zero(static_cast<time_t>(0));
     return (_suspendTime != zero);
 }
 
@@ -828,7 +855,7 @@ void PlayList::TogglePause()
     {
         logger_base.info("        Unpausing playlist %s.", (const char*)GetName().c_str());
         _currentStep->AdjustTime(wxDateTime::Now() - _pauseTime);
-        _pauseTime = wxDateTime((time_t)0);
+        _pauseTime = wxDateTime(static_cast<time_t>(0));
     }
     else
     {
@@ -851,7 +878,7 @@ int PlayList::Suspend(bool suspend)
             // unsuspend
             logger_base.info("         Playlist %s unsuspending.", (const char*)GetNameNoTime().c_str());
             _currentStep->AdjustTime(wxDateTime::Now() - _suspendTime);
-            _suspendTime = wxDateTime((time_t)0);
+            _suspendTime = wxDateTime(static_cast<time_t>(0));
         }
         else if (suspend && !IsSuspended())
         {
@@ -926,7 +953,7 @@ bool PlayList::JumpToNextStep()
     return success;
 }
 
-bool PlayList::MoveToNextStep()
+bool PlayList::MoveToNextStep(bool suppressNext)
 {
     static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     logger_base.debug("PlayList: MoveToNextStep");
@@ -953,32 +980,39 @@ bool PlayList::MoveToNextStep()
         _commandParametersAtEndOfCurrentStep = "";
     }
 
-    bool didloop;
-    _currentStep = GetNextStep(didloop);
-
-    if (didloop) DoLoop();
-
-    _forceNextStep = "";
-
-    if (_currentStep == nullptr)
+    if (!suppressNext)
     {
-        logger_base.debug("Move to next step found no step to move to.");
-        return false;
+        bool didloop;
+        _currentStep = GetNextStep(didloop);
+
+        if (didloop) DoLoop();
+
+        _forceNextStep = "";
+
+        if (_currentStep == nullptr)
+        {
+            logger_base.debug("Move to next step found no step to move to.");
+            return false;
+        }
+
+        _currentStep->Start(-1);
+        for (auto it : _everySteps)
+        {
+            it->Start(-1);
+        }
+
+        logger_base.debug("Move to next step moved to %s.", (const char*)_currentStep->GetNameNoTime().c_str());
+
+        if (_suspendAtEndOfStep)
+        {
+            Suspend(true);
+            _suspendAtEndOfStep = false;
+            return false;
+        }
     }
-
-    _currentStep->Start(-1);
-    for (auto it: _everySteps)
+    else
     {
-        it->Start(-1);
-    }
-
-    logger_base.debug("Move to next step moved to %s.", (const char*)_currentStep->GetNameNoTime().c_str());
-
-    if (_suspendAtEndOfStep)
-    {
-        Suspend(true);
-        _suspendAtEndOfStep = false;
-        return false;
+        _currentStep = nullptr;
     }
 
     return success;
@@ -1180,9 +1214,13 @@ PlayListStep* PlayList::GetRandomStep()
             logger_base.info("Playlist %s random wont work as there are not at least 4 eligible steps. Just taking next available.", (const char*)GetName().c_str());
             bool didloop;
             bool oldrandom = _random;
+            bool oldAlwaysShuffle = _alwaysShuffle;
             _random = false;
+            _alwaysShuffle = false;
             PlayListStep* next = GetNextStep(didloop);
+            if (next == nullptr) next = _steps.front();
             _random = oldrandom;
+            _alwaysShuffle = oldAlwaysShuffle;
             return next;
         }
     }
@@ -1230,19 +1268,20 @@ std::string PlayList::GetActiveSyncItemMedia()
     return "";
 }
 
-PlayListStep* PlayList::GetStepAtTime(long ms)
+PlayListStep* PlayList::GetStepAtTime(long ms, long& newMS)
 {
     long at = 0;
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto it : _steps)
         {
-            if (at + (*it)->GetLengthMS() > ms)
+            if (at + it->GetLengthMS() > ms)
             {
-                return *it;
+                newMS = ms - at;
+                return it;
             }
-            at += (*it)->GetLengthMS();
+            at += it->GetLengthMS();
         }
     }
 
@@ -1287,9 +1326,9 @@ bool PlayList::IsSimple()
 {
     {
         ReentrancyCounter rec(_reentrancyCounter);
-        for (auto it = _steps.begin(); it != _steps.end(); ++it)
+        for (auto it : _steps)
         {
-            if (!(*it)->IsSimple())
+            if (!it->IsSimple())
             {
                 return false;
             }
@@ -1297,7 +1336,10 @@ bool PlayList::IsSimple()
 
         for (auto it: _everySteps)
         {
-            return false;
+            if (!it->IsSimple())
+            {
+                return false;
+            }
         }
     }
 
@@ -1365,7 +1407,17 @@ PlayListItemText* PlayList::GetRunningText(const std::string& name)
         ReentrancyCounter rec(_reentrancyCounter);
         if (_currentStep == nullptr) return nullptr;
 
-        return _currentStep->GetTextItem(name);
+        auto ti = _currentStep->GetTextItem(name);
+
+        if (ti == nullptr)
+        {
+            for (auto it: _everySteps)
+            {
+                ti = it->GetTextItem(name);
+                if (ti != nullptr) break;
+            }
+        }
+        return ti;
     }
 }
 
@@ -1483,7 +1535,7 @@ PlayListStep* PlayList::GetStepContainingPlayListItem(wxUint32 id)
 
 std::string PlayList::GetNextScheduledTime()
 {
-    wxDateTime nextdt = wxDateTime((time_t)0);
+    wxDateTime nextdt = wxDateTime(static_cast<time_t>(0));
 
     {
         ReentrancyCounter rec(_reentrancyCounter);
@@ -1491,9 +1543,9 @@ std::string PlayList::GetNextScheduledTime()
         {
             wxDateTime dt = (*it)->GetNextTriggerDateTime();
 
-            if (dt != wxDateTime((time_t)0))
+            if (dt != wxDateTime(static_cast<time_t>(0)))
             {
-                if (nextdt == wxDateTime((time_t)0))
+                if (nextdt == wxDateTime(static_cast<time_t>(0)))
                 {
                     nextdt = dt;
                 }
@@ -1508,7 +1560,7 @@ std::string PlayList::GetNextScheduledTime()
         }
     }
 
-    if (nextdt == wxDateTime((time_t)0))
+    if (nextdt == wxDateTime(static_cast<time_t>(0)))
     {
         return "";
     }

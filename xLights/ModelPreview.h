@@ -34,9 +34,10 @@ public:
 	virtual ~ModelPreview();
 
     // Public Methods
-	void InitializePreview(wxString img,int brightness,int alpha);
+	void InitializePreview(wxString img,int brightness,int alpha, bool center2d0);
     bool StartDrawing(wxDouble pointSize, bool fromPaint = false);
     void SetPointSize(wxDouble pointSize);
+    void Reset();
     void EndDrawing(bool swapBuffers=true);
 	void SetCanvasSize(int width,int height);
     void SetVirtualCanvasSize(int width, int height);
@@ -80,27 +81,31 @@ public:
         additionalModel = m;
         Refresh();
     }
-    
-    
+
+
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);
-    bool GetActive();
-    float GetZoom() { return (is_3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
-    float GetCameraRotation() { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
-    void SetPan(float deltax, float deltay);
+    bool GetActive() const;
+    float GetZoom() const { return (is_3d ? camera3d->GetZoom() : camera2d->GetZoom()); }
+    float GetCameraRotationY() const { return (is_3d ? camera3d->GetAngleY() : camera2d->GetAngleY()); }
+    float GetCameraRotationX() const { return (is_3d ? camera3d->GetAngleX() : camera2d->GetAngleX()); }
+    void SetPan(float deltax, float deltay, float deltaz);
     void Set3D(bool value) { is_3d = value; }
-    bool Is3D() { return is_3d; }
+    bool Is3D() const { return is_3d; }
     glm::mat4& GetProjViewMatrix() { return ProjViewMatrix; }
     glm::mat4& GetProjMatrix() { return ProjMatrix; }
 
 	virtual void render(const wxSize& size=wxSize(0,0)) override;
 
-    DrawGLUtils::xlAccumulator &GetAccumulator() { return accumulator; }
-    DrawGLUtils::xl3Accumulator &GetAccumulator3d() { return accumulator3d; }
     void SaveCurrentCameraPosition();
     void SetCamera2D(int i);
     void SetCamera3D(int i);
+    void SetDisplay2DBoundingBox(bool bb) { _display2DBox = bb; }
+    void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; }
 
+    void SetRenderOrder(int i) { renderOrder = i; Refresh(); }
+    
+    void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 protected:
     virtual void InitializeGLCanvas() override;
     virtual bool UsesVertexTextureAccumulator() override {return true;}
@@ -124,6 +129,9 @@ private:
     //void mouseReleased(wxMouseEvent& event);
 	void rightClick(wxMouseEvent& event);
 	void mouseLeftWindow(wxMouseEvent& event);
+    
+    void OnZoomGesture(wxZoomGestureEvent& event);
+    
     void OnPopup(wxCommandEvent& event);
 	void drawGrid(float size, float step);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
@@ -135,22 +143,28 @@ private:
     wxDouble mPointSize = 2.0;
     int virtualWidth, virtualHeight;
 
+    bool _display2DBox;
+    bool _center2D0;
     Image* image;
     bool scaleImage = false;
     xLightsDrawable* sprite;
     bool allowSelected;
     bool allowPreviewChange;
     PreviewPane* mPreviewPane;
-    DrawGLUtils::xlAccumulator accumulator;
-    
+    DrawGLUtils::xlAccumulator solidAccumulator;
+    DrawGLUtils::xlAccumulator transparentAccumulator;
+
     xLightsFrame* xlights;
     std::string currentModel;
     std::string currentLayoutGroup;
     std::vector<Model*> tmpModelList;
     Model *additionalModel;
-    
-	DrawGLUtils::xl3Accumulator view_object_accumulator;
-    DrawGLUtils::xl3Accumulator accumulator3d;
+
+    int renderOrder;
+	DrawGLUtils::xl3Accumulator solidViewObjectAccumulator;
+    DrawGLUtils::xl3Accumulator transparentViewObjectAccumulator;
+    DrawGLUtils::xl3Accumulator solidAccumulator3d;
+    DrawGLUtils::xl3Accumulator transparentAccumulator3d;
     bool is_3d;
     bool m_mouse_down;
     bool m_wheel_down;
@@ -166,10 +180,7 @@ private:
 
     double currentPixelScaleFactor = 1.0;
 
-    int maxVertexCount;
-
 	DECLARE_EVENT_TABLE()
 };
-
 
 #endif // MODELPREVIEW_H

@@ -31,6 +31,16 @@ namespace DrawGLUtils {
     class xl3Accumulator;
 }
 
+enum {
+    GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
+    GRIDCHANGE_MARK_DIRTY = 0x0002,
+    GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
+    GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
+    GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
+
+    GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
+};
+
 class Model : public BaseObject
 {
     friend class LayoutPanel;
@@ -128,15 +138,6 @@ public:
      *     0x0008  -  Rebuild the model list
      *     0x0010  -  Update all model lists
      */
-    enum {
-        GRIDCHANGE_REFRESH_DISPLAY = 0x0001,
-        GRIDCHANGE_MARK_DIRTY = 0x0002,
-        GRIDCHANGE_REBUILD_PROP_GRID = 0x0004,
-        GRIDCHANGE_REBUILD_MODEL_LIST = 0x0008,
-        GRIDCHANGE_UPDATE_ALL_MODEL_LISTS = 0x0010,
-       
-        GRIDCHANGE_MARK_DIRTY_AND_REFRESH = 0x0003
-    };
     virtual int OnPropertyGridChange(wxPropertyGridInterface *grid, wxPropertyGridEvent& event);
     virtual const ModelScreenLocation &GetModelScreenLocation() const = 0;
     virtual ModelScreenLocation &GetModelScreenLocation() = 0;
@@ -254,9 +255,8 @@ public:
     int GetChanCountPerNode() const;
     size_t GetCoordCount(size_t nodenum) const;
     int GetNodeStringNumber(size_t nodenum) const;
-    void UpdateXmlWithScale();
+    void UpdateXmlWithScale() override;
     void SetPosition(double posx, double posy);
-    void AddOffset(double deltax, double deltay, double deltaz);
     virtual unsigned int GetLastChannel();
     std::string GetChannelInStartChannelFormat(OutputManager* outputManager, std::list<std::string>* visitedModels, unsigned int channel);
     std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);
@@ -269,15 +269,14 @@ public:
     bool UpdateStartChannelFromChannelString(std::map<std::string, Model*>& models, std::list<std::string>& used);
     int GetNumberFromChannelString(const std::string &sc) const;
     int GetNumberFromChannelString(const std::string &sc, bool &valid, std::string& dependsonmodel) const;
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &va, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
-    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &va3, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xlAccumulator &solidVa, DrawGLUtils::xlAccumulator &transparentVa, bool is_3d = false, const xlColor *color = NULL, bool allowSelected = false);
+    virtual void DisplayModelOnWindow(ModelPreview* preview, DrawGLUtils::xl3Accumulator &solidVa3, DrawGLUtils::xl3Accumulator &transparentVa3, bool is_3d = false, const xlColor *color =  NULL, bool allowSelected = false);
     virtual void DisplayEffectOnWindow(ModelPreview* preview, double pointSize);
     virtual int NodeRenderOrder() {return 0;}
     wxString GetNodeNear(ModelPreview* preview, wxPoint pt);
 
+    virtual bool CleanupFileLocations(xLightsFrame* frame) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false) const;
-    virtual bool CleanupFileLocations(xLightsFrame* frame);
-    virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     void MoveHandle(ModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY);
     int GetSelectedHandle();
     int GetNumHandles();
@@ -287,7 +286,6 @@ public:
     void AddHandle(ModelPreview* preview, int mouseX, int mouseY);
     virtual void InsertHandle(int after_handle);
     virtual void DeleteHandle(int handle);
-    virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
     std::vector<std::string> GetModelState() const;
     void SaveModelState( std::vector<std::string>& state );
@@ -317,7 +315,8 @@ public:
     char GetAbsoluteChannelColorLetter(long absoluteChannel); // absolute channel may or may not be in this model ... in which case a ' ' is returned
 
     virtual std::string ChannelLayoutHtml(OutputManager* outputManager);
-    void ExportAsCustomXModel() const;
+    virtual void ExportAsCustomXModel() const;
+    virtual std::string GetStartLocation() const;
     bool IsCustom(void);
     virtual bool SupportsExportAsCustom() const = 0;
     virtual bool SupportsWiringView() const = 0;

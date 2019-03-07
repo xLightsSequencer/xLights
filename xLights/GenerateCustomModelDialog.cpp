@@ -651,7 +651,7 @@ inline void SetPixel(int x, int y, int w3, unsigned char* data, unsigned char c)
 
 wxImage GenerateCustomModelDialog::CreateImageFromFrame(AVFrame* frame)
 {
-    if (frame != NULL)
+    if (frame != nullptr)
     {
         wxImage img(frame->width, frame->height, (unsigned char *)frame->data[0], true);
         img.SetType(wxBitmapType::wxBITMAP_TYPE_BMP);
@@ -1090,7 +1090,6 @@ void GenerateCustomModelDialog::OnButton_CV_BackClick(wxCommandEvent& event)
 
 void GenerateCustomModelDialog::DoStartFrameIdentify()
 {
-    static log4cpp::Category &logger_gcm = log4cpp::Category::getInstance(std::string("log_generatecustommodel"));
     if (_vr != nullptr)
     {
         delete _vr;

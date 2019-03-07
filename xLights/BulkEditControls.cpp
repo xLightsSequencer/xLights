@@ -55,7 +55,6 @@ BulkEditFilePickerCtrl::BulkEditFilePickerCtrl(wxWindow *parent, wxWindowID id, 
 BulkEditSpinCtrl::BulkEditSpinCtrl(wxWindow *parent, wxWindowID id, const wxString &value, const wxPoint &pos, const wxSize &size, long style, int min, int max, int initial, const wxString &name) : wxSpinCtrl(parent, id, value, pos, size, style, min, max, initial, name)
 {
     _supportsBulkEdit = true;
-    _type = BESLIDERTYPE::BE_INT;
     ID_SPINCTRL_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditSpinCtrl::OnRightDown, nullptr, this);
 }
@@ -63,9 +62,15 @@ BulkEditSpinCtrl::BulkEditSpinCtrl(wxWindow *parent, wxWindowID id, const wxStri
 BulkEditValueCurveButton::BulkEditValueCurveButton(wxWindow *parent, wxWindowID id, const wxBitmap& bitmap, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : ValueCurveButton(parent, id, bitmap, pos, size, style, validator, name)
 {
     _supportsBulkEdit = true;
-    //_type = BESLIDERTYPE::BE_INT;
     ID_VALUECURVE_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditValueCurveButton::OnRightDown, nullptr, this);
+}
+
+BulkEditButton::BulkEditButton(wxWindow *parent, wxWindowID id, const wxString& label, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name) : wxButton(parent, id, label, pos, size, style, validator, name)
+{
+    _supportsBulkEdit = true;
+    ID_BUTTON_BULKEDIT = wxNewId();
+    Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditButton::OnRightDown, nullptr, this);
 }
 
 BulkEditChoice::BulkEditChoice(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, int n, const wxString choices[], long style, const wxValidator &validator, const wxString &name) : wxChoice(parent, id, pos, size, n, choices, style, validator, name)
@@ -139,6 +144,17 @@ void BulkEditValueCurveButton::OnRightDown(wxMouseEvent& event)
     wxMenu mnu;
     mnu.Append(ID_VALUECURVE_BULKEDIT, "Bulk Edit");
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditValueCurveButton::OnValueCurvePopup, nullptr, this);
+    PopupMenu(&mnu);
+}
+
+void BulkEditButton::OnRightDown(wxMouseEvent& event)
+{
+    if (!_supportsBulkEdit) return;
+    if (!IsBulkEditAvailable(GetParent(), false)) return;
+
+    wxMenu mnu;
+    mnu.Append(ID_BUTTON_BULKEDIT, "Bulk Edit");
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&BulkEditButton::OnButtonPopup, nullptr, this);
     PopupMenu(&mnu);
 }
 
@@ -333,6 +349,32 @@ void BulkEditValueCurveButton::OnValueCurvePopup(wxCommandEvent &event)
     }
 }
 
+void BulkEditButton::OnButtonPopup(wxCommandEvent &event)
+{
+    if (event.GetId() == ID_BUTTON_BULKEDIT)
+    {
+        std::string id = GetName().ToStdString();
+        id = FixIdForPanel(GetPanelName(GetParent()), id);
+
+        if (GetPanelName(GetParent()) == "Effect")
+        {
+            std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+            xLightsApp::GetFrame()->GetMainSequencer()->ApplyButtonPressToSelected(effect, id);
+        }
+        else
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->ApplyButtonPressToSelected("", id);
+        }
+
+        // unselect and select effect to update the panel
+        auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
+        if (effect != nullptr)
+        {
+            xLightsApp::GetFrame()->GetMainSequencer()->PanelEffectGrid->RaiseSelectedEffectChanged(effect, true, true);
+        }
+    }
+}
+
 void BulkEditTextCtrl::OnTextCtrlPopup(wxCommandEvent& event)
 {
     if (event.GetId() == ID_TEXTCTRL_BULKEDIT)
@@ -365,10 +407,8 @@ void BulkEditTextCtrl::OnTextCtrlPopup(wxCommandEvent& event)
             {
                 SetValue(dlg.GetValue());
 
-                std::string id = "";
-                std::string value = "";
-                id = GetName().ToStdString();
-                value = GetValue().ToStdString();
+                std::string id = GetName().ToStdString();
+                std::string value = GetValue().ToStdString();
                 id = FixIdForPanel(GetPanelName(GetParent()), id);
 
                 if (GetPanelName(GetParent()) == "Effect")
@@ -409,8 +449,7 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
         {
             SetFileName(filename);
 
-            std::string id = "";
-            id = GetName().ToStdString();
+            std::string id = GetName().ToStdString();
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
             if (GetPanelName(GetParent()) == "Effect")
@@ -443,8 +482,7 @@ void BulkEditFilePickerCtrl::OnFilePickerCtrlPopup(wxCommandEvent& event)
             fn.SetPath(dlg.GetPath());
             SetFileName(fn.GetFullPath());
 
-            std::string id = "";
-            id = GetName().ToStdString();
+            std::string id = GetName().ToStdString();
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
             if (GetPanelName(GetParent()) == "Effect")
@@ -478,10 +516,8 @@ void BulkEditSpinCtrl::OnSpinCtrlPopup(wxCommandEvent& event)
         {
             SetValue(dlg.GetValue());
 
-            std::string id = "";
-            std::string value = "";
-            id = GetName().ToStdString();
-            value = wxString::Format("%d", GetValue()).ToStdString();
+            std::string id = GetName().ToStdString();
+            std::string value = wxString::Format("%d", GetValue()).ToStdString();
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
             if (GetPanelName(GetParent()) == "Effect")
@@ -522,10 +558,8 @@ void BulkEditChoice::OnChoicePopup(wxCommandEvent& event)
         {
             SetSelection(dlg.GetSelection());
 
-            std::string id = "";
-            std::string value = "";
-            id = GetName().ToStdString();
-            value = GetString(dlg.GetSelection());
+            std::string id = GetName().ToStdString();
+            std::string value = GetString(dlg.GetSelection());
             id = FixIdForPanel(GetPanelName(GetParent()), id);
 
             if (GetPanelName(GetParent()) == "Effect")
@@ -559,15 +593,13 @@ void BulkEditCheckBox::OnCheckBoxPopup(wxCommandEvent& event)
 
     SetValue(checked);
 
-    std::string id = "";
-    std::string value = "";
-    id = GetName().ToStdString();
-    value = checked ? "1" : "0";
+    std::string id = GetName().ToStdString();
+    std::string value = checked ? "1" : "0";
     id = FixIdForPanel(GetPanelName(GetParent()), id);
 
     if (GetPanelName(GetParent()) == "Effect")
     {
-        std::string effect = ((EffectsPanel*)GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
+        std::string effect = static_cast<EffectsPanel*>(GetPanel(GetParent()))->EffectChoicebook->GetChoiceCtrl()->GetStringSelection().ToStdString();
         xLightsApp::GetFrame()->GetMainSequencer()->ApplyEffectSettingToSelected(effect, id, value, nullptr, "");
     }
     else

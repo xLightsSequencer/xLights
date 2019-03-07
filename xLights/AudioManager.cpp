@@ -48,6 +48,10 @@ int AudioData::__nextId = 0;
 #define CODEC_CAP_DELAY AV_CODEC_CAP_DELAY
 #endif
 
+#ifndef CODEC_FLAG_GLOBAL_HEADER /* add compatibility for ffmpeg 3+ */
+#define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+#endif
+
 void fill_audio(void *udata, Uint8 *stream, int len)
 {
     //SDL 2.0
@@ -2280,12 +2284,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     int outSamples;
 					try
 					{
-                        if (frame->data == nullptr)
-                        {
-                            logger_base.error("DoLoadAudioData: frame->data was nullptr.");
-                            // let this go maybe it causes the crash
-                            wxASSERT(false);
-                        }
                         if (*(frame->data) == nullptr)
                         {
                             logger_base.error("DoLoadAudioData: frame->data was a pointer to a nullptr.");
@@ -2307,7 +2305,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                         wxASSERT(false);
                         swr_free(&au_convert_ctx);
 						av_free(out_buffer);
-						av_free(frame);
+						av_frame_free(&frame);
                         avformat_close_input(&formatContext);
                         _trackSize = _loadedData; // makes it looks like we are done
                         return;
@@ -2371,12 +2369,6 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                 int outSamples;
 				try
 				{
-                    if (frame->data == nullptr)
-                    {
-                        logger_base.error("DoLoadAudioData: frame->data was nullptr.");
-                        // let this go maybe it causes the crash
-                        wxASSERT(false);
-                    }
                     if (*(frame->data) == nullptr)
                     {
                         logger_base.error("DoLoadAudioData: frame->data was a pointer to a nullptr.");
@@ -2398,7 +2390,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
                     wxASSERT(false);
                     swr_free(&au_convert_ctx);
 					av_free(out_buffer);
-					av_free(frame);
+					av_frame_free(&frame);
                     avformat_close_input(&formatContext);
                     _trackSize = _loadedData; // makes it looks like we are done
                     return;
@@ -2448,7 +2440,7 @@ void AudioManager::DoLoadAudioData(AVFormatContext* formatContext, AVCodecContex
     logger_base.debug("DoLoadAudioData: Cleaning up");
     swr_free(&au_convert_ctx);
 	av_free(out_buffer);
-	av_free(frame);
+	av_frame_free(&frame);
 
     avformat_close_input(&formatContext);
 
@@ -2921,4 +2913,222 @@ void AudioManager::SetAudioDevice(const std::string device)
 std::list<std::string> AudioManager::GetAudioDevices()
 {
     return __sdl.GetAudioDevices();
+}
+
+bool AudioManager::WriteAudioFrame(AVFormatContext *oc, AVStream *st, float *sampleBuff, int sampleCount, bool clearQueue/*= false*/)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+    AVCodecContext *c = st->codec;
+
+    AVFrame *frame = av_frame_alloc();
+    frame->format = AV_SAMPLE_FMT_FLTP;
+    frame->channel_layout = c->channel_layout;
+    frame->nb_samples = sampleCount;
+
+    int buffer_size = av_samples_get_buffer_size(nullptr, c->channels, sampleCount, c->sample_fmt, 1);
+    int audioSize = avcodec_fill_audio_frame(frame, c->channels, c->sample_fmt, (uint8_t *)sampleBuff, buffer_size, 1);
+    if (audioSize < 0)
+    {
+        logger_base.error("  Error filling audio frame");
+        return false;
+    }
+
+    AVPacket pkt;
+    av_init_packet(&pkt);
+    pkt.data = nullptr;    // packet data will be allocated by the encoder
+    pkt.size = 0;
+    pkt.stream_index = st->index;
+
+    int got_packet = 0;
+    int ret = avcodec_encode_audio2(c, &pkt, frame, &got_packet);
+    if (ret < 0)
+    {
+        logger_base.error("  Error encoding audio frame");
+        return false;
+    }
+
+    if (got_packet)
+    {
+        pkt.stream_index = st->index;
+        if (av_interleaved_write_frame(oc, &pkt) != 0)
+        {
+            logger_base.error("  error writing audio data");
+            return false;
+        }
+
+        av_packet_unref(&pkt);
+    }
+
+    av_frame_free(&frame);
+    return true;
+}
+
+bool AudioManager::CreateAudioFile(const std::vector<float>& left, const std::vector<float>& right, const std::string& targetFile, long bitrate)
+{
+    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
+
+    logger_base.debug("Creating audio file %s.", (const char *)targetFile.c_str());
+
+    long trackSize = left.size();
+    long frameIndex = 0;
+    auto getAudioFrame = [trackSize, &frameIndex, left, right](float *samples, int frameSize, int numChannels) {
+        long clampedSize = std::min((long)frameSize, (long)trackSize - frameIndex);
+
+        if (clampedSize > 0)
+        {
+            const float *leftptr = &left[frameIndex];
+            const float *rightptr = &right[frameIndex];
+
+            if (leftptr != nullptr)
+            {
+                memcpy(samples, leftptr, clampedSize * sizeof(float));
+                samples += clampedSize;
+                memcpy(samples, rightptr, clampedSize * sizeof(float));
+                frameIndex += frameSize;
+            }
+        }
+    };
+
+    avcodec_register_all();
+    av_register_all();
+
+    AVOutputFormat* fmt = av_guess_format(nullptr, targetFile.c_str(), nullptr);
+    AVCodec *audioCodec = avcodec_find_encoder(fmt->audio_codec);
+    if (audioCodec == nullptr)
+    {
+        logger_base.error("CreateAudioFile: Error finding codec.");
+        return false;
+    }
+    else
+    {
+        logger_base.debug("    Audio codec: %s.", audioCodec->name);
+    }
+
+    AVFormatContext* formatContext;
+    avformat_alloc_output_context2(&formatContext, fmt, nullptr, targetFile.c_str());
+    if (formatContext == nullptr)
+    {
+        logger_base.error("  Error opening output-context");
+        return false;
+    }
+
+    AVStream *audio_st = nullptr;
+    audio_st = avformat_new_stream(formatContext, audioCodec);
+    audio_st->id = formatContext->nb_streams - 1;
+    AVCodecContext *audioCodecContext = audio_st->codec;
+    avcodec_get_context_defaults3(audioCodecContext, audioCodec);
+    audioCodecContext->sample_fmt = AV_SAMPLE_FMT_FLTP;
+    audioCodecContext->bit_rate = 128000;
+    audioCodecContext->sample_rate = bitrate;
+    audioCodecContext->channels = 2;
+    audioCodecContext->channel_layout = AV_CH_LAYOUT_STEREO;
+
+    if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
+        audioCodecContext->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    if (avcodec_open2(audioCodecContext, audioCodec, nullptr) != 0)
+    {
+        logger_base.error("  Error opening audio codec.");
+        return false;
+    }
+
+    if (avio_open(&formatContext->pb, targetFile.c_str(), AVIO_FLAG_WRITE) < 0)
+    {
+        logger_base.error("  Error opening output file");
+        return false;
+    }
+
+    if (avformat_write_header(formatContext, nullptr) < 0)
+    {
+        logger_base.error("  Error writing file header");
+        return false;
+    }
+
+    bool wasCanceled = false, wasErrored = false;
+
+    logger_base.debug("    Headers written.");
+
+    double lenInSeconds = (double)left.size() / bitrate;
+    int frameSize = audio_st->codec->frame_size;
+    double numFullFrames = (lenInSeconds * bitrate) / frameSize;
+    int numAudioFrames = (int)floor(numFullFrames);
+
+    float *audioBuff = new float[audio_st->codec->frame_size * 2];
+
+    logger_base.debug("    Writing the audio %d frames.", numAudioFrames);
+    for (int i = 0; i < numAudioFrames; ++i)
+    {
+        getAudioFrame(audioBuff, frameSize, 2);
+        if (!WriteAudioFrame(formatContext, audio_st, audioBuff, frameSize))
+            logger_base.error("   Error writing audio frame %d", i);
+    }
+
+    int numLeftoverSamples = (int)floor((numFullFrames - numAudioFrames) * frameSize);
+    if (numLeftoverSamples)
+    {
+        getAudioFrame(audioBuff, numLeftoverSamples, 2);
+        if (!WriteAudioFrame(formatContext, audio_st, audioBuff, numLeftoverSamples))
+            logger_base.error("   Error writing leftover audio samples");
+    }
+
+    delete[] audioBuff;
+
+    // delayed_audio_frames
+    for (int got_audio_output = 1; got_audio_output != 0;)
+    {
+        AVPacket pkt;
+        av_init_packet(&pkt);
+        pkt.data = nullptr;
+        pkt.size = 0;
+        pkt.stream_index = audio_st->index;
+
+        if (avcodec_encode_audio2(audio_st->codec, &pkt, nullptr, &got_audio_output) < 0)
+        {
+            logger_base.error("  Error encoding delayed audio frame");
+            return false;
+        }
+
+        if (got_audio_output)
+        {
+            pkt.stream_index = audio_st->index;
+            if (av_interleaved_write_frame(formatContext, &pkt) != 0)
+            {
+                logger_base.error("  Error writing delayed audio frame");
+                return false;
+            }
+
+            av_packet_unref(&pkt);
+        }
+    }
+
+    if (!wasErrored && !wasCanceled)
+    {
+        if (av_write_trailer(formatContext))
+        {
+            logger_base.error("  Error writing file trailer");
+            wasErrored = true;
+        }
+    }
+
+    // Clean-up and close the output file
+    if (audio_st)
+        avcodec_close(audio_st->codec);
+    for (unsigned i = 0; i < formatContext->nb_streams; ++i)
+    {
+        av_freep(&formatContext->streams[i]->codec);
+        av_freep(&formatContext->streams[i]);
+    }
+    if (!(fmt->flags & AVFMT_NOFILE))
+    {
+        avio_close(formatContext->pb);
+    }
+    av_free(formatContext);
+
+    if (wasErrored || wasCanceled)
+    {
+        logger_base.debug("Error creating audio file. Removing it.");
+        wxRemoveFile(targetFile);
+        return false;
+    }
+
+    return true;
 }

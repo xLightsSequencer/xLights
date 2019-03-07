@@ -1,11 +1,14 @@
 #include "ListenerOSC.h"
-#include <log4cpp/Category.hh>
-#include <wx/socket.h>
 #include "ListenerManager.h"
 #include "../../xLights/outputs/IPOutput.h"
 #include "../ScheduleManager.h"
 #include "../ScheduleOptions.h"
 #include "../../xLights/UtilFunctions.h"
+#include "../OSCPacket.h"
+
+#include <wx/socket.h>
+
+#include <log4cpp/Category.hh>
 
 ListenerOSC::ListenerOSC(ListenerManager* listenerManager) : ListenerBase(listenerManager)
 {
@@ -49,22 +52,23 @@ void ListenerOSC::StartProcess()
     {
         localaddr.Hostname(IPOutput::GetLocalIP());
     }
-    localaddr.Service(_listenerManager->GetScheduleManager()->GetOptions()->GetOSCOptions()->GetClientPort());
+    int port = _listenerManager->GetScheduleManager()->GetOptions()->GetOSCOptions()->GetClientPort();
+    localaddr.Service(port);
 
     _socket = new wxDatagramSocket(localaddr, wxSOCKET_BROADCAST);
     if (_socket == nullptr)
     {
-        logger_base.error("Error opening datagram for OSC reception. %s", (const char *)localaddr.IPAddress().c_str());
+        logger_base.error("Error opening datagram for OSC reception on port %d. %s", port, (const char *)localaddr.IPAddress().c_str());
     }
     else if (!_socket->IsOk())
     {
-        logger_base.error("Error opening datagram for OSC reception. %s OK : FALSE", (const char *)localaddr.IPAddress().c_str());
+        logger_base.error("Error opening datagram for OSC reception on port %d. %s OK : FALSE", port, (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
     else if (_socket->Error())
     {
-        logger_base.error("Error opening datagram for OSC reception. %d : %s %s", _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
+        logger_base.error("Error opening datagram for OSC reception on port %d. %d : %s %s", port, _socket->LastError(), (const char*)DecodeIPError(_socket->LastError()).c_str(), (const char *)localaddr.IPAddress().c_str());
         delete _socket;
         _socket = nullptr;
     }
@@ -72,7 +76,7 @@ void ListenerOSC::StartProcess()
     {
         _socket->SetTimeout(1);
         _socket->Notify(false);
-        logger_base.info("OSC reception datagram opened successfully.");
+        logger_base.info("OSC reception datagram opened successfully on port %d.", port);
         _isOk = true;
     }
 }

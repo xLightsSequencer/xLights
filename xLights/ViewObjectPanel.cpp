@@ -48,6 +48,8 @@ ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,Lay
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
+
+	Connect(wxEVT_CHAR,(wxObjectEventFunction)&ViewObjectPanel::OnChar);
 	//*)
 
     InitImageList();
@@ -56,6 +58,12 @@ ViewObjectPanel::ViewObjectPanel(wxWindow* parent,ViewObjectManager &Objects,Lay
     sizer1->Add(TreeListViewObjects, wxSizerFlags(2).Expand());
     FirstPanel->SetSizer(sizer1);
     sizer1->SetSizeHints(FirstPanel);
+
+	TreeListViewObjects->GetView()->Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoCut, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoCopy, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoPaste, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_UNDO, wxEVT_MENU, (wxObjectEventFunction)&ViewObjectPanel::DoUndo, nullptr, this);
+	TreeListViewObjects->GetView()->Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ViewObjectPanel::OnCharHook), nullptr, this);
 
     refreshObjectList();
 }
@@ -189,7 +197,7 @@ int ViewObjectPanel::AddObjectToTree(ViewObject *view_object, wxTreeListItem* pa
         logger_base.crit("LayoutPanel::AddObjectToTree view_object is null ... this is going to crash.");
     }
 
-    logger_base.debug("Adding object %s", (const char *)view_object->GetName().c_str());
+    //logger_base.debug("Adding object %s", (const char *)view_object->GetName().c_str());
 
     wxTreeListItem item = TreeListViewObjects->AppendItem(*parent, fullName ? view_object->GetName() : view_object->name,
                                                          GetObjectTreeIcon(view_object, false),
@@ -514,19 +522,19 @@ void ViewObjectPanel::OnPropertyGridChange(wxPropertyGrid *propertyEditor, wxPro
             }
         } else {
             int i = mSelectedObject->OnPropertyGridChange(propertyEditor, event);
-            if (i & Model::GRIDCHANGE_REFRESH_DISPLAY) {
+            if (i & GRIDCHANGE_REFRESH_DISPLAY) {
                 layoutPanel->xlights->UpdatePreview();
             }
-            if (i & Model::GRIDCHANGE_MARK_DIRTY) {
+            if (i & GRIDCHANGE_MARK_DIRTY) {
                 layoutPanel->xlights->MarkEffectsFileDirty(true);
             }
-            if (i & Model::GRIDCHANGE_REBUILD_PROP_GRID) {
+            if (i & GRIDCHANGE_REBUILD_PROP_GRID) {
                 CallAfter(&LayoutPanel::resetPropertyGrid);
             }
-            if (i & Model::GRIDCHANGE_REBUILD_MODEL_LIST) {
+            if (i & GRIDCHANGE_REBUILD_MODEL_LIST) {
                 CallAfter(&ViewObjectPanel::refreshObjectList);
             }
-            if (i & Model::GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
+            if (i & GRIDCHANGE_UPDATE_ALL_MODEL_LISTS) {
                 // Preview assignment change so model may not exist in current preview anymore
                 CallAfter(&LayoutPanel::RefreshLayout);
             }
@@ -561,7 +569,7 @@ void ViewObjectPanel::OnItemContextMenu(wxTreeListEvent& event)
 
     if (mSelectedObject != nullptr ) {
         mnuContext.Append(ID_MNU_DELETE_OBJECT,"Delete");
-        mnuContext.AppendSeparator();
+        //mnuContext.AppendSeparator();
     }
 
     /*mnuContext.Append(ID_MNU_ADD_MODEL_GROUP,"Add Group");
@@ -988,4 +996,34 @@ void ViewObjectPanel::PreviewObjectVDistribute()
         }
     }
     layoutPanel->UpdatePreview();
+}
+
+void ViewObjectPanel::DoCut(wxCommandEvent& event)
+{
+	layoutPanel->DoCut(event);
+}
+
+void ViewObjectPanel::DoCopy(wxCommandEvent& event)
+{
+	layoutPanel->DoCopy(event);
+}
+
+void ViewObjectPanel::DoPaste(wxCommandEvent& event)
+{
+	layoutPanel->DoPaste(event);
+}
+
+void ViewObjectPanel::DoUndo(wxCommandEvent& event)
+{
+	layoutPanel->DoUndo(event);
+}
+
+void ViewObjectPanel::OnCharHook(wxKeyEvent& event)
+{
+	layoutPanel->OnCharHook(event);
+}
+
+void ViewObjectPanel::OnChar(wxKeyEvent& event)
+{
+	layoutPanel->OnChar(event);
 }

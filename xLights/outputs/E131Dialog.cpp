@@ -1,8 +1,8 @@
 #include "E131Dialog.h"
 
 //(*InternalHeaders(E131Dialog)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 #include "E131Output.h"
@@ -28,6 +28,8 @@ const long E131Dialog::ID_STATICTEXT8 = wxNewId();
 const long E131Dialog::ID_TEXTCTRL_DESCRIPTION = wxNewId();
 const long E131Dialog::ID_STATICTEXT9 = wxNewId();
 const long E131Dialog::ID_CHECKBOX2 = wxNewId();
+const long E131Dialog::ID_STATICTEXT10 = wxNewId();
+const long E131Dialog::ID_SPINCTRL_PRIORITY = wxNewId();
 const long E131Dialog::ID_BUTTON1 = wxNewId();
 const long E131Dialog::ID_BUTTON2 = wxNewId();
 //*)
@@ -43,10 +45,10 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     _outputManager = outputManager;
 
     //(*Initialize(E131Dialog)
-    wxBoxSizer* BoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
+    wxBoxSizer* BoxSizer1;
 
     Create(parent, wxID_ANY, _("E1.31 Setup"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     SetClientSize(wxDefaultSize);
@@ -99,6 +101,11 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     CheckBox_SuppressDuplicates = new wxCheckBox(this, ID_CHECKBOX2, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
     CheckBox_SuppressDuplicates->SetValue(false);
     FlexGridSizer2->Add(CheckBox_SuppressDuplicates, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("Priority"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
+    FlexGridSizer2->Add(StaticText10, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    SpinCtrl_Priority = new wxSpinCtrl(this, ID_SPINCTRL_PRIORITY, _T("100"), wxDefaultPosition, wxDefaultSize, 0, 0, 200, 100, _T("ID_SPINCTRL_PRIORITY"));
+    SpinCtrl_Priority->SetValue(_T("100"));
+    FlexGridSizer2->Add(SpinCtrl_Priority, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
     Button_Ok = new wxButton(this, ID_BUTTON1, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
@@ -124,6 +131,7 @@ E131Dialog::E131Dialog(wxWindow* parent, E131Output* e131, OutputManager* output
     SpinCtrl_StartUniv->SetValue(_e131->GetUniverse());
     SpinCtrl_NumUniv->SetValue(_e131->GetUniverses());
     MultiE131CheckBox->SetValue(_e131->IsOutputCollection());
+    SpinCtrl_Priority->SetValue(_e131->GetPriority());
     if (_e131->GetIP() != "")
     {
         MultiE131CheckBox->Enable(false);
@@ -204,6 +212,7 @@ void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
     _e131->SetChannels(SpinCtrl_LastChannel->GetValue());
     _e131->SetDescription(TextCtrl_Description->GetValue().ToStdString());
     _e131->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
+    _e131->SetPriority(SpinCtrl_Priority->GetValue());
 
     if (SpinCtrl_NumUniv->GetValue() > 1 && !MultiE131CheckBox->GetValue())
     {
@@ -216,6 +225,7 @@ void E131Dialog::OnButton_OkClick(wxCommandEvent& event)
             e->SetChannels(SpinCtrl_LastChannel->GetValue());
             e->SetDescription(TextCtrl_Description->GetValue().ToStdString());
             e->SetSuppressDuplicateFrames(CheckBox_SuppressDuplicates->IsChecked());
+            e->SetPriority(SpinCtrl_Priority->GetValue());
             _outputManager->AddOutput(e, last);
             last = e;
         }

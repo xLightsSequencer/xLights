@@ -605,7 +605,6 @@ void WiringDialog::RightClick(wxContextMenuEvent& event)
 
 void WiringDialog::OnPopup(wxCommandEvent& event)
 {
-    static log4cpp::Category &logger_base = log4cpp::Category::getInstance(std::string("log_base"));
     int id = event.GetId();
     if (id == ID_MNU_EXPORT)
     {

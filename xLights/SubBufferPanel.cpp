@@ -466,18 +466,83 @@ void SubBufferPanel::mouseMoved( wxMouseEvent& event) {
         return;
     }
 
+    float dummy;
     switch (draggingHandle) {
         case 0:
+        if (event.ControlDown() || event.CmdDown())
+        {
+            if (event.ShiftDown())
+            {
+                // y only
+                Convert(dummy, y1, event);
+            }
+            else
+            {
+                // x only
+                Convert(x1, dummy, event);
+            }
+        }
+        else
+        {
             Convert(x1, y1, event);
+        }
             break;
         case 1:
-            Convert(x1, y2, event);
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // y only
+                    Convert(dummy, y2, event);
+                }
+                else
+                {
+                    // x only
+                    Convert(x1, dummy, event);
+                }
+            }
+            else
+            {
+                Convert(x1, y2, event);
+            }
             break;
         case 2:
-            Convert(x2, y2, event);
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // y only
+                    Convert(dummy, y2, event);
+                }
+                else
+                {
+                    // x only
+                    Convert(x2, dummy, event);
+                }
+            }
+            else
+            {
+                Convert(x2, y2, event);
+            }
             break;
         case 3:
-            Convert(x2, y1, event);
+            if (event.ControlDown() || event.CmdDown())
+            {
+                if (event.ShiftDown())
+                {
+                    // y only
+                    Convert(dummy, y1, event);
+                }
+                else
+                {
+                    // x only
+                    Convert(x2, dummy, event);
+                }
+            }
+            else
+            {
+                Convert(x2, y1, event);
+            }
             break;
         case 4:
             {

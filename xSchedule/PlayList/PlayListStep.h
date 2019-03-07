@@ -87,7 +87,7 @@ public:
     size_t GetFrameMS();
     void AdjustTime(wxTimeSpan by);
     bool IsRunningFSEQ(const std::string& fseqFile);
-    void SetSyncPosition(size_t ms, bool force = false);
+    void SetSyncPosition(size_t ms, size_t acceptableJitter, bool force = false);
     PlayListItem* FindRunProcessNamed(const std::string& item);
     AudioManager* GetAudioManager();
     #pragma endregion Getters and Setters

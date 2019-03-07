@@ -97,6 +97,260 @@ void DrawGLUtils::xlGLCacheInfo::SetCurrent() {
     }
 }
 
+void DrawGLUtils::xl3DMesh::setMatrix(glm::mat4& mat) {
+    matrix = mat;
+}
+void DrawGLUtils::xl3DMesh::addSurface(const float vert[3][3], const float uv[3][2], const float norms[3][3], uint8_t clr[3][4], GLint imageId) {
+    for (int v = 0; v < 3; v++) {
+        vertices.push_back(vert[v][0]);
+        vertices.push_back(vert[v][1]);
+        vertices.push_back(vert[v][2]);
+        texCoords.push_back(uv[v][0]);
+        texCoords.push_back(uv[v][1]);
+        normals.push_back(norms[v][0]);
+        normals.push_back(norms[v][1]);
+        normals.push_back(norms[v][2]);
+        colors.push_back(clr[v][0]);
+        colors.push_back(clr[v][1]);
+        colors.push_back(clr[v][2]);
+        colors.push_back(clr[v][3]);
+        images.push_back(imageId);
+    }
+
+    wireframe.push_back(vert[0][0]);
+    wireframe.push_back(vert[0][1]);
+    wireframe.push_back(vert[0][2]);
+    wireframe.push_back(vert[1][0]);
+    wireframe.push_back(vert[1][1]);
+    wireframe.push_back(vert[1][2]);
+    wireframe.push_back(vert[1][0]);
+    wireframe.push_back(vert[1][1]);
+    wireframe.push_back(vert[1][2]);
+    wireframe.push_back(vert[2][0]);
+    wireframe.push_back(vert[2][1]);
+    wireframe.push_back(vert[2][2]);
+    wireframe.push_back(vert[2][0]);
+    wireframe.push_back(vert[2][1]);
+    wireframe.push_back(vert[2][2]);
+    wireframe.push_back(vert[0][0]);
+    wireframe.push_back(vert[0][1]);
+    wireframe.push_back(vert[0][2]);
+}
+void DrawGLUtils::xl3DMesh::addLine(float vert[2][3]) {
+    for (int v = 0; v < 2; v++) {
+        lines.push_back(vert[v][0]);
+        lines.push_back(vert[v][1]);
+        lines.push_back(vert[v][2]);
+    }
+}
+inline bool hasTransparent(int idx, const std::vector<GLubyte> &colors) {
+    static const GLubyte SOLID = 255;
+    return colors[idx*4 + 3] != SOLID;
+}
+void DrawGLUtils::xl3DMesh::calcProgram() {
+    solidProgramTypes.clear();
+    transparentProgramTypes.clear();
+    if (!images.empty()) {
+        PType curType;
+        curType.image = images[0];
+        curType.startIdx = 0;
+        curType.count = 1;
+        curType.transparent = hasTransparent(0, colors);
+        for (int x = 1; x < images.size(); x++) {
+            if (images[x] != curType.image
+                || hasTransparent(x, colors) != curType.transparent) {
+                //changing something
+                if (curType.transparent) {
+                    transparentProgramTypes.push_back(curType);
+                } else {
+                    solidProgramTypes.push_back(curType);
+                }
+                curType.image = images[x];
+                curType.startIdx = x;
+                curType.count = 1;
+                curType.transparent = hasTransparent(x, colors);
+            } else {
+                curType.count++;
+            }
+        }
+        if (curType.transparent) {
+            transparentProgramTypes.push_back(curType);
+        } else {
+            solidProgramTypes.push_back(curType);
+        }
+    }
+}
+class GL1Mesh : public DrawGLUtils::xl3DMesh {
+    
+public:
+    GL1Mesh() : DrawGLUtils::xl3DMesh(), lastBrightness(-1), wfList(0), solidList(0), transparentList(0) {
+    }
+    virtual ~GL1Mesh() {
+        if (wfList) {
+            glDeleteLists(wfList, 1);
+        }
+        if (lList) {
+            glDeleteLists(lList, 1);
+        }
+        if (solidList) {
+            glDeleteLists(solidList, 1);
+        }
+        if (transparentList) {
+            glDeleteLists(transparentList, 1);
+        }
+    }
+
+    void Draw(bool wf, float brightness, bool transparent) {
+        if (solidProgramTypes.empty() && transparentProgramTypes.empty()) {
+            calcProgram();
+            wfList = glGenLists(1);
+            lList = glGenLists(1);
+            solidList = glGenLists(1);
+            transparentList = glGenLists(1);
+
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &wireframe[0]));
+            glNewList(wfList, GL_COMPILE);
+            LOG_GL_ERRORV(glColor4f(0.0, 1.0, 0.0, 1.0));
+            glBegin(GL_LINES);
+            for (int x = 0; x < wireframe.size(); x += 3) {
+                glVertex3f(wireframe[x], wireframe[x + 1], wireframe[x + 2]);
+            }
+            glEnd();
+            glEndList();
+            
+            glNewList(lList, GL_COMPILE);
+            LOG_GL_ERRORV(glColor4f(0.0, 0.0, 0.0, 1.0));
+            glEnable(GL_LINE_SMOOTH);
+            glBegin(GL_LINES);
+            for (int x = 0; x < lines.size(); x += 3) {
+                glVertex3f(lines[x], lines[x + 1], lines[x + 2]);
+            }
+            glEnd();
+            glDisable(GL_LINE_SMOOTH);
+            glEndList();
+        }
+        if (lastBrightness != brightness) {
+            if (solidList) {
+                glDeleteLists(solidList, 1);
+            }
+            solidList = glGenLists(1);
+            if (transparentList) {
+                glDeleteLists(transparentList, 1);
+            }
+            transparentList = glGenLists(1);
+
+            dimColors.resize(colors.size());
+            for (int x = 0; x < colors.size(); x += 4) {
+                for (int y = 0; y < 3; y++) {
+                    float t = colors[x + y] * brightness;
+                    t /= 100.0f;
+                    t /= 255.0f;
+                    dimColors[x + y] = t;
+                }
+                float t = colors[x + 3];
+                t /= 255.0f;
+                dimColors[x + 3] = t;
+            }
+            lastBrightness = brightness;
+            
+            float bri = brightness;
+            bri /= 100.0f;
+            LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+            LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &vertices[0]));
+            LOG_GL_ERRORV(glColorPointer(4, GL_FLOAT, 0, &dimColors[0]));
+            LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, &texCoords[0]));
+            LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+            glNewList(solidList, GL_COMPILE);
+            for (auto & pt : solidProgramTypes) {
+                if (pt.image == -1) {
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                } else {
+                    LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                    LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glColor4f(bri, bri, bri, 1.0f));
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                }
+                LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                if (pt.image != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                }
+            }
+            glEndList();
+            glNewList(transparentList, GL_COMPILE);
+            for (auto & pt : transparentProgramTypes) {
+                if (pt.image == -1) {
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, 0));
+                } else {
+                    LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, pt.image));
+                    LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glColor4f(bri, bri, bri, 1.0f));
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                }
+                LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, pt.startIdx, pt.count));
+                if (pt.image != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                }
+            }
+            glEndList();
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, &lines[0]));
+
+            LOG_GL_ERRORV(glDisableClientState(GL_VERTEX_ARRAY));
+            LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+            LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+            LOG_GL_ERRORV(glVertexPointer(3, GL_FLOAT, 0, 0));
+            LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0));
+            LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, 0));
+        }
+        glm::mat4 curMatrix;
+        glGetFloatv(GL_MODELVIEW_MATRIX, glm::value_ptr(curMatrix));
+        glm::mat4 mat = curMatrix * matrix;
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(mat)));
+        float bri = brightness;
+        bri /= 100.0f;
+
+        if (wf) {
+            if (!transparent) {
+                glCallList(wfList);
+            }
+        } else {
+            if (transparent) {
+                glCallList(transparentList);
+            } else {
+                glCallList(solidList);
+                if (!lines.empty()) {
+                    glCallList(lList);
+                }
+            }
+        }
+        LOG_GL_ERRORV(glColor4f(1, 1, 1, 1));
+        LOG_GL_ERRORV(glLoadMatrixf(glm::value_ptr(curMatrix)));
+    }
+    private:
+    std::vector<GLfloat> dimColors;
+    int lastBrightness;
+    GLint wfList;
+    GLint lList;
+    GLint solidList;
+    GLint transparentList;
+
+};
+
 class OpenGL11Cache : public DrawGLUtils::xlGLCacheInfo {
 public:
     OpenGL11Cache() {
@@ -124,8 +378,15 @@ public:
 
     void Draw(DrawGLUtils::xlAccumulator &va) override {
         if (va.count == 0) {
-            return;
+            bool hasMesh = false;
+            for (auto &a : va.types) {
+                hasMesh |= a.mesh != nullptr;
+            }
+            if (!hasMesh) {
+                return;
+            }
         }
+
         bool textsBound = false;
         LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
         LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
@@ -134,39 +395,51 @@ public:
         LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
 
         for (auto it = va.types.begin(); it != va.types.end(); ++it) {
-            if (it->textureId != -1) {
-                LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-                if (!textsBound) {
-                    LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
-                    textsBound = true;
-                }
-                LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
-                LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
-                float trans = it->textureAlpha;
-                trans /= 255.0f;
-                float bri = it->textureBrightness;
-                LOG_GL_ERRORV(glColor4f(bri/100.0f, bri/100.0f, bri/100.0f, trans));
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            }
-            if (it->type == GL_POINTS) {
-                LOG_GL_ERRORV(glPointSize(it->extra));
-            } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
-                DrawGLUtils::SetLineWidth(it->extra);
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glEnable(it->enableCapability));
-            }
-            LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
-            if (it->textureId != -1) {
+            if (it->mesh != nullptr) {
+                GL1Mesh *mesh = (GL1Mesh*)it->mesh;
+                mesh->Draw(it->extra == 1, it->textureBrightness, it->meshTransparents);
+                
+                LOG_GL_ERRORV(glEnableClientState(GL_VERTEX_ARRAY));
                 LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
-                LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-                LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
-                LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
-            }
-            if (it->enableCapability != 0) {
-                LOG_GL_ERRORV(glDisable(it->enableCapability));
+                
+                LOG_GL_ERRORV(glColorPointer(4, GL_UNSIGNED_BYTE, 0, &va.colors[0]));
+                LOG_GL_ERRORV(glVertexPointer(va.coordsPerVertex, GL_FLOAT, 0, &va.vertices[0]));
+                textsBound = false;
+            } else {
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+                    if (!textsBound) {
+                        LOG_GL_ERRORV(glTexCoordPointer(2, GL_FLOAT, 0, va.tvertices));
+                        textsBound = true;
+                    }
+                    LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, it->textureId));
+                    LOG_GL_ERRORV(glEnable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glDisableClientState(GL_COLOR_ARRAY));
+                    float trans = it->textureAlpha;
+                    trans /= 255.0f;
+                    float bri = it->textureBrightness;
+                    LOG_GL_ERRORV(glColor4f(bri/100.0f, bri/100.0f, bri/100.0f, trans));
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                }
+                if (it->type == GL_POINTS) {
+                    LOG_GL_ERRORV(glPointSize(it->extra));
+                } else if (it->type == GL_LINES || it->type == GL_LINE_LOOP || it->type == GL_LINE_STRIP) {
+                    DrawGLUtils::SetLineWidth(it->extra);
+                }
+                if (it->enableCapability != 0) {
+                    LOG_GL_ERRORV(glEnable(it->enableCapability));
+                }
+                LOG_GL_ERRORV(glDrawArrays(it->type, it->start, it->count));
+                if (it->textureId != -1) {
+                    LOG_GL_ERRORV(glEnableClientState(GL_COLOR_ARRAY));
+                    LOG_GL_ERRORV(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+                    LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
+                    LOG_GL_ERRORV(glColor4f(1.0, 1.0, 1.0, 1.0));
+                }
+                if (it->enableCapability != 0) {
+                    LOG_GL_ERRORV(glDisable(it->enableCapability));
+                }
             }
         }
 
@@ -289,6 +562,10 @@ public:
         LOG_GL_ERRORV(glDisable(GL_TEXTURE_2D));
     }
 
+    virtual DrawGLUtils::xl3DMesh *createMesh() override {
+        return new GL1Mesh();
+    }
+    
     virtual void Ortho(int topleft_x, int topleft_y, int bottomright_x, int bottomright_y) override {
         LOG_GL_ERRORV(glMatrixMode(GL_PROJECTION));
         LOG_GL_ERRORV(glLoadIdentity());
@@ -452,6 +729,10 @@ void DrawGLUtils::Draw(xlVertexTextureAccumulator &va, int type, int enableCapab
 
 void DrawGLUtils::Draw(xlVertex3Accumulator &va, const xlColor & color, int type, int enableCapability) {
 	currentCache->Draw(va, color, type, enableCapability);
+}
+
+DrawGLUtils::xl3DMesh *DrawGLUtils::createMesh() {
+    return currentCache->createMesh();
 }
 
 void DrawGLUtils::PreAlloc(int verts) {
@@ -647,6 +928,11 @@ void DrawGLUtils::DrawFillRectangle(const xlColor &color, wxByte alpha, int x, i
     currentCache->flush(GL_TRIANGLES);
 }
 
+void DrawGLUtils::xlAccumulator::AddMesh(xl3DMesh *m, bool wireframe, float brightness, bool transparents) {
+    if (m) {
+        types.push_back(BufferRangeType(m, wireframe, brightness, transparents));
+    }
+}
 
 void DrawGLUtils::xlAccumulator::Finish(int type, int enableCapability, float extra) {
     if (!types.empty()
@@ -1591,7 +1877,7 @@ void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlC
     va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
     va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - halfwidth, y + halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y + halfwidth, z - halfwidth, color);
     va.AddVertex(x + halfwidth, y + halfwidth, z + halfwidth, color);
     va.AddVertex(x + halfwidth, y + halfwidth, z - halfwidth, color);
 
@@ -1600,14 +1886,14 @@ void DrawGLUtils::DrawCube(double x, double y, double z, double width, const xlC
     va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
     va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
 
-    va.AddVertex(x - halfwidth, y - halfwidth, z + halfwidth, color);
     va.AddVertex(x + halfwidth, y - halfwidth, z + halfwidth, color);
+    va.AddVertex(x - halfwidth, y - halfwidth, z - halfwidth, color);
     va.AddVertex(x + halfwidth, y - halfwidth, z - halfwidth, color);
 
     va.Finish(GL_TRIANGLES);
 }
 
-void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va)
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xl3Accumulator &va)
 {
     glm::vec4 c1(min_pt.x, max_pt.y, min_pt.z, 1.0f);
     glm::vec4 c2(max_pt.x, max_pt.y, min_pt.z, 1.0f);
@@ -1628,36 +1914,36 @@ void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat
     c8 = bound_matrix * c8;
 
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c1.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c1.x, c1.y, c1.z, c);
 
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
 
-    va.AddVertex(c1.x, c1.y, c1.z, xlWHITE);
-    va.AddVertex(c5.x, c5.y, c5.z, xlWHITE);
-    va.AddVertex(c2.x, c2.y, c2.z, xlWHITE);
-    va.AddVertex(c6.x, c6.y, c6.z, xlWHITE);
-    va.AddVertex(c3.x, c3.y, c3.z, xlWHITE);
-    va.AddVertex(c7.x, c7.y, c7.z, xlWHITE);
-    va.AddVertex(c4.x, c4.y, c4.z, xlWHITE);
-    va.AddVertex(c8.x, c8.y, c8.z, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c1.z, c);
+    va.AddVertex(c5.x, c5.y, c5.z, c);
+    va.AddVertex(c2.x, c2.y, c2.z, c);
+    va.AddVertex(c6.x, c6.y, c6.z, c);
+    va.AddVertex(c3.x, c3.y, c3.z, c);
+    va.AddVertex(c7.x, c7.y, c7.z, c);
+    va.AddVertex(c4.x, c4.y, c4.z, c);
+    va.AddVertex(c8.x, c8.y, c8.z, c);
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }
 
-void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
+void DrawGLUtils::DrawBoundingBox(xlColor c, glm::vec3& min_pt, glm::vec3& max_pt, glm::mat4& bound_matrix, DrawGLUtils::xlAccumulator &va)
 {
     glm::vec4 c1(min_pt.x, max_pt.y, 1.0f, 1.0f);
     glm::vec4 c2(max_pt.x, max_pt.y, 1.0f, 1.0f);
@@ -1670,14 +1956,14 @@ void DrawGLUtils::DrawBoundingBox(glm::vec3& min_pt, glm::vec3& max_pt, glm::mat
     c4 = bound_matrix * c4;
 
     LOG_GL_ERRORV(glHint(GL_LINE_SMOOTH_HINT, GL_NICEST));
-    va.AddVertex(c1.x, c1.y, xlWHITE);
-    va.AddVertex(c2.x, c2.y, xlWHITE);
-    va.AddVertex(c2.x, c2.y, xlWHITE);
-    va.AddVertex(c3.x, c3.y, xlWHITE);
-    va.AddVertex(c3.x, c3.y, xlWHITE);
-    va.AddVertex(c4.x, c4.y, xlWHITE);
-    va.AddVertex(c4.x, c4.y, xlWHITE);
-    va.AddVertex(c1.x, c1.y, xlWHITE);
+    va.AddVertex(c1.x, c1.y, c);
+    va.AddVertex(c2.x, c2.y, c);
+    va.AddVertex(c2.x, c2.y, c);
+    va.AddVertex(c3.x, c3.y, c);
+    va.AddVertex(c3.x, c3.y, c);
+    va.AddVertex(c4.x, c4.y, c);
+    va.AddVertex(c4.x, c4.y, c);
+    va.AddVertex(c1.x, c1.y, c);
 
     va.Finish(GL_LINES, GL_LINE_SMOOTH, 1.7f);
 }

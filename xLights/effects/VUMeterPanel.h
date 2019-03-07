@@ -22,28 +22,33 @@ class VUMeterPanel: public wxPanel
 		virtual ~VUMeterPanel();
 
 		//(*Declarations(VUMeterPanel)
+		BulkEditCheckBox* CheckBox_LogarithmicXAxis;
 		BulkEditCheckBox* CheckBox_VUMeter_SlowDownFalls;
 		BulkEditChoice* Choice_VUMeter_Shape;
 		BulkEditChoice* Choice_VUMeter_TimingTrack;
 		BulkEditChoice* Choice_VUMeter_Type;
 		BulkEditSlider* Slider_VUMeter_Bars;
 		BulkEditSlider* Slider_VUMeter_EndNote;
+		BulkEditSlider* Slider_VUMeter_Gain;
 		BulkEditSlider* Slider_VUMeter_Sensitivity;
 		BulkEditSlider* Slider_VUMeter_StartNote;
 		BulkEditSlider* Slider_VUMeter_XOffset;
 		BulkEditSlider* Slider_VUMeter_YOffset;
 		BulkEditTextCtrl* TextCtrl_VUMeter_Bars;
 		BulkEditTextCtrl* TextCtrl_VUMeter_EndNote;
+		BulkEditTextCtrl* TextCtrl_VUMeter_Gain;
 		BulkEditTextCtrl* TextCtrl_VUMeter_Sensitivity;
 		BulkEditTextCtrl* TextCtrl_VUMeter_StartNote;
 		BulkEditTextCtrl* TextCtrl_VUMeter_XOffset;
 		BulkEditTextCtrl* TextCtrl_VUMeter_YOffset;
+		BulkEditValueCurveButton* BitmapButton_VUMeter_Gain;
 		BulkEditValueCurveButton* BitmapButton_VUMeter_YOffsetVC;
 		wxStaticText* StaticText10;
 		wxStaticText* StaticText11;
 		wxStaticText* StaticText12;
 		wxStaticText* StaticText13;
 		wxStaticText* StaticText14;
+		wxStaticText* StaticText15;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText3;
@@ -84,6 +89,10 @@ class VUMeterPanel: public wxPanel
 		static const long ID_SLIDER_VUMeter_Sensitivity;
 		static const long IDD_TEXTCTRL_VUMeter_Sensitivity;
 		static const long ID_BITMAPBUTTON_SLIDER_VUMeter_Sensitivity;
+		static const long ID_STATICTEXT1;
+		static const long ID_SLIDER_VUMeter_Gain;
+		static const long ID_VALUECURVE_VUMeter_Gain;
+		static const long ID_TEXTCTRL_VUMeter_Gain;
 		static const long ID_STATICTEXT_VUMeter_Shape;
 		static const long ID_CHOICE_VUMeter_Shape;
 		static const long ID_STATICTEXT8;
@@ -100,6 +109,7 @@ class VUMeterPanel: public wxPanel
 		static const long ID_SLIDER_VUMeter_EndNote;
 		static const long IDD_TEXTCTRL_VUMeter_EndNote;
 		static const long ID_BITMAPBUTTON_SLIDER_VUMeter_EndNote;
+		static const long ID_CHECKBOX_VUMeter_LogarithmicX;
 		static const long ID_STATICTEXT_VUMeter_XOffset;
 		static const long ID_SLIDER_VUMeter_XOffset;
 		static const long IDD_TEXTCTRL_VUMeter_XOffset;

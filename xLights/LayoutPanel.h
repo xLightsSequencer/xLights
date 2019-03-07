@@ -43,17 +43,19 @@ class wxStringInputStream;
 
 wxDECLARE_EVENT(EVT_LISTITEM_CHECKED, wxCommandEvent);
 
-class CopyPasteModel
+class CopyPasteBaseObject
 {
     bool _ok;
+	bool _viewObject;
     wxXmlNode* _xmlNode;
 
 public:
-    CopyPasteModel(const std::string& in);
-    CopyPasteModel();
-    virtual ~CopyPasteModel();
+    CopyPasteBaseObject(const std::string& in);
+    CopyPasteBaseObject();
+    virtual ~CopyPasteBaseObject();
     bool IsOk() const { return _ok; }
-    wxXmlNode* GetModelXml() const
+	bool IsViewObject() const { return _viewObject; }
+    wxXmlNode* GetBaseObjectXml() const
     {
         if (_xmlNode == nullptr)
             return _xmlNode;
@@ -61,7 +63,7 @@ public:
             // we return a new copy assuming the recipient will delete it
             return new wxXmlNode(*_xmlNode);
     }
-    void SetModel(Model* model);
+    void SetBaseObject(BaseObject* model);
     std::string Serialise() const;
 };
 
@@ -122,6 +124,7 @@ class LayoutPanel: public wxPanel
 
 		static const long ID_TREELISTVIEW_MODELS;
         static const long ID_PREVIEW_REPLACEMODEL;
+        static const long ID_PREVIEW_RESET;
         static const long ID_PREVIEW_ALIGN;
         static const long ID_PREVIEW_MODEL_NODELAYOUT;
         static const long ID_PREVIEW_MODEL_LOCK;
@@ -214,6 +217,7 @@ class LayoutPanel: public wxPanel
         void DoPaste(wxCommandEvent& event);
         void DoUndo(wxCommandEvent& event);
         void DeleteSelectedModel();
+		void DeleteSelectedObject();
         void LockSelectedModels(bool lock);
         void PreviewSaveImage();
         void PreviewPrintImage();
@@ -236,6 +240,8 @@ class LayoutPanel: public wxPanel
         void Reset();
         void SetDirtyHiLight(bool dirty);
         std::string GetCurrentPreview() const;
+        void SetDisplay2DBoundingBox(bool bb);
+        void SetDisplay2DCenter0(bool bb);
 
         void ModelGroupUpdated(ModelGroup *group, bool full_refresh);
         bool HandleLayoutKeyBinding(wxKeyEvent& event);
@@ -264,7 +270,7 @@ class LayoutPanel: public wxPanel
         int ModelsSelectedCount() const;
         int ViewObjectsSelectedCount() const;
         int GetSelectedModelIndex() const;
-        std::list<Model*> GetSelectedModels() const;
+        std::list<BaseObject*> GetSelectedBaseObjects() const;
         void PreviewModelAlignWithGround();
         void PreviewModelAlignTops();
         void PreviewModelAlignBottoms();
@@ -355,6 +361,7 @@ class LayoutPanel: public wxPanel
             Icon_CandyCane,
             Icon_Circle,
             Icon_ChannelBlock,
+            Icon_Cube,
             Icon_Custom,
             Icon_Dmx,
             Icon_Icicle,
@@ -362,6 +369,7 @@ class LayoutPanel: public wxPanel
             Icon_Line,
             Icon_Matrix,
             Icon_Poly,
+            Icon_Sphere,
             Icon_Spinner,
             Icon_Star,
             Icon_SubModel,
