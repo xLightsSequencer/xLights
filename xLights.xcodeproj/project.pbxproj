@@ -104,6 +104,12 @@
 		671C0BCD1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib */; };
 		671D814B1A6723CF005819EA /* DragEffectBitmapButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */; };
 		671D814C1A6723CF005819EA /* EffectDropTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671D814A1A6723CF005819EA /* EffectDropTarget.cpp */; };
+		671E47F62231CD9700049DC9 /* SMSSettingsDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E47E52231CD9500049DC9 /* SMSSettingsDialog.cpp */; };
+		671E47F82231CD9700049DC9 /* SMSDaemonOptions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E47E82231CD9600049DC9 /* SMSDaemonOptions.cpp */; };
+		671E47F92231CD9700049DC9 /* TestMessagesDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E47EC2231CD9600049DC9 /* TestMessagesDialog.cpp */; };
+		671E47FA2231CD9700049DC9 /* xSMSDaemonMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E47EE2231CD9600049DC9 /* xSMSDaemonMain.cpp */; };
+		671E47FB2231CD9700049DC9 /* SMSMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671E47F32231CD9600049DC9 /* SMSMessage.cpp */; };
+		671E47FD2231CEC900049DC9 /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 671E47FC2231CEC900049DC9 /* libcurl.tbd */; };
 		671FD6301BD72014003C2E33 /* ResizeImageDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */; };
 		6722E9F821EC275D0063D54E /* EasyLights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6722E9F621EC275C0063D54E /* EasyLights.cpp */; };
 		6723D3911E3946ED00355C72 /* xlMacUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 67582EC91C73646300850363 /* xlMacUtils.mm */; };
@@ -962,6 +968,22 @@
 		671C0BCC1C245E230098A48D /* libwx_osx_cocoau_qa-3.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_osx_cocoau_qa-3.1.dylib"; path = "/opt/local/libdbg/libwx_osx_cocoau_qa-3.1.dylib"; sourceTree = "<group>"; };
 		671D81491A6723CF005819EA /* DragEffectBitmapButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragEffectBitmapButton.cpp; path = sequencer/DragEffectBitmapButton.cpp; sourceTree = "<group>"; };
 		671D814A1A6723CF005819EA /* EffectDropTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffectDropTarget.cpp; path = sequencer/EffectDropTarget.cpp; sourceTree = "<group>"; };
+		671E47E52231CD9500049DC9 /* SMSSettingsDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SMSSettingsDialog.cpp; sourceTree = "<group>"; };
+		671E47E62231CD9500049DC9 /* xSMSDaemonMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xSMSDaemonMain.h; sourceTree = "<group>"; };
+		671E47E82231CD9600049DC9 /* SMSDaemonOptions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SMSDaemonOptions.cpp; sourceTree = "<group>"; };
+		671E47E92231CD9600049DC9 /* SMSMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMSMessage.h; sourceTree = "<group>"; };
+		671E47EA2231CD9600049DC9 /* Bandwidth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bandwidth.h; sourceTree = "<group>"; };
+		671E47EB2231CD9600049DC9 /* Curl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Curl.h; sourceTree = "<group>"; };
+		671E47EC2231CD9600049DC9 /* TestMessagesDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestMessagesDialog.cpp; sourceTree = "<group>"; };
+		671E47ED2231CD9600049DC9 /* TestMessagesDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestMessagesDialog.h; sourceTree = "<group>"; };
+		671E47EE2231CD9600049DC9 /* xSMSDaemonMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = xSMSDaemonMain.cpp; sourceTree = "<group>"; };
+		671E47F02231CD9600049DC9 /* SMSDaemonOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMSDaemonOptions.h; sourceTree = "<group>"; };
+		671E47F12231CD9600049DC9 /* SMSService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMSService.h; sourceTree = "<group>"; };
+		671E47F22231CD9600049DC9 /* Twilio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Twilio.h; sourceTree = "<group>"; };
+		671E47F32231CD9600049DC9 /* SMSMessage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SMSMessage.cpp; sourceTree = "<group>"; };
+		671E47F42231CD9700049DC9 /* SMSSettingsDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMSSettingsDialog.h; sourceTree = "<group>"; };
+		671E47F52231CD9700049DC9 /* voip_ms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voip_ms.h; sourceTree = "<group>"; };
+		671E47FC2231CEC900049DC9 /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
 		671FD62E1BD72014003C2E33 /* ResizeImageDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ResizeImageDialog.cpp; sourceTree = "<group>"; };
 		671FD62F1BD72014003C2E33 /* ResizeImageDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResizeImageDialog.h; sourceTree = "<group>"; };
 		6722E9F621EC275C0063D54E /* EasyLights.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EasyLights.cpp; path = controllers/EasyLights.cpp; sourceTree = "<group>"; };
@@ -2113,6 +2135,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				671E47FD2231CEC900049DC9 /* libcurl.tbd in Frameworks */,
 				6796BAE521DAF44600F18EF7 /* libzstd.a in Frameworks */,
 				67B6F33F2040FB5200B847E0 /* libportmidi.a in Frameworks */,
 				67F23F8A1E329DF500F8B985 /* libavcodec.57.dylib in Frameworks */,
@@ -2273,6 +2296,21 @@
 		671E47E42231CD3400049DC9 /* xSMSDaemon */ = {
 			isa = PBXGroup;
 			children = (
+				671E47EA2231CD9600049DC9 /* Bandwidth.h */,
+				671E47EB2231CD9600049DC9 /* Curl.h */,
+				671E47E82231CD9600049DC9 /* SMSDaemonOptions.cpp */,
+				671E47F02231CD9600049DC9 /* SMSDaemonOptions.h */,
+				671E47F32231CD9600049DC9 /* SMSMessage.cpp */,
+				671E47E92231CD9600049DC9 /* SMSMessage.h */,
+				671E47F12231CD9600049DC9 /* SMSService.h */,
+				671E47E52231CD9500049DC9 /* SMSSettingsDialog.cpp */,
+				671E47F42231CD9700049DC9 /* SMSSettingsDialog.h */,
+				671E47EC2231CD9600049DC9 /* TestMessagesDialog.cpp */,
+				671E47ED2231CD9600049DC9 /* TestMessagesDialog.h */,
+				671E47F22231CD9600049DC9 /* Twilio.h */,
+				671E47F52231CD9700049DC9 /* voip_ms.h */,
+				671E47EE2231CD9600049DC9 /* xSMSDaemonMain.cpp */,
+				671E47E62231CD9500049DC9 /* xSMSDaemonMain.h */,
 			);
 			path = xSMSDaemon;
 			sourceTree = "<group>";
@@ -2842,6 +2880,7 @@
 		67E7086F17B51AB400A22034 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				671E47FC2231CEC900049DC9 /* libcurl.tbd */,
 				6794272521CC0E6500F7ED59 /* libzstd.a */,
 				67A14C8520DD337E006EFCFA /* Security.framework */,
 				67A14C8320DD336E006EFCFA /* libz.tbd */,
@@ -4294,6 +4333,7 @@
 				670828012024C39C0002B617 /* LorOptimisedDialog.cpp in Sources */,
 				670828022024C39C0002B617 /* LOROptimisedOutput.cpp in Sources */,
 				67D75E712020EE34005BAC6E /* DDPDialog.cpp in Sources */,
+				671E47FA2231CD9700049DC9 /* xSMSDaemonMain.cpp in Sources */,
 				67D75E702020EE21005BAC6E /* DDPOutput.cpp in Sources */,
 				3D585F2F1E7E52F800A3F84F /* SequenceData.cpp in Sources */,
 				67B02300204A794200639D21 /* SustainDialog.cpp in Sources */,
@@ -4349,8 +4389,10 @@
 				67F240051E32A03F00F8B985 /* ArtNetDialog.cpp in Sources */,
 				1ECB4F751FF635D7006D57AA /* ConfigureOSC.cpp in Sources */,
 				67F240061E32A03F00F8B985 /* ArtNetOutput.cpp in Sources */,
+				671E47FB2231CD9700049DC9 /* SMSMessage.cpp in Sources */,
 				67FFB81C1FA3F65E007F9FBB /* OutputProcessDeadChannel.cpp in Sources */,
 				67B31CB921AC2E5A005ECB82 /* PlayListItemDim.cpp in Sources */,
+				671E47F92231CD9700049DC9 /* TestMessagesDialog.cpp in Sources */,
 				67F240071E32A03F00F8B985 /* Controller.cpp in Sources */,
 				67F240081E32A03F00F8B985 /* DMXOutput.cpp in Sources */,
 				67C5814E1E4B95A400932DFA /* Xyzzy.cpp in Sources */,
@@ -4403,6 +4445,7 @@
 				67D75E322020ED1B005BAC6E /* EventDataPanel.cpp in Sources */,
 				67F23FA61E329E3300F8B985 /* server.cpp in Sources */,
 				670B171921973D07004F0993 /* ExtraIPsDialog.cpp in Sources */,
+				671E47F82231CD9700049DC9 /* SMSDaemonOptions.cpp in Sources */,
 				67C581531E4B95A400932DFA /* AddReverseDialog.cpp in Sources */,
 				67B6F3342040F59500B847E0 /* EventMIDI.cpp in Sources */,
 				67F23FFC1E329E7400F8B985 /* PlayListItemRunProcess.cpp in Sources */,
@@ -4411,6 +4454,7 @@
 				67F23F641E329AD800F8B985 /* WebServer.cpp in Sources */,
 				6765DD29220F2029007C8180 /* SyncManager.cpp in Sources */,
 				671142E9207BAB9D00F45296 /* PlayListItemSetColourPanel.cpp in Sources */,
+				671E47F62231CD9700049DC9 /* SMSSettingsDialog.cpp in Sources */,
 				6725FAEC1F943B1A007F2D7C /* OutputProcessGamma.cpp in Sources */,
 				67C581521E4B95A400932DFA /* MatrixMapper.cpp in Sources */,
 				67F23FFA1E329E7400F8B985 /* PlayListItemRunCommand.cpp in Sources */,

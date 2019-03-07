@@ -398,7 +398,7 @@
 					<handler function="OnMenuItem_OptionsSelected" entry="EVT_MENU" />
 				</object>
 			</object>
-			<object class="wxMenu" variable="Menu3" member="yes">
+			<object class="wxMenu" variable="ToolsMenu" member="yes">
 				<label>&amp;Tools</label>
 				<object class="wxMenuItem" name="ID_MNU_VIEW_LOG" variable="MenuItem_ViewLog" member="yes">
 					<label>&amp;View Log</label>
@@ -420,6 +420,10 @@
 					<label>Crash</label>
 					<help>Crash xSchedule</help>
 					<handler function="OnMenuItem_CrashSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MENUITEM_SMS" variable="SMSMenuItem" member="yes">
+					<label>SMS</label>
+					<handler function="OnSMSMenuItemSelected" entry="EVT_MENU" />
 				</object>
 			</object>
 			<object class="wxMenu" variable="Menu4" member="yes">
