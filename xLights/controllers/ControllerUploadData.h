@@ -53,6 +53,7 @@ public:
     {
         return _startChannel < cpm._startChannel;
     }
+    int GetChannelsPerPixel();
     long Channels() const { return _endChannel - _startChannel + 1; }
     long GetStartChannel() const { return _startChannel; }
     long GetEndChannel() const { return _endChannel; }
@@ -93,6 +94,7 @@ struct UDVirtualString
     int _groupCount;
     bool _reverseSet;
     std::string _reverse;
+    int _channelsPerPixel;
 };
 
 class UDControllerPort
@@ -106,7 +108,7 @@ class UDControllerPort
         std::list<UDVirtualString*> _virtualStrings;
 
 	public:
-        UDControllerPort(int port, std::string protocol = "") { _protocol = protocol; _port = port; _valid = true; _invalidReason = ""; }
+        UDControllerPort(int port, const std::string & protocol = "") { _protocol = protocol; _port = port; _valid = true; _invalidReason = ""; }
 		~UDControllerPort();
         UDControllerPortModel* GetFirstModel() const;
         UDControllerPortModel* GetLastModel() const;
@@ -126,7 +128,7 @@ class UDControllerPort
         bool Check(const UDController* controller, bool pixel, ControllerRules* rules, std::list<Output*>& outputs, std::string& res) const;
         int GetUniverse() const;
         int GetUniverseStartChannel() const;
-        void CreateVirtualStrings();
+        void CreateVirtualStrings(bool mergeSequential);
         int GetVirtualStringCount() const { return _virtualStrings.size(); }
         std::list<UDVirtualString*> GetVirtualStrings() const { return _virtualStrings; }
         std::list<UDControllerPortModel*> GetModels() const { return _models; }
@@ -136,6 +138,7 @@ class UDController
 {
 	private:
 		std::string _ipAddress;
+        std::string _hostName;
 		std::list<Output*> _outputs;
 		std::map<int, UDControllerPort*> _pixelPorts;
 		std::map<int, UDControllerPort*> _serialPorts;
@@ -143,7 +146,7 @@ class UDController
         bool ModelProcessed(Model* m);
 
 	public:
-		UDController(std::string ip, ModelManager* mm, OutputManager* om, std::list<int>* outputs, std::string& check);
+        UDController(const std::string &ip, const std::string &hostName, ModelManager* mm, OutputManager* om, const std::list<int>* outputs, std::string& check);
 		~UDController();
 		UDControllerPort* GetControllerPixelPort(int port);
 		UDControllerPort* GetControllerSerialPort(int port);

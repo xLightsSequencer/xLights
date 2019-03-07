@@ -839,7 +839,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     logger_base.debug("PixLite/PixCon Outputs Upload: Uploading to %s", (const char *)_ip.c_str());
     
     std::string check;
-    UDController cud(_ip, allmodels, outputManager, &selected, check);
+    UDController cud(_ip, _ip, allmodels, outputManager, &selected, check);
 
     PixLite16ControllerRules rules(_config);
     bool success = cud.Check(&rules, check);
@@ -877,7 +877,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                     _config._outputReverse[pp-1] = 0;
                 }
 
-                port->CreateVirtualStrings();
+                port->CreateVirtualStrings(true);
                 if (port->GetVirtualStringCount() > 1)
                 {
                     check += wxString::Format("WARN: String port %d has model settings that can't be uploaded.\n", pp);
@@ -899,7 +899,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                     _config._dmxUniverse[sp-1] = port->GetUniverse();
                     _config._dmxOn[sp-1] = 0x01; // turn it on
 
-                    port->CreateVirtualStrings();
+                    port->CreateVirtualStrings(true);
                     if (port->GetVirtualStringCount() > 1)
                     {
                         check += wxString::Format("WARN: Serial port %d has model settings that can't be uploaded.\n", sp);

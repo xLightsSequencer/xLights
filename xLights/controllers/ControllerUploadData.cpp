@@ -13,11 +13,12 @@
 //Need to further reduce the falcon code ... build richer functions
 //like GetMaxPixelChannel(startPort, endPort);
 
-UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, std::list<int>* selected, std::string& check)
+UDController::UDController(const std::string &ip, const std::string &hostname, ModelManager* mm, OutputManager* om, const std::list<int>* selected, std::string& check)
 {
     std::list<Model*> noConnectionModels;
 
     _ipAddress = ip;
+    _hostName = hostname;
 
     // get the list of outputs going to this controller
     _outputs = om->GetAllOutputs(ip, *selected);
@@ -66,7 +67,8 @@ UDController::UDController(std::string ip, ModelManager* mm, OutputManager* om, 
                                     long startChannel = it->second->GetStringStartChan(i) + 1;
                                     long sc;
                                     Output* oo = om->GetOutput(startChannel, sc);
-                                    if (oo != nullptr && oo->GetIP() == _ipAddress)
+                                    if (oo != nullptr &&
+                                        ((oo->GetIP() == _ipAddress) || (oo->GetIP() == _hostName)))
                                     {
                                         GetControllerPixelPort(port + i)->AddModel(it->second, om, i);
                                     }
@@ -200,6 +202,9 @@ void UDController::Dump() const
     logger_base.debug("UDController Dump");
 
     logger_base.debug("   IP Address %s.", (const char *)_ipAddress.c_str());
+    if (_hostName != "" && _hostName != _ipAddress) {
+        logger_base.debug("   HostName %s.", (const char *)_hostName.c_str());
+    }
     logger_base.debug("   Outputs:");
     for (auto it = _outputs.begin(); it != _outputs.end(); ++it)
     {
@@ -404,6 +409,9 @@ bool UDController::ModelProcessed(Model* m)
     }
 
     return false;
+}
+int UDControllerPortModel::GetChannelsPerPixel() {
+    return _model->GetNodeChannelCount(_model->GetStringType());
 }
 
 int UDControllerPortModel::GetBrightness(int currentBrightness)
@@ -778,7 +786,7 @@ int UDControllerPort::GetUniverseStartChannel() const
     }
 }
 
-void UDControllerPort::CreateVirtualStrings()
+void UDControllerPort::CreateVirtualStrings(bool mergeSequential)
 {
     while (_virtualStrings.size() > 0)
     {
@@ -798,7 +806,7 @@ void UDControllerPort::CreateVirtualStrings()
         float gamma = it->GetGamma(-9999);
         int groupCount = it->GetGroupCount(-9999);
 
-        if (it == _models.front())
+        if (it == _models.front() || !mergeSequential)
         {
             // this is automatically a new virtual string
             current = new UDVirtualString();
@@ -832,6 +840,7 @@ void UDControllerPort::CreateVirtualStrings()
             current->_protocol = it->GetProtocol();
             current->_universe = it->GetUniverse();
             current->_universeStartChannel = it->GetUniverseStartChannel();
+            current->_channelsPerPixel = it->GetChannelsPerPixel();
 
             if (gamma == -9999)
             {
