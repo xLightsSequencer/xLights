@@ -5,18 +5,25 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/menu.h>
+
 //(*IdInit(LayerSelectDialog)
 const long LayerSelectDialog::ID_CHECKLISTBOX1 = wxNewId();
 const long LayerSelectDialog::ID_BUTTON1 = wxNewId();
 const long LayerSelectDialog::ID_BUTTON2 = wxNewId();
 //*)
 
+const long LayerSelectDialog::ID_MCU_SELECTALL = wxNewId();
+const long LayerSelectDialog::ID_MCU_SELECTNONE = wxNewId();
+const long LayerSelectDialog::ID_MCU_SELECTPOPULATED = wxNewId();
+
 BEGIN_EVENT_TABLE(LayerSelectDialog,wxDialog)
 	//(*EventTable(LayerSelectDialog)
 	//*)
 END_EVENT_TABLE()
 
-LayerSelectDialog::LayerSelectDialog(wxWindow* parent, int startLayer, int endLayer, std::string layersSelected, wxWindowID id,const wxPoint& pos,const wxSize& size)
+LayerSelectDialog::LayerSelectDialog(wxWindow* parent, int startLayer, int endLayer, std::string layersSelected, std::vector<int> layerWithEffect, wxWindowID id,const wxPoint& pos,const wxSize& size):
+	_layerWithEffect(layerWithEffect)
 {
 	//(*Initialize(LayerSelectDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -45,6 +52,8 @@ LayerSelectDialog::LayerSelectDialog(wxWindow* parent, int startLayer, int endLa
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayerSelectDialog::OnButton_OkClick);
 	Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&LayerSelectDialog::OnButton_CancelClick);
 	//*)
+
+	Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&LayerSelectDialog::OnListRClick);
 
     _start = startLayer;
 
@@ -131,4 +140,55 @@ void LayerSelectDialog::ValidateWindow()
     {
         Button_Ok->Enable(true);
     }
+}
+
+void LayerSelectDialog::OnListRClick(wxContextMenuEvent& event)
+{
+	wxMenu mnu;
+	mnu.Append(ID_MCU_SELECTALL, "Select All");
+	mnu.Append(ID_MCU_SELECTNONE, "Deselect All");
+	mnu.Append(ID_MCU_SELECTPOPULATED, "Select Layers With Effects");
+
+	mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayerSelectDialog::OnPopup, nullptr, this);
+	PopupMenu(&mnu);
+}
+
+void LayerSelectDialog::OnPopup(wxCommandEvent& event)
+{
+	if (event.GetId() == ID_MCU_SELECTALL)
+	{
+		SelectAllLayers();
+	}
+	else if (event.GetId() == ID_MCU_SELECTNONE)
+	{
+		DeselectAllLayers();
+	}
+	else if (event.GetId() == ID_MCU_SELECTPOPULATED)
+	{
+		SelectLayersWithEffects();
+	}
+}
+
+void LayerSelectDialog::DeselectAllLayers()
+{
+	for (size_t i = 0; i < CheckListBox_Layers->GetCount(); i++)
+	{
+		CheckListBox_Layers->Check(i, false);
+	}
+}
+
+void LayerSelectDialog::SelectLayersWithEffects()
+{
+	for (size_t i = 0; i < CheckListBox_Layers->GetCount(); i++)
+	{
+		int layer = _start + i - 1;//zero based index
+		if (std::find(_layerWithEffect.begin(), _layerWithEffect.end(), layer) != _layerWithEffect.end())
+		{
+			CheckListBox_Layers->Check(i);
+		}
+		else
+		{
+			CheckListBox_Layers->Check(i, false);
+		}
+	}
 }

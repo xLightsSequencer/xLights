@@ -50,7 +50,7 @@ public:
     void SetVisible(bool visible) {mVisible = visible;}
 
     virtual bool HasEffects() const;
-    
+ 
     virtual EffectLayer* GetEffectLayerFromExclusiveIndex(int index);
     EffectLayer* GetEffectLayer(int index) const;
     int GetLayerNumberFromIndex(int index);
@@ -60,6 +60,7 @@ public:
     bool CleanupFileLocations(xLightsFrame* frame, EffectManager& em);
     bool SelectEffectUsingDescription(std::string description);
     bool SelectEffectUsingLayerTime(int layer, int time);
+	virtual std::vector<int> GetLayersWithEffects() const;
 
     EffectLayer* AddEffectLayer();
     void RemoveEffectLayer(int index);

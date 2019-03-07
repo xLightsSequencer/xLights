@@ -67,6 +67,17 @@ bool Element::HasEffects() const {
     return false;
 }
 
+std::vector<int> Element::GetLayersWithEffects() const {
+	std::vector<int> returnList;
+	for (size_t x = 0; x < mEffectLayers.size(); x++) {
+		if (mEffectLayers[x]->GetEffectCount() > 0) {
+			returnList.push_back(x);
+		}
+	}
+
+	return returnList;
+}
+
 EffectLayer* Element::GetEffectLayerFromExclusiveIndex(int index)
 {
     for (size_t i = 0; i < mEffectLayers.size(); i++)
@@ -203,7 +214,6 @@ bool SubModelElement::HasEffects() const
     }
     return false;
 }
-
 
 TimingElement::TimingElement(SequenceElements *p, const std::string &name)
 : Element(p, name),
