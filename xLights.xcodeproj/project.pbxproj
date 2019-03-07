@@ -2270,6 +2270,13 @@
 			name = support;
 			sourceTree = "<group>";
 		};
+		671E47E42231CD3400049DC9 /* xSMSDaemon */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = xSMSDaemon;
+			sourceTree = "<group>";
+		};
 		67480D0D2072575400B3ED60 /* xCapture */ = {
 			isa = PBXGroup;
 			children = (
@@ -3263,6 +3270,7 @@
 		67F23F221E32994400F8B985 /* xSchedule */ = {
 			isa = PBXGroup;
 			children = (
+				671E47E42231CD3400049DC9 /* xSMSDaemon */,
 				67C581461E4B95A400932DFA /* AddReverseDialog.cpp */,
 				67C581471E4B95A400932DFA /* AddReverseDialog.h */,
 				67F23F291E32994400F8B985 /* Assets.xcassets */,
